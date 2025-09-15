@@ -1,3 +1,4 @@
+```mermaid
 graph TB
     Internet([Internet]) --> Router[GL.iNet GL-MT6000<br/>OpenWrt<br/>192.168.1.1]
     
@@ -67,3 +68,26 @@ graph TB
     class HomeAssistant,Frigate,RaspberryPi device
     class SmartPlug1,SmartPlug2,SmartPlug3,SmokeSensor1,SmokeSensor2,BambuP1S critical
     class VPN,RemoteAccess,FirewallRules,CameraFeeds security
+```
+
+
+## Document References & Architecture  
+- **Architecture Decision:** [[docs/decisions/001-network-architecture]] - Design rationale  
+- **Firewall Implementation:** [[configs/openwrt/firewall-config.sh]] - Security rules for this topology
+- **Project Context:** [[docs/session-states/session_state_20250909]] - Original design session
+
+## Configuration Dependencies
+This network diagram drives the configuration requirements for:
+- [[configs/openwrt/vlan-config.conf]] - VLAN interface setup (pending)
+- [[configs/openwrt/main-config.conf]] - Router configuration (pending)
+- [[configs/home-assistant/configuration.yaml]] - HA VLAN 20 integration (pending)  
+- [[configs/frigate/config.yml]] - NVR VLAN 30 configuration (pending)
+- [[configs/esphome/printairpipe-controller.yaml]] - IoT VLAN 50 sensors (pending)
+
+## Implementation Status
+- ✅ **Network Architecture** - 4-VLAN design complete per [[docs/decisions/001-network-architecture]]
+- ✅ **Security Rules** - Firewall policies defined in [[configs/openwrt/firewall-config.sh]]
+- 🚧 **Router Setup** - VLAN interfaces pending configuration  
+- 🚧 **Device Assignment** - IP allocation per diagram specifications pending
+
+**Next Implementation:** Configure VLAN interfaces using [[configs/openwrt/vlan-config.conf]]

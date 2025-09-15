@@ -1,4 +1,4 @@
-# Home Automation Project - Master Prompt
+# Home Automation Project
 
 A comprehensive home automation system focused on fire safety and safe ventilation for 3D printing operations, with integrated CCTV monitoring, secure network architecture, and AI-driven automation through Claude MCP integration.
 
@@ -6,7 +6,9 @@ A comprehensive home automation system focused on fire safety and safe ventilati
 
 **Primary Objective:** Create a comprehensive home automation system focused on fire safety and safe ventilation for 3D printing operations, with integrated CCTV monitoring, secure network architecture, and AI-driven automation through Claude MCP integration.
 
-**Project Status:**
+**GitHub Repository:** https://github.com/Nysplaidame/home-automation-project/tree/main
+
+## Project Status
 - **Current Phase:** Network Architecture & Planning
 - **Progress:** 25% Complete
 - **Priority:** Safety systems implementation first
@@ -66,16 +68,6 @@ A comprehensive home automation system focused on fire safety and safe ventilati
   - Predictive maintenance and anomaly detection
   - Advanced automation logic based on multiple sensor inputs
 
-## Virtualization Strategy
-
-**Host:** Proxmox on MINIX mini PC
-
-**VMs:**
-1. Home Assistant (primary automation hub)
-2. Frigate NVR (CCTV management)
-3. Claude MCP integration service
-4. Additional services as needed
-
 ## Network Security & Segmentation
 
 ### Security Requirements
@@ -90,6 +82,33 @@ A comprehensive home automation system focused on fire safety and safe ventilati
 - **VLAN 30:** CCTV (192.168.30.0/24) - No internet, HA bridge access
 - **VLAN 40:** Storage (192.168.40.0/24) - No internet, Frigate access
 - **VLAN 50:** IoT Sensors (192.168.50.0/24) - No internet, HA control only
+
+## Quick Start
+1. Review docs/decisions/ for architecture decisions
+2. Check docs/session-states/ for latest development context  
+3. See configs/ for current system configurations
+4. Refer to docs/procedures/ for setup instructions
+
+## Repository Structure
+docs/                   # Documentation and session states
+├── session-states/     # Claude session documentation
+├── decisions/          # Architecture decisions and rationale
+├── procedures/         # Step-by-step procedures
+└── troubleshooting/    # Known issues and solutions
+configs/                # System configurations
+├── openwrt/            # Router configurations
+├── home-assistant/     # HA configs and automations
+├── frigate/            # NVR configurations
+├── esphome/            # PrintAirPipe and sensor configs
+└── proxmox/            # VM configurations
+hardware/               # Physical system documentation
+├── stl-files/          # 3D printing files
+├── wiring-diagrams/    # Circuit diagrams
+└── part-lists/         # Component specifications
+scripts/                # Automation and setup scripts
+├── setup/              # Installation scripts
+├── backup/             # Backup procedures
+└── monitoring/         # Health check scripts
 
 ## Implementation Phases
 
@@ -132,26 +151,48 @@ A comprehensive home automation system focused on fire safety and safe ventilati
 - [ ] Remote access configuration
 - [ ] Documentation and monitoring setup
 
-## Key Technical Challenges
+## 📋 Key Architecture Documents
+- **Network Design:** [[docs/decisions/001-network-architecture]] - 4-VLAN security architecture rationale
+- **Current Session:** [[docs/session-states/session_state_20250912]] - Latest development context
 
-1. **Network Segmentation:** Balancing security isolation with remote access needs
-2. **Fire Safety Logic:** Developing reliable sensor-based emergency response
-3. **Resource Management:** Optimizing multiple VMs on single hardware platform
-4. **Remote Access Security:** Secure external access without compromising isolation
-5. **Integration Complexity:** Coordinating multiple systems and platforms
-6. **AI Integration:** Implementing Claude MCP for intelligent automation while maintaining security
-7. **PrintAirPipe Integration:** Properly implementing the smart ventilation system with ESPHome
+## 🔧 Implementation Status by System
 
-## Success Criteria
+### Network (OpenWrt Router)
+- **Architecture Decision:** [[docs/decisions/001-network-architecture]] - ✅ Complete
+- **Firewall Rules:** [[configs/openwrt/firewall-config.sh]] - ✅ Complete (128-line security config)
+- **VLAN Configuration:** [[configs/openwrt/vlan-config.conf]] - 🚧 Pending implementation
+- **Main Configuration:** [[configs/openwrt/main-config.conf]] - 🚧 Pending implementation
+- **Status:** Ready for router implementation
 
-- [ ] Safe, automated ventilation for 3D printing operations using PrintAirPipe system
-- [ ] Reliable fire detection and emergency shutoff capability
-- [ ] Secure network architecture with proper segmentation
-- [ ] Remote monitoring and control capabilities
-- [ ] Comprehensive CCTV coverage with reliable storage
-- [ ] AI-driven automation with natural language control
-- [ ] System monitoring and alerting functionality
-- [ ] Complete documentation and network mapping
+### Home Assistant (Core Automation)
+- **Main Config:** [[configs/home-assistant/configuration.yaml]] - 🚧 Placeholder
+- **Automations:** [[configs/home-assistant/automations.yaml]] - 🚧 Placeholder  
+- **Network Integration:** Depends on [[docs/decisions/001-network-architecture]] (VLAN 20)
+- **Status:** Architecture complete, awaiting implementation
+
+### Safety Systems (ESPHome/PrintAirPipe)
+- **PrintAirPipe Controller:** [[configs/esphome/printairpipe-controller.yaml]] - 🚧 Placeholder
+- **Network Assignment:** VLAN 50 (IoT Sensors) per [[docs/decisions/001-network-architecture]]
+- **Safety Priority:** Critical - fire detection and emergency shutoff
+- **Status:** Design complete, implementation pending
+
+### CCTV System (Frigate NVR)
+- **NVR Configuration:** [[configs/frigate/config.yml]] - 🚧 Placeholder
+- **Network Assignment:** VLAN 30 (isolated) per [[docs/decisions/001-network-architecture]]  
+- **Remote Access:** Via Home Assistant bridge only
+- **Status:** Architecture defined, awaiting camera selection
+
+### Virtualization (Proxmox)
+- **VM Setup Scripts:** [[configs/proxmox/vm-setup.sh]] - 🚧 Placeholder
+- **Network Assignment:** VLAN 20 (Automation) per [[docs/decisions/001-network-architecture]]
+- **VM Plan:** Home Assistant (101) + Frigate (102) + future expansion
+- **Status:** Hardware ready, scripts pending
+
+## 📚 Session Management System
+- **Current Session:** [[docs/session-states/session_state_20250912]] - Repository setup complete
+- **Session Template:** [[docs/session-states/session-template]] - For future development sessions  
+- **Session History:** [[docs/session-states/session_state_20250909]] - Original planning session
+- **All Sessions:** Browse [[docs/session-states/]] for complete development chronology
 
 ## Essential Resources
 
@@ -166,12 +207,6 @@ A comprehensive home automation system focused on fire safety and safe ventilati
   - Home Assistant integration templates
   - Servo control and sensor implementations
 
-### Project Resources
-- **Repository:** https://github.com/[username]/home-automation-project.git
-- **Network Architecture:** 4-VLAN security segmented design
-- **AI Integration:** Claude MCP for intelligent automation
-- **Hardware Platform:** MINIX mini PC with Proxmox virtualization
-
 ## Safety Considerations
 
 ⚠️ **Critical Safety Requirements:**
@@ -180,38 +215,6 @@ A comprehensive home automation system focused on fire safety and safe ventilati
 - Test all emergency response systems thoroughly before deployment
 - Implement redundant safety mechanisms for fire detection
 - Plan for system maintenance without compromising safety
-
-## Risk Assessment
-
-- **Project Start Date:** [Current Date]
-- **Estimated Duration:** [To be determined based on phase completion]
-- **Risk Level:** High (due to fire safety requirements)
-- **Priority:** Critical safety features first, convenience features second
-
-## Repository Structure
-
-```
-home-automation-project/
-├── docs/
-│   ├── session-states/      # Claude session management
-│   ├── decisions/           # Architecture decision records
-│   ├── procedures/          # Step-by-step processes
-│   └── troubleshooting/     # Issue resolution guides
-├── configs/
-│   ├── openwrt/            # Router configurations
-│   ├── home-assistant/     # HA automation configs
-│   ├── frigate/            # NVR system configs
-│   ├── esphome/           # Sensor controller configs
-│   └── proxmox/           # Virtualization configs
-├── hardware/
-│   ├── stl-files/         # 3D printing files
-│   ├── wiring-diagrams/   # Circuit documentation
-│   └── part-lists/        # Component specifications
-└── scripts/
-    ├── setup/             # Installation automation
-    ├── backup/            # Backup procedures
-    └── monitoring/        # Health check scripts
-```
 
 ## Session Management
 
@@ -238,7 +241,9 @@ This project uses structured session state management for Claude conversations. 
 
 ---
 
+**Safety Warning**  
+⚠️ This system includes fire safety components. Always prioritise safety features and test thoroughly before deployment.
+
 **Document Version:** 1.0  
-**Last Updated:** September 14, 2025  
-**Status:** Active Project - Network Architecture Phase  
-**Next Review:** Upon phase completion
+**Last Updated:** September 15, 2025  
+**Status:** Active Project - Network Architecture Phase

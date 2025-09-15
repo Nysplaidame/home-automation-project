@@ -1,1 +1,19 @@
-﻿# Frigate NVR Configuration
+# Frigate NVR Configuration - Placeholder
+# CCTV configuration will be added here
+
+
+#
+# Architecture Context: [[docs/decisions/001-network-architecture]]
+# Network Assignment: VLAN 30 (CCTV) - 192.168.30.0/24
+# Project Status: [[Main/Home Automation/Readme]]
+# Security: Isolated network with no internet access, HA bridge only
+#
+# Related Documents:
+# - [[docs/diagrams/Network Diagram - Revised]] - Network topology showing VLAN 30
+# - [[configs/openwrt/firewall-config.sh]] - Network security and isolation rules
+# - [[configs/home-assistant/configuration.yaml]] - HA integration for remote access
+# - [[configs/proxmox/vm-setup.sh]] - VM configuration for Frigate NVR
+#
+# Storage Integration: [[configs/proxmox/vm-setup.sh]] - Raspberry Pi NAS on VLAN 40
+# Camera Network: 4x IP cameras on VLAN 30 (192.168.30.21-24)
+# Remote Access: Via Home Assistant bridge only (no direct internet)

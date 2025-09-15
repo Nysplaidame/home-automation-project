@@ -1,44 +1,4 @@
-# OpenWrt Firewall Configuration for Home Automation Safety System
-# Router: GL.iNet GL-MT6000 with OpenWrt
-
-# ============================================================================
-# NETWORK ZONES CONFIGURATION
-# ============================================================================
-
-# Zone: WAN (Internet)
-uci set firewall.@zone[0]=zone
-uci set firewall.@zone[0].name='wan'
-uci set firewall.@zone[0].input='REJECT'
-uci set firewall.@zone[0].output='ACCEPT'
-uci set firewall.@zone[0].forward='REJECT'
-uci set firewall.@zone[0].masq='1'
-uci set firewall.@zone[0].mtu_fix='1'
-uci add_list firewall.@zone[0].network='wan'
-uci add_list firewall.@zone[0].network='wan6'
-
-# Zone: MANAGEMENT (VLAN 10) - Full Internet Access
-uci add firewall zone
-uci set firewall.@zone[-1].name='management'
-uci set firewall.@zone[-1].input='ACCEPT'
-uci set firewall.@zone[-1].output='ACCEPT'
-uci set firewall.@zone[-1].forward='ACCEPT'
-uci add_list firewall.@zone[-1].network='management'
-
-# Zone: AUTOMATION (VLAN 20) - Controlled Internet Access
-uci add firewall zone
-uci set firewall.@zone[-1].name='automation'
-uci set firewall.@zone[-1].input='ACCEPT'
-uci set firewall.@zone[-1].output='ACCEPT'
-uci set firewall.@zone[-1].forward='REJECT'
-uci add_list firewall.@zone[-1].network='automation'
-
-# Zone: CCTV (VLAN 30) - No Internet Access
-uci add firewall zone
-uci set firewall.@zone[-1].name='cctv'
-uci set firewall.@zone[-1].input='ACCEPT'
-uci set firewall.@zone[-1].output='REJECT'
-uci set firewall.@zone[-1].forward='REJECT'
-uci add_list firewall.@zone[-1].network='cctv'
+v'
 
 # Zone: STORAGE (VLAN 40) - No Internet Access
 uci add firewall zone
