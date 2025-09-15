@@ -1,0 +1,22 @@
+{
+  "pluginList": [
+    "gitcpy/obsidian-diagram-popup"
+  ],
+  "pluginSubListFrozenVersion": [
+    {
+      "repo": "gitcpy/obsidian-diagram-popup",
+      "version": "0.2.69"
+    }
+  ],
+  "themesList": [],
+  "updateAtStartup": true,
+  "updateThemesAtStartup": true,
+  "enableAfterInstall": true,
+  "loggingEnabled": false,
+  "loggingPath": "BRAT-log",
+  "loggingVerboseEnabled": false,
+  "debuggingMode": false,
+  "notificationsEnabled": true,
+  "personalAccessToken": "",
+  "selectLatestPluginVersionByDefault": false
+}

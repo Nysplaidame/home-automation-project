@@ -1,0 +1,234 @@
+{
+  "main": {
+    "id": "1e4c047fca13e3d1",
+    "type": "split",
+    "children": [
+      {
+        "id": "d14437b71caff32e",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "8afd6d33869329d8",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          }
+        ]
+      },
+      {
+        "id": "0fc76a6aaa7c7783",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d4a0ee1193d5ca58",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "3d29cb36ec248e7b",
+    "type": "split",
+    "children": [
+      {
+        "id": "4e5e6cdb479e94db",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "e40c918f3103d2e7",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "d35df58f2b0a64d1",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "9a7145024ac344ce",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "e24e4aab85a5d8ef",
+    "type": "split",
+    "children": [
+      {
+        "id": "559ea7fa6f622648",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "214147e1d7b01b39",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks"
+            }
+          },
+          {
+            "id": "2d2276bf3444f986",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links"
+            }
+          },
+          {
+            "id": "b9a28b6325a187c4",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "9401e742593e895d",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline"
+            }
+          },
+          {
+            "id": "6b4bb2d3eb4bed87",
+            "type": "leaf",
+            "state": {
+              "type": "git-view",
+              "state": {},
+              "icon": "git-pull-request",
+              "title": "Source Control"
+            }
+          }
+        ],
+        "currentTab": 4
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false,
+      "obsidian42-brat:BRAT": false,
+      "mermaid-tools:Open Mermaid Toolbar": false,
+      "obsidian-git:Open Git source control": false
+    }
+  },
+  "active": "e40c918f3103d2e7",
+  "lastOpenFiles": [
+    "Main/home-automation-safety/docs/session-states/session_state_20250912.md",
+    "Main/home-automation-safety/docs/session-states/session_state_20250909.md",
+    "Main/home-automation-safety/docs/session-states/session-template.md",
+    "Main/home-automation-safety/docs/session-states/session-template-concise.md",
+    "Main/home-automation-safety/docs/procedures/MCP - Claude Integration.md",
+    "Main/home-automation-safety/docs/procedures/Git Repository - Setup Procedure.md",
+    "Main/home-automation-safety/docs/prompts/07-claude-mcp-ai.md",
+    "Main/home-automation-safety/docs/prompts/06-pi-nas-storage.md",
+    "Main/home-automation-safety/docs/prompts/05-cctv-surveillance.md",
+    "Main/home-automation-safety/docs/prompts/04-home-assistant-core.md",
+    "Main/home-automation-safety/docs/prompts/03-printairpipe-ventilation.md",
+    "Main/home-automation-safety/docs/prompts/02-core-infrastructure.md",
+    "Main/home-automation-safety/docs/prompts/01-network-infrastructure.md",
+    "Main/home-automation-safety/docs/decisions/001-network-architecture.md",
+    "Main/home-automation-safety/docs/diagrams/network_diagram.mermaid",
+    "Main/home-automation-safety/docs/diagrams/network_diagram 1.mermaid",
+    "Main/home-automation-safety/docs/diagrams/Network Diagram.md",
+    "Main/home-automation-safety/docs/procedures",
+    "Main/home-automation-safety/docs/session-states",
+    "Main/home-automation-safety/docs/troubleshooting",
+    "Main/home-automation-safety/docs/prompts",
+    "Main/home-automation-safety/docs/decisions",
+    "Main/home-automation-safety/docs/diagrams",
+    "Main/home-automation-safety/docs",
+    "Main/home-automation-safety/configs/proxmox/vm-setup.sh",
+    "Main/home-automation-safety/home_automation_project_prompt.md",
+    "docs/session-states/session_state_20250912.md",
+    "docs/session-states/session_state_20250909 (old).md",
+    "docs/session-states/session_state_20250909.md",
+    "docs/session-states/session-template.md",
+    "docs/session-states/session-template-concise.md",
+    "docs/procedures/README.md",
+    "docs/procedures/MCP - Claude Integration.md",
+    "docs/prompts/07-claude-mcp-ai.md",
+    "docs/prompts/06-pi-nas-storage.md",
+    "docs/prompts/04-home-assistant-core.md",
+    "Untitled.canvas"
+  ]
+}

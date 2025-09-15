@@ -1,0 +1,22 @@
+# Home Assistant Configuration - Placeholder
+# Main configuration file will be added here
+
+
+#
+# Architecture Context: [[docs/decisions/001-network-architecture]]
+# Network Assignment: VLAN 20 (Automation) - 192.168.20.101
+# Project Status: [[Main/Home Automation/Readme]]
+# Internet Access: Controlled - only Home Assistant VM has internet access
+#
+# Related Documents:
+# - [[docs/diagrams/Network Diagram - Revised]] - Network topology showing HA integration
+# - [[configs/openwrt/firewall-config.sh]] - Inter-VLAN communication rules
+# - [[configs/esphome/printairpipe-controller.yaml]] - Safety system integration
+# - [[configs/frigate/config.yml]] - CCTV system integration
+# - [[configs/proxmox/vm-setup.sh]] - VM hosting configuration
+#
+# VLAN Integrations:
+# - VLAN 30 (CCTV): Camera feed access via Frigate integration
+# - VLAN 40 (Storage): NAS access for backups and media
+# - VLAN 50 (IoT): Complete control of all sensors and smart plugs
+# - Remote Access: WireGuard VPN clients via port 8123 only
