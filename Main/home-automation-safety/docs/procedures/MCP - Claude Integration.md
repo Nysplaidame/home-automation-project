@@ -119,12 +119,8 @@ $env:GITHUB_TOKEN = "your_github_token_here"
 - **Full Path Example:** `C:\Users\YourName\AppData\Roaming\Claude\claude_desktop_config.json`
 
 ### PowerShell vs Command Prompt
-Both work, but PowerShell recommended:
+Work on both, PowerShell recommended:
 ```powershell
-# PowerShell (Recommended)
-npm install -g @modelcontextprotocol/server-github
-
-# Command Prompt (Also works)
 npm install -g @modelcontextprotocol/server-github
 ```
 

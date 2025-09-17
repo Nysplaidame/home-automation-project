@@ -4,5 +4,9 @@
   "mermaid-popup",
   "obsidian42-brat",
   "mermaid-tools",
-  "obsidian-git"
+  "obsidian-git",
+  "obsidian-tasks-plugin",
+  "dataview",
+  "obsidian-kanban",
+  "templater-obsidian"
 ]

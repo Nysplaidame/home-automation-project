@@ -1,8 +1,40 @@
+---
+title: "Network Architecture Decision - 4-VLAN Security Segmentation"
+description: "Security-segmented network design isolating safety systems from internet"
+tags:
+  - architecture-decision
+  - network-security
+  - vlan
+  - firewall
+  - safety-critical
+decision_id: "001"
+status: accepted
+date: 2025-09-09
+decision_status: accepted
+context: "Need secure network design isolating safety systems from internet while enabling remote access"
+related_documents:
+  - "[[README|Main Project Overview]]"
+  - "[[docs/session-states/session_state_20250909|Initial Planning Session]]"
+  - "[[docs/session-states/session_state_20250912|Repository Setup Session]]"
+sub_project: "[[docs/prompts/01-network-infrastructure|Network Infrastructure]]"
+implementation_files:
+  - "configs/openwrt/firewall-config.sh"
+  - "configs/openwrt/vlan-config.conf"
+  - "configs/openwrt/main-config.conf"
+affected_systems:
+  - "Home Assistant (VLAN 20)"
+  - "CCTV System (VLAN 30)"
+  - "Storage System (VLAN 40)"
+  - "IoT Sensors (VLAN 50)"
+---
+
 # Decision: 4-VLAN Security-Segmented Network Architecture
 
-**Date:** 2025-09-09
-**Status:** Accepted
+**Date:** 2025-09-09  
+**Status:** Accepted  
 **Context:** Need secure network design isolating safety systems from internet while enabling remote access
+
+> **Related Sub-Project:** [[docs/prompts/01-network-infrastructure|Network Infrastructure & Security]]
 
 ## Problem Statement
 Design a network architecture that:
@@ -27,30 +59,34 @@ Design a network architecture that:
 - **VLAN 40:** Storage (192.168.40.0/24) - No internet, Frigate access
 - **VLAN 50:** IoT Sensors (192.168.50.0/24) - No internet, HA control only
 
-## Implementation
+## Implementation Status
 - **Files Affected:** 
-  - configs/openwrt/firewall-rules.conf
-  - configs/openwrt/vlan-config.conf 
+  - `configs/openwrt/firewall-rules.conf`
+  - `configs/openwrt/vlan-config.conf` 
   - Network device configurations
   
----
-**Related Sessions:** 20250909-initial-planning, 20250912-documentation-setup
-
+**Related Sessions:** [[docs/session-states/session_state_20250909|Initial Planning]], [[docs/session-states/session_state_20250912|Repository Setup]]
 
 ## Related Documents & Implementation
-- **Project Overview:** [[Main/Home Automation/Readme]] - Current project status and roadmap
-- **Standard Diagram:** [[docs/diagrams/Network Diagram]] - Basic network topology  
-- **Firewall Implementation:** [[configs/openwrt/firewall-config.sh]] - Security rules implementing this architecture
-- **Original Planning Session:** [[docs/session-states/session_state_20250909]] - Context and rationale
-- **Repository Setup Session:** [[docs/session-states/session_state_20250912]] - Implementation progress
 
-## Configuration Dependencies
+### Core Project Context
+- **Project Overview:** [[README|Main Project Overview]] - Current project status and roadmap
+- **Network Implementation:** [[docs/prompts/01-network-infrastructure|Network Infrastructure Sub-Project]] - Focused implementation guide
+
+### Session Context
+- **Original Planning:** [[docs/session-states/session_state_20250909|Initial Planning Session]] - Context and rationale
+- **Repository Setup:** [[docs/session-states/session_state_20250912|Repository Setup Session]] - Implementation progress
+
+### Implementation Files
+- **Firewall Rules:** `configs/openwrt/firewall-config.sh` - Security rules implementing this architecture ✅
+- **VLAN Configuration:** `configs/openwrt/vlan-config.conf` - VLAN interface configuration 🚧
+- **Main Router Config:** `configs/openwrt/main-config.conf` - Router main configuration 🚧
+
+### Affected System Configurations
 This architecture decision drives the configuration of:
-- [[configs/openwrt/vlan-config.conf]] - VLAN interface configuration (pending)
-- [[configs/openwrt/main-config.conf]] - Router main configuration (pending)
-- [[configs/home-assistant/configuration.yaml]] - HA network integration (pending)
-- [[configs/frigate/config.yml]] - NVR network configuration (pending)
-- [[configs/esphome/printairpipe-controller.yaml]] - Safety system network setup (pending)
+- `configs/home-assistant/configuration.yaml` - HA network integration 🚧
+- `configs/frigate/config.yml` - NVR network configuration 🚧
+- `configs/esphome/printairpipe-controller.yaml` - Safety system network setup 🚧
 
 ## Security Implementation Status
 - ✅ **Architecture Design** - 4-VLAN segmentation complete
@@ -59,4 +95,22 @@ This architecture decision drives the configuration of:
 - 🚧 **Device Assignment** - IP allocation per VLAN pending
 - 🚧 **Testing Procedures** - Network isolation validation pending
 
-**Next Implementation Step:** [[configs/openwrt/vlan-config.conf]] - Configure VLAN interfaces on GL.iNet router
+**Next Implementation Step:** Focus on [[docs/prompts/01-network-infrastructure|Network Infrastructure Sub-Project]] for VLAN configuration
+
+## Cross-References
+
+### Sub-Projects Affected
+- **Primary Implementation:** [[docs/prompts/01-network-infrastructure|Network Infrastructure]]
+- **HA Integration:** [[docs/prompts/04-home-assistant-core|Home Assistant Core]]
+- **CCTV Integration:** [[docs/prompts/05-cctv-surveillance|CCTV & Surveillance]]
+- **Storage Integration:** [[docs/prompts/06-pi-nas-storage|Pi NAS Storage]]
+- **Safety Integration:** [[docs/prompts/03-printairpipe-ventilation|PrintAirPipe Ventilation]]
+
+### Related Decisions
+- Future decision: Remote access security implementation
+- Future decision: Inter-VLAN communication policies
+- Future decision: Emergency network access procedures
+
+---
+**Implementation Priority:** Critical (foundation for all other systems)  
+**Next Action:** [[docs/prompts/01-network-infrastructure|Begin Network Infrastructure Implementation]]

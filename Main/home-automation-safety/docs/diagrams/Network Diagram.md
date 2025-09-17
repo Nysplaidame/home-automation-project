@@ -1,75 +1,102 @@
 ```mermaid
-graph TB
-    Internet([Internet]) --> Router[GL.iNet GL-MT6000<br/>OpenWrt<br/>192.168.1.1]
-    
-    %% VLANs
-    Router --> VLAN10[VLAN 10 - Management<br/>192.168.10.0/24]
-    Router --> VLAN20[VLAN 20 - Automation<br/>192.168.20.0/24]
-    Router --> VLAN30[VLAN 30 - CCTV<br/>192.168.30.0/24]
-    Router --> VLAN40[VLAN 40 - Storage<br/>192.168.40.0/24]
-    Router --> VLAN50[VLAN 50 - IoT Sensors<br/>192.168.50.0/24]
-    
-    %% Management VLAN Internet Access
-    VLAN10 --> Admin[Admin Laptop<br/>192.168.10.10]
-    VLAN10 --> Mobile[Mobile Devices<br/>192.168.10.20-30]
-    
-    %% Automation VLAN Controlled Internet
-    VLAN20 --> Proxmox[MINIX Mini PC<br/>Proxmox Host<br/>192.168.20.100]
-    Proxmox --> HomeAssistant[Home Assistant VM<br/>192.168.20.101]
-    Proxmox --> Frigate[Frigate NVR VM<br/>192.168.20.102]
-    
-    %% CCTV VLAN No Internet
-    VLAN30 --> POESwitch[POE Switch<br/>192.168.30.10]
-    POESwitch --> Cam1[Camera 1<br/>192.168.30.21]
-    POESwitch --> Cam2[Camera 2<br/>192.168.30.22]
-    POESwitch --> Cam3[Camera 3<br/>192.168.30.23]
-    POESwitch --> Cam4[Camera 4<br/>192.168.30.24]
-    
-    %% Storage VLAN No Internet
-    VLAN40 --> RaspberryPi[Raspberry Pi NAS<br/>192.168.40.50]
-    
-    %% IoT Sensors VLAN No Internet
-    VLAN50 --> TempSensor1[Temp/Humidity 1<br/>192.168.50.31]
-    VLAN50 --> TempSensor2[Temp/Humidity 2<br/>192.168.50.32]
-    VLAN50 --> SmokeSensor1[Smoke Detector 1<br/>192.168.50.41]
-    VLAN50 --> SmokeSensor2[Smoke Detector 2<br/>192.168.50.42]
-    VLAN50 --> VOCSensor1[VOC Sensor 1<br/>192.168.50.51]
-    VLAN50 --> VOCSensor2[VOC Sensor 2<br/>192.168.50.52]
-    VLAN50 --> PressureSensor1[Pressure Sensor 1<br/>192.168.50.61]
-    VLAN50 --> PressureSensor2[Pressure Sensor 2<br/>192.168.50.62]
-    VLAN50 --> SmartPlug1[Smart Plug SLA<br/>192.168.50.71]
-    VLAN50 --> SmartPlug2[Smart Plug FDM<br/>192.168.50.72]
-    VLAN50 --> ServoController[Servo Controller<br/>192.168.50.80]
-    
-    %% Firewall Rules Display
-    Router --> FirewallRules[Firewall Rules:<br/>VLAN 20: Admin Full Internet<br/>VLAN 20: HA Controlled Internet<br/>VLAN 30: No Internet<br/>VLAN 40: No Internet<br/>VLAN 50: No Internet]
-    
-    %% Inter-VLAN Communication
-    HomeAssistant -.->|Read Camera Feeds| VLAN30
-    HomeAssistant -.->|Read/Write Storage| VLAN40
-    HomeAssistant -.->|Control All Sensors| VLAN50
-    Frigate -.->|Store Footage| RaspberryPi
-    Admin -.->|Management Access| VLAN30
-    Admin -.->|Management Access| VLAN40
-    Admin -.->|Management Access| VLAN50
-    
-    %% Remote Access Data Flow
-    Router --> VPN[WireGuard VPN<br/>Secure Remote Access]
-    VPN -.->|Encrypted Tunnel| RemoteAccess[Remote Mobile<br/>HA App + Camera Access]
-    RemoteAccess -.->|Via HA Dashboard| CameraFeeds[Camera Feeds<br/>Through Frigate]
-    
-    %% Styling
-    classDef vlan fill:#e1f5fe,stroke:#01579b,stroke-width:2px
-    classDef device fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
-    classDef critical fill:#ffebee,stroke:#b71c1c,stroke-width:3px
-    classDef security fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
-    
-    class VLAN20,VLAN30,VLAN40,VLAN50 vlan
-    class HomeAssistant,Frigate,RaspberryPi device
-    class SmartPlug1,SmartPlug2,SmartPlug3,SmokeSensor1,SmokeSensor2,BambuP1S critical
-    class VPN,RemoteAccess,FirewallRules,CameraFeeds security
+flowchart LR
+
+%% ─── VLANs ──────────────────────────────────────
+subgraph VLAN10["VLAN10 – Management<br>192.168.10.0/24"]
+  direction TB
+  Admin["💻 Admin Laptop<br>.10"]
+  Mobile["📱 Mobiles<br>.20-30"]
+end
+
+subgraph VLAN30["VLAN30 – CCTV<br>192.168.30.0/24"]
+  direction TB
+  POESwitch["🔌 POE Switch<br>.10"]
+  Cam1["Camera_1<br>.21"]
+  Cam2["Camera_2<br>.22"]
+  Cam3["Camera_3<br>.23"]
+end
+
+subgraph VLAN40["VLAN40 – Storage<br>192.168.40.0/24"]
+  direction TB
+  NAS["🍓 NAS<br>.50"]
+end
+
+subgraph VLAN50["VLAN50 – IoT Sensors<br>192.168.50.0/24"]
+  direction TB
+  Temp["🌡 Temp/Humidity<br>31-32<br>• temp_1<br>• temp_2"]
+  Smoke["🔥 Smoke<br>41-42<br>• smoke_1<br>• smoke_2"]
+  VOC["🧪 VOC<br>51-52<br>• voc_1<br>• voc_2"]
+  Pressure["📏 Pressure<br>61-62<br>• pressure_1<br>• pressure_2"]
+  Plug["🔌 Smart Plugs<br>71-72<br>• plug_1<br>• plug_2"]
+  Servo["⚙️ Servos<br>81-82<br>• servo_1<br>• servo_2"]
+end
+
+subgraph VLAN20["VLAN20 – Automation<br>192.168.20.0/24"]
+  direction TB
+  Proxmox["🖥 Proxmox<br>.100"]
+  HA["🏠 Home Assistant<br>.101"]
+  Frigate["🎥 Frigate NVR<br>.102"]
+end
+
+%% Core / Firewall
+Internet(["🌐 Internet"]) <--> Router["🛜 Router<br>GL-MT6000<br>OpenWrt<br>192.168.1.1"]
+Router <--> VPN(("🔒 VPN Tunnel<br>WireGuard"))
+Router ==> Proxmox
+Router === n1{{"🛡 Firewall Rules<br>
+• VLAN20: Full Internet<br>
+• VLAN20: HA Controlled<br>
+• VLAN30: No Internet<br>
+• VLAN40: No Internet<br>
+• VLAN50: No Internet"}}
+
+%% ─── Links ──────────────────────────────────────
+VLAN10 --> Admin & Mobile
+VLAN10 ==> VLAN30 & VLAN50 & VLAN40 & VLAN20
+VLAN10 <--> Router
+
+VLAN30 --> POESwitch
+POESwitch --> Cam1 & Cam2 & Cam3
+
+VLAN40 --> NAS
+
+VLAN20 --> Proxmox
+Proxmox <--> HA & Frigate
+
+HA -.-> VLAN30
+VPN <-.-> Remote["📲 Remote Mobile"]
+Remote <-. "HA dashboard" .-> CameraFeeds["🎞 Camera Feeds"]
+
+Plug -.-> HA
+Pressure -.-> HA
+VOC -.-> HA
+Servo -.-> HA
+Smoke -.-> HA
+Temp -.-> HA
+
+Frigate -.-> CameraFeeds & VLAN30
+NAS ==> Router
+POESwitch ==> Router
+VLAN50 ==> HA
+NAS -.-> Frigate
+
+%% ─── Classes ────────────────────────────────────
+classDef vlan fill:#e3f2fd,stroke:#0d47a1,stroke-width:1.5px,rx:8,ry:8
+classDef security fill:#e8f5e8,stroke:#2e7d32,stroke-width:1.5px,rx:8,ry:8
+classDef sensor fill:#fff8e1,stroke:#ff9800,stroke-width:1px,rx:8,ry:8,color:#af8000
+classDef device fill:#C8E6C9,stroke:#00C853,stroke-width:1.5px,rx:8,ry:8,color:#007531
+classDef VM stroke-width:2px,stroke-dasharray:2,stroke:#4a148c,fill:#f3e5f5,color:#AA00FF
+classDef DataFeed fill:#00ffdd,stroke-width:1px,stroke:#000
+
+class VLAN10,VLAN20,VLAN30,VLAN40,VLAN50 vlan
+class n1 security
+class Admin,Mobile,NAS,Proxmox,HA,Frigate,Internet,Router,VPN,Remote,POESwitch device
+class Temp,Smoke,VOC,Pressure,Plug,Servo,Cam1,Cam2,Cam3 sensor
+class HA,Frigate VM
+class CameraFeeds DataFeed
 ```
 
+
+![[Network Diagram - New.png]]
 
 ## Document References & Architecture  
 - **Architecture Decision:** [[docs/decisions/001-network-architecture]] - Design rationale  
