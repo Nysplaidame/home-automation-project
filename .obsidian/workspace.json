@@ -224,8 +224,9 @@
       "templater-obsidian:Templater": false
     }
   },
-  "active": "4bf13bfc42fa54b1",
+  "active": "6b4bb2d3eb4bed87",
   "lastOpenFiles": [
+    "Main/home-automation-safety/docs/session-states/session_state_20250917.md",
     "Main/home-automation-safety/docs/session-states/session-template-concise.md",
     "Main/home-automation-safety/docs/session-states/session-template-complete.md",
     "Main/home-automation-safety/README.md",
@@ -253,7 +254,6 @@
     "Main/home-automation-safety/docs/session-states/session_state_20250912-UPDATED.md",
     "Main/README-NEW.md",
     "Main/home-automation-safety/docs/prompts/05-cctv-surveillance.md",
-    "Main/home-automation-safety/home_automation_project_prompt.md",
     "Main/home-automation-safety/docs/diagrams/mermaid/packages/mermaid/src/diagrams/xychart/chartBuilder/components/plot/linePlot.ts",
     "Main/home-automation-safety/docs/diagrams/mermaid/packages/mermaid/src/diagrams/xychart/chartBuilder/components/plot/index.ts",
     "Main/home-automation-safety/docs/diagrams/mermaid/packages/mermaid/src/diagrams/xychart/chartBuilder/components/plot/barPlot.ts",
