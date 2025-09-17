@@ -101,7 +101,7 @@ class CameraFeeds DataFeed
 ## Document References & Architecture  
 - **Architecture Decision:** [[docs/decisions/001-network-architecture]] - Design rationale  
 - **Firewall Implementation:** [[configs/openwrt/firewall-config.sh]] - Security rules for this topology
-- **Project Context:** [[docs/session-states/session_state_20250909]] - Original design session
+- **Project Context:** [[session_state_20250909]] - Original design session
 
 ## Configuration Dependencies
 This network diagram drives the configuration requirements for:

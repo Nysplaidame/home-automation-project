@@ -1,6 +1,6 @@
 ---
-title: "Network Architecture Decision - 4-VLAN Security Segmentation"
-description: "Security-segmented network design isolating safety systems from internet"
+title: Network Architecture Decision - 4-VLAN Security Segmentation
+description: Security-segmented network design isolating safety systems from internet
 tags:
   - architecture-decision
   - network-security
@@ -11,21 +11,21 @@ decision_id: "001"
 status: accepted
 date: 2025-09-09
 decision_status: accepted
-context: "Need secure network design isolating safety systems from internet while enabling remote access"
+context: Need secure network design isolating safety systems from internet while enabling remote access
 related_documents:
   - "[[README|Main Project Overview]]"
-  - "[[docs/session-states/session_state_20250909|Initial Planning Session]]"
-  - "[[docs/session-states/session_state_20250912|Repository Setup Session]]"
+  - "[[session_state_20250909|Initial Planning Session]]"
+  - "[[session_state_20250912|Repository Setup Session]]"
 sub_project: "[[docs/prompts/01-network-infrastructure|Network Infrastructure]]"
 implementation_files:
-  - "configs/openwrt/firewall-config.sh"
-  - "configs/openwrt/vlan-config.conf"
-  - "configs/openwrt/main-config.conf"
+  - configs/openwrt/firewall-config.sh
+  - configs/openwrt/vlan-config.conf
+  - configs/openwrt/main-config.conf
 affected_systems:
-  - "Home Assistant (VLAN 20)"
-  - "CCTV System (VLAN 30)"
-  - "Storage System (VLAN 40)"
-  - "IoT Sensors (VLAN 50)"
+  - Home Assistant (VLAN 20)
+  - CCTV System (VLAN 30)
+  - Storage System (VLAN 40)
+  - IoT Sensors (VLAN 50)
 ---
 
 # Decision: 4-VLAN Security-Segmented Network Architecture
@@ -65,7 +65,7 @@ Design a network architecture that:
   - `configs/openwrt/vlan-config.conf` 
   - Network device configurations
   
-**Related Sessions:** [[docs/session-states/session_state_20250909|Initial Planning]], [[docs/session-states/session_state_20250912|Repository Setup]]
+**Related Sessions:** [[session_state_20250909|Initial Planning]], [[session_state_20250912|Repository Setup]]
 
 ## Related Documents & Implementation
 
@@ -74,8 +74,8 @@ Design a network architecture that:
 - **Network Implementation:** [[docs/prompts/01-network-infrastructure|Network Infrastructure Sub-Project]] - Focused implementation guide
 
 ### Session Context
-- **Original Planning:** [[docs/session-states/session_state_20250909|Initial Planning Session]] - Context and rationale
-- **Repository Setup:** [[docs/session-states/session_state_20250912|Repository Setup Session]] - Implementation progress
+- **Original Planning:** [[session_state_20250909|Initial Planning Session]] - Context and rationale
+- **Repository Setup:** [[session_state_20250912|Repository Setup Session]] - Implementation progress
 
 ### Implementation Files
 - **Firewall Rules:** `configs/openwrt/firewall-config.sh` - Security rules implementing this architecture ✅

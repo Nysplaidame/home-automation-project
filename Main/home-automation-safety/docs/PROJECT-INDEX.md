@@ -26,8 +26,8 @@ project_context: "[[Main/home-automation-safety/README|Home Automation Project]]
 ### Essential Documents
 - **📋 Project Overview:** [[Main/home-automation-safety/README|Home Automation Project]] - Current status and roadmap
 - **🏗️ Network Architecture:** [[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]] - 4-VLAN security design
-- **📊 Latest Session:** [[Main/home-automation-safety/docs/session-states/session_state_20250912|Repository Setup Session]] - Current development context
-- **🔧 Next Steps:** [[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Network Infrastructure]] - Immediate focus area
+- **📊 Latest Session:** [[session_state_20250912|Repository Setup Session]] - Current development context
+- **🔧 Next Steps:** [[01-network-infrastructure|Network Infrastructure]] - Immediate focus area
 
 ### Project Status at a Glance
 - **Phase:** Network Architecture & Planning (25% complete)
@@ -43,9 +43,9 @@ project_context: "[[Main/home-automation-safety/README|Home Automation Project]]
 Track development progress and maintain context across Claude sessions.
 
 **Session States:**
-- [[Main/home-automation-safety/docs/session-states/session_state_20250912|📦 Repository Setup Complete (2025-09-12)]] - Latest ✅
-- [[Main/home-automation-safety/docs/session-states/session_state_20250909|🎯 Initial Planning Session (2025-09-09)]] - Foundation
-- [[Main/home-automation-safety/docs/session-states/session-template|📝 Session Template]] - For new sessions
+- [[session_state_20250912|📦 Repository Setup Complete (2025-09-12)]] - Latest ✅
+- [[session_state_20250909|🎯 Initial Planning Session (2025-09-09)]] - Foundation
+- [[session-template-complete|📝 Session Template]] - For new sessions
 
 ### 🏛️ Architecture & Decisions
 Key architectural decisions and their rationale.
@@ -57,7 +57,7 @@ Key architectural decisions and their rationale.
 Focused implementation guides for each system component.
 
 **Sub-Projects (Implementation Order):**
-1. [[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|🌐 Network Infrastructure & Security]] - **CURRENT FOCUS**
+1. [[01-network-infrastructure|🌐 Network Infrastructure & Security]] - **CURRENT FOCUS**
 2. [[Main/home-automation-safety/docs/prompts/02-core-infrastructure|💻 Core Infrastructure (Proxmox)]] - Virtualization platform
 3. [[Main/home-automation-safety/docs/prompts/03-printairpipe-ventilation|🔥 PrintAirPipe Ventilation System]] - **SAFETY CRITICAL**
 4. [[Main/home-automation-safety/docs/prompts/04-home-assistant-core|🏠 Home Assistant Core]] - Automation hub
@@ -101,7 +101,7 @@ Based on [[Main/home-automation-safety/docs/decisions/001-network-architecture|N
 ### 💻 Core Infrastructure Stack
 - **Hardware:** MINIX Fanless Mini PC (NEO Z350-0dB)
 - **Hypervisor:** [[Main/home-automation-safety/docs/prompts/02-core-infrastructure|Proxmox]] virtualization
-- **Network:** [[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|GL.iNet GL-MT6000 (OpenWrt)]]
+- **Network:** [[01-network-infrastructure|GL.iNet GL-MT6000 (OpenWrt)]]
 - **Automation:** [[Main/home-automation-safety/docs/prompts/04-home-assistant-core|Home Assistant]]
 - **Monitoring:** [[Main/home-automation-safety/docs/prompts/05-cctv-surveillance|Frigate NVR]]
 
@@ -115,18 +115,19 @@ Main/
 └── home-automation-safety/          # Project root
     ├── README.md                    # Project overview
     ├── docs/                        # Documentation
-    │   ├── session-states/          # Claude sessions
-    │   ├── decisions/              # Architecture decisions
-    │   ├── procedures/             # Step-by-step guides
-    │   ├── prompts/               # Sub-project prompts
-    │   └── diagrams/              # Visual documentation
-    ├── configs/                    # System configurations
-    │   ├── openwrt/               # Router configs
-    │   ├── home-assistant/        # HA configs
-    │   ├── frigate/               # NVR configs
-    │   ├── esphome/              # Sensor configs
-    │   └── proxmox/              # VM configs
-    └── scripts/                   # Automation scripts
+    │   ├── session-states/          # Concise sessions
+	│   │   └── archive/ 	         # Complete sessions - Archived
+    │   ├── decisions/               # Architecture decisions
+    │   ├── procedures/              # Step-by-step guides
+    │   ├── prompts/                 # Sub-project prompts
+    │   └── diagrams/                # Visual documentation
+    ├── configs/                     # System configurations
+    │   ├── openwrt/                 # Router configs
+    │   ├── home-assistant/          # HA configs
+    │   ├── frigate/                 # NVR configs
+    │   ├── esphome/                 # Sensor configs
+    │   └── proxmox/                 # VM configs
+    └── scripts/                     # Automation scripts
 ```
 
 ### 🔗 GitHub Repository
@@ -140,12 +141,12 @@ Main/
 ## 🚀 Implementation Progress
 
 ### ✅ Completed Phases
-- [x] **Project Planning** - [[Main/home-automation-safety/docs/session-states/session_state_20250909|Initial Planning Session]]
-- [x] **Documentation Structure** - [[Main/home-automation-safety/docs/session-states/session_state_20250912|Repository Setup Session]]
+- [x] **Project Planning** - [[session_state_20250909|Initial Planning Session]]
+- [x] **Documentation Structure** - [[session_state_20250912|Repository Setup Session]]
 - [x] **Network Architecture Design** - [[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]]
 
 ### 🔄 Current Phase: Network Implementation
-**Focus:** [[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Network Infrastructure & Security]]
+**Focus:** [[01-network-infrastructure|Network Infrastructure & Security]]
 
 **Immediate Tasks:**
 1. Configure OpenWrt VLAN interfaces
@@ -191,9 +192,9 @@ Use these tags to find related content:
 ## 📋 Next Session Preparation
 
 ### 🎯 When Starting Next Claude Session:
-1. **Load Context:** Reference [[Main/home-automation-safety/docs/session-states/session_state_20250912|latest session state]]
-2. **Use Template:** Copy [[Main/home-automation-safety/docs/session-states/session-template|session template]]
-3. **Focus Area:** Begin [[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Network Infrastructure]] implementation
+1. **Load Context:** Reference [[session_state_20250912|latest session state]]
+2. **Use Template:** Copy [[session-template-complete|session template]]
+3. **Focus Area:** Begin [[01-network-infrastructure|Network Infrastructure]] implementation
 4. **Key Decision:** Implement [[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]]
 
 ### 🔑 Critical Context Points:

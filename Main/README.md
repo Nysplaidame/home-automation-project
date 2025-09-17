@@ -25,24 +25,35 @@ Comprehensive home automation system with fire safety, CCTV, and AI integration.
 
 **Quick Links:**
 - [[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture]]
-- [[Main/home-automation-safety/docs/session-states/session_state_20250912|Latest Session]]
+- [[session_state_20250912|Latest Session]]
 - [[Main/home-automation-safety/docs/prompts/01-network-infrastructure|Network Infrastructure]]
 
 ## 📁 Vault Structure
 
 ```
 Main/
-├── home-automation-safety/     # Primary automation project
-│   ├── README.md              # Project overview & status
-│   ├── docs/                  # Documentation & decisions  
-│   ├── configs/               # System configurations
-│   └── scripts/               # Automation scripts
-└── README.md                  # This file
+└── home-automation-safety/          # Project root
+    ├── README.md                    # Project overview
+    ├── docs/                        # Documentation
+    │   ├── session-states/          # Concise sessions
+	│   │   └── archive/ 	         # Complete sessions - Archived
+    │   ├── decisions/               # Architecture decisions
+    │   ├── procedures/              # Step-by-step guides
+    │   ├── prompts/                 # Sub-project prompts
+    │   └── diagrams/                # Visual documentation
+    ├── configs/                     # System configurations
+    │   ├── openwrt/                 # Router configs
+    │   ├── home-assistant/          # HA configs
+    │   ├── frigate/                 # NVR configs
+    │   ├── esphome/                 # Sensor configs
+    │   └── proxmox/                 # VM configs
+    └── scripts/                     # Automation scripts
+└── README.md                        # This file
 ```
 
 ## 🔧 Quick Actions
 
-- **Latest Work**: [[Main/home-automation-safety/docs/session-states/session_state_20250912|Current Session State]]
+- **Latest Work**: [[session_state_20250912|Current Session State]]
 - **Project Status**: [[Main/home-automation-safety/README|Project Overview]]
 - **Network Design**: [[Main/home-automation-safety/docs/diagrams/Network Diagram|Network Topology]]
 

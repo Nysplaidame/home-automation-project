@@ -1,24 +1,24 @@
 ---
-title: "Home Automation Project - Main Overview"
-description: "Comprehensive home automation system with fire safety, CCTV, and AI integration"
-tags: 
+title: Home Automation Project - Main Overview
+description: Comprehensive home automation system with fire safety, CCTV, and AI integration
+tags:
   - home-automation
   - fire-safety
   - project-overview
   - network-security
 aliases:
-  - "Home Automation Main"
-  - "Project Overview"
-  - "Main Project"
+  - Home Automation Main
+  - Project Overview
+  - Main Project
 created: 2025-09-15
-modified: 2025-09-15
+modified: 2025-09-17
 status: active
-phase: "Network Architecture & Planning"
+phase: Network Architecture & Planning
 progress: 25
 priority: high
 related_sessions:
-  - "[[docs/session-states/session_state_20250912]]"
-  - "[[docs/session-states/session_state_20250909]]"
+  - "[[session_state_20250912]]"
+  - "[[session_state_20250909]]"
 related_decisions:
   - "[[docs/decisions/001-network-architecture]]"
 sub_projects:
@@ -40,8 +40,8 @@ A comprehensive home automation system focused on fire safety and safe ventilati
 ### Core Documentation
 - **Project Status & Overview**: This document
 - **Network Architecture**: [[docs/decisions/001-network-architecture|Network Architecture Decision]]
-- **Latest Session**: [[docs/session-states/session_state_20250912|Latest Development Session]]
-- **Session History**: [[docs/session-states/session_state_20250909|Initial Planning Session]]
+- **Latest Session**: [[session_state_20250912|Latest Development Session]]
+- **Session History**: [[session_state_20250909|Initial Planning Session]]
 
 ### Sub-Project Prompts
 - **Network & Security**: [[docs/prompts/01-network-infrastructure|Network Infrastructure]]
@@ -227,7 +227,7 @@ scripts/                # Automation and setup scripts
 
 ## 📋 Key Architecture Documents
 - **Network Design:** [[docs/decisions/001-network-architecture|Network Architecture Decision]] - 4-VLAN security architecture rationale
-- **Current Session:** [[docs/session-states/session_state_20250912|Latest Session State]] - Latest development context
+- **Current Session:** [[session_state_20250912|Latest Session State]] - Latest development context
 
 ## 🔧 Implementation Status by System
 
@@ -273,9 +273,9 @@ scripts/                # Automation and setup scripts
 - **Status:** Hardware ready, scripts pending
 
 ## 📚 Session Management System
-- **Current Session:** [[docs/session-states/session_state_20250912|Current Session State]] - Repository setup complete
-- **Session Template:** [[docs/session-states/session-template|Session Template]] - For future development sessions  
-- **Session History:** [[docs/session-states/session_state_20250909|Initial Planning]] - Original planning session
+- **Current Session:** [[session_state_20250912|Current Session State]] - Repository setup complete
+- **Session Template:** [[session-template-complete|Session Template]] - For future development sessions  
+- **Session History:** [[session_state_20250909|Initial Planning]] - Original planning session
 - **All Sessions:** Browse [[docs/session-states/|Session States Directory]] for complete development chronology
 
 ## Essential Resources
@@ -332,8 +332,8 @@ This project uses structured session state management for Claude conversations. 
 
 **Related Documents:**
 - [[docs/decisions/001-network-architecture|Network Architecture Decision]]
-- [[docs/session-states/session_state_20250912|Latest Session State]]
-- [[docs/session-states/session_state_20250909|Initial Planning Session]]
+- [[session_state_20250912|Latest Session State]]
+- [[session_state_20250909|Initial Planning Session]]
 
 **Document Version:** 2.0  
 **Last Updated:** September 15, 2025  

@@ -1,6 +1,6 @@
 ---
-title: "Network Infrastructure & Security Sub-Project"
-description: "Foundational network architecture implementation for home automation project"
+title: Network Infrastructure & Security Sub-Project
+description: Foundational network architecture implementation for home automation project
 tags:
   - sub-project
   - network-infrastructure
@@ -9,26 +9,26 @@ tags:
   - vlan
   - firewall
 aliases:
-  - "Network Infrastructure"
-  - "Network Sub-Project"
-  - "01-Network-Infrastructure"
+  - Network Infrastructure
+  - Network Sub-Project
+  - 01-Network-Infrastructure
 created: 2025-09-15
 modified: 2025-09-16
-sub_project_id: "01-network-infrastructure"
+sub_project_id: 01-network-infrastructure
 project_context: "[[Main/home-automation-safety/README|Home Automation Project]]"
 priority: critical
 status: planning
-dependencies: 
-  - "Router ready for OpenWrt flash"
+dependencies:
+  - Router ready for OpenWrt flash
 related_decisions:
   - "[[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]]"
 related_sessions:
-  - "[[Main/home-automation-safety/docs/session-states/session_state_20250909|Initial Planning Session]]"
-  - "[[Main/home-automation-safety/docs/session-states/session_state_20250912|Repository Setup Session]]"
+  - "[[session_state_20250909|Initial Planning Session]]"
+  - "[[session_state_20250912|Repository Setup Session]]"
 implementation_files:
-  - "configs/openwrt/firewall-config.sh"
-  - "configs/openwrt/vlan-config.conf"
-  - "configs/openwrt/main-config.conf"
+  - configs/openwrt/firewall-config.sh
+  - configs/openwrt/vlan-config.conf
+  - configs/openwrt/main-config.conf
 network_diagram: "[[Main/home-automation-safety/docs/diagrams/Network Diagram|Network Topology]]"
 ---
 
@@ -41,7 +41,7 @@ Part of the larger [[Main/home-automation-safety/README|home automation project]
 - **Main Project:** [[Main/home-automation-safety/README|Home Automation Project Overview]]
 - **Architecture Decision:** [[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]]
 - **Network Diagram:** [[Main/home-automation-safety/docs/diagrams/Network Diagram|Visual Topology]]
-- **Related Sessions:** [[Main/home-automation-safety/docs/session-states/session_state_20250909|Initial Planning]], [[Main/home-automation-safety/docs/session-states/session_state_20250912|Repository Setup]]
+- **Related Sessions:** [[session_state_20250909|Initial Planning]], [[session_state_20250912|Repository Setup]]
 
 ## Hardware
 - **Router:** GL.iNet GL-MT6000 (OpenWrt)

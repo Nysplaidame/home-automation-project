@@ -1,6 +1,6 @@
 ---
-title: "Session State Save - Home Automation Project 09-09-25"
-description: "Initial planning session - network architecture and security design"
+title: Session State Save - Home Automation Project 09-09-25
+description: Initial planning session - network architecture and security design
 tags:
   - session-state
   - initial-planning
@@ -8,18 +8,18 @@ tags:
   - security-design
   - project-phase-0
 aliases:
-  - "Initial Planning Session"
-  - "Session 20250909"
-  - "Foundation Session"
+  - Initial Planning Session
+  - Session 20250909
+  - Foundation Session
 created: 2025-09-09
 modified: 2025-09-16
-session_id: "session_state_20250909"
-session_phase: "Initial Planning & Architecture"
+session_id: session_state_20250909
+session_phase: Initial Planning & Architecture
 session_duration: 120
 session_success_rating: 5
-session_type: "planning-and-architecture"
-prev_session: null
-next_session: "[[Main/home-automation-safety/docs/session-states/session_state_20250912|Repository Setup Session]]"
+session_type: planning-and-architecture
+prev_session:
+next_session: "[[session_state_20250912|Repository Setup Session]]"
 related_decisions:
   - "[[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]]"
 project_context: "[[Main/home-automation-safety/README|Home Automation Project]]"
@@ -31,7 +31,7 @@ progress_percent: 15
 
 ## Session Navigation
 - **Previous Session:** _This is the initial session_
-- **Next Session:** [[Main/home-automation-safety/docs/session-states/session_state_20250912|Repository Setup Session]]
+- **Next Session:** [[session_state_20250912|Repository Setup Session]]
 - **Project Overview:** [[Main/home-automation-safety/README|Home Automation Project]]
 - **Related Decision:** [[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]]
 

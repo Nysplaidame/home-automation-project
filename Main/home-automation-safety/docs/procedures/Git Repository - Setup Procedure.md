@@ -19,7 +19,7 @@ This placeholder serves as a reference to the original documentation.
 ## Related Project Documents
 - **Project Overview:** [[Main/Home Automation/Readme]] - Complete project status and navigation
 - **Repository Structure:** Created using procedures documented in the original PDF
-- **Session Management:** [[docs/session-states/session-template]] - Template for project continuation
+- **Session Management:** [[session-template-complete]] - Template for project continuation
 - **Architecture Context:** [[docs/decisions/001-network-architecture]] - Network design requiring Git workflow
 
 ## Git Repository Integration

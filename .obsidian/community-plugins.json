@@ -1,5 +1,4 @@
 [
-  "obsidian-local-rest-api",
   "regex-mark",
   "mermaid-popup",
   "obsidian42-brat",
@@ -8,5 +7,6 @@
   "obsidian-tasks-plugin",
   "dataview",
   "obsidian-kanban",
-  "templater-obsidian"
+  "templater-obsidian",
+  "obsidian-local-rest-api"
 ]

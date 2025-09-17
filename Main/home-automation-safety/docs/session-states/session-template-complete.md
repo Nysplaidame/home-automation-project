@@ -1,87 +1,6 @@
-# Session: [System Focus] - [YYYY-MM-DD]
-
-## Context Loading
-**Previous Sessions:** 
-**Current Phase:** 
-**System Focus:** 
-**Git Branch:** main
-
-## Goals This Session
-- [ ] Goal 1
-- [ ] Goal 2
-- [ ] Goal 3
-
-## Decisions Made
-### Decision 1: [Title]
-**Problem:** 
-**Solution:** 
-**Rationale:** 
-**Files Affected:** 
-**Git Commit:** 
-
-## Technical Context
-**Key Files Referenced:** 
-- path/to/config.yaml - Purpose
-
-**Current State:**
-- Working: 
-- Issues: 
-- Partially Done: 
-
-## Artifacts Created/Modified
-- [ ] Artifact 1: Description
-- [ ] Artifact 2: Description
-
-## Next Session Prep
-**Immediate Next Steps:**
-1. 
-2. 
-3. 
-
-**Files to Review:** 
-**Context Needed:** 
-**Dependencies:** 
-
-## Issues & Blockers
-- Issue 1: 
-- Workaround: 
-
-## Git Integration
-**Commits This Session:** 
-**Files Modified:** 
-**New Files Created:** 
-
----
-**Session Duration:** 
-**Complexity Level:** Low/Medium/High
-**Success Rating:** 1-5 (how well did we achieve goals)
-
-
-## Usage & Context  
-> **Purpose:** Template for structured session documentation in home automation project
-> **Architecture Reference:** [[docs/decisions/001-network-architecture]] - Core network design
-> **Example Sessions:** [[docs/session-states/session_state_20250909]] and [[docs/session-states/session_state_20250912]]
-
-## Context Loading Guidelines
-**Previous Sessions:** Always link to chronologically previous session state documents
-**Related Decisions:** Reference [[docs/decisions/]] decision records that inform current work
-**Implementation Status:** Check [[Main/Home Automation/Readme]] for current system progress  
-**Architecture Context:** Reference [[docs/decisions/001-network-architecture]] for network-related work
-
-## Session Documentation Best Practices
-- **Link Related Configs:** Always reference specific config files being modified
-- **Decision Traceability:** Link to architecture decisions that inform implementation  
-- **Progress Tracking:** Update project status in [[Main/Home Automation/Readme]]
-- **Session Chaining:** Create clear navigation between session documents
-
-## Next Session Preparation Template
-**Session Chain:** `- **Next Session:** [[docs/session-states/YYYY-MM-DD-session-name]] - Brief description`
-**Related Configs:** `- **Modified Files:** [[configs/system/filename]] - Purpose description`  
-**Decision Records:** `- **Decisions Made:** [[docs/decisions/###-decision-name]] - Decision rationale`
-**Architecture Updates:** `- **Architecture Impact:** [[docs/decisions/001-network-architecture]] - How this affects network design`
 ---
 title: "Session Template - Home Automation Project"
-description: "Template for creating new Claude session documentation"
+description: "Template for creating new Claude session documentation with best practices"
 tags:
   - template
   - session-state
@@ -90,8 +9,9 @@ tags:
 aliases:
   - "Session Template"
   - "Claude Session Template"
+  - "Complete Template"
 created: 2025-09-16
-modified: 2025-09-16
+modified: 2025-09-17
 type: template
 project_context: "[[Main/home-automation-safety/README|Home Automation Project]]"
 usage_instructions: "Copy and modify this template for each new Claude session"
@@ -102,7 +22,7 @@ usage_instructions: "Copy and modify this template for each new Claude session"
 ## Session Navigation
 - **Previous Session:** [[path/to/previous|Previous Session Name]]
 - **Next Session:** _Next session to be created_
-- **Session Template:** [[Main/home-automation-safety/docs/session-states/session-template|This Template]]
+- **Session Template:** [[session-template-complete|This Template]]
 - **Project Overview:** [[Main/home-automation-safety/README|Home Automation Project]]
 
 ## Context Loading
@@ -177,7 +97,7 @@ usage_instructions: "Copy and modify this template for each new Claude session"
 ## Cross-References
 
 ### All Sub-Projects
-- [[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Network Infrastructure & Security]]
+- [[01-network-infrastructure|Network Infrastructure & Security]]
 - [[Main/home-automation-safety/docs/prompts/02-core-infrastructure|Core Infrastructure (Proxmox)]]
 - [[Main/home-automation-safety/docs/prompts/03-printairpipe-ventilation|PrintAirPipe Ventilation System]]
 - [[Main/home-automation-safety/docs/prompts/04-home-assistant-core|Home Assistant Core]]
@@ -252,7 +172,57 @@ progress_percent: [percentage]
 - **testing**: System validation and testing
 - **integration**: Connecting different systems
 
+## ⚠️ **ESSENTIAL DRAFTING GUIDELINES**
+**CRITICAL:** Follow these practices for every session:
+
+### Context Window Optimization
+- **Minimize Impact:** Always strive to minimize impact on context window
+- **Focus Content:** Include only essential information, avoid redundant details
+- **Strategic Linking:** Use backlinks efficiently rather than duplicating content
+- **Concise Language:** Write clearly and concisely without losing technical accuracy
+- **Eliminate Duplication:** Check previous sessions to avoid repeating information
+
+### Backlink Management
+- **Identify Opportunities:** Actively identify potential backlink opportunities
+- **Create Missing Links:** Create new backlinks where they add navigation value
+- **Update Existing:** Update and maintain existing backlinks for accuracy
+- **Bidirectional Linking:** Ensure important relationships are bidirectionally linked
+- **Strategic Cross-References:** Focus on high-value connections over exhaustive linking
+
+### Obsidian Best Practices
+- **Valid YAML:** Ensure all notes have properly formatted YAML frontmatter
+- **Consistent Tags:** Use established tagging system consistently
+- **Proper Aliases:** Add meaningful aliases for different reference styles
+- **Wiki-Links:** Use `[[wiki-style]]` linking with descriptive display names
+- **Metadata Standards:** Include all required metadata fields (created, modified, type, etc.)
+- **File Naming:** Use consistent naming conventions (session_state_YYYYMMDD format)
+- **Archive Management:** Move completed sessions to appropriate archive folders
+
+## Session Documentation Best Practices
+- **Link Related Configs:** Always reference specific config files being modified
+- **Decision Traceability:** Link to architecture decisions that inform implementation  
+- **Progress Tracking:** Update project status in [[Main/Home Automation/Readme]]
+- **Session Chaining:** Create clear navigation between session documents
+
+## Context Loading Guidelines
+**Previous Sessions:** Always link to chronologically previous session state documents
+**Related Decisions:** Reference [[docs/decisions/]] decision records that inform current work
+**Implementation Status:** Check [[Main/Home Automation/Readme]] for current system progress  
+**Architecture Context:** Reference [[docs/decisions/001-network-architecture]] for network-related work
+
+## Next Session Preparation Template
+**Session Chain:** `- **Next Session:** [[docs/session-states/YYYY-MM-DD-session-name]] - Brief description`
+**Related Configs:** `- **Modified Files:** [[configs/system/filename]] - Purpose description`  
+**Decision Records:** `- **Decisions Made:** [[docs/decisions/###-decision-name]] - Decision rationale`
+**Architecture Updates:** `- **Architecture Impact:** [[docs/decisions/001-network-architecture]] - How this affects network design`
+
 ---
-**Template Version:** 1.0  
+**Template Version:** 2.0  
 **Created:** September 16, 2025  
+**Updated:** September 17, 2025  
 **For Project:** [[Main/home-automation-safety/README|Home Automation Project]]
+
+## Usage & Context  
+> **Purpose:** Template for structured session documentation in home automation project
+> **Architecture Reference:** [[docs/decisions/001-network-architecture]] - Core network design
+> **Example Sessions:** [[session_state_20250909]] and [[session_state_20250912]]

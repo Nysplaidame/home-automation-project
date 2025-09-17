@@ -1,6 +1,6 @@
 ---
-title: "Home Assistant Core - Automation Hub Sub-Project"
-description: "Central automation platform implementation for home automation project"
+title: Home Assistant Core - Automation Hub Sub-Project
+description: Central automation platform implementation for home automation project
 tags:
   - sub-project
   - home-assistant
@@ -8,28 +8,28 @@ tags:
   - smart-home
   - integration
 aliases:
-  - "Home Assistant Core"
-  - "HA Core Sub-Project"
-  - "04-Home-Assistant-Core"
+  - Home Assistant Core
+  - HA Core Sub-Project
+  - 04-Home-Assistant-Core
 created: 2025-09-15
 modified: 2025-09-16
-sub_project_id: "04-home-assistant-core"
+sub_project_id: 04-home-assistant-core
 project_context: "[[Main/home-automation-safety/README|Home Automation Project]]"
 priority: high
 status: planning
-dependencies: 
+dependencies:
   - "[[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Network Infrastructure]] (VLAN 20 setup)"
   - "[[Main/home-automation-safety/docs/prompts/02-core-infrastructure|Core Infrastructure]] (Proxmox VM)"
 related_decisions:
   - "[[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]]"
 related_sessions:
-  - "[[Main/home-automation-safety/docs/session-states/session_state_20250909|Initial Planning Session]]"
-  - "[[Main/home-automation-safety/docs/session-states/session_state_20250912|Repository Setup Session]]"
+  - "[[session_state_20250909|Initial Planning Session]]"
+  - "[[session_state_20250912|Repository Setup Session]]"
 implementation_files:
-  - "configs/home-assistant/configuration.yaml"
-  - "configs/home-assistant/automations.yaml"
-  - "configs/home-assistant/scripts.yaml"
-network_assignment: "VLAN 20 (192.168.20.0/24)"
+  - configs/home-assistant/configuration.yaml
+  - configs/home-assistant/automations.yaml
+  - configs/home-assistant/scripts.yaml
+network_assignment: VLAN 20 (192.168.20.0/24)
 safety_integration: "[[Main/home-automation-safety/docs/prompts/03-printairpipe-ventilation|PrintAirPipe Ventilation System]]"
 ---
 
@@ -39,7 +39,7 @@ safety_integration: "[[Main/home-automation-safety/docs/prompts/03-printairpipe-
 - **Main Project:** [[Main/home-automation-safety/README|Home Automation Project Overview]]
 - **Project Index:** [[Main/home-automation-safety/docs/PROJECT-INDEX|📚 Complete Documentation Hub]]
 - **Network Architecture:** [[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]]
-- **Latest Session:** [[Main/home-automation-safety/docs/session-states/session_state_20250912|Repository Setup Session]]
+- **Latest Session:** [[session_state_20250912|Repository Setup Session]]
 
 ## Context
 Part of the larger [[Main/home-automation-safety/README|home automation project]] with fire safety focus. Home Assistant serves as the central automation hub that coordinates all systems while maintaining security isolation through the [[Main/home-automation-safety/docs/decisions/001-network-architecture|4-VLAN network architecture]].
@@ -135,7 +135,7 @@ Based on [[Main/home-automation-safety/docs/decisions/001-network-architecture|N
 ## Implementation Dependencies
 
 ### Prerequisites (Must Complete First)
-1. **Network Foundation:** [[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Network Infrastructure]] - VLAN 20 operational
+1. **Network Foundation:** [[01-network-infrastructure|Network Infrastructure]] - VLAN 20 operational
 2. **Virtualization Platform:** [[Main/home-automation-safety/docs/prompts/02-core-infrastructure|Core Infrastructure]] - Proxmox VM ready
 3. **Safety System Design:** [[Main/home-automation-safety/docs/prompts/03-printairpipe-ventilation|PrintAirPipe Ventilation]] - ESPHome configs ready
 
@@ -172,7 +172,7 @@ Based on [[Main/home-automation-safety/docs/decisions/001-network-architecture|N
 - **ESPHome Configs:** Reference from [[Main/home-automation-safety/docs/prompts/03-printairpipe-ventilation|PrintAirPipe System]]
 
 ## Related Sub-Projects
-- **Foundation:** [[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Network Infrastructure & Security]]
+- **Foundation:** [[01-network-infrastructure|Network Infrastructure & Security]]
 - **Platform:** [[Main/home-automation-safety/docs/prompts/02-core-infrastructure|Core Infrastructure (Proxmox)]]
 - **Safety (PRIORITY):** [[Main/home-automation-safety/docs/prompts/03-printairpipe-ventilation|PrintAirPipe Ventilation System]]
 - **Security:** [[Main/home-automation-safety/docs/prompts/05-cctv-surveillance|CCTV & Surveillance]]
@@ -180,9 +180,9 @@ Based on [[Main/home-automation-safety/docs/decisions/001-network-architecture|N
 - **AI:** [[Main/home-automation-safety/docs/prompts/07-claude-mcp-ai|Claude MCP Integration]]
 
 ## Session References
-- **Architecture Planning:** [[Main/home-automation-safety/docs/session-states/session_state_20250909|Initial Planning Session]]
-- **Infrastructure Setup:** [[Main/home-automation-safety/docs/session-states/session_state_20250912|Repository Setup Session]]
-- **Next Session Template:** [[Main/home-automation-safety/docs/session-states/session-template|Session Template]]
+- **Architecture Planning:** [[session_state_20250909|Initial Planning Session]]
+- **Infrastructure Setup:** [[session_state_20250912|Repository Setup Session]]
+- **Next Session Template:** [[session-template-complete|Session Template]]
 
 ## External Resources
 - **Home Assistant Documentation:** https://www.home-assistant.io/docs/
