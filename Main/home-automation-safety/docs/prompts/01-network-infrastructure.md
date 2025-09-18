@@ -29,7 +29,7 @@ implementation_files:
   - configs/openwrt/firewall-config.sh
   - configs/openwrt/vlan-config.conf
   - configs/openwrt/main-config.conf
-network_diagram: "[[Network Diagram|Network Topology]]"
+network_diagram: "[[network-diagram|Network Topology]]"
 ---
 
 # Sub-Project Prompt: Network Infrastructure & Security
@@ -41,7 +41,7 @@ Part of the larger [[main/home-automation-safety/README|home automation project]
 - **Main Project:** [[main/home-automation-safety/README|Home Automation Project Overview]]
 - **Architecture Decision:** [[001-network-architecture|Network Architecture Decision]]
 - **Project Index:** [[PROJECT-INDEX|Documentation Hub]]
-- **Network Diagram:** [[Network Diagram|Visual Topology]]
+- **Network Diagram:** [[network-diagram|Visual Topology]]
 - **Latest Session:** [[session_state_20250917-concise|Strategic Planning Session]]
 
 ## Hardware
@@ -80,7 +80,7 @@ Based on [[001-network-architecture|Network Architecture Decision]]:
 - **Security Rules:** `configs/openwrt/firewall-config.sh` - Already created ✅
 - **VLAN Config:** `configs/openwrt/vlan-config.conf` - Pending creation 🚧
 - **Main Router Config:** `configs/openwrt/main-config.conf` - Pending creation 🚧
-- **Network Topology:** [[Network Diagram|Network Diagram]] - Visual reference ✅
+- **Network Topology:** [[network-diagram|network-diagram]] - Visual reference ✅
 
 ## Dependencies
 - Router ready for OpenWrt flash

@@ -69,15 +69,15 @@ Focused implementation guides for each system component.
 Network diagrams and system visualizations.
 
 **Diagrams & Visuals:**
-- [[Network Diagram|🕸️ Network Topology Diagram]] - Visual network design
+- [[network-diagram|🕸️ Network Topology Diagram]] - Visual network design
 - Network Mermaid files in `/diagrams/mermaid/`
 
 ### 📋 Procedures & Guides
 Step-by-step implementation procedures.
 
 **Procedures:**
-- [[Git Repository - Setup Procedure|📦 Git Repository Setup]] - Repository initialization
-- [[MCP - Claude Integration|🤖 MCP Claude Integration]] - AI setup guide
+- [[git-repository-setup|📦 Git Repository Setup]] - Repository initialization
+- [[claude-MCP-integration|🤖 MCP Claude Integration]] - AI setup guide
 
 ---
 
@@ -134,7 +134,7 @@ Main/
 **Repository:** [Nysplaidame/home-automation-project](https://github.com/Nysplaidame/home-automation-project)
 - **Status:** ✅ Active and synced
 - **Branch:** main
-- **Setup:** [[Git Repository - Setup Procedure|Complete]]
+- **Setup:** [[git-repository-setup|Complete]]
 
 ---
 

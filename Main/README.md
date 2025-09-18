@@ -55,7 +55,7 @@ Main/
 
 - **Latest Work**: [[session_state_20250912|Current Session State]]
 - **Project Status**: [[main/home-automation-safety/README|Project Overview]]
-- **Network Design**: [[Network Diagram|Network Topology]]
+- **Network Design**: [[network-diagram|Network Topology]]
 
 ## 📚 Documentation Standards
 

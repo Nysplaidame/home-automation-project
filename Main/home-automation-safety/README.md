@@ -181,7 +181,7 @@ scripts/                # Automation and setup scripts
 - [x] VLAN design and implementation
 - [ ] Firewall rules and security policies
 - [ ] Device inventory system
-- [x] Network diagram creation
+- [x] Network diagram creation 
 
 ### Phase 2: Core Infrastructure Setup
 > Primary: [[02-core-infrastructure|Core Infrastructure]]

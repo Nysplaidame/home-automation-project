@@ -96,7 +96,7 @@ class CameraFeeds DataFeed
 ```
 
 
-![[Network Diagram - New.png]]
+![[network-diagram-new.png]]
 
 ## Document References & Architecture  
 - **Architecture Decision:** [[001-network-architecture]] - Design rationale  

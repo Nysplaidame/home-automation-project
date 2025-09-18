@@ -126,7 +126,7 @@ progress_percent: 15
 
 ## Architecture References & Implementation
 - **Network Architecture:** [[001-network-architecture|4-VLAN design formalized from this session]]
-- **Network Diagram:** [[Network Diagram|Visual network topology]]
+- **Network Diagram:** [[network-diagram|Visual network topology]]
 - **Implementation Files:** Configuration files designed this session
 
 ## Created Artifacts & Documents

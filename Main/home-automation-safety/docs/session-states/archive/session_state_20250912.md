@@ -93,8 +93,8 @@ related_sub_projects:
 
 **Key Files Referenced:**
 - [[session_state_20250909|Previous session context]]
-- [[Network Diagram|Network architecture]]
-- [[Git Repository - Setup Procedure|Repository setup procedure]]
+- [[network-diagram|Network architecture]]
+- [[git-repository-setup|Repository setup procedure]]
 
 **Current State:**
 - **Working:** Complete repository structure created and pushed to GitHub
@@ -149,8 +149,8 @@ Main/
 ### Related Documents
 - **Network Architecture:** [[001-network-architecture|4-VLAN design rationale]]
 - **Project Status:** [[main/home-automation-safety/README|Updated project overview]]
-- **Network Topology:** [[Network Diagram|Visual network design]]
-- **Setup Procedures:** [[Git Repository - Setup Procedure|Repository setup guide]]
+- **Network Topology:** [[network-diagram|Visual network design]]
+- **Setup Procedures:** [[git-repository-setup|Repository setup guide]]
 
 ## Project Status Summary
 - **Overall Progress:** 25% complete (up from 15%)

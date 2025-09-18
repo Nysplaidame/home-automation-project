@@ -63,15 +63,15 @@ priority_next: "[[Main/home-automation-safety/docs/prompts/01-network-infrastruc
 - **Risk Factors:** Single point of failure with MINIX Mini PC hosting critical services, fire safety system failure could result in property damage, network misconfiguration could compromise security isolation
 
 ## Context for Next Session
-- **Priority 1:** [[Git Repository - Setup Procedure|Create GitHub repository and documentation structure]] for configuration management
+- **Priority 1:** [[git-repository-setup|Create GitHub repository and documentation structure]] for configuration management
 - **Priority 2:** [[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Begin OpenWrt router configuration]] with VLAN interface setup
 - **Priority 3:** Research and select specific sensor models for [[03-printairpipe-ventilation|PrintAirPipe ventilation system]]
-- **Files to load:** [[001-network-architecture|Network Architecture Decision]], [[Network Diagram|Network Topology Diagram]]
+- **Files to load:** [[001-network-architecture|Network Architecture Decision]], [[network-diagram|Network Topology Diagram]]
 - **Context needed:** Repository structure requirements, OpenWrt installation procedures, sensor integration methods
 
 ## Essential Resources
 - **Architecture:** [[001-network-architecture|4-VLAN Network Architecture Decision]] - Complete security model and rationale
-- **Configuration:** [[Network Diagram|Network Topology Diagram]] - Visual device placement and data flows
+- **Configuration:** [[network-diagram|Network Topology Diagram]] - Visual device placement and data flows
 - **External Resources:** GL.iNet GL-MT6000 OpenWrt documentation, Bambu Labs P1S API documentation
 - **Previous session:** None (initial project session)
 

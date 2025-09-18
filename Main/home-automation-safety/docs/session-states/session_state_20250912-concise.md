@@ -65,14 +65,14 @@ priority_next: "[[Main/home-automation-safety/docs/prompts/01-network-infrastruc
 
 ## Context for Next Session
 - **Priority 1:** [[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Implement OpenWrt router VLAN configuration]] per network architecture design
-- **Priority 2:** [[Git Repository - Setup Procedure|Use established Git workflow]] for configuration file management
+- **Priority 2:** [[git-repository-setup|Use established Git workflow]] for configuration file management
 - **Priority 3:** [[03-printairpipe-ventilation|Research PrintAirPipe sensor models]] and procurement planning
-- **Files to load:** [[001-network-architecture|Network Architecture Decision]], [[Network Diagram|Network Topology]]
+- **Files to load:** [[001-network-architecture|Network Architecture Decision]], [[network-diagram|Network Topology]]
 - **Context needed:** OpenWrt installation procedures, specific VLAN interface configuration syntax, firewall rule implementation
 
 ## Essential Resources
 - **Architecture:** [[001-network-architecture|4-VLAN Network Architecture Decision]] - Implementation foundation
-- **Configuration:** [[Git Repository - Setup Procedure|Git Repository Setup Procedure]] - Complete workflow documentation
+- **Configuration:** [[git-repository-setup|Git Repository Setup Procedure]] - Complete workflow documentation
 - **External Resources:** 
   - PrintAirPipe Hardware STL: https://nerdiy.de/en/product-2/printairpipe-125-actuator-sensor-set-3d-printable-stl-files/
   - ESPHome Integration Code: https://github.com/Nerdiyde/ESPHomeSnippets/tree/c0135795dc180c6ff4a1306b2f5982ef3db386c3/Snippets/PrintAirPipe

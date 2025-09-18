@@ -170,16 +170,15 @@ title: Complete Hardware Parts List - Home Automation Project description: Compr
 - [ ] Multimeter
 - [ ] Heat Gun
 - [ ] Drill & Bits
-- [ ] 3D Printer (CRITICAL for PrintAirPipe fabrication)
 
 ### Consumables
 
-|Item|Quantity|Purpose|Replacement Frequency|
-|---|---|---|---|
-|**Heat Shrink Tubing**|Assorted pack|Cable protection|As needed|
-|**Cable Ties**|100-pack, various sizes|Cable management|As needed|
-|**Electrical Tape**|5 rolls|Insulation|As needed|
-|**Solder & Flux**|60/40 rosin core|Electronic connections|As needed|
+| Item                   | Quantity                | Purpose                |
+| ---------------------- | ----------------------- | ---------------------- |
+| **Heat Shrink Tubing** | Assorted pack           | Cable protection       |
+| **Cable Ties**         | 100-pack, various sizes | Cable management       |
+| **Electrical Tape**    | 5 rolls                 | Insulation             |
+| **Solder & Flux**      | 60/40 rosin core        | Electronic connections |
 
 ### Consumables Checklist:
 
@@ -194,17 +193,16 @@ title: Complete Hardware Parts List - Home Automation Project description: Compr
 
 ### Cost Estimates by Category
 
-|Category|Low Estimate|High Estimate|Priority|
-|---|---|---|---|
-|**PrintAirPipe Electronics**|£160|£240|CRITICAL|
-|**3D Printing Materials**|£64|£96|HIGH|
-|**Network Equipment**|£80|£160|HIGH|
-|**CCTV System**|£240|£400|MEDIUM|
-|**Storage & NAS**|£120|£200|MEDIUM|
-|**Tools & Consumables**|£80|£160|LOW|
-|**Contingency (15%)**|£112|£168|BUFFER|
+| Category                     | Low Estimate | High Estimate | Priority |
+| ---------------------------- | ------------ | ------------- | -------- |
+| **PrintAirPipe Electronics** | £160         | £240          | CRITICAL |
+| **Network Equipment**        | £80          | £160          | HIGH     |
+| **CCTV System**              | £240         | £400          | MEDIUM   |
+| **Storage & NAS**            | £120         | £200          | MEDIUM   |
+| **Tools & Consumables**      | £80          | £160          | LOW      |
+| **Contingency (15%)**        | £112         | £168          | BUFFER   |
 
-**Total Project Cost:** £856 - £1,424
+**Total Project Cost:** £792 - £1,328
 
 ### Funding Strategy Checklist:
 

@@ -1,148 +1,258 @@
- segments (10x)
-   - [ ] Basic adapters & connectors (6x)
-   
-2. **Phase 2: Control Systems**
-   - [ ] Servo valve housings (4x)
-   - [ ] Sensor housings (8x)
-   
-3. **Phase 3: Filtration**
-   - [ ] Filter housings (2x) - **PLA-HT Required**
-   - [ ] Air sensor segments (2x)
+---
+title: 3D Printing Parts List - Home Automation Project
+description: Comprehensive 3D printing requirements for PrintAirPipe ventilation system and safety components
+tags:
+  - 3d-printing
+  - parts-list
+  - printairpipe
+  - ventilation
+  - safety-critical
+aliases:
+  - 3D Printing Parts List
+  - PrintAirPipe Components
+  - 3D Manufacturing List
+created: 2025-09-17
+modified: 2025-09-18
+type: manufacturing-specification
+project_context: "[[main/home-automation-safety/README|Home Automation Project]]"
+status: active
+phase: 3D Manufacturing & Production
+---
 
-### Estimated Print Times
-- **Total Print Time:** ~48-60 hours
-- **Material Usage:** ~2.5kg total filament
-- **Printer Utilization:** 3-4 weeks (part-time printing)
+# 🖨️ 3D Printing Parts List - Home Automation Project
+
+> **Project Context:** [[main/home-automation-safety/README|Home Automation Project]] | **Master Index:** [[PROJECT-INDEX|Documentation Hub]]
+
+## 📋 3D Printing Summary by System
+
+| System | Component Count | Estimated Print Time | Material Usage |
+|---|---|---|---|
+| **PrintAirPipe Ventilation** | 32 components | ~48-60 hours | ~2.5kg filament |
+| **Safety Critical Components** | 6 components | ~12-15 hours | ~0.5kg PLA-HT |
+| **Support & Integration** | 6 components | ~8-10 hours | ~0.3kg PLA+ |
+
+### System Status Checklist:
+
+- [ ] PrintAirPipe Ventilation
+- [ ] Safety Critical Components  
+- [ ] Support & Integration
+
+**Total Manufacturing Time:** ~68-85 hours  
+**Total Material Usage:** ~3.3kg filament
 
 ---
+
 ## 🔥 PrintAirPipe Ventilation & Safety System ⚠️ **SAFETY CRITICAL**
 
 > **System Focus:** [[03-printairpipe-ventilation|PrintAirPipe Ventilation System]]
 
-### PrintAirPipe Hardware Components
+### PrintAirPipe 3D Printed Components
 
-#### Electronics & Control
-
-|Component|Model|Qty|Purpose|Source|
+|Component|Model/Specification|Quantity|Purpose|Print Material|
 |---|---|---|---|---|
-|**ESP32 Development Board**|ESP32-WROOM-32|2x|Controller for each enclosure|Generic supplier|
-|**MG90S Servo Motor**|9g Metal Gear Servo|4x|Damper control (2 per enclosure)|Electronics supplier|
-|**USB-C Power Adapter**|5V 3A USB-C PSU|2x|Power for ESP32 + servos|Electronics supplier|
-|**Temperature Sensor**|DS18B20 Waterproof|4x|Temperature monitoring|Electronics supplier|
-|**Humidity Sensor**|DHT22/AM2302|2x|Humidity monitoring|Electronics supplier|
-|**Pressure Sensor**|BMP280|2x|Differential pressure measurement|Electronics supplier|
-|**Smoke Detector**|MQ-2 Gas Sensor|2x|Fire/smoke detection|Electronics supplier|
-|**VOC Sensor**|SGP30 or CCS811|2x|Volatile organic compound detection|Electronics supplier|
-|**Smart Plugs**|TP-Link Kasa HS105|4x|Emergency power cutoff for printers|Electronics retailer|
+|**PrintAirPipe Segments**|125mm diameter pipe segments|10x|Main air distribution|PLA+/PLA-HT|
+|**Servo Valve Housing**|MG90S servo mount + damper assembly|4x|Automated airflow control|PLA+/PLA-HT|
+|**Sensor Housings**|Temperature/pressure sensor mounts|8x|Environmental monitoring|PLA+/PLA-HT|
+|**Air Sensor Segments**|Sensor integration pipe segments|2x|Sensor placement integration|PLA+/PLA-HT|
+|**Filter Housings**|HEPA/carbon filter mounting|2x|Filtration system support|PLA-HT|
+|**Basic Adapters & Connectors**|Various pipe connections|6x|System interconnection|PLA+|
 
-### PrintAirPipe Electronics Checklist:
-
-- [ ] ESP32 Development Board (ESP32-WROOM-32) - 2x
-- [ ] MG90S Servo Motor (9g Metal Gear) - 4x
-- [ ] USB-C Power Adapter (5V 3A) - 2x
-- [ ] DS18B20 Waterproof Temperature Sensor - 4x
-- [ ] DHT22/AM2302 Humidity Sensor - 2x
-- [ ] BMP280 Pressure Sensor - 2x
-- [ ] MQ-2 Gas Sensor for smoke detection - 2x
-- [ ] SGP30 or CCS811 VOC Sensor - 2x
-- [ ] TP-Link Kasa HS105 Smart Plugs - 4x
-
-#### 3D Printed Components (STL Files Required)
-
-Source: nerdiy.de STL files
-
-|Component|Description|Quantity|Print Material|
-|---|---|---|---|
-|**PrintAirPipe Segments**|125mm pipe segments|10x|PLA+/PLA-HT|
-|**Servo Valve Housing**|Servo mount + damper assembly|4x|PLA+/PLA-HT|
-|**Sensor Housings**|Temperature/pressure sensor mounts|8x|PLA+/PLA-HT|
-|**Air Sensor Segments**|Sensor integration segments|2x|PLA+/PLA-HT|
-|**Filter Housings**|HEPA/carbon filter mounts|2x|PLA-HT|
-|**Adapters & Connectors**|Various pipe connections|6x|PLA+|
-
-### 3D Printed Components Checklist:
+### PrintAirPipe Components Checklist:
 
 - [ ] PrintAirPipe Segments (125mm pipe segments) - 10x
 - [ ] Servo Valve Housing (servo mount + damper assembly) - 4x
 - [ ] Sensor Housings (temperature/pressure sensor mounts) - 8x
 - [ ] Air Sensor Segments (sensor integration segments) - 2x
-- [ ] Filter Housings (HEPA/carbon filter mounts) - 2x
-- [ ] Adapters & Connectors (various pipe connections) - 6x
+- [ ] Filter Housings (HEPA/carbon filter mounts) - 2x ⚠️ **PLA-HT Required**
+- [ ] Basic Adapters & Connectors (various pipe connections) - 6x
 
-
-### PrintAirPipe-Specific Resources
-
-- **STL Files:** nerdiy.de (€29.00 for complete set)
-- **Documentation:** GitHub ESPHome snippets (free)
-- **Community:** PrintAirPipe Discord/forums for troubleshooting
-#### Filtration System
-
-|Component|Specification|Quantity|Purpose|Source|
-|---|---|---|---|---|
-|**HEPA Filters**|125mm diameter, H13 grade|2x|Particle filtration|HVAC supplier|
-|**Activated Carbon Filter**|125mm diameter|2x|VOC/odor removal|HVAC supplier|
-|**120mm Axial Fan**|12V brushless, 2000 RPM|2x|Air movement|Electronics supplier|
-
-### Filtration System Checklist:
-
-- [ ] HEPA Filters (125mm diameter, H13 grade) - 2x
-- [ ] Activated Carbon Filter (125mm diameter) - 2x
-- [ ] 120mm Axial Fan (12V brushless, 2000 RPM) - 2x
-
-#### Enclosure Integration
-
-|Component|Specification|Quantity|Purpose|Source|
-|---|---|---|---|---|
-|**Printer Enclosure**|Acrylic/aluminum frame|2x|SLA + FDM printer housing|DIY fabrication|
-|**125mm Ducting**|Flexible aluminum duct|10m|Connect enclosures to ventilation|HVAC supplier|
-|**Duct Clamps**|125mm hose clamps|10x|Secure duct connections|Hardware store|
-
-### Enclosure Integration Checklist:
-
-- [ ] Printer Enclosure frames (acrylic/aluminum) - 2x
-- [ ] 125mm Flexible aluminum duct - 10m
-- [ ] 125mm Duct Clamps (hose clamps) - 10x
-
-**PrintAirPipe Resources:**
-
-- **STL Files:** https://nerdiy.de/en/product-2/printairpipe-125-actuator-sensor-set-3d-printable-stl-files/
-- **ESPHome Code:** https://github.com/Nerdiyde/ESPHomeSnippets/tree/c0135795dc180c6ff4a1306b2f5982ef3db386c3/Snippets/PrintAirPipe
+**STL Source:** nerdiy.de PrintAirPipe 125 Actuator & Sensor Set (€29.00)
 
 ---
 
-## 🔧 3D Printing Materials & Supplies
+## 📐 Manufacturing Specifications
+
+### Print Quality Requirements
+
+|Parameter|Specification|Purpose|Critical For|
+|---|---|---|---|
+|**Layer Height**|0.2mm|Structural integrity|Pipe segments, housings|
+|**Infill Density**|40%+ structural, 20% housings|Strength vs material efficiency|Load-bearing components|
+|**Support Material**|Required for overhangs >45°|Surface quality|Complex geometries|
+|**Print Speed**|50mm/s maximum|Quality assurance|All safety-critical parts|
+
+### Print Quality Checklist:
+
+- [ ] Layer Height: 0.2mm configured
+- [ ] Infill: 40%+ for structural, 20% for housings
+- [ ] Support: Enabled for overhangs >45°
+- [ ] Print Speed: Limited to 50mm/s max
+
+---
+
+## 🧵 3D Printing Materials & Supplies
 
 ### Filament Requirements
 
 |Material|Specification|Quantity|Purpose|Key Properties|
 |---|---|---|---|---|
-|**PLA+ Filament**|1.75mm, enhanced strength|2kg|PrintAirPipe structural components|High strength, dimensional stability|
-|**PLA-HT Filament**|1.75mm, fire-retardant|1kg|Safety-critical high-temp components|Fire retardancy, temperature resistance|
+|**PLA+ Filament**|1.75mm, enhanced strength|2.0kg|PrintAirPipe structural components|High strength, dimensional stability|
+|**PLA-HT Filament**|1.75mm, fire-retardant|1.0kg|Safety-critical high-temp components|Fire retardancy, temperature resistance|
+|**Support Material**|PVA or HIPS|0.3kg|Complex geometry support|Water soluble or breakaway|
 
 ### 3D Printing Materials Checklist:
 
-- [ ] PLA+ Filament (1.75mm, enhanced strength) - 2kg
-- [ ] PLA-HT Filament (1.75mm, fire-retardant) - 1kg
+- [ ] PLA+ Filament (1.75mm, enhanced strength) - 2.0kg
+- [ ] PLA-HT Filament (1.75mm, fire-retardant) - 1.0kg ⚠️ **Safety Critical**
+- [ ] Support Material (PVA or HIPS) - 0.3kg
 
-### Print Quality Requirements
+**Material Certification:** Fire-rated filament certificates must be retained for safety compliance
 
-- **Layer Height:** 0.2mm for structural components
-- **Infill:** 40%+ for pipe segments, 20% for housings
-- **Support:** Required for overhangs >45°
+---
 
-## 🔍 Quality Assurance
+## 📅 Production Schedule by Phase
 
-### Pre-Print Checklist
-- [ ] STL files downloaded and verified
-- [ ] Slicer settings configured per material
-- [ ] Printer calibrated and tested
-- [ ] Filament quality verified
+### Phase 1: Core Infrastructure (Week 1-2)
+- [ ] PrintAirPipe Segments (125mm pipe segments) - 10x
+- [ ] Basic Adapters & Connectors (various connections) - 6x
+
+**Phase 1 Totals:** 16 components, ~24 hours print time
+
+### Phase 2: Control Systems (Week 2-3)
+- [ ] Servo Valve Housings (servo mount assemblies) - 4x
+- [ ] Sensor Housings (temperature/pressure mounts) - 8x
+
+**Phase 2 Totals:** 12 components, ~20 hours print time
+
+### Phase 3: Filtration (Week 3-4) ⚠️ **Safety Critical**
+- [ ] Filter Housings (HEPA/carbon filter mounts) - 2x ⚠️ **PLA-HT Required**
+- [ ] Air Sensor Segments (sensor integration) - 2x
+
+**Phase 3 Totals:** 4 components, ~14 hours print time
+
+---
+
+## 🎯 Quality Assurance & Testing
+
+### Pre-Print Verification
+
+|Check|Requirement|Purpose|
+|---|---|---|
+|**STL File Integrity**|Mesh analysis passed|Prevent print failures|
+|**Slicer Configuration**|Material profiles loaded|Optimal print settings|
+|**Printer Calibration**|Bed leveling, extrusion verified|Dimensional accuracy|
+|**Filament Quality**|Diameter consistency ±0.02mm|Reliable feeding|
+
+### Pre-Print Checklist:
+
+- [ ] STL files downloaded and verified from nerdiy.de
+- [ ] Slicer settings configured per material type
+- [ ] Printer calibrated and test prints successful
+- [ ] Filament quality verified (diameter, moisture)
 
 ### Post-Print Inspection
+
+|Inspection|Tolerance|Critical For|
+|---|---|---|
+|**Dimensional Accuracy**|±0.2mm|Assembly fit|
+|**Surface Quality**|Layer adhesion intact|Structural integrity|
+|**Threading Quality**|Clean, functional|Connections|
+|**Structural Defects**|Zero tolerance|Safety components|
+
+### Post-Print Quality Checklist:
+
 - [ ] Dimensional accuracy within ±0.2mm
 - [ ] Surface quality acceptable for assembly
 - [ ] No structural defects or weak layers
 - [ ] Threading (if applicable) clean and functional
+
+---
+
+## 💰 Cost Analysis
+
+### Material Costs
+
+| Material Type | Cost per kg | Quantity | Total Cost |
+|---|---|---|---|
+| **PLA+ Filament** | £25 | 2.0kg | £50 |
+| **PLA-HT Filament** | £35 | 1.0kg | £35 |
+| **Support Material** | £30 | 0.3kg | £9 |
+| **STL Files** | - | 1 set | €29 (~£25) |
+
+### Cost Breakdown Checklist:
+
+- [ ] **Material Costs:** £94 total filament
+- [ ] **STL License:** €29 (~£25) nerdiy.de
+- [ ] **Electricity:** ~£15 estimated
+- [ ] **Total Project Cost:** ~£134
+
+**Cost per Component:** ~£4.18 average
+
+---
+
+## 🏭 Equipment & Infrastructure
+
+### 3D Printer Requirements
+
+|Specification|Minimum Requirement|Recommended|Purpose|
+|---|---|---|---|
+|**Build Volume**|200x200x200mm|250x250x250mm|Large pipe segments|
+|**Heated Bed**|60°C minimum|80°C|PLA-HT adhesion|
+|**Enclosed Chamber**|Not required|Recommended|Temperature stability|
+|**Extruder Type**|Direct drive or Bowden|Direct drive preferred|Filament reliability|
+
+### Equipment Checklist:
+
+- [ ] 3D Printer (build volume ≥200x200x200mm)
+- [ ] Heated bed capability (≥60°C)
+- [ ] Print surface (PEI, glass, or buildtak)
+- [ ] Filament storage (dry, temperature controlled)
+
+---
+
+## 📦 Supplier Information
+
+### STL Files & Documentation
+
+| Source | Product | Cost | Purpose |
+|---|---|---|---|
+| **nerdiy.de** | PrintAirPipe 125 Actuator & Sensor Set | €29.00 | Complete STL collection |
+| **GitHub** | ESPHome configuration snippets | Free | Software integration |
+| **Discord/Forums** | Community support | Free | Troubleshooting |
+
+### Filament Suppliers
+
+| Category | Supplier | Advantages |
+|---|---|---|
+| **Premium Materials** | Prusa Research, SUNLU | Quality consistency, certifications |
+| **Budget Options** | SUNLU, TECBEARS | Cost-effective, good quality |
+| **Specialty Filaments** | Proto-pasta, Polymaker | Advanced materials, fire-rated |
+
+---
+
+## ⚠️ Safety & Manufacturing Notes
+
+### Fire Safety Requirements
+
+|Component Type|Material Requirement|Justification|
+|---|---|---|
+|**Filter Housings**|PLA-HT Mandatory|High temperature exposure|
+|**Sensor Housings**|PLA+ Minimum|Moderate heat exposure|
+|**Pipe Segments**|PLA+ Acceptable|Ambient temperature operation|
+
+### Fire Safety Checklist:
+
+- [ ] **PLA-HT Mandatory** for filter housings and high-temperature exposure
+- [ ] **Fire-rated filament** certificates retained for compliance
+- [ ] **Print environment** well-ventilated during production
+- [ ] **Emergency procedures** established for print failures
+
+### Assembly Considerations
+
+- [ ] **Test fit all components** before final installation
+- [ ] **Check clearances** for servo movement and sensor access  
+- [ ] **Verify airflow paths** are unobstructed
+- [ ] **Inspect threaded connections** for proper engagement
 
 ---
 
@@ -154,33 +264,22 @@ Source: nerdiy.de STL files
 - **Assembly Guide:** *To be created after STL acquisition*
 
 ### Configuration Files
-- **Print Profiles:** *To be stored in configs folder*
-- **Slicer Settings:** *To be documented after testing*
-
----
-
-## ⚠️ Safety & Manufacturing Notes
-
-### Fire Safety Requirements
-- **PLA-HT Mandatory** for filter housings and high-temperature exposure
-- **Fire-rated filament** certificates should be retained
-- **Print environment** should be well-ventilated
-
-### Assembly Considerations
-- **Test fit all components** before final installation
-- **Check clearances** for servo movement and sensor access
-- **Verify airflow paths** are unobstructed
+- **Print Profiles:** [[Main/home-automation-safety/configs/printing/|Slicer Configurations]]
+- **Quality Standards:** [[Main/home-automation-safety/docs/standards/|Manufacturing Standards]]
+- **Session History:** [[Main/home-automation-safety/docs/session-states/|Development Sessions]]
 
 ---
 
 **Document Version:** 1.0  
 **Created:** September 17, 2025  
-**Last Updated:** September 17, 2025  
+**Last Updated:** September 18, 2025  
 **Status:** Active - Pre-Production Phase  
 **Related Project:** [[main/home-automation-safety/README|Home Automation Project]]
 
 ## Next Actions
-1. **Purchase STL files** from nerdiy.de (€29.00)
-2. **Acquire filament materials** (PLA+ 2kg, PLA-HT 1kg)  
-3. **Configure slicer profiles** for optimal print quality
-4. **Begin Phase 1 printing** with pipe segments
+
+1. [ ] **Purchase STL files** from nerdiy.de (€29.00)
+2. [ ] **Acquire filament materials** (PLA+ 2kg, PLA-HT 1kg)  
+3. [ ] **Configure slicer profiles** for optimal print quality
+4. [ ] **Begin Phase 1 printing** with pipe segments
+5. [ ] **Set up quality control procedures** for safety-critical components
