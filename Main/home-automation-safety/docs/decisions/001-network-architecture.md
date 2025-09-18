@@ -13,10 +13,10 @@ date: 2025-09-09
 decision_status: accepted
 context: Need secure network design isolating safety systems from internet while enabling remote access
 related_documents:
-  - "[[README|Main Project Overview]]"
+  - "[[main/README|Main Project Overview]]"
   - "[[session_state_20250909|Initial Planning Session]]"
   - "[[session_state_20250912|Repository Setup Session]]"
-sub_project: "[[docs/prompts/01-network-infrastructure|Network Infrastructure]]"
+sub_project: "[[01-network-infrastructure|Network Infrastructure]]"
 implementation_files:
   - configs/openwrt/firewall-config.sh
   - configs/openwrt/vlan-config.conf
@@ -34,7 +34,7 @@ affected_systems:
 **Status:** Accepted  
 **Context:** Need secure network design isolating safety systems from internet while enabling remote access
 
-> **Related Sub-Project:** [[docs/prompts/01-network-infrastructure|Network Infrastructure & Security]]
+> **Related Sub-Project:** [[01-network-infrastructure|Network Infrastructure & Security]]
 
 ## Problem Statement
 Design a network architecture that:
@@ -70,8 +70,8 @@ Design a network architecture that:
 ## Related Documents & Implementation
 
 ### Core Project Context
-- **Project Overview:** [[README|Main Project Overview]] - Current project status and roadmap
-- **Network Implementation:** [[docs/prompts/01-network-infrastructure|Network Infrastructure Sub-Project]] - Focused implementation guide
+- **Project Overview:** [[main/README|Main Project Overview]] - Current project status and roadmap
+- **Network Implementation:** [[01-network-infrastructure|Network Infrastructure Sub-Project]] - Focused implementation guide
 
 ### Session Context
 - **Original Planning:** [[session_state_20250909|Initial Planning Session]] - Context and rationale
@@ -95,16 +95,16 @@ This architecture decision drives the configuration of:
 - 🚧 **Device Assignment** - IP allocation per VLAN pending
 - 🚧 **Testing Procedures** - Network isolation validation pending
 
-**Next Implementation Step:** Focus on [[docs/prompts/01-network-infrastructure|Network Infrastructure Sub-Project]] for VLAN configuration
+**Next Implementation Step:** Focus on [[01-network-infrastructure|Network Infrastructure Sub-Project]] for VLAN configuration
 
 ## Cross-References
 
 ### Sub-Projects Affected
-- **Primary Implementation:** [[docs/prompts/01-network-infrastructure|Network Infrastructure]]
-- **HA Integration:** [[docs/prompts/04-home-assistant-core|Home Assistant Core]]
-- **CCTV Integration:** [[docs/prompts/05-cctv-surveillance|CCTV & Surveillance]]
-- **Storage Integration:** [[docs/prompts/06-pi-nas-storage|Pi NAS Storage]]
-- **Safety Integration:** [[docs/prompts/03-printairpipe-ventilation|PrintAirPipe Ventilation]]
+- **Primary Implementation:** [[01-network-infrastructure|Network Infrastructure]]
+- **HA Integration:** [[04-home-assistant-core|Home Assistant Core]]
+- **CCTV Integration:** [[05-cctv-surveillance|CCTV & Surveillance]]
+- **Storage Integration:** [[06-pi-nas-storage|Pi NAS Storage]]
+- **Safety Integration:** [[03-printairpipe-ventilation|PrintAirPipe Ventilation]]
 
 ### Related Decisions
 - Future decision: Remote access security implementation
@@ -113,4 +113,4 @@ This architecture decision drives the configuration of:
 
 ---
 **Implementation Priority:** Critical (foundation for all other systems)  
-**Next Action:** [[docs/prompts/01-network-infrastructure|Begin Network Infrastructure Implementation]]
+**Next Action:** [[01-network-infrastructure|Begin Network Infrastructure Implementation]]

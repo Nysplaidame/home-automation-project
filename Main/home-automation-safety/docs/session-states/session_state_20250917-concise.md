@@ -1,25 +1,25 @@
 ---
 title: "Session: Document Analysis & Strategic Planning - 2025-09-17"
-description: "Strategic analysis of vault improvement documents and task management integration planning"
+description: Strategic analysis of vault improvement documents and task management integration planning
 tags:
   - session-state
   - document-analysis
   - task-management
   - strategic-planning
 aliases:
-  - "Session 20250917"
-  - "Document Analysis Session"
+  - Session 20250917
+  - Document Analysis Session
 created: 2025-09-17
 modified: 2025-09-17
-session_id: "session_state_20250917"
-session_phase: "Strategic Analysis & Planning"
+session_id: session_state_20250917
+session_phase: Strategic Analysis & Planning
 session_duration: 90
 session_success_rating: 5
-session_type: "analysis-and-planning"
-prev_session: "[[Main/home-automation-safety/docs/session-states/session_state_20250916-concise|Vault Enhancement Session]]"
-next_session: null
-project_context: "[[Main/home-automation-safety/README|Home Automation Project]]"
-repository: "https://github.com/Nysplaidame/home-automation-project"
+session_type: analysis-and-planning
+prev_session: "[[session_state_20250916-concise|Vault Enhancement Session]]"
+next_session:
+project_context: "[[main/home-automation-safety/README|Home Automation Project]]"
+repository: https://github.com/Nysplaidame/home-automation-project
 status: complete
 progress_percent: 35
 ---
@@ -51,14 +51,14 @@ progress_percent: 35
 - **Priority 1:** [[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Implement OpenWrt router VLAN configuration]] with task dashboard integration
 - **Priority 2:** Apply strategic backlink enhancements from vault analysis recommendations
 - **Priority 3:** Initialize task management dashboard tracking for active sprint goals
-- **Files to load:** [[Main/home-automation-safety/docs/PROJECT-INDEX|Master Project Index]], [[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Network Infrastructure Prompt]]
+- **Files to load:** [[PROJECT-INDEX|Master Project Index]], [[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Network Infrastructure Prompt]]
 - **Context needed:** OpenWrt VLAN configuration with enhanced task tracking, sprint planning integration
 
 ## Essential Resources
 - **Strategic Analysis:** Project Management Template - Sprint-based tracking with dependency management
 - **Optimization Guide:** Vault Improvement Report - Specific backlink enhancement recommendations
-- **Foundation:** [[Main/home-automation-safety/docs/PROJECT-INDEX|Master Project Index]] - Navigation hub with analysis integration
-- **Previous session:** [[Main/home-automation-safety/docs/session-states/session_state_20250916-concise|Vault Enhancement Session]]
+- **Foundation:** [[PROJECT-INDEX|Master Project Index]] - Navigation hub with analysis integration
+- **Previous session:** [[session_state_20250916-concise|Vault Enhancement Session]]
 
 ## Critical Context (Cannot Lose)
 **Strategic Analysis Results:**
@@ -90,4 +90,4 @@ progress_percent: 35
 
 ---
 **Duration:** 90min | **Success:** 5/5 | **Confidence:** 5/5 | **Ready for:** Network infrastructure implementation with integrated task management
-**Session Navigation:** [[Main/home-automation-safety/docs/session-states/session_state_20250916-concise|Vault Enhancement]] ← → [Network Implementation]
+**Session Navigation:** [[session_state_20250916-concise|Vault Enhancement]] ← → [Network Implementation]

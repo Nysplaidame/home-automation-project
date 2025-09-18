@@ -20,13 +20,13 @@ Welcome to your organised Obsidian vault! This serves as the central navigation 
 
 ## 🏠 Primary Projects
 
-### [[Main/home-automation-safety/README|Home Automation Project]]
+### [[main/home-automation-safety/README|Home Automation Project]]
 Comprehensive home automation system with fire safety, CCTV, and AI integration.
 
 **Quick Links:**
-- [[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture]]
+- [[001-network-architecture|Network Architecture]]
 - [[session_state_20250912|Latest Session]]
-- [[Main/home-automation-safety/docs/prompts/01-network-infrastructure|Network Infrastructure]]
+- [[01-network-infrastructure|Network Infrastructure]]
 
 ## 📁 Vault Structure
 
@@ -54,8 +54,8 @@ Main/
 ## 🔧 Quick Actions
 
 - **Latest Work**: [[session_state_20250912|Current Session State]]
-- **Project Status**: [[Main/home-automation-safety/README|Project Overview]]
-- **Network Design**: [[Main/home-automation-safety/docs/diagrams/Network Diagram|Network Topology]]
+- **Project Status**: [[main/home-automation-safety/README|Project Overview]]
+- **Network Design**: [[Network Diagram|Network Topology]]
 
 ## 📚 Documentation Standards
 

@@ -21,19 +21,19 @@ session_type: setup-and-documentation
 prev_session: "[[session_state_20250909|Initial Planning Session]]"
 next_session:
 related_decisions:
-  - "[[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]]"
-project_context: "[[Main/home-automation-safety/README|Home Automation Project]]"
+  - "[[001-network-architecture|Network Architecture Decision]]"
+project_context: "[[main/home-automation-safety/README|Home Automation Project]]"
 repository: https://github.com/Nysplaidame/home-automation-project
 status: complete
 progress_percent: 25
 related_sub_projects:
   - "[[01-network-infrastructure|Network Infrastructure]]"
-  - "[[Main/home-automation-safety/docs/prompts/02-core-infrastructure|Core Infrastructure]]"
-  - "[[Main/home-automation-safety/docs/prompts/03-printairpipe-ventilation|PrintAirPipe System]]"
-  - "[[Main/home-automation-safety/docs/prompts/04-home-assistant-core|Home Assistant Core]]"
-  - "[[Main/home-automation-safety/docs/prompts/05-cctv-surveillance|CCTV Surveillance]]"
-  - "[[Main/home-automation-safety/docs/prompts/06-pi-nas-storage|Pi NAS Storage]]"
-  - "[[Main/home-automation-safety/docs/prompts/07-claude-mcp-ai|Claude MCP AI]]"
+  - "[[02-core-infrastructure|Core Infrastructure]]"
+  - "[[03-printairpipe-ventilation|PrintAirPipe System]]"
+  - "[[04-home-assistant-core|Home Assistant Core]]"
+  - "[[05-cctv-surveillance|CCTV Surveillance]]"
+  - "[[06-pi-nas-storage|Pi NAS Storage]]"
+  - "[[07-claude-mcp-ai|Claude MCP AI]]"
 ---
 
 # Session: Repository Setup Complete - 2025-09-12
@@ -42,7 +42,7 @@ related_sub_projects:
 - **Previous Session:** [[session_state_20250909|Initial network planning and architecture]]
 - **Next Session:** _Next session to be created_
 - **Session Template:** [[session-template-complete|Reusable template for future sessions]]
-- **Project Overview:** [[Main/home-automation-safety/README|Home Automation Project]]
+- **Project Overview:** [[main/home-automation-safety/README|Home Automation Project]]
 
 ## Context Loading
 **Previous Sessions:** [[session_state_20250909|Claude conversation with project prompt and network diagram]]  
@@ -71,7 +71,7 @@ related_sub_projects:
 **Solution:** External git storage for configs, Claude sessions for decisions/context  
 **Rationale:** Separates large data (configs) from decision context (reasoning)  
 **Files Affected:** All future documentation structure  
-**Related Decision:** [[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]]
+**Related Decision:** [[001-network-architecture|Network Architecture Decision]]
 
 ### Decision 2: Phase-Based Directory Structure
 **Problem:** Need organized approach for complex multi-system project  
@@ -93,8 +93,8 @@ related_sub_projects:
 
 **Key Files Referenced:**
 - [[session_state_20250909|Previous session context]]
-- [[Main/home-automation-safety/docs/diagrams/Network Diagram|Network architecture]]
-- [[Main/home-automation-safety/docs/procedures/Git Repository - Setup Procedure|Repository setup procedure]]
+- [[Network Diagram|Network architecture]]
+- [[Git Repository - Setup Procedure|Repository setup procedure]]
 
 **Current State:**
 - **Working:** Complete repository structure created and pushed to GitHub
@@ -132,7 +132,7 @@ Main/
 - **ESPHome code:** https://github.com/Nerdiyde/ESPHomeSnippets/tree/c0135795dc180c6ff4a1306b2f5982ef3db386c3/Snippets/PrintAirPipe
 
 ### Network Configuration
-- **4-VLAN architecture** documented in [[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]]
+- **4-VLAN architecture** documented in [[001-network-architecture|Network Architecture Decision]]
 - **VLAN 20:** Automation & Management (192.168.20.0/24) - Internet access
 - **VLAN 30:** CCTV (192.168.30.0/24) - No internet, HA bridge access
 - **VLAN 40:** Storage (192.168.40.0/24) - No internet, Frigate access
@@ -147,10 +147,10 @@ Main/
 4. Set up network testing procedures
 
 ### Related Documents
-- **Network Architecture:** [[Main/home-automation-safety/docs/decisions/001-network-architecture|4-VLAN design rationale]]
-- **Project Status:** [[Main/home-automation-safety/README|Updated project overview]]
-- **Network Topology:** [[Main/home-automation-safety/docs/diagrams/Network Diagram|Visual network design]]
-- **Setup Procedures:** [[Main/home-automation-safety/docs/procedures/Git Repository - Setup Procedure|Repository setup guide]]
+- **Network Architecture:** [[001-network-architecture|4-VLAN design rationale]]
+- **Project Status:** [[main/home-automation-safety/README|Updated project overview]]
+- **Network Topology:** [[Network Diagram|Visual network design]]
+- **Setup Procedures:** [[Git Repository - Setup Procedure|Repository setup guide]]
 
 ## Project Status Summary
 - **Overall Progress:** 25% complete (up from 15%)
@@ -165,17 +165,17 @@ Main/
 
 ### All Sub-Projects
 - [[01-network-infrastructure|Network Infrastructure & Security]]
-- [[Main/home-automation-safety/docs/prompts/02-core-infrastructure|Core Infrastructure (Proxmox)]]
-- [[Main/home-automation-safety/docs/prompts/03-printairpipe-ventilation|PrintAirPipe Ventilation System]]
-- [[Main/home-automation-safety/docs/prompts/04-home-assistant-core|Home Assistant Core]]
-- [[Main/home-automation-safety/docs/prompts/05-cctv-surveillance|CCTV & Surveillance]]
-- [[Main/home-automation-safety/docs/prompts/06-pi-nas-storage|Pi NAS Storage]]
-- [[Main/home-automation-safety/docs/prompts/07-claude-mcp-ai|Claude MCP Integration]]
+- [[02-core-infrastructure|Core Infrastructure (Proxmox)]]
+- [[03-printairpipe-ventilation|PrintAirPipe Ventilation System]]
+- [[04-home-assistant-core|Home Assistant Core]]
+- [[05-cctv-surveillance|CCTV & Surveillance]]
+- [[06-pi-nas-storage|Pi NAS Storage]]
+- [[07-claude-mcp-ai|Claude MCP Integration]]
 
 ### Implementation Dependencies
 This session enables all future sub-projects by establishing:
-- Documentation framework for [[Main/home-automation-safety/README|main project]]
-- Session state management linking to [[Main/home-automation-safety/docs/decisions/001-network-architecture|network architecture]]
+- Documentation framework for [[main/home-automation-safety/README|main project]]
+- Session state management linking to [[001-network-architecture|network architecture]]
 - GitHub repository for configuration storage
 - Template system for future [[session-template-complete|development sessions]]
 
@@ -184,7 +184,7 @@ This session enables all future sub-projects by establishing:
 1. Reference this session state for repository setup completion status
 2. Use [[session-template-complete|session template]] for new session documentation  
 3. Begin OpenWrt configuration using existing firewall rules as foundation
-4. Implement [[Main/home-automation-safety/docs/decisions/001-network-architecture|network architecture]] through VLAN configuration
+4. Implement [[001-network-architecture|network architecture]] through VLAN configuration
 5. Focus on [[01-network-infrastructure|Network Infrastructure Sub-Project]]
 
 ---

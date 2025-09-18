@@ -27,24 +27,24 @@
 ## Context for Next Session
 - **Priority 1:** [[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Implement OpenWrt router VLAN configuration]] using established documentation foundation
 - **Priority 2:** [[session-template-complete|Use standardized session template]] for consistent future documentation
-- **Priority 3:** [[Main/home-automation-safety/docs/decisions/001-network-architecture|Reference network architecture]] for VLAN implementation details
-- **Files to load:** [[Main/home-automation-safety/docs/PROJECT-INDEX|Master Project Index]], [[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Network Infrastructure Prompt]]
+- **Priority 3:** [[001-network-architecture|Reference network architecture]] for VLAN implementation details
+- **Files to load:** [[PROJECT-INDEX|Master Project Index]], [[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Network Infrastructure Prompt]]
 - **Context needed:** OpenWrt VLAN configuration specifics, firewall rule implementation syntax, device inventory management
 
 ## Essential Resources
-- **Architecture:** [[Main/home-automation-safety/docs/decisions/001-network-architecture|4-VLAN Network Architecture Decision]] - Implementation foundation
-- **Configuration:** [[Main/home-automation-safety/docs/PROJECT-INDEX|Master Project Index]] - Complete navigation hub for all project resources
+- **Architecture:** [[001-network-architecture|4-VLAN Network Architecture Decision]] - Implementation foundation
+- **Configuration:** [[PROJECT-INDEX|Master Project Index]] - Complete navigation hub for all project resources
 - **External Resources:** OpenWrt documentation for GL.iNet GL-MT6000, VLAN configuration guides
-- **Previous session:** [[Main/home-automation-safety/docs/session-states/session_state_20250912-concise|Repository Setup Session]]
+- **Previous session:** [[session_state_20250912-concise|Repository Setup Session]]
 
 ## Critical Context (Cannot Lose)
 **System Architecture:**
-- **Master Navigation:** [[Main/home-automation-safety/docs/PROJECT-INDEX|PROJECT-INDEX.md]] serves as comprehensive project hub with links to all systems
+- **Master Navigation:** [[PROJECT-INDEX|PROJECT-INDEX.md]] serves as comprehensive project hub with links to all systems
 - **Template System:** [[session-template-complete|Session template]] and [[session-template-concise|improved concise template]] operational
 - **Documentation Standards:** YAML frontmatter, bidirectional linking, consistent tagging, emoji navigation, alias systems
 
 **Safety/Security Considerations:**
-- All safety-critical systems ([[Main/home-automation-safety/docs/prompts/03-printairpipe-ventilation|PrintAirPipe]]) clearly marked and prioritized in documentation
+- All safety-critical systems ([[03-printairpipe-ventilation|PrintAirPipe]]) clearly marked and prioritized in documentation
 - Network security architecture fully cross-referenced with implementation prompts
 - Emergency protocols and fail-safes documented with clear navigation pathways
 
@@ -67,18 +67,18 @@
 ## Cross-Reference Network
 **Sub-Projects (Implementation Order):**
 1. [[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Network Infrastructure & Security]] - **IMMEDIATE NEXT FOCUS**
-2. [[Main/home-automation-safety/docs/prompts/02-core-infrastructure|Core Infrastructure (Proxmox)]] - Virtualization platform
-3. [[Main/home-automation-safety/docs/prompts/03-printairpipe-ventilation|PrintAirPipe Ventilation System]] - **SAFETY CRITICAL PRIORITY**
-4. [[Main/home-automation-safety/docs/prompts/04-home-assistant-core|Home Assistant Core]] - **ENHANCED THIS SESSION**
-5. [[Main/home-automation-safety/docs/prompts/05-cctv-surveillance|CCTV & Surveillance]] - Security monitoring
-6. [[Main/home-automation-safety/docs/prompts/06-pi-nas-storage|Pi NAS Storage]] - Data storage solution
-7. [[Main/home-automation-safety/docs/prompts/07-claude-mcp-ai|Claude MCP Integration]] - AI automation
+2. [[02-core-infrastructure|Core Infrastructure (Proxmox)]] - Virtualization platform
+3. [[03-printairpipe-ventilation|PrintAirPipe Ventilation System]] - **SAFETY CRITICAL PRIORITY**
+4. [[04-home-assistant-core|Home Assistant Core]] - **ENHANCED THIS SESSION**
+5. [[05-cctv-surveillance|CCTV & Surveillance]] - Security monitoring
+6. [[06-pi-nas-storage|Pi NAS Storage]] - Data storage solution
+7. [[07-claude-mcp-ai|Claude MCP Integration]] - AI automation
 
 **Related Decisions:**
-- [[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]] - **IMPLEMENTATION FOUNDATION**
+- [[001-network-architecture|Network Architecture Decision]] - **IMPLEMENTATION FOUNDATION**
 
 **Session Chain:**
-- [[Main/home-automation-safety/docs/session-states/session_state_20250909-concise|Initial Planning]] → [[Main/home-automation-safety/docs/session-states/session_state_20250912-concise|Repository Setup]] → Vault Enhancement → [Next Session]
+- [[session_state_20250909-concise|Initial Planning]] → [[session_state_20250912-concise|Repository Setup]] → Vault Enhancement → [Next Session]
 
 ## Quality Metrics
 - **Documentation Status:** Comprehensive standards implemented, master index operational, template system ready
@@ -87,4 +87,4 @@
 
 ---
 **Duration:** 120min | **Success:** 5/5 | **Confidence:** 5/5 | **Ready for:** Network infrastructure implementation with optimized documentation support
-**Session Navigation:** [[Main/home-automation-safety/docs/session-states/session_state_20250912-concise|Repository Setup]] ← → [Next Session]
+**Session Navigation:** [[session_state_20250912-concise|Repository Setup]] ← → [Next Session]

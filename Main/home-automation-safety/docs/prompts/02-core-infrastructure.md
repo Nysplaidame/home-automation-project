@@ -42,7 +42,7 @@ Part of home automation project with fire safety focus. This sub-project creates
 - **Blocks:** All application-level sub-projects
 
 ## Key Configurations
-- [[configs/proxmox/vm-setup.sh]] - VM creation scripts
+- [[vm-setup.sh]] - VM creation scripts
 - Network bridge configuration for VLAN integration
 - Resource allocation optimization
 

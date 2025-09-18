@@ -21,19 +21,19 @@ session_type: documentation
 prev_session: "[[session_state_20250912|Repository Setup Session]]"
 next_session:
 related_decisions:
-  - "[[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]]"
-project_context: "[[Main/home-automation-safety/README|Home Automation Project]]"
+  - "[[001-network-architecture|Network Architecture Decision]]"
+project_context: "[[main/home-automation-safety/README|Home Automation Project]]"
 repository: https://github.com/Nysplaidame/home-automation-project
 status: complete
 progress_percent: 30
 related_sub_projects:
   - "[[01-network-infrastructure|Network Infrastructure]]"
-  - "[[Main/home-automation-safety/docs/prompts/02-core-infrastructure|Core Infrastructure]]"
-  - "[[Main/home-automation-safety/docs/prompts/03-printairpipe-ventilation|PrintAirPipe System]]"
-  - "[[Main/home-automation-safety/docs/prompts/04-home-assistant-core|Home Assistant Core]]"
-  - "[[Main/home-automation-safety/docs/prompts/05-cctv-surveillance|CCTV Surveillance]]"
-  - "[[Main/home-automation-safety/docs/prompts/06-pi-nas-storage|Pi NAS Storage]]"
-  - "[[Main/home-automation-safety/docs/prompts/07-claude-mcp-ai|Claude MCP AI]]"
+  - "[[02-core-infrastructure|Core Infrastructure]]"
+  - "[[03-printairpipe-ventilation|PrintAirPipe System]]"
+  - "[[04-home-assistant-core|Home Assistant Core]]"
+  - "[[05-cctv-surveillance|CCTV Surveillance]]"
+  - "[[06-pi-nas-storage|Pi NAS Storage]]"
+  - "[[07-claude-mcp-ai|Claude MCP AI]]"
 ---
 
 # Session: Obsidian Vault Backlink Enhancement - 2025-09-16
@@ -42,7 +42,7 @@ related_sub_projects:
 - **Previous Session:** [[session_state_20250912|Repository Setup Complete]]
 - **Next Session:** _Next session to be created_
 - **Session Template:** [[session-template-complete|Session Template]]
-- **Project Overview:** [[Main/home-automation-safety/README|Home Automation Project]]
+- **Project Overview:** [[main/home-automation-safety/README|Home Automation Project]]
 
 ## Context Loading
 **Previous Sessions:** [[session_state_20250912|Repository setup and GitHub integration complete]]  
@@ -77,7 +77,7 @@ related_sub_projects:
 **Solution:** Complete file deletion and recreation with clean structure and enhanced metadata  
 **Rationale:** File was too corrupted to repair; clean rebuild ensures reliability  
 **Files Affected:** `docs/session-states/session_state_20250912.md`  
-**Related Decision:** [[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]]
+**Related Decision:** [[001-network-architecture|Network Architecture Decision]]
 
 ### Decision 2: Master Documentation Index Creation
 **Problem:** No central navigation hub for comprehensive project overview  
@@ -102,8 +102,8 @@ related_sub_projects:
 **Key Files Created/Enhanced:**
 - [[session_state_20250912|Repository Setup Session]] - Complete rebuild
 - [[session-template-complete|Session Template]] - New comprehensive template
-- [[Main/home-automation-safety/docs/PROJECT-INDEX|Master Project Index]] - New navigation hub
-- [[Main/home-automation-safety/docs/prompts/04-home-assistant-core|Home Assistant Core]] - Complete enhancement
+- [[PROJECT-INDEX|Master Project Index]] - New navigation hub
+- [[04-home-assistant-core|Home Assistant Core]] - Complete enhancement
 
 **Current State:**
 - **Working:** Comprehensive vault organization with consistent cross-referencing
@@ -160,13 +160,13 @@ Main/
 1. Continue with [[01-network-infrastructure|Network Infrastructure]] implementation
 2. Use [[session-template-complete|session template]] for future sessions
 3. Maintain documentation standards established in this session
-4. Implement OpenWrt router configuration per [[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]]
+4. Implement OpenWrt router configuration per [[001-network-architecture|Network Architecture Decision]]
 
 ### Related Documents
 - **Network Implementation:** [[01-network-infrastructure|Next development focus]]
-- **Project Status:** [[Main/home-automation-safety/README|Updated project overview]]
-- **Master Index:** [[Main/home-automation-safety/docs/PROJECT-INDEX|Complete documentation hub]]
-- **Architecture Foundation:** [[Main/home-automation-safety/docs/decisions/001-network-architecture|4-VLAN design]]
+- **Project Status:** [[main/home-automation-safety/README|Updated project overview]]
+- **Master Index:** [[PROJECT-INDEX|Complete documentation hub]]
+- **Architecture Foundation:** [[001-network-architecture|4-VLAN design]]
 
 ## Project Status Summary
 - **Overall Progress:** 30% complete (up from 25%)
@@ -181,12 +181,12 @@ Main/
 
 ### All Sub-Projects (Enhanced with Comprehensive Linking)
 - [[01-network-infrastructure|Network Infrastructure & Security]] - **NEXT FOCUS**
-- [[Main/home-automation-safety/docs/prompts/02-core-infrastructure|Core Infrastructure (Proxmox)]]
-- [[Main/home-automation-safety/docs/prompts/03-printairpipe-ventilation|PrintAirPipe Ventilation System]] - **SAFETY CRITICAL**
-- [[Main/home-automation-safety/docs/prompts/04-home-assistant-core|Home Assistant Core]] - **ENHANCED THIS SESSION**
-- [[Main/home-automation-safety/docs/prompts/05-cctv-surveillance|CCTV & Surveillance]]
-- [[Main/home-automation-safety/docs/prompts/06-pi-nas-storage|Pi NAS Storage]]
-- [[Main/home-automation-safety/docs/prompts/07-claude-mcp-ai|Claude MCP Integration]]
+- [[02-core-infrastructure|Core Infrastructure (Proxmox)]]
+- [[03-printairpipe-ventilation|PrintAirPipe Ventilation System]] - **SAFETY CRITICAL**
+- [[04-home-assistant-core|Home Assistant Core]] - **ENHANCED THIS SESSION**
+- [[05-cctv-surveillance|CCTV & Surveillance]]
+- [[06-pi-nas-storage|Pi NAS Storage]]
+- [[07-claude-mcp-ai|Claude MCP Integration]]
 
 ### Implementation Dependencies
 This session established comprehensive documentation infrastructure enabling:
@@ -224,7 +224,7 @@ This session established comprehensive documentation infrastructure enabling:
 2. **Template System Active:** Use [[session-template-complete|session template]] for consistent documentation
 3. **Clear Next Steps:** Focus on [[01-network-infrastructure|Network Infrastructure]] implementation
 4. **Enhanced Context:** Comprehensive cross-references enable efficient context loading
-5. **Master Navigation:** [[Main/home-automation-safety/docs/PROJECT-INDEX|Project Index]] provides single-point access to all resources
+5. **Master Navigation:** [[PROJECT-INDEX|Project Index]] provides single-point access to all resources
 
 ## Quality Assurance Completed
 - ✅ **Link Validation:** All cross-references verified functional

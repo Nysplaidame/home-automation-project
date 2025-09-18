@@ -1,6 +1,6 @@
 ---
-title: "Home Automation Project - Documentation Index"
-description: "Master index of all project documentation with comprehensive cross-references"
+title: Home Automation Project - Documentation Index
+description: Master index of all project documentation with comprehensive cross-references
 tags:
   - index
   - navigation
@@ -8,24 +8,24 @@ tags:
   - home-automation
   - moc
 aliases:
-  - "Project Index"
-  - "Documentation Hub"
-  - "Project MOC"
+  - Project Index
+  - Documentation Hub
+  - Project MOC
 created: 2025-09-16
 modified: 2025-09-16
 type: index
-project_context: "[[Main/home-automation-safety/README|Home Automation Project]]"
+project_context: "[[main/home-automation-safety/README|Home Automation Project]]"
 ---
 
 # 🏠 Home Automation Project - Documentation Index
 
-> **Master Navigation Hub** | [[Main/home-automation-safety/README|📋 Project Overview]] | [[Main/README|🏠 Vault Home]]
+> **Master Navigation Hub** | [[main/home-automation-safety/README|📋 Project Overview]] | [[main/README|🏠 Vault Home]]
 
 ## 🎯 Project Quick Start
 
 ### Essential Documents
-- **📋 Project Overview:** [[Main/home-automation-safety/README|Home Automation Project]] - Current status and roadmap
-- **🏗️ Network Architecture:** [[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]] - 4-VLAN security design
+- **📋 Project Overview:** [[main/home-automation-safety/README|Home Automation Project]] - Current status and roadmap
+- **🏗️ Network Architecture:** [[001-network-architecture|Network Architecture Decision]] - 4-VLAN security design
 - **📊 Latest Session:** [[session_state_20250912|Repository Setup Session]] - Current development context
 - **🔧 Next Steps:** [[01-network-infrastructure|Network Infrastructure]] - Immediate focus area
 
@@ -51,40 +51,40 @@ Track development progress and maintain context across Claude sessions.
 Key architectural decisions and their rationale.
 
 **Decision Records:**
-- [[Main/home-automation-safety/docs/decisions/001-network-architecture|🔒 001 - Network Architecture Decision]] - 4-VLAN security segmentation
+- [[001-network-architecture|🔒 001 - Network Architecture Decision]] - 4-VLAN security segmentation
 
 ### 🎯 Sub-Project Prompts
 Focused implementation guides for each system component.
 
 **Sub-Projects (Implementation Order):**
 1. [[01-network-infrastructure|🌐 Network Infrastructure & Security]] - **CURRENT FOCUS**
-2. [[Main/home-automation-safety/docs/prompts/02-core-infrastructure|💻 Core Infrastructure (Proxmox)]] - Virtualization platform
-3. [[Main/home-automation-safety/docs/prompts/03-printairpipe-ventilation|🔥 PrintAirPipe Ventilation System]] - **SAFETY CRITICAL**
-4. [[Main/home-automation-safety/docs/prompts/04-home-assistant-core|🏠 Home Assistant Core]] - Automation hub
-5. [[Main/home-automation-safety/docs/prompts/05-cctv-surveillance|📹 CCTV & Surveillance]] - Security monitoring
-6. [[Main/home-automation-safety/docs/prompts/06-pi-nas-storage|💾 Pi NAS Storage]] - Data storage
-7. [[Main/home-automation-safety/docs/prompts/07-claude-mcp-ai|🤖 Claude MCP Integration]] - AI automation
+2. [[02-core-infrastructure|💻 Core Infrastructure (Proxmox)]] - Virtualization platform
+3. [[03-printairpipe-ventilation|🔥 PrintAirPipe Ventilation System]] - **SAFETY CRITICAL**
+4. [[04-home-assistant-core|🏠 Home Assistant Core]] - Automation hub
+5. [[05-cctv-surveillance|📹 CCTV & Surveillance]] - Security monitoring
+6. [[06-pi-nas-storage|💾 Pi NAS Storage]] - Data storage
+7. [[07-claude-mcp-ai|🤖 Claude MCP Integration]] - AI automation
 
 ### 📊 Visual Documentation
 Network diagrams and system visualizations.
 
 **Diagrams & Visuals:**
-- [[Main/home-automation-safety/docs/diagrams/Network Diagram|🕸️ Network Topology Diagram]] - Visual network design
+- [[Network Diagram|🕸️ Network Topology Diagram]] - Visual network design
 - Network Mermaid files in `/diagrams/mermaid/`
 
 ### 📋 Procedures & Guides
 Step-by-step implementation procedures.
 
 **Procedures:**
-- [[Main/home-automation-safety/docs/procedures/Git Repository - Setup Procedure|📦 Git Repository Setup]] - Repository initialization
-- [[Main/home-automation-safety/docs/procedures/MCP - Claude Integration|🤖 MCP Claude Integration]] - AI setup guide
+- [[Git Repository - Setup Procedure|📦 Git Repository Setup]] - Repository initialization
+- [[MCP - Claude Integration|🤖 MCP Claude Integration]] - AI setup guide
 
 ---
 
 ## 🏗️ System Architecture Overview
 
 ### 🔒 Network Design (4-VLAN Security Architecture)
-Based on [[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]]:
+Based on [[001-network-architecture|Network Architecture Decision]]:
 
 - **🌐 VLAN 20:** Automation & Management (192.168.20.0/24) - Internet access
 - **📹 VLAN 30:** CCTV (192.168.30.0/24) - No internet, HA bridge access
@@ -93,17 +93,17 @@ Based on [[Main/home-automation-safety/docs/decisions/001-network-architecture|N
 
 ### 🛡️ Safety-Critical Systems
 **⚠️ PRIORITY 1 - Fire Safety:**
-- [[Main/home-automation-safety/docs/prompts/03-printairpipe-ventilation|PrintAirPipe Ventilation System]]
+- [[03-printairpipe-ventilation|PrintAirPipe Ventilation System]]
 - Isolated network (VLAN 50)
 - Emergency power cutoff capability
 - Multiple sensor types (temperature, smoke, VOC)
 
 ### 💻 Core Infrastructure Stack
 - **Hardware:** MINIX Fanless Mini PC (NEO Z350-0dB)
-- **Hypervisor:** [[Main/home-automation-safety/docs/prompts/02-core-infrastructure|Proxmox]] virtualization
+- **Hypervisor:** [[02-core-infrastructure|Proxmox]] virtualization
 - **Network:** [[01-network-infrastructure|GL.iNet GL-MT6000 (OpenWrt)]]
-- **Automation:** [[Main/home-automation-safety/docs/prompts/04-home-assistant-core|Home Assistant]]
-- **Monitoring:** [[Main/home-automation-safety/docs/prompts/05-cctv-surveillance|Frigate NVR]]
+- **Automation:** [[04-home-assistant-core|Home Assistant]]
+- **Monitoring:** [[05-cctv-surveillance|Frigate NVR]]
 
 ---
 
@@ -134,7 +134,7 @@ Main/
 **Repository:** [Nysplaidame/home-automation-project](https://github.com/Nysplaidame/home-automation-project)
 - **Status:** ✅ Active and synced
 - **Branch:** main
-- **Setup:** [[Main/home-automation-safety/docs/procedures/Git Repository - Setup Procedure|Complete]]
+- **Setup:** [[Git Repository - Setup Procedure|Complete]]
 
 ---
 
@@ -143,7 +143,7 @@ Main/
 ### ✅ Completed Phases
 - [x] **Project Planning** - [[session_state_20250909|Initial Planning Session]]
 - [x] **Documentation Structure** - [[session_state_20250912|Repository Setup Session]]
-- [x] **Network Architecture Design** - [[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]]
+- [x] **Network Architecture Design** - [[001-network-architecture|Network Architecture Decision]]
 
 ### 🔄 Current Phase: Network Implementation
 **Focus:** [[01-network-infrastructure|Network Infrastructure & Security]]
@@ -195,7 +195,7 @@ Use these tags to find related content:
 1. **Load Context:** Reference [[session_state_20250912|latest session state]]
 2. **Use Template:** Copy [[session-template-complete|session template]]
 3. **Focus Area:** Begin [[01-network-infrastructure|Network Infrastructure]] implementation
-4. **Key Decision:** Implement [[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]]
+4. **Key Decision:** Implement [[001-network-architecture|Network Architecture Decision]]
 
 ### 🔑 Critical Context Points:
 - Repository structure complete ✅

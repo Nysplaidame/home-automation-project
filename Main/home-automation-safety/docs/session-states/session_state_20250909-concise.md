@@ -1,6 +1,6 @@
 ---
 title: "Session: Initial Planning & Architecture - 2025-09-09 (Concise)"
-description: "Network architecture design and security planning - concise context for AI reference"
+description: Network architecture design and security planning - concise context for AI reference
 tags:
   - session-state
   - concise
@@ -9,23 +9,23 @@ tags:
   - security-design
   - fire-safety
 aliases:
-  - "Initial Planning Concise"
-  - "Session 20250909 Concise"
-  - "Foundation Session"
+  - Initial Planning Concise
+  - Session 20250909 Concise
+  - Foundation Session
 created: 2025-09-09
 modified: 2025-09-17
-session_id: "session_state_20250909_concise"
-session_phase: "Initial Planning & Architecture"
+session_id: session_state_20250909_concise
+session_phase: Initial Planning & Architecture
 session_duration: 120
 session_success_rating: 5
 session_confidence_rating: 5
-session_type: "planning-and-architecture"
-prev_session: null
-next_session: "[[Main/home-automation-safety/docs/session-states/session_state_20250912-concise|Repository Setup Session]]"
+session_type: planning-and-architecture
+prev_session:
+next_session: "[[session_state_20250912-concise|Repository Setup Session]]"
 related_decisions:
-  - "[[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]]"
-project_context: "[[Main/home-automation-safety/README|Home Automation Project]]"
-repository: null
+  - "[[001-network-architecture|Network Architecture Decision]]"
+project_context: "[[main/home-automation-safety/README|Home Automation Project]]"
+repository:
 status: complete
 progress_percent: 15
 priority_next: "[[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Network Infrastructure Implementation]]"
@@ -63,15 +63,15 @@ priority_next: "[[Main/home-automation-safety/docs/prompts/01-network-infrastruc
 - **Risk Factors:** Single point of failure with MINIX Mini PC hosting critical services, fire safety system failure could result in property damage, network misconfiguration could compromise security isolation
 
 ## Context for Next Session
-- **Priority 1:** [[Main/home-automation-safety/docs/procedures/Git Repository - Setup Procedure|Create GitHub repository and documentation structure]] for configuration management
+- **Priority 1:** [[Git Repository - Setup Procedure|Create GitHub repository and documentation structure]] for configuration management
 - **Priority 2:** [[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Begin OpenWrt router configuration]] with VLAN interface setup
-- **Priority 3:** Research and select specific sensor models for [[Main/home-automation-safety/docs/prompts/03-printairpipe-ventilation|PrintAirPipe ventilation system]]
-- **Files to load:** [[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]], [[Main/home-automation-safety/docs/diagrams/Network Diagram|Network Topology Diagram]]
+- **Priority 3:** Research and select specific sensor models for [[03-printairpipe-ventilation|PrintAirPipe ventilation system]]
+- **Files to load:** [[001-network-architecture|Network Architecture Decision]], [[Network Diagram|Network Topology Diagram]]
 - **Context needed:** Repository structure requirements, OpenWrt installation procedures, sensor integration methods
 
 ## Essential Resources
-- **Architecture:** [[Main/home-automation-safety/docs/decisions/001-network-architecture|4-VLAN Network Architecture Decision]] - Complete security model and rationale
-- **Configuration:** [[Main/home-automation-safety/docs/diagrams/Network Diagram|Network Topology Diagram]] - Visual device placement and data flows
+- **Architecture:** [[001-network-architecture|4-VLAN Network Architecture Decision]] - Complete security model and rationale
+- **Configuration:** [[Network Diagram|Network Topology Diagram]] - Visual device placement and data flows
 - **External Resources:** GL.iNet GL-MT6000 OpenWrt documentation, Bambu Labs P1S API documentation
 - **Previous session:** None (initial project session)
 
@@ -109,15 +109,15 @@ priority_next: "[[Main/home-automation-safety/docs/prompts/01-network-infrastruc
 ## Cross-Reference Network
 **Sub-Projects:** 
 - [[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Network Infrastructure & Security]] - **IMMEDIATE NEXT**
-- [[Main/home-automation-safety/docs/prompts/03-printairpipe-ventilation|PrintAirPipe Ventilation System]] - **SAFETY CRITICAL**
-- [[Main/home-automation-safety/docs/prompts/02-core-infrastructure|Core Infrastructure (Proxmox)]] - Foundation platform
-- [[Main/home-automation-safety/docs/prompts/04-home-assistant-core|Home Assistant Core]] - Automation hub
+- [[03-printairpipe-ventilation|PrintAirPipe Ventilation System]] - **SAFETY CRITICAL**
+- [[02-core-infrastructure|Core Infrastructure (Proxmox)]] - Foundation platform
+- [[04-home-assistant-core|Home Assistant Core]] - Automation hub
 
 **Related Decisions:** 
-- [[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]] - **PRIMARY REFERENCE**
+- [[001-network-architecture|Network Architecture Decision]] - **PRIMARY REFERENCE**
 
 **Session Chain:** 
-- Initial session → [[Main/home-automation-safety/docs/session-states/session_state_20250912-concise|Repository Setup Session]]
+- Initial session → [[session_state_20250912-concise|Repository Setup Session]]
 
 ## Quality Metrics
 - **Documentation Status:** Network architecture fully documented with rationale, visual diagrams created
@@ -126,4 +126,4 @@ priority_next: "[[Main/home-automation-safety/docs/prompts/01-network-infrastruc
 
 ---
 **Duration:** 120min | **Success:** 5/5 | **Confidence:** 5/5 | **Ready for:** Repository setup and OpenWrt router configuration
-**Session Navigation:** [initial] → [[Main/home-automation-safety/docs/session-states/session_state_20250912-concise|Repository Setup]]
+**Session Navigation:** [initial] → [[session_state_20250912-concise|Repository Setup]]

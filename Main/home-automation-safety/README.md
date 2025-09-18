@@ -20,15 +20,15 @@ related_sessions:
   - "[[session_state_20250912]]"
   - "[[session_state_20250909]]"
 related_decisions:
-  - "[[docs/decisions/001-network-architecture]]"
+  - "[[001-network-architecture]]"
 sub_projects:
-  - "[[docs/prompts/01-network-infrastructure]]"
-  - "[[docs/prompts/02-core-infrastructure]]"
-  - "[[docs/prompts/03-printairpipe-ventilation]]"
-  - "[[docs/prompts/04-home-assistant-core]]"
-  - "[[docs/prompts/05-cctv-surveillance]]"
-  - "[[docs/prompts/06-pi-nas-storage]]"
-  - "[[docs/prompts/07-claude-mcp-ai]]"
+  - "[[01-network-infrastructure]]"
+  - "[[02-core-infrastructure]]"
+  - "[[03-printairpipe-ventilation]]"
+  - "[[04-home-assistant-core]]"
+  - "[[05-cctv-surveillance]]"
+  - "[[06-pi-nas-storage]]"
+  - "[[07-claude-mcp-ai]]"
 ---
 
 # Home Automation Project
@@ -39,18 +39,18 @@ A comprehensive home automation system focused on fire safety and safe ventilati
 
 ### Core Documentation
 - **Project Status & Overview**: This document
-- **Network Architecture**: [[docs/decisions/001-network-architecture|Network Architecture Decision]]
+- **Network Architecture**: [[001-network-architecture|Network Architecture Decision]]
 - **Latest Session**: [[session_state_20250912|Latest Development Session]]
 - **Session History**: [[session_state_20250909|Initial Planning Session]]
 
 ### Sub-Project Prompts
-- **Network & Security**: [[docs/prompts/01-network-infrastructure|Network Infrastructure]]
-- **Virtualization**: [[docs/prompts/02-core-infrastructure|Core Infrastructure (Proxmox)]]
-- **Fire Safety**: [[docs/prompts/03-printairpipe-ventilation|PrintAirPipe Ventilation System]]
-- **Automation Hub**: [[docs/prompts/04-home-assistant-core|Home Assistant Core]]
-- **Surveillance**: [[docs/prompts/05-cctv-surveillance|CCTV & Surveillance]]
-- **Storage**: [[docs/prompts/06-pi-nas-storage|Pi NAS Storage]]
-- **AI Integration**: [[docs/prompts/07-claude-mcp-ai|Claude MCP Integration]]
+- **Network & Security**: [[01-network-infrastructure|Network Infrastructure]]
+- **Virtualization**: [[02-core-infrastructure|Core Infrastructure (Proxmox)]]
+- **Fire Safety**: [[03-printairpipe-ventilation|PrintAirPipe Ventilation System]]
+- **Automation Hub**: [[04-home-assistant-core|Home Assistant Core]]
+- **Surveillance**: [[05-cctv-surveillance|CCTV & Surveillance]]
+- **Storage**: [[06-pi-nas-storage|Pi NAS Storage]]
+- **AI Integration**: [[07-claude-mcp-ai|Claude MCP Integration]]
 
 ## Project Overview
 
@@ -81,7 +81,7 @@ A comprehensive home automation system focused on fire safety and safe ventilati
 ## System Architecture
 
 ### System 1: Smart Ventilation & Fire Safety System
-> **⚠️ CRITICAL SAFETY SYSTEM** - See [[docs/prompts/03-printairpipe-ventilation|PrintAirPipe Ventilation System]]
+> **⚠️ CRITICAL SAFETY SYSTEM** - See [[03-printairpipe-ventilation|PrintAirPipe Ventilation System]]
 
 **Primary Function:** Extract fumes from 3D printers and provide fire detection/prevention
 
@@ -104,20 +104,20 @@ A comprehensive home automation system focused on fire safety and safe ventilati
 - Fail-safe mechanisms for sensor failures
 
 ### System 2: CCTV Security System
-> See [[docs/prompts/05-cctv-surveillance|CCTV & Surveillance System]]
+> See [[05-cctv-surveillance|CCTV & Surveillance System]]
 
 - **Platform:** Frigate NVR running on dedicated Proxmox VM
 - **Storage:** Raspberry Pi NAS integration
 - **Features:** Motion detection, object recognition, remote monitoring
 
 ### System 3: Network Storage (NAS)
-> See [[docs/prompts/06-pi-nas-storage|Pi NAS Storage System]]
+> See [[06-pi-nas-storage|Pi NAS Storage System]]
 
 - **Platform:** Raspberry Pi
 - **Purpose:** CCTV footage storage and general network storage
 
 ### System 4: AI Integration
-> See [[docs/prompts/07-claude-mcp-ai|Claude MCP AI Integration]]
+> See [[07-claude-mcp-ai|Claude MCP AI Integration]]
 
 - **Claude MCP Integration:** Model Context Protocol for advanced AI automation
 - **Features:**
@@ -127,7 +127,7 @@ A comprehensive home automation system focused on fire safety and safe ventilati
   - Advanced automation logic based on multiple sensor inputs
 
 ## Network Security & Segmentation
-> See [[docs/decisions/001-network-architecture|Network Architecture Decision]] for full details
+> See [[001-network-architecture|Network Architecture Decision]] for full details
 
 ### Security Requirements
 - **Critical:** Isolate ventilation system from internet access
@@ -175,7 +175,7 @@ scripts/                # Automation and setup scripts
 ## Implementation Phases
 
 ### Phase 1: Network Architecture & Security
-> Primary: [[docs/prompts/01-network-infrastructure|Network Infrastructure]]
+> Primary: [[01-network-infrastructure|Network Infrastructure]]
 
 - [x] OpenWrt router configuration
 - [x] VLAN design and implementation
@@ -184,7 +184,7 @@ scripts/                # Automation and setup scripts
 - [x] Network diagram creation
 
 ### Phase 2: Core Infrastructure Setup
-> Primary: [[docs/prompts/02-core-infrastructure|Core Infrastructure]]
+> Primary: [[02-core-infrastructure|Core Infrastructure]]
 
 - [ ] Proxmox installation and configuration
 - [ ] Home Assistant VM deployment
@@ -192,7 +192,7 @@ scripts/                # Automation and setup scripts
 - [ ] Raspberry Pi NAS setup
 
 ### Phase 3: Smart Ventilation System Development
-> Primary: [[docs/prompts/03-printairpipe-ventilation|PrintAirPipe Ventilation]]
+> Primary: [[03-printairpipe-ventilation|PrintAirPipe Ventilation]]
 
 - [ ] PrintAirPipe system fabrication from provided STL files
 - [ ] ESPHome controller programming using provided code repository
@@ -202,7 +202,7 @@ scripts/                # Automation and setup scripts
 - [ ] Smart plug automation and safety cutoffs
 
 ### Phase 4: CCTV Integration
-> Primary: [[docs/prompts/05-cctv-surveillance|CCTV & Surveillance]]
+> Primary: [[05-cctv-surveillance|CCTV & Surveillance]]
 
 - [ ] Camera installation and POE configuration
 - [ ] Frigate configuration and optimization
@@ -210,7 +210,7 @@ scripts/                # Automation and setup scripts
 - [ ] Motion detection and alerting
 
 ### Phase 5: AI Integration & Advanced Automation
-> Primary: [[docs/prompts/07-claude-mcp-ai|Claude MCP AI]] + [[docs/prompts/04-home-assistant-core|Home Assistant Core]]
+> Primary: [[07-claude-mcp-ai|Claude MCP AI]] + [[04-home-assistant-core|Home Assistant Core]]
 
 - [ ] Claude MCP setup with Home Assistant
 - [ ] Natural language control implementation
@@ -226,49 +226,49 @@ scripts/                # Automation and setup scripts
 - [ ] Documentation and monitoring setup
 
 ## 📋 Key Architecture Documents
-- **Network Design:** [[docs/decisions/001-network-architecture|Network Architecture Decision]] - 4-VLAN security architecture rationale
+- **Network Design:** [[001-network-architecture|Network Architecture Decision]] - 4-VLAN security architecture rationale
 - **Current Session:** [[session_state_20250912|Latest Session State]] - Latest development context
 
 ## 🔧 Implementation Status by System
 
 ### Network (OpenWrt Router)
-> See [[docs/prompts/01-network-infrastructure|Network Infrastructure]] for focused work
+> See [[01-network-infrastructure|Network Infrastructure]] for focused work
 
-- **Architecture Decision:** [[docs/decisions/001-network-architecture|Architecture Decision]] - ✅ Complete
+- **Architecture Decision:** [[001-network-architecture|Architecture Decision]] - ✅ Complete
 - **Firewall Rules:** `configs/openwrt/firewall-config.sh` - ✅ Complete (128-line security config)
 - **VLAN Configuration:** `configs/openwrt/vlan-config.conf` - 🚧 Pending implementation
 - **Main Configuration:** `configs/openwrt/main-config.conf` - 🚧 Pending implementation
 - **Status:** Ready for router implementation
 
 ### Home Assistant (Core Automation)
-> See [[docs/prompts/04-home-assistant-core|Home Assistant Core]] for focused work
+> See [[04-home-assistant-core|Home Assistant Core]] for focused work
 
 - **Main Config:** `configs/home-assistant/configuration.yaml` - 🚧 Placeholder
 - **Automations:** `configs/home-assistant/automations.yaml` - 🚧 Placeholder  
-- **Network Integration:** Depends on [[docs/decisions/001-network-architecture|Network Architecture]] (VLAN 20)
+- **Network Integration:** Depends on [[001-network-architecture|Network Architecture]] (VLAN 20)
 - **Status:** Architecture complete, awaiting implementation
 
 ### Safety Systems (ESPHome/PrintAirPipe)
-> See [[docs/prompts/03-printairpipe-ventilation|PrintAirPipe Ventilation]] for focused work
+> See [[03-printairpipe-ventilation|PrintAirPipe Ventilation]] for focused work
 
 - **PrintAirPipe Controller:** `configs/esphome/printairpipe-controller.yaml` - 🚧 Placeholder
-- **Network Assignment:** VLAN 50 (IoT Sensors) per [[docs/decisions/001-network-architecture|Network Architecture]]
+- **Network Assignment:** VLAN 50 (IoT Sensors) per [[001-network-architecture|Network Architecture]]
 - **Safety Priority:** Critical - fire detection and emergency shutoff
 - **Status:** Design complete, implementation pending
 
 ### CCTV System (Frigate NVR)
-> See [[docs/prompts/05-cctv-surveillance|CCTV & Surveillance]] for focused work
+> See [[05-cctv-surveillance|CCTV & Surveillance]] for focused work
 
 - **NVR Configuration:** `configs/frigate/config.yml` - 🚧 Placeholder
-- **Network Assignment:** VLAN 30 (isolated) per [[docs/decisions/001-network-architecture|Network Architecture]]
+- **Network Assignment:** VLAN 30 (isolated) per [[001-network-architecture|Network Architecture]]
 - **Remote Access:** Via Home Assistant bridge only
 - **Status:** Architecture defined, awaiting camera selection
 
 ### Virtualization (Proxmox)
-> See [[docs/prompts/02-core-infrastructure|Core Infrastructure]] for focused work
+> See [[02-core-infrastructure|Core Infrastructure]] for focused work
 
 - **VM Setup Scripts:** `configs/proxmox/vm-setup.sh` - 🚧 Placeholder
-- **Network Assignment:** VLAN 20 (Automation) per [[docs/decisions/001-network-architecture|Network Architecture]]
+- **Network Assignment:** VLAN 20 (Automation) per [[001-network-architecture|Network Architecture]]
 - **VM Plan:** Home Assistant (101) + Frigate (102) + future expansion
 - **Status:** Hardware ready, scripts pending
 
@@ -317,7 +317,7 @@ This project uses structured session state management for Claude conversations. 
 3. Implement firewall rules for security segmentation
 4. Set up network testing procedures
 
-**Focus Area:** [[docs/prompts/01-network-infrastructure|Network Infrastructure Sub-Project]]
+**Focus Area:** [[01-network-infrastructure|Network Infrastructure Sub-Project]]
 
 **Current Dependencies:**
 - Router ready for OpenWrt firmware flash
@@ -331,7 +331,7 @@ This project uses structured session state management for Claude conversations. 
 ⚠️ This system includes fire safety components. Always prioritise safety features and test thoroughly before deployment.
 
 **Related Documents:**
-- [[docs/decisions/001-network-architecture|Network Architecture Decision]]
+- [[001-network-architecture|Network Architecture Decision]]
 - [[session_state_20250912|Latest Session State]]
 - [[session_state_20250909|Initial Planning Session]]
 

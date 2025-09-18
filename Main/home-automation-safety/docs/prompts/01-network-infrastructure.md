@@ -13,35 +13,36 @@ aliases:
   - Network Sub-Project
   - 01-Network-Infrastructure
 created: 2025-09-15
-modified: 2025-09-16
+modified: 2025-09-17
 sub_project_id: 01-network-infrastructure
-project_context: "[[Main/home-automation-safety/README|Home Automation Project]]"
+project_context: "[[main/home-automation-safety/README|Home Automation Project]]"
 priority: critical
 status: planning
 dependencies:
   - Router ready for OpenWrt flash
 related_decisions:
-  - "[[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]]"
+  - "[[001-network-architecture|Network Architecture Decision]]"
 related_sessions:
-  - "[[session_state_20250909|Initial Planning Session]]"
-  - "[[session_state_20250912|Repository Setup Session]]"
+  - "[[session_state_20250909-concise|Initial Planning Session]]"
+  - "[[session_state_20250917-concise|Strategic Planning Session]]"
 implementation_files:
   - configs/openwrt/firewall-config.sh
   - configs/openwrt/vlan-config.conf
   - configs/openwrt/main-config.conf
-network_diagram: "[[Main/home-automation-safety/docs/diagrams/Network Diagram|Network Topology]]"
+network_diagram: "[[Network Diagram|Network Topology]]"
 ---
 
 # Sub-Project Prompt: Network Infrastructure & Security
 
 ## Context
-Part of the larger [[Main/home-automation-safety/README|home automation project]] with fire safety focus. This sub-project handles the foundational network architecture that all other systems depend on.
+Part of the larger [[main/home-automation-safety/README|home automation project]] with fire safety focus. This sub-project handles the foundational network architecture that all other systems depend on.
 
 ## Project Navigation
-- **Main Project:** [[Main/home-automation-safety/README|Home Automation Project Overview]]
-- **Architecture Decision:** [[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]]
-- **Network Diagram:** [[Main/home-automation-safety/docs/diagrams/Network Diagram|Visual Topology]]
-- **Related Sessions:** [[session_state_20250909|Initial Planning]], [[session_state_20250912|Repository Setup]]
+- **Main Project:** [[main/home-automation-safety/README|Home Automation Project Overview]]
+- **Architecture Decision:** [[001-network-architecture|Network Architecture Decision]]
+- **Project Index:** [[PROJECT-INDEX|Documentation Hub]]
+- **Network Diagram:** [[Network Diagram|Visual Topology]]
+- **Latest Session:** [[session_state_20250917-concise|Strategic Planning Session]]
 
 ## Hardware
 - **Router:** GL.iNet GL-MT6000 (OpenWrt)
@@ -49,7 +50,7 @@ Part of the larger [[Main/home-automation-safety/README|home automation project]
 - **Additional:** POE switch for cameras
 
 ## Network Design
-Based on [[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]]:
+Based on [[001-network-architecture|Network Architecture Decision]]:
 - **VLAN 20:** Automation & Management (192.168.20.0/24) - Internet access
 - **VLAN 30:** CCTV (192.168.30.0/24) - No internet, HA bridge only
 - **VLAN 40:** Storage (192.168.40.0/24) - No internet, Frigate access
@@ -62,7 +63,7 @@ Based on [[Main/home-automation-safety/docs/decisions/001-network-architecture|N
 - **Requirement:** Strong firewall rules between segments
 
 ## Current Status
-- [x] Architecture designed ([[Main/home-automation-safety/docs/decisions/001-network-architecture|Decision Record]])
+- [x] Architecture designed ([[001-network-architecture|Decision Record]])
 - [x] Firewall config created (128 lines)
 - [ ] VLAN interface configuration
 - [ ] Router implementation
@@ -79,26 +80,26 @@ Based on [[Main/home-automation-safety/docs/decisions/001-network-architecture|N
 - **Security Rules:** `configs/openwrt/firewall-config.sh` - Already created ✅
 - **VLAN Config:** `configs/openwrt/vlan-config.conf` - Pending creation 🚧
 - **Main Router Config:** `configs/openwrt/main-config.conf` - Pending creation 🚧
-- **Network Topology:** [[Main/home-automation-safety/docs/diagrams/Network Diagram|Network Diagram]] - Visual reference ✅
+- **Network Topology:** [[Network Diagram|Network Diagram]] - Visual reference ✅
 
 ## Dependencies
 - Router ready for OpenWrt flash
 - Other sub-projects depend on this network foundation:
-  - [[Main/home-automation-safety/docs/prompts/04-home-assistant-core|Home Assistant Core]]
-  - [[Main/home-automation-safety/docs/prompts/05-cctv-surveillance|CCTV & Surveillance]]
-  - [[Main/home-automation-safety/docs/prompts/03-printairpipe-ventilation|PrintAirPipe Ventilation]]
+  - [[04-home-assistant-core|Home Assistant Core]]
+  - [[05-cctv-surveillance|CCTV & Surveillance]]
+  - [[03-printairpipe-ventilation|PrintAirPipe Ventilation]]
 
 ## Related Sub-Projects
 Once this network foundation is complete, it enables:
-- [[Main/home-automation-safety/docs/prompts/02-core-infrastructure|Core Infrastructure (Proxmox)]]
-- [[Main/home-automation-safety/docs/prompts/04-home-assistant-core|Home Assistant Core]]
-- [[Main/home-automation-safety/docs/prompts/05-cctv-surveillance|CCTV & Surveillance]]
-- [[Main/home-automation-safety/docs/prompts/06-pi-nas-storage|Pi NAS Storage]]
-- [[Main/home-automation-safety/docs/prompts/03-printairpipe-ventilation|PrintAirPipe Ventilation]]
-- [[Main/home-automation-safety/docs/prompts/07-claude-mcp-ai|Claude MCP Integration]]
+- [[02-core-infrastructure|Core Infrastructure (Proxmox)]]
+- [[04-home-assistant-core|Home Assistant Core]]
+- [[05-cctv-surveillance|CCTV & Surveillance]]
+- [[06-pi-nas-storage|Pi NAS Storage]]
+- [[03-printairpipe-ventilation|PrintAirPipe Ventilation]]
+- [[07-claude-mcp-ai|Claude MCP Integration]]
 
 ---
 **Priority:** Critical (foundation for all other systems)  
 **Risk:** High (security failure affects entire project)  
-**Timeline:** Complete before other sub-projects begin
+**Timeline:** Complete before other sub-projects begin  
 **Next Action:** Configure VLAN interfaces and implement router setup

@@ -1,6 +1,6 @@
 ---
 title: "Session: Repository Setup Complete - 2025-09-12 (Concise)"
-description: "Documentation structure and GitHub repository creation - concise context for AI reference"
+description: Documentation structure and GitHub repository creation - concise context for AI reference
 tags:
   - session-state
   - concise
@@ -9,23 +9,23 @@ tags:
   - documentation
   - project-structure
 aliases:
-  - "Repository Setup Concise"
-  - "Session 20250912 Concise"
-  - "GitHub Setup Session"
+  - Repository Setup Concise
+  - Session 20250912 Concise
+  - GitHub Setup Session
 created: 2025-09-12
 modified: 2025-09-17
-session_id: "session_state_20250912_concise"
-session_phase: "Network Architecture & Planning"
+session_id: session_state_20250912_concise
+session_phase: Network Architecture & Planning
 session_duration: 165
 session_success_rating: 5
 session_confidence_rating: 5
-session_type: "setup-and-documentation"
-prev_session: "[[Main/home-automation-safety/docs/session-states/session_state_20250909-concise|Initial Planning Session]]"
-next_session: "[[Main/home-automation-safety/docs/session-states/session_state_20250916-concise|Vault Enhancement Session]]"
+session_type: setup-and-documentation
+prev_session: "[[session_state_20250909-concise|Initial Planning Session]]"
+next_session: "[[session_state_20250916-concise|Vault Enhancement Session]]"
 related_decisions:
-  - "[[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]]"
-project_context: "[[Main/home-automation-safety/README|Home Automation Project]]"
-repository: "https://github.com/Nysplaidame/home-automation-project"
+  - "[[001-network-architecture|Network Architecture Decision]]"
+project_context: "[[main/home-automation-safety/README|Home Automation Project]]"
+repository: https://github.com/Nysplaidame/home-automation-project
 status: complete
 progress_percent: 25
 priority_next: "[[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Network Infrastructure Implementation]]"
@@ -65,18 +65,18 @@ priority_next: "[[Main/home-automation-safety/docs/prompts/01-network-infrastruc
 
 ## Context for Next Session
 - **Priority 1:** [[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Implement OpenWrt router VLAN configuration]] per network architecture design
-- **Priority 2:** [[Main/home-automation-safety/docs/procedures/Git Repository - Setup Procedure|Use established Git workflow]] for configuration file management
-- **Priority 3:** [[Main/home-automation-safety/docs/prompts/03-printairpipe-ventilation|Research PrintAirPipe sensor models]] and procurement planning
-- **Files to load:** [[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]], [[Main/home-automation-safety/docs/diagrams/Network Diagram|Network Topology]]
+- **Priority 2:** [[Git Repository - Setup Procedure|Use established Git workflow]] for configuration file management
+- **Priority 3:** [[03-printairpipe-ventilation|Research PrintAirPipe sensor models]] and procurement planning
+- **Files to load:** [[001-network-architecture|Network Architecture Decision]], [[Network Diagram|Network Topology]]
 - **Context needed:** OpenWrt installation procedures, specific VLAN interface configuration syntax, firewall rule implementation
 
 ## Essential Resources
-- **Architecture:** [[Main/home-automation-safety/docs/decisions/001-network-architecture|4-VLAN Network Architecture Decision]] - Implementation foundation
-- **Configuration:** [[Main/home-automation-safety/docs/procedures/Git Repository - Setup Procedure|Git Repository Setup Procedure]] - Complete workflow documentation
+- **Architecture:** [[001-network-architecture|4-VLAN Network Architecture Decision]] - Implementation foundation
+- **Configuration:** [[Git Repository - Setup Procedure|Git Repository Setup Procedure]] - Complete workflow documentation
 - **External Resources:** 
   - PrintAirPipe Hardware STL: https://nerdiy.de/en/product-2/printairpipe-125-actuator-sensor-set-3d-printable-stl-files/
   - ESPHome Integration Code: https://github.com/Nerdiyde/ESPHomeSnippets/tree/c0135795dc180c6ff4a1306b2f5982ef3db386c3/Snippets/PrintAirPipe
-- **Previous session:** [[Main/home-automation-safety/docs/session-states/session_state_20250909-concise|Initial Planning Session]]
+- **Previous session:** [[session_state_20250909-concise|Initial Planning Session]]
 
 ## Critical Context (Cannot Lose)
 **System Architecture:**
@@ -107,18 +107,18 @@ priority_next: "[[Main/home-automation-safety/docs/prompts/01-network-infrastruc
 ## Cross-Reference Network
 **Sub-Projects:**
 - [[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Network Infrastructure & Security]] - **IMMEDIATE NEXT FOCUS**
-- [[Main/home-automation-safety/docs/prompts/02-core-infrastructure|Core Infrastructure (Proxmox)]] - Virtualization platform setup
-- [[Main/home-automation-safety/docs/prompts/03-printairpipe-ventilation|PrintAirPipe Ventilation System]] - **SAFETY CRITICAL PRIORITY**
-- [[Main/home-automation-safety/docs/prompts/04-home-assistant-core|Home Assistant Core]] - Automation hub implementation
-- [[Main/home-automation-safety/docs/prompts/05-cctv-surveillance|CCTV & Surveillance]] - Security monitoring setup
-- [[Main/home-automation-safety/docs/prompts/06-pi-nas-storage|Pi NAS Storage]] - Data storage solution
-- [[Main/home-automation-safety/docs/prompts/07-claude-mcp-ai|Claude MCP Integration]] - AI automation integration
+- [[02-core-infrastructure|Core Infrastructure (Proxmox)]] - Virtualization platform setup
+- [[03-printairpipe-ventilation|PrintAirPipe Ventilation System]] - **SAFETY CRITICAL PRIORITY**
+- [[04-home-assistant-core|Home Assistant Core]] - Automation hub implementation
+- [[05-cctv-surveillance|CCTV & Surveillance]] - Security monitoring setup
+- [[06-pi-nas-storage|Pi NAS Storage]] - Data storage solution
+- [[07-claude-mcp-ai|Claude MCP Integration]] - AI automation integration
 
 **Related Decisions:**
-- [[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]] - **IMPLEMENTATION FOUNDATION**
+- [[001-network-architecture|Network Architecture Decision]] - **IMPLEMENTATION FOUNDATION**
 
 **Session Chain:**
-- [[Main/home-automation-safety/docs/session-states/session_state_20250909-concise|Initial Planning]] → Repository Setup → [[Main/home-automation-safety/docs/session-states/session_state_20250916-concise|Vault Enhancement]]
+- [[session_state_20250909-concise|Initial Planning]] → Repository Setup → [[session_state_20250916-concise|Vault Enhancement]]
 
 ## Quality Metrics
 - **Documentation Status:** Repository structure fully documented, Git workflow established, all procedures recorded
@@ -127,4 +127,4 @@ priority_next: "[[Main/home-automation-safety/docs/prompts/01-network-infrastruc
 
 ---
 **Duration:** 165min | **Success:** 5/5 | **Confidence:** 5/5 | **Ready for:** OpenWrt router configuration and network implementation
-**Session Navigation:** [[Main/home-automation-safety/docs/session-states/session_state_20250909-concise|Initial Planning]] ← → [[Main/home-automation-safety/docs/session-states/session_state_20250916-concise|Vault Enhancement]]
+**Session Navigation:** [[session_state_20250909-concise|Initial Planning]] ← → [[session_state_20250916-concise|Vault Enhancement]]

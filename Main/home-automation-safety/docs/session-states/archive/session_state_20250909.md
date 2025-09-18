@@ -21,8 +21,8 @@ session_type: planning-and-architecture
 prev_session:
 next_session: "[[session_state_20250912|Repository Setup Session]]"
 related_decisions:
-  - "[[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]]"
-project_context: "[[Main/home-automation-safety/README|Home Automation Project]]"
+  - "[[001-network-architecture|Network Architecture Decision]]"
+project_context: "[[main/home-automation-safety/README|Home Automation Project]]"
 status: complete
 progress_percent: 15
 ---
@@ -32,8 +32,8 @@ progress_percent: 15
 ## Session Navigation
 - **Previous Session:** _This is the initial session_
 - **Next Session:** [[session_state_20250912|Repository Setup Session]]
-- **Project Overview:** [[Main/home-automation-safety/README|Home Automation Project]]
-- **Related Decision:** [[Main/home-automation-safety/docs/decisions/001-network-architecture|Network Architecture Decision]]
+- **Project Overview:** [[main/home-automation-safety/README|Home Automation Project]]
+- **Related Decision:** [[001-network-architecture|Network Architecture Decision]]
 
 ## Session Metadata
 - **Date:** September 9, 2025
@@ -125,19 +125,19 @@ progress_percent: 15
 - Single point of failure with one mini PC hosting critical services
 
 ## Architecture References & Implementation
-- **Network Architecture:** [[Main/home-automation-safety/docs/decisions/001-network-architecture|4-VLAN design formalized from this session]]
-- **Network Diagram:** [[Main/home-automation-safety/docs/diagrams/Network Diagram|Visual network topology]]
+- **Network Architecture:** [[001-network-architecture|4-VLAN design formalized from this session]]
+- **Network Diagram:** [[Network Diagram|Visual network topology]]
 - **Implementation Files:** Configuration files designed this session
 
 ## Created Artifacts & Documents
 - **Network Topology:** Initial network architecture visualization  
 - **Security Configuration:** Comprehensive firewall rules
-- **Architecture Decision:** [[Main/home-automation-safety/docs/decisions/001-network-architecture|Formal decision record]]
+- **Architecture Decision:** [[001-network-architecture|Formal decision record]]
 
 ## Project Context for Continuation
 - **Current Progress:** Network architecture and security design complete (15%)
-- **Next Implementation:** OpenWrt router configuration per [[Main/home-automation-safety/docs/decisions/001-network-architecture|network architecture decision]]
-- **Project Overview:** [[Main/home-automation-safety/README|Updated status and navigation]]
+- **Next Implementation:** OpenWrt router configuration per [[001-network-architecture|network architecture decision]]
+- **Project Overview:** [[main/home-automation-safety/README|Updated status and navigation]]
 
 ---
 **State Document Version:** 2.0 (Updated with proper backlinks)

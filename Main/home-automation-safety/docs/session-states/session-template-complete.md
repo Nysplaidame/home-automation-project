@@ -1,20 +1,20 @@
 ---
-title: "Session Template - Home Automation Project"
-description: "Template for creating new Claude session documentation with best practices"
+title: Session Template - Home Automation Project
+description: Template for creating new Claude session documentation with best practices
 tags:
   - template
   - session-state
   - documentation
   - home-automation
 aliases:
-  - "Session Template"
-  - "Claude Session Template"
-  - "Complete Template"
+  - Session Template
+  - Claude Session Template
+  - Complete Template
 created: 2025-09-16
 modified: 2025-09-17
 type: template
-project_context: "[[Main/home-automation-safety/README|Home Automation Project]]"
-usage_instructions: "Copy and modify this template for each new Claude session"
+project_context: "[[main/home-automation-safety/README|Home Automation Project]]"
+usage_instructions: Copy and modify this template for each new Claude session
 ---
 
 # Session Template: [Session Topic] - [Date]
@@ -23,7 +23,7 @@ usage_instructions: "Copy and modify this template for each new Claude session"
 - **Previous Session:** [[path/to/previous|Previous Session Name]]
 - **Next Session:** _Next session to be created_
 - **Session Template:** [[session-template-complete|This Template]]
-- **Project Overview:** [[Main/home-automation-safety/README|Home Automation Project]]
+- **Project Overview:** [[main/home-automation-safety/README|Home Automation Project]]
 
 ## Context Loading
 **Previous Sessions:** [Brief description of relevant previous work]  
@@ -98,12 +98,12 @@ usage_instructions: "Copy and modify this template for each new Claude session"
 
 ### All Sub-Projects
 - [[01-network-infrastructure|Network Infrastructure & Security]]
-- [[Main/home-automation-safety/docs/prompts/02-core-infrastructure|Core Infrastructure (Proxmox)]]
-- [[Main/home-automation-safety/docs/prompts/03-printairpipe-ventilation|PrintAirPipe Ventilation System]]
-- [[Main/home-automation-safety/docs/prompts/04-home-assistant-core|Home Assistant Core]]
-- [[Main/home-automation-safety/docs/prompts/05-cctv-surveillance|CCTV & Surveillance]]
-- [[Main/home-automation-safety/docs/prompts/06-pi-nas-storage|Pi NAS Storage]]
-- [[Main/home-automation-safety/docs/prompts/07-claude-mcp-ai|Claude MCP Integration]]
+- [[02-core-infrastructure|Core Infrastructure (Proxmox)]]
+- [[03-printairpipe-ventilation|PrintAirPipe Ventilation System]]
+- [[04-home-assistant-core|Home Assistant Core]]
+- [[05-cctv-surveillance|CCTV & Surveillance]]
+- [[06-pi-nas-storage|Pi NAS Storage]]
+- [[07-claude-mcp-ai|Claude MCP Integration]]
 
 ### Implementation Dependencies
 This session [enables/depends on]:
@@ -208,7 +208,7 @@ progress_percent: [percentage]
 **Previous Sessions:** Always link to chronologically previous session state documents
 **Related Decisions:** Reference [[docs/decisions/]] decision records that inform current work
 **Implementation Status:** Check [[Main/Home Automation/Readme]] for current system progress  
-**Architecture Context:** Reference [[docs/decisions/001-network-architecture]] for network-related work
+**Architecture Context:** Reference [[001-network-architecture]] for network-related work
 
 ## Next Session Preparation Template
 **Session Chain:** `- **Next Session:** [[docs/session-states/YYYY-MM-DD-session-name]] - Brief description`
@@ -220,9 +220,9 @@ progress_percent: [percentage]
 **Template Version:** 2.0  
 **Created:** September 16, 2025  
 **Updated:** September 17, 2025  
-**For Project:** [[Main/home-automation-safety/README|Home Automation Project]]
+**For Project:** [[main/home-automation-safety/README|Home Automation Project]]
 
 ## Usage & Context  
 > **Purpose:** Template for structured session documentation in home automation project
-> **Architecture Reference:** [[docs/decisions/001-network-architecture]] - Core network design
+> **Architecture Reference:** [[001-network-architecture]] - Core network design
 > **Example Sessions:** [[session_state_20250909]] and [[session_state_20250912]]

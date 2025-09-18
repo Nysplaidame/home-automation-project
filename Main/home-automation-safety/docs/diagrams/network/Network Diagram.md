@@ -99,22 +99,22 @@ class CameraFeeds DataFeed
 ![[Network Diagram - New.png]]
 
 ## Document References & Architecture  
-- **Architecture Decision:** [[docs/decisions/001-network-architecture]] - Design rationale  
-- **Firewall Implementation:** [[configs/openwrt/firewall-config.sh]] - Security rules for this topology
+- **Architecture Decision:** [[001-network-architecture]] - Design rationale  
+- **Firewall Implementation:** [[firewall-config.sh]] - Security rules for this topology
 - **Project Context:** [[session_state_20250909]] - Original design session
 
 ## Configuration Dependencies
 This network diagram drives the configuration requirements for:
-- [[configs/openwrt/vlan-config.conf]] - VLAN interface setup (pending)
-- [[configs/openwrt/main-config.conf]] - Router configuration (pending)
-- [[configs/home-assistant/configuration.yaml]] - HA VLAN 20 integration (pending)  
-- [[configs/frigate/config.yml]] - NVR VLAN 30 configuration (pending)
-- [[configs/esphome/printairpipe-controller.yaml]] - IoT VLAN 50 sensors (pending)
+- [[vlan-config.conf]] - VLAN interface setup (pending)
+- [[main-config.conf]] - Router configuration (pending)
+- [[configuration.yaml]] - HA VLAN 20 integration (pending)  
+- [[config.yml]] - NVR VLAN 30 configuration (pending)
+- [[printairpipe-controller.yaml]] - IoT VLAN 50 sensors (pending)
 
 ## Implementation Status
-- ✅ **Network Architecture** - 4-VLAN design complete per [[docs/decisions/001-network-architecture]]
-- ✅ **Security Rules** - Firewall policies defined in [[configs/openwrt/firewall-config.sh]]
+- ✅ **Network Architecture** - 4-VLAN design complete per [[001-network-architecture]]
+- ✅ **Security Rules** - Firewall policies defined in [[firewall-config.sh]]
 - 🚧 **Router Setup** - VLAN interfaces pending configuration  
 - 🚧 **Device Assignment** - IP allocation per diagram specifications pending
 
-**Next Implementation:** Configure VLAN interfaces using [[configs/openwrt/vlan-config.conf]]
+**Next Implementation:** Configure VLAN interfaces using [[vlan-config.conf]]

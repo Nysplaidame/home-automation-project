@@ -1,19 +1,19 @@
 ---
-title: "Session Template - Concise Format"
-description: "Concise template for efficient Claude session documentation"
+title: Session Template - Concise Format
+description: Concise template for efficient Claude session documentation
 tags:
   - template
   - session-state
   - concise
   - documentation
 aliases:
-  - "Concise Template"
-  - "Short Session Template"
+  - Concise Template
+  - Short Session Template
 created: 2025-09-16
 modified: 2025-09-17
 type: template
-project_context: "[[Main/home-automation-safety/README|Home Automation Project]]"
-usage_instructions: "Copy and modify for concise session documentation"
+project_context: "[[main/home-automation-safety/README|Home Automation Project]]"
+usage_instructions: Copy and modify for concise session documentation
 ---
 
 # Session: [Title] - YYYY-MM-DD
