@@ -150,26 +150,33 @@ A comprehensive home automation system focused on fire safety and safe ventilati
 
 ## Repository Structure
 ```
-docs/                   # Documentation and session states
-├── session-states/     # Claude session documentation
-├── decisions/          # Architecture decisions and rationale
-├── procedures/         # Step-by-step procedures
-├── prompts/           # Sub-project focused prompts
-└── troubleshooting/    # Known issues and solutions
-configs/                # System configurations
-├── openwrt/            # Router configurations
-├── home-assistant/     # HA configs and automations
-├── frigate/            # NVR configurations
-├── esphome/            # PrintAirPipe and sensor configs
-└── proxmox/            # VM configurations
-hardware/               # Physical system documentation
-├── stl-files/          # 3D printing files
-├── wiring-diagrams/    # Circuit diagrams
-└── part-lists/         # Component specifications
-scripts/                # Automation and setup scripts
-├── setup/              # Installation scripts
-├── backup/             # Backup procedures
-└── monitoring/         # Health check scripts
+Main/
+└── home-automation-safety/     # Project root
+	├──	bill-of-materials/      # Parts lists
+	│	├── 3d-printing/        # Printing parts
+	│	└── hardware/           # Hardware parts
+	├──	configs/                # System configurations
+	│	├── openwrt/            # Router configurations
+	│	├── home-assistant/     # HA configs and automations
+	│	├── frigate/            # NVR configurations
+	│	├── esphome/            # PrintAirPipe and sensor configs
+	│	└── proxmox/            # VM configurations
+	├──	dashboards/             # Project managemnt
+	├──	docs/                   # Documentation and session states
+	│	├── session-states/     # Claude session documentation
+	│	├── diagrams/           # Visual representation
+	│	├── decisions/          # Architecture decisions and rationale
+	│	├── procedures/         # Step-by-step procedures
+	│	├── prompts/            # Sub-project focused prompts
+	│	└── troubleshooting/    # Known issues and solutions
+	├──	hardware/               # Physical system documentation
+	│	├── stl-files/          # 3D printing files
+	│	├── wiring-diagrams/    # Circuit diagrams
+	│	└── part-lists/         # Component specifications
+	└──	scripts/                # Automation and setup scripts
+		├── setup/              # Installation scripts
+		├── backup/             # Backup procedures
+		└── monitoring/         # Health check scripts
 ```
 
 ## Implementation Phases

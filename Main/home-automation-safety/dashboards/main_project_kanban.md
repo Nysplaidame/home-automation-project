@@ -38,8 +38,8 @@ status: active
 
 ## In Progress
 
-- [ ] **Project Documentation** - Standardizing YAML frontmatter and linking #high
-- [ ] **System Architecture Planning** - Network topology and VLAN design #high
+- [x] **Project Documentation** - Standardizing YAML frontmatter and linking #high ✅ 2025-09-18
+- [x] **System Architecture Planning** - Network topology and VLAN design #high ✅ 2025-09-18
 - [ ] **Safety Requirements Analysis** - PrintAirPipe ventilation specs #critical
 - [ ] **Interactive Dashboard Development** - Enhanced project tracking interface #medium
 

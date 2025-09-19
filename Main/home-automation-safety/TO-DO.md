@@ -35,7 +35,7 @@ repository: https://github.com/Nysplaidame/home-automation-project
 > **VLAN Design:** [[001-network-architecture|Network Architecture Decision]]
 
 ### OpenWrt Router Configuration
-- [ ] Flash GL-MT6000 router with OpenWrt firmware
+- [x] Flash GL-MT6000 router with OpenWrt firmware ✅ 2025-09-19
 - [ ] Configure basic network interfaces and wireless
 - [ ] Implement 4-VLAN architecture:
   - [ ] VLAN 20: Automation & Management (192.168.20.0/24) - Internet access

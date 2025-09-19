@@ -1,8 +1,13 @@
 {
   "pluginList": [
+    "zsviczian/excalibrain",
     "gitcpy/obsidian-diagram-popup"
   ],
   "pluginSubListFrozenVersion": [
+    {
+      "repo": "zsviczian/excalibrain",
+      "version": "latest"
+    },
     {
       "repo": "gitcpy/obsidian-diagram-popup",
       "version": "0.2.69"
