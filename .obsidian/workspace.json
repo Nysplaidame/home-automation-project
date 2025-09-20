@@ -14,12 +14,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "main/cursor/ai-prompts-for-home-automation-project.md",
+                "file": "main/home-automation-safety/docs/session-states/session_state_20250920-concise.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "ai-prompts-for-home-automation-project"
+              "title": "session_state_20250920-concise"
             }
           }
         ]
@@ -227,11 +227,20 @@
       "obsidian-excalidraw-plugin:New drawing": false
     }
   },
-  "active": "d60e62a9560a81e5",
+  "active": "e40c918f3103d2e7",
   "lastOpenFiles": [
+    "main/home-automation-safety/docs/session-states/session_state_20250918-concise.md",
+    "main/home-automation-safety/docs/session-states/session_state_20250920-concise.md",
+    "main/home-automation-safety/docs/prompts/01-network-infrastructure.md",
+    "main/home-automation-safety/configs/openwrt/vlan-config - Copy.conf",
+    "main/home-automation-safety/configs/openwrt/main-config - Copy.conf",
+    "main/home-automation-safety/configs/openwrt/firewall-rules - Copy.conf",
+    "main/home-automation-safety/configs/openwrt/firewall-config - Copy.sh",
+    "main/home-automation-safety/docs/decisions/001-network-architecture.md",
+    "main/home-automation-safety/PROJECT-INDEX.md",
+    "main/cursor/ai-prompts-for-home-automation-project.md",
     "main/cursor/esp-development-guide.md",
     "main/cursor/vscode-cursor-ha-complete-guide.md",
-    "main/cursor/ai-prompts-for-home-automation-project.md",
     "main/cursor/Unconfirmed 120680.crdownload",
     "cursor/cursor-esp-development-guide.md",
     "main/cursor",
@@ -243,7 +252,6 @@
     "main/home-automation-safety/dashboards/major-procedures-kanban.md",
     "main/home-automation-safety/dashboards/hardware_procurement_kanban.md",
     "main/home-automation-safety/README.md",
-    "main/home-automation-safety/PROJECT-INDEX.md",
     "main/home-automation-safety/docs/prompts/04-home-assistant-core.md",
     "main/home-automation-safety/TO-DO.md",
     "main/home-automation-safety/docs/diagrams/mind-map/excalibrain.md",
@@ -254,16 +262,10 @@
     "main/home-automation-safety/docs/session-states/session-template-concise.md",
     "cursor/Untitled",
     "cursor",
-    "main/home-automation-safety/docs/session-states/session_state_20250918-concise.md",
     "main/home-automation-safety/dashboards/safety_systems_kanban.md",
     "main/home-automation-safety/dashboards/main-project-dashboard.md",
     "main/home-automation-safety/bill-of-materials/hardware/parts-list.md",
-    "main/home-automation-safety/bill-of-materials/3d-printing/~$BoM.xlsx",
-    "main/home-automation-safety/bill-of-materials/3d-printing/BoM.xlsx",
-    "Untitled Kanban.md",
-    "excalidraw",
     "main/home-automation-safety/docs/diagrams/network/network-diagram-new.png",
-    "main/home-automation-safety/dashboards",
     "Main/home-automation-safety/docs/diagrams/mermaid/packages/mermaid/src/docs/syntax/img/zenuml-participant-annotators.png",
     "Main/home-automation-safety/docs/diagrams/mermaid/packages/mermaid/src/docs/syntax/img/Gantt-long-weekend-look.png",
     "Main/home-automation-safety/docs/diagrams/mermaid/packages/mermaid/src/docs/syntax/img/Gantt-excluded-days-within.png",

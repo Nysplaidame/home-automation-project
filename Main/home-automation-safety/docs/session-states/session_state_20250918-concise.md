@@ -18,7 +18,7 @@ type: session-state
 status: complete
 progress_percent: 40
 prev_session: "[[session_state_20250917-concise|Strategic Planning Session]]"
-next_session:
+next_session: "[[session_state_20250920-concise|Vault Consistency & Progress Update]]"
 project_context: "[[main/home-automation-safety/README|Home Automation Project]]"
 repository: https://github.com/Nysplaidame/home-automation-project
 ---
