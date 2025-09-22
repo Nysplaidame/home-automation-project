@@ -25,10 +25,10 @@ dependencies:
   - Network infrastructure (VLAN 50)
   - Home Assistant VM operational
 related_decisions:
-  - "[[001-network-architecture|Network Architecture Decision]]"
+  - "[[01-network-architecture|Network Architecture Decision]]"
 related_sessions:
-  - "[[session_state_20250909-concise|Initial Planning Session]]"
-  - "[[session_state_20250912-concise|Repository Setup Session]]"
+  - "[[session_state_20250909|Initial Planning Session]]"
+  - "[[session_state_20250912|Repository Setup Session]]"
 implementation_files:
   - configs/esphome/printairpipe-controller.yaml
 network_assignment: VLAN 50 (IoT Sensors)
@@ -44,9 +44,9 @@ external_resources:
 
 ## Project Navigation
 - **Main Project:** [[main/home-automation-safety/README|Home Automation Project Overview]]
-- **Network Architecture:** [[001-network-architecture|Network Architecture Decision]]
+- **Network Architecture:** [[01-network-architecture|Network Architecture Decision]]
 - **Project Index:** [[PROJECT-INDEX|Documentation Hub]]
-- **Latest Session:** [[session_state_20250917-concise|Strategic Planning Session]]
+- **Latest Session:** [[session_state_20250917|Strategic Planning Session]]
 
 ## System Overview
 - **Primary Function:** Extract fumes from 3D printers + fire detection/prevention

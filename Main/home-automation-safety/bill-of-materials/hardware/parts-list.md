@@ -1,42 +1,19 @@
 ---
 title: Complete Hardware Parts List - Home Automation Project
-description: Comprehensive hardware requirements list organized by system
-  component and project relevance
-tags:
-  - hardware
-  - parts-list
-  - project-planning
-  - shopping-list
-  - component-specifications
-aliases:
-  - Hardware Parts List
-  - Component Requirements
-  - Shopping List
+description: Comprehensive hardware requirements list organized by system component and project relevance
+tags: [hardware, parts-list, shopping-list]
+aliases: [Hardware Parts List, Shopping List]
 created: 2025-09-17
 modified: 2025-09-18
 type: hardware-specification
-project_context: "[[main/home-automation-safety/README|Home Automation Project]]"
+project_context: "[[README|Home Automation Project]]"
 status: active
 phase: Hardware Planning & Procurement
 ---
----
 
-title: Complete Hardware Parts List - Home Automation Project description: Comprehensive hardware requirements list organized by system component and project relevance tags:
+# Complete Hardware Parts List - Home Automation Project
 
-- hardware
-- parts-list
-- project-planning
-- shopping-list
-- component-specifications aliases:
-- Hardware Parts List
-- Component Requirements
-- Shopping List created: 2025-09-17 modified: 2025-09-18 type: hardware-specification project_context: "[[main/home-automation-safety/README|Home Automation Project]]" status: active phase: Hardware Planning & Procurement
-
----
-
-# 🔧 Complete Hardware Parts List - Home Automation Project
-
-> **Project Context:** [[main/home-automation-safety/README|Home Automation Project]] | **Master Index:** [[PROJECT-INDEX|Documentation Hub]]
+> **Project Context:** [[README|Home Automation Project]] | **Master Index:** [[PROJECT-INDEX|Documentation Hub]]
 
 ## 📋 Hardware Summary by System
 
@@ -60,7 +37,7 @@ title: Complete Hardware Parts List - Home Automation Project description: Compr
 
 ---
 
-## 🖥️ Core Computing Platform
+💻 Core Computing Platform
 
 |Component|Model|Specifications|Purpose|
 |---|---|---|---|
@@ -87,10 +64,10 @@ title: Complete Hardware Parts List - Home Automation Project description: Compr
 
 ### Network Equipment Checklist:
 
-- [x] GL.iNet GL-MT6000 Router ✅ 2025-09-18
+- [x] GL.iNet GL-MT6000 Router âœ… 2025-09-18
 - [ ] 8-Port Gigabit PoE Switch
 
-**Network Design:** [[001-network-architecture|4-VLAN Security Architecture]]
+**Network Design:** [[01-network-architecture|4-VLAN Security Architecture]]
 
 - VLAN 20: Automation & Management (192.168.20.0/24)
 - VLAN 30: CCTV (192.168.30.0/24)
@@ -124,7 +101,7 @@ title: Complete Hardware Parts List - Home Automation Project description: Compr
 
 ---
 
-## 💾 Storage & NAS System
+💾 Storage & NAS System
 
 > **System Focus:** [[06-pi-nas-storage|Pi NAS Storage System]]
 
@@ -202,7 +179,7 @@ title: Complete Hardware Parts List - Home Automation Project description: Compr
 | **Tools & Consumables**      | £80          | £160          | LOW      |
 | **Contingency (15%)**        | £112         | £168          | BUFFER   |
 
-**Total Project Cost:** £792 - £1,328
+**Total Project Cost:** Â£792 - Â£1,328
 
 ### Funding Strategy Checklist:
 
@@ -231,12 +208,12 @@ title: Complete Hardware Parts List - Home Automation Project description: Compr
 
 ### Component Selection Criteria
 
-|Criteria|Requirement|Justification|
-|---|---|---|
-|**Fire Safety Rating**|UL/CE certified for electrical components|Safety-critical application|
-|**Temperature Rating**|-10°C to +60°C minimum|Environmental resilience|
-|**IP Rating**|IP54+ for outdoor network components|Weather protection|
-|**MTBF Rating**|>50,000 hours for critical components|System reliability|
+| Criteria               | Requirement                               | Justification               |
+| ---------------------- | ----------------------------------------- | --------------------------- |
+| **Fire Safety Rating** | UL/CE certified for electrical components | Safety-critical application |
+| **Temperature Rating** | -10°C to +60°C minimum                    | Environmental resilience    |
+| **IP Rating**          | IP54+ for outdoor network components      | Weather protection          |
+| **MTBF Rating**        | >50,000 hours for critical components     | System reliability          |
 
 ### Testing Requirements Checklist:
 
@@ -294,3 +271,4 @@ title: Complete Hardware Parts List - Home Automation Project description: Compr
 - [ ] Create procurement spreadsheet with supplier links and current pricing
 - [ ] Begin Phase 1 purchasing focusing on safety-critical components
 - [ ] Set up 3D printing queue for PrintAirPipe components
+

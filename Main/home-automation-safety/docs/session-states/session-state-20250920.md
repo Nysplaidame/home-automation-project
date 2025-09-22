@@ -19,7 +19,7 @@ status: complete
 progress_percent: 47
 session_duration: 90
 session_success_rating: 5
-prev_session: "[[session_state_20250918-concise|File Structure & Kanban Creation]]"
+prev_session: "[[session_state-20250918|File Structure & Kanban Creation]]"
 next_session:
 project_context: "[[main/home-automation-safety/README|Home Automation Project]]"
 repository: https://github.com/Nysplaidame/home-automation-project
@@ -41,15 +41,15 @@ repository: https://github.com/Nysplaidame/home-automation-project
 
 ## Session Accomplishments
 - [x] **Firewall Configuration:** Fixed corrupted OpenWrt firewall script with proper syntax, validation, and safety features
-- [x] **Progress Standardization:** Updated all documents to consistent 47% progress calculation based on task completion
+- [x] **Progress Standardisation:** Updated all documents to consistent 47% progress calculation based on task completion
 - [x] **Session Linking Strategy:** Replaced outdated session references with directory links for automatic currency
 - [x] **Documentation Updates:** Updated PROJECT-INDEX, README, TO-DO with consistent phase and progress information
 - [x] **Task Status Updates:** Marked firewall configuration as complete (2025-09-20)
 - [x] **Session Chain:** Properly linked session states with consistent navigation
-- [x] **YAML Consistency:** Standardized frontmatter across all major documents
+- [x] **YAML Consistency:** Standardised frontmatter across all major documents
 
 ## Technical State
-- **Working Systems:** Complete firewall configuration operational, standardized progress tracking implemented, session navigation fixed
+- **Working Systems:** Complete firewall configuration operational, standardised progress tracking implemented, session navigation fixed
 - **Active Issues:** None - all identified discrepancies resolved
 - **Partially Done:** Ready for VLAN deployment (next network implementation phase)
 
@@ -61,7 +61,7 @@ repository: https://github.com/Nysplaidame/home-automation-project
 
 ## Essential Resources
 - **Fixed Firewall:** Production-ready OpenWrt configuration with backup and validation
-- **Progress System:** Standardized 47% calculation methodology across all documents
+- **Progress System:** Standardised 47% calculation methodology across all documents
 - **Session Navigation:** Directory-based linking eliminates maintenance overhead
 - **Consistency Templates:** Updated patterns for future documentation
 
@@ -73,19 +73,19 @@ repository: https://github.com/Nysplaidame/home-automation-project
 
 **Technical Improvements:**
 - **Firewall Script:** Complete rewrite with error handling, backup procedures, and validation
-- **Task Tracking:** Standardized completion marking and progress calculation methodology
+- **Task Tracking:** Standardised completion marking and progress calculation methodology
 - **Documentation Standards:** Consistent YAML frontmatter and cross-reference patterns
 
 ## Implementation Progress Tracking
-- **Completed Phases:** Project planning, network architecture, documentation optimization, firewall configuration
+- **Completed Phases:** Project planning, network architecture, documentation optimisation, firewall configuration
 - **Current Phase:** Network implementation (VLAN deployment remaining)
 - **Next Phase:** Safety systems implementation (highest priority after network completion)
 
 ## Quality Metrics
-- **Consistency Status:** All major discrepancies resolved, progress synchronized across documents
+- **Consistency Status:** All major discrepancies resolved, progress synchronised across documents
 - **Configuration Quality:** Production-ready firewall with proper validation and safety measures
 - **Documentation Maintainability:** Directory linking reduces future maintenance overhead
 - **Progress Accuracy:** Calculated 47% reflects actual task completion status
 
 **Session Rating:** 5/5 | **Confidence:** 5/5 | **Ready for:** VLAN deployment and network testing
-**Session Navigation:** [[session_state_20250918-concise|File Structure & Kanban]] ← → [Network Implementation]
+**Session Navigation:** [[session_state-20250918|File Structure & Kanban]] ← → [Network Implementation]

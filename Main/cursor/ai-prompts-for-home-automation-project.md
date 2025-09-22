@@ -17,9 +17,9 @@ status: active
 type: development-guide
 project_context: "[[main/home-automation-safety/README|Home Automation Project]]"
 related_docs:
-  - "[[PROJECT-INDEX|Project Documentation Index]]"
+  - "[[archive/PROJECT-INDEX|Project Documentation Index]]"
   - "[[session_state_20250912|Latest Session State]]"
-  - "[[001-network-architecture|Network Architecture Decision]]"
+  - "[[01-network-architecture|Network Architecture Decision]]"
 sub_projects:
   - "[[01-network-infrastructure|Network Infrastructure]]"
   - "[[02-core-infrastructure|Core Infrastructure]]"
@@ -32,7 +32,7 @@ sub_projects:
 
 # Cursor AI Prompts for Home Automation Project
 
-> **Development Guide** | [[main/home-automation-safety/README|📋 Project Overview]] | [[PROJECT-INDEX|🗂️ Documentation Index]]
+> **Development Guide** | [[main/home-automation-safety/README|📋 Project Overview]] | [[archive/PROJECT-INDEX|🗂️ Documentation Index]]
 
 ## 🎯 Project Context Template 
 > **Use at start of each Cursor session**
@@ -425,7 +425,7 @@ OUTPUT: Production MCP implementation with safety guardrails
 **📅 Last Updated:** September 19, 2025 | **📋 Document Version:** 1.0
 
 **Related Documents:**
-- [[PROJECT-INDEX|📚 Project Documentation Index]]
+- [[archive/PROJECT-INDEX|📚 Project Documentation Index]]
 - [[main/home-automation-safety/README|📋 Project Overview]]
 - [[session_state_20250912|📦 Latest Session State]]
 

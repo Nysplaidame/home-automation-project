@@ -4,43 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "015bdee3b1fe2353",
+        "id": "cd9eaa0ca341570a",
         "type": "tabs",
-        "dimension": 50.40064102564102,
         "children": [
           {
-            "id": "d60e62a9560a81e5",
+            "id": "493c7ccdc2eec492",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "main/home-automation-safety/docs/session-states/session_state_20250920-concise.md",
+                "file": "main/home-automation-safety/dashboards/main_project_kanban.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "session_state_20250920-concise"
-            }
-          }
-        ]
-      },
-      {
-        "id": "b36e96f636269fd9",
-        "type": "tabs",
-        "dimension": 49.59935897435898,
-        "children": [
-          {
-            "id": "51722b775ddc2e29",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "main/home-automation-safety/dashboards/major-procedures-kanban.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "major-procedures-kanban"
+              "title": "main_project_kanban"
             }
           }
         ]
@@ -56,19 +34,6 @@
         "id": "4e5e6cdb479e94db",
         "type": "tabs",
         "children": [
-          {
-            "id": "e40c918f3103d2e7",
-            "type": "leaf",
-            "state": {
-              "type": "file-explorer",
-              "state": {
-                "sortOrder": "alphabetical",
-                "autoReveal": false
-              },
-              "icon": "lucide-folder-closed",
-              "title": "Files"
-            }
-          },
           {
             "id": "d35df58f2b0a64d1",
             "type": "leaf",
@@ -97,7 +62,20 @@
             }
           },
           {
-            "id": "eb389e71d350799d",
+            "id": "79dfeba9a7f78d99",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "b14ad85d2ebd8fad",
             "type": "leaf",
             "state": {
               "type": "trash-explorer",
@@ -106,11 +84,12 @@
               "title": "Trash explorer"
             }
           }
-        ]
+        ],
+        "currentTab": 2
       }
     ],
     "direction": "horizontal",
-    "width": 522.5
+    "width": 391.5
   },
   "right": {
     "id": "e24e4aab85a5d8ef",
@@ -172,17 +151,16 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "main/cursor/ai-prompts-for-home-automation-project.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of ai-prompts-for-home-automation-project"
+              "title": "Outline"
             }
           },
           {
-            "id": "6b4bb2d3eb4bed87",
+            "id": "74dcf7087707eefc",
             "type": "leaf",
             "state": {
               "type": "git-view",
@@ -190,23 +168,13 @@
               "icon": "git-pull-request",
               "title": "Source Control"
             }
-          },
-          {
-            "id": "746b0c0b38040304",
-            "type": "leaf",
-            "state": {
-              "type": "mermaid-toolbar-view",
-              "state": {},
-              "icon": "trident-custom",
-              "title": "Mermaid Toolbar"
-            }
           }
         ],
         "currentTab": 4
       }
     ],
     "direction": "horizontal",
-    "width": 378.5
+    "width": 269.5
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -227,45 +195,45 @@
       "obsidian-excalidraw-plugin:New drawing": false
     }
   },
-  "active": "e40c918f3103d2e7",
+  "active": "79dfeba9a7f78d99",
   "lastOpenFiles": [
-    "main/home-automation-safety/docs/session-states/session_state_20250918-concise.md",
-    "main/home-automation-safety/docs/session-states/session_state_20250920-concise.md",
+    "archive/TO-DO.md",
+    "main/home-automation-safety/dashboards/main_project_kanban.md",
+    "main/home-automation-safety/dashboards/major-procedures-kanban.md",
+    "main/home-automation-safety/dashboards/safety_systems_kanban.md",
+    "main/home-automation-safety/dashboards/main-project-dashboard-backup.md",
+    "main/home-automation-safety/dashboards/hardware_procurement_kanban.md",
+    "main/home-automation-safety/dashboards/main-project-dashboard.md",
+    "archive/session_state-20250918.md",
+    "archive/session_state_20250909.md",
+    "main/home-automation-safety/docs/session-states/session-state-20250920.md",
+    "main/home-automation-safety/PROJECT-INDEX.md",
+    "archive/PROJECT-INDEX.md",
+    "archive/session_state_20250916.md",
+    "archive/session_state_20250917.md",
+    "archive/session_state_20250912.md",
+    "main/home-automation-safety/bill-of-materials/3d-printing/~$~$BoM.xlsx",
+    "main/home-automation-safety/docs/session-states/session-state-template.md",
+    "archive-pre-optimization/session_state_20250909.md",
+    "main/home-automation-safety/bill-of-materials/hardware/parts-list.md",
+    "main/home-automation-safety/bill-of-materials/3d-printing/parts-list.md",
+    "main/home-automation-safety/bill-of-materials/3d-printing/~$BoM.xlsx",
+    "main/home-automation-safety/docs/prompts/04-home-assistant-core.md",
+    "main/home-automation-safety/docs/prompts/03-printairpipe-ventilation.md",
+    "main/home-automation-safety/docs/prompts/07-claude-mcp-ai.md",
+    "main/home-automation-safety/docs/prompts/02-core-infrastructure.md",
+    "main/home-automation-safety/docs/prompts/05-cctv-surveillance.md",
+    "main/home-automation-safety/docs/prompts/06-pi-nas-storage.md",
     "main/home-automation-safety/docs/prompts/01-network-infrastructure.md",
+    "main/home-automation-safety/docs/diagrams/network/network-diagram-new.png",
+    "main/home-automation-safety/bill-of-materials/hardware/parts-list.md.temp",
+    "main/home-automation-safety/claude_desktop_config.json",
+    "main/home-automation-safety/System Volume Information",
+    "archive",
+    "main/cursor/Cursor.code-workspace",
+    "main/home-automation-safety/configs/openwrt/firewall-config 1.sh",
     "main/home-automation-safety/configs/openwrt/vlan-config - Copy.conf",
     "main/home-automation-safety/configs/openwrt/main-config - Copy.conf",
-    "main/home-automation-safety/configs/openwrt/firewall-rules - Copy.conf",
-    "main/home-automation-safety/configs/openwrt/firewall-config - Copy.sh",
-    "main/home-automation-safety/docs/decisions/001-network-architecture.md",
-    "main/home-automation-safety/PROJECT-INDEX.md",
-    "main/cursor/ai-prompts-for-home-automation-project.md",
-    "main/cursor/esp-development-guide.md",
-    "main/cursor/vscode-cursor-ha-complete-guide.md",
-    "main/cursor/Unconfirmed 120680.crdownload",
-    "cursor/cursor-esp-development-guide.md",
-    "main/cursor",
-    "cursor/cursor_esp_development_guide.md",
-    "cursor/vscode_cursor_ha_complete_guide.md",
-    "cursor/cursor-AI-prompts-for-home-automation-project.md",
-    "cursor/Unconfirmed 785479.crdownload",
-    "cursor/cursor_esp_development_guide-old.md",
-    "main/home-automation-safety/dashboards/major-procedures-kanban.md",
-    "main/home-automation-safety/dashboards/hardware_procurement_kanban.md",
-    "main/home-automation-safety/README.md",
-    "main/home-automation-safety/docs/prompts/04-home-assistant-core.md",
-    "main/home-automation-safety/TO-DO.md",
-    "main/home-automation-safety/docs/diagrams/mind-map/excalibrain.md",
-    "main/home-automation-safety/docs/diagrams/mind-map",
-    "excalidraw/drawing 2025-09-18 22.43.38.excalidraw.md",
-    "main/home-automation-safety/dashboards/main_project_kanban.md",
-    "main/home-automation-safety/bill-of-materials/3d-printing/parts-list.md",
-    "main/home-automation-safety/docs/session-states/session-template-concise.md",
-    "cursor/Untitled",
-    "cursor",
-    "main/home-automation-safety/dashboards/safety_systems_kanban.md",
-    "main/home-automation-safety/dashboards/main-project-dashboard.md",
-    "main/home-automation-safety/bill-of-materials/hardware/parts-list.md",
-    "main/home-automation-safety/docs/diagrams/network/network-diagram-new.png",
     "Main/home-automation-safety/docs/diagrams/mermaid/packages/mermaid/src/docs/syntax/img/zenuml-participant-annotators.png",
     "Main/home-automation-safety/docs/diagrams/mermaid/packages/mermaid/src/docs/syntax/img/Gantt-long-weekend-look.png",
     "Main/home-automation-safety/docs/diagrams/mermaid/packages/mermaid/src/docs/syntax/img/Gantt-excluded-days-within.png",

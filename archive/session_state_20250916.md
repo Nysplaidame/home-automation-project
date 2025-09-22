@@ -27,20 +27,20 @@
 ## Context for Next Session
 - **Priority 1:** [[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Implement OpenWrt router VLAN configuration]] using established documentation foundation
 - **Priority 2:** [[session-template-complete|Use standardized session template]] for consistent future documentation
-- **Priority 3:** [[001-network-architecture|Reference network architecture]] for VLAN implementation details
+- **Priority 3:** [[01-network-architecture|Reference network architecture]] for VLAN implementation details
 - **Files to load:** [[PROJECT-INDEX|Master Project Index]], [[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Network Infrastructure Prompt]]
 - **Context needed:** OpenWrt VLAN configuration specifics, firewall rule implementation syntax, device inventory management
 
 ## Essential Resources
-- **Architecture:** [[001-network-architecture|4-VLAN Network Architecture Decision]] - Implementation foundation
+- **Architecture:** [[01-network-architecture|4-VLAN Network Architecture Decision]] - Implementation foundation
 - **Configuration:** [[PROJECT-INDEX|Master Project Index]] - Complete navigation hub for all project resources
 - **External Resources:** OpenWrt documentation for GL.iNet GL-MT6000, VLAN configuration guides
-- **Previous session:** [[session_state_20250912-concise|Repository Setup Session]]
+- **Previous session:** [[session_state_20250912|Repository Setup Session]]
 
 ## Critical Context (Cannot Lose)
 **System Architecture:**
 - **Master Navigation:** [[PROJECT-INDEX|PROJECT-INDEX.md]] serves as comprehensive project hub with links to all systems
-- **Template System:** [[session-template-complete|Session template]] and [[session-template-concise|improved concise template]] operational
+- **Template System:** [[session-state-template|Session template]] and [[session-state-template|improved concise template]] operational
 - **Documentation Standards:** YAML frontmatter, bidirectional linking, consistent tagging, emoji navigation, alias systems
 
 **Safety/Security Considerations:**
@@ -75,10 +75,10 @@
 7. [[07-claude-mcp-ai|Claude MCP Integration]] - AI automation
 
 **Related Decisions:**
-- [[001-network-architecture|Network Architecture Decision]] - **IMPLEMENTATION FOUNDATION**
+- [[01-network-architecture|Network Architecture Decision]] - **IMPLEMENTATION FOUNDATION**
 
 **Session Chain:**
-- [[session_state_20250909-concise|Initial Planning]] → [[session_state_20250912-concise|Repository Setup]] → Vault Enhancement → [Next Session]
+- [[session_state_20250909|Initial Planning]] → [[session_state_20250912|Repository Setup]] → Vault Enhancement → [Next Session]
 
 ## Quality Metrics
 - **Documentation Status:** Comprehensive standards implemented, master index operational, template system ready
@@ -87,4 +87,4 @@
 
 ---
 **Duration:** 120min | **Success:** 5/5 | **Confidence:** 5/5 | **Ready for:** Network infrastructure implementation with optimized documentation support
-**Session Navigation:** [[session_state_20250912-concise|Repository Setup]] ← → [Next Session]
+**Session Navigation:** [[session_state_20250912|Repository Setup]] ← → [Next Session]

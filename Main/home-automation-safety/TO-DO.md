@@ -1,94 +1,42 @@
 ---
-title: Home Automation Project - To-Do List Template
-description: Comprehensive to-do list template organized by project sections for implementation tracking
-tags:
-  - todo-template
-  - project-management
-  - task-tracking
-  - implementation-guide
-aliases:
-  - Project TODO
-  - Implementation Tasks
-  - Task Template
-created: 2025-09-17
-modified: 2025-09-20
+title: Project Tasks
+description: Implementation tasks organized by project phase
+tags: [tasks, implementation, project-management]
+aliases: [TODO, Tasks]
 status: active
 phase: Network Implementation
-progress_percent: 47
-priority: high
-related_sessions:
-  - "[[session_state_20250917-concise]]"
-project_context: "[[main/home-automation-safety/README]]"
-repository: https://github.com/Nysplaidame/home-automation-project
+progress: 47
 ---
 
-# 🏠 Home Automation Project - Implementation To-Do List
+# 📋 Project Implementation Tasks
 
-> **Template for tracking implementation progress across all project phases**
-> 
-> **Current Progress:** 47% complete (Updated 2025-09-20)
-> **Current Phase:** Network Implementation (Phase 1: 90% complete)
-> **Usage:** Duplicate this template for each implementation sprint/phase
-> **Related:** [[main/home-automation-safety/README|Project Overview]] | [[PROJECT-INDEX|Master Index]] | [[docs/session-states|📂 Latest Sessions]]
+**Progress:** 47% complete | **Phase:** Network Implementation (90% complete)
+**Links:** [[README|Overview]] | [[PROJECT-INDEX|Index]] | [[dashboards/main-project-dashboard|Dashboard]]
 
-## 📊 Progress Summary (Auto-calculated)
+## Current Status
 
-### Current Status
-- **Overall Progress:** 47% complete
-- **Current Phase:** Network Implementation (90% complete)
-- **Next Milestone:** Complete VLAN deployment and testing
-- **Safety Systems:** Planning complete (0% implemented)
+**Completed:** Planning, architecture design, router setup, firewall config
+**Active:** VLAN deployment and network testing
+**Next:** PrintAirPipe safety system implementation
+**Tasks:** 21+ of 45+ complete (47% rate)
 
-### Phase Breakdown
-- **Phase 1 (Network):** 90% - 1 main task remaining (VLAN deployment)
-- **Phase 2 (Infrastructure):** 10% - 9 tasks remaining  
-- **Phase 3 (Safety):** 0% - 22 tasks pending (highest priority after Phase 1)
-- **Phase 4-7:** 0% - Planning stage
+## 🌐 Phase 1: Network [[01-network-infrastructure]]
 
-### Task Completion Rate
-- **Total Tasks Defined:** 45+ across all phases
-- **Completed Tasks:** 21+ (including planning and design work)
-- **In Progress:** Phase 1 network implementation
-- **Blocked:** 0 (no blocking issues)
-- **Critical Path:** Network completion → Safety systems implementation
+**Router Configuration:**
+- [x] Flash OpenWrt firmware ✅
+- [x] Deploy firewall rules ✅  
+- [ ] Implement 4-VLAN architecture (20/30/40/50)
+- [ ] Test network isolation and security
+- [ ] Configure remote access (WireGuard)
 
-### Recent Accomplishments
-- ✅ Router flashed with OpenWrt (2025-09-19)
-- ✅ Firewall configuration completed (2025-09-20)
-- ✅ 4-VLAN architecture designed and validated
-- ✅ Project management system operational
-- ✅ Safety system architecture planned
+**Security:**
+- [ ] SSL certificates
+- [ ] Fail2ban setup
+- [ ] Backup procedures
 
 ---
 
-## 🌐 Phase 1: Network Architecture & Security
-> **Primary Focus:** [[docs/prompts/01-network-infrastructure-UPDATED|Network Infrastructure]]
-> **VLAN Design:** [[001-network-architecture|Network Architecture Decision]]
-
-### OpenWrt Router Configuration
-- [x] Flash GL-MT6000 router with OpenWrt firmware ✅ 2025-09-19
-- [ ] Configure basic network interfaces and wireless
-- [ ] Implement 4-VLAN architecture:
-  - [ ] VLAN 20: Automation & Management (192.168.20.0/24) - Internet access
-  - [ ] VLAN 30: CCTV (192.168.30.0/24) - No internet, HA bridge only
-  - [ ] VLAN 40: Storage (192.168.40.0/24) - No internet, Frigate access only
-  - [ ] VLAN 50: IoT Sensors (192.168.50.0/24) - No internet, HA control only
-- [x] Deploy firewall rules from `configs/openwrt/firewall-config.sh` ✅ 2025-09-20
-- [ ] Configure network segmentation and inter-VLAN routing rules
-- [ ] Test VLAN isolation and security policies
-- [ ] Set up remote access for Home Assistant (WireGuard VPN)
-- [ ] Implement network monitoring and logging
-
-### Security Implementation
-- [ ] Configure SSL certificates for all web interfaces
-- [ ] Set up fail2ban for intrusion detection
-- [ ] Implement network access control (MAC address filtering)
-- [ ] Create backup and restore procedures for router config
-- [ ] Document network security audit procedures
-
----
-
-## 💻 Phase 2: Core Infrastructure Setup
+## 💻 Phase 2: Core Infrastructure Setup [[02-core-infrastructure]]
 > **Primary Focus:** [[02-core-infrastructure|Core Infrastructure (Proxmox)]]
 > **Hardware:** MINIX NEO Z350-0dB Mini PC
 
@@ -119,7 +67,7 @@ repository: https://github.com/Nysplaidame/home-automation-project
 
 ---
 
-## 🔥 Phase 3: Smart Ventilation & Fire Safety System
+## 🔥 Phase 3: Smart Ventilation & Fire Safety System [[03-printairpipe-ventilation]]
 > **Primary Focus:** [[03-printairpipe-ventilation|PrintAirPipe Ventilation System]]
 > **⚠️ CRITICAL SAFETY SYSTEM - HIGHEST PRIORITY**
 
@@ -176,7 +124,7 @@ repository: https://github.com/Nysplaidame/home-automation-project
 
 ---
 
-## 🏡 Phase 4: Home Assistant Core Setup
+## 🏡 Phase 4: Home Assistant Core Setup [[04-home-assistant-core]]
 > **Primary Focus:** [[04-home-assistant-core|Home Assistant Core]]
 > **Integration Hub:** All system coordination
 
@@ -222,7 +170,7 @@ repository: https://github.com/Nysplaidame/home-automation-project
 
 ---
 
-## 📹 Phase 5: CCTV & Surveillance System
+## 📹 Phase 5: CCTV & Surveillance System [[05-cctv-surveillance]]
 > **Primary Focus:** [[05-cctv-surveillance|CCTV & Surveillance System]]
 > **Network Isolation:** VLAN 30 (No internet access)
 
@@ -259,7 +207,7 @@ repository: https://github.com/Nysplaidame/home-automation-project
 
 ---
 
-## 💾 Phase 6: Pi NAS Storage System
+## 💾 Phase 6: Pi NAS Storage System [[06-pi-nas-storage]]
 > **Primary Focus:** [[06-pi-nas-storage|Pi NAS Storage System]]
 > **Network Assignment:** VLAN 40 (Limited internet for updates only)
 
@@ -293,7 +241,7 @@ repository: https://github.com/Nysplaidame/home-automation-project
 
 ---
 
-## 🤖 Phase 7: Claude MCP AI Integration
+## 🤖 Phase 7: Claude MCP AI Integration [[07-claude-mcp-ai]]
 > **Primary Focus:** [[07-claude-mcp-ai|Claude MCP AI Integration]]
 > **Advanced Feature:** Intelligent automation and natural language control
 
@@ -330,268 +278,28 @@ repository: https://github.com/Nysplaidame/home-automation-project
 
 ---
 
-## 🔗 Phase 8: System Integration & Testing
-> **Cross-System Coordination:** All sub-projects integrate
+## 🔗 Integration & Testing
 
-### Cross-System Communication
-- [ ] Configure inter-VLAN communication rules for required services
-- [ ] Set up Home Assistant as central coordination hub
-- [ ] Test data flow between all system components
-- [ ] Verify network security policies are maintained
-- [ ] Implement system-wide health monitoring
+**Cross-System:**
+- [ ] Configure inter-VLAN communication
+- [ ] Home Assistant as coordination hub
+- [ ] System-wide health monitoring
 
-### Safety System Validation
-- [ ] **CRITICAL:** Comprehensive fire safety system testing
-  - [ ] Smoke detection response testing
-  - [ ] Emergency power cutoff validation
-  - [ ] Ventilation system response testing
-  - [ ] Multi-sensor failure scenario testing
-- [ ] Test all emergency notification systems
-- [ ] Validate fail-safe mechanisms under various conditions
-- [ ] Document all safety test results and procedures
+**Safety Validation:**
+- [ ] Fire detection response testing
+- [ ] Emergency power cutoff validation
+- [ ] Multi-sensor failure scenarios
 
-### Performance Optimization
-- [ ] Monitor system resource usage across all VMs
-- [ ] Optimize network traffic and reduce unnecessary communication
-- [ ] Fine-tune automation response times
-- [ ] Implement load balancing where applicable
-- [ ] Create performance monitoring dashboards
+**Performance:**
+- [ ] Resource usage monitoring
+- [ ] Network traffic optimization
+- [ ] Response time tuning
 
-### Remote Access & Monitoring
-- [ ] Configure secure remote access via WireGuard VPN
-- [ ] Set up remote monitoring dashboards
-- [ ] Test remote emergency response capabilities
-- [ ] Implement secure backup and recovery procedures
-- [ ] Document remote access procedures and security
-
-### Documentation & Maintenance
-- [ ] Create comprehensive system documentation
-- [ ] Document all configuration files and procedures
-- [ ] Set up automated backup procedures for all configs
-- [ ] Create maintenance schedules and procedures
-- [ ] Build troubleshooting guides for common issues
+**Remote Access:**
+- [ ] WireGuard VPN setup
+- [ ] Remote monitoring dashboards
+- [ ] Emergency response capabilities
 
 ---
-
-## 📊 Quality Assurance & Validation
-
-### Testing Procedures
-- [ ] Unit testing for individual components
-- [ ] Integration testing for system interactions
-- [ ] Performance testing under various load conditions
-- [ ] Security testing and vulnerability assessment
-- [ ] User acceptance testing for all interfaces
-
-### Documentation Validation
-- [ ] Verify all procedures are documented and tested
-- [ ] Update network diagrams and system architecture
-- [ ] Create user manuals for system operation
-- [ ] Document emergency procedures and contact information
-- [ ] Review and update all session state documentation
-
-### Compliance & Safety
-- [ ] Review fire safety compliance requirements
-- [ ] Validate network security against best practices
-- [ ] Test backup and disaster recovery procedures
-- [ ] Review data privacy and retention policies
-- [ ] Document compliance and audit procedures
-
----
-
-## 🚨 Emergency Preparedness
-
-### Fire Safety Protocols
-- [ ] Create emergency response checklist
-- [ ] Test all fire detection and suppression systems
-- [ ] Establish emergency contact procedures
-- [ ] Document evacuation procedures for workshop
-- [ ] Create fire safety training materials
-
-### System Recovery Procedures
-- [ ] Test system backup and restore procedures
-- [ ] Create emergency system access procedures
-- [ ] Document critical system recovery steps
-- [ ] Test communication systems during emergencies
-- [ ] Create emergency contact and escalation procedures
-
----
-
-## 📈 Ongoing Maintenance & Monitoring
-
-### Regular Maintenance Tasks
-- [ ] Schedule regular sensor calibration and testing
-- [ ] Plan software updates and security patches
-- [ ] Create preventive maintenance schedules
-- [ ] Monitor system performance and capacity
-- [ ] Review and update documentation regularly
-
-### Continuous Improvement
-- [ ] Monitor system performance and identify optimization opportunities
-- [ ] Collect user feedback and implement improvements
-- [ ] Review and update automation rules based on usage patterns
-- [ ] Plan future enhancements and expansions
-- [ ] Maintain technology currency and security updates
-
----
-
-## 📝 Session Integration Notes
-
-> **Template Usage:** 
-> - Copy this template for each implementation phase/sprint
-> - Update task completion status regularly
-> - Reference related session states and documentation
-> - Maintain links to relevant prompts and decisions
-
-**Related Documentation:**
-- **Main Project:** [[main/home-automation-safety/README|Home Automation Project Overview]]
-- **Latest Session:** [[session_state_20250917-concise|Strategic Planning Session]]
-- **Master Index:** [[PROJECT-INDEX|Project Navigation Hub]]
-- **Architecture:** [[001-network-architecture|Network Architecture Decision]]
-
-**Emergency Contacts & Procedures:**
-- Fire Department: [Emergency Number]
-- Internet Service Provider: [Support Number]
-- Hardware Vendor Support: [Support Contact]
-- Backup Communication Plan: [Alternative Contact Method]
-
----
-
-**Template Version:** 1.0  
-**Created:** September 17, 2025  
-**Last Updated:** September 17, 2025  
-**Status:** Ready for Implementation  
-**Priority:** Safety Systems First, then Infrastructure, then Advanced Features
-
-> ⚠️ **SAFETY REMINDER:** Fire safety systems have absolute priority in all implementation phases. Test thoroughly before deploying any automated fire detection or suppression systems.
-
-
----
-
-## 💡 Future Considerations & Advanced Features
-> **Implementation Priority:** After core safety and infrastructure systems are stable
-> **Type:** Enhancement and optimization ideas for future development phases
-
-### Advanced System Intelligence
-- [ ] **Logical Sensor Linkage & Interdependencies**
-  - [ ] Map sensor relationships and cascading effects
-  - [ ] Implement cross-sensor validation and correlation logic
-  - [ ] Create intelligent sensor fusion algorithms
-  - [ ] Build predictive models based on sensor interdependencies
-  - [ ] Design sensor failure compensation strategies
-  - [ ] Document sensor dependency matrices and decision trees
-
-### Project Management & Organization
-- [ ] **Task and Project Management System Integration**
-  - [ ] Set up flexible project tracking (no rigid due dates)
-  - [ ] Implement ad-hoc task prioritization system
-  - [ ] Create progress visualization for personal motivation
-  - [ ] Build milestone tracking without deadline pressure
-  - [ ] Design workflow management for hobby project pacing
-  - [ ] Integrate with existing documentation system
-
-### User Interface & Visualization
-- [ ] **Advanced Home Automation UI Development**
-  - [ ] Design intuitive control interfaces for all systems
-  - [ ] Create mobile-responsive dashboards
-  - [ ] Implement voice control integration
-  - [ ] Build quick-access emergency controls
-  - [ ] Design system status overview interfaces
-  - [ ] Create user-friendly configuration panels
-
-- [ ] **Graphical Fire Safety System Visualization**
-  - [ ] Interactive ventilation flue system diagram
-  - [ ] Real-time actuator state visualization
-  - [ ] 3D enclosure airflow representation
-  - [ ] Live sensor data overlay on system diagram
-  - [ ] Airflow pattern visualization with directional indicators
-  - [ ] Emergency system status dashboard
-  - [ ] Historical data trending visualization
-  - [ ] System performance analytics interface
-
-### Obsidian Vault Optimization
-- [ ] **Context Window & Performance Optimization**
-  - [ ] Minimize AI context loading impact
-  - [ ] Streamline document cross-references
-  - [ ] Optimize content density vs. utility ratio
-  - [ ] Implement strategic content chunking
-  - [ ] Create efficient navigation pathways
-  - [ ] Reduce redundant information across documents
-
-- [ ] **Template & Standards Maintenance**
-  - [ ] **Template Usage:** Use updated templates for all future sessions
-  - [ ] **YAML Consistency:** Maintain standards across new documents  
-  - [ ] **Backlink Monitoring:** Regular verification of link validity
-  - [ ] **Context Optimization:** Continue minimizing redundancy
-  - [ ] Update template versions and ensure consistent application
-  - [ ] Establish template update propagation procedures
-
-### Obsidian Vault Maintenance & Cleanup
-- [ ] **Session State Management Cleanup**
-  - [ ] **Session References:** Update files referencing old session states
-  - [ ] **Progress Updates:** Refresh outdated progress percentages
-  - [ ] **Cross-Reference Validation:** Verify all internal links function correctly
-  - [ ] Clean up orphaned references and broken links
-  - [ ] Standardize session state naming and organization
-  - [ ] Archive obsolete session states appropriately
-
-- [ ] **Documentation Quality Assurance**
-  - [ ] Audit all YAML frontmatter for consistency
-  - [ ] Verify tag usage and standardize taxonomy
-  - [ ] Update status fields across all project documents
-  - [ ] Reconcile conflicting information between documents
-  - [ ] Ensure all key documents have proper cross-references
-  - [ ] Review and update document descriptions and summaries
-
-### System Analytics & Intelligence
-- [ ] **Advanced Monitoring & Analytics**
-  - [ ] Implement machine learning for pattern recognition
-  - [ ] Create predictive maintenance scheduling
-  - [ ] Build anomaly detection across all systems
-  - [ ] Design intelligent alerting with context awareness
-  - [ ] Develop system optimization recommendations
-  - [ ] Create performance trending and forecasting
-
-- [ ] **Integration Enhancements**
-  - [ ] Advanced Claude MCP integration features
-  - [ ] Cross-system automation optimization
-  - [ ] Energy efficiency monitoring and optimization
-  - [ ] Environmental impact tracking and reporting
-  - [ ] Cost analysis and optimization recommendations
-
-### Research & Development Ideas
-- [ ] **Emerging Technology Integration**
-  - [ ] Investigate new sensor technologies
-  - [ ] Explore advanced fire suppression integration
-  - [ ] Research energy-efficient ventilation improvements
-  - [ ] Evaluate new network security technologies
-  - [ ] Consider smart home integration expansions
-
-- [ ] **System Scalability Planning**
-  - [ ] Design for additional workshop zones
-  - [ ] Plan for multiple printer enclosure expansion
-  - [ ] Consider integration with other home systems
-  - [ ] Evaluate cloud backup and monitoring options
-  - [ ] Plan for system upgrade and migration pathways
-
----
-
-## 🔧 Implementation Notes for Future Ideas
-
-### Prioritization Guidelines
-- **Phase 1 Priority:** Core safety and infrastructure must be fully operational
-- **Phase 2 Priority:** System optimization and user experience improvements  
-- **Phase 3 Priority:** Advanced analytics and intelligence features
-- **Ongoing:** Documentation maintenance and vault optimization
-
-### Integration Approach
-- Build upon established foundation rather than replacing systems
-- Maintain backward compatibility with existing configurations
-- Test new features in isolation before integration
-- Document all changes and maintain rollback procedures
-
-### Development Philosophy
-- **Ad-hoc Development:** No pressure for deadline completion
-- **Quality Focus:** Thorough testing and documentation over speed
-- **Incremental Progress:** Small improvements that build over time
-- **Personal Enjoyment:** Keep the project fun and engaging
+**Updated:** September 21, 2025
 

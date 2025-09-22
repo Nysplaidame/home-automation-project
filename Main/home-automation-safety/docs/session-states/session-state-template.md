@@ -87,38 +87,6 @@ usage_instructions: Copy and modify for concise session documentation
 **Duration:** [X]min | **Success:** [X]/5 | **Confidence:** [X]/5 | **Ready for:** [Next phase/milestone]
 **Session Navigation:** [[previous]] ← → [[next]]
 
-## ⚠️ **ESSENTIAL DRAFTING GUIDELINES**
-**CRITICAL:** Follow these practices for every concise session:
-
-### Context Window Optimization
-- **Minimize Impact:** Always strive to minimize impact on context window
-- **Essential Only:** Include only the most critical information for future sessions
-- **Avoid Duplication:** Check previous sessions to prevent redundant content
-- **Concise Format:** Use bullet points and brief descriptions for efficiency
-- **Strategic Summary:** Focus on key decisions and next steps rather than detailed explanations
-
-### Backlink Management
-- **Identify Opportunities:** Actively identify potential backlink opportunities
-- **Create Missing Links:** Create new backlinks where they add navigation value
-- **Update Existing:** Update and maintain existing backlinks for accuracy
-- **Strategic Links:** Focus on the most important connections, not exhaustive linking
-- **Session Chain:** Maintain clear navigation between related sessions
-
-### Obsidian Best Practices
-- **Valid YAML:** Ensure all notes have properly formatted YAML frontmatter
-- **Consistent Tags:** Use established tagging system consistently
-- **Proper Aliases:** Add meaningful aliases for different reference styles
-- **Wiki-Links:** Use `[[wiki-style]]` linking with descriptive display names
-- **Metadata Standards:** Include all required metadata fields (created, modified, type, etc.)
-- **Concise Structure:** Maintain the established concise template format for consistency
-
-## Template Usage Notes
-- Use specific technical terms over generic descriptions
-- Include exact IP ranges, model numbers, version numbers where relevant
-- Prioritize information that would take significant time to rediscover
-- Link extensively to maintain context relationships
-- Update progress percentages realistically
-- Note any assumptions made during the session
-- **Focus on uniqueness:** Avoid repeating information from previous sessions
-- **Prioritize actionable content:** Emphasize next steps and critical context
-- **Maintain efficiency:** Keep total session length under typical context window limits
+---
+**Duration:** [X]min | **Success:** [X]/5 | **Confidence:** [X]/5 | **Ready for:** [Next phase/milestone]
+**Session Navigation:** [[previous]] ← → [[next]]

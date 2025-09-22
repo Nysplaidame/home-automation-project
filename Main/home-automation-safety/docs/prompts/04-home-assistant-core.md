@@ -21,7 +21,7 @@ dependencies:
   - "[[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Network Infrastructure]] (VLAN 20 setup)"
   - "[[Main/home-automation-safety/docs/prompts/02-core-infrastructure|Core Infrastructure]] (Proxmox VM)"
 related_decisions:
-  - "[[001-network-architecture|Network Architecture Decision]]"
+  - "[[01-network-architecture|Network Architecture Decision]]"
 related_sessions:
   - "[[session_state_20250909|Initial Planning Session]]"
   - "[[session_state_20250912|Repository Setup Session]]"
@@ -38,11 +38,11 @@ safety_integration: "[[03-printairpipe-ventilation|PrintAirPipe Ventilation Syst
 ## Project Navigation
 - **Main Project:** [[main/home-automation-safety/README|Home Automation Project Overview]]
 - **Project Index:** [[PROJECT-INDEX|📚 Complete Documentation Hub]]
-- **Network Architecture:** [[001-network-architecture|Network Architecture Decision]]
+- **Network Architecture:** [[01-network-architecture|Network Architecture Decision]]
 - **Latest Session:** [[session_state_20250912|Repository Setup Session]]
 
 ## Context
-Part of the larger [[main/home-automation-safety/README|home automation project]] with fire safety focus. Home Assistant serves as the central automation hub that coordinates all systems while maintaining security isolation through the [[001-network-architecture|4-VLAN network architecture]].
+Part of the larger [[main/home-automation-safety/README|home automation project]] with fire safety focus. Home Assistant serves as the central automation hub that coordinates all systems while maintaining security isolation through the [[01-network-architecture|4-VLAN network architecture]].
 
 ## Hardware & Infrastructure
 - **Platform:** Home Assistant OS on Proxmox VM
@@ -77,7 +77,7 @@ Part of the larger [[main/home-automation-safety/README|home automation project]
 - Emergency response coordination
 
 ## Network Security Implementation
-Based on [[001-network-architecture|Network Architecture Decision]]:
+Based on [[01-network-architecture|Network Architecture Decision]]:
 
 ### VLAN Access Configuration
 - **Home Network (VLAN 20):** Full bidirectional access
@@ -145,7 +145,7 @@ Based on [[001-network-architecture|Network Architecture Decision]]:
 - **All Safety Systems:** Central coordination point for emergency response
 
 ## Current Status
-- [x] Architecture designed within [[001-network-architecture|Network Architecture]]
+- [x] Architecture designed within [[01-network-architecture|Network Architecture]]
 - [x] Network assignment planned (VLAN 20)
 - [x] Safety integration strategy defined
 - [ ] VM specifications determined
@@ -182,7 +182,7 @@ Based on [[001-network-architecture|Network Architecture Decision]]:
 ## Session References
 - **Architecture Planning:** [[session_state_20250909|Initial Planning Session]]
 - **Infrastructure Setup:** [[session_state_20250912|Repository Setup Session]]
-- **Next Session Template:** [[session-template-complete|Session Template]]
+- **Next Session Template:** session file has been deep-archived (no longer in vault)
 
 ## External Resources
 - **Home Assistant Documentation:** https://www.home-assistant.io/docs/
@@ -191,7 +191,7 @@ Based on [[001-network-architecture|Network Architecture Decision]]:
 - **Frigate Integration:** https://docs.frigate.video/integrations/home-assistant
 
 ## Security Considerations
-- **Network Isolation:** Strict VLAN enforcement per [[001-network-architecture|Network Architecture]]
+- **Network Isolation:** Strict VLAN enforcement per [[01-network-architecture|Network Architecture]]
 - **Authentication:** Strong passwords, 2FA, limited user accounts
 - **Updates:** Regular security updates with staging environment
 - **Backup:** Automated configuration backups to [[06-pi-nas-storage|Pi NAS Storage]]

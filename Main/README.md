@@ -24,7 +24,7 @@ Welcome to your organised Obsidian vault! This serves as the central navigation 
 Comprehensive home automation system with fire safety, CCTV, and AI integration.
 
 **Quick Links:**
-- [[001-network-architecture|Network Architecture]]
+- [[01-network-architecture|Network Architecture]]
 - [[session_state_20250912|Latest Session]]
 - [[01-network-infrastructure|Network Infrastructure]]
 

@@ -1,38 +1,34 @@
+---
+title: Git Repository Setup Procedures
+description: Reference to original setup documentation for GitHub repository
+tags: [git, repository, setup, procedures]
+aliases: [Git Setup, Repository Setup]
+type: procedure-reference
+status: active
+---
 
+# Git Repository Setup Procedures
 
-**Note:** This directory originally contained a PDF file: "Git Repo Setup.pdf"
+> **Note:** Original detailed setup procedures have been deep-archived (no longer in vault).
 
-The PDF contained detailed setup procedures for creating and configuring the GitHub repository for this home automation project.
+The original documentation contained step-by-step repository setup instructions for creating and configuring the GitHub repository for this home automation project.
 
-**PDF File Location in GitHub:** 
-- `docs/procedures/Git Repo Setup.pdf`
-- Size: ~2.1MB
-- Contains: Step-by-step repository setup instructions
+## Repository Information
+- **GitHub URL:** https://github.com/Nysplaidame/home-automation-project
+- **Structure:** Comprehensive directory organization for home automation project
+- **Integration:** Supports all project components and documentation
 
-**To access the full PDF content:**
-1. Download directly from the GitHub repository
-2. Or use the GitHub web interface to view the file
+## Current Repository Structure
+The setup procedures resulted in the following structure:
+- **Main Project:** [[README|Project Overview]] - Central project documentation
+- **Configuration Management:** All configs/ subdirectories with version control
+- **Session Tracking:** [[docs/session-states/|Session States]] - Development continuity
+- **Decision Records:** [[docs/decisions/|Architecture Decisions]] - Design documentation
 
-This placeholder serves as a reference to the original documentation.
+## Related Documentation
+- **Project Overview:** [[README|Home Automation Project]]
+- **Session Template:** session template deep-archived
+- **Network Architecture:** [[001-network-architecture|Network Architecture Decision]]
 
-
-## Related Project Documents
-- **Project Overview:** [[Main/Home Automation/Readme]] - Complete project status and navigation
-- **Repository Structure:** Created using procedures documented in the original PDF
-- **Session Management:** [[session-template-complete]] - Template for project continuation
-- **Architecture Context:** [[001-network-architecture]] - Network design requiring Git workflow
-
-## Git Repository Integration
-The PDF procedures enabled the creation of the comprehensive repository structure visible in:
-- **Main Project:** [[Main/Home Automation/Readme]] - Central project documentation
-- **Configuration Management:** All [[configs/]] subdirectories with version control
-- **Session Tracking:** [[docs/session-states/]] directory for development continuity  
-- **Decision Records:** [[docs/decisions/]] for architecture documentation
-
-## Implementation Status
-- ✅ **Repository Created:** GitHub repository live with complete structure
-- ✅ **Git Workflow:** Version control active for all configuration files
-- ✅ **Documentation System:** Session states and decision records operational
-- ✅ **Backup Strategy:** All project files safely stored in GitHub
-
-**Next Phase:** Begin OpenWrt configuration implementation using established Git workflow
+## Active Development
+The repository serves as the central hub for all project development, with active integration across all project components and documentation systems.

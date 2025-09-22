@@ -1,3 +1,12 @@
+---
+title: Network Topology Diagram
+description: 4-VLAN network architecture with security zones and device assignments
+tags: [network, diagram, vlan, architecture]
+aliases: [Network Diagram, Topology]
+type: network-diagram
+status: active
+---
+
 ```mermaid
 flowchart LR
 
@@ -99,22 +108,23 @@ class CameraFeeds DataFeed
 ![[network-diagram-new.png]]
 
 ## Document References & Architecture  
-- **Architecture Decision:** [[001-network-architecture]] - Design rationale  
-- **Firewall Implementation:** [[firewall-config.sh]] - Security rules for this topology
-- **Project Context:** [[session_state_20250909]] - Original design session
+- **Architecture Decision:** [[001-network-architecture|Network Architecture]] - Design rationale  
+- **Firewall Implementation:** [[configs/openwrt/firewall-config-readable|firewall-config.sh]] - Security rules for this topology
+- **Project Context:** session file deep-archived - Original design session
 
 ## Configuration Dependencies
 This network diagram drives the configuration requirements for:
-- [[vlan-config.conf]] - VLAN interface setup (pending)
-- [[main-config.conf]] - Router configuration (pending)
-- [[configuration.yaml]] - HA VLAN 20 integration (pending)  
-- [[config.yml]] - NVR VLAN 30 configuration (pending)
-- [[printairpipe-controller.yaml]] - IoT VLAN 50 sensors (pending)
+- [[configs/openwrt/vlan-config.conf]] - VLAN interface setup (pending)
+- [[configs/openwrt/main-config.conf]] - Router configuration (pending)
+- [[configs/home-assistant/configuration.yaml|HA Configuration]] - HA VLAN 20 integration (pending)  
+- [[configs/frigate/config.yml|Frigate Configuration]] - NVR VLAN 30 configuration (pending)
+- [[configs/esphome/printairpipe-controller.yaml|PrintAirPipe Controller]] - IoT VLAN 50 sensors (pending)
 
 ## Implementation Status
-- ✅ **Network Architecture** - 4-VLAN design complete per [[001-network-architecture]]
-- ✅ **Security Rules** - Firewall policies defined in [[firewall-config.sh]]
+- ✅ **Network Architecture** - 4-VLAN design complete per [[01-network-architecture|Network Architecture Decision]]
+- ✅ **Security Rules** - Firewall policies defined in [[configs/openwrt/firewall-config-readable|firewall-config.sh]]
 - 🚧 **Router Setup** - VLAN interfaces pending configuration  
 - 🚧 **Device Assignment** - IP allocation per diagram specifications pending
 
-**Next Implementation:** Configure VLAN interfaces using [[vlan-config.conf]]
+**Next Implementation:** Configure VLAN interfaces using [[configs/openwrt/vlan-config.conf]]
+

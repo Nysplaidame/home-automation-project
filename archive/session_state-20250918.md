@@ -17,12 +17,12 @@ modified: 2025-09-18
 type: session-state
 status: complete
 progress_percent: 40
-prev_session: "[[session_state_20250917-concise|Strategic Planning Session]]"
-next_session: "[[session_state_20250920-concise|Vault Consistency & Progress Update]]"
+prev_session: "[[session_state_20250917|Strategic Planning Session]]"
+next_session: "[[session-state-20250920|Vault Consistency & Progress Update]]"
 project_context: "[[main/home-automation-safety/README|Home Automation Project]]"
 repository: https://github.com/Nysplaidame/home-automation-project
 ---
-
+-
 # Session: File Structure Update & Kanban Board Creation - 2025-09-18
 
 ## Current State
@@ -88,4 +88,4 @@ repository: https://github.com/Nysplaidame/home-automation-project
 - **Board Integration:** Three specialized Kanban boards designed for different project aspects
 
 **Session Rating:** 5/5 | **Confidence:** 5/5 | **Ready for:** Enhanced project management with network implementation
-**Session Navigation:** [[session_state_20250917-concise|Strategic Planning]] ← → [Network Implementation with Enhanced Management]
+**Session Navigation:** [[session_state_20250917|Strategic Planning]] ← → [Network Implementation with Enhanced Management]

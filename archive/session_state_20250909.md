@@ -14,16 +14,16 @@ aliases:
   - Foundation Session
 created: 2025-09-09
 modified: 2025-09-17
-session_id: session_state_20250909_concise
+session_id: session_state_20250909
 session_phase: Initial Planning & Architecture
 session_duration: 120
 session_success_rating: 5
 session_confidence_rating: 5
 session_type: planning-and-architecture
 prev_session:
-next_session: "[[session_state_20250912-concise|Repository Setup Session]]"
+next_session: "[[session_state_20250912|Repository Setup Session]]"
 related_decisions:
-  - "[[001-network-architecture|Network Architecture Decision]]"
+  - "[[01-network-architecture|Network Architecture Decision]]"
 project_context: "[[main/home-automation-safety/README|Home Automation Project]]"
 repository:
 status: complete
@@ -63,14 +63,14 @@ priority_next: "[[Main/home-automation-safety/docs/prompts/01-network-infrastruc
 - **Risk Factors:** Single point of failure with MINIX Mini PC hosting critical services, fire safety system failure could result in property damage, network misconfiguration could compromise security isolation
 
 ## Context for Next Session
-- **Priority 1:** [[git-repository-setup|Create GitHub repository and documentation structure]] for configuration management
+- **Priority 1:** [[docs/procedures/git-repository-setup|Create GitHub repository and documentation structure]] for configuration management
 - **Priority 2:** [[Main/home-automation-safety/docs/prompts/01-network-infrastructure-UPDATED|Begin OpenWrt router configuration]] with VLAN interface setup
 - **Priority 3:** Research and select specific sensor models for [[03-printairpipe-ventilation|PrintAirPipe ventilation system]]
-- **Files to load:** [[001-network-architecture|Network Architecture Decision]], [[network-diagram|Network Topology Diagram]]
+- **Files to load:** [[01-network-architecture|Network Architecture Decision]], [[network-diagram|Network Topology Diagram]]
 - **Context needed:** Repository structure requirements, OpenWrt installation procedures, sensor integration methods
 
 ## Essential Resources
-- **Architecture:** [[001-network-architecture|4-VLAN Network Architecture Decision]] - Complete security model and rationale
+- **Architecture:** [[01-network-architecture|4-VLAN Network Architecture Decision]] - Complete security model and rationale
 - **Configuration:** [[network-diagram|Network Topology Diagram]] - Visual device placement and data flows
 - **External Resources:** GL.iNet GL-MT6000 OpenWrt documentation, Bambu Labs P1S API documentation
 - **Previous session:** None (initial project session)
@@ -114,10 +114,10 @@ priority_next: "[[Main/home-automation-safety/docs/prompts/01-network-infrastruc
 - [[04-home-assistant-core|Home Assistant Core]] - Automation hub
 
 **Related Decisions:** 
-- [[001-network-architecture|Network Architecture Decision]] - **PRIMARY REFERENCE**
+- [[01-network-architecture|Network Architecture Decision]] - **PRIMARY REFERENCE**
 
 **Session Chain:** 
-- Initial session → [[session_state_20250912-concise|Repository Setup Session]]
+- Initial session → [[session_state_20250912|Repository Setup Session]]
 
 ## Quality Metrics
 - **Documentation Status:** Network architecture fully documented with rationale, visual diagrams created
@@ -126,4 +126,4 @@ priority_next: "[[Main/home-automation-safety/docs/prompts/01-network-infrastruc
 
 ---
 **Duration:** 120min | **Success:** 5/5 | **Confidence:** 5/5 | **Ready for:** Repository setup and OpenWrt router configuration
-**Session Navigation:** [initial] → [[session_state_20250912-concise|Repository Setup]]
+**Session Navigation:** [initial] → [[session_state_20250912|Repository Setup]]

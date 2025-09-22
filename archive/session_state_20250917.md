@@ -16,7 +16,7 @@ session_phase: Strategic Analysis & Planning
 session_duration: 90
 session_success_rating: 5
 session_type: analysis-and-planning
-prev_session: "[[session_state_20250916-concise|Vault Enhancement Session]]"
+prev_session: "[[session_state_20250916|Vault Enhancement Session]]"
 next_session:
 project_context: "[[main/home-automation-safety/README|Home Automation Project]]"
 repository: https://github.com/Nysplaidame/home-automation-project
@@ -58,7 +58,7 @@ progress_percent: 35
 - **Strategic Analysis:** Project Management Template - Sprint-based tracking with dependency management
 - **Optimization Guide:** Vault Improvement Report - Specific backlink enhancement recommendations
 - **Foundation:** [[PROJECT-INDEX|Master Project Index]] - Navigation hub with analysis integration
-- **Previous session:** [[session_state_20250916-concise|Vault Enhancement Session]]
+- **Previous session:** [[session_state_20250916|Vault Enhancement Session]]
 
 ## Critical Context (Cannot Lose)
 **Strategic Analysis Results:**
@@ -90,4 +90,4 @@ progress_percent: 35
 
 ---
 **Duration:** 90min | **Success:** 5/5 | **Confidence:** 5/5 | **Ready for:** Network infrastructure implementation with integrated task management
-**Session Navigation:** [[session_state_20250916-concise|Vault Enhancement]] ← → [Network Implementation]
+**Session Navigation:** [[session_state_20250916|Vault Enhancement]] ← → [Network Implementation]

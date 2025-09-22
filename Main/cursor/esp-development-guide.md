@@ -32,7 +32,7 @@ related_docs:
   - "[[04-home-assistant-core|Home Assistant Core]]"
   - "[[PROJECT-INDEX|Project Documentation Index]]"
   - "[[session_state_20250912|Latest Session State]]"
-  - "[[001-network-architecture|Network Architecture Decision]]"
+  - "[[01-network-architecture|Network Architecture Decision]]"
 dependencies:
   - Cursor IDE
   - Home Assistant
@@ -75,7 +75,7 @@ This specialized guide provides comprehensive prompts and strategies for using C
 - **Programming:** ESPHome YAML configuration with OTA updates
 
 ### 🌐 Network Integration
-- **Network:** VLAN 50 (IoT Sensors) - 192.168.50.0/24 (per [[001-network-architecture|Network Architecture]])
+- **Network:** VLAN 50 (IoT Sensors) - 192.168.50.0/24 (per [[01-network-architecture|Network Architecture]])
 - **Isolation:** No internet access, Home Assistant communication only
 - **Discovery:** ESPHome native API with encryption
 - **Backup:** MQTT integration for redundancy
@@ -87,7 +87,7 @@ This specialized guide provides comprehensive prompts and strategies for using C
 - **Home Assistant:** [[04-home-assistant-core|Central automation hub integration]]
 - **Repository Location:** `configs/esphome/` - Configuration storage
 - **Development Phase:** Safety systems implementation (high priority)
-- **Network Security:** [[001-network-architecture|4-VLAN security architecture]] compliance
+- **Network Security:** [[01-network-architecture|4-VLAN security architecture]] compliance
 
 ---
 
@@ -876,7 +876,7 @@ configs/esphome/
 - [[03-printairpipe-ventilation|🔥 PrintAirPipe Ventilation System]]  
 - [[04-home-assistant-core|🏠 Home Assistant Integration]]
 - [[PROJECT-INDEX|📂 Project Documentation Index]]
-- [[001-network-architecture|🔒 Network Architecture Decision]]
+- [[01-network-architecture|🔒 Network Architecture Decision]]
 
 **Safety Notice:**  
 ⚠️ All ESPHome configurations generated using these prompts must undergo thorough testing before deployment in safety-critical applications. Never deploy untested code to fire safety systems.
