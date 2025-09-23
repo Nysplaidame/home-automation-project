@@ -1,31 +1,12 @@
 ---
 title: Pi NAS Storage System Sub-Project
 description: Secure isolated storage for CCTV footage and system backups with no internet access
-tags:
-  - sub-project
-  - pi-nas-storage
-  - security
-  - backup
-aliases:
-  - Pi NAS Storage
-  - NAS Sub-Project
-  - 06-Pi-NAS
+tags: [sub-project, pi-nas-storage, security, backup]
+aliases: [Pi NAS Storage, NAS Sub-Project]
 created: 2025-09-15
-modified: 2025-09-17
-sub_project_id: 06-pi-nas-storage
-project_context: "[[README|Home Automation Project]]"
-priority: medium
+modified: 2025-09-23
+type: sub-project
 status: planning
-dependencies:
-  - Network infrastructure (VLAN 40 operational)
-  - Basic infrastructure setup
-related_decisions:
-  - "[[01-network-architecture|Network Architecture Decision]]"
-related_sessions:
-  - "[[session_state_20250909|Initial Planning Session]]"
-implementation_files:
-  - Pi NAS configuration scripts
-network_assignment: VLAN 40 (Storage)
 ---
 
 # Sub-Project Prompt: Network Storage (Pi NAS)

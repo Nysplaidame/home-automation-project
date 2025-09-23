@@ -4,16 +4,14 @@ description: Visual workflow management for all home automation systems
 tags: [kanban, project-management, workflow]
 aliases: [Main Project Board]
 created: 2025-09-18
-modified: 2025-09-18
+modified: 2025-09-23
 type: kanban-board
-project_context: "[[README|Home Automation Project]] | [[main-project-dashboard|Dashboard]]"
 status: active
----
 ---
 
 # 📋 Main Project Kanban Board
 
-**Project Context:** [[README|Home Automation Project]] | [[main-project-dashboard|Dashboard]]
+**Project Context:** [[README|Home Automation Project]] | [[dashboards/main-project-dashboard|Dashboard]]
 
 ---
 
@@ -40,7 +38,7 @@ status: active
 
 ## Ready
 
-- [ ] **Network Infrastructure** - [[01-network-infrastructure|OpenWrt VLAN Setup]] #critical
+- [ ] **Network Infrastructure** - [[docs/prompts/01-network-infrastructure|OpenWrt VLAN Setup]] #critical
 - [ ] **Hardware Procurement Phase 1** - [[bill-of-materials/hardware/parts-list|Safety Critical Components]] #critical #procurement
 - [ ] **3D Printer Setup** - For PrintAirPipe components #high
 - [ ] **Development Environment** - Git workflow and documentation standards #high
@@ -130,4 +128,4 @@ status: active
 4. New items enter via Backlog unless urgent (Ready)
 5. Complete items archived monthly to maintain board clarity
 
-**Updated:** September 22, 2025
+**Updated:** September 23, 2025

@@ -1,32 +1,12 @@
 ---
 title: CCTV & Surveillance System Sub-Project
 description: Video surveillance with motion detection and AI object recognition for security monitoring
-tags:
-  - sub-project
-  - cctv-surveillance
-  - frigate
-  - security
-aliases:
-  - CCTV Surveillance
-  - Surveillance Sub-Project
-  - 05-CCTV
+tags: [sub-project, cctv-surveillance, frigate, security]
+aliases: [CCTV Surveillance, Surveillance Sub-Project]
 created: 2025-09-15
-modified: 2025-09-17
-sub_project_id: 05-cctv-surveillance
-project_context: "[[README|Home Automation Project]]"
-priority: medium
+modified: 2025-09-23
+type: sub-project
 status: planning
-dependencies:
-  - Network infrastructure (VLAN 30/40 operational)
-  - Core infrastructure (Proxmox VM)
-  - Pi NAS operational
-related_decisions:
-  - "[[01-network-architecture|Network Architecture Decision]]"
-related_sessions:
-  - "[[session_state_20250909|Initial Planning Session]]"
-implementation_files:
-  - configs/frigate/config.yml
-network_assignment: VLAN 30 (CCTV)
 ---
 
 # Sub-Project Prompt: CCTV & Surveillance System
@@ -79,7 +59,7 @@ Part of home automation project with fire safety focus. Provides video surveilla
 - **Network:** Secure isolation while maintaining control access
 
 ## Key Configurations
-- [[config.yml]] - NVR configuration
+- [[configs/frigate/config|Frigate Configuration]] - NVR configuration
 - Camera positioning and coverage planning
 - Motion detection zones and sensitivity
 - Storage retention policies

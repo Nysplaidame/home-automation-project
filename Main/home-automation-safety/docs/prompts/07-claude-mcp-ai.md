@@ -1,31 +1,12 @@
 ---
 title: Claude MCP AI Integration Sub-Project
 description: Advanced AI-driven automation through Claude's Model Context Protocol for intelligent emergency response
-tags:
-  - sub-project
-  - claude-mcp-ai
-  - artificial-intelligence
-  - automation
-aliases:
-  - Claude MCP Integration
-  - AI Sub-Project
-  - 07-Claude-MCP
+tags: [sub-project, claude-mcp-ai, artificial-intelligence, automation]
+aliases: [Claude MCP Integration, AI Sub-Project]
 created: 2025-09-15
-modified: 2025-09-17
-sub_project_id: 07-claude-mcp-ai
-project_context: "[[README|Home Automation Project]]"
-priority: low-medium
+modified: 2025-09-23
+type: sub-project
 status: planning
-dependencies:
-  - Home Assistant operational
-  - All sensor systems active
-related_decisions:
-  - "[[01-network-architecture|Network Architecture Decision]]"
-related_sessions:
-  - "[[session_state_20250909|Initial Planning Session]]"
-implementation_files:
-  - Claude MCP integration configurations
-network_assignment: VLAN 20 (Management)
 ---
 
 # Sub-Project Prompt: Claude MCP AI Integration

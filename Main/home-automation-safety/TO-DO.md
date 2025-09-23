@@ -3,9 +3,10 @@ title: Project Tasks
 description: Implementation tasks organized by project phase
 tags: [tasks, implementation, project-management]
 aliases: [TODO, Tasks]
+created: 2025-09-15
+modified: 2025-09-23
+type: task-list
 status: active
-phase: Network Implementation
-progress: 47
 ---
 
 # 📋 Project Implementation Tasks
@@ -20,7 +21,7 @@ progress: 47
 **Next:** PrintAirPipe safety system implementation
 **Tasks:** 21+ of 45+ complete (47% rate)
 
-## 🌐 Phase 1: Network [[01-network-infrastructure]]
+## 🌐 Phase 1: Network [[docs/prompts/01-network-infrastructure]]
 
 **Router Configuration:**
 - [x] Flash OpenWrt firmware ✅
@@ -36,8 +37,8 @@ progress: 47
 
 ---
 
-## 💻 Phase 2: Core Infrastructure Setup [[02-core-infrastructure]]
-> **Primary Focus:** [[02-core-infrastructure|Core Infrastructure (Proxmox)]]
+## 💻 Phase 2: Core Infrastructure Setup [[docs/prompts/02-core-infrastructure]]
+> **Primary Focus:** [[docs/prompts/02-core-infrastructure|Core Infrastructure (Proxmox)]]
 > **Hardware:** MINIX NEO Z350-0dB Mini PC
 
 ### Proxmox Virtualization Platform
@@ -67,8 +68,8 @@ progress: 47
 
 ---
 
-## 🔥 Phase 3: Smart Ventilation & Fire Safety System [[03-printairpipe-ventilation]]
-> **Primary Focus:** [[03-printairpipe-ventilation|PrintAirPipe Ventilation System]]
+## 🔥 Phase 3: Smart Ventilation & Fire Safety System [[docs/prompts/03-printairpipe-ventilation]]
+> **Primary Focus:** [[docs/prompts/03-printairpipe-ventilation|PrintAirPipe Ventilation System]]
 > **⚠️ CRITICAL SAFETY SYSTEM - HIGHEST PRIORITY**
 
 ### PrintAirPipe Hardware Assembly
@@ -124,8 +125,8 @@ progress: 47
 
 ---
 
-## 🏡 Phase 4: Home Assistant Core Setup [[04-home-assistant-core]]
-> **Primary Focus:** [[04-home-assistant-core|Home Assistant Core]]
+## 🏡 Phase 4: Home Assistant Core Setup [[docs/prompts/04-home-assistant-core]]
+> **Primary Focus:** [[docs/prompts/04-home-assistant-core|Home Assistant Core]]
 > **Integration Hub:** All system coordination
 
 ### Home Assistant Installation & Configuration
@@ -170,8 +171,8 @@ progress: 47
 
 ---
 
-## 📹 Phase 5: CCTV & Surveillance System [[05-cctv-surveillance]]
-> **Primary Focus:** [[05-cctv-surveillance|CCTV & Surveillance System]]
+## 📹 Phase 5: CCTV & Surveillance System [[docs/prompts/05-cctv-surveillance]]
+> **Primary Focus:** [[docs/prompts/05-cctv-surveillance|CCTV & Surveillance System]]
 > **Network Isolation:** VLAN 30 (No internet access)
 
 ### Camera Hardware & Installation
@@ -207,8 +208,8 @@ progress: 47
 
 ---
 
-## 💾 Phase 6: Pi NAS Storage System [[06-pi-nas-storage]]
-> **Primary Focus:** [[06-pi-nas-storage|Pi NAS Storage System]]
+## 💾 Phase 6: Pi NAS Storage System [[docs/prompts/06-pi-nas-storage]]
+> **Primary Focus:** [[docs/prompts/06-pi-nas-storage|Pi NAS Storage System]]
 > **Network Assignment:** VLAN 40 (Limited internet for updates only)
 
 ### Hardware Setup & OS Installation
@@ -241,8 +242,8 @@ progress: 47
 
 ---
 
-## 🤖 Phase 7: Claude MCP AI Integration [[07-claude-mcp-ai]]
-> **Primary Focus:** [[07-claude-mcp-ai|Claude MCP AI Integration]]
+## 🤖 Phase 7: Claude MCP AI Integration [[docs/prompts/07-claude-mcp-ai]]
+> **Primary Focus:** [[docs/prompts/07-claude-mcp-ai|Claude MCP AI Integration]]
 > **Advanced Feature:** Intelligent automation and natural language control
 
 ### MCP Server Setup
@@ -301,5 +302,5 @@ progress: 47
 - [ ] Emergency response capabilities
 
 ---
-**Updated:** September 21, 2025
+**Updated:** September 23, 2025
 

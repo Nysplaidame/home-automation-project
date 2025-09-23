@@ -1,32 +1,12 @@
 ---
 title: Core Infrastructure - Proxmox & VMs Sub-Project
 description: Virtualized infrastructure hosting Home Assistant, Frigate NVR, and future services
-tags:
-  - sub-project
-  - core-infrastructure
-  - proxmox
-  - virtualization
-aliases:
-  - Core Infrastructure
-  - Proxmox Sub-Project
-  - 02-Core-Infrastructure
+tags: [sub-project, core-infrastructure, proxmox, virtualization]
+aliases: [Core Infrastructure, Proxmox Sub-Project]
 created: 2025-09-15
-modified: 2025-09-17
-sub_project_id: 02-core-infrastructure
-project_context: "[[README|Home Automation Project]]"
-priority: critical
+modified: 2025-09-23
+type: sub-project
 status: planning
-dependencies:
-  - Network infrastructure (VLAN 20/30 operational)
-related_decisions:
-  - "[[01-network-architecture|Network Architecture Decision]]"
-related_sessions:
-  - "[[session_state_20250909|Initial Planning Session]]"
-  - "[[session_state_20250912|Repository Setup Session]]"
-implementation_files:
-  - configs/proxmox/vm-setup.sh
-  - configs/proxmox/vm-configs.conf
-network_assignment: VLAN 20 (Management)
 ---
 
 # Sub-Project Prompt: Core Infrastructure (Proxmox & VMs)
@@ -73,7 +53,7 @@ Part of home automation project with fire safety focus. This sub-project creates
 - **Blocks:** All application-level sub-projects
 
 ## Key Configurations
-- [[vm-setup.sh]] - VM creation scripts
+- [[configs/proxmox/vm-setup|VM Setup Scripts]] - VM creation scripts
 - Network bridge configuration for VLAN integration
 - Resource allocation optimization
 

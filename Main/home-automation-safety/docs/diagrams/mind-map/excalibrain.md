@@ -1,14 +1,17 @@
 ---
-
+title: Project Mind Map - ExcaliBrain Visualization
+description: Interactive mind map for project structure and relationships using ExcaliBrain plugin
+tags: [excalidraw, mind-map, visualization, project-structure]
+created: 2025-09-15
+modified: 2025-09-23
+type: diagram
+status: active
 excalidraw-plugin: parsed
 excalidraw-default-mode: view
 excalidraw-export-dark: false
 excalidraw-export-transparent: false
 excalidraw-linkbutton-opacity: 0.3
 excalidraw-onload-script: "app.plugins.plugins[`excalibrain`].start(ea.targetView.leaf);"
-
-tags: [excalidraw]
-
 ---
 
 # Excalidraw Data

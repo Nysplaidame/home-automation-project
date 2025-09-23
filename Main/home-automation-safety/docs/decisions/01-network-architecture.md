@@ -1,31 +1,11 @@
 ---
 title: Network Architecture Decision - 4-VLAN Security Segmentation
 description: Security-segmented network design isolating safety systems from internet
-tags:
-  - architecture-decision
-  - network-security
-  - vlan
-  - firewall
-  - safety-critical
-decision_id: "001"
+tags: [architecture-decision, network-security, vlan, firewall, safety-critical]
+created: 2025-09-09
+modified: 2025-09-23
+type: decision
 status: accepted
-date: 2025-09-09
-decision_status: accepted
-context: Need secure network design isolating safety systems from internet while enabling remote access
-related_documents:
-  - "[[main/README|Main Project Overview]]"
-  - "[[session_state_20250909|Initial Planning Session]]"
-  - "[[session_state_20250912|Repository Setup Session]]"
-sub_project: "[[01-network-infrastructure|Network Infrastructure]]"
-implementation_files:
-  - configs/openwrt/firewall-config.sh
-  - configs/openwrt/vlan-config.conf
-  - configs/openwrt/main-config.conf
-affected_systems:
-  - Home Assistant (VLAN 20)
-  - CCTV System (VLAN 30)
-  - Storage System (VLAN 40)
-  - IoT Sensors (VLAN 50)
 ---
 
 # Decision: 4-VLAN Security-Segmented Network Architecture
@@ -34,7 +14,7 @@ affected_systems:
 **Status:** Accepted  
 **Context:** Need secure network design isolating safety systems from internet while enabling remote access
 
-> **Related Sub-Project:** [[01-network-infrastructure|Network Infrastructure & Security]]
+> **Related Sub-Project:** [[docs/prompts/01-network-infrastructure|Network Infrastructure & Security]]
 
 ## Problem Statement
 Design a network architecture that:
@@ -65,17 +45,17 @@ Design a network architecture that:
   - `configs/openwrt/vlan-config.conf` 
   - Network device configurations
   
-**Related Sessions:** [[session_state_20250909|Initial Planning]], [[session_state_20250912|Repository Setup]]
+**Related Sessions:** *Session files deep-archived*
 
 ## Related Documents & Implementation
 
 ### Core Project Context
-- **Project Overview:** [[main/README|Main Project Overview]] - Current project status and roadmap
-- **Network Implementation:** [[01-network-infrastructure|Network Infrastructure Sub-Project]] - Focused implementation guide
+- **Project Overview:** [[README|Main Project Overview]] - Current project status and roadmap
+- **Network Implementation:** [[docs/prompts/01-network-infrastructure|Network Infrastructure Sub-Project]] - Focused implementation guide
 
 ### Session Context
-- **Original Planning:** [[session_state_20250909|Initial Planning Session]] - Context and rationale
-- **Repository Setup:** [[session_state_20250912|Repository Setup Session]] - Implementation progress
+- **Original Planning:** *Session file deep-archived* - Context and rationale
+- **Repository Setup:** *Session file deep-archived* - Implementation progress
 
 ### Implementation Files
 - **Firewall Rules:** `configs/openwrt/firewall-config.sh` - Security rules implementing this architecture ✅
@@ -95,16 +75,16 @@ This architecture decision drives the configuration of:
 - 🚧 **Device Assignment** - IP allocation per VLAN pending
 - 🚧 **Testing Procedures** - Network isolation validation pending
 
-**Next Implementation Step:** Focus on [[01-network-infrastructure|Network Infrastructure Sub-Project]] for VLAN configuration
+**Next Implementation Step:** Focus on [[docs/prompts/01-network-infrastructure|Network Infrastructure Sub-Project]] for VLAN configuration
 
 ## Cross-References
 
 ### Sub-Projects Affected
-- **Primary Implementation:** [[01-network-infrastructure|Network Infrastructure]]
-- **HA Integration:** [[04-home-assistant-core|Home Assistant Core]]
-- **CCTV Integration:** [[05-cctv-surveillance|CCTV & Surveillance]]
-- **Storage Integration:** [[06-pi-nas-storage|Pi NAS Storage]]
-- **Safety Integration:** [[03-printairpipe-ventilation|PrintAirPipe Ventilation]]
+- **Primary Implementation:** [[docs/prompts/01-network-infrastructure|Network Infrastructure]]
+- **HA Integration:** [[docs/prompts/04-home-assistant-core|Home Assistant Core]]
+- **CCTV Integration:** [[docs/prompts/05-cctv-surveillance|CCTV & Surveillance]]
+- **Storage Integration:** [[docs/prompts/06-pi-nas-storage|Pi NAS Storage]]
+- **Safety Integration:** [[docs/prompts/03-printairpipe-ventilation|PrintAirPipe Ventilation]]
 
 ### Related Decisions
 - Future decision: Remote access security implementation
@@ -113,4 +93,4 @@ This architecture decision drives the configuration of:
 
 ---
 **Implementation Priority:** Critical (foundation for all other systems)  
-**Next Action:** [[01-network-infrastructure|Begin Network Infrastructure Implementation]]
+**Next Action:** [[docs/prompts/01-network-infrastructure|Begin Network Infrastructure Implementation]]

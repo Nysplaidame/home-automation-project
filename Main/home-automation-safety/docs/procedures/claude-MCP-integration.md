@@ -1,3 +1,14 @@
+---
+title: Windows MCP Setup - Prerequisites and Installation
+description: Complete guide for setting up Model Context Protocol integration with Claude Desktop on Windows
+tags: [claude, mcp, windows, setup, integration]
+aliases: [MCP Setup, Claude Integration, Windows Setup]
+created: 2025-09-20
+modified: 2025-09-23
+type: procedure
+status: active
+---
+
 # Windows MCP Setup - Prerequisites and Installation
 
 ## ✅ Confirmed: Works on Windows

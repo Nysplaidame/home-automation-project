@@ -4,11 +4,9 @@ description: Comprehensive hardware requirements list organized by system compon
 tags: [hardware, parts-list, shopping-list]
 aliases: [Hardware Parts List, Shopping List]
 created: 2025-09-17
-modified: 2025-09-18
+modified: 2025-09-23
 type: hardware-specification
-project_context: "[[README|Home Automation Project]]"
 status: active
-phase: Hardware Planning & Procurement
 ---
 
 # Complete Hardware Parts List - Home Automation Project
@@ -67,7 +65,7 @@ phase: Hardware Planning & Procurement
 - [x] GL.iNet GL-MT6000 Router âœ… 2025-09-18
 - [ ] 8-Port Gigabit PoE Switch
 
-**Network Design:** [[01-network-architecture|4-VLAN Security Architecture]]
+**Network Design:** [[docs/decisions/01-network-architecture|4-VLAN Security Architecture]]
 
 - VLAN 20: Automation & Management (192.168.20.0/24)
 - VLAN 30: CCTV (192.168.30.0/24)
@@ -78,7 +76,7 @@ phase: Hardware Planning & Procurement
 
 ## 📹 CCTV Surveillance System
 
-> **System Focus:** [[05-cctv-surveillance|CCTV & Surveillance System]]
+> **System Focus:** [[docs/prompts/05-cctv-surveillance|CCTV & Surveillance System]]
 
 ### CCTV Hardware Components
 
@@ -103,7 +101,7 @@ phase: Hardware Planning & Procurement
 
 💾 Storage & NAS System
 
-> **System Focus:** [[06-pi-nas-storage|Pi NAS Storage System]]
+> **System Focus:** [[docs/prompts/06-pi-nas-storage|Pi NAS Storage System]]
 
 ### NAS Hardware Components
 
@@ -228,15 +226,15 @@ phase: Hardware Planning & Procurement
 
 ### Implementation Guides
 
-- **Network Setup:** [[01-network-infrastructure|Network Infrastructure]]
-- **PrintAirPipe Build:** [[03-printairpipe-ventilation|Ventilation System]]
-- **CCTV Installation:** [[05-cctv-surveillance|Surveillance System]]
+- **Network Setup:** [[docs/prompts/01-network-infrastructure|Network Infrastructure]]
+- **PrintAirPipe Build:** [[docs/prompts/03-printairpipe-ventilation|Ventilation System]]
+- **CCTV Installation:** [[docs/prompts/05-cctv-surveillance|Surveillance System]]
 
 ### Configuration References
 
-- **Hardware Configs:** [[Main/home-automation-safety/configs/|System Configurations]]
-- **Architecture Decisions:** [[Main/home-automation-safety/docs/decisions/|Decision Records]]
-- **Session History:** [[Main/home-automation-safety/docs/session-states/|Development Sessions]]
+- **Hardware Configs:** [[configs/|System Configurations]]
+- **Architecture Decisions:** [[docs/decisions/01-network-architecture|Decision Records]]
+- **Session History:** [[docs/session-states/session-template|Development Sessions]]
 
 ---
 
@@ -263,7 +261,7 @@ phase: Hardware Planning & Procurement
 **Created:** September 17, 2025  
 **Last Updated:** September 18, 2025  
 **Status:** Active - Procurement Planning Phase  
-**Related Project:** [[main/home-automation-safety/README|Home Automation Project]]
+**Related Project:** [[README|Home Automation Project]]
 
 ## Next Steps
 

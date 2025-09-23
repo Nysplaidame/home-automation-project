@@ -1,27 +1,17 @@
 ---
 title: 3D Printing Parts List - Home Automation Project
 description: Comprehensive 3D printing requirements for PrintAirPipe ventilation system and safety components
-tags:
-  - 3d-printing
-  - parts-list
-  - printairpipe
-  - ventilation
-  - safety-critical
-aliases:
-  - 3D Printing Parts List
-  - PrintAirPipe Components
-  - 3D Manufacturing List
+tags: [3d-printing, parts-list, printairpipe, ventilation, safety-critical]
+aliases: [3D Printing Parts List, PrintAirPipe Components, 3D Manufacturing List]
 created: 2025-09-17
-modified: 2025-09-18
+modified: 2025-09-23
 type: manufacturing-specification
-project_context: "[[main/home-automation-safety/README|Home Automation Project]]"
 status: active
-phase: 3D Manufacturing & Production
 ---
 
 # 🖨️ 3D Printing Parts List - Home Automation Project
 
-> **Project Context:** [[main/home-automation-safety/README|Home Automation Project]] | **Master Index:** [[PROJECT-INDEX|Documentation Hub]]
+> **Project Context:** [[README|Home Automation Project]] | **Master Index:** [[PROJECT-INDEX|Documentation Hub]]
 
 ## 📋 3D Printing Summary by System
 
@@ -44,7 +34,7 @@ phase: 3D Manufacturing & Production
 
 ## 🔥 PrintAirPipe Ventilation & Safety System ⚠️ **SAFETY CRITICAL**
 
-> **System Focus:** [[03-printairpipe-ventilation|PrintAirPipe Ventilation System]]
+> **System Focus:** [[docs/prompts/03-printairpipe-ventilation|PrintAirPipe Ventilation System]]
 
 ### PrintAirPipe 3D Printed Components
 
@@ -259,14 +249,14 @@ phase: 3D Manufacturing & Production
 ## 📚 Related Documentation
 
 ### Implementation References
-- **Hardware List:** [[main/home-automation-safety/bill-of-materials/hardware/parts-list|Complete Hardware Parts List]]
-- **System Design:** [[03-printairpipe-ventilation|PrintAirPipe Ventilation System]]
+- **Hardware List:** [[bill-of-materials/hardware/parts-list|Complete Hardware Parts List]]
+- **System Design:** [[docs/prompts/03-printairpipe-ventilation|PrintAirPipe Ventilation System]]
 - **Assembly Guide:** *To be created after STL acquisition*
 
 ### Configuration Files
-- **Print Profiles:** [[Main/home-automation-safety/configs/printing/|Slicer Configurations]]
-- **Quality Standards:** [[Main/home-automation-safety/docs/standards/|Manufacturing Standards]]
-- **Session History:** [[Main/home-automation-safety/docs/session-states/|Development Sessions]]
+- **Print Profiles:** *To be created in configs directory*
+- **Quality Standards:** *To be created in docs directory*
+- **Session History:** [[docs/session-states/session-template|Development Sessions]]
 
 ---
 
@@ -274,7 +264,7 @@ phase: 3D Manufacturing & Production
 **Created:** September 17, 2025  
 **Last Updated:** September 18, 2025  
 **Status:** Active - Pre-Production Phase  
-**Related Project:** [[main/home-automation-safety/README|Home Automation Project]]
+**Related Project:** [[README|Home Automation Project]]
 
 ## Next Actions
 

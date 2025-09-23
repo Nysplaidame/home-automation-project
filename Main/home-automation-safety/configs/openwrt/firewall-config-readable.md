@@ -1,3 +1,17 @@
+---
+title: OpenWrt Firewall Configuration - 4-VLAN Security Architecture
+description: Complete firewall configuration script implementing 4-VLAN network segmentation for home automation security
+tags: [firewall, openwrt, security, vlan, network]
+aliases: [Firewall Config, Security Architecture, Network Segmentation]
+created: 2025-09-20
+modified: 2025-09-23
+type: configuration-script
+status: active
+---
+
+# OpenWrt Firewall Configuration Script
+
+```bash
 #!/bin/bash
 
 # ============================================================================
@@ -479,3 +493,10 @@ echo "     cp /etc/config/firewall.backup.* /etc/config/firewall && /etc/init.d/
 echo ""
 echo "Configuration completed at: $(date)"
 echo "============================================================================"
+```
+
+## Related Documentation
+
+- **Network Architecture:** [[docs/decisions/01-network-architecture|Network Design Decisions]]
+- **VLAN Configuration:** [[configs/openwrt/vlan-config|VLAN Setup]]
+- **Main Configuration:** [[configs/openwrt/main-config|OpenWrt Main Config]]

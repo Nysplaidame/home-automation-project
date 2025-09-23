@@ -1,3 +1,14 @@
+---
+title: Unified Documentation Formatting Standard
+description: Comprehensive formatting guidelines for Home Automation Project Obsidian vault efficiency optimization
+tags: [formatting, standards, documentation, obsidian]
+aliases: [Formatting Standard, Documentation Rules]
+created: 2025-09-17
+modified: 2025-09-23
+type: documentation-standard
+status: active
+---
+
 # Unified Documentation Formatting Standard
 *For Home Automation Project - Obsidian Vault Efficiency Optimized*
 

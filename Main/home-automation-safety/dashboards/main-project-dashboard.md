@@ -3,15 +3,16 @@ title: Project Dashboard
 description: Live project tracking with system status and task completion
 tags: [dashboard, project-status]
 aliases: [Project Dashboard]
+created: 2025-09-15
+modified: 2025-09-23
 type: dashboard
 status: active
----
 ---
 
 # 📊 Project Dashboard
 
 **Live Status:** Network Implementation (47% complete)  
-**Quick Links:** [[README|Overview]] | [[PROJECT-INDEX|Index]] | [[TO-DO|Tasks]] | [[main_project_kanban|Main Kanban]]
+**Quick Links:** [[README|Overview]] | [[PROJECT-INDEX|Index]] | [[TO-DO|Tasks]] | [[dashboards/main_project_kanban|Main Kanban]]
 
 ---
 
@@ -125,7 +126,7 @@ status: active
 
 ## 🧭 Quick Navigation
 
-**Main Workflow:** [[main_project_kanban|Main Kanban Board]]  
-**Documentation:** [[PROJECT-INDEX|Full Index]] | [[docs/session-states/session-template-concise|Session Template]]
+**Main Workflow:** [[dashboards/main_project_kanban|Main Kanban Board]]  
+**Documentation:** [[PROJECT-INDEX|Full Index]] | [[docs/session-states/session-template|Session Template]]
 
-**Updated:** September 22, 2025
+**Updated:** September 23, 2025

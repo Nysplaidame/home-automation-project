@@ -3,6 +3,8 @@ title: Network Topology Diagram
 description: 4-VLAN network architecture with security zones and device assignments
 tags: [network, diagram, vlan, architecture]
 aliases: [Network Diagram, Topology]
+created: 2025-09-15
+modified: 2025-09-23
 type: network-diagram
 status: active
 ---
@@ -108,8 +110,8 @@ class CameraFeeds DataFeed
 ![[network-diagram-new.png]]
 
 ## Document References & Architecture  
-- **Architecture Decision:** [[001-network-architecture|Network Architecture]] - Design rationale  
-- **Firewall Implementation:** [[configs/openwrt/firewall-config-readable|firewall-config.sh]] - Security rules for this topology
+- **Architecture Decision:** [[docs/decisions/01-network-architecture|Network Architecture]] - Design rationale  
+- **Firewall Implementation:** [[configs/openwrt/firewall-config-readable|Firewall Config]] - Security rules for this topology
 - **Project Context:** session file deep-archived - Original design session
 
 ## Configuration Dependencies
@@ -121,8 +123,8 @@ This network diagram drives the configuration requirements for:
 - [[configs/esphome/printairpipe-controller.yaml|PrintAirPipe Controller]] - IoT VLAN 50 sensors (pending)
 
 ## Implementation Status
-- ✅ **Network Architecture** - 4-VLAN design complete per [[01-network-architecture|Network Architecture Decision]]
-- ✅ **Security Rules** - Firewall policies defined in [[configs/openwrt/firewall-config-readable|firewall-config.sh]]
+- ✅ **Network Architecture** - 4-VLAN design complete per [[docs/decisions/01-network-architecture|Network Architecture Decision]]
+- ✅ **Security Rules** - Firewall policies defined in [[configs/openwrt/firewall-config-readable|Firewall Config]]
 - 🚧 **Router Setup** - VLAN interfaces pending configuration  
 - 🚧 **Device Assignment** - IP allocation per diagram specifications pending
 
