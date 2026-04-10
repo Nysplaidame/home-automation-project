@@ -1,0 +1,48 @@
+uci set network.wan.proto='dhcp'
+uci set network.wan.device='phy0-sta0'
+
+# --- Step 2: Force public DNS (Cloudflare + Google) ---
+uci set network.wan.peerdns='0'
+uci add_list network.wan.dns='1.1.1.1'
+uci add_list network.wan.dns='8.8.8.8'
+
+# --- Step 3: Configure the Wi-Fi station ---
+uci set wireless.sta=wifi-iface
+uci set wireless.sta.device='radio0'
+uci set wireless.sta.mode='sta'
+uci set wireless.sta.ssid='BT-7FAHF2'
+uci set wireless.sta.encryption='psk2'
+uci set wireless.sta.key='GpkAqNKu4Jr3VJ'
+uci set wireless.sta.network='wan'
+
+# --- Step 4: Save changes ---
+uci commit network
+uci commit wireless
+
+# --- Step 5: Restart network and Wi-Fi ---
+/etc/init.d/network restart
+wifi reload
+
+# --- Step 6: Optional: test connectivity ---
+ping -c 3 8.8.8.8
+ping -c 3 google.com
+
+
+opkg update
+opkg install wireguard-tools
+opkg install kmod-wireguard 
+opkg install luci-proto-wireguard
+opkg install tcpdump
+opkg install iperf3
+opkg install ethtool
+opkg install ip-full
+opkg install bridge-utils
+opkg install iw
+opkg install iwinfo
+opkg install iptables-nft
+opkg install luci-app-firewall
+opkg install kmod-nft-offload
+opkg install openssl-util
+opkg install coreutils-base64
+opkg install netcat
+opkg install bash

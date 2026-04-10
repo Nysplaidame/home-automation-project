@@ -1,0 +1,239 @@
+﻿# ESPHome — PrintAirPipe Enclosure Sensor Controller (PRE-TLS / STAGE 1)
+#
+# ╔══════════════════════════════════════════════════════════════════════╗
+# ║  STAGE 1 — INITIAL HARDWARE BRING-UP ONLY                          ║
+# ║  Use this file to flash and test the board before TLS is set up.   ║
+# ║  MQTT is unencrypted on port 1883. Do NOT leave in production.      ║
+# ║                                                                      ║
+# ║  After completing ventsys_tls_implementation_guide.md Phase 4:      ║
+# ║    1. Flash printairpipe-controller.yaml (port 8883, TLS)           ║
+# ║    2. Remove this file or archive it — it must not be re-flashed    ║
+# ╚══════════════════════════════════════════════════════════════════════╝
+#
+# Differences from printairpipe-controller.yaml:
+#   mqtt.port:           1883  (was 8883)
+#   mqtt.ca_certificate: removed
+#
+# All other config — substitutions, sensors, binary sensors, intervals —
+# is identical to the production TLS file. Change substitutions below
+# the same way you would for the production version (fdm vs sla board).
+
+substitutions:
+  device_name: enc-fdm-sensors
+  friendly_name: "FDM Enclosure Sensors"
+  device_ip: "192.168.50.31"
+  mqtt_topic_prefix: "ventsys/fdm"
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: esp32dev
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  manual_ip:
+    static_ip: ${device_ip}
+    gateway: 192.168.50.1
+    subnet: 255.255.255.0
+
+mqtt:
+  broker: 192.168.20.101
+  port: 1883
+  username: !secret mqtt_user
+  password: !secret mqtt_pass
+  discovery: false
+
+api:
+  encryption:
+    key: !secret api_key
+
+ota:
+  platform: esphome
+  password: !secret ota_password
+
+logger:
+  level: WARN
+
+status_led:
+  pin:
+    number: GPIO2
+    inverted: false
+
+i2c:
+  sda: GPIO21
+  scl: GPIO22
+  scan: false
+
+one_wire:
+  - platform: gpio
+    pin: GPIO4
+
+sensor:
+
+  - platform: dallas_temp
+    address: 0x0000000000000000
+    name: "${friendly_name} Temperature"
+    id: enclosure_temperature
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    update_interval: 10s
+    filters:
+      - filter_out: nan
+      - sliding_window_moving_average:
+          window_size: 3
+          send_every: 1
+    on_value:
+      then:
+        - mqtt.publish:
+            topic: "${mqtt_topic_prefix}/temperature"
+            payload: !lambda 'return to_string(x);'
+
+  - platform: bme680_i2c
+    address: 0x76
+    update_interval: 30s
+
+    temperature:
+      name: "${friendly_name} BME Temperature"
+      id: bme_temperature
+      filters:
+        - filter_out: nan
+
+    humidity:
+      name: "${friendly_name} Humidity"
+      id: enclosure_humidity
+      unit_of_measurement: "%"
+      accuracy_decimals: 1
+      on_value:
+        then:
+          - mqtt.publish:
+              topic: "${mqtt_topic_prefix}/humidity"
+              payload: !lambda 'return to_string(x);'
+
+    pressure:
+      name: "${friendly_name} Pressure"
+      id: enclosure_pressure
+      unit_of_measurement: "hPa"
+      accuracy_decimals: 2
+      on_value:
+        then:
+          - mqtt.publish:
+              topic: "${mqtt_topic_prefix}/baro_pressure"
+              payload: !lambda 'return to_string(x);'
+
+    gas_resistance:
+      name: "${friendly_name} IAQ Gas Resistance"
+      id: gas_resistance
+      unit_of_measurement: "Ohm"
+      accuracy_decimals: 0
+      filters:
+        - filter_out: nan
+        - sliding_window_moving_average:
+            window_size: 3
+            send_every: 1
+      on_value:
+        then:
+          - mqtt.publish:
+              topic: "${mqtt_topic_prefix}/iaq"
+              payload: !lambda 'return to_string((int)x);'
+
+  - platform: adc
+    pin: GPIO35
+    name: "${friendly_name} Pressure Differential"
+    id: pressure_diff
+    unit_of_measurement: "Pa"
+    accuracy_decimals: 1
+    update_interval: 5s
+    attenuation: auto
+    filters:
+      - multiply: 100.0
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 1
+    on_value:
+      then:
+        - mqtt.publish:
+            topic: "${mqtt_topic_prefix}/pressure_diff"
+            payload: !lambda 'return to_string(x);'
+
+  - platform: adc
+    pin: GPIO34
+    name: "${friendly_name} Smoke/VOC Raw"
+    id: smoke_voc_raw
+    unit_of_measurement: "raw"
+    accuracy_decimals: 0
+    update_interval: 5s
+    attenuation: auto
+    filters:
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 1
+
+binary_sensor:
+
+  - platform: template
+    name: "${friendly_name} Smoke Detected"
+    id: smoke_alarm
+    lambda: 'return id(smoke_voc_raw).state > 2000;'
+    device_class: smoke
+    filters:
+      - delayed_on: 3s
+      - delayed_off: 10s
+    on_press:
+      then:
+        - mqtt.publish:
+            topic: "${mqtt_topic_prefix}/smoke"
+            payload: "detected"
+    on_release:
+      then:
+        - mqtt.publish:
+            topic: "${mqtt_topic_prefix}/smoke"
+            payload: "clear"
+
+  - platform: template
+    name: "${friendly_name} High Temperature"
+    id: high_temp_alarm
+    lambda: 'return id(enclosure_temperature).state > 55.0f;'
+    device_class: heat
+    filters:
+      - delayed_on: 10s
+    on_press:
+      then:
+        - mqtt.publish:
+            topic: "${mqtt_topic_prefix}/temp_alarm"
+            payload: "high"
+    on_release:
+      then:
+        - mqtt.publish:
+            topic: "${mqtt_topic_prefix}/temp_alarm"
+            payload: "normal"
+
+  - platform: status
+    name: "${friendly_name} Status"
+    id: device_status
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "${friendly_name} IP"
+    ssid:
+      name: "${friendly_name} SSID"
+    bssid:
+      name: "${friendly_name} BSSID"
+
+interval:
+  - interval: 60s
+    then:
+      - mqtt.publish:
+          topic: "${mqtt_topic_prefix}/online"
+          payload: "true"
+
+# ── SECRETS REQUIRED IN secrets.yaml ────────────────────────────────────────
+# wifi_ssid: "HomeIoT"
+# wifi_pass: "your-homeiot-password"
+# mqtt_user: "mqtt"
+# mqtt_pass: "your-mqtt-password"
+# api_key: "your-32-byte-base64-api-key"
+# ota_password: "your-ota-password"

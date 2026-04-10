@@ -1,0 +1,91 @@
+﻿# ESPHome — VentSys Main Fan Controller (PRE-TLS / STAGE 1)
+#
+# ╔══════════════════════════════════════════════════════════════════════╗
+# ║  STAGE 1 — INITIAL HARDWARE BRING-UP ONLY                          ║
+# ║  Use this file to flash and test the board before TLS is set up.   ║
+# ║  MQTT is unencrypted on port 1883. Do NOT leave in production.      ║
+# ║                                                                      ║
+# ║  After completing ventsys_tls_implementation_guide.md Phase 4:      ║
+# ║    1. Flash ventsys_fan_controller.yaml (port 8883, TLS)            ║
+# ║    2. Remove this file or archive it — it must not be re-flashed    ║
+# ╚══════════════════════════════════════════════════════════════════════╝
+#
+# Differences from ventsys_fan_controller.yaml:
+#   mqtt.port:           1883  (was 8883)
+#   mqtt.ca_certificate: removed
+#
+# All other config is identical to the production TLS file.
+
+esphome:
+  name: ventsys-main-fan
+  friendly_name: VentSys Main Fan
+esp32:
+  board: esp32dev
+
+mqtt:
+  broker: 192.168.20.101
+  port: 1883
+  username: !secret mqtt_user
+  password: !secret mqtt_pass
+  discovery: false
+  on_message:
+    - topic: ventsys/fan/percent
+      qos: 0
+      then:
+        - lambda: |-
+            int pct = atoi(x.c_str());
+            if (pct < 0) pct = 0; if (pct > 100) pct = 100;
+            id(inline_fan_local).set_speed(pct);
+            id(inline_fan_local).turn_on();
+        - mqtt.publish:
+            topic: ventsys/fan/percent_state
+            payload: !lambda 'return x;'
+    - topic: ventsys/fan/control
+      qos: 0
+      then:
+        - lambda: |-
+            if (x == "on") id(inline_fan_local).turn_on();
+            else if (x == "off") id(inline_fan_local).turn_off();
+        - mqtt.publish:
+            topic: ventsys/fan/state
+            payload: !lambda 'return x;'
+            retain: true
+
+logger:
+
+api:
+  encryption:
+    key: !secret api_key
+
+ota:
+  platform: esphome
+  password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  manual_ip:
+    static_ip: 192.168.50.21
+    gateway: 192.168.50.1
+    subnet: 255.255.255.0
+
+output:
+  - platform: ledc
+    id: fan_pwm
+    pin: GPIO23
+    frequency: 25000Hz
+
+fan:
+  - platform: speed
+    output: fan_pwm
+    name: "Inline Fan (local)"
+    id: inline_fan_local
+    speed_count: 100
+
+# ── SECRETS REQUIRED IN secrets.yaml ────────────────────────────────────────
+# wifi_ssid: "HomeIoT"
+# wifi_pass: "your-homeiot-password"
+# mqtt_user: "mqtt"
+# mqtt_pass: "your-mqtt-password"
+# api_key: "your-32-byte-base64-api-key"
+# ota_password: "your-ota-password"

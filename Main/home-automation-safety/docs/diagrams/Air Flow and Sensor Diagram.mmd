@@ -1,0 +1,38 @@
+---
+config:
+  layout: elk
+---
+flowchart RL
+ subgraph SLA_Controls["SLA Enclosure Controls"]
+        SV["Servo Valve"]
+        SI["360° Intake"]
+        SA["SLA Sensor Array"]
+  end
+ subgraph FDM_Controls["FDM Enclosure Controls"]
+        FV["Servo Valve"]
+        FI["360° Intake"]
+        FA["FDM Sensor Array"]
+  end
+    VSLA_IN["Servo Valve-Inlet"] --> SLA["SLA Enclosure<br>(SLA Printer, Plug, Sensors)"] & TSLA["T-section: SLA Enclosure"]
+    SLA --> SLA_Controls
+    VFDM_IN["Servo Valve-Inlet"] --> FDM["FDM Enclosure<br>(FDM Printer, Plug, Sensors)"] & TFDM["T-section: FDM Enclosure"]
+    FDM --> FDM_Controls
+    TFDM --> D2["Duct"]
+    SI --> SV
+    FI --> FV
+    F["Inline Fan"] --> W["Window Exhaust"]
+    D1["Duct"] --> F
+    TSLA --> D1
+    VSLA_DN["Servo Valve-Downstream"] --> TSLA
+    D2 --> VSLA_DN
+    VFDM_DN["Servo Valve-Downstream"] --> TFDM
+    D3["Duct"] --> VFDM_DN
+    E["90° Elbow"] --> D3
+    n1["Duct"] --> E
+    B["Spray Booth<br>(Sensors, Valve)"] --> n1
+    AMB["Ambient Sensor Array"] --> n1
+    n1@{ shape: rect}
+    style D2 stroke:#000,stroke-width:2px
+    style D1 stroke:#000,stroke-width:2px
+    style D3 stroke:#000,stroke-width:2px
+    style n1 stroke:#000,stroke-width:2px

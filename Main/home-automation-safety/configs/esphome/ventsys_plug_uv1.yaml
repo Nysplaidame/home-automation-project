@@ -1,0 +1,138 @@
+# VentSys Smart Plug — Avatar AWP02L2
+# Device: plug-uv-1  IP: 192.168.50.73  VLAN 50
+# Hardware: ESP8266 (esp01_1m board), NO energy monitoring hardware
+# Controls: UV curing station 1
+#
+# FLASH METHOD: Serial only (tuya-convert no longer works on current firmware)
+# Pinout: relay GPIO15, button GPIO13 (inverted/pullup), LED GPIO2 (inverted)
+# See esphome_adoption_guide.md — Avatar plugs require USB-serial adapter,
+# 3.3V only, GPIO0 pulled to GND during power-on to enter flash mode.
+#
+# PRE-TLS: Change mqtt.port to 1883 and remove ca_certificate before first flash.
+# SECRETS: wifi_ssid, wifi_pass, mqtt_user, mqtt_pass, mqtt_ca_cert,
+#          api_key, ota_password
+
+substitutions:
+  device_name: ventsys-plug-uv-1
+  friendly_name: "VentSys UV Station 1 Plug"
+  device_ip: "192.168.50.73"
+  mqtt_command_topic: "ventsys/plug/uv1/control"
+  mqtt_state_topic:   "ventsys/plug/uv1/state"
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+
+esp8266:
+  board: esp01_1m
+
+logger:
+
+api:
+  encryption:
+    key: !secret api_key
+
+ota:
+  platform: esphome
+  password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  manual_ip:
+    static_ip: ${device_ip}
+    gateway: 192.168.50.1
+    subnet: 255.255.255.0
+  ap:
+    ssid: "${friendly_name} Fallback"
+    password: !secret ota_password
+
+captive_portal:
+
+mqtt:
+  broker: 192.168.20.101
+  port: 8883
+  username: !secret mqtt_user
+  password: !secret mqtt_pass
+  discovery: false
+  ca_certificate: !secret mqtt_ca_cert
+  on_message:
+    - topic: ${mqtt_command_topic}
+      qos: 0
+      then:
+        - lambda: |-
+            if (x == "on" || x == "ON" || x == "1")
+              id(relay).turn_on();
+            else
+              id(relay).turn_off();
+        - mqtt.publish:
+            topic: ${mqtt_state_topic}
+            payload: !lambda 'return id(relay).state ? "on" : "off";'
+            retain: true
+  on_connect:
+    - mqtt.publish:
+        topic: ${mqtt_state_topic}
+        payload: !lambda 'return id(relay).state ? "on" : "off";'
+        retain: true
+
+output:
+  - platform: gpio
+    id: led
+    pin:
+      number: GPIO2
+      inverted: true
+
+switch:
+  - platform: gpio
+    name: "Relay"
+    id: relay
+    pin: GPIO15
+    restore_mode: RESTORE_DEFAULT_OFF
+    on_turn_on:
+      - output.turn_on: led
+      - mqtt.publish:
+          topic: ${mqtt_state_topic}
+          payload: "on"
+          retain: true
+    on_turn_off:
+      - output.turn_off: led
+      - mqtt.publish:
+          topic: ${mqtt_state_topic}
+          payload: "off"
+          retain: true
+
+binary_sensor:
+  - platform: gpio
+    name: "Button"
+    id: button
+    pin:
+      number: GPIO13
+      mode: INPUT_PULLUP
+      inverted: true
+    on_press:
+      - switch.toggle: relay
+  - platform: status
+    name: "Status"
+
+sensor:
+  - platform: wifi_signal
+    name: "WiFi Signal dB"
+    id: wifi_signal_db
+    update_interval: 60s
+    entity_category: diagnostic
+  - platform: copy
+    source_id: wifi_signal_db
+    name: "WiFi Signal Percent"
+    filters:
+      - lambda: return min(max(2 * (x + 100.0), 0.0), 100.0);
+    unit_of_measurement: "Signal %"
+    entity_category: diagnostic
+  - platform: uptime
+    name: Uptime
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"
+    ssid:
+      name: "SSID"

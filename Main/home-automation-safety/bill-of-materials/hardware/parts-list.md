@@ -246,6 +246,14 @@ status: active
 - **Emergency shutoff capability** through smart plugs
 - **Redundant sensors** for safety-critical measurements
 - **Fail-safe operation** if any sensor becomes unresponsive
+
+> **I-1 audit note (hardware failsafe relay):** The current fail-safe is implemented in software via
+> Home Assistant automations (input_boolean.ventsys_failsafe). For a safety-critical ventilation
+> system, consider adding a hardware failsafe relay that defaults to the safe state (fans ON /
+> valves OPEN) on power loss or MCU failure, independent of the HA VM. A normally-closed relay
+> wired in series with the fan PWM signal would keep fans running if the ESP32 loses power or
+> firmware hangs. This is an architectural recommendation; no firmware change is required to
+> implement it, only additional hardware wiring.
 - **Proper electrical isolation** between low and high voltage systems
 
 ### Installation Safety Checklist:

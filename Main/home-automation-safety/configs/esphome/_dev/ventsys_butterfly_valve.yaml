@@ -1,0 +1,387 @@
+# !! DEV PROTOTYPE - DO NOT FLASH TO PRODUCTION BOARDS !!
+# L-3 audit note: This file is a development prototype used as the original
+# reference design. All production boards have their own dedicated YAML files
+# in this directory (ventsys_fdm_*, ventsys_sla_*, ventsys_booth_*, etc.).
+# This file is retained for reference only. Flashing it to a production board
+# will assign the wrong device name, breaking HA adoption and DHCP reservations.
+#
+esphome:
+  name: butterfly-valve-ctrlr-dev-1
+  friendly_name: butterfly_valve_controller_dev_1
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+    version: recommended
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret printAirPipe_servoValve_api_key
+
+ota:
+  platform: esphome
+  password: !secret printAirPipe_servoValve_ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Butterfly-Valve-Controller-Dev-1"
+    password: !secret printAirPipe_servoValve_ap_password
+
+captive_portal:   
+
+# Global variables
+globals:
+  - id: pwm_enabled
+    type: bool
+    restore_value: no
+    initial_value: 'true'
+  
+  - id: temp_alert_level
+    type: int
+    restore_value: no
+    initial_value: '0'
+
+interval:
+  # Position-based LED colors (normal operation)
+  - interval: 1s
+    then:
+      - lambda: |-
+          // Only update LED if no temperature alert (including manual test)
+          if (id(temp_alert_level) == 0) {
+            float pos = id(valve_position_direct_control_number).state;
+            float red, green, blue;
+            
+            if (pos >= 100.0) {
+              red = 0.0; green = 1.0; blue = 0.0;  // GREEN
+            } else if (pos > 0.0) {
+              red = 1.0; green = 0.5; blue = 0.0;  // ORANGE
+            } else {
+              red = 1.0; green = 0.0; blue = 0.0;  // RED
+            }
+            
+            id(status_led).turn_on().set_brightness(1.0).set_rgb(red, green, blue).perform();
+          }
+  
+  # Temperature monitoring and alert flashing
+  - interval: 200ms
+    then:
+      - lambda: |-
+          float temp = id(internal_temp).state;
+          
+          // Update alert level based on actual temperature
+          int alert_level = 0;
+          if (temp >= 80.0) {
+            alert_level = 3;  // Emergency
+          } else if (temp >= 70.0) {
+            alert_level = 2;  // Alarm
+          } else if (temp >= 60.0) {
+            alert_level = 1;  // Notice
+          }
+          
+          // Check current global value
+          int current_global = id(temp_alert_level);
+          
+          // Use manual test level if it's set (non-zero)
+          if (current_global > 0 && alert_level == 0) {
+            alert_level = current_global;
+          } else {
+            id(temp_alert_level) = alert_level;
+          }
+          
+          // Handle temperature alert flashing
+          if (alert_level > 0) {
+            static unsigned long last_flash_time = 0;
+            static bool flash_state = false;
+            unsigned long current_time = millis();
+            unsigned long flash_interval = 0;
+            
+            if (alert_level == 3) {
+              flash_interval = 300;  // Fast
+            } else if (alert_level == 2) {
+              flash_interval = 750;  // Medium
+            } else {
+              flash_interval = 1500;  // Slow
+            }
+            
+            if (current_time - last_flash_time >= flash_interval) {
+              flash_state = !flash_state;
+              last_flash_time = current_time;
+            }
+            
+            if (flash_state) {
+              // ON state - show color
+              if (alert_level == 1) {
+                // Notice - ORANGE (more red, less green)
+                auto call = id(status_led).turn_on();
+                call.set_brightness(1.0);
+                call.set_rgb(1.0, 0.25, 0.0);
+                call.perform();
+              } else if (alert_level == 2 || alert_level == 3) {
+                // Alarm or Emergency - RED
+                auto call = id(status_led).turn_on();
+                call.set_brightness(1.0);
+                call.set_rgb(1.0, 0.0, 0.0);
+                call.perform();
+              }
+            } else {
+              // OFF state
+              id(status_led).turn_off().perform();
+            }
+          }
+
+esp32_touch:
+  setup_mode: False
+
+web_server:
+  port: 80
+  auth:
+    username: !secret printAirPipe_servoValve_web_server_user
+    password: !secret printAirPipe_servoValve_web_server_password
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+    
+text_sensor:
+  - platform: version
+    name: "ESPHome Version"
+
+  - platform: wifi_info
+    ip_address:
+      name: ESP IP Address
+    ssid:
+      name: ESP Connected SSID
+    bssid:
+      name: ESP Connected BSSID
+    mac_address:
+      name: ESP Mac Wifi Address
+    scan_results:
+      name: ESP Latest Scan Results
+  
+  - platform: template
+    name: "Temperature Alert Level"
+    id: temp_alert_level_text
+    icon: "mdi:thermometer-alert"
+    update_interval: 1s
+    lambda: |-
+      int level = id(temp_alert_level);
+      if (level == 3) {
+        return {"Emergency"};
+      } else if (level == 2) {
+        return {"Alarm"};
+      } else if (level == 1) {
+        return {"Notice"};
+      } else {
+        return {"Normal"};
+      }
+
+output:
+  - platform: ledc
+    id: valve_servo_pwm_output
+    pin: GPIO16
+    frequency: 50 Hz
+
+servo:
+  - id: valve_servo
+    output: valve_servo_pwm_output
+
+sensor:
+  - platform: wifi_signal
+    name: "WiFi Signal dB"
+    id: wifi_signal_db
+    update_interval: 60s
+    entity_category: "diagnostic"
+
+  - platform: copy
+    source_id: wifi_signal_db
+    name: "WiFi Signal Percent"
+    filters:
+      - lambda: return min(max(2 * (x + 100.0), 0.0), 100.0);
+    unit_of_measurement: "Signal %"
+    entity_category: "diagnostic"
+
+  - platform: uptime
+    name: Uptime
+
+  - platform: internal_temperature
+    name: "Internal Temperature"
+    id: internal_temp
+    update_interval: 5s
+
+script:
+  - id: check_pwm_shutdown
+    mode: restart
+    then:
+      - delay: 2s
+      - lambda: |-
+          if (id(valve_position_direct_control_number).state == 0.0) {
+            id(valve_servo_pwm_output).turn_off();
+            id(pwm_enabled) = false;
+            ESP_LOGI("pwm", "PWM disabled - valve at 0%%");
+          }
+
+number:
+  - platform: template
+    name: Valve servo direct control    
+    id: valve_position_direct_control_number
+    min_value: 0
+    initial_value: 0
+    max_value: 100
+    step: 1
+    optimistic: true
+    set_action:
+      then:
+        - lambda: |-
+            if (!id(pwm_enabled)) {
+              id(valve_servo_pwm_output).turn_on();
+              id(pwm_enabled) = true;
+              ESP_LOGI("pwm", "PWM enabled - valve moving");
+            }
+        - servo.write:
+            id: valve_servo
+            level: !lambda 'return x / 100.0;'
+        - lambda: |-
+            float red, green, blue;
+            if (x >= 100.0) {
+              red = 0.0; green = 1.0; blue = 0.0;  // GREEN
+            } else if (x > 0.0) {
+              red = 1.0; green = 0.5; blue = 0.0;  // ORANGE
+            } else {
+              red = 1.0; green = 0.0; blue = 0.0;  // RED
+            }
+            id(status_led).turn_on().set_brightness(1.0).set_rgb(red, green, blue).perform();
+        - script.execute: check_pwm_shutdown
+
+  - platform: template
+    name: Valve Open position
+    id: valve_opened_position
+    min_value: 0
+    initial_value: 100
+    max_value: 100
+    step: 1
+    optimistic: true
+    mode: box
+
+  - platform: template
+    name: Valve Closed position
+    id: valve_closed_position
+    min_value: 0
+    initial_value: 0
+    max_value: 100
+    step: 1
+    optimistic: true
+    mode: box
+
+button:
+  - platform: template
+    name: Close valve
+    id: close_valve_button
+    on_press:
+      then:
+        - lambda: |-
+            if (!id(pwm_enabled)) {
+              id(valve_servo_pwm_output).turn_on();
+              id(pwm_enabled) = true;
+              ESP_LOGI("pwm", "PWM enabled - closing valve");
+            }
+        - servo.write:
+            id: valve_servo
+            level: !lambda 'return id(valve_closed_position).state / 100.0;'
+        - number.set:
+            id: valve_position_direct_control_number
+            value: !lambda 'return id(valve_closed_position).state;'
+        - script.execute: check_pwm_shutdown
+
+  - platform: template
+    name: Open valve
+    id: open_valve_button
+    on_press:
+      then:
+        - lambda: |-
+            if (!id(pwm_enabled)) {
+              id(valve_servo_pwm_output).turn_on();
+              id(pwm_enabled) = true;
+              ESP_LOGI("pwm", "PWM enabled - opening valve");
+            }
+        - servo.write:
+            id: valve_servo
+            level: !lambda 'return id(valve_opened_position).state / 100.0;'
+        - number.set:
+            id: valve_position_direct_control_number
+            value: !lambda 'return id(valve_opened_position).state;'
+
+  - platform: template
+    name: "Test Temperature Alerts"
+    id: test_temp_alerts
+    icon: "mdi:alarm-light"
+    on_press:
+      then:
+        - logger.log: "Temperature alert test started (15 seconds)"
+        - lambda: id(temp_alert_level) = 1;
+        - delay: 5s
+        - lambda: id(temp_alert_level) = 2;
+        - delay: 5s
+        - lambda: id(temp_alert_level) = 3;
+        - delay: 5s
+        - lambda: id(temp_alert_level) = 0;
+        - logger.log: "Temperature alert test complete"
+
+binary_sensor:
+  - platform: esp32_touch
+    name: "Touch sensor"
+    pin: GPIO33
+    threshold: 400
+    on_press:
+      then:
+        - lambda: |-
+           if (id(valve_position_direct_control_number).state >= 50)
+           {
+            id(close_valve_button).press(); 
+           } else 
+           {
+            id(open_valve_button).press();
+           }
+  
+  - platform: template
+    name: "Temperature Notice"
+    id: temp_notice
+    device_class: problem
+    icon: "mdi:alert-circle-outline"
+    lambda: |-
+      return id(internal_temp).state >= 60.0;
+  
+  - platform: template
+    name: "Temperature Alarm"
+    id: temp_alarm
+    device_class: problem
+    icon: "mdi:alert"
+    lambda: |-
+      return id(internal_temp).state >= 70.0;
+  
+  - platform: template
+    name: "Temperature Emergency"
+    id: temp_emergency
+    device_class: problem
+    icon: "mdi:alert-octagon"
+    lambda: |-
+      return id(internal_temp).state >= 80.0;
+
+light:
+  - platform: neopixelbus
+    restore_mode: ALWAYS_OFF
+    id: status_led
+    type: GRB
+    variant: WS2812
+    pin: GPIO21
+    num_leds: 1
+    internal: true
+    default_transition_length: 0s  # Instant color changes, no fade
