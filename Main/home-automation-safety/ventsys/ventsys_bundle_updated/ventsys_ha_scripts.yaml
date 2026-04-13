@@ -137,6 +137,8 @@ script:
         data: { topic: "ventsys/spray-fan/control", payload: "on" }
       - action: mqtt.publish
         data: { topic: "ventsys/fan/control", payload: "on" }
+      - action: mqtt.publish
+        data: { topic: "ventsys/fan/percent", payload: "50" }
 
   # ── BOOTH SEAL: main-2 closed, spray fan off ─────────────────────────
   # Closes the spray booth extraction path and stops the booth fan.

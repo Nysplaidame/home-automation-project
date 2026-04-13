@@ -1,8 +1,9 @@
 ﻿# Home Assistant Package — Bambuddy P1S Integration
 # Deploy to: /config/packages/bambuddy_p1s_package.yaml on HA VM
 # Prerequisites:
-#   - Bambuddy running at 192.168.30.20:8000
+#   - Bambuddy running at 192.168.30.20:8000 (Docker on Frigate VM, VLAN 30)
 #   - Bambuddy MQTT publishing configured to 192.168.20.101:1883
+#   - P1S printer at 192.168.35.200 (VLAN 35 — see docs/decisions/02-printer-vlan-architecture.md)
 #     (port 1883 is correct for Bambuddy — it connects TO Mosquitto as a
 #     plain MQTT client. The TLS migration in ventsys_tls_implementation_guide.md
 #     covers ESPHome boards on VLAN 50; Bambuddy TLS support is separate and not

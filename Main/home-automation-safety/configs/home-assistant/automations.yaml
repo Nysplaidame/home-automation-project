@@ -128,6 +128,11 @@
 
 - id: high_temp_fdm_critical
   alias: "TEMP — FDM enclosure critical temperature — cut power"
+  # NOTE: No failsafe condition here — this is intentional.
+  # The WARNING automations (high_temp_fdm_warning, high_temp_sla_warning) check
+  # input_boolean.ventsys_failsafe == off to avoid noise during an active failsafe.
+  # CRITICAL automations must ALWAYS fire regardless of failsafe state — suppressing
+  # a critical temp alert could allow a thermal runaway to go unnoticed.
   mode: single
   trigger:
     - platform: numeric_state
@@ -171,6 +176,7 @@
 
 - id: high_temp_sla_critical
   alias: "TEMP — SLA enclosure critical temperature — cut power"
+  # NOTE: No failsafe condition — intentional. See comment on high_temp_fdm_critical.
   mode: single
   trigger:
     - platform: numeric_state
@@ -307,8 +313,8 @@
         title: "⚠ MQTT Broker Offline"
         message: "Mosquitto MQTT broker has been unreachable for 2 minutes. VentSys devices are not reporting."
 
-- id: esphome_device_offline_fdm
-  alias: "SYS — VentSys FDM controller offline"
+- id: esphome_device_offline_main_fan
+  alias: "SYS — VentSys main fan controller offline"
   mode: single
   trigger:
     - platform: state

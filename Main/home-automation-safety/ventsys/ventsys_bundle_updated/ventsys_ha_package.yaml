@@ -1,384 +1,1187 @@
 # VentSys Home Assistant Package
-# MQTT integration is configured via the UI (Settings ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Integrations ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ MQTT)
+
+
+# MQTT integration is configured via the UI (Settings > Integrations > MQTT)
+
+
 # This package assumes MQTT is already connected to Mosquitto on 192.168.20.101:8883
+
+
 #
-# Dashboard: /config/www/ventsys-dashboard.html ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ http://192.168.20.101:8123/local/ventsys-dashboard.html
+
+
+# Dashboard: /config/www/ventsys-dashboard.html -> http://192.168.20.101:8123/local/ventsys-dashboard.html
+
+
 # Scripts:   ventsys_ha_scripts.yaml (load as a package alongside this file)
+
+
 #
+
+
 # MQTT topic schema (matches dashboard HA_CONFIG.topics):
+
+
 #   Fan control:          ventsys/fan/control, ventsys/fan/percent
+
+
 #   Spray fan:            ventsys/spray-fan/control, ventsys/spray-fan/percent
+
+
 #   Main duct valves:     ventsys/main/valve1/control, ventsys/main/valve2/control
+
+
 #   FDM (ENC01) valves:   ventsys/fdm/branch/control, ventsys/fdm/valve/control, ventsys/fdm/360/control
+
+
 #   SLA (ENC02) valves:   ventsys/sla/branch/control, ventsys/sla/valve/control, ventsys/sla/360/control
 
-# ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ INPUT BOOLEANS ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
+
+
+
+
+#  ->  INPUT BOOLEANS  -> 
+
+
 input_boolean:
+
+
   ventsys_failsafe:
+
+
     name: VentSys Fail-safe
+
+
     icon: mdi:alert
 
-# ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ NUMBER ENTITIES ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
+
+
+
+
+#  ->  NUMBER ENTITIES  -> 
+
+
 # FIX #1: Previously this file had TWO separate top-level `number:` blocks.
+
+
 # YAML silently discards the first block when two identical top-level keys exist,
+
+
 # meaning the primary three valves (SLA, FDM, Booth) were erased at parse time
+
+
 # and never registered as HA entities. All nine valve number entities are now
+
+
 # merged into this single `number:` list so all are loaded correctly.
 
+
+
+
+
 number:
-  # ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Primary print valves (used by failsafe and mode scripts) ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
+
+
+  #  ->  Primary print valves (used by failsafe and mode scripts)  ->  ->  ->  -> 
+
+
   - platform: mqtt
+
+
     name: SLA Valve
+
+
     unique_id: ventsys_sla_valve
+
+
     command_topic: "ventsys/sla/valve/control"
+
+
     state_topic: "ventsys/sla/valve/state"
+
+
     min: 0
+
+
     max: 100
+
+
     step: 1
+
+
+
+
 
   - platform: mqtt
+
+
     name: FDM Valve
+
+
     unique_id: ventsys_fdm_valve
+
+
     command_topic: "ventsys/fdm/valve/control"
+
+
     state_topic: "ventsys/fdm/valve/state"
+
+
     min: 0
+
+
     max: 100
+
+
     step: 1
 
-  # L-2 fix: Booth valve entity commented out â€” no ESPHome firmware currently exists
+
+
+
+
+  # L-2 fix: Booth valve entity commented out  ->  no ESPHome firmware currently exists
+
+
   # that subscribes to ventsys/booth/valve/control or publishes ventsys/booth/valve/state.
+
+
   # Leaving this active shows a working-looking control in HA that silently drops all
+
+
   # commands. Uncomment when a dedicated booth valve controller ESP32 is built and adopted.
+
+
   #
+
+
   # - platform: mqtt
+
+
   #   name: Booth Valve
+
+
   #   unique_id: ventsys_booth_valve
+
+
   #   command_topic: "ventsys/booth/valve/control"
+
+
   #   state_topic: "ventsys/booth/valve/state"
+
+
   #   min: 0
+
+
   #   max: 100
+
+
   #   step: 1
 
-  # ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Extended valve controls (branch, 360Ãƒâ€šÃ‚Â° intakes, main duct) ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
+
+
+
+
+  #  ->  Extended valve controls (branch, 360 intakes, main duct)  -> 
+
+
   # These match the full 8-valve schema used by ventilation_v9k.html.
+
+
   # Previously these lived in a second `number:` block which overwrote the
-  # three primary entries above ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â now correctly merged into this single list.
+
+
+  # three primary entries above  ->  now correctly merged into this single list.
+
+
+
+
 
   - platform: mqtt
+
+
     name: FDM Branch Valve
+
+
     unique_id: ventsys_fdm_branch_valve
+
+
     command_topic: "ventsys/fdm/branch/control"
+
+
     state_topic: "ventsys/fdm/branch/state"
+
+
     min: 0
+
+
     max: 100
+
+
     step: 1
 
+
+
+
+
   - platform: mqtt
+
+
     name: FDM 360 Intake
+
+
     unique_id: ventsys_fdm_360_intake
+
+
     command_topic: "ventsys/fdm/360/control"
+
+
     state_topic: "ventsys/fdm/360/state"
+
+
     min: 0
+
+
     max: 100
+
+
     step: 1
 
+
+
+
+
   - platform: mqtt
+
+
     name: SLA Branch Valve
+
+
     unique_id: ventsys_sla_branch_valve
+
+
     command_topic: "ventsys/sla/branch/control"
+
+
     state_topic: "ventsys/sla/branch/state"
+
+
     min: 0
+
+
     max: 100
+
+
     step: 1
 
+
+
+
+
   - platform: mqtt
+
+
     name: SLA 360 Intake
+
+
     unique_id: ventsys_sla_360_intake
+
+
     command_topic: "ventsys/sla/360/control"
+
+
     state_topic: "ventsys/sla/360/state"
+
+
     min: 0
+
+
     max: 100
+
+
     step: 1
 
+
+
+
+
   - platform: mqtt
+
+
     name: Main Duct Valve 1
+
+
     unique_id: ventsys_main_valve1
+
+
     command_topic: "ventsys/main/valve1/control"
+
+
     state_topic: "ventsys/main/valve1/state"
+
+
     min: 0
+
+
     max: 100
+
+
     step: 1
+
+
+
+
 
   - platform: mqtt
+
+
     name: Main Duct Valve 2
+
+
     unique_id: ventsys_main_valve2
+
+
     command_topic: "ventsys/main/valve2/control"
+
+
     state_topic: "ventsys/main/valve2/state"
+
+
     min: 0
+
+
     max: 100
+
+
     step: 1
 
-# ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ FAN ENTITIES ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
-# FIX #1 (continued): Same problem applied to `fan:` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â two separate blocks
+
+
+
+
+#  ->  FAN ENTITIES  -> 
+
+
+# FIX #1 (continued): Same problem applied to `fan:`  ->  two separate blocks
+
+
 # existed, with the second (spray fan only) overwriting the first (inline fan).
+
+
 # Both fans are now merged into this single `fan:` list.
 
+
+
+
+
 fan:
-  # ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Inline duct fan (primary ventilation motor) ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
+
+
+  #  ->  Inline duct fan (primary ventilation motor)  -> 
+
+
   - platform: mqtt
+
+
     name: Inline Fan
+
+
     unique_id: ventsys_inline_fan
+
+
     command_topic: "ventsys/fan/control"
+
+
     state_topic: "ventsys/fan/state"
+
+
     payload_on: "on"
+
+
     payload_off: "off"
+
+
     percentage_command_topic: "ventsys/fan/percent"
+
+
     percentage_state_topic: "ventsys/fan/percent_state"
+
+
     speed_range_min: 1
+
+
     speed_range_max: 100
 
-  # ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Spray booth extract fan ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
+
+
+
+
+  #  ->  Spray booth extract fan  -> 
+
+
   - platform: mqtt
+
+
     name: Spray Booth Fan
+
+
     unique_id: ventsys_spray_fan
+
+
     command_topic: "ventsys/spray-fan/control"
+
+
     state_topic: "ventsys/spray-fan/state"
+
+
     payload_on: "on"
+
+
     payload_off: "off"
+
+
     percentage_command_topic: "ventsys/spray-fan/percent"
+
+
     percentage_state_topic: "ventsys/spray-fan/percent_state"
+
+
     speed_range_min: 1
+
+
     speed_range_max: 100
 
-# ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ SENSOR ENTITIES ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
+
+
+
+
+#  ->  SENSOR ENTITIES  -> 
+
+
 # FIX #7: automations.yaml referenced sensor.ventsys_enc1_smoke,
+
+
 # sensor.ventsys_enc1_iaq, sensor.ventsys_enc1_temperature and
-# sensor.ventsys_enc1_pressure_diff -- none of which existed in any package.
+
+
+# sensor.ventsys_enc1_pressure_diff  ->  none of which existed in any package.
+
+
 # MQTT sensor definitions are added here using the fdm_*/sla_* naming
+
+
 # convention established by the risk sensors, with topics matching the
+
+
 # ventsys/{enclosure}/{type} pattern used throughout. automations.yaml has
+
+
 # been updated to use these entity IDs.
-# G4 RESOLVED: topic names cross-verified against printairpipe-controller.yaml ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â all match.
+
+
+# G4 RESOLVED: topic names cross-verified against printairpipe-controller.yaml  ->  all match.
+
+
+
+
 
 sensor:
-  # -- Risk state ------------------------------------------------------------
+
+
+  #  ->  Risk state ────────────────────────────────────────────────────────────
+
+
   # F-28 WARNING: These sensors subscribe to risk/state topics, but NO firmware
+
+
   # publishes to these topics anywhere in the current codebase. The ventsys_fire_risk_cutoff
-  # automation (below) triggers on these sensors ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â it will NEVER fire until firmware
+
+
+  # automation (below) triggers on these sensors  ->  it will NEVER fire until firmware
+
+
   # is written to publish FIRE_RISK payloads. Options:
+
+
   #   A) Add ESPHome binary_sensor logic in each sensor board YAML to publish
+
+
   #      "FIRE_RISK" / "NORMAL" to ventsys/{enc}/risk/state based on smoke/temp thresholds.
+
+
   #   B) Add a HA automation that watches sensor.fdm_smoke / sensor.fdm_iaq and
+
+
   #      publishes to ventsys/fdm/risk/state via mqtt.publish.
+
+
   # Until one of these is implemented, fire risk detection relies solely on the
+
+
   # smoke/temperature triggers in automations.yaml (Tier 1/2), not on this sensor.
+
+
   - platform: mqtt
+
+
     name: SLA Risk
+
+
     unique_id: ventsys_sla_risk
+
+
     state_topic: "ventsys/sla/risk/state"
+
+
   - platform: mqtt
+
+
     name: FDM Risk
+
+
     unique_id: ventsys_fdm_risk
+
+
     state_topic: "ventsys/fdm/risk/state"
+
+
   # A4-3 warning: NO FIRMWARE PUBLISHES ventsys/booth/risk/state.
+
+
   # sensor.booth_risk will always be 'unavailable' until a dedicated booth sensor board
+
+
   # is built and deployed. Use printairpipe-controller.yaml as the template with:
+
+
   #   mqtt_topic_prefix: "ventsys/booth"
+
+
   #   device_name: ventsys-booth-sensor
+
+
   #   device_ip: "192.168.50.33"
+
+
   # Until then, the ventsys_fire_risk_cutoff automation will never trigger for the booth.
+
+
   - platform: mqtt
+
+
     name: Booth Risk
+
+
     unique_id: ventsys_booth_risk
+
+
     state_topic: "ventsys/booth/risk/state"
 
-  # ---- A4-6 note: DUAL ENTITY-PATH ARCHITECTURE --------------------------------
+
+
+
+
+  #  ->  A4-6 note: DUAL ENTITY-PATH ARCHITECTURE ────────────────────────────────
+
+
   # The MQTT sensors below (sensor.fdm_temperature, sensor.sla_temperature etc.)
+
+
   # are used by automations.yaml for safety alarm triggers.
+
+
   # SEPARATE from these are the ESPHome native API entities used by ventilation_v9k.html
+
+
   # for live dashboard display (sensor.fdm_enclosure_sensors_temperature etc.).
+
+
   # Both entity paths co-exist and serve different purposes.
+
+
   # Operators: this is intentional - do not consolidate unless you also update automations.yaml
+
+
   # and ventilation_v9k.html to use the same entity ID.
-  # ---------------------------------------------------------------------------------
-  # -- Temperature (DS18B20 via ESPHome MQTT) --------------------------------
+
+
+  # ────────────────────────────────────────────────────────────
+
+
+  #  ->  Temperature (DS18B20 via ESPHome MQTT) ────────────────────────────────
+
+
   - platform: mqtt
+
+
     name: FDM Temperature
+
+
     unique_id: ventsys_fdm_temperature
+
+
     state_topic: "ventsys/fdm/temperature"
-    unit_of_measurement: "Ãƒâ€šÃ‚Â°C"
+
+
+    unit_of_measurement: "°C"
+
+
     device_class: temperature
+
+
     expire_after: 120
+
+
   - platform: mqtt
+
+
     name: SLA Temperature
+
+
     unique_id: ventsys_sla_temperature
+
+
     state_topic: "ventsys/sla/temperature"
-    unit_of_measurement: "Ãƒâ€šÃ‚Â°C"
+
+
+    unit_of_measurement: "°C"
+
+
     device_class: temperature
+
+
     expire_after: 120
 
-  # -- Smoke / VOC (MQ-2/MQ-135 ADC via ESPHome MQTT) ----------------------
+
+
+
+
+  #  ->  Smoke / VOC (MQ-2/MQ-135 ADC via ESPHome MQTT) ──────────────────────
+
+
   # Payload: "detected" above threshold, "clear" otherwise.
+
+
   # Threshold set in printairpipe-controller.yaml binary_sensor block.
+
+
   - platform: mqtt
+
+
     name: FDM Smoke
+
+
     unique_id: ventsys_fdm_smoke
+
+
     state_topic: "ventsys/fdm/smoke"
+
+
     expire_after: 120
+
+
   - platform: mqtt
+
+
     name: SLA Smoke
+
+
     unique_id: ventsys_sla_smoke
+
+
     state_topic: "ventsys/sla/smoke"
+
+
     expire_after: 120
 
-  # -- Garage ambient (BME680 reference sensor ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â ventsys-garage-sensor .34) --
+
+
+
+
+  #  ->  Garage ambient (BME680 reference sensor  ->  ventsys-garage-sensor .34)  -> 
+
+
   - platform: mqtt
+
+
     name: Garage Temperature
+
+
     unique_id: ventsys_garage_temperature
+
+
     state_topic: "ventsys/garage/temperature"
-    unit_of_measurement: "Ãƒâ€šÃ‚Â°C"
+
+
+    unit_of_measurement: "°C"
+
+
     device_class: temperature
+
+
     expire_after: 120
+
+
   - platform: mqtt
+
+
     name: Garage Humidity
+
+
     unique_id: ventsys_garage_humidity
+
+
     state_topic: "ventsys/garage/humidity"
+
+
     unit_of_measurement: "%"
+
+
     device_class: humidity
+
+
     expire_after: 120
+
+
   - platform: mqtt
+
+
     name: Garage Baro Pressure
+
+
     unique_id: ventsys_garage_baro_pressure
+
+
     state_topic: "ventsys/garage/baro_pressure"
+
+
     unit_of_measurement: "hPa"
+
+
     device_class: pressure
+
+
     expire_after: 120
+
+
   - platform: mqtt
+
+
     name: Garage IAQ
+
+
     unique_id: ventsys_garage_iaq
+
+
     state_topic: "ventsys/garage/iaq"
-    unit_of_measurement: "ÃƒÅ½Ã‚Â©"
+
+
+    unit_of_measurement: "Ω"
+
+
     state_class: measurement
+
+
     expire_after: 120
 
-  # -- IAQ index (BME680 gas resistance via ESPHome MQTT) ------------------
+
+
+
+
+  #  ->  IAQ index (BME680 gas resistance via ESPHome MQTT) ──────────────────
+
+
   # Source: BME680 gas_resistance in ohms. Higher = cleaner air.
-  # Typical clean air: 50,000ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“150,000 ÃƒÅ½Ã‚Â©. Degraded air: <10,000 ÃƒÅ½Ã‚Â©.
+
+
+  # Typical clean air: 50,000 -> 150,000  -> . Degraded air: <10,000  -> .
+
+
   # Unlike a 0-500 IAQ index (which requires Bosch's proprietary BSEC2
+
+
   # library), this publishes raw resistance so no licence is needed.
+
+
   # HA automations (iaq_threshold_fdm / iaq_threshold_sla) compare against
-  # resistance thresholds ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â update those threshold values to match your
+
+
+  # resistance thresholds  ->  update those threshold values to match your
+
+
   # sensor's clean-air baseline after a 30-minute warm-up measurement.
+
+
   - platform: mqtt
+
+
     name: FDM IAQ
+
+
     unique_id: ventsys_fdm_iaq
+
+
     state_topic: "ventsys/fdm/iaq"
-    unit_of_measurement: "ÃƒÅ½Ã‚Â©"
+
+
+    unit_of_measurement: "Ω"
+
+
     state_class: measurement
+
+
     expire_after: 120
+
+
   - platform: mqtt
+
+
     name: SLA IAQ
+
+
     unique_id: ventsys_sla_iaq
+
+
     state_topic: "ventsys/sla/iaq"
-    unit_of_measurement: "ÃƒÅ½Ã‚Â©"
+
+
+    unit_of_measurement: "Ω"
+
+
     state_class: measurement
+
+
     expire_after: 120
 
 
-# -- AIRFLOW SENSOR ENTITIES ------------------------------------------------
+
+
+
+
+
+
+#  ->  AIRFLOW SENSOR ENTITIES ────────────────────────────────────────────────
+
+
 # L-1 fix: airflow sensor boards publish pulses/s and rounds/s via MQTT but
+
+
 # no HA sensor entities were defined. Added to match topics in:
+
+
 #   ventsys_fdm_airflow.yaml, ventsys_sla_airflow.yaml, ventsys_booth_airflow.yaml
+
+
   - platform: mqtt
+
+
     name: FDM Airflow Pulses
+
+
     unique_id: ventsys_fdm_airflow_pulses
+
+
     state_topic: "ventsys/fdm/airflow/pulses"
+
+
     unit_of_measurement: "pulses/s"
+
+
     state_class: measurement
+
+
     expire_after: 120
+
+
   - platform: mqtt
+
+
     name: FDM Airflow Wheel Speed
+
+
     unique_id: ventsys_fdm_airflow_rps
+
+
     state_topic: "ventsys/fdm/airflow/rps"
+
+
     unit_of_measurement: "rounds/s"
+
+
     state_class: measurement
+
+
     expire_after: 120
+
+
   - platform: mqtt
+
+
     name: SLA Airflow Pulses
+
+
     unique_id: ventsys_sla_airflow_pulses
+
+
     state_topic: "ventsys/sla/airflow/pulses"
+
+
     unit_of_measurement: "pulses/s"
+
+
     state_class: measurement
+
+
     expire_after: 120
+
+
   - platform: mqtt
+
+
     name: SLA Airflow Wheel Speed
+
+
     unique_id: ventsys_sla_airflow_rps
+
+
     state_topic: "ventsys/sla/airflow/rps"
+
+
     unit_of_measurement: "rounds/s"
+
+
     state_class: measurement
+
+
     expire_after: 120
+
+
   - platform: mqtt
+
+
     name: Booth Airflow Pulses
+
+
     unique_id: ventsys_booth_airflow_pulses
+
+
     state_topic: "ventsys/booth/airflow/pulses"
+
+
     unit_of_measurement: "pulses/s"
+
+
     state_class: measurement
+
+
     expire_after: 120
+
+
   - platform: mqtt
+
+
     name: Booth Airflow Wheel Speed
+
+
     unique_id: ventsys_booth_airflow_rps
+
+
     state_topic: "ventsys/booth/airflow/rps"
+
+
     unit_of_measurement: "rounds/s"
+
+
     state_class: measurement
+
+
     expire_after: 120
-# -- BINARY SENSOR ENTITIES --------------------------------------------------
+
+
+#  ->  BINARY SENSOR ENTITIES ──────────────────────────────────────────────────
+
+
 # FIX #7 (continued): binary_sensor.mqtt_broker was referenced in the MQTT
+
+
 # watchdog automation but never defined anywhere. Mosquitto publishes a
+
+
 # heartbeat string to $SYS/broker/uptime every 60s by default. expire_after: 70
+
+
 # marks the sensor offline if no heartbeat arrives within 70s (one missed
+
+
 # cycle + 10s grace). Do not set sys_interval 0 in mosquitto.conf.
+
+
 binary_sensor:
+
+
   - platform: mqtt
+
+
     name: MQTT Broker Online
+
+
     unique_id: ventsys_mqtt_broker
+
+
     state_topic: "$SYS/broker/uptime"
+
+
     value_template: "{{ 'ON' if value else 'OFF' }}"
+
+
     expire_after: 70
+
+
     device_class: connectivity
 
-# ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ AUTOMATIONS ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
+
+
+
+
+#  ->  SWITCH ENTITIES (SMART PLUGS)  ->  ->  ->  ->  ->  ->  ->  ->  ->  ->
+# DEPLOYMENT BLOCKER: The switch entities below are STUBS. They will not work
+# until the actual smart plugs are adopted into Home Assistant.
+#
+# Expected hardware: Tasmota or ESPHome smart plugs on VLAN 50 (IoT Sensors).
+# DHCP reservations (dhcp-config.conf): plug-fdm-printer (.71), plug-sla-printer (.72).
+#
+# After adopting the plugs in HA, verify the entity IDs match these names.
+# If Tasmota MQTT discovery creates different entity IDs (e.g. switch.tasmota_xxx),
+# either rename them in HA or update all references in automations.yaml:
+#   - fire_detection_emergency (Tier 1)
+#   - high_temp_fdm_critical / high_temp_sla_critical (Tier 2)
+#   - ventsys_fire_risk_cutoff (in this file)
+#
+# Uncomment the block below once plugs are configured, OR let MQTT discovery
+# create the entities automatically (in which case delete these stubs).
+#
+# switch:
+#   - platform: mqtt
+#     name: FDM Printer Plug
+#     unique_id: fdm_printer_plug
+#     command_topic: "cmnd/plug-fdm-printer/POWER"
+#     state_topic: "stat/plug-fdm-printer/POWER"
+#     payload_on: "ON"
+#     payload_off: "OFF"
+#
+#   - platform: mqtt
+#     name: SLA Printer Plug
+#     unique_id: sla_printer_plug
+#     command_topic: "cmnd/plug-sla-printer/POWER"
+#     state_topic: "stat/plug-sla-printer/POWER"
+#     payload_on: "ON"
+#     payload_off: "OFF"
+
+
+#  ->  AUTOMATIONS  ->  ->  ->  ->  ->  ->  ->  ->  ->  ->  ->  ->  ->  ->  ->
+
+
 automation:
+
+
   - id: ventsys_fire_risk_cutoff
+
+
     alias: VentSys FIRE_RISK cutoff
+
+
     mode: single
+
+
     trigger:
+
+
       - platform: state
+
+
         entity_id:
+
+
           - sensor.sla_risk
+
+
           - sensor.fdm_risk
+
+
           - sensor.booth_risk
+
+
           # A4-3: sensor.booth_risk never fires - no firmware publishes this topic yet.
+
+
         to: "FIRE_RISK"
+
+
     action:
+
+
       - action: switch.turn_off
+
+
         target:
+
+
           entity_id:
+
+
             - switch.fdm_printer_plug
+
+
             - switch.sla_printer_plug
+
+
       - action: input_boolean.turn_on
+
+
         target: { entity_id: input_boolean.ventsys_failsafe }
 
+
+
+
+
   # D1 fix: was previously calling script.ventsys_mode_purge, which activated
-  # the spray booth fan ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â unsafe during a fire event. Now calls the dedicated
+
+
+  # the spray booth fan  ->  unsafe during a fire event. Now calls the dedicated
+
+
   # ventsys_mode_fire_safe script which opens all enclosure paths, closes the
+
+
   # spray booth path, runs the main fan only, and explicitly leaves the spray
+
+
   # booth fan off. See ventsys_ha_scripts.yaml for full rationale.
+
+
   - id: ventsys_failsafe_on_sync
+
+
     alias: VentSys fail-safe sync to topics
+
+
     trigger:
+
+
       - platform: state
+
+
         entity_id: input_boolean.ventsys_failsafe
+
+
         to: "on"
+
+
     action:
+
+
       - action: script.turn_on
+
+
         target: { entity_id: script.ventsys_mode_fire_safe }
+
+

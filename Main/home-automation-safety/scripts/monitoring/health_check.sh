@@ -17,7 +17,7 @@ FRIGATE_IP="192.168.30.20"
 FRIGATE_PORT="8971"  # N-1 fix: Frigate 0.14+ UI/API moved from port 5000 to 8971
 BAMBUDDY_IP="192.168.30.20"
 BAMBUDDY_PORT="8000"
-P1S_IP="192.168.1.200"
+P1S_IP="192.168.35.200"   # VLAN 35 (Printers) — see docs/decisions/02-printer-vlan-architecture.md
 # C9 fix: P1S check changed from check_port (TCP to 8883) to check_ping.
 # The printer's MQTT port 8883 is a TLS-authenticated broker — it does not
 # respond to unauthenticated TCP probes in a way that reliably confirms health.
