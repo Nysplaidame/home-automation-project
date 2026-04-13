@@ -1042,7 +1042,42 @@ binary_sensor:
 
 
 
-#  ->  AUTOMATIONS  ->  ->  ->  ->  ->  ->  ->  ->  ->  ->  ->  ->  ->  ->  -> 
+#  ->  SWITCH ENTITIES (SMART PLUGS)  ->  ->  ->  ->  ->  ->  ->  ->  ->  ->
+# DEPLOYMENT BLOCKER: The switch entities below are STUBS. They will not work
+# until the actual smart plugs are adopted into Home Assistant.
+#
+# Expected hardware: Tasmota or ESPHome smart plugs on VLAN 50 (IoT Sensors).
+# DHCP reservations (dhcp-config.conf): plug-fdm-printer (.71), plug-sla-printer (.72).
+#
+# After adopting the plugs in HA, verify the entity IDs match these names.
+# If Tasmota MQTT discovery creates different entity IDs (e.g. switch.tasmota_xxx),
+# either rename them in HA or update all references in automations.yaml:
+#   - fire_detection_emergency (Tier 1)
+#   - high_temp_fdm_critical / high_temp_sla_critical (Tier 2)
+#   - ventsys_fire_risk_cutoff (in this file)
+#
+# Uncomment the block below once plugs are configured, OR let MQTT discovery
+# create the entities automatically (in which case delete these stubs).
+#
+# switch:
+#   - platform: mqtt
+#     name: FDM Printer Plug
+#     unique_id: fdm_printer_plug
+#     command_topic: "cmnd/plug-fdm-printer/POWER"
+#     state_topic: "stat/plug-fdm-printer/POWER"
+#     payload_on: "ON"
+#     payload_off: "OFF"
+#
+#   - platform: mqtt
+#     name: SLA Printer Plug
+#     unique_id: sla_printer_plug
+#     command_topic: "cmnd/plug-sla-printer/POWER"
+#     state_topic: "stat/plug-sla-printer/POWER"
+#     payload_on: "ON"
+#     payload_off: "OFF"
+
+
+#  ->  AUTOMATIONS  ->  ->  ->  ->  ->  ->  ->  ->  ->  ->  ->  ->  ->  ->  ->
 
 
 automation:
