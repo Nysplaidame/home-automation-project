@@ -7,7 +7,7 @@
 #   bambuddy  — Bambu Lab P1S print management + HA integration
 #
 # Both containers use network_mode: host so they share the VM's eth0 (VLAN 30).
-# Bambuddy reaches the P1S at 192.168.1.200 via firewall rule (cctv -> lan).
+# Bambuddy reaches the P1S at 192.168.35.200 via firewall rule (cctv -> printers).
 # Bambuddy reaches Mosquitto at 192.168.20.101 via firewall rule (cctv -> automation).
 
 # FIX #27: `version:` key is deprecated in Docker Compose v2+ (ignored with a
@@ -75,7 +75,7 @@ services:
       # Bambuddy reads printer connection details from environment at startup.
       # Set these in /opt/frigate/.env alongside FRIGATE_RTSP_PASSWORD etc.
       # Alternatively, add the printer manually via the Bambuddy web UI after first start.
-      - BAMBU_PRINTER_IP=${BAMBU_PRINTER_IP}       # 192.168.1.200
+      - BAMBU_PRINTER_IP=${BAMBU_PRINTER_IP}       # 192.168.35.200
       - BAMBU_ACCESS_CODE=${BAMBU_ACCESS_CODE}      # from printer Developer Mode screen
       - BAMBU_SERIAL=${BAMBU_SERIAL}               # e.g. 01P09C411500579
       # MQTT publishing — Bambuddy pushes print events to Mosquitto on HA
@@ -114,7 +114,7 @@ services:
 #   Set the following in /opt/frigate/.env:
 #     FRIGATE_RTSP_PASSWORD=<camera password>
 #     FRIGATE_MQTT_PASSWORD=<mosquitto mqtt user password>
-#     BAMBU_PRINTER_IP=192.168.1.200
+#     BAMBU_PRINTER_IP=192.168.35.200
 #     BAMBU_ACCESS_CODE=<from printer Developer Mode screen>
 #     BAMBU_SERIAL=<serial number, e.g. 01P09C411500579>
 #     HA_LONG_LIVED_TOKEN=<optional — alternatively configure via Bambuddy web UI Phase 6.2>
