@@ -1,0 +1,125 @@
+graph TD
+    %% Router Core
+    subgraph ROUTER[GL.iNet GL-MT6000 Router]
+        CORE[Router Core<br/>DHCP Server<br/>DNS Server<br/>Bridge br-lan]
+    end
+    
+    %% VLAN Network Structure
+    subgraph NETWORK_SEGMENTS[Network Segments - VLAN Structure]
+        
+        %% Production VLANs
+        subgraph PRODUCTION[Production Networks]
+            VLAN_1[VLAN 1 - LAN<br/>192.168.1.0/24<br/>Main Users<br/>Phones, Laptops, TVs]
+            VLAN_10[VLAN 10 - Management<br/>192.168.10.0/24<br/>Admin Infrastructure<br/>Proxmox Host, Admin Devices]
+        end
+        
+        %% Service VLANs
+        subgraph SERVICES[Service Networks]
+            VLAN_20[VLAN 20 - Automation<br/>192.168.20.0/24<br/>Home Assistant<br/>Frigate, Node-RED]
+            VLAN_30[VLAN 30 - CCTV<br/>192.168.30.0/24<br/>Security Cameras<br/>NVR, Video Processing]
+            VLAN_40[VLAN 40 - Storage<br/>192.168.40.0/24<br/>Data Storage<br/>NAS, Backup Services]
+        end
+        
+        %% IoT and Monitoring
+        subgraph IOT_MONITORING[IoT and Monitoring]
+            VLAN_50[VLAN 50 - IoT Sensors<br/>192.168.50.0/24<br/>VentSys Ecosystem<br/>Environmental Sensors]
+            VLAN_60[VLAN 60 - Monitoring<br/>192.168.60.0/24<br/>Network Monitoring<br/>Future: Zabbix, Grafana]
+        end
+        
+        %% External Access
+        subgraph EXTERNAL[External Access]
+            VLAN_70[VLAN 70 - DMZ<br/>192.168.70.0/24<br/>Public Services<br/>Web Server, Database]
+            VLAN_99[VLAN 99 - Guest<br/>192.168.99.0/24<br/>Visitor Access<br/>Internet Only]
+        end
+    end
+    
+    %% VPN Network
+    subgraph VPN[VPN Access]
+        VPN_NET[VPN Network<br/>10.0.0.0/24<br/>Remote Access<br/>WireGuard Clients]
+    end
+    
+    %% WiFi SSID Mappings
+    subgraph WIFI[WiFi SSID Mappings]
+        SSID_MAIN[HomeMain<br/>2.4GHz + 5GHz<br/>WPA3-mixed] 
+        SSID_ADMIN[HomeAdmin<br/>5GHz Primary<br/>WPA3-only]
+        SSID_IOT[HomeIoT<br/>2.4GHz Ch.6<br/>WPA2 + Isolation]
+        SSID_GUEST[HomeGuest<br/>2.4GHz Ch.11<br/>WPA2 + Isolation]
+        SSID_DMZ[HomeDMZ<br/>5GHz<br/>WPA3 Disabled]
+    end
+    
+    %% Physical Port Assignments
+    subgraph PHYSICAL[Physical Port Assignment]
+        PORT_1[LAN1 - Trunk<br/>All VLANs to Proxmox<br/>Tagged: 10,20,30,40,50,60,70]
+        PORT_2[LAN2 - Management<br/>VLAN 10 Untagged<br/>Admin Direct Access]
+        PORT_3[LAN3 - Camera POE<br/>VLAN 30 Untagged<br/>Camera Switch]
+        PORT_4[LAN4 - NAS Direct<br/>VLAN 40 Untagged<br/>Storage Access]
+    end
+    
+    %% Legend
+    subgraph LEGEND[Connection Legend]
+        LEG_CORE[Core Router Connections - Black]
+        LEG_WIFI[WiFi SSID Mappings - Blue]  
+        LEG_TRUNK[Trunk Port Tagged - Orange Dashed]
+        LEG_DIRECT[Direct Port Untagged - Green]
+    end
+    
+    %% Core Router Connections (Black - Default)
+    CORE --> VLAN_1
+    CORE --> VLAN_10
+    CORE --> VLAN_20
+    CORE --> VLAN_30
+    CORE --> VLAN_40
+    CORE --> VLAN_50
+    CORE --> VLAN_60
+    CORE --> VLAN_70
+    CORE --> VLAN_99
+    CORE --> VPN_NET
+    
+    %% WiFi SSID to VLAN Connections (Blue)
+    SSID_MAIN -.-> VLAN_1
+    SSID_ADMIN -.-> VLAN_10
+    SSID_IOT -.-> VLAN_50
+    SSID_GUEST -.-> VLAN_99
+    SSID_DMZ -.-> VLAN_70
+    
+    %% Physical Port Trunk Connections (Orange Dashed)
+    PORT_1 ==> VLAN_10
+    PORT_1 ==> VLAN_20
+    PORT_1 ==> VLAN_30
+    PORT_1 ==> VLAN_40
+    PORT_1 ==> VLAN_50
+    PORT_1 ==> VLAN_60
+    PORT_1 ==> VLAN_70
+    
+    %% Physical Port Direct Connections (Green)
+    PORT_2 --> VLAN_10
+    PORT_3 --> VLAN_30
+    PORT_4 --> VLAN_40
+    
+    %% IP Address Information
+    subgraph IP_INFO[IP Address Allocation]
+        IP_RANGES[IP Address Ranges:<br/>Gateway: .1 on each network<br/>DHCP: .100+ ranges<br/>Static: .1-.99 reserved<br/>VPN: 10.0.0.1-4]
+    end
+    
+    %% Link Styles
+    linkStyle 0,1,2,3,4,5,6,7,8,9 stroke:#000000,stroke-width:2px
+    linkStyle 10,11,12,13,14 stroke:#2196f3,stroke-width:2px,stroke-dasharray: 5 5
+    linkStyle 15,16,17,18,19,20,21 stroke:#ff9800,stroke-width:3px,stroke-dasharray: 10 5
+    linkStyle 22,23,24 stroke:#4caf50,stroke-width:3px
+    
+    %% Styling
+    classDef prodStyle fill:#c8e6c9,stroke:#4caf50,stroke-width:2px
+    classDef serviceStyle fill:#e3f2fd,stroke:#2196f3,stroke-width:2px
+    classDef iotStyle fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    classDef externalStyle fill:#fce4ec,stroke:#e91e63,stroke-width:2px
+    classDef vpnStyle fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
+    classDef routerStyle fill:#e8eaf6,stroke:#3f51b5,stroke-width:3px
+    classDef legendStyle fill:#f5f5f5,stroke:#666666,stroke-width:1px
+    
+    class PRODUCTION,VLAN_1,VLAN_10 prodStyle
+    class SERVICES,VLAN_20,VLAN_30,VLAN_40 serviceStyle
+    class IOT_MONITORING,VLAN_50,VLAN_60 iotStyle
+    class EXTERNAL,VLAN_70,VLAN_99 externalStyle
+    class VPN,VPN_NET vpnStyle
+    class ROUTER,CORE routerStyle
+    class LEGEND,LEG_CORE,LEG_WIFI,LEG_TRUNK,LEG_DIRECT legendStyle
