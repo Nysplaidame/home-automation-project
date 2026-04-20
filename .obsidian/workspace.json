@@ -13,13 +13,12 @@
             "state": {
               "type": "split-diff-view",
               "state": {
-                "aFile": ".obsidian/workspace.json",
-                "bFile": ".obsidian/workspace.json",
-                "aRef": "HEAD",
-                "bRef": ""
+                "aFile": "Main/.claude/worktrees/romantic-tharp",
+                "bFile": "Main/.claude/worktrees/romantic-tharp",
+                "aRef": ""
               },
               "icon": "diff",
-              "title": "Diff: workspace.json"
+              "title": "Diff: romantic-tharp"
             }
           }
         ]
@@ -196,8 +195,9 @@
       "table-editor-obsidian:Advanced Tables Toolbar": false
     }
   },
-  "active": "7fa4cb8ccaca47e7",
+  "active": "74dcf7087707eefc",
   "lastOpenFiles": [
+    "conflict-files-obsidian-git.md",
     "main/_archive/20-04-26/configs/home-assistant/configuration.yaml",
     "main/_archive/20-04-26/configs/home-assistant/bambuddy_p1s_package.yaml",
     "main/_archive/20-04-26/configs/home-assistant/automations.yaml",
@@ -206,12 +206,10 @@
     "main/_archive/20-04-26/configs/esphome/ventsys_booth_fan.yaml",
     "main/_archive/20-04-26/configs/esphome/ventsys_booth_airflow.yaml",
     "main/_archive/20-04-26/configs/esphome/printairpipe-controller.yaml",
-    "conflict-files-obsidian-git.md",
     "main/_archive/20-04-26/settings.json",
     "main/_archive/20-04-26/unified-formatting-standard.md",
     "main/_archive/20-04-26/configs/esphome/ventsys_main_fan.yaml",
     "main/_archive/20-04-26/configs/esphome/ventsys_garage_sensor_pretls.yaml",
-    "main/_archive/20-04-26/configs/esphome/ventsys_garage_sensor.yaml",
     "main/_archive/20-04-26/_archive/openwrt_complete_config_phase_2.md",
     "main/_archive/20-04-26/_archive/ventsys_solution1_implementation.md",
     "main/_archive/20-04-26/bill-of-materials/hardware/parts-list.md",
