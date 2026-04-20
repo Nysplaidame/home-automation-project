@@ -4,39 +4,20 @@
     "type": "split",
     "children": [
       {
-        "id": "cd9eaa0ca341570a",
+        "id": "532702df6b2c12a2",
         "type": "tabs",
         "children": [
           {
-            "id": "493c7ccdc2eec492",
+            "id": "27457ccf20dc0bb6",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "main/home-automation-safety/docs/secrets_reference.md",
-                "mode": "source",
-                "source": false
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "secrets_reference"
-            }
-          },
-          {
-            "id": "78de3f43a90d5aad",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "main/wiki/pages/concepts/vlan-segmentation.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "vlan-segmentation"
+              "title": "New tab"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -207,15 +188,21 @@
       "obsidian-kanban:Create new board": false,
       "templater-obsidian:Templater": false,
       "obsidian-trash-explorer:Open trash explorer": false,
-      "table-editor-obsidian:Advanced Tables Toolbar": false,
-      "obsidian-excalidraw-plugin:New drawing": false
+      "table-editor-obsidian:Advanced Tables Toolbar": false
     }
   },
-  "active": "78de3f43a90d5aad",
+  "active": "27457ccf20dc0bb6",
   "lastOpenFiles": [
+    "main/home-automation-safety/docs/secrets_reference.md",
+    "README.md",
+    "main/wiki/index.md",
+    "main/wiki/log.md",
+    "main/wiki/raw/llm-wiki-idea-file.md",
+    "main/wiki/pages/concepts/vlan-segmentation.md",
+    "main/home-automation-safety/scripts/setup/proxmox/bambuddy_vm_setup_guide.md",
+    "main/home-automation-safety/docs/decisions/02-printer-vlan-architecture.md",
     "main/wiki/pages/concepts/ventsys-architecture.md",
     "main/wiki/pages/analyses/deployment-status-2026-04.md",
-    "main/wiki/index.md",
     "main/wiki/CLAUDE.md",
     "main/home-automation-safety/sales/Wedding_Planner.xlsx",
     "main/home-automation-safety/sales/Wedding_Planner_v5.xlsx",
@@ -242,13 +229,6 @@
     "main/wiki/pages/sources/proxmox-setup-guide.md",
     "main/home-automation-safety/Sales/DROP-IN-PROMPT.md",
     "main/wiki/pages/concepts/wireguard-vpn.md",
-    "main/wiki/pages/concepts/printairpipe.md",
-    "main/wiki/pages/concepts/mqtt-tls.md",
-    "main/wiki/pages/concepts/vlan-segmentation.md",
-    "main/wiki/pages/entities/raspberry-pi-nas.md",
-    "main/wiki/pages/entities/bambuddy.md",
-    "main/wiki/pages/entities/mosquitto-mqtt.md",
-    "main/wiki/pages/entities/esphome.md",
     "main/home-automation-safety/docs/diagrams/network/network-diagram-new.png",
     "Main/home-automation-safety/docs/diagrams/mermaid/packages/mermaid/src/docs/syntax/img/zenuml-participant-annotators.png",
     "Main/home-automation-safety/docs/diagrams/mermaid/packages/mermaid/src/docs/syntax/img/Gantt-long-weekend-look.png",
