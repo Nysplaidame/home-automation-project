@@ -4,24 +4,39 @@
     "type": "split",
     "children": [
       {
-        "id": "e5a254e4c0343dd6",
+        "id": "532702df6b2c12a2",
         "type": "tabs",
         "children": [
           {
-            "id": "7fa4cb8ccaca47e7",
+            "id": "27457ccf20dc0bb6",
             "type": "leaf",
             "state": {
-              "type": "split-diff-view",
+              "type": "markdown",
               "state": {
-                "aFile": "Main/.claude/worktrees/romantic-tharp",
-                "bFile": "Main/.claude/worktrees/romantic-tharp",
-                "aRef": ""
+                "file": "README.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "diff",
-              "title": "Diff: romantic-tharp"
+              "icon": "lucide-file",
+              "title": "README"
+            }
+          },
+          {
+            "id": "f89b3011fd82f0e8",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "conflict-files-obsidian-git.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "conflict-files-obsidian-git"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -80,8 +95,8 @@
             "state": {
               "type": "trash-explorer",
               "state": {},
-              "icon": "trash",
-              "title": "Trash explorer"
+              "icon": "lucide-ghost",
+              "title": "trash-explorer"
             }
           }
         ],
@@ -186,53 +201,53 @@
       "templates:Insert template": false,
       "command-palette:Open command palette": false,
       "bases:Create new base": false,
+      "table-editor-obsidian:Advanced Tables Toolbar": false,
       "obsidian42-brat:BRAT": false,
-      "mermaid-tools:Open Mermaid Toolbar": false,
       "obsidian-git:Open Git source control": false,
       "obsidian-kanban:Create new board": false,
+      "mermaid-tools:Open Mermaid Toolbar": false,
       "templater-obsidian:Templater": false,
-      "obsidian-trash-explorer:Open trash explorer": false,
-      "table-editor-obsidian:Advanced Tables Toolbar": false
+      "obsidian-trash-explorer:Open trash explorer": false
     }
   },
-  "active": "74dcf7087707eefc",
+  "active": "f89b3011fd82f0e8",
   "lastOpenFiles": [
+    "README.md",
     "conflict-files-obsidian-git.md",
-    "main/_archive/20-04-26/configs/home-assistant/configuration.yaml",
-    "main/_archive/20-04-26/configs/home-assistant/bambuddy_p1s_package.yaml",
-    "main/_archive/20-04-26/configs/home-assistant/automations.yaml",
-    "main/_archive/20-04-26/configs/esphome/ventsys_plug_tapo_p110_notes.md",
-    "main/_archive/20-04-26/configs/esphome/ventsys_booth_sensor.yaml",
-    "main/_archive/20-04-26/configs/esphome/ventsys_booth_fan.yaml",
-    "main/_archive/20-04-26/configs/esphome/ventsys_booth_airflow.yaml",
-    "main/_archive/20-04-26/configs/esphome/printairpipe-controller.yaml",
-    "main/_archive/20-04-26/settings.json",
-    "main/_archive/20-04-26/unified-formatting-standard.md",
-    "main/_archive/20-04-26/configs/esphome/ventsys_main_fan.yaml",
-    "main/_archive/20-04-26/configs/esphome/ventsys_garage_sensor_pretls.yaml",
-    "main/_archive/20-04-26/_archive/openwrt_complete_config_phase_2.md",
-    "main/_archive/20-04-26/_archive/ventsys_solution1_implementation.md",
-    "main/_archive/20-04-26/bill-of-materials/hardware/parts-list.md",
-    "main/_archive/20-04-26/bill-of-materials/3d-printing/parts-list.md",
-    "main/_archive/20-04-26/_archive/openwrt_script_analysis.md",
-    "main/_archive/20-04-26/_archive/README.md",
-    "main/_archive/20-04-26/_archive/ventsys-execution-guide-prompt.md",
-    "main/_archive/20-04-26/_archive/full-config.md",
-    "main/_archive/20-04-26/router-security-recommendations.md",
-    "main/_archive/20-04-26/openwrt_offline_testing_guide.md",
-    "main/_archive/20-04-26/README.md",
-    "main/_archive/20-04-26/TO-DO.md",
-    "main/_archive/20-04-26/PROJECT-INDEX.md",
-    "main/_archive/20-04-26/ventsys/integration-process/ventsys_tls_implementation_guide.md",
-    "main/_archive/20-04-26/ventsys/integration-process/ventsys_complete_implementation_plan.md",
-    "main/_archive/20-04-26/ventsys/integration-process/ventsys_technical_specifications.md",
-    "main/_archive/20-04-26/ventsys/integration-process/ventsys_network_integration_analysis.md",
-    "main/_archive/20-04-26/ventsys/integration-process/ventsys_implementation_roadmap.md",
-    "main/_archive/20-04-26/scripts/setup/ventsys/Code/ventsys_week1_execution_simple_execution_guide.md",
-    "main/_archive/20-04-26/scripts/setup/ventsys/ventsys_week1_execution_guide.md",
-    "main/_archive/20-04-26/scripts/setup/ventsys/ventsys_phase5_diagnostics.md",
-    "main/_archive/20-04-26/scripts/setup/ventsys/ventsys_phase6_integration.md",
-    "main/_archive/20-04-26/docs/diagrams/network/network-diagram-new.png",
+    "main/tests/unit/test_extractor.py",
+    "main/frontend/src/lib/downloads.ts",
+    "main/backend/app/api/v1/endpoints/imports.py",
+    "main/backend/app/api/v1/endpoints/downloads.py",
+    "main/backend/app/services/downloader.py",
+    "main/backend/app/services/thumbnails.py",
+    "main/backend/app/services/extractor.py",
+    "main/backend/app/services/file_ops.py",
+    "main/backend/app/services/storage.py",
+    "main/backend/app/services/job_runner.py",
+    "main/docs/prompts/JAMES_MASTER_PROMPT_v4.md",
+    "main/docs/prompts/CLAUDE.md",
+    "SKILL_ROUTING.md",
+    "Welcome.md",
+    "CLAUDE.md",
+    "main/docs/spec/01_overview.md",
+    "main/docs/spec/02_game_packs.md",
+    "main/home-automation-safety/docs/secrets_reference.md",
+    "main/wiki/index.md",
+    "main/wiki/log.md",
+    "main/wiki/raw/llm-wiki-idea-file.md",
+    "main/wiki/pages/concepts/vlan-segmentation.md",
+    "main/home-automation-safety/scripts/setup/proxmox/bambuddy_vm_setup_guide.md",
+    "main/home-automation-safety/docs/decisions/02-printer-vlan-architecture.md",
+    "main/wiki/pages/concepts/ventsys-architecture.md",
+    "main/wiki/pages/analyses/deployment-status-2026-04.md",
+    "main/wiki/CLAUDE.md",
+    "main/home-automation-safety/sales/DROP-IN-PROMPT.md",
+    "main/wiki/pages/entities/tplink-ap.md",
+    "main/wiki/pages/entities/monitoring-vm.md",
+    "main/wiki/pages/sources/bambuddy-p1s-setup-guide.md",
+    "main/wiki/pages/sources/esphome-adoption-guide.md",
+    "main/wiki/pages/sources/network-testing-guide.md",
+    "main/wiki/pages/entities/bambu-p1s.md",
     "main/home-automation-safety/docs/diagrams/network/network-diagram-new.png",
     "Main/home-automation-safety/docs/diagrams/mermaid/packages/mermaid/src/docs/syntax/img/zenuml-participant-annotators.png",
     "Main/home-automation-safety/docs/diagrams/mermaid/packages/mermaid/src/docs/syntax/img/Gantt-long-weekend-look.png",
