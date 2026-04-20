@@ -1,8 +1,0 @@
-﻿[
-  {
-    "id":"ventsys-arbitrate","type":"function","z":"ventsys-system-tab","name":"Arbitrate (Booth priority)",
-    "func":"const booth=Number(flow.get('boothDemand')||0); const sla=Number(flow.get('slaDemand')||0); const fdm=Number(flow.get('fdmDemand')||0); let boothOut=booth, slaOut=sla, fdmOut=fdm; if(booth>0){ slaOut=Math.max(0,Math.floor(sla*0.7)); fdmOut=Math.max(0,Math.floor(fdm*0.7)); } let fanPct=Math.min(100,Math.max(boothOut,slaOut,fdmOut)); return [ {payload:slaOut}, {payload:fdmOut}, {payload:boothOut}, {payload:fanPct} ];",
-    "outputs":4,"noerr":0,"initialize":"","finalize":"","libs":[],
-    "x":420,"y":260,"wires":[["ventsys-sla-valve"],["ventsys-fdm-valve"],["ventsys-booth-valve"],["ventsys-fan-percent","ventsys-fan-percent-state"]]
-  }
-]
