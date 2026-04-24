@@ -64,6 +64,13 @@ ota:
 logger:
   level: WARN
 
+# ── TIME SYNC ────────────────────────────────────────────────────────────────
+# Required for MQTT TLS certificate validation — ESP32 boots at 1970-01-01.
+# A6-1 fix: added to match pattern established by ventsys_fdm_airflow.yaml.
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
 status_led:
   pin:
     number: GPIO2

@@ -75,7 +75,15 @@ sensor:
 
   - platform: mqtt
     name: Garage Ambient Pressure
-    unique_id: ventsys_garage_baro_pressure
+    unique_id: ventsys_garage_ambient_pressure
+    # A6-4 fix: renamed unique_id from ventsys_garage_baro_pressure to
+    # ventsys_garage_ambient_pressure. The main package (ventsys_ha_package.yaml)
+    # already defines unique_id: ventsys_garage_baro_pressure for the same topic.
+    # HA refuses to register the second entity when both packages are loaded,
+    # logging a configuration error and silently dropping this entity. The rename
+    # gives each a distinct unique_id. The entity_id this generates
+    # (sensor.garage_ambient_pressure) is what the template sensors below
+    # reference — this must remain consistent.
     state_topic: "ventsys/garage/baro_pressure"
     unit_of_measurement: "hPa"
     device_class: pressure

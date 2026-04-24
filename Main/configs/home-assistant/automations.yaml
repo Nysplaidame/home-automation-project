@@ -260,11 +260,17 @@
 - id: pressure_diff_fault
   alias: "AIR — Differential pressure fault — airflow blocked"
   description: >
-    Low differential pressure means the fan is running but nothing is moving — valve blocked or fan fault.
-    DEPENDENCY: sensor.fdm_pressure_differential and sensor.sla_pressure_differential are defined in
-    ventsys_ha_optional.yaml. That file MUST be loaded as a package alongside ventsys_ha_package.yaml
-    for this automation to function. Without it these sensor entities don't exist and the trigger
-    never fires — no error is shown, it just silently does nothing.
+    Low differential pressure on the ADC duct sensor (GPIO35) while the fan is running
+    means air is not moving — valve blocked, duct obstruction, or fan fault.
+    Sensors are defined in ventsys_ha_package.yaml (main package — always loaded).
+    Unit: Pascals. Threshold: <5 Pa = effectively no airflow detected.
+    NOTE: These ADC sensors are separate from the BME680 barometric differential
+    sensors in ventsys_ha_optional.yaml. Do not confuse them — the optional package
+    sensors operate in hPa (~-0.05 hPa typical) and are NOT referenced here.
+    A6-3 fix: entity IDs updated to match new sensor definitions in ventsys_ha_package.yaml.
+    Previously referenced non-existent entities and had a misleading dependency note
+    pointing at ventsys_ha_optional.yaml, which caused this automation to silently
+    never fire even when the optional package was loaded (hPa values always < 5).
   mode: single
   trigger:
     - platform: numeric_state

@@ -288,7 +288,8 @@ echo "HomeDMZ SSID configured (disabled)" >> /tmp/deployment_logs/phase5.log
 # stable channel, and 6 is a standard non-overlapping 2.4GHz channel.
 
 echo "Channel strategy: radio0 fixed channel 6 (set in step 5.2), radio1 auto (set in step 5.2)" >> /tmp/deployment_logs/phase5.log
-echo "No per-interface channel overrides possible — mac80211 architecture" >> /tmp/deployment_logs/phase5.log
+echo "No per-interface channel overrides possible — mac80211 architecture" &gt;&gt; /tmp/deployment_logs/phase5.log
+
 ```
 
 ## Phase 5 Testing and Validation
@@ -328,8 +329,8 @@ done
 
 echo "Wireless configuration applied" >> /tmp/deployment_logs/phase5.log
 ```
-
 ### 5.10 SSID Visibility and Configuration Validation
+
 **Duration**: 25 minutes
 
 ```bash
@@ -359,6 +360,7 @@ cat /tmp/phase5_ssid_test.txt
 ```
 
 ### 5.11 VLAN Mapping Validation
+
 **Duration**: 20 minutes
 
 ```bash
@@ -368,6 +370,7 @@ echo "=== VLAN Mapping Validation ===" > /tmp/phase5_vlan_mapping_test.txt
 mappings=(
     "HomeMain:lan"
     "HomeAdmin:management"
+```
     "HomePrinters:printers"
     "HomeIoT:iot_sensors"
     "HomeGuest:guest"

@@ -1,6 +1,8 @@
 # Frigate NVR Configuration
-# Host: 192.168.30.20 — VLAN 30 (CCTV)
+# Host: 192.168.30.20 — VLAN 30 (NVR)
 # Deployed via: /opt/frigate/config/config.yml on frigate-nvr VM
+# A6-11 fix: zone label corrected from "CCTV" to "NVR" (renamed across all
+# configs in docs/decisions/02-printer-vlan-architecture.md).
 # See: scripts/setup/proxmox/frigate_vm_setup_guide.md
 
 mqtt:

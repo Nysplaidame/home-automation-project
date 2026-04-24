@@ -997,6 +997,48 @@ sensor:
     expire_after: 120
 
 
+  #  ->  ADC Airflow Pressure Differential (Pa) ──────────────────────────────
+  # A6-3 fix (#12): ADC-based pressure differential sensors on GPIO35 of each
+  # sensor board publish to these topics but had no HA entity defined — data
+  # was being silently dropped by Mosquitto with no subscriber.
+  #
+  # These are SEPARATE from the BME680 baro_pressure sensors in
+  # ventsys_ha_optional.yaml. That file uses barometric hPa differentials for
+  # the PID control loop. These ADC sensors measure a physical pressure port
+  # across the duct and are used by pressure_diff_fault automation to detect
+  # blocked valves (expected value: >5 Pa when fan is running and duct is clear).
+  #
+  # Unit: Pascals (Pa). Calibration: adjust the multiply filter in
+  # printairpipe-controller.yaml GPIO35 config after installation.
+  # Expected range: 0 Pa (stopped/blocked) to ~50–200 Pa (running, clear duct).
+  - platform: mqtt
+    name: FDM Pressure Differential
+    unique_id: ventsys_fdm_pressure_differential
+    state_topic: "ventsys/fdm/pressure_diff"
+    unit_of_measurement: "Pa"
+    device_class: pressure
+    state_class: measurement
+    expire_after: 120
+
+  - platform: mqtt
+    name: SLA Pressure Differential
+    unique_id: ventsys_sla_pressure_differential
+    state_topic: "ventsys/sla/pressure_diff"
+    unit_of_measurement: "Pa"
+    device_class: pressure
+    state_class: measurement
+    expire_after: 120
+
+  - platform: mqtt
+    name: Booth Pressure Differential
+    unique_id: ventsys_booth_pressure_differential
+    state_topic: "ventsys/booth/pressure_diff"
+    unit_of_measurement: "Pa"
+    device_class: pressure
+    state_class: measurement
+    expire_after: 120
+
+
 #  ->  BINARY SENSOR ENTITIES ──────────────────────────────────────────────────
 
 

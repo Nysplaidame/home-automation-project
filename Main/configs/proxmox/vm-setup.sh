@@ -6,6 +6,9 @@
 # Creates:
 #   VM 100 — Home Assistant OS    (VLAN 20, 192.168.20.101)
 #   VM 101 — Frigate NVR Debian   (VLAN 30, 192.168.30.20)
+#   VM 103 — Bambuddy Debian      (VLAN 20, 192.168.20.102)
+#
+# A6-7 fix: VM 103 added (was missing — audit finding #7).
 #
 # Prerequisites:
 #   - HAOS qcow2 image imported per proxmox_setup_guide.md Phase D
@@ -19,7 +22,7 @@ STORAGE="local-lvm"
 ISO_STORAGE="local"
 
 echo "=== Proxmox VM Creation ==="
-echo "Creating VM 100 (Home Assistant) and VM 101 (Frigate NVR)"
+echo "Creating VM 100 (Home Assistant), VM 101 (Frigate NVR), VM 103 (Bambuddy)"
 echo ""
 
 # ============================================================================
@@ -126,6 +129,56 @@ echo "✓ VM 101 created"
 echo ""
 
 # ============================================================================
+# VM 103 — Bambuddy (Debian 12)
+# A6-7 fix: VM 103 was missing from this script (audit finding #7).
+# Bambuddy is the Bambu Lab P1S print management integration.
+# Runs on VLAN 20 (Automation) at 192.168.20.102.
+# See: scripts/setup/proxmox/bambuddy_vm_setup_guide.md for full setup.
+# ============================================================================
+
+echo "--- Creating VM 103: Bambuddy (Debian 12) ---"
+
+# Reuse Debian ISO found above
+if [ -z "$DEBIAN_ISO" ]; then
+    DEBIAN_ISO=$(ls /var/lib/vz/template/iso/debian-12*.iso 2>/dev/null | head -1)
+    if [ -z "$DEBIAN_ISO" ]; then
+        echo "ERROR: No Debian 12 ISO found. Download and retry."
+        exit 1
+    fi
+    DEBIAN_ISO_NAME=$(basename "$DEBIAN_ISO")
+fi
+
+qm create 103 \
+    --name bambuddy \
+    --machine q35 \
+    --bios ovmf \
+    --ostype l26 \
+    --sockets 1 \
+    --cores 1 \
+    --cpu host \
+    --memory 1024 \
+    --balloon 0 \
+    --scsihw virtio-scsi-single \
+    --boot order=scsi0 \
+    --onboot 1 \
+    --startup order=3 \
+    --tablet 0 \
+    --net0 virtio,bridge=vmbr0,tag=20
+
+qm set 103 \
+    --efidisk0 ${STORAGE}:4M,efitype=4m,pre-enrolled-keys=0
+
+# 16GB system disk — sufficient for Debian minimal + Docker + Bambuddy data
+qm set 103 \
+    --scsi0 ${STORAGE}:16,cache=writeback,discard=on,ssd=1
+
+qm set 103 \
+    --ide2 ${ISO_STORAGE}:iso/${DEBIAN_ISO_NAME},media=cdrom
+
+echo "✓ VM 103 created"
+echo ""
+
+# ============================================================================
 # SUMMARY
 # ============================================================================
 
@@ -133,7 +186,7 @@ echo "============================================"
 echo "VM CREATION COMPLETE"
 echo "============================================"
 echo ""
-qm list | grep -E "(VMID|100|101)"
+qm list | grep -E "(VMID|100|101|103)"
 echo ""
 echo "NEXT STEPS:"
 echo ""
@@ -150,12 +203,17 @@ echo "  3. Follow frigate_vm_setup_guide.md from Phase 2"
 echo "  4. Note MAC: qm config 101 | grep net0"
 echo "  5. Remove ISO after install: qm set 101 --delete ide2"
 echo ""
-echo "IMPORTANT: After both VMs are up, note their MAC addresses:"
-echo "  qm config 100 | grep net0"
-echo "  qm config 101 | grep net0"
-echo "Add the MACs to configs/openwrt/dhcp-config.conf (home-assistant and"
-echo "frigate-nvr host entries), then re-apply the DHCP config section to the"
-echo "router per Phase 3 of router_setup_complete.md for static reservations."
+echo "VM 103 — Bambuddy:"
+echo "  1. Start: qm start 103"
+echo "  2. Open console in Proxmox web UI to complete Debian install"
+echo "  3. Follow scripts/setup/proxmox/bambuddy_vm_setup_guide.md"
+echo "  4. Note MAC: qm config 103 | grep net0"
+echo "  5. Remove ISO after install: qm set 103 --delete ide2"
+echo ""
+echo "IMPORTANT: After all VMs are up, note their MAC addresses and add to"
+echo "  configs/openwrt/dhcp-config.conf (home-assistant, frigate-nvr,"
+echo "  and bambuddy host entries), then re-apply the DHCP config to the"
+echo "  router per Phase 3 of router_setup_complete.md."
 echo ""
 echo "iGPU PASSTHROUGH for Frigate (after confirming IOMMU active):"
 echo "  See frigate_vm_setup_guide.md Phase 6"
