@@ -90,7 +90,7 @@ Then configure the MQTT integration:
 Click Submit. You should see "Connected".
 
 > **TLS hardening** is covered separately in
-> `ventsys/integration-process/ventsys_tls_implementation_guide.md`.
+> `docs/procedures/ssl_tls_guide.md`.
 > The MQTT broker must be working unencrypted first before adding TLS.
 
 ### 2.2 — File Editor
@@ -232,7 +232,7 @@ mosquitto_pub -h localhost -p 1883 -u mqtt -P <password> \
 You should see `ventsys/fan/control on` appear in the subscriber window.
 
 > **TLS note (A9-1):** Commands above use port 1883 (Stage 1 pre-TLS only).
-> After MQTT TLS migration (ventsys_tls_implementation_guide.md Phase 4),
+> After MQTT TLS migration (`docs/procedures/ssl_tls_guide.md`),
 > Mosquitto only listens on port 8883. Switch to:
 > mosquitto_sub -h localhost -p 8883 --cafile /ssl/ca.crt -u mqtt -P <password> -t ventsys/# -v
 
@@ -263,7 +263,7 @@ Search for `Frigate` — if not found, add it via HACS first (see 5.2).
 > a metrics/debug endpoint only. Check your deployed Frigate version:
 > `docker inspect frigate | grep -i image` on the Frigate VM, then use 5000
 > (≤0.13) or 8971 (≥0.14) accordingly. Update this guide and the firewall
-> rule `HA to CCTV Access` in `firewall-config.conf` to match.
+> rule `HA to NVR Access` in `firewall-config.conf` to match.
 
 ### 5.2 — HACS (optional — needed for Frigate integration card)
 
@@ -393,8 +393,8 @@ Add a network storage location:
 
 1. ESPHome device adoption — when VentSys ESP32 boards are flashed and online,
    they'll appear in the ESPHome add-on for adoption
-2. MQTT TLS — `ventsys/integration-process/ventsys_tls_implementation_guide.md`
+2. MQTT TLS — `docs/procedures/ssl_tls_guide.md`
 3. Frigate VM setup — `scripts/setup/proxmox/frigate_vm_setup_guide.md`
-4. Bambuddy + P1S printer integration — `scripts/setup/printers/bambuddy_p1s_setup_guide.md`
-   (Bambuddy runs on the Frigate VM; complete step 3 first)
+4. Bambuddy + P1S printer integration — `scripts/setup/proxmox/bambuddy_vm_setup_guide.md`
+   (Bambuddy runs on dedicated VM 103 at 192.168.20.102)
 5. NAS integration — when Raspberry Pi NAS is configured on VLAN 40

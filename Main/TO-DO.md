@@ -17,11 +17,11 @@ status: active
 
 ## Immediate next actions (unblocked right now)
 
-- [ ] Deploy GL-MT6000 router — run `router_setup_complete.md` phases 1–8
+- [ ] Deploy GL-MT6000 router — run `scripts/setup/router/` phases 1–8, starting with `phase_1_prerequisites.md`
 - [ ] After router live: run `network_testing_guide.md` full pass/fail checklist
 - [ ] Install Proxmox on MINIX, run `proxmox_setup_guide.md`
-- [ ] Run `configs/proxmox/vm-setup.sh` to create VMs 100 and 101
-- [ ] Note MAC addresses for both VMs → update `configs/openwrt/dhcp-config.conf`
+- [ ] Run `configs/proxmox/vm-setup.sh` to create VMs 100, 101, and 103
+- [ ] Note MAC addresses for all created VMs → update `configs/openwrt/dhcp-config.conf`
 - [ ] Deploy HA via `ha_vm_setup_guide.md`; copy VentSys packages + dashboard
 - [ ] Deploy Frigate VM via `frigate_vm_setup_guide.md`
 
@@ -30,7 +30,7 @@ status: active
 ## Phase 1 — Network ✅ Configs complete / ⏳ Deployment pending
 
 ### Configuration (all complete)
-- [x] 9-VLAN architecture designed ✅
+- [x] 10-segment architecture designed ✅
 - [x] `vlan-config.conf` — bridge, VLANs, interfaces, WireGuard ✅
 - [x] `firewall-config.conf` — zones, inter-VLAN rules, VentSys ports ✅
 - [x] `dhcp-config.conf` — scopes, reservations, DNS ✅
@@ -60,14 +60,15 @@ status: active
 - [ ] Set static IP 192.168.10.10 on vmbr0.10
 - [ ] Enable IOMMU (intel_iommu=on) for iGPU passthrough
 - [ ] Run `configs/proxmox/vm-setup.sh`
-- [ ] Configure Proxmox daily backup (Datacenter → Backup, 02:00, VMs 100+101)
+- [ ] Configure Proxmox daily backup (Datacenter → Backup, 02:00, VMs 100+101+103)
 
 ### Home Assistant VM (VM 100)
 - [ ] Start VM 100, complete HAOS onboarding wizard
 - [ ] Set static IP 192.168.20.101 via nmcli
 - [ ] Install add-ons: Mosquitto, File Editor, Terminal, ESPHome
-- [ ] Configure MQTT integration (localhost:1883)
-- [ ] Copy `ventsys_ha_package.yaml`, `ventsys_ha_scripts.yaml`, `ventsys_ha_optional.yaml` to `/config/packages/`
+- [ ] Configure MQTT integration (`localhost:1883` for Stage 1 pre-TLS; switch to `localhost:8883` after TLS migration)
+- [ ] Copy `ventsys_ha_package.yaml` and `ventsys_ha_scripts.yaml` to `/config/packages/`
+- [ ] Do not copy `ventsys_ha_optional.yaml` yet (load only after its prerequisites are met)
 - [ ] Copy `ventilation_v9k.html` to `/config/www/ventsys-dashboard.html`
 - [ ] Generate Long-Lived Token → paste into `HA_CONFIG.token` in dashboard
 - [ ] Confirm dashboard shows ◉ HA LIVE
@@ -80,11 +81,12 @@ status: active
 - [ ] Note MAC → add to dhcp-config.conf
 - [ ] Install Docker (official repo)
 - [ ] Deploy `configs/frigate/config.yml` to `/opt/frigate/config/`
-- [ ] Create `/opt/frigate/.env` with FRIGATE_RTSP_PASSWORD, FRIGATE_MQTT_PASSWORD, BAMBU_PRINTER_IP, BAMBU_ACCESS_CODE, BAMBU_SERIAL (HA_LONG_LIVED_TOKEN optional — can configure Bambuddy HA connection via web UI instead)
-- [ ] Create host dirs: `mkdir -p /opt/frigate/{db,bambuddy/data,bambuddy/logs}`
-- [ ] Start Frigate + Bambuddy: `docker compose up -d`
+- [ ] Create `/opt/frigate/.env` with FRIGATE_RTSP_PASSWORD and FRIGATE_MQTT_PASSWORD
+- [ ] Create host dirs: `mkdir -p /opt/frigate/db`
+- [ ] Start Frigate: `docker compose up -d`
 - [ ] Confirm Frigate UI at http://192.168.30.20:8971 (Frigate 0.14+) or :5000 (<0.14)  # A9-4 fix
-- [ ] Confirm Bambuddy UI at http://192.168.30.20:8000
+- [ ] Deploy Bambuddy on VM 103 via `scripts/setup/proxmox/bambuddy_vm_setup_guide.md`
+- [ ] Confirm Bambuddy UI at http://192.168.20.102:8000
 - [ ] Add Frigate integration in HA
 - [ ] Copy `configs/home-assistant/bambuddy_p1s_package.yaml` to `/config/packages/` on HA
 - [ ] Replace `<P1S_SERIAL>` placeholder in bambuddy_p1s_package.yaml with real serial
@@ -96,7 +98,7 @@ status: active
 ## Phase 3 — VentSys fire safety ⏳ Hardware pending
 
 ### Hardware procurement
-- [ ] 2× ESP32-DevKitC (sensor boards — enc-fdm, enc-sla)
+- [ ] 2× ESP32-DevKitC (sensor boards — ventsys-fdm-sensor, ventsys-sla-sensor)
 - [ ] 1× ESP32-DevKitC (fan controller — already wired to GPIO23)
 - [ ] 1× ESP32-DevKitC (valve controller — already wired to GPIO18)
 - [ ] 4× DS18B20 waterproof temperature probe
@@ -154,7 +156,7 @@ status: active
 
 ---
 
-## Phase 5 — CCTV ⏳
+## Phase 5 — NVR / Cameras ⏳
 
 - [ ] Select PoE IP camera models (H.265, RTSP, compatible with Frigate)
 - [ ] Purchase 4× cameras and PoE switch
@@ -168,7 +170,7 @@ status: active
 
 ## Phase 6 — Security hardening
 
-- [ ] Set up MQTT TLS (8883) — follow `ventsys_tls_implementation_guide.md`
+- [ ] Set up MQTT TLS (8883) — follow `docs/procedures/ssl_tls_guide.md`
 - [ ] Remove temporary 1883 firewall rule after TLS confirmed working
 - [ ] Enable HTTPS on HA — follow `ssl_tls_guide.md` (choose Option A/B/C)
 - [ ] Configure Fail2ban on Frigate VM

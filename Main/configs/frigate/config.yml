@@ -11,9 +11,9 @@ mqtt:
   port: 8883
   # H-5 fix: TLS config activated. Cert files must be present in the container
   # at /config/certs/ — see the volume mount added to docker-compose.yml (H-6).
-  # Cert paths match the local CA created in ventsys_tls_implementation_guide.md.
+  # Cert paths match the local CA workflow in docs/procedures/ssl_tls_guide.md.
   tls_insecure: false
-  tls_ca_cert: /config/certs/ca-cert.pem
+  tls_ca_certs: /config/certs/ca-cert.pem
   user: mqtt
   # FIX #14: {FRIGATE_RTSP_PASSWORD} was copy-pasted from the camera RTSP URL
   # substitution pattern. That env var holds the camera RTSP password, which is

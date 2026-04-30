@@ -1,5 +1,5 @@
 # Frigate NVR VM — Setup Guide
-**VM ID:** 101  **IP:** 192.168.30.20 — VLAN 30 (CCTV)
+**VM ID:** 101  **IP:** 192.168.30.20 — VLAN 30 (NVR)
 **Host:** Proxmox on MINIX NEO Z350
 **Cameras:** 4x IP cameras at 192.168.30.21–24
 **Storage:** Local SSD + NAS at 192.168.40.50
@@ -134,12 +134,7 @@ ufw allow from 192.168.20.0/24 to any port 8971    # HA -> Frigate web/API (Frig
 ufw allow from 192.168.10.0/24 to any port 8971    # Management -> Frigate UI (Frigate 0.14+)
 ufw allow from 192.168.20.0/24 to any port 8554    # HA -> RTSP restream
 ufw allow from 192.168.10.0/24 to any port 22      # Management SSH
-# FIX #13: Bambuddy was added to this VM after the guide was written. Port 8000
-# (Bambuddy web UI + REST API) was missing from UFW. Without it, UFW drops all
-# Bambuddy traffic before it reaches the process -- the web UI is unreachable
-# from HA and management, and HA REST API calls to Bambuddy fail silently.
-ufw allow from 192.168.20.0/24 to any port 8000    # HA -> Bambuddy API
-ufw allow from 192.168.10.0/24 to any port 8000    # Management -> Bambuddy UI
+# Bambuddy runs on dedicated VM 103. Do not open port 8000 on VM 101.
 ufw enable
 ```
 
@@ -176,8 +171,8 @@ mkdir -p /opt/frigate/db
 
 ### 3.3 — Docker Compose file
 
-> **FIX #15:** The inline compose below now matches `configs/frigate/docker-compose.yml`
-> in the safety vault, including Bambuddy, the `/db` volume, the separate MQTT password
+> The inline compose below now matches `configs/frigate/docker-compose.yml`
+> in the safety vault, including the `/db` volume, the separate MQTT password
 > variable, and the NAS mount commented out pending Phase 4. Keep both in sync if you
 > edit either — the vault file is the authoritative source; copy it here when it changes.
 
@@ -203,49 +198,21 @@ services:
       # NAS recordings -- uncomment after Phase 4 NAS setup:
       # - /mnt/nas/frigate:/media/frigate/recordings
       - /etc/localtime:/etc/localtime:ro
-    ports:
-      - "5000:5000"   # Frigate <0.14 web UI
-      - "8971:8971"   # H-7 fix: Frigate 0.14+ web UI (note: network_mode: host in vault docker-compose.yml makes ports: entries redundant - included here for bridge-mode reference)
-      - "8554:8554"
-      - "8555:8555/tcp"
-      - "8555:8555/udp"
+      - /opt/frigate/certs:/config/certs:ro
     environment:
       - FRIGATE_RTSP_PASSWORD=${FRIGATE_RTSP_PASSWORD}
       - FRIGATE_MQTT_PASSWORD=${FRIGATE_MQTT_PASSWORD}
     network_mode: host
+    tmpfs:
+      - /tmp/cache
 
-  bambuddy:
-    container_name: bambuddy
-    image: ghcr.io/maziggy/bambuddy:latest
-    restart: unless-stopped
-    network_mode: host
-    environment:
-      - TZ=Europe/London
-      - PORT=8000
-      - BAMBU_PRINTER_IP=${BAMBU_PRINTER_IP}
-      - BAMBU_ACCESS_CODE=${BAMBU_ACCESS_CODE}
-      - BAMBU_SERIAL=${BAMBU_SERIAL}
-      - MQTT_HOST=192.168.20.101
-      # F-C fix: was MQTT_PORT=1883 (stale — pre-TLS). The vault file at
-      # configs/frigate/docker-compose.yml is authoritative and has MQTT_PORT=8883.
-      # Port 1883 is closed post-TLS migration. Do NOT use 1883 here.
-      - MQTT_PORT=8883
-      - MQTT_USER=mqtt
-      - MQTT_PASSWORD=${FRIGATE_MQTT_PASSWORD}
-      # - HA_URL=http://192.168.20.101:8123
-      # - HA_TOKEN=${HA_LONG_LIVED_TOKEN}
-    volumes:
-      - /opt/frigate/bambuddy/data:/app/data
-      - /opt/frigate/bambuddy/logs:/app/logs
 COMPOSE
 
 # BEFORE FIRST START:
 mkdir -p /opt/frigate/db
-mkdir -p /opt/frigate/bambuddy/{data,logs}
+mkdir -p /opt/frigate/certs
 # Set all variables in /opt/frigate/.env:
-# FRIGATE_RTSP_PASSWORD, FRIGATE_MQTT_PASSWORD,
-# BAMBU_PRINTER_IP, BAMBU_ACCESS_CODE, BAMBU_SERIAL
-# HA_LONG_LIVED_TOKEN (optional — can configure via Bambuddy web UI)
+# FRIGATE_RTSP_PASSWORD, FRIGATE_MQTT_PASSWORD
 ```
 
 ### 3.4 — Frigate config.yml
@@ -260,9 +227,9 @@ mqtt:
   host: 192.168.20.101
   port: 8883  # A9-3 fix: was 1883 (pre-TLS). Post-TLS system uses 8883.
   # Stage 1 (pre-TLS initial setup): change to port 1883 for first test,
-  # then switch back to 8883 after ventsys_tls_implementation_guide.md Phase 4.
+  # then switch back to 8883 after docs/procedures/ssl_tls_guide.md MQTT TLS steps.
   tls_insecure: false
-  tls_ca_cert: /config/certs/ca-cert.pem  # matches configs/frigate/config.yml
+  tls_ca_certs: /config/certs/ca-cert.pem  # matches configs/frigate/config.yml
   user: mqtt
   password: "{FRIGATE_MQTT_PASSWORD}"   # FIX #15/#14: must be MQTT password, not RTSP
 

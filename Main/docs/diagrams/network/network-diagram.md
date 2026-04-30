@@ -1,13 +1,16 @@
 ---
 title: Network Topology Diagram
-description: 4-VLAN network architecture with security zones and device assignments
+description: Legacy 4-VLAN network diagram snapshot (superseded by current 10-segment architecture)
 tags: [network, diagram, vlan, architecture]
 aliases: [Network Diagram, Topology]
 created: 2025-09-15
 modified: 2025-09-23
 type: network-diagram
-status: active
+status: archived
 ---
+
+> Historical reference only. Use `docs/diagrams/network/Network Infrastructure Diagram.mmd`
+> and `docs/diagrams/network/vlan_architecture_clean.mermaid` for the active topology.
 
 ```mermaid
 flowchart LR
@@ -111,22 +114,21 @@ class CameraFeeds DataFeed
 
 ## Document References & Architecture  
 - **Architecture Decision:** [[docs/decisions/01-network-architecture|Network Architecture]] - Design rationale  
-- **Firewall Implementation:** [[configs/openwrt/firewall-config-readable|Firewall Config]] - Security rules for this topology
+- **Firewall Implementation:** [[configs/openwrt/firewall-config.conf|Firewall Config]] - Security rules for this topology
 - **Project Context:** session file deep-archived - Original design session
 
 ## Configuration Dependencies
 This network diagram drives the configuration requirements for:
 - [[configs/openwrt/vlan-config.conf]] - VLAN interface setup (pending)
-- [[configs/openwrt/main-config.conf]] - Router configuration (pending)
+- `configs/openwrt/vlan-config.conf`, `configs/openwrt/dhcp-config.conf`, `configs/openwrt/firewall-config.conf`, `configs/openwrt/wireless-config.conf` - Router configuration source-of-truth files
 - [[configs/home-assistant/configuration.yaml|HA Configuration]] - HA VLAN 20 integration (pending)  
 - [[configs/frigate/config.yml|Frigate Configuration]] - NVR VLAN 30 configuration (pending)
-- [[configs/esphome/printairpipe-controller.yaml|PrintAirPipe Controller]] - IoT VLAN 50 sensors (pending)
+- [[configs/esphome/ventsys_fdm_sensor.yaml|VentSys FDM Sensor]] / [[configs/esphome/ventsys_sla_sensor.yaml|VentSys SLA Sensor]] / [[configs/esphome/ventsys_booth_sensor.yaml|VentSys Booth Sensor]] - IoT VLAN 50 deployable sensor wrappers
 
 ## Implementation Status
 - ✅ **Network Architecture** - 4-VLAN design complete per [[docs/decisions/01-network-architecture|Network Architecture Decision]]
-- ✅ **Security Rules** - Firewall policies defined in [[configs/openwrt/firewall-config-readable|Firewall Config]]
+- ✅ **Security Rules** - Firewall policies defined in [[configs/openwrt/firewall-config.conf|Firewall Config]]
 - 🚧 **Router Setup** - VLAN interfaces pending configuration  
 - 🚧 **Device Assignment** - IP allocation per diagram specifications pending
 
 **Next Implementation:** Configure VLAN interfaces using [[configs/openwrt/vlan-config.conf]]
-

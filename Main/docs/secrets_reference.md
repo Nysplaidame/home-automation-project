@@ -83,7 +83,7 @@ mqtt_user: "mqtt"
 mqtt_pass: "your-mqtt-password"            # Bitwarden: mqtt-credentials
 mqtt_ca_cert: |
   -----BEGIN CERTIFICATE-----
-  (paste contents of ca.crt — generated in ventsys_tls_implementation_guide.md)
+  (paste contents of ca.crt — generated per docs/procedures/ssl_tls_guide.md)
   -----END CERTIFICATE-----
 api_key: "your-32-byte-base64-api-key"     # generate: openssl rand -base64 32
 ota_password: "your-ota-password"          # any strong password
@@ -99,7 +99,7 @@ ota_password: "your-ota-password"          # any strong password
 
 > For pre-TLS stage-1 flashing, omit `mqtt_ca_cert` — the `_pretls.yaml`
 > configs don't reference it. Add it once TLS is live per
-> ventsys_tls_implementation_guide.md.
+> `docs/procedures/ssl_tls_guide.md`.
 
 ---
 
@@ -127,7 +127,7 @@ mqtt_password: "your-mqtt-password"        # Bitwarden: mqtt-credentials
 
 ---
 
-## 6 — TLS / PKI (generated in ventsys_tls_implementation_guide.md)
+## 6 — TLS / PKI (generated per docs/procedures/ssl_tls_guide.md)
 
 | File | Where stored | Sensitivity |
 |---|---|---|
@@ -140,7 +140,7 @@ mqtt_password: "your-mqtt-password"        # Bitwarden: mqtt-credentials
 > issue certificates your ESPHome devices will trust. It is protected by
 > Proxmox VM backups — snapshots include it automatically.
 > **I-7 audit note:** This applies only if the CA is at `/config/ssl/ca/` on the HA VM
-> (per `ventsys_tls_implementation_guide.md` Phase 3). If you followed Option B from
+> (per `docs/procedures/ssl_tls_guide.md`). If you followed Option B from
 > `ssl_tls_guide.md` and placed the CA on the NAS (`/mnt/nas/configs/ca/`), it is NOT
 > covered by HA native backups or Proxmox VM snapshots. Run `backup-certificates.sh` from
 > the TLS guide and store an encrypted copy of `ca.key` in Bitwarden as a secure note.
@@ -206,9 +206,11 @@ mqtt_password: "your-mqtt-password"        # Bitwarden: mqtt-credentials
 |---|---|---|
 | Bambuddy VM admin password | `bambuddy-vm` | Debian install password for `admin` user; SSH access |
 
-> The Bambuddy application itself uses the P1S access code (Section 7) and the
-> MQTT credentials (Section 3) — these are set in `/opt/bambuddy/.env` on the VM.
-> The .env file is chmod 600 and never committed to GitHub.
+> The Bambuddy application uses the P1S access code (Section 7), the HA token
+> (Section 8), and the MQTT credentials (Section 3). The canonical workflow is
+> to enter the printer details and HA token in the Bambuddy web UI. Keep
+> `/opt/bambuddy/.env` limited to container/bootstrap settings such as MQTT
+> publishing, and never commit it to GitHub.
 
 ---
 
@@ -221,16 +223,16 @@ Run through this after any suspected compromise, or annually as good practice:
       secrets.yaml to all ESPHome devices (USB fallback if OTA unavailable).
       HomePrinters password change requires reconnecting P1S and Athena 2 manually.
 - [ ] MQTT password — update in: Mosquitto config, HA MQTT integration, all
-      ESPHome secrets.yaml files, Bambuddy .env on VM 103. OTA push all ESP boards.
+      ESPHome secrets.yaml files, and Bambuddy MQTT settings on VM 103. OTA push all ESP boards.
 - [ ] ESPHome OTA password — OTA push new firmware to all boards
 - [ ] ESPHome API key — OTA push; re-adopt in HA if required
 - [ ] HA long-lived tokens — delete old in HA, create new, update
-      ventilation_v9k.html and Bambuddy config (VM 103 .env or UI)
-- [ ] TLS CA/certs — follow ventsys_tls_implementation_guide.md re-issuance steps
+      ventilation_v9k.html and the Bambuddy web UI on VM 103
+- [ ] TLS CA/certs — follow `docs/procedures/ssl_tls_guide.md` re-issuance steps
 - [ ] Proxmox root password — `passwd root` on Proxmox shell, update Bitwarden
 - [ ] Bambuddy VM admin password — `passwd admin` on VM 103, update Bitwarden
 - [ ] P1S access code — regenerate via printer touchscreen; update Bitwarden and
-      Bambuddy .env on VM 103 (`BAMBU_ACCESS_CODE`), then `docker compose up -d`
+      Bambuddy printer settings in the web UI on VM 103
 - [ ] WireGuard keys — regenerate pairs, update vlan-config.conf, redistribute configs
 
 ---

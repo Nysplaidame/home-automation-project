@@ -13,9 +13,9 @@
 > |---|---|---|---|
 > | Main fan controller | ventsys_fan_controller.yaml | ventsys-main-fan | 192.168.50.21 |
 > | Booth fan controller | ventsys_booth_fan.yaml | ventsys-booth-fan | 192.168.50.22 |
-> | FDM sensor board | ventsys_fdm_sensor.yaml | enc-fdm-sensors | 192.168.50.31 |
-> | SLA sensor board | ventsys_sla_sensor.yaml | enc-sla-sensors | 192.168.50.32 |
-> | Booth sensor board | ventsys_booth_sensor.yaml | enc-booth-sensors | 192.168.50.33 |
+> | FDM sensor board | ventsys_fdm_sensor.yaml | ventsys-fdm-sensor | 192.168.50.31 |
+> | SLA sensor board | ventsys_sla_sensor.yaml | ventsys-sla-sensor | 192.168.50.32 |
+> | Booth sensor board | ventsys_booth_sensor.yaml | ventsys-booth-sensor | 192.168.50.33 |
 > | Garage sensor | ventsys_garage_sensor.yaml | ventsys-garage-sensor | 192.168.50.34 |
 > | FDM airflow sensor | ventsys_fdm_airflow.yaml | ventsys-fdm-airflow | 192.168.50.41 |
 > | SLA airflow sensor | ventsys_sla_airflow.yaml | ventsys-sla-airflow | 192.168.50.42 |
@@ -111,14 +111,14 @@ Config files: `ventsys/ventsys_bundle_updated/`
 
 Use the pre-TLS variants for stage-1 (before TLS migration):
 - `ventsys_fan_controller_pretls.yaml`   → target IP 192.168.50.21
-- `ventsys_valve_controller_pretls.yaml` → target IP 192.168.50.56
+- `../configs/esphome/ventsys_sla_print_valve.yaml` (canonical) → target IP 192.168.50.56
 
 ```bash
 cd "\\VBoxSvr\home-automation-safety\ventsys\ventsys_bundle_updated"
 
 esphome run ventsys_fan_controller_pretls.yaml
 # swap USB to the valve board, then:
-esphome run ventsys_valve_controller_pretls.yaml
+esphome run ../../../configs/esphome/ventsys_sla_print_valve.yaml
 ```
 
 If the COM port isn't detected automatically:
@@ -238,7 +238,7 @@ config host
     option ip '192.168.50.31'
 ```
 
-Re-apply DHCP config to router (Phase 3 of router_setup_complete.md) and
+Re-apply DHCP config to router (`scripts/setup/router/phase_3_dhcp_configuration.md`) and
 power-cycle each device so it picks up its static reservation.
 
 ### 2.3 — Adopt in ESPHome add-on
@@ -302,7 +302,7 @@ Device reboots and reconnects within ~30 seconds.
 
 The `_pretls.yaml` configs use port 1883 with no encryption — stage 1 only.
 
-After completing Phase 4 of `ventsys_tls_implementation_guide.md`:
+After completing MQTT TLS migration in `docs/procedures/ssl_tls_guide.md`:
 1. Add `mqtt_ca_cert` to secrets.yaml (Bitwarden: `tls-ca-cert`)
 2. OTA-push the production YAML to each board — these use port 8883
    with `ca_certificate: !secret mqtt_ca_cert`
@@ -356,6 +356,6 @@ cat /tmp/dhcp.leases | grep "192.168.50"
 ```
 
 Note the MAC for the unexpected IP, update dhcp-config.conf, re-apply DHCP
-config (Phase 3 of router_setup_complete.md), then power-cycle the device.
+config (`scripts/setup/router/phase_3_dhcp_configuration.md`), then power-cycle the device.
 
 # FIX #23: A reference to update_ventsys_mac.sh was here. That script does not exist in the vault.

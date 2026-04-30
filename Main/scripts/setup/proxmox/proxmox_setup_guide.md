@@ -1,4 +1,4 @@
-﻿# Proxmox VE — Setup Guide
+# Proxmox VE — Setup Guide
 **Hardware:** MINIX NEO Z350 (Intel i3-N350, 16GB RAM, 512GB SSD)
 **Target host IP:** 192.168.10.10 — VLAN 10 (Management)
 **First VM:** Home Assistant OS — 192.168.20.101, VLAN 20 (Automation)
@@ -174,7 +174,7 @@ systemctl restart sshd
 
 > **F-12 — Two VMs, one script:** This guide previously only documented
 > creating VM 100 (Home Assistant) manually. The vault also contains
-> `configs/proxmox/vm-setup.sh` which creates **both** VM 100 and VM 101
+> `configs/proxmox/vm-setup.sh` which creates **VM 100, VM 101, and VM 103**
 > (Frigate NVR) in one run. Using the script is the recommended path —
 > manual steps for VM 101 are documented below the script section as a
 > fallback.
@@ -189,9 +189,10 @@ chmod +x /tmp/vm-setup.sh
 /tmp/vm-setup.sh
 ```
 
-The script creates both VMs, attaches disks, sets VLAN tags, and prints next
-steps. Review it in `configs/proxmox/vm-setup.sh` before running — it
-creates a 64GB disk for VM 101 and downloads nothing on its own.
+The script creates all three VMs, imports/attaches HAOS for VM 100 (if needed),
+sets VLAN tags, and prints next steps. Review it in `configs/proxmox/vm-setup.sh`
+before running — it creates a 64GB disk for VM 101 and a 16GB disk for VM 103,
+and it does not download HAOS or Debian images on its own.
 
 ---
 
@@ -464,7 +465,7 @@ Frigate NVR setup continues in `scripts/setup/proxmox/frigate_vm_setup_guide.md`
 
 ## Phase F — Router cutover
 
-Once `scripts/setup/router/router_setup_complete.md` has been executed on the GL-MT6000:
+Once `scripts/setup/router/` phases 1-8 have been executed on the GL-MT6000:
 
 ### F1 — Move the cable
 
@@ -558,8 +559,8 @@ Or: `HA web UI → Settings → System → Network → IPv4 → Static`
 
 ## Next steps after HA is running
 
-1. Deploy router → `scripts/setup/router/router_setup_complete.md`
-2. MQTT + TLS setup → `ventsys/integration-process/ventsys_tls_implementation_guide.md`
+1. Deploy router -> `scripts/setup/router/` phases 1-8
+2. MQTT + TLS setup → `docs/procedures/ssl_tls_guide.md`
 3. Copy VentSys packages to `/config/packages/` on HA
 4. Copy dashboard → `/config/www/ventsys-dashboard.html`
 5. Frigate VM setup → `scripts/setup/proxmox/frigate_vm_setup_guide.md` (VM 101, VLAN 30)

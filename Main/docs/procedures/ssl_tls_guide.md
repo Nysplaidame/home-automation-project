@@ -1,6 +1,6 @@
 # SSL/TLS Certificate Guide
 # Covers: HTTPS for the HA web UI, local CA for MQTT TLS
-# See also: ventsys/integration-process/ventsys_tls_implementation_guide.md (MQTT-specific)
+# This is the canonical MQTT TLS and HTTPS procedure for active deployment.
 
 ---
 
@@ -11,14 +11,14 @@ Two separate TLS concerns:
 | What | Where | Method |
 |---|---|---|
 | HA web UI HTTPS | https://192.168.20.101:8123 | Self-signed cert or local CA |
-| MQTT TLS | Mosquitto port 8883 | Local CA (covered in ventsys_tls_implementation_guide.md) |
-| Remote access HTTPS | WireGuard tunnel + HA | Not needed � VPN is already encrypted |
+| MQTT TLS | Mosquitto port 8883 | Local CA (covered in this guide) |
+| Remote access HTTPS | WireGuard tunnel + HA | Not needed - VPN is already encrypted |
 
 > For a home network accessed only via WireGuard, a self-signed certificate is sufficient. The browser warning is an inconvenience but not a security risk over an encrypted VPN. If you want a real cert (no warning), you need a domain name and use Let's Encrypt via the DuckDNS or NGINX Proxy Manager add-on.
 
 ---
 
-## Option A � Self-signed certificate (simplest)
+## Option A - Self-signed certificate (simplest)
 
 ### Generate cert on the HA VM
 
@@ -41,7 +41,7 @@ ls -la /ssl/
 
 ### Enable HTTPS in HA
 
-Edit `/config/configuration.yaml` � update the `http:` block:
+Edit `/config/configuration.yaml` - update the `http:` block:
 
 ```yaml
 http:
@@ -53,9 +53,9 @@ http:
 
 Restart HA: `Settings ? System ? Restart`
 
-HA is now at `https://192.168.20.101:8123`. Your browser will warn about the self-signed cert � accept the exception once.
+HA is now at `https://192.168.20.101:8123`. Your browser will warn about the self-signed cert - accept the exception once.
 
-### Trust the cert on your devices (optional � removes browser warning)
+### Trust the cert on your devices (optional - removes browser warning)
 
 Export the cert and install it as a trusted root:
 
@@ -72,19 +72,19 @@ scp admin@192.168.20.101:/ssl/fullchain.pem .
 
 ---
 
-## Option B � Local Certificate Authority (recommended for MQTT + HA)
+## Option B - Local Certificate Authority (recommended for MQTT + HA)
 
 A local CA lets you issue certs for both HA and Mosquitto, and install only the CA cert once on your devices to trust everything.
 
 The CA infrastructure was prepared on the router in Phase 8 (`/etc/ventsys/ca/`). You can also do this on the Pi NAS for persistence.
 
 > **I-5 audit note:** This guide describes two CA placement options. **Alternative (recommended):** place
-> the CA on the HA VM at `/config/ssl/ca/` as described in ventsys_tls_implementation_guide.md
-> Phase 3 -- this keeps the CA within HA native backups and avoids cross-VLAN key transfer.
+> the CA on the HA VM at `/config/ssl/ca/` -- this keeps the CA within HA native backups and
+> avoids cross-VLAN key transfer.
 > If placing on the NAS (VLAN 40), ensure VLAN 40 is reachable from VLAN 20 in your firewall,
 > transfer the CA key securely via SCP over the management interface, and delete it from the NAS
-> once certificate signing is complete. See ventsys_tls_implementation_guide.md as the single
-> source of truth for the production CA workflow.
+> once certificate signing is complete. Use this file as the single source of truth for
+> production CA workflow.
 
 ### Create the CA (on NAS or HA VM)
 
@@ -138,25 +138,25 @@ echo "HA cert issued: /ssl/fullchain.pem"
 
 ### Configure HA to use the cert
 
-Same as Option A � update `configuration.yaml` `http:` block with the cert paths, restart HA.
+Same as Option A - update `configuration.yaml` `http:` block with the cert paths, restart HA.
 
 ### Issue a certificate for Mosquitto MQTT
 
-See `ventsys/integration-process/ventsys_tls_implementation_guide.md` for the full MQTT TLS process. The CA created above can be used there too.
+Use this same CA for Mosquitto MQTT TLS certificates and client trust chains.
 
 ---
 
-## Option C � Let's Encrypt with DuckDNS (real cert, no browser warning)
+## Option C - Let's Encrypt with DuckDNS (real cert, no browser warning)
 
 Requires a domain name and internet access from HA. Uses the DuckDNS add-on to get a free subdomain and auto-renewing Let's Encrypt certificate.
 
-### Step 1 � Register a DuckDNS subdomain
+### Step 1 - Register a DuckDNS subdomain
 
 Go to `https://www.duckdns.org/` and register. Note:
 - Your subdomain: `yourname.duckdns.org`
 - Your DuckDNS token
 
-### Step 2 � Install DuckDNS add-on in HA
+### Step 2 - Install DuckDNS add-on in HA
 
 `Settings ? Add-ons ? Add-on Store ? search DuckDNS`
 
@@ -178,7 +178,7 @@ Start the add-on. It will:
 3. Place the cert in `/ssl/fullchain.pem` and `/ssl/privkey.pem`
 4. Auto-renew every 60 days
 
-### Step 3 � Configure HA with the cert
+### Step 3 - Configure HA with the cert
 
 ```yaml
 http:
@@ -194,7 +194,7 @@ http:
 
 Restart HA. Access via `https://yourname.duckdns.org:8123`.
 
-### Step 4 � Update VPN client config
+### Step 4 - Update VPN client config
 
 Add `yourname.duckdns.org` as the `external_url` in `secrets.yaml`:
 ```yaml
@@ -231,9 +231,9 @@ homeassistant:
 
 | Option | Renewal |
 |---|---|
-| Self-signed (10 year) | Manual � set a calendar reminder for year 9 |
-| Local CA (10 year) | Manual � same |
-| Let's Encrypt (DuckDNS add-on) | Automatic � add-on handles it |
+| Self-signed (10 year) | Manual - set a calendar reminder for year 9 |
+| Local CA (10 year) | Manual - same |
+| Let's Encrypt (DuckDNS add-on) | Automatic - add-on handles it |
 
 ---
 

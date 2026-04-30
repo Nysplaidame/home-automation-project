@@ -1,11 +1,15 @@
 # VentSys Solution 1 Implementation Guide
 ## Certificate Renewal Strategy & Complete Process
 
+> Status: Reference template for TLS architecture and renewal strategy.
+> Canonical deploy paths: `Main/configs/esphome/*.yaml` and
+> `Main/scripts/setup/ventsys/esphome_adoption_guide.md` for device flashing sequence.
+
 > **Related documents in this folder:**
-> - [[ventsys_network_integration_analysis]] Ã¢â‚¬â€ why TLS is needed, risk assessment
-> - [[ventsys_implementation_roadmap]] Ã¢â‚¬â€ 9-week phased roadmap referencing this guide
-> - [[ventsys_technical_specifications]] Ã¢â‚¬â€ hardware and software specifications
-> - [[ventsys_complete_implementation_plan]] Ã¢â‚¬â€ full integration plan
+> - [[ventsys_network_integration_analysis]] - why TLS is needed, risk assessment
+> - [[ventsys_implementation_roadmap]] - 9-week phased roadmap referencing this guide
+> - [[ventsys_technical_specifications]] - hardware and software specifications
+> - [[ventsys_complete_implementation_plan]] - full integration plan
 >
 > **VentSys hardware & control phase guides:** `scripts/setup/ventsys/`
 
@@ -97,7 +101,7 @@ restrict default limited kod nomodify notrap nopeer noquery
 restrict 127.0.0.1
 restrict ::1
 
-# Allow IoT network to query time (nomodify+notrap prevents config changes; noquery removed Ã¢â‚¬â€ devices MUST be able to query)
+# Allow IoT network to query time (nomodify+notrap prevents config changes; noquery removed - devices MUST be able to query)
 restrict 192.168.50.0 mask 255.255.255.0 nomodify notrap nopeer
 
 # Local clock as fallback
@@ -228,6 +232,7 @@ subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid,issuer:always
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
+subjectAltName = IP:192.168.20.101, DNS:mosquitto, DNS:ha-vm, DNS:homeassistant
 
 [ crl_ext ]
 authorityKeyIdentifier=keyid:always
@@ -298,9 +303,9 @@ chmod +x /config/ssl/ca/generate-server-cert.sh
 > This means the CN value does not need to match the broker IP address for ESPHome clients.
 > However, the Frigate MQTT client (Go library) DOES perform CN/SAN hostname verification.
 > The broker cert's CN or a SAN must match the address Frigate uses to connect (192.168.20.101).
-> Generate the Mosquitto broker cert with: bash generate-server-cert.sh mosquitto
-> Then add subjectAltName to the [server_cert] extension in openssl.cnf:
->   subjectAltName = IP:192.168.20.101, DNS:mosquitto, DNS:ha-vm
+> Generate the Mosquitto broker cert with: bash generate-server-cert.sh mosquitto.
+> The [server_cert] extension above already includes:
+>   subjectAltName = IP:192.168.20.101, DNS:mosquitto, DNS:ha-vm, DNS:homeassistant
 > This ensures Frigate, Bambuddy, and any strict TLS clients all validate successfully.
 
 ## Phase 4: MQTT Broker Configuration
@@ -316,7 +321,7 @@ chmod +x /config/ssl/ca/generate-server-cert.sh
 # Generate certificate for MQTT broker
 # L-10 fix: cert named "mosquitto" so CN matches DNS name; SAN covers IP.
 # Confirm [server_cert] in openssl.cnf has:
-#   subjectAltName = IP:192.168.20.101, DNS:mosquitto, DNS:ha-vm
+#   subjectAltName = IP:192.168.20.101, DNS:mosquitto, DNS:ha-vm, DNS:homeassistant
 /config/ssl/ca/generate-server-cert.sh "mosquitto"
 
 # Copy certificates to mosquitto directory
@@ -331,16 +336,16 @@ chmod 644 /config/mosquitto/certs/server.crt
 chmod 644 /config/mosquitto/certs/ca-cert.pem
 ```
 
-### Step 4.3: Configure Mosquitto Ã¢â‚¬â€ Single TLS Listener
+### Step 4.3: Configure Mosquitto - Single TLS Listener
 ```yaml
 # Create /config/mosquitto/mosquitto.conf
 ```
 ```conf
-# Mosquitto Configuration for VentSys Ã¢â‚¬â€ Single TLS Architecture
+# Mosquitto Configuration for VentSys - Single TLS Architecture
 #
 # ARCHITECTURE DECISION: Single port 8883 TLS only.
 # All devices (Home Assistant and IoT/ESPHome) use port 8883 with local CA.
-# No plaintext port 1883 Ã¢â‚¬â€ all VentSys devices receive certs at flash time
+# No plaintext port 1883 - all VentSys devices receive certs at flash time
 # before ever connecting to the network. No internet dependency at any stage.
 
 # Global settings
@@ -355,7 +360,7 @@ log_type information
 connection_messages true
 log_timestamp true
 
-# Single TLS listener Ã¢â‚¬â€ all clients (HA + IoT devices)
+# Single TLS listener - all clients (HA + IoT devices)
 listener 8883
 protocol mqtt
 cafile /mosquitto/config/certs/ca-cert.pem
@@ -389,38 +394,38 @@ log_type unsubscribe
 # Create password file
 touch /config/mosquitto/passwd
 
-# Single 'mqtt' user Ã¢â‚¬â€ used by HA integration, all ESPHome devices, Frigate,
+# Single 'mqtt' user - used by HA integration, all ESPHome devices, Frigate,
 # and Bambuddy. This matches the username configured everywhere else in the vault:
 #   - ha_vm_setup_guide.md (creates HA user 'mqtt')
 #   - frigate/config.yml (user: mqtt)
 #   - docker-compose.yml Bambuddy (MQTT_USER=mqtt)
 #   - esphome_adoption_guide.md (username: mqtt)
-#   - ventsys_fan/valve_controller.yaml (username: !secret mqtt_user Ã¢â€ â€™ 'mqtt')
-# Using a single user simplifies TLS migration Ã¢â‚¬â€ no credential changes needed
-# in any device YAML or service config, only the port changes (1883 Ã¢â€ â€™ 8883).
+#   - ventsys_fan/valve_controller.yaml (username: !secret mqtt_user -> 'mqtt')
+# Using a single user simplifies TLS migration - no credential changes needed
+# in any device YAML or service config, only the port changes (1883 -> 8883).
 # Use the same password that was configured during initial Mosquitto setup
 # (stored in /config/secrets.yaml as mqtt_password).
 mosquitto_passwd -b /config/mosquitto/passwd mqtt "YOUR_MQTT_PASSWORD"
 ```
 > **Note:** All clients connect on port 8883 TLS only after this migration.
-> The password does NOT change Ã¢â‚¬â€ only the port and TLS settings change.
+> The password does NOT change - only the port and TLS settings change.
 > This means ESPHome device YAMLs only need their `port:` updated from
 > 1883 to 8883 and `ca_certificate:` added; credentials stay the same.
 
 ### Step 4.5: Configure MQTT Access Control
 ```bash
 cat > /config/mosquitto/acl.conf << 'EOF'
-# Single 'mqtt' user Ã¢â‚¬â€ full access to all topics.
+# Single 'mqtt' user - full access to all topics.
 # All clients (HA, ESPHome devices, Frigate, Bambuddy) use this user.
 # This avoids per-client credential management and matches the username
 # configured in every service and device YAML across the vault.
 #
 # Topics covered:
-#   ventsys/#          Ã¢â‚¬â€ VentSys sensor and controller devices
-#   homeassistant/#    Ã¢â‚¬â€ ESPHome MQTT discovery
-#   frigate/#          Ã¢â‚¬â€ Frigate NVR events, detections, stats
-#   bambuddy/#         Ã¢â‚¬â€ Bambuddy printer status
-#   #                  Ã¢â‚¬â€ catch-all for any future additions
+#   ventsys/#          - VentSys sensor and controller devices
+#   homeassistant/#    - ESPHome MQTT discovery
+#   frigate/#          - Frigate NVR events, detections, stats
+#   bambuddy/#         - Bambuddy printer status
+#   #                  - catch-all for any future additions
 user mqtt
 topic readwrite #
 EOF
@@ -429,11 +434,11 @@ EOF
 ### Step 4.6: Restart Mosquitto and Test
 ```bash
 # Restart Mosquitto add-on via HA UI
-# Test secure connection Ã¢â‚¬â€ all clients use the single 'mqtt' user
+# Test secure connection - all clients use the single 'mqtt' user
 mosquitto_pub -h 192.168.20.101 -p 8883 --cafile /config/ssl/ca/certs/ca-cert.pem \
     -u mqtt -P "YOUR_MQTT_PASSWORD" -t "test/secure" -m "TLS test from HA"
 
-# Verify from IoT perspective Ã¢â‚¬â€ same user, same password, TLS port
+# Verify from IoT perspective - same user, same password, TLS port
 mosquitto_pub -h 192.168.20.101 -p 8883 --cafile /config/ssl/ca/certs/ca-cert.pem \
     -u mqtt -P "YOUR_MQTT_PASSWORD" \
     -t "test/tls" -m "TLS test from IoT device"
@@ -447,27 +452,27 @@ mosquitto_sub -h 192.168.20.101 -p 8883 --cafile /config/ssl/ca/certs/ca-cert.pe
 
 ### Step 5.0: Update Bambuddy MQTT Port (do this before restarting Mosquitto on 8883-only)
 
-Bambuddy runs on the Frigate VM (192.168.30.20) and publishes print events to Mosquitto.
-After TLS migration, port 1883 no longer exists Ã¢â‚¬â€ Bambuddy must use 8883.
+Bambuddy runs on dedicated VM 103 (192.168.20.102) and publishes print events to Mosquitto.
+After TLS migration, port 1883 no longer exists - Bambuddy must use 8883.
 
 ```bash
-# On the Frigate VM
-cd /opt/frigate
+# On VM 103 (bambuddy)
+cd /opt/bambuddy
 
-# Update the MQTT port in docker-compose.yml   # M-14 fix: MQTT_PORT lives here, not in .env
-sed -i 's/MQTT_PORT=1883/MQTT_PORT=8883/' docker-compose.yml   # M-14 fix: MQTT_PORT is in docker-compose.yml, not .env
+# Update the MQTT port in .env
+sed -i 's/^MQTT_PORT=.*/MQTT_PORT=8883/' .env
 
 # Verify
-grep MQTT_PORT docker-compose.yml   # should show MQTT_PORT=8883
+grep '^MQTT_PORT=' .env   # should show MQTT_PORT=8883
 
 # Restart Bambuddy to pick up the new port
-docker compose restart bambuddy
+docker compose up -d
 
-# Check logs Ã¢â‚¬â€ look for "MQTT connected" on port 8883
+# Check logs - look for "MQTT connected" on port 8883
 docker compose logs bambuddy --tail=30
 ```
 
-Also update the firewall on the router Ã¢â‚¬â€ remove the temporary Stage 1 plain-text rule
+Also update the firewall on the router - remove the temporary Stage 1 plain-text rule
 if you added one, and confirm the permanent 8883 rule is in place:
 
 ```bash
@@ -482,9 +487,9 @@ uci commit firewall
 
 > **Note on Frigate MQTT:** Frigate's MQTT connection is configured in
 > `configs/frigate/config.yml` (`mqtt.port: 8883`). The TLS settings for
-> Frigate's own MQTT connection (`cafile`, `certfile`, `keyfile`) should be
-> populated from the CA cert generated in Phase 3 Ã¢â‚¬â€ see `config.yml` comment
-> block for the required keys. Frigate also uses the single `mqtt` user.
+> Frigate's own MQTT connection should use the CA cert generated in Phase 3 via
+> `mqtt.tls_ca_certs` - see `configs/frigate/config.yml`. Frigate also uses the
+> single `mqtt` user.
 
 
 ```bash
@@ -499,10 +504,10 @@ cp /config/ssl/ca/certs/ca-cert.pem /config/www/ca-cert.pem
 ```yaml
 # Example ESPHome configuration for a new VentSys sensor board.
 # Use the existing ventsys_fan_controller.yaml / ventsys_valve_controller.yaml
-# as primary templates Ã¢â‚¬â€ they already have the correct structure.
+# as primary templates - they already have the correct structure.
 # This example shows the TLS-specific additions needed for any new board.
 esphome:
-  name: ventsys-sla-sensors
+  name: ventsys-sla-sensor
   # NOTE: 'platform:' inside the esphome: block was removed in ESPHome 2021.x.
   # Use a top-level 'esp32:' block instead (as shown below).
 
@@ -525,7 +530,7 @@ time:
       - 192.168.50.1  # OpenWrt router NTP server
     timezone: "Europe/London"
 
-# MQTT configuration with TLS and local CA Ã¢â‚¬â€ port 8883 only
+# MQTT configuration with TLS and local CA - port 8883 only
 mqtt:
   broker: 192.168.20.101
   port: 8883
@@ -622,9 +627,9 @@ number:
 # 6. Document device in registry:
 
 cat >> /config/device_registry.yaml << EOF
-- name: ventsys-sla-sensors
+- name: ventsys-sla-sensor
   mac: XX:XX:XX:XX:XX:XX
-  ip: 192.168.50.31
+  ip: 192.168.50.32
   type: ESP32
   purpose: SLA enclosure monitoring
   certificate_expires: $(date -d "+3 years" '+%Y-%m-%d')
@@ -662,7 +667,7 @@ mqtt:
     # SLA Enclosure Sensors
     - name: "SLA Temperature"
       state_topic: "ventsys/sla/temperature"
-      unit_of_measurement: "Ã‚Â°C"
+      unit_of_measurement: "°C"
       device_class: temperature
       
     - name: "SLA Humidity" 

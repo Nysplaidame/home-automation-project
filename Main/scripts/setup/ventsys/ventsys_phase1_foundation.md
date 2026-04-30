@@ -5,7 +5,7 @@ Establish secure network infrastructure and certificate authority system that wi
 
 ## Reference Documents
 - **Network Configs**: `vlan-config.conf`, `firewall-config.conf`, `dhcp-config.conf`, `wireless-config.conf` (existing, no changes)
-- **TLS Implementation**: [[ventsys/integration-process/ventsys_tls_implementation_guide|VentSys TLS Implementation Guide]] (Phases 1-5) — *moved to `ventsys/integration-process/`*
+- **TLS Implementation**: `docs/procedures/ssl_tls_guide.md` (canonical active workflow)
 - **Network Integration Analysis**: [[ventsys/integration-process/ventsys_network_integration_analysis|Network Integration Analysis]]
 - **Implementation Roadmap**: [[ventsys/integration-process/ventsys_implementation_roadmap|9-Week Roadmap]]
 - **Current VentSys**: All existing configuration files (preserved during foundation setup)

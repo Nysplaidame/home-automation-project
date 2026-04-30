@@ -1,11 +1,11 @@
-﻿# ESPHome — VentSys Garage Ambient Sensor (PRE-TLS / STAGE 1)
+# ESPHome — VentSys Garage Ambient Sensor (PRE-TLS / STAGE 1)
 #
 # ╔══════════════════════════════════════════════════════════════════════╗
 # ║  STAGE 1 — INITIAL HARDWARE BRING-UP ONLY                          ║
 # ║  Use this file to flash and test the board before TLS is set up.   ║
 # ║  MQTT is unencrypted on port 1883. Do NOT leave in production.      ║
 # ║                                                                      ║
-# ║  After completing ventsys_tls_implementation_guide.md Phase 4:      ║
+# ║  After completing docs/procedures/ssl_tls_guide.md (MQTT TLS):      ║
 # ║    1. Flash ventsys_garage_sensor.yaml (port 8883, TLS)             ║
 # ║    2. Remove this file or archive it — it must not be re-flashed    ║
 # ╚══════════════════════════════════════════════════════════════════════╝

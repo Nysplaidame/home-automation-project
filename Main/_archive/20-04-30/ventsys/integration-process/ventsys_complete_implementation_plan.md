@@ -1,5 +1,9 @@
 # VentSys Complete Implementation Plan
 
+> Status: Reference template (planning context), not canonical deploy source.
+> Canonical deploy paths: `Main/configs/esphome/*.yaml`, `Main/configs/openwrt/*.conf`,
+> `Main/configs/home-assistant/*.yaml`, and `Main/scripts/setup/ventsys/esphome_adoption_guide.md`.
+
 ## Reference Documents Required
 - **Network Foundation**: `vlan-config.conf`, `firewall-config.conf`, `dhcp-config.conf`, `wireless-config.conf` (existing - no modifications needed)
 - **TLS Implementation**: `VentSys Solution 1 Implementation Guide` (certificate authority and MQTT TLS setup)

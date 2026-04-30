@@ -11,7 +11,7 @@
 
 > **Port note (A10-1):** Commands in this section use port 1883 (pre-TLS only).
 > After MQTT TLS migration, use port 8883 --cafile /ssl/ca.crt instead.
-> See ventsys_tls_implementation_guide.md for the migration procedure.
+> See `docs/procedures/ssl_tls_guide.md` for the migration procedure.
 
 ### ESPHome device shows offline in HA
 
@@ -265,13 +265,13 @@ mosquitto_sub -h localhost -p 8883 --cafile /ssl/ca.crt \
     -u mqtt -P <password> -t 'bambuddy/#' -v
 # Start/stop a print — if no messages arrive, problem is Bambuddy → Mosquitto
 ```
-- Check `Bambuddy MQTT to HA` firewall rule (src: automation/20.102, dest: automation/20.101, port 8883)
+- VLAN 20 is the HA+Bambuddy trust boundary; this path is not router-firewall enforced.
 - From VM 103: `nc -zv 192.168.20.101 8883` — should be open
 - Check Bambuddy Settings → Network → MQTT Publishing — dot should be green
 
 ### HA API connection fails in Bambuddy (smart plug control broken)
 
-- Check `Bambuddy to HA API` firewall rule (src: automation/20.102, dest: automation/20.101, port 8123)
+- VLAN 20 is the HA+Bambuddy trust boundary; this path is not router-firewall enforced.
 - From VM 103: `nc -zv 192.168.20.101 8123` — should be open
 - Regenerate Long-Lived Token: HA → Settings → Profile → Long-Lived Access Tokens → save in Bitwarden
 

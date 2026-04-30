@@ -56,7 +56,7 @@ Based on [[docs/decisions/01-network-architecture|Network Architecture Decision]
 ## Key Files & Dependencies
 - **Security Rules:** `configs/openwrt/firewall-config.sh` - Already created ✅
 - **VLAN Config:** `configs/openwrt/vlan-config.conf` - Pending creation 🚧
-- **Main Router Config:** `configs/openwrt/main-config.conf` - Pending creation 🚧
+- **Router Config Source of Truth:** `configs/openwrt/vlan-config.conf`, `configs/openwrt/dhcp-config.conf`, `configs/openwrt/firewall-config.conf`, `configs/openwrt/wireless-config.conf`
 - **Network Topology:** [[docs/diagrams/network/network-diagram|Network Diagram]] - Visual reference ✅
 
 ## Dependencies

@@ -1,5 +1,9 @@
 # VentSys TLS Technical Specifications
 
+> Status: Reference template (design and sizing guidance), not canonical deploy source.
+> Canonical deploy paths: `Main/configs/esphome/*.yaml`, `Main/configs/openwrt/*.conf`,
+> `Main/configs/home-assistant/*.yaml`, and `Main/scripts/setup/ventsys/esphome_adoption_guide.md`.
+
 ## Required Reference Documents  
 - **Master Implementation**: `VentSys Solution 1 Implementation Guide` - Complete TLS deployment process
 - **Network Architecture**: `vlan-config.conf`, `firewall-config.conf`, `dhcp-config.conf`, `wireless-config.conf`
@@ -600,15 +604,15 @@ ventsys_devices:
 
 # Future sensor nodes
 ventsys_future_sensors:
-  - name: ventsys-sla-sensors
+  - name: ventsys-fdm-sensor
     ip: 192.168.50.31
-    purpose: "SLA enclosure environmental monitoring"
-    sensors: ["temperature", "humidity", "voc", "smoke", "pressure"]
-  - name: ventsys-fdm-sensors  
-    ip: 192.168.50.32
     purpose: "FDM enclosure environmental monitoring"
     sensors: ["temperature", "humidity", "voc", "smoke", "pressure"]
-  - name: ventsys-booth-sensors
+  - name: ventsys-sla-sensor
+    ip: 192.168.50.32
+    purpose: "SLA enclosure environmental monitoring"
+    sensors: ["temperature", "humidity", "voc", "smoke", "pressure"]
+  - name: ventsys-booth-sensor
     ip: 192.168.50.33
     purpose: "Spray booth environmental monitoring" 
     sensors: ["temperature", "humidity", "voc", "smoke", "pressure"]

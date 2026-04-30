@@ -14,11 +14,11 @@ Finalizes network foundation for VentSys integration by completing certificate i
 
 > **ARCHITECTURE NOTE — CA LOCATION (B9 fix):**
 > The full Certificate Authority (private key + signing infrastructure) lives on the
-> **HA VM** at `/config/ssl/ca/`, as defined in `ventsys_tls_implementation_guide.md`.
+> **HA VM** at `/config/ssl/ca/`, as defined in `docs/procedures/ssl_tls_guide.md`.
 > The router does NOT host Mosquitto — MQTT TLS termination happens on the HA VM.
 > The router only needs a copy of the CA *public certificate* if mutual TLS is ever
 > added to WireGuard. This step prepares that directory only; do not create CA keys
-> here. Follow `ventsys_tls_implementation_guide.md` for full CA setup on the HA VM.
+> here. Follow `docs/procedures/ssl_tls_guide.md` for full CA setup on the HA VM.
 
 ```bash
 # Create Phase 8 entry backup
@@ -33,7 +33,7 @@ chmod 755 /etc/ventsys/ca/certs
 
 echo "✓ Router CA cert directory prepared: /etc/ventsys/ca/certs/" >> /tmp/phase8_cert_prep.txt
 echo "⚠ Full CA infrastructure lives on HA VM at /config/ssl/ca/" >> /tmp/phase8_cert_prep.txt
-echo "⚠ Generate the CA on the HA VM per ventsys_tls_implementation_guide.md Phase 1, Week 2" >> /tmp/phase8_cert_prep.txt
+echo "⚠ Generate the CA on the HA VM per docs/procedures/ssl_tls_guide.md" >> /tmp/phase8_cert_prep.txt
 echo "⚠ After CA creation, copy public cert to router:" >> /tmp/phase8_cert_prep.txt
 echo "    scp root@192.168.20.101:/config/ssl/ca/ca.crt /etc/ventsys/ca/certs/" >> /tmp/phase8_cert_prep.txt
 
@@ -120,14 +120,21 @@ check_interface() {
 
 check_wireless_ssid() {
     local ssid=$1
-    
-    if iwlist scan 2>/dev/null | grep -q "ESSID:\"$ssid\""; then
-        echo "$(date): ✓ SSID $ssid broadcasting" >> "$LOG_FILE"
-        return 0
-    else
-        echo "$(date): ✗ SSID $ssid NOT broadcasting" >> "$LOG_FILE"
-        return 1
+    # B8 fix: iwlist scan is unreliable on the router's own radios — it is a
+    # client-side scan tool and may report nothing or scan the wrong interface.
+    # Check UCI config and hostapd instead: SSID must be configured and not disabled.
+    local iface
+    iface=$(uci show wireless | grep "\.ssid='${ssid}'" | cut -d. -f1-2 2>/dev/null)
+    if [ -n "$iface" ]; then
+        local disabled
+        disabled=$(uci get "${iface}.disabled" 2>/dev/null)
+        if [ "$disabled" != "1" ]; then
+            echo "$(date): ✓ SSID $ssid configured and enabled" >> "$LOG_FILE"
+            return 0
+        fi
     fi
+    echo "$(date): ✗ SSID $ssid NOT configured or disabled" >> "$LOG_FILE"
+    return 1
 }
 
 check_firewall_rule() {
@@ -153,7 +160,7 @@ check_interface "br-lan.50" "192.168.50.1"
 check_wireless_ssid "HomeIoT"
 
 # Check critical firewall rules
-check_firewall_rule "HA to IoT Sensors Access"
+check_firewall_rule "ESPHome API HA to IoT"
 check_firewall_rule "VentSys MQTT IoT to HA"
 check_firewall_rule "Block IoT Internet"
 
@@ -162,8 +169,14 @@ EOF
 
 chmod +x /usr/local/bin/ventsys_network_monitor.sh
 
-# Create monitoring cron job (every 15 minutes)
-echo "*/15 * * * * /usr/local/bin/ventsys_network_monitor.sh" >> /etc/crontabs/root
+# Create monitoring cron job (every 15 minutes) — idempotent: only add if absent
+CRON_ENTRY="*/15 * * * * /usr/local/bin/ventsys_network_monitor.sh"
+if ! grep -qF "$CRON_ENTRY" /etc/crontabs/root 2>/dev/null; then
+    echo "$CRON_ENTRY" >> /etc/crontabs/root
+    echo "✓ Cron job added" >> /tmp/phase8_monitoring_setup.txt
+else
+    echo "✓ Cron job already present (skipped duplicate)" >> /tmp/phase8_monitoring_setup.txt
+fi
 
 # Run initial monitoring check
 /usr/local/bin/ventsys_network_monitor.sh
@@ -252,7 +265,7 @@ cp -r /etc/wireless/credentials "$BACKUP_DIR/"
 cp -r /etc/wireguard "$BACKUP_DIR/"
 
 # Create configuration summary
-cat > "$BACKUP_DIR/CONFIGURATION_SUMMARY.txt" << 'EOF'
+cat > "$BACKUP_DIR/CONFIGURATION_SUMMARY.txt" << EOF
 OPENWRT ROUTER CONFIGURATION - PRODUCTION READY
 ===============================================
 
@@ -361,7 +374,10 @@ fi
 if [ -f "/etc/ventsys/ca/certs/ca.crt" ]; then
     echo "✓ VentSys CA certificate present on router (copied from HA VM)" >> /tmp/phase8_final_validation.txt
 else
-    echo "✗ VentSys CA certificate missing — complete ventsys_tls_implementation_guide.md Phase 1 first" >> /tmp/phase8_final_validation.txt
+    # NOT a failure — the router only needs this cert if mutual TLS is later added
+    # to WireGuard. Standard deployment does not require it here. See phase 8.1 note.
+    echo "⚠ VentSys CA certificate not yet present — OK for initial deployment." >> /tmp/phase8_final_validation.txt
+    echo "  Copy from HA VM after CA creation: scp root@192.168.20.101:/config/ssl/ca/ca.crt /etc/ventsys/ca/certs/" >> /tmp/phase8_final_validation.txt
 fi
 
 # Final recommendations
@@ -377,8 +393,9 @@ echo "READY FOR PRODUCTION USE" >> /tmp/phase8_final_validation.txt
 
 cat /tmp/phase8_final_validation.txt
 echo "SUCCESS: Router implementation completed - ready for VentSys Phase 1" >> /tmp/deployment_logs/phase8.log
+```
 
-Success Criteria for Phase 8
+## Success Criteria for Phase 8
 
 Certificate infrastructure prepared: Framework ready for VentSys TLS deployment
 Integration documentation complete: VentSys team has all required network information
@@ -387,21 +404,24 @@ Configuration secured: Complete backup with all credentials protected
 Update procedures ready: MAC address collection and device onboarding framework
 VentSys handover complete: All prerequisites documented and validated
 
-Failure Analysis and Resolution
-Minor Issues
+## Failure Analysis and Resolution
+
+### Minor Issues
 
 Certificate structure problems: Recreate directory structure with proper permissions
 Monitoring script failures: Check script permissions and log file access
 Documentation gaps: Verify all critical information documented
 
-Major Failures
+### Major Failures
 
 Backup system failure: Recreate backup infrastructure and test procedures
 Network monitoring failure: Reinstall monitoring components and validate functionality
 VentSys prerequisites missing: Review and remediate missing network components
 
-Recovery Procedures
-bash# If monitoring system fails:
+### Recovery Procedures
+
+```bash
+# If monitoring system fails:
 rm -rf /usr/local/bin/ventsys_network_monitor.sh
 # Recreate from Phase 8.3 instructions
 
@@ -414,3 +434,4 @@ chmod 700 /etc/ventsys/ca/private
 # If complete Phase 8 failure:
 /usr/local/bin/backup_phase.sh 8_recovery
 # Address specific failures and rerun phase sections
+```

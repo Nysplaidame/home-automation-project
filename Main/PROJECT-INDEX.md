@@ -1,4 +1,4 @@
-﻿---
+---
 title: Project Documentation Index
 description: Master navigation hub for all project documentation
 tags: [index, navigation, home-automation]
@@ -51,11 +51,11 @@ status: active
 
 ### Frigate NVR
 - [[configs/frigate/config.yml]] — cameras, MQTT, retention, detector
-- [[configs/frigate/docker-compose.yml]] — Frigate + Bambuddy services, volumes, env vars
+- [[configs/frigate/docker-compose.yml]] — Frigate service, volumes, env vars
 
 ### Bambuddy / P1S
 - [[configs/home-assistant/bambuddy_p1s_package.yaml]] — HA MQTT sensors, binary sensors, automations for P1S
-- [[scripts/setup/printers/bambuddy_p1s_setup_guide.md]] — Bambuddy deploy, P1S pairing, HA integration
+- [[scripts/setup/proxmox/bambuddy_vm_setup_guide.md]] — Bambuddy VM deploy, P1S pairing, HA integration
 
 ### ESPHome
 - [[configs/esphome/printairpipe-controller.yaml]] — enclosure sensor board (temperature, smoke, VOC, pressure)
@@ -65,15 +65,15 @@ status: active
 - [[ventsys/ventsys_bundle_updated/ventsys_ha_scripts.yaml]] — 12 ventilation mode scripts
 
 ### Proxmox
-- [[configs/proxmox/vm-configs.conf]] — expected qm config output for VMs 100 and 101
-- [[configs/proxmox/vm-setup.sh]] — shell script to create both VMs
+- [[configs/proxmox/vm-configs.conf]] — expected qm config output for VMs 100, 101, and 103
+- [[configs/proxmox/vm-setup.sh]] — shell script to create VMs 100, 101, and 103
 
 ---
 
 ## Setup guides (in deployment order)
 
 ### 1. Router
-- [[scripts/setup/router/router_setup_complete.md]] — phases 1–8 (prerequisites through VentSys readiness)
+- [[scripts/setup/router/phase_1_prerequisites.md]] — start of phases 1–8 router setup sequence
 - [[scripts/setup/router/phase_6_vpn_setup.md]] — WireGuard server setup detail
 - [[scripts/setup/router/network_testing_guide.md]] — post-deployment validation
 - [[scripts/setup/router/wireguard_vpn_guide.md]] — client setup and key management
@@ -81,7 +81,7 @@ status: active
 ### 2. Proxmox + VMs
 - [[scripts/setup/proxmox/proxmox_setup_guide.md]] — MINIX hardware, network config, IOMMU
 - [[scripts/setup/proxmox/ha_vm_setup_guide.md]] — HAOS onboarding through VentSys integration
-- [[scripts/setup/proxmox/frigate_vm_setup_guide.md]] — Debian + Docker + Frigate + Bambuddy + iGPU
+- [[scripts/setup/proxmox/frigate_vm_setup_guide.md]] — Debian + Docker + Frigate + iGPU
 
 ### 3. Storage
 - [[scripts/setup/nas/pi_nas_setup_guide.md]] — Pi NAS, NFS, Samba, HA backup target
@@ -105,7 +105,8 @@ status: active
 
 ## Architecture reference
 
-- [[docs/decisions/01-network-architecture.md]] — 9-VLAN design decisions
+- [[docs/decisions/01-network-architecture.md]] — original 9-VLAN decision, superseded by the printer VLAN update
+- [[docs/decisions/02-printer-vlan-architecture.md]] — current printer VLAN 35 extension
 - [[docs/diagrams/network/network-diagram.md]] — visual network topology
 - [[docs/diagrams/wiring-diagrams/ventsys_wiring_reference.md]] — ESP32 wiring
 - [[bill-of-materials/hardware/parts-list.md]] — hardware BOM
@@ -115,8 +116,8 @@ status: active
 
 ## VentSys deep-dive
 
-- [[ventsys/integration-process/ventsys_tls_implementation_guide.md]] — MQTT TLS migration
-- [[ventsys/integration-process/ventsys_technical_specifications.md]] — hardware specs
+- [[docs/procedures/ssl_tls_guide.md]] — canonical MQTT TLS + HTTPS workflow
+- [[docs/procedures/documentation_triage_2026-04-30.md]] — canonical-vs-template map and archive queue
 - [[ventsys/integration-process/ventsys_implementation_roadmap.md]] — phased build plan
 - [[ventsys/ventsys_bundle_updated/ventsys_ha_optional.yaml]] — optional HA entities
 

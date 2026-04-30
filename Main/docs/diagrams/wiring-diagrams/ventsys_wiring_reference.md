@@ -12,9 +12,9 @@
 | Board | ESPHome name | IP | YAML |
 |---|---|---|---|
 | Main fan controller | `ventsys-main-fan` | 192.168.50.21 | `ventsys_fan_controller.yaml` |
-| SLA print valve controller | `ventsys-sla-print-valve` | 192.168.50.56 | `ventsys_valve_controller.yaml` |
-| FDM sensor board | `enc-fdm-sensors` | 192.168.50.31 | `ventsys_fdm_sensor.yaml`  # A6-4 fix: per-device YAML (A4-4) |
-| SLA sensor board | `enc-sla-sensors` | 192.168.50.32 | `ventsys_sla_sensor.yaml`  # A6-4 fix: per-device YAML (A4-4) |
+| SLA print valve controller | `ventsys-sla-print-valve` | 192.168.50.56 | `configs/esphome/ventsys_sla_print_valve.yaml` (canonical deployable) |
+| FDM sensor board | `ventsys-fdm-sensor` | 192.168.50.31 | `ventsys_fdm_sensor.yaml`  # A6-4 fix: per-device YAML (A4-4) |
+| SLA sensor board | `ventsys-sla-sensor` | 192.168.50.32 | `ventsys_sla_sensor.yaml`  # A6-4 fix: per-device YAML (A4-4) |
 | Garage ambient sensor | `ventsys-garage-sensor` | 192.168.50.34 | `ventsys_garage_sensor.yaml` |
 
 All boards: ESP32-DevKitC (38-pin) or equivalent. Powered 5V via USB or VIN pin from 5V rail.
@@ -119,7 +119,7 @@ Allow 24–48h burn-in before calibrating thresholds. Take clean-air ADC reading
 Identical wiring to Board 3 (FDM sensor board). Use `ventsys_sla_sensor.yaml`  # A6-4 fix: per-device YAML exists (A4-4). The substitutions below are pre-set in that file:
 ```yaml
 substitutions:
-  device_name: enc-sla-sensors
+  device_name: ventsys-sla-sensor
   friendly_name: "SLA Enclosure Sensors"
   device_ip: "192.168.50.32"
   mqtt_topic_prefix: "ventsys/sla"
@@ -148,7 +148,8 @@ PrintAirPipe 125mm butterfly valves use MG90S micro servos mounted in printed ho
 > GPIO18 is the natural default for the first servo on each board. If a board drives more than one valve,
 > use GPIO19, GPIO20, GPIO21 for additional servos (see Board 2 pinout above).
 > ESPHome YAMLs for the seven additional valve controllers are documented as needed in fix #12 of
-> `ventsys_valve_controller.yaml`. Use that file as a template for each new board.
+> `configs/esphome/ventsys_sla_print_valve.yaml` is the canonical deployable SLA print-valve file.
+> `ventsys_bundle_updated/ventsys_valve_controller.yaml` remains a reference template for additional board variants.
 
 ---
 
