@@ -56,8 +56,8 @@ accurate and prevents future confusion when reading firewall rules.
 - No internet by default; single OTA exception (port 443 TCP → WAN) covers both
   printers — P1S uses HTTPS for firmware, Athena 2 (NanoDLP on Linux) uses HTTPS
   for OS/firmware updates
-- Wired-only: both P1S and Athena 2 have Gigabit Ethernet; no WiFi SSID required,
-  keeping the wireless config unchanged
+- WiFi-first rollout: HomePrinters SSID (VLAN 35) is the current deployment path
+  for immediate use. Wired VLAN 35 uplinks remain a future option.
 - Lan4 currently carries VLAN 40 untagged (NAS). VLAN 35 is VM-accessible only via
   the Proxmox trunk on lan1 — no new physical port assignment is needed
 - LAN → printers firewall rule allows Bambu Studio (laptop on VLAN 1) to reach the
@@ -135,18 +135,15 @@ cameras, which caused confusion about why a print management service was also th
 | `Block Printers Internet` | printers → wan | — | REJECT + log; catch-all |
 | `Bambuddy to Printer MQTT` | automation (20.102) → printers (35.200) | 8883/tcp | P1S local MQTT |
 | `Bambuddy to Printer FTPS` | automation (20.102) → printers (35.200) | 21/tcp | P1S file transfer |
-| `Bambuddy MQTT to HA` | automation (20.102) → automation (20.101) | 8883/tcp | Publish print events |
-| `Bambuddy to HA API` | automation (20.102) → automation (20.101) | 8123/tcp | Smart plug control |
 | `LAN to Bambuddy UI` | lan → automation (20.102) | 8000/tcp | Browser access |
 | `LAN to Printers` | lan → printers | 8883,21,80,8080/tcp | Bambu Studio + NanoDLP browser |
 | `Management to Printers` | management → printers | all | Admin access |
 
-Note: Bambuddy→HA rules (MQTT and API) are intra-zone (both on VLAN 20). OpenWrt
-firewall zones apply to inter-zone traffic by default; intra-zone traffic on VLAN 20
-is governed by the automation zone's `input/output` policy. The automation zone has
-`output=REJECT` to prevent devices from arbitrarily initiating outbound connections.
-Explicit intra-zone rules are added to permit Bambuddy (20.102) → HA (20.101) on the
-required ports, consistent with the existing scoped approach used elsewhere.
+Note: Bambuddy→HA traffic (MQTT 8883 and HA API 8123) stays inside VLAN 20
+(`192.168.20.0/24`). In the normal deployment path it does not route through
+OpenWrt, so VLAN 20 is accepted as the trust boundary for HA+Bambuddy. If stricter
+same-subnet policy is needed later, enforce it with host firewalls or Proxmox
+firewall rules rather than OpenWrt inter-zone rules.
 
 ---
 

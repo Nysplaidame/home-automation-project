@@ -148,10 +148,14 @@ Test from the management laptop (192.168.10.x), NOT the router:
 # Run this from the HA VM terminal once HA and Frigate are up:
 nc -zv 192.168.30.20 8971 && echo "V HA -> Frigate API 0.14+" || echo "? HA -> Frigate blocked"  # A9-4: was port 5000
 
-# IoT → HA MQTT (VLAN 50 → VLAN 20, port 1883/8883)
+# IoT → HA MQTT (VLAN 50 → VLAN 20)
 # From any device on VLAN 50:
-nc -zv 192.168.20.101 1883 && echo "✓ IoT → MQTT 1883" || echo "✗ IoT → MQTT blocked"
 nc -zv 192.168.20.101 8883 && echo "✓ IoT → MQTT 8883 (TLS)" || echo "✗ IoT → MQTT 8883 blocked"
+
+# Stage 1 only: if TLS has not been migrated yet and the temporary 1883 rule is
+# intentionally installed, this may also pass. Remove the temporary rule after
+# TLS migration is confirmed.
+nc -zv 192.168.20.101 1883 && echo "ⓘ IoT → MQTT 1883 open (temporary pre-TLS only)" || echo "✓ MQTT 1883 closed or not staged"
 
 # HA → IoT ESPHome API (VLAN 20 → VLAN 50, port 6053)
 # From HA Terminal:
@@ -222,14 +226,15 @@ nslookup google.com 1.1.1.1
 # From router shell:
 iwlist scan 2>/dev/null | grep ESSID
 
-# Expected SSIDs (broadcasting):
-# HomeMain, HomeAdmin, HomeAdmin-2G, HomePrinters, HomeIoT, HomeGuest
+# Expected visible SSIDs:
+# HomeMain, HomeAdmin, HomePrinters, HomeIoT, HomeGuest
+# Hidden configured SSID: HomeAdmin-2G
 # NOT broadcasting: HomeDMZ (disabled by default)
 
-# All 2.4GHz SSIDs (HomeMain, HomeAdmin-2G, HomeIoT, HomeGuest) share
+# All 2.4GHz SSIDs (HomeMain, HomeAdmin-2G, HomePrinters, HomeIoT, HomeGuest) share
 # radio0 and will be on channel 6. Per-interface channel overrides are
 # not supported in OpenWrt mac80211 — see wireless-config.conf for rationale.
-# HomeMain 5GHz and HomeAdmin 5GHz are on radio1 (auto channel).
+# HomeMain, HomeAdmin, and HomePrinters 5GHz are on radio1 (auto channel).
 iw dev | grep -E "(Interface|channel)"
 ```
 
@@ -264,7 +269,8 @@ All of these must be true before declaring the network ready:
 - [ ] Printers (35) cannot reach automation (20) or LAN (1) directly
 - [ ] IoT (50) cannot reach management (10)
 - [ ] Management (10) can reach all VLANs
-- [ ] MQTT port 1883 (or 8883) reachable from VLAN 50 → VLAN 20
+- [ ] MQTT port 8883 reachable from VLAN 50 → VLAN 20 after TLS migration
+- [ ] Temporary MQTT port 1883 closed after TLS migration (or explicitly documented as Stage 1 only)
 - [ ] ESPHome port 6053 reachable from VLAN 20 → VLAN 50
 - [ ] Frigate API reachable from VLAN 20 → VLAN 30 (port 8971 for 0.14+, port 5000 for 0.13)
 - [ ] NAS NFS reachable from VLAN 30 and VLAN 20

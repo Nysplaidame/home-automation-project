@@ -438,12 +438,55 @@ uci set dhcp.@host[-1].ip='192.168.50.62'
 uci set dhcp.@host[-1].mac='XX:XX:XX:XX:XX:XX'
 uci set dhcp.@host[-1].dns='1'
 
-# Bambu Lab P1S Printer (LAN — VLAN 1)
-# Stays on VLAN 1 so Bambu Studio on user laptop can reach it directly.
-# Bambuddy (Frigate VM, 192.168.30.20) reaches it via 'Bambuddy to P1S' firewall rule.
+# Smart plugs (.71-.78) — commercial units, ping-monitored, no ESPHome API port.
+# CRITICAL: these must have static IPs — the emergency smart plug rule in
+# firewall-config.conf targets 192.168.50.71/255.255.255.248 (.71-.78 as a block).
+# Dynamic IPs would break that emergency shutoff rule entirely.
 uci add dhcp host
-uci set dhcp.@host[-1].name='bambu-p1s'
-uci set dhcp.@host[-1].ip='192.168.1.200'
+uci set dhcp.@host[-1].name='plug-fdm-printer'
+uci set dhcp.@host[-1].ip='192.168.50.71'
+uci set dhcp.@host[-1].mac='XX:XX:XX:XX:XX:XX'
+uci set dhcp.@host[-1].dns='1'
+
+uci add dhcp host
+uci set dhcp.@host[-1].name='plug-sla-printer'
+uci set dhcp.@host[-1].ip='192.168.50.72'
+uci set dhcp.@host[-1].mac='XX:XX:XX:XX:XX:XX'
+uci set dhcp.@host[-1].dns='1'
+
+uci add dhcp host
+uci set dhcp.@host[-1].name='ventsys-plug-uv-1'
+uci set dhcp.@host[-1].ip='192.168.50.73'
+uci set dhcp.@host[-1].mac='XX:XX:XX:XX:XX:XX'
+uci set dhcp.@host[-1].dns='1'
+
+uci add dhcp host
+uci set dhcp.@host[-1].name='ventsys-plug-uv-2'
+uci set dhcp.@host[-1].ip='192.168.50.74'
+uci set dhcp.@host[-1].mac='XX:XX:XX:XX:XX:XX'
+uci set dhcp.@host[-1].dns='1'
+
+uci add dhcp host
+uci set dhcp.@host[-1].name='plug-wash-cure'
+uci set dhcp.@host[-1].ip='192.168.50.75'
+uci set dhcp.@host[-1].mac='XX:XX:XX:XX:XX:XX'
+uci set dhcp.@host[-1].dns='1'
+
+uci add dhcp host
+uci set dhcp.@host[-1].name='ventsys-plug-ultrasonic'
+uci set dhcp.@host[-1].ip='192.168.50.76'
+uci set dhcp.@host[-1].mac='XX:XX:XX:XX:XX:XX'
+uci set dhcp.@host[-1].dns='1'
+
+uci add dhcp host
+uci set dhcp.@host[-1].name='plug-ams-ht'
+uci set dhcp.@host[-1].ip='192.168.50.77'
+uci set dhcp.@host[-1].mac='XX:XX:XX:XX:XX:XX'
+uci set dhcp.@host[-1].dns='1'
+
+uci add dhcp host
+uci set dhcp.@host[-1].name='plug-esun-dryer'
+uci set dhcp.@host[-1].ip='192.168.50.78'
 uci set dhcp.@host[-1].mac='XX:XX:XX:XX:XX:XX'
 uci set dhcp.@host[-1].dns='1'
 

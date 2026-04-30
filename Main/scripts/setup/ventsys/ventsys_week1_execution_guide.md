@@ -235,7 +235,7 @@ uci show wireless | grep ssid > /tmp/ventsys_wifi_ssids.txt
 ### Step 5.2: Create Week 1 Summary Report
 
 **Network Infrastructure Status:**
-- [ ] All 9 VLANs operational with correct IP assignments
+- [ ] All 10 network segments operational with correct IP assignments
 - [ ] HomeIoT WiFi SSID broadcasting on VLAN 50
 - [ ] IoT internet isolation confirmed (security critical)
 - [ ] Inter-VLAN routing functional (VLAN 20 ↔ VLAN 50)

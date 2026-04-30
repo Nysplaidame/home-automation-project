@@ -90,7 +90,7 @@ uci set wireless.radio0.band='2g'
 # setting takes effect. Channel 6 is chosen because:
 #   - HomeIoT (VentSys fire safety) requires a fixed, stable channel
 #   - Channel 6 is a standard non-overlapping 2.4GHz channel (1/6/11)
-#   - All 2.4GHz SSIDs (HomeMain-2G, HomeAdmin-2G, HomeIoT, HomeGuest) share it
+#   - All 2.4GHz SSIDs (HomeMain-2G, HomeAdmin-2G, HomePrinters, HomeIoT, HomeGuest) share it
 uci set wireless.radio0.channel='6'
 uci set wireless.radio0.htmode='HE40'
 uci set wireless.radio0.country='GB'      # UK regulatory domain — CRITICAL: do not use 'US'
@@ -234,8 +234,20 @@ echo "HomeGuest SSID configured" >> /tmp/deployment_logs/phase5.log
 # Load printers password
 PRINTERS_PASSWORD=$(cat /etc/wireless/credentials/printers_password.txt)
 
-# Printers Network — 5GHz only (keeps 2.4GHz free for safety-critical HomeIoT)
-# P1S supports 802.11ac — 5GHz fully compatible.
+# Printers Network — dual-band.
+# Bambu P1S requires 2.4GHz, so radio0 is required. radio1 is retained for
+# 5GHz-capable printer clients until a wired path is available.
+uci add wireless wifi-iface
+uci set wireless.@wifi-iface[-1].device='radio0'
+uci set wireless.@wifi-iface[-1].mode='ap'
+uci set wireless.@wifi-iface[-1].ssid='HomePrinters'
+uci set wireless.@wifi-iface[-1].network='printers'
+uci set wireless.@wifi-iface[-1].encryption='psk2'
+uci set wireless.@wifi-iface[-1].key="$PRINTERS_PASSWORD"
+uci set wireless.@wifi-iface[-1].ieee80211w='0'
+uci set wireless.@wifi-iface[-1].isolate='1'
+uci set wireless.@wifi-iface[-1].maxassoc='10'
+
 uci add wireless wifi-iface
 uci set wireless.@wifi-iface[-1].device='radio1'
 uci set wireless.@wifi-iface[-1].mode='ap'
@@ -247,8 +259,10 @@ uci set wireless.@wifi-iface[-1].ieee80211w='0'
 uci set wireless.@wifi-iface[-1].isolate='1'
 uci set wireless.@wifi-iface[-1].maxassoc='10'
 
-echo "HomePrinters SSID configured on radio1 (5GHz, VLAN 35)" >> /tmp/deployment_logs/phase5.log
-``` (HomeDMZ - VLAN 70) - Disabled by Default
+echo "HomePrinters SSID configured on radio0 (2.4GHz, VLAN 35) and radio1 (5GHz, VLAN 35)" >> /tmp/deployment_logs/phase5.log
+```
+
+### 5.7 HomeDMZ WiFi (HomeDMZ - VLAN 70) - Disabled by Default
 **Duration**: 15 minutes
 
 ```bash
@@ -278,8 +292,8 @@ echo "HomeDMZ SSID configured (disabled)" >> /tmp/deployment_logs/phase5.log
 # All SSIDs on a radio share a single channel set at the radio level (step 5.2).
 # No UCI commands are needed here — channel 6 is already set on radio0 in step 5.2.
 #
-# 2.4GHz (radio0): ALL SSIDs (HomeMain-2G, HomeAdmin-2G, HomeIoT, HomeGuest) use channel 6.
-# 5GHz (radio1): auto channel selection (HomeMain-5G, HomeAdmin-5G).
+# 2.4GHz (radio0): ALL SSIDs (HomeMain-2G, HomeAdmin-2G, HomePrinters, HomeIoT, HomeGuest) use channel 6.
+# 5GHz (radio1): auto channel selection (HomeMain, HomeAdmin, HomePrinters).
 #
 # If you need strict channel separation between SSIDs (e.g., IoT on ch6 vs Main on ch1),
 # the only option is a second physical access point on a separate radio.
@@ -288,7 +302,7 @@ echo "HomeDMZ SSID configured (disabled)" >> /tmp/deployment_logs/phase5.log
 # stable channel, and 6 is a standard non-overlapping 2.4GHz channel.
 
 echo "Channel strategy: radio0 fixed channel 6 (set in step 5.2), radio1 auto (set in step 5.2)" >> /tmp/deployment_logs/phase5.log
-echo "No per-interface channel overrides possible — mac80211 architecture" &gt;&gt; /tmp/deployment_logs/phase5.log
+echo "No per-interface channel overrides possible — mac80211 architecture" >> /tmp/deployment_logs/phase5.log
 
 ```
 
@@ -339,15 +353,22 @@ echo "=== SSID Visibility and Configuration Validation ===" > /tmp/phase5_ssid_t
 # Check wireless interface status
 iwconfig >> /tmp/phase5_ssid_test.txt 2>&1
 
-# Verify expected SSIDs are broadcasting
-expected_ssids=("HomeMain" "HomeAdmin" "HomeAdmin-2G" "HomePrinters" "HomeIoT" "HomeGuest")
-for ssid in "${expected_ssids[@]}"; do
+# Verify expected visible SSIDs are broadcasting.
+# HomeAdmin-2G is intentionally hidden and is checked via UCI below.
+visible_ssids=("HomeMain" "HomeAdmin" "HomePrinters" "HomeIoT" "HomeGuest")
+for ssid in "${visible_ssids[@]}"; do
     if iwlist scan 2>/dev/null | grep -q "ESSID:\"$ssid\""; then
         echo "✓ SSID '$ssid' broadcasting" >> /tmp/phase5_ssid_test.txt
     else
         echo "✗ SSID '$ssid' not detected" >> /tmp/phase5_ssid_test.txt
     fi
 done
+
+if uci show wireless | grep -A8 "ssid='HomeAdmin-2G'" | grep -q "hidden='1'"; then
+    echo "✓ HomeAdmin-2G configured as hidden backup SSID" >> /tmp/phase5_ssid_test.txt
+else
+    echo "✗ HomeAdmin-2G hidden backup SSID not configured correctly" >> /tmp/phase5_ssid_test.txt
+fi
 
 # Verify HomeDMZ is disabled (should not appear)
 if iwlist scan 2>/dev/null | grep -q "ESSID:\"HomeDMZ\""; then
@@ -370,7 +391,6 @@ echo "=== VLAN Mapping Validation ===" > /tmp/phase5_vlan_mapping_test.txt
 mappings=(
     "HomeMain:lan"
     "HomeAdmin:management"
-```
     "HomePrinters:printers"
     "HomeIoT:iot_sensors"
     "HomeGuest:guest"
@@ -495,9 +515,9 @@ fi
 cat /tmp/phase5_channel_test.txt
 ```
 
-Success Criteria for Phase 5
+## Success Criteria for Phase 5
 
-All SSIDs broadcasting: 5 SSIDs visible with correct configurations
+Visible SSIDs broadcasting: 5 visible SSIDs configured; HomeAdmin-2G hidden backup configured via UCI
 VLAN mappings correct: Each SSID properly assigned to intended VLAN
 Security configurations appropriate: WPA3/WPA2 selections match requirements
 Channel configuration correct: radio0 fixed on channel 6 (all 2.4GHz SSIDs share this — mac80211 architecture, per-interface overrides silently ignored); radio1 on auto
@@ -505,8 +525,9 @@ VentSys IoT ready: HomeIoT SSID operational on VLAN 50 for sensor connectivity
 Client isolation active: IoT and Guest networks prevent inter-client communication
 Connection limits enforced: Guest and admin networks have appropriate limits
 
-Failure Analysis and Resolution
-Minor Issues
+## Failure Analysis and Resolution
+
+### Minor Issues
 
 SSID not broadcasting: Check interface configuration and restart wireless
 Wrong VLAN assignment: Verify network interface mappings
@@ -516,21 +537,24 @@ Channel conflicts: Not applicable — all 2.4GHz SSIDs share a single channel
   radio0.channel in UCI (step 5.2). Per-SSID channel separation is not
   possible in OpenWrt mac80211 — see step 5.8 Channel Strategy Note.
 
-Major Failures
+### Major Failures
 
 Wireless service failure: Check radio hardware and driver compatibility
 Configuration corruption: Restore from Phase 5 entry backup
 Radio hardware issues: Verify hardware compatibility and antenna connections
 
-Emergency Rollback
-bash# If wireless completely fails:
+### Emergency Rollback
+
+```bash
+# If wireless completely fails:
 /etc/init.d/network stop
-uci set wireless.radio0.disabled='1'  
+uci set wireless.radio0.disabled='1'
 uci set wireless.radio1.disabled='1'
 uci commit wireless
 /etc/init.d/network start
 
 # Then restore from backup:
 /usr/local/bin/emergency_restore.sh
+```
 
 **Proceed to Phase 6 when VentSys integration prerequisites validated.**

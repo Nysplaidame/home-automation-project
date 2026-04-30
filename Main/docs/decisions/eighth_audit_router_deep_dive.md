@@ -179,8 +179,8 @@ Add `printers` to all zone lists. Update rule name checks:
   (with note that they now cross automation→printers zones)
 - `"Block CCTV to Automation"` → `"Block NVR to Automation"`
 
-Add validation for new rules: `"Printers OTA Internet"`, `"LAN to Printers"`,
-`"Bambuddy MQTT to HA"` (now intra-automation), `"Bambuddy to HA API"`.
+Add validation for new routed rules: `"Printers OTA Internet"` and `"LAN to Printers"`.
+Document Bambuddy-to-HA as same-subnet VLAN20 trust-boundary traffic, not router firewall policy.
 
 ---
 
@@ -419,9 +419,9 @@ The following were checked and confirmed correct for v3.0 — no changes needed:
 
 - [[docs/decisions/02-printer-vlan-architecture|02 - Printer VLAN Architecture]]
   — The architectural decision driving all v3.0 changes
-- [[docs/decisions/combined_audit_report|Sixth Audit — Combined Report]]
-- [[docs/decisions/seventh_audit_full_check|Seventh Audit — Full Check]]
-- [[configs/openwrt/vlan-config|vlan-config.conf v3.0]]
-- [[configs/openwrt/firewall-config|firewall-config.conf v3.0]]
-- [[configs/openwrt/dhcp-config|dhcp-config.conf v3.0]]
-- [[configs/openwrt/wireless-config|wireless-config.conf v2.1]]
+- Sixth Audit — Combined Report (not present in current vault snapshot)
+- Seventh Audit — Full Check (not present in current vault snapshot)
+- [[configs/openwrt/vlan-config.conf|vlan-config.conf v3.0]]
+- [[configs/openwrt/firewall-config.conf|firewall-config.conf v3.0]]
+- [[configs/openwrt/dhcp-config.conf|dhcp-config.conf v3.0]]
+- [[configs/openwrt/wireless-config.conf|wireless-config.conf v2.1]]

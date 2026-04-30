@@ -17,7 +17,8 @@
 | HA (192.168.20.101:8123) | ✅ Port 8123 only |
 | DMZ (192.168.70.0/24) | ✅ Full |
 | Management (192.168.10.0/24) | ❌ Blocked |
-| CCTV (192.168.30.0/24) | ❌ Blocked |
+| NVR (192.168.30.0/24) | ❌ Blocked |
+| Printers (192.168.35.0/24) | ❌ Blocked |
 | Storage (192.168.40.0/24) | ❌ Blocked |
 | IoT (192.168.50.0/24) | ❌ Blocked |
 
@@ -52,8 +53,10 @@ SERVER_PUBLIC_KEY=$(cat /etc/wireguard/keys/server_public.key)
 # Get your current public IP
 # E3 fix: use local WAN interface lookup (no external dependency)
 WAN_IP=$(ip -4 addr show "$(uci get network.wan.device 2>/dev/null || echo wan)" \
-         | grep -oP "(?<=inet )\d+\.\d+\.\d+\.\d+" | head -1 \
-         || echo "YOUR_PUBLIC_IP_HERE")
+         | awk '/inet /{split($2,a,"/"); print a[1]; exit}')
+if [ -z "$WAN_IP" ]; then
+    WAN_IP="YOUR_PUBLIC_IP_HERE"
+fi
 # R-5 fix: was wget https://ipecho.net/plain (external dependency - breaks if service is down)
 echo "WAN IP: $WAN_IP"
 
@@ -86,6 +89,7 @@ done
 > `AllowedIPs` controls what traffic routes through the tunnel:
 > - `192.168.1.0/24` — main LAN access
 > - `192.168.20.101/32` — HA only (not the whole VLAN)
+> - `192.168.70.0/24` — DMZ access
 > - `10.0.0.0/24` — VPN subnet itself
 >
 > This is a split-tunnel config. Traffic to other sites goes via your phone's normal internet.
@@ -199,7 +203,7 @@ wg set wg0 peer $(cat /etc/wireguard/keys/client4_public.key) \
 # Persist to UCI
 uci add network wireguard_wg0
 uci set network.@wireguard_wg0[-1].public_key="$(cat /etc/wireguard/keys/client4_public.key)"
-uci set network.@wireguard_wg0[-1].allowed_ips='10.0.0.5/32'
+uci add_list network.@wireguard_wg0[-1].allowed_ips='10.0.0.5/32'
 uci set network.@wireguard_wg0[-1].persistent_keepalive='25'
 uci commit network
 
@@ -207,8 +211,10 @@ uci commit network
 SERVER_PUBLIC_KEY=$(cat /etc/wireguard/keys/server_public.key)
 # E3 fix: use local WAN interface lookup (no external dependency)
 WAN_IP=$(ip -4 addr show "$(uci get network.wan.device 2>/dev/null || echo wan)" \
-         | grep -oP "(?<=inet )\d+\.\d+\.\d+\.\d+" | head -1 \
-         || echo "YOUR_PUBLIC_IP_HERE")
+         | awk '/inet /{split($2,a,"/"); print a[1]; exit}')
+if [ -z "$WAN_IP" ]; then
+    WAN_IP="YOUR_PUBLIC_IP_HERE"
+fi
 # R-5 fix: was wget https://ipecho.net/plain (external dependency - breaks if service is down)
 cat > /etc/wireguard/client_configs/client4.conf << EOF
 [Interface]
@@ -259,8 +265,8 @@ uci commit network
 | VPN subnet | 10.0.0.0/24 |
 | Server IP (in tunnel) | 10.0.0.1 |
 | Client IPs | 10.0.0.2 / .3 / .4 |
-| Access via VPN | HA (192.168.20.101:8123), LAN (192.168.1.0/24) |
-| Blocked via VPN | Management, CCTV, Storage, IoT |
+| Access via VPN | HA (192.168.20.101:8123), LAN (192.168.1.0/24), DMZ (192.168.70.0/24) |
+| Blocked via VPN | Management, NVR, Printers, Storage, IoT |
 | Keys location (router) | `/etc/wireguard/keys/` |
 | Client configs (router) | `/etc/wireguard/client_configs/` |
 | Firewall zone | `vpn_clients` — see firewall-config.conf |

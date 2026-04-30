@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 # Proxmox VM Creation Script
 # Host: 192.168.10.10 — VLAN 10 (Management)
 # Run from Proxmox shell after completing proxmox_setup_guide.md Phases A-C
@@ -31,46 +31,69 @@ echo ""
 
 echo "--- Creating VM 100: Home Assistant OS ---"
 
-# Check HAOS image was imported
-if ! pvesm list local-lvm | grep -q "vm-100-disk"; then
-    echo "ERROR: HAOS disk image not yet imported to local-lvm."
-    echo "Follow proxmox_setup_guide.md Phase D to import the qcow2 first, then re-run."
-    exit 1
+# Create VM shell first if it does not already exist.
+if qm status 100 >/dev/null 2>&1; then
+    echo "VM 100 already exists - reusing existing shell."
+else
+    qm create 100 \
+        --name home-assistant \
+        --machine q35 \
+        --bios ovmf \
+        --ostype l26 \
+        --sockets 1 \
+        --cores 2 \
+        --cpu host \
+        --memory 4096 \
+        --balloon 0 \
+        --scsihw virtio-scsi-single \
+        --boot order=scsi0 \
+        --onboot 1 \
+        --startup order=1 \
+        --tablet 0 \
+        --vga serial0 \
+        --serial0 socket \
+        --net0 virtio,bridge=vmbr0,tag=20
 fi
 
-# Create VM shell
-qm create 100 \
-    --name home-assistant \
-    --machine q35 \
-    --bios ovmf \
-    --ostype l26 \
-    --sockets 1 \
-    --cores 2 \
-    --cpu host \
-    --memory 4096 \
-    --balloon 0 \
-    --scsihw virtio-scsi-single \
-    --boot order=scsi0 \
-    --onboot 1 \
-    --startup order=1 \
-    --tablet 0 \
-    --vga serial0 \
-    --serial0 socket \
-    --net0 virtio,bridge=vmbr0,tag=20
+# Import HAOS disk if needed and attach the imported unused disk before adding
+# the EFI vars disk. This avoids accidentally attaching the tiny EFI volume as
+# scsi0 on reruns or fresh installs.
+if qm config 100 | grep -q '^scsi0:'; then
+    echo "VM 100 scsi0 disk already attached - leaving existing disk in place."
+else
+    HAOS_DISK=$(qm config 100 | awk -F': ' '/^unused[0-9]+: local-lvm:vm-100-disk/ && $0 !~ /size=4M/ {print $2}' | cut -d',' -f1 | sed 's/^local-lvm://' | tail -1)
+    if [ -z "$HAOS_DISK" ]; then
+        HAOS_IMAGE=$(ls /var/lib/vz/template/iso/haos_ova-*.qcow2 2>/dev/null | head -1)
+        if [ -z "$HAOS_IMAGE" ]; then
+            echo "ERROR: No HAOS qcow2 found at /var/lib/vz/template/iso/haos_ova-*.qcow2"
+            echo "Download/extract HAOS per proxmox_setup_guide.md Phase D1, then re-run."
+            exit 1
+        fi
+        echo "Importing HAOS image: $(basename "$HAOS_IMAGE")"
+        qm importdisk 100 "$HAOS_IMAGE" local-lvm --format raw
+        HAOS_DISK=$(qm config 100 | awk -F': ' '/^unused[0-9]+: local-lvm:vm-100-disk/ && $0 !~ /size=4M/ {print $2}' | cut -d',' -f1 | sed 's/^local-lvm://' | tail -1)
+    fi
 
-# Add EFI disk
+    if [ -z "$HAOS_DISK" ]; then
+        echo "ERROR: Could not find imported HAOS disk as an unused VM 100 disk."
+        exit 1
+    fi
+    qm set 100 \
+        --scsi0 ${STORAGE}:${HAOS_DISK},cache=writeback,discard=on,ssd=1
+fi
+
+# Add EFI disk if needed.
 # FIX #29: `:1` allocates a 1GB LVM volume for the EFI vars disk, which is
 # wasteful on thin-provisioned storage — the EFI vars image is only ~128KB.
 # The correct allocation is `4M` (4 mebibytes), which is what the Proxmox GUI
 # uses by default and what the efitype=4m parameter implies. No functional
 # breakage from using `:1`, but it reserves ~8000x more space than necessary.
-qm set 100 \
-    --efidisk0 ${STORAGE}:4M,efitype=4m,pre-enrolled-keys=0
-
-# The HAOS disk was imported as vm-100-disk-1 by the qm importdisk command
-# in proxmox_setup_guide.md. Attach it here with performance tuning.
-qm set 100 \
-    --scsi0 ${STORAGE}:vm-100-disk-1,cache=writeback,discard=on,ssd=1
+if qm config 100 | grep -q '^efidisk0:'; then
+    echo "VM 100 EFI disk already present - leaving existing EFI disk in place."
+else
+    qm set 100 \
+        --efidisk0 ${STORAGE}:4M,efitype=4m,pre-enrolled-keys=0
+fi
 
 echo "✓ VM 100 created"
 echo ""
@@ -213,7 +236,7 @@ echo ""
 echo "IMPORTANT: After all VMs are up, note their MAC addresses and add to"
 echo "  configs/openwrt/dhcp-config.conf (home-assistant, frigate-nvr,"
 echo "  and bambuddy host entries), then re-apply the DHCP config to the"
-echo "  router per Phase 3 of router_setup_complete.md."
+echo "  router per scripts/setup/router/phase_3_dhcp_configuration.md."
 echo ""
 echo "iGPU PASSTHROUGH for Frigate (after confirming IOMMU active):"
 echo "  See frigate_vm_setup_guide.md Phase 6"

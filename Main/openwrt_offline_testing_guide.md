@@ -2,7 +2,7 @@
 
 **Project:** Home Automation Safety - Network Infrastructure Validation  
 **Router:** GL.iNet GL-MT6000 with OpenWrt  
-**Architecture:** 9-Zone Security Network (6 VLANs + Guest + DMZ + VPN)  
+**Architecture:** 10-VLAN Security Network + WireGuard VPN
 
 ## 🚨 **PRE-TEST SAFETY CHECKLIST**
 
@@ -73,7 +73,8 @@ uci show network | grep interface
 br-lan.1    (192.168.1.1/24)    # User network
 br-lan.10   (192.168.10.1/24)   # Management  
 br-lan.20   (192.168.20.1/24)   # Automation
-br-lan.30   (192.168.30.1/24)   # CCTV
+br-lan.30   (192.168.30.1/24)   # NVR
+br-lan.35   (192.168.35.1/24)   # Printers
 br-lan.40   (192.168.40.1/24)   # Storage
 br-lan.50   (192.168.50.1/24)   # IoT Sensors
 br-lan.60   (192.168.60.1/24)   # Monitoring
@@ -83,7 +84,7 @@ wg0         (10.0.0.1/24)       # VPN
 ```
 
 **✅ SUCCESS CRITERIA:**
-- [ ] All 9 network interfaces present with correct IPs
+- [ ] All 10 VLAN gateway interfaces plus `wg0` present with correct IPs
 - [ ] All interfaces in "UP" state
 - [ ] No error messages in logs
 
@@ -126,6 +127,7 @@ br-lan	 1 PVID Egress Untagged
 	 20 (lan1) 
 	 30 Egress Untagged (lan3)
 	 30 (lan1)
+	 35 (lan1)
 	 40 Egress Untagged (lan4)
 	 40 (lan1)
 	 50 (lan1)
@@ -163,7 +165,7 @@ bridge vlan show dev lan4
 ```
 
 **Expected Port Mapping:**
-- **lan1:** Trunk port (VLANs 10,20,30,40,50,60,70 tagged) → Proxmox
+- **lan1:** Trunk port (VLANs 10,20,30,35,40,50,60,70 tagged) → Proxmox
 - **lan2:** VLAN 10 untagged → Management devices
 - **lan3:** VLAN 30 untagged → Camera POE switch  
 - **lan4:** VLAN 40 untagged → NAS
@@ -199,8 +201,8 @@ netstat -ulnp | grep :67
 **Expected Output:**
 ```bash
 # Should show DHCP server configs for:
-dhcp.lan, dhcp.management, dhcp.automation, 
-dhcp.cctv, dhcp.storage, dhcp.iot_sensors, 
+dhcp.lan, dhcp.management, dhcp.automation,
+dhcp.nvr, dhcp.printers, dhcp.storage, dhcp.iot_sensors,
 dhcp.monitoring, dhcp.dmz, dhcp.guest
 ```
 
@@ -263,7 +265,10 @@ uci show dhcp | grep -E "(start|limit)"
 **Expected Static IPs:**
 - Proxmox: 192.168.10.10 (outside DHCP range 100-149)
 - Home Assistant: 192.168.20.101 (outside DHCP range 110-149)
+- Bambuddy: 192.168.20.102 (outside DHCP range 110-149)
 - Frigate: 192.168.30.20 (outside DHCP range 100-149)
+- Bambu P1S: 192.168.35.200 (outside DHCP range 100-149)
+- Athena 2: 192.168.35.201 (outside DHCP range 100-149)
 - NAS: 192.168.40.50 (outside DHCP range 100-139)
 
 **✅ SUCCESS CRITERIA:**
@@ -327,11 +332,12 @@ iwlist scan | grep ESSID
 - **HomeMain** (2.4GHz + 5GHz) → VLAN 1
 - **HomeAdmin** (5GHz) → VLAN 10  
 - **HomeAdmin-2G** (2.4GHz, hidden) → VLAN 10
+- **HomePrinters** (2.4GHz + 5GHz) → VLAN 35
 - **HomeIoT** (2.4GHz) → VLAN 50
 - **HomeGuest** (2.4GHz) → Guest network
 
 **✅ SUCCESS CRITERIA:**
-- [ ] All expected SSIDs visible (except hidden admin)
+- [ ] All expected visible SSIDs visible; HomeAdmin-2G configured as hidden
 - [ ] Both 2.4GHz and 5GHz radios active
 - [ ] Signal strength reasonable for coverage area
 - [ ] No WiFi errors in system logs
@@ -429,11 +435,11 @@ iptables -L -n -v
 ```
 
 **Expected Zones:**
-- wan, lan, management, automation, cctv, storage, iot_sensors
+- wan, lan, management, automation, nvr, printers, storage, iot_sensors
 - monitoring, dmz, guest, vpn_clients
 
 **✅ SUCCESS CRITERIA:**
-- [ ] All 11 zones present
+- [ ] All 12 zones present
 - [ ] Each zone bound to correct network interface
 - [ ] Default policies set correctly (ACCEPT/REJECT)
 - [ ] No firewall configuration errors
@@ -501,7 +507,8 @@ ls -la /var/log/
 # From management device, test connectivity to each network:
 ping 192.168.1.1      # User network
 ping 192.168.20.1     # Automation  
-ping 192.168.30.1     # CCTV
+ping 192.168.30.1     # NVR
+ping 192.168.35.1     # Printers
 ping 192.168.40.1     # Storage
 ping 192.168.50.1     # IoT Sensors
 ping 192.168.60.1     # Monitoring
@@ -524,13 +531,14 @@ ssh 192.168.30.20           # Frigate (if accessible)
 
 **Objective:** Verify restricted networks cannot access inappropriate targets
 
-**Test Setup:** Connect device to restricted network (IoT, CCTV, Storage)
+**Test Setup:** Connect device to restricted network (IoT, NVR, Printers, Storage)
 
 **IoT Network Isolation Test:**
 ```bash
 # From IoT device (192.168.50.x):
 ping 192.168.1.1      # Should FAIL (blocked)
-ping 192.168.30.1     # Should FAIL (blocked)  
+ping 192.168.30.1     # Should FAIL (blocked NVR)
+ping 192.168.35.1     # Should FAIL (blocked Printers)
 ping 192.168.20.1     # Should SUCCEED (HA control)
 ping 8.8.8.8          # Should FAIL (no internet)
 ```
@@ -563,13 +571,15 @@ ping 192.168.20.1     # Should FAIL (blocked)
 # (Limited without actual HA running, but can test basic connectivity)
 
 # From automation network:
-ping 192.168.30.1     # CCTV network (Frigate)
+ping 192.168.30.1     # NVR network (Frigate)
+ping 192.168.35.1     # Printers network
 ping 192.168.40.1     # Storage network (NAS)
 ping 192.168.50.1     # IoT network (sensors)
 ```
 
 **Expected Results:**
-- HA → CCTV: ALLOWED (for Frigate control)
+- HA → NVR: ALLOWED (for Frigate control)
+- HA → Printers: TRUST-BOUNDARY NOTE (Bambuddy and HA are same-subnet on VLAN 20)
 - HA → Storage: ALLOWED (for backups)
 - HA → IoT: ALLOWED (for sensor control)
 

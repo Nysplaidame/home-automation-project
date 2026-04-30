@@ -56,6 +56,13 @@ cat /tmp/phase7_system_status.txt
 echo "=== Network Connectivity Matrix Testing ===" > /tmp/phase7_connectivity_matrix.txt
 
 # Test connectivity between gateway interfaces (router-level testing)
+# NOTE ON SCOPE: These ping -I tests probe whether the *router itself* can
+# forward traffic between its own gateway IPs. They validate the routing table
+# and zone forwarding rules, but they do NOT prove client-to-client isolation.
+# Forwarded traffic from a client traverses nftables/iptables in a different
+# path than router-originated traffic. Full isolation validation requires
+# physical test devices on each VLAN running pings across zone boundaries.
+# Treat these tests as a sanity check only — not a security proof.
 networks=("192.168.1.1" "192.168.10.1" "192.168.20.1" "192.168.30.1" "192.168.35.1" "192.168.40.1" "192.168.50.1" "192.168.60.1" "192.168.70.1" "192.168.99.1")
 
 echo "Testing inter-network gateway connectivity:" >> /tmp/phase7_connectivity_matrix.txt
@@ -153,7 +160,7 @@ echo "=== Wireless Network Testing ===" > /tmp/phase7_wireless_test.txt
 # is not a reliable way to verify your own router's SSIDs. On OpenWrt it may
 # report nothing or scan the wrong interface. The correct method is to check
 # the UCI wireless config (for configuration) and hostapd (for live broadcast).
-expected_ssids=("HomeMain" "HomeAdmin" "HomeAdmin-2G" "HomePrinters" "HomeIoT" "HomeGuest")
+expected_ssids=("HomeMain" "HomeAdmin" "HomePrinters" "HomeIoT" "HomeGuest")
 broadcasting_count=0
 for ssid in "${expected_ssids[@]}"; do
     # Check UCI: SSID must be configured and not explicitly disabled
@@ -172,7 +179,14 @@ for ssid in "${expected_ssids[@]}"; do
     fi
 done
 
-echo "Active SSIDs: $broadcasting_count/6" >> /tmp/phase7_wireless_test.txt
+echo "Active visible SSIDs: $broadcasting_count/5" >> /tmp/phase7_wireless_test.txt
+
+# HomeAdmin-2G is intentionally hidden; verify config state via UCI
+if uci show wireless | grep -A8 "ssid='HomeAdmin-2G'" | grep -q "hidden='1'"; then
+    echo "✓ HomeAdmin-2G configured as hidden backup SSID" >> /tmp/phase7_wireless_test.txt
+else
+    echo "✗ HomeAdmin-2G hidden backup SSID not configured correctly" >> /tmp/phase7_wireless_test.txt
+fi
 
 # Check radio status
 echo "" >> /tmp/phase7_wireless_test.txt

@@ -4,7 +4,7 @@
 #
 # Prerequisites:
 #   - Proxmox setup complete (proxmox_setup_guide.md phases A–C done)
-#   - Router VLANs live (router_setup_complete.md deployed)
+#   - Router VLANs live (`scripts/setup/router/` phases 1-8 deployed)
 #   - VM 100 (HA) running — Grafana pulls sensor data via InfluxDB integration
 #
 # What this stack monitors:
@@ -104,7 +104,7 @@ config host
     option ip '192.168.60.10'
 ```
 
-Re-apply DHCP config to router (Phase 3 of router_setup_complete.md) then reboot
+Re-apply DHCP config to router (`scripts/setup/router/phase_3_dhcp_configuration.md`) then reboot
 VM 102 — it should come up at 192.168.60.10.
 
 ### 1.5 — Set startup order

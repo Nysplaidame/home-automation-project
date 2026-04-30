@@ -165,7 +165,7 @@ uci add_list network.@bridge-vlan[-1].ports='lan1:t'  # Trunk to Proxmox for Fri
 uci add_list network.@bridge-vlan[-1].ports='lan3:u*' # Camera POE switch — PVID
 
 # VLAN 35: Printers Network (Bambu P1S + Concepts3D Athena 2)
-# No physical port PVID needed — P1S is WiFi-only (HomePrinters SSID, radio1).
+# No physical port PVID needed — P1S is WiFi-only (HomePrinters SSID, radio0/2.4GHz).
 # lan1:t is tagged so Proxmox trunk carries VLAN 35 for future wired use.
 uci add network bridge-vlan
 uci set network.@bridge-vlan[-1].device='br-lan'
@@ -234,6 +234,20 @@ echo "All bridge VLANs configured" >> /tmp/deployment_logs/phase2.log
 
 ```bash
 # Create logical interfaces for each VLAN
+
+# LAN VLAN 1 — CRITICAL: must be explicitly pointed at br-lan.1 after bridge rebuild.
+# Without this the lan UCI section retains its factory device ('br-lan' undivided),
+# which no longer exists once the DSA bridge is created. Consequences of omission:
+#   - lan5 recovery port gets no DHCP/IP — SSH safety net is broken
+#   - HomeMain WiFi SSIDs (network='lan') broadcast but pass no traffic
+#   - Phase 3 dhcp.lan scope attaches to a non-functional interface
+uci set network.lan=interface
+uci set network.lan.proto='static'
+uci set network.lan.device='br-lan.1'
+uci set network.lan.ipaddr='192.168.1.1'
+uci set network.lan.netmask='255.255.255.0'
+uci set network.lan.ip6assign='60'
+
 # Management VLAN 10
 uci set network.management=interface
 uci set network.management.proto='static'

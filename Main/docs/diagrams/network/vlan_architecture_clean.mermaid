@@ -15,8 +15,9 @@ graph TD
         
         %% Service VLANs
         subgraph SERVICES[Service Networks]
-            VLAN_20[VLAN 20 - Automation<br/>192.168.20.0/24<br/>Home Assistant<br/>Frigate, Node-RED]
-            VLAN_30[VLAN 30 - CCTV<br/>192.168.30.0/24<br/>Security Cameras<br/>NVR, Video Processing]
+            VLAN_20[VLAN 20 - Automation<br/>192.168.20.0/24<br/>Home Assistant<br/>Bambuddy]
+            VLAN_30[VLAN 30 - NVR<br/>192.168.30.0/24<br/>Security Cameras<br/>NVR, Video Processing]
+            VLAN_35[VLAN 35 - Printers<br/>192.168.35.0/24<br/>Bambu P1S<br/>Athena 2]
             VLAN_40[VLAN 40 - Storage<br/>192.168.40.0/24<br/>Data Storage<br/>NAS, Backup Services]
         end
         
@@ -42,14 +43,15 @@ graph TD
     subgraph WIFI[WiFi SSID Mappings]
         SSID_MAIN[HomeMain<br/>2.4GHz + 5GHz<br/>WPA3-mixed] 
         SSID_ADMIN[HomeAdmin<br/>5GHz Primary<br/>WPA3-only]
+        SSID_PRINTERS[HomePrinters<br/>2.4GHz + 5GHz<br/>WPA2 + Isolation]
         SSID_IOT[HomeIoT<br/>2.4GHz Ch.6<br/>WPA2 + Isolation]
-        SSID_GUEST[HomeGuest<br/>2.4GHz Ch.11<br/>WPA2 + Isolation]
+        SSID_GUEST[HomeGuest<br/>2.4GHz Ch.6<br/>WPA2 + Isolation]
         SSID_DMZ[HomeDMZ<br/>5GHz<br/>WPA3 Disabled]
     end
     
     %% Physical Port Assignments
     subgraph PHYSICAL[Physical Port Assignment]
-        PORT_1[LAN1 - Trunk<br/>All VLANs to Proxmox<br/>Tagged: 10,20,30,40,50,60,70]
+        PORT_1[LAN1 - Trunk<br/>All VLANs to Proxmox<br/>Tagged: 10,20,30,35,40,50,60,70]
         PORT_2[LAN2 - Management<br/>VLAN 10 Untagged<br/>Admin Direct Access]
         PORT_3[LAN3 - Camera POE<br/>VLAN 30 Untagged<br/>Camera Switch]
         PORT_4[LAN4 - NAS Direct<br/>VLAN 40 Untagged<br/>Storage Access]
@@ -68,6 +70,7 @@ graph TD
     CORE --> VLAN_10
     CORE --> VLAN_20
     CORE --> VLAN_30
+    CORE --> VLAN_35
     CORE --> VLAN_40
     CORE --> VLAN_50
     CORE --> VLAN_60
@@ -78,6 +81,7 @@ graph TD
     %% WiFi SSID to VLAN Connections (Blue)
     SSID_MAIN -.-> VLAN_1
     SSID_ADMIN -.-> VLAN_10
+    SSID_PRINTERS -.-> VLAN_35
     SSID_IOT -.-> VLAN_50
     SSID_GUEST -.-> VLAN_99
     SSID_DMZ -.-> VLAN_70
@@ -86,6 +90,7 @@ graph TD
     PORT_1 ==> VLAN_10
     PORT_1 ==> VLAN_20
     PORT_1 ==> VLAN_30
+    PORT_1 ==> VLAN_35
     PORT_1 ==> VLAN_40
     PORT_1 ==> VLAN_50
     PORT_1 ==> VLAN_60

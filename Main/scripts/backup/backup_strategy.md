@@ -7,7 +7,7 @@
 
 | Layer | What | Where stored | Schedule | Retention |
 |---|---|---|---|---|
-| Proxmox snapshot | Entire VM disk (100, 101) | local-lvm on MINIX SSD | Daily 02:00 | 3 snapshots |
+| Proxmox snapshot | Entire VM disk (100, 101, 103) | local-lvm on MINIX SSD | Daily 02:00 | 3 snapshots |
 | HA native backup | HA config, add-ons, automations | HA local + NAS | Daily 03:00 | 14 days on NAS |
 | Frigate recordings | Camera footage | NAS /mnt/nas/frigate | Continuous | 7 days motion, 14 days events |
 | Config file backup | Safety vault YAML/configs | NAS /mnt/nas/configs | Daily via rsync | 30 days |
@@ -25,7 +25,7 @@
 |---|---|
 | Storage | `local` (stores backup on MINIX SSD) |
 | Schedule | `0 2 * * *` (daily 02:00) |
-| Selection | VMs 100 and 101 |
+| Selection | VMs 100, 101, and 103 |
 | Mode | Snapshot |
 | Compression | ZSTD |
 | Max backups | 3 |
@@ -37,6 +37,7 @@
 # In Proxmox shell before any risky change
 vzdump 100 --mode snapshot --compress zstd --storage local
 vzdump 101 --mode snapshot --compress zstd --storage local
+vzdump 103 --mode snapshot --compress zstd --storage local
 ```
 
 ### Restore a VM

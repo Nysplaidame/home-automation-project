@@ -10,7 +10,8 @@
 | SSID | VLAN | Bands | Security | Purpose |
 |------|------|-------|----------|---------|
 | **HomeMain** | VLAN 1 | 2.4GHz + 5GHz | WPA3 | Main user network |
-| **HomeAdmin** | VLAN 10 | 2.4GHz only | WPA3 | Admin devices |
+| **HomeAdmin** | VLAN 10 | 5GHz + hidden 2.4GHz backup | WPA3 | Admin devices |
+| **HomePrinters** | VLAN 35 | 2.4GHz + 5GHz | WPA2 | Bambu P1S + printer VLAN |
 | **HomeIoT** | VLAN 50 | 2.4GHz only | WPA2 | IoT sensors |
 | **HomeGuest** | Isolated | 2.4GHz only | WPA2 | Guest access |
 

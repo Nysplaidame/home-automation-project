@@ -1,4 +1,4 @@
-﻿# Raspberry Pi NAS — Setup Guide
+# Raspberry Pi NAS — Setup Guide
 **Device:** Raspberry Pi 4 (4GB+ recommended)
 **IP:** 192.168.40.50 — VLAN 40 (Storage)
 **Port:** lan4 on GL-MT6000 (VLAN 40 untagged)

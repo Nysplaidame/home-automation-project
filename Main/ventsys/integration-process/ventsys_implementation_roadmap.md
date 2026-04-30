@@ -54,9 +54,9 @@ ventsys-main-fan         (192.168.50.21)   # was ventsys-fan-controller
 ventsys-sla-print-valve  (192.168.50.56)   # was ventsys-sla-valve
 ventsys-fdm-print-valve  (192.168.50.55)   # was ventsys-fdm-valve@.83 (device/IP did not exist)
 ventsys-booth-sensor     (192.168.50.33)   # was ventsys-booth-valve@.84 (device/IP did not exist)
-enc-sla-sensors          (192.168.50.32)   # was ventsys-sla-sensors (mDNS name used in ESPHome)
-enc-fdm-sensors          (192.168.50.31)   # was ventsys-fdm-sensors
-enc-booth-sensors        (192.168.50.33)   # was ventsys-booth-sensors
+ventsys-fdm-sensor       (192.168.50.31)   # canonical sensor-board mDNS/DHCP name
+ventsys-sla-sensor       (192.168.50.32)   # canonical sensor-board mDNS/DHCP name
+ventsys-booth-sensor     (192.168.50.33)   # canonical sensor-board mDNS/DHCP name
 ```
 
 **Validation Criteria**:

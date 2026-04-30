@@ -3,15 +3,16 @@ title: Network Architecture Decision - 9-VLAN Security Segmentation
 description: Security-segmented network design isolating safety systems from internet
 tags: [architecture-decision, network-security, vlan, firewall, safety-critical]
 created: 2025-09-09
-modified: 2025-09-25
+modified: 2026-04-29
 type: decision
-status: accepted
+status: superseded
+superseded_by: docs/decisions/02-printer-vlan-architecture.md
 ---
 
 # Decision: 9-VLAN Security-Segmented Network Architecture
 
 **Date:** 2025-09-09 (revised 2025-09-25)
-**Status:** Accepted
+**Status:** Superseded by `docs/decisions/02-printer-vlan-architecture.md`, which adds the dedicated printer VLAN 35 segment.
 **Context:** Need secure network design isolating safety systems from internet while enabling remote access and normal user connectivity
 
 > **Related Sub-Project:** [[docs/prompts/01-network-infrastructure|Network Infrastructure & Security]]
@@ -102,12 +103,12 @@ VLAN 99 has no physical port assignments. WiFi-only access prevents Layer 2 atta
 
 - **Configs:** `configs/openwrt/` — complete OpenWrt configuration files
 - **Firewall Analysis:** [[docs/decisions/firewall_analysis_summary|Firewall Analysis Summary]] — Sept 24 analysis that drove the 4→9 VLAN revision
-- **Implementation Guide:** [[scripts/setup/router/router_setup_complete|Router Setup Guide]] — full 8-phase deployment procedure
+- **Implementation Guide:** `scripts/setup/router/` — phased 8-step deployment procedure
 - **Sub-Projects Affected:** [[docs/prompts/01-network-infrastructure|Network Infrastructure]], [[docs/prompts/04-home-assistant-core|Home Assistant]], [[docs/prompts/05-cctv-surveillance|CCTV]], [[docs/prompts/06-pi-nas-storage|Pi NAS Storage]], [[docs/prompts/03-printairpipe-ventilation|PrintAirPipe Ventilation]]
 
 ## History
 
-This architecture began as a 4-VLAN design (VLANs 20/30/40/50) documented on 2025-09-09. On 2025-09-24, a detailed firewall analysis (`firewall_analysis_summary.md`) identified critical gaps: missing user network, missing management VLAN, Frigate misplaced on VLAN 20, Proxmox misplaced on VLAN 20, no DMZ or guest isolation. The architecture was revised to the current 9-VLAN design on 2025-09-25 and all OpenWrt configs were rewritten accordingly.
+This architecture began as a 4-VLAN design (VLANs 20/30/40/50) documented on 2025-09-09. On 2025-09-24, a detailed firewall analysis (`firewall_analysis_summary.md`) identified critical gaps: missing user network, missing management VLAN, Frigate misplaced on VLAN 20, Proxmox misplaced on VLAN 20, no DMZ or guest isolation. The architecture was revised to a 9-VLAN design on 2025-09-25 and all OpenWrt configs were rewritten accordingly. It was later superseded by the printer VLAN decision, which adds VLAN 35 and makes the active design a 10-segment architecture.
 
 ---
 **Implementation Priority:** Critical (foundation for all other systems)

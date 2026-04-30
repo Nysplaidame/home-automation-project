@@ -2,45 +2,15 @@
 # Device: ventsys-sla-sensor  IP: 192.168.50.32  VLAN 50
 # DHCP hostname: ventsys-sla-sensor
 #
-# A4-4 fix: Per-device wrapper file created so operators have a ready-to-flash
-# config for the SLA sensor board with all substitutions pre-filled.
-# The shared firmware is printairpipe-controller.yaml - review that file for
-# full hardware pin assignments, calibration notes, and sensor documentation.
-#
-# HARDWARE (GPIO assignments from printairpipe-controller.yaml):
-#   DS18B20 temperature (1-Wire): GPIO4
-#   BME680 (temp/humidity/pressure/IAQ gas): SDA=GPIO21, SCL=GPIO22 (I2C)
-#   MQ smoke sensor (ADC, 3.3V): GPIO34
-#   Pressure differential ADC: GPIO35
-#   Status LED: GPIO2
-#
-# PRE-TLS: Change mqtt.port to 1883 and remove ca_certificate before first flash.
-#
-# MQTT topics published (all under ventsys/sla/):
-#   ventsys/sla/temperature       - DS18B20 temperature (degC)
-#   ventsys/sla/humidity          - BME680 humidity (%)
-#   ventsys/sla/baro_pressure     - BME680 absolute pressure (hPa)
-#   ventsys/sla/iaq               - BME680 gas resistance (ohms)
-#   ventsys/sla/pressure_diff     - Differential pressure ADC proxy (Pa)
-#   ventsys/sla/smoke             - "detected" / "clear"
-#   ventsys/sla/temp_alarm        - "high" / "normal"
-#   ventsys/sla/online            - heartbeat (true, every 60s)
-#
-# See: esphome_adoption_guide.md for first-flash and adoption workflow.
+# This is a deployable per-device wrapper that imports the shared firmware
+# in printairpipe-controller.yaml and overrides only board-specific values.
 
 substitutions:
-  device_name: enc-sla-sensors
+  device_name: ventsys-sla-sensor
   friendly_name: "SLA Enclosure Sensors"
   device_ip: "192.168.50.32"
   mqtt_topic_prefix: "ventsys/sla"
-  temp_threshold: "40.0"    # N-2 fix: SLA enclosure uses 40C threshold (vs 55C for FDM); resin fumes ignite at lower temps
+  temp_threshold: "40.0"
 
-# All remaining configuration is inherited from the shared firmware:
-# Copy the full printairpipe-controller.yaml content below this header,
-# OR use ESPHome packages include once the vault structure supports it.
-# For now, copy printairpipe-controller.yaml here and set the substitutions above.
-#
-# Quick reference - change ONLY these four substitution lines per board:
-#   FDM board: device_name: enc-fdm-sensors | device_ip: 192.168.50.31 | mqtt_topic_prefix: ventsys/fdm
-#   SLA board: device_name: enc-sla-sensors | device_ip: 192.168.50.32 | mqtt_topic_prefix: ventsys/sla
-#   Booth board: device_name: enc-booth-sensors | device_ip: 192.168.50.33 | mqtt_topic_prefix: ventsys/booth
+packages:
+  base: !include printairpipe-controller.yaml

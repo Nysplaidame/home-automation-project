@@ -109,6 +109,11 @@ config host
 
 ## Phase 3 — Install Docker
 
+Deployment dependency: the router firewall must still have
+`TEMP Bambuddy Update Access` active for VM 103. It allows only outbound TCP
+80/443 from `192.168.20.102` so Debian packages and Docker images can be
+downloaded during bootstrap.
+
 ```bash
 # Update and install prerequisites
 apt-get update && apt-get install -y ca-certificates curl gnupg
@@ -148,30 +153,27 @@ docker compose version
 mkdir -p /opt/bambuddy/{data,logs}
 ```
 
-### 4.2 — Create .env file
+### 4.2 — Create minimal `.env` file for container bootstrap
 
 ```bash
 nano /opt/bambuddy/.env
 ```
 
 ```env
-# Printer connection details
-BAMBU_PRINTER_IP=192.168.35.200
-BAMBU_ACCESS_CODE=<from printer Developer Mode screen>
-BAMBU_SERIAL=<serial number, e.g. 01P09C411500579>
-
-# MQTT publishing — Bambuddy pushes print events to Mosquitto on HA
-# TWO-STAGE MQTT PORT: Set to 1883 initially (pre-TLS), then update to 8883
-# after completing ventsys_tls_implementation_guide.md Phase 4.
+# MQTT publishing — Bambuddy pushes print events to Mosquitto on HA.
+# TLS on port 8883 is the canonical target state.
 MQTT_HOST=192.168.20.101
 MQTT_PORT=8883
 MQTT_USER=mqtt
 MQTT_PASSWORD=<mosquitto mqtt password — Bitwarden: mqtt-credentials>
-
-# Optional: pre-configure HA connection (alternative to UI setup in Phase 5)
-# HA_URL=http://192.168.20.101:8123
-# HA_TOKEN=<long-lived token — Bitwarden: ha-tokens>
 ```
+
+Use the Bambuddy web UI as the canonical place to add:
+- the P1S printer IP, access code, and serial
+- the Home Assistant URL and token
+
+Keep `.env` limited to container/bootstrap settings and MQTT publishing unless
+you have a deliberate reason to pre-seed advanced settings outside the UI.
 
 Protect the file:
 ```bash
@@ -194,15 +196,10 @@ services:
     environment:
       - TZ=Europe/London
       - PORT=8000
-      - BAMBU_PRINTER_IP=${BAMBU_PRINTER_IP}
-      - BAMBU_ACCESS_CODE=${BAMBU_ACCESS_CODE}
-      - BAMBU_SERIAL=${BAMBU_SERIAL}
       - MQTT_HOST=${MQTT_HOST}
       - MQTT_PORT=${MQTT_PORT}
       - MQTT_USER=${MQTT_USER}
       - MQTT_PASSWORD=${MQTT_PASSWORD}
-      # - HA_URL=${HA_URL}
-      # - HA_TOKEN=${HA_TOKEN}
     volumes:
       - /opt/bambuddy/data:/app/data
       - /opt/bambuddy/logs:/app/logs
@@ -216,6 +213,9 @@ docker compose up -d
 docker compose logs bambuddy -f    # watch for startup errors
 ```
 
+After the first successful image pull/start, remove `TEMP Bambuddy Update Access`
+on the router unless you are actively updating Bambuddy.
+
 Confirm the UI is accessible from a VLAN 1 laptop:
 ```
 http://192.168.20.102:8000
@@ -227,14 +227,15 @@ http://192.168.20.102:8000
 
 ### 5.1 — Add the P1S printer in Bambuddy UI
 
-If you didn't pre-configure via `.env` env vars, add the printer manually:
+This is the canonical setup path:
 
 1. Open `http://192.168.20.102:8000`
 2. Settings → Printers → Add Printer
 3. IP: `192.168.35.200`, Access Code: `<from printer screen>`, Serial: `<serial>`
-4. Click Connect — status dot should go green
+4. Use the secure printer connection mode offered by Bambuddy for the P1S
+5. Click Connect — status dot should go green
 
-### 5.2 — Connect Bambuddy to HA API
+### 5.2 — Connect Bambuddy to Home Assistant API
 
 1. In HA: **Settings → Profile → Security → Long-Lived Access Tokens → Create Token**
    Name it `Bambuddy`. Copy the value immediately → paste into Bitwarden as `ha-tokens`.
@@ -263,31 +264,27 @@ Restart HA. Confirm `binary_sensor.p1s_printing` and other entities appear in
 
 ---
 
-## Phase 6 — Verify firewall rules
+## Phase 6 — Verify network paths
 
-From the HA Terminal add-on, test that Bambuddy's required paths are open:
+Run these checks from the Bambuddy VM console. The printer paths are routed
+through OpenWrt and source-IP scoped to VM 103. The HA/Mosquitto paths stay
+inside VLAN 20, which is accepted as the HA+Bambuddy trust boundary; those
+checks verify service reachability rather than router firewall policy.
 
 ```bash
 # Bambuddy → P1S MQTT (should say 'open')
 nc -zv 192.168.35.200 8883
 
-# Bambuddy → Mosquitto (should say 'open')
-nc -zv 192.168.20.101 8883
-
-# Bambuddy → HA API (should say 'open')
-nc -zv 192.168.20.101 8123
-```
-
-From the Bambuddy VM console, test printer connectivity:
-
-```bash
-# P1S MQTT broker reachable
-nc -zv 192.168.35.200 8883   # should say 'open'
-
-# P1S FTPS reachable
+# P1S secure file transfer reachable
 nc -zv 192.168.35.200 21     # should say 'open'
 
-# Confirm internet is blocked (should time out or refuse)
+# Bambuddy → Mosquitto on HA (same VLAN trust boundary)
+nc -zv 192.168.20.101 8883
+
+# Bambuddy → HA API (same VLAN trust boundary)
+nc -zv 192.168.20.101 8123
+
+# Confirm internet is blocked after removing TEMP Bambuddy Update Access
 nc -zv 8.8.8.8 80 -w 3      # should fail
 ```
 
@@ -302,16 +299,17 @@ nc -zv 8.8.8.8 80 -w 3      # should fail
 - [ ] Start at boot enabled, startup order 3
 - [ ] MAC noted and added to dhcp-config.conf
 - [ ] Docker installed and working (`docker --version`)
+- [ ] `TEMP Bambuddy Update Access` removed from router after initial image pull
 - [ ] /opt/bambuddy/{data,logs} directories created
-- [ ] .env file created with correct printer credentials and MQTT settings
+- [ ] Minimal `.env` file created for container bootstrap and MQTT settings
 - [ ] docker-compose.yml created
 - [ ] `docker compose up -d` successful
 - [ ] Bambuddy UI accessible at http://192.168.20.102:8000 from VLAN 1 laptop
-- [ ] P1S added and showing green status in Bambuddy
+- [ ] P1S added in Bambuddy UI with secure transport and showing green status
 - [ ] Bambuddy connected to HA API (long-lived token saved in Bitwarden)
 - [ ] bambuddy_p1s_package.yaml deployed to HA, serial placeholder replaced
 - [ ] HA P1S entities visible (binary_sensor.p1s_printing etc.)
-- [ ] Firewall paths verified with nc checks above
+- [ ] Routed printer paths and same-VLAN HA paths verified with nc checks above
 - [ ] Confirm old Bambuddy removed from VM 101 (see note below)
 
 ## Removing Bambuddy from VM 101

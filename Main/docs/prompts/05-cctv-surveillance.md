@@ -59,7 +59,7 @@ Part of home automation project with fire safety focus. Provides video surveilla
 - **Network:** Secure isolation while maintaining control access
 
 ## Key Configurations
-- [[configs/frigate/config|Frigate Configuration]] - NVR configuration
+- [[configs/frigate/config.yml|Frigate Configuration]] - NVR configuration
 - Camera positioning and coverage planning
 - Motion detection zones and sensitivity
 - Storage retention policies

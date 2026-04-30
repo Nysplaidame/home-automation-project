@@ -269,12 +269,12 @@ Each hardware component added includes standardized certificate provisioning, de
 **Sub-tasks**:
 - **Hardware Installation**: Install BME680 (temp/humidity/pressure/IAQ gas), SGP30 (VOC), optical smoke detector, and SDP610 (pressure differential) sensors in SLA enclosure
 - **ESP32 Configuration**: Configure ESP32 controller for SLA sensor array with TLS connectivity and sensor data processing
-- **Certificate Provisioning**: Generate device certificate for ventsys-sla-sensors and integrate with sensor array configuration
+- **Certificate Provisioning**: Generate device certificate for ventsys-sla-sensor and integrate with sensor array configuration
 - **Data Processing**: Implement sensor data processing logic with smoothing, validation, and environmental change detection
 
 **Code Requirements**:
-- Create ventsys_sla_sensors.yaml configuration with BME680, SGP30, optical smoke, and pressure sensors using base TLS template
-- Generate device certificate for IP 192.168.50.31 and update device registry with SLA sensor array specifications
+- Create ventsys_sla_sensor.yaml configuration with BME680, SGP30, optical smoke, and pressure sensors using base TLS template
+- Generate device certificate for IP 192.168.50.32 and update device registry with SLA sensor array specifications
 - Implement sensor data processing with moving averages, outlier detection, and environmental trend analysis for accurate monitoring
 
 **Interdependencies**:
@@ -299,12 +299,12 @@ Each hardware component added includes standardized certificate provisioning, de
 **Sub-tasks**:
 - **Hardware Installation**: Install complete sensor suite in FDM enclosure with proper positioning for accurate environmental monitoring
 - **ESP32 Configuration**: Configure ESP32 controller for FDM sensor array using standardized sensor template with FDM-specific settings
-- **Certificate Provisioning**: Generate device certificate for ventsys-fdm-sensors and integrate with sensor array configuration
+- **Certificate Provisioning**: Generate device certificate for ventsys-fdm-sensor and integrate with sensor array configuration
 - **Sensor Template Development**: Create standardized sensor array template for consistent deployment across multiple zones
 
 **Code Requirements**:
-- Create ventsys_fdm_sensors.yaml using sensor template with FDM-specific MQTT topics (ventsys/fdm/temperature, humidity, voc, smoke, pressure)
-- Generate device certificate for IP 192.168.50.32 and update device registry with FDM sensor specifications
+- Create ventsys_fdm_sensor.yaml using sensor template with FDM-specific MQTT topics (ventsys/fdm/temperature, humidity, voc, smoke, pressure)
+- Generate device certificate for IP 192.168.50.31 and update device registry with FDM sensor specifications
 - Develop sensor array template (ventsys_sensor_template.yaml) for consistent sensor deployment with zone-specific customization
 
 **Interdependencies**:

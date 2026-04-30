@@ -43,7 +43,7 @@
 # FIRMWARE REQUIRED (M-5 audit note): This package references entities that do
 # not exist in any currently deployed firmware. Before loading, the following
 # ESPHome devices must be deployed AND publishing to their MQTT topics:
-#   - printairpipe-controller.yaml (enc-fdm-sensors + enc-sla-sensors boards)
+#   - printairpipe-controller.yaml (ventsys-fdm-sensor + ventsys-sla-sensor boards)
 #     Must publish to: ventsys/fdm/baro_pressure, ventsys/sla/baro_pressure
 #   - ventsys_garage_sensor.yaml (ventsys-garage-sensor board)
 #     Must publish to: ventsys/garage/baro_pressure

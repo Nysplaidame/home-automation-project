@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "wiki/log.md",
+                "file": "main/PROJECT-INDEX.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "log"
+              "title": "PROJECT-INDEX"
             }
           }
         ]
@@ -197,7 +197,15 @@
   },
   "active": "27457ccf20dc0bb6",
   "lastOpenFiles": [
+    "main/configs/esphome/ventsys_booth_sensor.yaml",
+    "main/configs/esphome/ventsys_sla_sensor.yaml",
+    "main/configs/esphome/ventsys_fdm_sensor.yaml",
+    "main/README.md",
+    "wiki/raw/llm-wiki-idea-file.md",
+    "wiki/CLAUDE.md",
     "wiki/index.md",
+    "wiki/pages/sources/network-architecture-decision.md",
+    "wiki/log.md",
     "README.md",
     "conflict-files-obsidian-git.md",
     "main/tests/unit/test_extractor.py",
@@ -208,8 +216,6 @@
     "main/backend/app/services/thumbnails.py",
     "main/backend/app/services/extractor.py",
     "main/backend/app/services/file_ops.py",
-    "main/backend/app/services/storage.py",
-    "main/backend/app/services/job_runner.py",
     "main/docs/prompts/JAMES_MASTER_PROMPT_v4.md",
     "main/docs/prompts/CLAUDE.md",
     "SKILL_ROUTING.md",
@@ -227,12 +233,6 @@
     "main/wiki/pages/concepts/ventsys-architecture.md",
     "main/wiki/pages/analyses/deployment-status-2026-04.md",
     "main/wiki/CLAUDE.md",
-    "main/home-automation-safety/sales/DROP-IN-PROMPT.md",
-    "main/wiki/pages/entities/tplink-ap.md",
-    "main/wiki/pages/entities/monitoring-vm.md",
-    "main/wiki/pages/sources/bambuddy-p1s-setup-guide.md",
-    "main/wiki/pages/sources/esphome-adoption-guide.md",
-    "main/wiki/pages/sources/network-testing-guide.md",
     "main/home-automation-safety/docs/diagrams/network/network-diagram-new.png",
     "Main/home-automation-safety/docs/diagrams/mermaid/packages/mermaid/src/docs/syntax/img/zenuml-participant-annotators.png",
     "Main/home-automation-safety/docs/diagrams/mermaid/packages/mermaid/src/docs/syntax/img/Gantt-long-weekend-look.png",

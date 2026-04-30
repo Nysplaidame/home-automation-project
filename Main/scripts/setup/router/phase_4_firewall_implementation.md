@@ -193,10 +193,10 @@ fi
 # Verify ESPHome API rule (ports 6053 + 3232)
 # FIX: Both ports are required. 6053 = native API, 3232 = OTA firmware updates.
 if uci show firewall | grep -q "ESPHome API HA to IoT"; then
-    if uci show firewall | grep -A5 "ESPHome API" | grep -q "dest_port='6053,3232'"; then
-        echo "✓ VentSys ESPHome API rules (6053,3232) configured" >> /tmp/phase4_ventsys_test.txt
+    if uci show firewall | grep -A5 "ESPHome API" | grep -q "dest_port='6053 3232'"; then
+        echo "✓ VentSys ESPHome API rules (6053 3232) configured" >> /tmp/phase4_ventsys_test.txt
     else
-        echo "✗ VentSys ESPHome API ports incorrect (expected '6053,3232' — OTA port 3232 is required)" >> /tmp/phase4_ventsys_test.txt
+        echo "✗ VentSys ESPHome API ports incorrect (expected '6053 3232' — OTA port 3232 is required)" >> /tmp/phase4_ventsys_test.txt
     fi
 else
     echo "✗ VentSys ESPHome API rule missing (expected: 'ESPHome API HA to IoT')" >> /tmp/phase4_ventsys_test.txt
@@ -216,8 +216,10 @@ else
     echo "✗ IoT NTP rule missing (ESPHome TLS will fail without accurate time)" >> /tmp/phase4_ventsys_test.txt
 fi
 
-# Verify Bambuddy rules (v3.0: intra-automation + automation→printers)
-for rule in "Bambuddy MQTT to HA" "Bambuddy to HA API" "Bambuddy to Printer MQTT" "Bambuddy to Printer FTPS"; do
+# Verify Bambuddy routed rules (automation→printers + temporary bootstrap WAN).
+# Bambuddy→HA stays inside VLAN 20 and is governed by the Automation trust boundary,
+# not router firewall policy.
+for rule in "Bambuddy to Printer MQTT" "Bambuddy to Printer FTPS" "TEMP Bambuddy Update Access"; do
     if uci show firewall | grep -q "$rule"; then
         echo "✓ Bambuddy rule configured: $rule" >> /tmp/phase4_ventsys_test.txt
     else
@@ -252,7 +254,7 @@ echo "=== Network Isolation Testing ===" > /tmp/phase4_isolation_test.txt
 
 # Test guest network isolation rules
 guest_isolation_rules=0
-for zone in lan management automation nvr printers storage iot_sensors monitoring dmz; do
+for zone in LAN Management Automation NVR Printers Storage IoT Monitoring DMZ; do
     if uci show firewall | grep -q "Block Guest to $zone"; then
         guest_isolation_rules=$((guest_isolation_rules + 1))
     fi
@@ -266,16 +268,16 @@ fi
 
 # Test DMZ isolation rules
 dmz_isolation_rules=0
-for zone in lan automation nvr storage iot_sensors; do
+for zone in LAN Automation NVR Storage Printers IoT; do
     if uci show firewall | grep -q "Block DMZ to $zone"; then
         dmz_isolation_rules=$((dmz_isolation_rules + 1))
     fi
 done
 
-if [ $dmz_isolation_rules -eq 5 ]; then
-    echo "✓ DMZ isolation rules complete ($dmz_isolation_rules/5)" >> /tmp/phase4_isolation_test.txt
+if [ $dmz_isolation_rules -eq 6 ]; then
+    echo "✓ DMZ isolation rules complete ($dmz_isolation_rules/6)" >> /tmp/phase4_isolation_test.txt
 else
-    echo "✗ DMZ isolation incomplete ($dmz_isolation_rules/5)" >> /tmp/phase4_isolation_test.txt
+    echo "✗ DMZ isolation incomplete ($dmz_isolation_rules/6)" >> /tmp/phase4_isolation_test.txt
 fi
 
 cat /tmp/phase4_isolation_test.txt

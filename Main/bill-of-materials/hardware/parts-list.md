@@ -232,7 +232,7 @@ status: active
 
 ### Configuration References
 
-- **Hardware Configs:** [[configs/|System Configurations]]
+- **Hardware Configs:** [[PROJECT-INDEX|System Configurations]]
 - **Architecture Decisions:** [[docs/decisions/01-network-architecture|Decision Records]]
 - **Session History:** [[docs/session-states/session-template|Development Sessions]]
 
@@ -277,4 +277,3 @@ status: active
 - [ ] Create procurement spreadsheet with supplier links and current pricing
 - [ ] Begin Phase 1 purchasing focusing on safety-critical components
 - [ ] Set up 3D printing queue for PrintAirPipe components
-

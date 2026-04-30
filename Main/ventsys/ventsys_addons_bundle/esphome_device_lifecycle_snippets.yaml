@@ -1,4 +1,4 @@
-﻿# Add these blocks to your ESPHome device YAMLs (fan/valve).
+# Add these blocks to your ESPHome device YAMLs (fan/valve).
 # Replace DEVICE_ID with a short identifier (e.g., espfan, espvalve)
 
 mqtt:

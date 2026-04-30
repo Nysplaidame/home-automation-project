@@ -1,6 +1,6 @@
-﻿---
+---
 title: Home Automation Safety Vault
-description: Fire safety ventilation, CCTV, secure network, and home automation for 3D printing operations
+description: Fire safety ventilation, NVR surveillance, secure network, and home automation for 3D printing operations
 tags: [home-automation, project-overview]
 aliases: [Project Overview]
 created: 2025-09-15
@@ -11,7 +11,7 @@ status: active
 
 # Home Automation Safety Vault
 
-Home automation system focused on fire safety and ventilation for 3D printing operations, with CCTV monitoring, secure network architecture, and AI integration.
+Home automation system focused on fire safety and ventilation for 3D printing operations, with NVR camera monitoring, secure network architecture, and AI integration.
 
 **Repository:** https://github.com/Nysplaidame/home-automation-project  
 **Index:** [[PROJECT-INDEX|Full Index]] | **Tasks:** [[TO-DO|Task list]]
@@ -22,13 +22,13 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 
 | Layer | Status | Notes |
 |---|---|---|
-| Network design | ✅ Complete | 9-VLAN architecture, all configs written and audited |
+| Network design | ✅ Complete | 10-segment architecture, all configs written and audited |
 | Router configs | ✅ Complete | vlan/firewall/dhcp/wireless — ready to deploy |
 | Router deployment | ⏳ Pending | GL-MT6000 not yet live — on existing flat network |
 | Proxmox | ✅ Hardware ready | MINIX NEO Z350, Proxmox install guide complete |
 | HA VM | ✅ Documented | HAOS, all packages, dashboard — ready to deploy post-router |
 | Frigate VM | ✅ Documented | Debian 12 + Docker, config complete |
-| Bambuddy | ✅ Documented | Runs alongside Frigate on VM 101, P1S integration complete |
+| Bambuddy | ✅ Documented | Dedicated VM 103 on VLAN 20, P1S integration complete |
 | Pi NAS | ✅ Documented | Setup guide written, hardware needed |
 | VentSys dashboard | ✅ Complete | ventilation_v9k.html with full HA integration layer |
 | VentSys HA packages | ✅ Complete | Package YAML, scripts, automations all written |
@@ -62,29 +62,30 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 - ESPHome on isolated VLAN 50, controlled via MQTT through HA
 - Full dashboard: `ventilation_v9k.html` → deploy to `/config/www/`
 
-### Network security (9 VLANs)
+### Network security (10 segments)
 | VLAN | Name | Subnet | Internet |
 |---|---|---|---|
 | 1 | LAN (users) | 192.168.1.0/24 | ✅ |
 | 10 | Management | 192.168.10.0/24 | ✅ |
 | 20 | Automation (HA) | 192.168.20.0/24 | HA only |
-| 30 | CCTV (Frigate) | 192.168.30.0/24 | ❌ |
+| 30 | NVR (Frigate) | 192.168.30.0/24 | ❌ |
+| 35 | Printers | 192.168.35.0/24 | OTA only |
 | 40 | Storage (NAS) | 192.168.40.0/24 | ❌ |
 | 50 | IoT sensors | 192.168.50.0/24 | ❌ |
 | 60 | Monitoring | 192.168.60.0/24 | Limited |
 | 70 | DMZ | 192.168.70.0/24 | Limited |
 | 99 | Guest | 192.168.99.0/24 | ✅ |
 
-### CCTV (VLAN 30)
+### NVR / Cameras (VLAN 30)
 - Frigate NVR on Proxmox VM 101
 - 4 cameras at 192.168.30.21–24
 - Footage to NAS via NFS, HA integration via Frigate card
 
-### Bambuddy / P1S printer (VLAN 30 → VLAN 1)
-- Bambuddy runs on VM 101 alongside Frigate (port 8000)
-- Monitors Bambu Lab P1S at 192.168.1.200 via MQTT over VLAN 1
+### Bambuddy / P1S printer (VLAN 20 → VLAN 35)
+- Bambuddy runs on dedicated VM 103 at 192.168.20.102 (port 8000)
+- Monitors Bambu Lab P1S at 192.168.35.200 via MQTT over VLAN 35
 - Publishes print state to Mosquitto; HA package in `configs/home-assistant/bambuddy_p1s_package.yaml`
-- Setup guide: `scripts/setup/printers/bambuddy_p1s_setup_guide.md`
+- Setup guide: `scripts/setup/proxmox/bambuddy_vm_setup_guide.md`
 
 ### Home Assistant (VLAN 20)
 - HAOS on Proxmox VM 100 at 192.168.20.101
@@ -102,7 +103,7 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 | Frigate config | `configs/frigate/config.yml` |
 | Frigate docker-compose | `configs/frigate/docker-compose.yml` |
 | Bambuddy HA package | `configs/home-assistant/bambuddy_p1s_package.yaml` |
-| Bambuddy setup guide | `scripts/setup/printers/bambuddy_p1s_setup_guide.md` |
+| Bambuddy setup guide | `scripts/setup/proxmox/bambuddy_vm_setup_guide.md` |
 | ESPHome sensor config | `configs/esphome/printairpipe-controller.yaml` |
 | VentSys ESPHome | `ventsys/ventsys_bundle_updated/` |
 | VentSys dashboard | `ventilation_v9k.html` |
@@ -121,16 +122,16 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 
 ## Deployment sequence
 
-1. **Router** — run phases 1–8 in `router_setup_complete.md`, then test with `network_testing_guide.md`
+1. **Router** — run phases 1–8 in `scripts/setup/router/`, starting with `phase_1_prerequisites.md`, then test with `network_testing_guide.md`
 2. **Proxmox** — follow `proxmox_setup_guide.md`, run `configs/proxmox/vm-setup.sh`
 3. **HA VM** — follow `ha_vm_setup_guide.md`, copy packages and dashboard
-4. **Frigate VM** — follow `frigate_vm_setup_guide.md` (includes Bambuddy deploy in Phase 3.3)
-5. **Bambuddy** — configure P1S credentials in `/opt/frigate/.env`, verify HA entities appear
-5. **NAS** — follow `pi_nas_setup_guide.md`
-6. **VentSys hardware** — purchase parts, follow wiring reference, flash ESPHome via USB
-7. **VentSys adoption** — follow `esphome_adoption_guide.md`
-8. **Cameras** — fill in RTSP URLs in `configs/frigate/config.yml`, update MAC addresses
-9. **VPN** — follow `wireguard_vpn_guide.md` for client setup
+4. **Frigate VM** — follow `frigate_vm_setup_guide.md`
+5. **Bambuddy VM** — follow `bambuddy_vm_setup_guide.md`, keep `.env` for bootstrap/MQTT settings, then configure P1S + HA token in the Bambuddy web UI and verify HA entities appear
+6. **NAS** — follow `pi_nas_setup_guide.md`
+7. **VentSys hardware** — purchase parts, follow wiring reference, flash ESPHome via USB
+8. **VentSys adoption** — follow `esphome_adoption_guide.md`
+9. **Cameras** — fill in RTSP URLs in `configs/frigate/config.yml`, update MAC addresses
+10. **VPN** — follow `wireguard_vpn_guide.md` for client setup
 
 ---
 

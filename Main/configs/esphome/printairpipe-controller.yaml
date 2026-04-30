@@ -8,8 +8,8 @@
 # Valve control: ventsys_valve_controller.yaml (IP: 192.168.50.56)
 #
 # One instance of this config per enclosure:
-#   FDM enclosure sensor board: IP 192.168.50.31 — name: enc-fdm-sensors
-#   SLA enclosure sensor board: IP 192.168.50.32 — name: enc-sla-sensors
+#   FDM enclosure sensor board: IP 192.168.50.31 — name: ventsys-fdm-sensor
+#   SLA enclosure sensor board: IP 192.168.50.32 — name: ventsys-sla-sensor
 #
 # HARDWARE PINS — update after physical wiring:
 #   DS18B20 temperature sensor bus: GPIO4 (1-Wire)
@@ -24,7 +24,7 @@
 # See: esphome_adoption_guide.md for first-flash and adoption workflow
 
 substitutions:
-  device_name: enc-fdm-sensors       # Change to enc-sla-sensors for the SLA board
+  device_name: ventsys-fdm-sensor    # Change to ventsys-sla-sensor for the SLA board
   friendly_name: "FDM Enclosure Sensors"
   device_ip: "192.168.50.31"         # Change to 192.168.50.32 for SLA board
   mqtt_topic_prefix: "ventsys/fdm"   # Change to ventsys/sla for SLA board

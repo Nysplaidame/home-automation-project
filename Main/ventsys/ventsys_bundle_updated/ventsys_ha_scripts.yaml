@@ -1,4 +1,4 @@
-﻿# VentSys HA Scripts — Mode Execution
+# VentSys HA Scripts — Mode Execution
 # Place in config/packages/ alongside ventsys_ha_package.yaml
 #
 # These scripts are called by the dashboard (ventilation_v9k.html) when a

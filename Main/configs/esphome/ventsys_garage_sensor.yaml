@@ -1,4 +1,4 @@
-﻿# ESPHome — VentSys Garage Ambient Sensor
+# ESPHome — VentSys Garage Ambient Sensor
 # Device: ESP32 (single board)
 # Network: VLAN 50 (IoT Sensors) — 192.168.50.0/24
 # SSID: HomeIoT

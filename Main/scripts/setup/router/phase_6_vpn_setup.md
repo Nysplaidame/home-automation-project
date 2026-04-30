@@ -69,21 +69,21 @@ echo "WireGuard interface configured" >> /tmp/deployment_logs/phase6.log
 CLIENT1_PUBLIC_KEY=$(cat /etc/wireguard/keys/client1_public.key)
 uci add network wireguard_wg0
 uci set network.@wireguard_wg0[-1].public_key="$CLIENT1_PUBLIC_KEY"
-uci set network.@wireguard_wg0[-1].allowed_ips='10.0.0.2/32'
+uci add_list network.@wireguard_wg0[-1].allowed_ips='10.0.0.2/32'
 uci set network.@wireguard_wg0[-1].persistent_keepalive='25'
 
 # Client 2 - Mobile Device
 CLIENT2_PUBLIC_KEY=$(cat /etc/wireguard/keys/client2_public.key)
 uci add network wireguard_wg0
 uci set network.@wireguard_wg0[-1].public_key="$CLIENT2_PUBLIC_KEY"
-uci set network.@wireguard_wg0[-1].allowed_ips='10.0.0.3/32'
+uci add_list network.@wireguard_wg0[-1].allowed_ips='10.0.0.3/32'
 uci set network.@wireguard_wg0[-1].persistent_keepalive='25'
 
 # Client 3 - Laptop/Desktop
 CLIENT3_PUBLIC_KEY=$(cat /etc/wireguard/keys/client3_public.key)
 uci add network wireguard_wg0
 uci set network.@wireguard_wg0[-1].public_key="$CLIENT3_PUBLIC_KEY"
-uci set network.@wireguard_wg0[-1].allowed_ips='10.0.0.4/32'
+uci add_list network.@wireguard_wg0[-1].allowed_ips='10.0.0.4/32'
 uci set network.@wireguard_wg0[-1].persistent_keepalive='25'
 
 echo "VPN client configurations added" >> /tmp/deployment_logs/phase6.log
@@ -118,9 +118,12 @@ SERVER_PUBLIC_KEY=$(cat /etc/wireguard/keys/server_public.key)
 # E3 fix: replaced wget http://ipecho.net/plain (unencrypted HTTP to a third-party
 # service) with a local lookup. On OpenWrt the WAN IP is available directly from
 # the network interface — no external request needed.
+# grep -oP is not available in BusyBox — use awk for portability.
 WAN_IP=$(ip -4 addr show "$(uci get network.wan.device 2>/dev/null || echo wan)" \
-         | grep -oP '(?<=inet )\d+\.\d+\.\d+\.\d+' | head -1 \
-         || echo "YOUR_PUBLIC_IP_HERE")
+         | awk '/inet /{split($2,a,"/"); print a[1]; exit}')
+if [ -z "$WAN_IP" ]; then
+    WAN_IP="YOUR_PUBLIC_IP_HERE"
+fi
 
 # Client 1 configuration
 cat > /etc/wireguard/client_configs/client1.conf << EOF
@@ -132,7 +135,7 @@ DNS = 192.168.1.1
 [Peer]
 PublicKey = $SERVER_PUBLIC_KEY
 Endpoint = $WAN_IP:51820
-AllowedIPs = 192.168.0.0/16, 10.0.0.0/24
+AllowedIPs = 192.168.1.0/24, 192.168.20.101/32, 192.168.70.0/24, 10.0.0.0/24
 PersistentKeepalive = 25
 EOF
 
@@ -147,7 +150,7 @@ DNS = 192.168.1.1
 [Peer]
 PublicKey = $SERVER_PUBLIC_KEY
 Endpoint = $WAN_IP:51820
-AllowedIPs = 192.168.0.0/16, 10.0.0.0/24
+AllowedIPs = 192.168.1.0/24, 192.168.20.101/32, 192.168.70.0/24, 10.0.0.0/24
 PersistentKeepalive = 25
 EOF
 done
@@ -201,7 +204,7 @@ else
 fi
 
 # Verify VPN clients blocked from sensitive networks
-sensitive_blocks=("management" "nvr" "storage" "iot_sensors" "printers")
+sensitive_blocks=("Management" "NVR" "Storage" "IoT" "Printers")
 blocked_count=0
 for zone in "${sensitive_blocks[@]}"; do
     if uci show firewall | grep -q "Block VPN to $zone"; then
