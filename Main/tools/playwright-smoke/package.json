@@ -1,0 +1,19 @@
+{
+  "name": "playwright-smoke",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local Playwright smoke tests for VentSys UI previews",
+  "scripts": {
+    "test": "playwright test",
+    "test:screensaver": "playwright test tests/screensaver.spec.js",
+    "test:headed": "playwright test --headed",
+    "preview:screensaver": "node scripts/preview-screensaver.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0"
+  },
+  "dependencies": {
+    "pngjs": "^7.0.0",
+    "three": "^0.184.0"
+  }
+}

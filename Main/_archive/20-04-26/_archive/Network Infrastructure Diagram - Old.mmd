@@ -1,0 +1,158 @@
+---
+config:
+  layout: elk
+---
+flowchart LR
+ subgraph VLAN10["<br>VLAN10 – Management<br>192.168.10.0/24"]
+    direction TB
+        Admin["💻 Admin Laptop<br>.10"]
+        Mobile["🥧 Raspberry Pi<br>.20"]
+        Proxmox["🖥 Proxmox<br>Server<br>.100"]
+  end
+ subgraph VLAN30["<br>VLAN30 – CCTV<br>192.168.30.0/24"]
+    direction TB
+        POESwitch["🔌 POE Switch<br>.10"]
+        Cam1["Camera_1<br>.21"]
+        Cam2["Camera_2<br>.22"]
+        Cam3["Camera_3<br>.23"]
+  end
+ subgraph VLAN40["<br>VLAN40 – Storage<br>192.168.40.0/24"]
+    direction TB
+        NAS["🍓 NAS<br>.50"]
+  end
+ subgraph VLAN50["<br>VLAN50 – IoT Sensors<br>192.168.50.0/24"]
+    direction TB
+        Temp["🌡 Temp/Humidity<br>31-32<br>• temp_1<br>• temp_2"]
+        Smoke["🔥 Smoke<br>41-42<br>• smoke_1<br>• smoke_2"]
+        VOC["🧪 VOC<br>51-52<br>• voc_1<br>• voc_2"]
+        Pressure["📏 Pressure<br>61-62<br>• pressure_1<br>• pressure_2"]
+        Plug["🔌 Smart Plugs<br>71-72<br>• plug_1<br>• plug_2"]
+        Servo["⚙️ Servos<br>81-82<br>• servo_1<br>• servo_2"]
+  end
+ subgraph VLAN20["<br>VLAN20 – Automation<br>192.168.20.0/24"]
+    direction TB
+        HA["<br><br>🏠 Home Assistant<br><br>.101<br><br>"]
+        Frigate["🎥 Frigate NVR<br>.102"]
+  end
+    Internet(["🌐 Internet"]) <==> Router["🛜 Router<br>GL-MT6000<br>OpenWrt<br>192.168.1.1"]
+    Router <==> VPN((("🔒 VPN Tunnel<br>WireGuard")))
+    Router ==> Proxmox
+    Router === n1{{"🛡 Firewall Rules<br>• VLAN20: Full Internet<br>• VLAN20: HA Controlled<br>• VLAN30: No Internet<br>• VLAN40: No Internet<br>• VLAN50: No Internet"}}
+    VLAN10 --> Admin & Mobile
+    VLAN10 ==> VLAN30 & VLAN50 & VLAN40 & VLAN20
+    VLAN10 <==> Router
+    VLAN30 --> POESwitch
+    POESwitch --> Cam1 & Cam2 & Cam3
+    VLAN40 --> NAS
+    VLAN20 --> Proxmox
+    Proxmox <--> HA & Frigate
+    HA -.-> VLAN30
+    VPN <-.-> Remote["📲 Remote Mobile"]
+    Remote <-. HA dashboard .-> CameraFeeds["🎞 Camera Feeds"]
+    Plug -.-> HA
+    Pressure -.-> HA
+    VOC -.-> HA
+    Servo -.-> HA
+    Smoke -.-> HA
+    Temp -.-> HA
+    Frigate -.-> CameraFeeds & VLAN30
+    NAS ==> Router
+    POESwitch ==> Router
+    VLAN50 ==> HA
+    NAS -.-> Frigate
+     Admin:::device
+     Mobile:::device
+     Proxmox:::device
+     POESwitch:::Pine
+     POESwitch:::Ash
+     POESwitch:::Aqua
+     Cam1:::sensor
+     Cam2:::sensor
+     Cam3:::sensor
+     NAS:::device
+     Temp:::sensor
+     Smoke:::sensor
+     VOC:::sensor
+     Pressure:::sensor
+     Plug:::sensor
+     Servo:::sensor
+     HA:::device
+     HA:::VM
+     Frigate:::device
+     Frigate:::VM
+     Internet:::device
+     Router:::Aqua
+     VPN:::device
+     n1:::device
+     n1:::security
+     VLAN10:::vlan
+     VLAN30:::vlan
+     VLAN50:::vlan
+     VLAN40:::vlan
+     VLAN20:::vlan
+     Remote:::device
+     CameraFeeds:::Class_01
+     CameraFeeds:::DataFeed
+    classDef vlan fill:#e3f2fd,stroke:#0d47a1,stroke-width:1.5px,rx:8,ry:8
+    classDef security fill:#e8f5e8,stroke:#2e7d32,stroke-width:1.5px,rx:8,ry:8
+    classDef arrow-temp stroke:#e53935,stroke-width:2px,stroke-dasharray:3 3
+    classDef arrow-smoke stroke:#fb8c00,stroke-width:2px,stroke-dasharray:3 3
+    classDef arrow-voc stroke:#43a047,stroke-width:2px,stroke-dasharray:3 3
+    classDef arrow-pressure stroke:#1e88e5,stroke-width:2px,stroke-dasharray:3 3
+    classDef arrow-plug stroke:#8e24aa,stroke-width:2px,stroke-dasharray:3 3
+    classDef arrow-servo stroke:#6d4c41,stroke-width:2px,stroke-dasharray:3 3
+    classDef arrow-cctv stroke:#3949ab,stroke-width:2px
+    classDef arrow-nas stroke:#00897b,stroke-width:2px
+    classDef arrow-vpn stroke:#6d4c41,stroke-width:2px,stroke-dasharray:2 2
+    classDef Pine stroke-width:1px, stroke-dasharray:none, stroke:#254336, fill:#27654A, color:#FFFFFF
+    classDef Ash stroke-width:1px, stroke-dasharray:none, stroke:#999999, fill:#EEEEEE, color:#000000
+    classDef Aqua stroke-width:1px, stroke-dasharray:none, stroke:#46EDC8, fill:#DEFFF8, color:#378E7A
+    classDef sensor fill:#fff8e1, stroke:#ff9800, stroke-width:1px, rx:8, ry:8, color:#af8000
+    classDef device fill:#C8E6C9, stroke:#00C853, stroke-width:1.5px, rx:8, ry:8, color:#007531
+    classDef VM stroke-width:2px, stroke-dasharray: 2, stroke:#4a148c, fill:#f3e5f5, color:#AA00FF
+    classDef Class_01 fill:#fff0f1
+    classDef DataFeed fill:#00ffdd, stroke-width:1px, stroke-dasharray: 1, color:#000000, stroke:#000000
+    style Admin fill:#C8E6C9,stroke:#00C853
+    style Mobile fill:#C8E6C9,stroke:#00C853
+    style Internet fill:#00C853,color:#000000,stroke:#000000
+    style VLAN10 fill:#BBDEFB,stroke:#2962FF,color:#000000
+    style VLAN30 fill:#BBDEFB,stroke:#2962FF,color:#000000
+    style VLAN50 fill:#BBDEFB,color:#000000
+    style VLAN40 fill:#BBDEFB,stroke:#2962FF,color:#000000
+    style VLAN20 fill:#BBDEFB,stroke:#2962FF,color:#000000
+    linkStyle 0 stroke:#00C853,fill:none
+    linkStyle 1 stroke:#2962FF,fill:none
+    linkStyle 2 stroke:#00C853,fill:none
+    linkStyle 3 stroke:#FFD600,fill:none
+    linkStyle 6 stroke:#D50000,fill:none
+    linkStyle 7 stroke:#D50000,fill:none
+    linkStyle 8 stroke:#D50000,fill:none
+    linkStyle 9 stroke:#D50000,fill:none
+    linkStyle 10 stroke:#00C853,fill:none
+    linkStyle 12 stroke:#D50000,fill:none
+    linkStyle 13 stroke:#D50000,fill:none
+    linkStyle 14 stroke:#D50000,fill:none
+    linkStyle 17 stroke:#000000,fill:none
+    linkStyle 18 stroke:#000000,fill:none
+    linkStyle 19 stroke:#D50000,fill:none
+    linkStyle 20 stroke:#2962FF,fill:none
+    linkStyle 21 stroke:#2962FF,fill:none
+    linkStyle 22 stroke:#D50000,fill:none
+    linkStyle 23 stroke:#D50000,fill:none
+    linkStyle 24 stroke:#D50000,fill:none
+    linkStyle 25 stroke:#D50000,fill:none
+    linkStyle 26 stroke:#D50000,fill:none
+    linkStyle 27 stroke:#D50000,fill:none
+    linkStyle 28 stroke:#AA00FF,fill:none
+    linkStyle 29 stroke:#D50000,fill:none
+    linkStyle 30 stroke:#D50000,fill:none
+    linkStyle 31 stroke:#D50000,fill:none
+    linkStyle 32 stroke:#D50000,fill:none
+    linkStyle 33 stroke:#D50000,fill:none
+subgraph PhysicalPorts["🔌 Physical Port Assignment"]
+    direction TB
+        LAN1["lan1: Trunk to Proxmox<br>VLANs 10,20,30,40,50 tagged"]
+        LAN2["lan2: Management<br>VLAN 10 untagged"]
+        LAN3["lan3: Camera POE<br>VLAN 30 untagged"]
+        LAN4["lan4: NAS Direct<br>VLAN 40 untagged"]
+  end

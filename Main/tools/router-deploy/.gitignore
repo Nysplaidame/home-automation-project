@@ -1,0 +1,8 @@
+keys/router_deploy
+keys/router_deploy.pub
+keys/uplink_wifi.json
+snapshots/
+generated/
+logs/
+*.bak
+__pycache__/

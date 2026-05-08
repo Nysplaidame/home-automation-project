@@ -1,0 +1,7 @@
+{
+  "ssid": "YOUR_EXISTING_WIFI_SSID",
+  "psk": "YOUR_EXISTING_WIFI_PASSWORD",
+  "device": "radio1",
+  "encryption": "psk2",
+  "bssid": ""
+}

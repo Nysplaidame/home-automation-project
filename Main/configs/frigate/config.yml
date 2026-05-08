@@ -1,0 +1,182 @@
+# Frigate NVR Configuration
+# Host: 192.168.30.20 — VLAN 30 (NVR)
+# Deployed via: /opt/frigate/config/config.yml on frigate-nvr VM
+# A6-11 fix: zone label corrected from "CCTV" to "NVR" (renamed across all
+# configs in docs/decisions/02-printer-vlan-architecture.md).
+# See: scripts/setup/proxmox/frigate_vm_setup_guide.md
+
+mqtt:
+  enabled: true
+  host: 192.168.20.101
+  port: 8883
+  # H-5 fix: TLS config activated. Cert files must be present in the container
+  # at /config/certs/ — see the volume mount added to docker-compose.yml (H-6).
+  # Cert paths match the local CA workflow in docs/procedures/ssl_tls_guide.md.
+  tls_insecure: false
+  tls_ca_certs: /config/certs/ca-cert.pem
+  user: mqtt
+  # FIX #14: {FRIGATE_RTSP_PASSWORD} was copy-pasted from the camera RTSP URL
+  # substitution pattern. That env var holds the camera RTSP password, which is
+  # a completely different credential to the Mosquitto MQTT broker password.
+  # Frigate was attempting to authenticate to Mosquitto with the wrong password
+  # and being rejected. The MQTT password must be set explicitly here -- it
+  # corresponds to mqtt_password in HA's secrets.yaml and the Mosquitto ACL.
+  # Add FRIGATE_MQTT_PASSWORD to /opt/frigate/.env and reference it below,
+  # or set the password directly (avoid committing real credentials to git).
+  password: "{FRIGATE_MQTT_PASSWORD}"   # set FRIGATE_MQTT_PASSWORD in .env file
+
+database:
+  path: /db/frigate.db
+
+detectors:
+  # M-6 fix: CPU-only detection is correct as default (no TPU attached).
+  # Two accelerated options are available for this hardware — use ONE:
+  #
+  # OPTION A — Coral USB TPU (best detection speed, ~30fps):
+  #   1. Plug in Coral USB TPU
+  #   2. Comment out cpu1 block below
+  #   3. Uncomment the coral block
+  #   4. docker compose restart frigate
+  #
+  # OPTION B — Intel iGPU via OpenVINO (no extra hardware, good speed):
+  #   1. Complete igpu_passthrough_guide.md first
+  #   2. Comment out cpu1 block below
+  #   3. Uncomment the ov block
+  #   4. docker compose restart frigate
+  #
+  cpu1:          # ACTIVE: remove when switching to Coral or OpenVINO
+    type: cpu
+    num_threads: 3   # i3-N350 has 4 cores - leave 1 for OS
+  #
+  # OPTION A - Coral USB TPU:
+  # coral:
+  #   type: edgetpu
+  #   device: usb
+  #
+  # OPTION B - Intel iGPU OpenVINO (after igpu_passthrough_guide.md):
+  # ov:
+  #   type: openvino
+  #   device: GPU
+record:
+  enabled: true
+  retain:
+    days: 7
+    mode: motion
+  events:
+    retain:
+      default: 14
+      mode: active_objects
+
+snapshots:
+  enabled: true
+  retain:
+    default: 14
+
+# ── CAMERAS ────────────────────────────────────────────────────────────────
+# Update RTSP paths to match your actual camera model stream URLs.
+# Most cameras: rtsp://admin:<password>@<ip>:554/stream1 or /Streaming/Channels/1
+# Check manufacturer documentation for exact path.
+# {FRIGATE_RTSP_PASSWORD} uses the env var from docker-compose.yml.
+
+cameras:
+  cam_01:
+    enabled: true
+    ffmpeg:
+      # L-4 fix: force TCP transport to prevent stream freezes on unstable networks.
+      # UDP is Frigate's default but causes issues with cameras that don't handle
+      # packet loss well. Change to preset-rtsp-udp if cameras perform better.
+      input_args: preset-rtsp-tcp
+      inputs:
+        - path: rtsp://admin:{FRIGATE_RTSP_PASSWORD}@192.168.30.21:554/stream1
+          roles:
+            - detect
+            - record
+      # Uncomment after enabling iGPU passthrough (Phase 6):
+      # hwaccel_args: preset-vaapi
+    detect:
+      enabled: true
+      width: 1920
+      height: 1080
+      fps: 5
+    motion:
+      enabled: true
+    objects:
+      track:
+        - person
+        - car
+        - cat
+        - dog
+
+  cam_02:
+    enabled: true
+    ffmpeg:
+      # L-4 fix: force TCP transport to prevent stream freezes on unstable networks.
+      # UDP is Frigate's default but causes issues with cameras that don't handle
+      # packet loss well. Change to preset-rtsp-udp if cameras perform better.
+      input_args: preset-rtsp-tcp
+      inputs:
+        - path: rtsp://admin:{FRIGATE_RTSP_PASSWORD}@192.168.30.22:554/stream1
+          roles:
+            - detect
+            - record
+    detect:
+      enabled: true
+      width: 1920
+      height: 1080
+      fps: 5
+    motion:
+      enabled: true
+    objects:
+      track:
+        - person
+        - car
+        - cat
+        - dog
+
+  cam_03:
+    enabled: true
+    ffmpeg:
+      # L-4 fix: force TCP transport to prevent stream freezes on unstable networks.
+      # UDP is Frigate's default but causes issues with cameras that don't handle
+      # packet loss well. Change to preset-rtsp-udp if cameras perform better.
+      input_args: preset-rtsp-tcp
+      inputs:
+        - path: rtsp://admin:{FRIGATE_RTSP_PASSWORD}@192.168.30.23:554/stream1
+          roles:
+            - detect
+            - record
+    detect:
+      enabled: true
+      width: 1920
+      height: 1080
+      fps: 5
+    motion:
+      enabled: true
+    objects:
+      track:
+        - person
+        - car
+
+  cam_04:
+    enabled: true
+    ffmpeg:
+      # L-4 fix: force TCP transport to prevent stream freezes on unstable networks.
+      # UDP is Frigate's default but causes issues with cameras that don't handle
+      # packet loss well. Change to preset-rtsp-udp if cameras perform better.
+      input_args: preset-rtsp-tcp
+      inputs:
+        - path: rtsp://admin:{FRIGATE_RTSP_PASSWORD}@192.168.30.24:554/stream1
+          roles:
+            - detect
+            - record
+    detect:
+      enabled: true
+      width: 1920
+      height: 1080
+      fps: 5
+    motion:
+      enabled: true
+    objects:
+      track:
+        - person
+        - car

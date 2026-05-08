@@ -1,0 +1,291 @@
+# Home Assistant Package — Bambuddy P1S Integration
+# Deploy to: /config/packages/bambuddy_p1s_package.yaml on HA VM
+# Prerequisites:
+#   - Bambuddy running at 192.168.20.102:8000 on docker-host (VM 103, VLAN 20)
+#   - Bambuddy MQTT publishing configured to 192.168.20.101:8883
+#   - P1S printer at 192.168.35.200 (VLAN 35 — see docs/decisions/02-printer-vlan-architecture.md)
+#     (current baseline uses 8883 in this repo's post-TLS path. If you run
+#     pre-TLS staging, temporarily use 1883 and switch back to 8883 after
+#     completing docs/procedures/ssl_tls_guide.md.)
+#   - Replace all <P1S_SERIAL> with actual serial (e.g. 01P09C411500579)
+#
+# ⚠ DEPLOYMENT BLOCKER — F-14: Replace <P1S_SERIAL> before use ⚠
+# This file contains 17 literal <P1S_SERIAL> placeholders, including 13 MQTT topic fields.
+# Until replaced, ALL sensors and automations in this package will silently
+# fail — Mosquitto never publishes to topics containing '<' or '>'.
+#
+# Find your serial number: Bambu Lab printer settings screen → Device Info,
+# OR from the Bambuddy web UI on docker-host at http://192.168.20.102:8000 after first start.
+#
+# To replace all occurrences at once on the HA VM:
+#   cd /config/packages
+#   sed -i 's/<P1S_SERIAL>/01P09C411500579/g' bambuddy_p1s_package.yaml
+#   # substitute your actual serial above
+#
+# Created entities:
+#   sensor.p1s_* — print progress, state, temperatures, layer, time, filename
+#   binary_sensor.p1s_printing — true while actively printing
+# Automations:
+#   Print start  → notify + log
+#   Print done   → notify + log
+#   Print failed → urgent notify + VentSys purge
+#   Bambuddy offline → notify
+
+mqtt:
+  # ──────────────────────────────────────────────────────────────────────────
+  # STATUS SENSOR — polls full printer state every ~1 second
+  # ──────────────────────────────────────────────────────────────────────────
+  sensor:
+    - name: "P1S Print Progress"
+      unique_id: p1s_print_progress
+      state_topic: "bambuddy/printers/<P1S_SERIAL>/status"
+      value_template: "{{ value_json.progress | round(1) }}"
+      unit_of_measurement: "%"
+      icon: mdi:printer-3d-nozzle
+      expire_after: 60
+
+    - name: "P1S State"
+      unique_id: p1s_state
+      state_topic: "bambuddy/printers/<P1S_SERIAL>/status"
+      value_template: "{{ value_json.state }}"
+      icon: mdi:printer-3d
+      expire_after: 60
+
+    - name: "P1S Bed Temperature"
+      unique_id: p1s_bed_temp
+      state_topic: "bambuddy/printers/<P1S_SERIAL>/status"
+      value_template: "{{ value_json.temperatures.bed }}"
+      unit_of_measurement: "°C"
+      device_class: temperature
+      expire_after: 60
+
+    - name: "P1S Nozzle Temperature"
+      unique_id: p1s_nozzle_temp
+      state_topic: "bambuddy/printers/<P1S_SERIAL>/status"
+      value_template: "{{ value_json.temperatures.nozzle }}"
+      unit_of_measurement: "°C"
+      device_class: temperature
+      expire_after: 60
+
+    - name: "P1S Chamber Temperature"
+      unique_id: p1s_chamber_temp
+      state_topic: "bambuddy/printers/<P1S_SERIAL>/status"
+      value_template: "{{ value_json.temperatures.chamber }}"
+      unit_of_measurement: "°C"
+      device_class: temperature
+      expire_after: 60
+
+    - name: "P1S Layer"
+      unique_id: p1s_layer
+      state_topic: "bambuddy/printers/<P1S_SERIAL>/status"
+      value_template: >
+        {% if value_json.total_layers is defined and value_json.total_layers > 0 %}
+          {{ value_json.layer_num }} / {{ value_json.total_layers }}
+        {% else %}
+          -
+        {% endif %}
+      icon: mdi:layers-triple
+      expire_after: 60
+
+    - name: "P1S Remaining Time"
+      unique_id: p1s_remaining_time
+      state_topic: "bambuddy/printers/<P1S_SERIAL>/status"
+      value_template: "{{ (value_json.remaining_time / 60) | round(0) | int }}"
+      unit_of_measurement: "min"
+      icon: mdi:clock-outline
+      expire_after: 60
+
+    - name: "P1S Current Print"
+      unique_id: p1s_current_print
+      state_topic: "bambuddy/printers/<P1S_SERIAL>/status"
+      value_template: "{{ value_json.current_print | default('None') }}"
+      icon: mdi:file-3d
+      expire_after: 60
+
+    - name: "P1S WiFi Signal"
+      unique_id: p1s_wifi_signal
+      state_topic: "bambuddy/printers/<P1S_SERIAL>/status"
+      value_template: "{{ value_json.wifi_signal }}"
+      unit_of_measurement: "dBm"
+      device_class: signal_strength
+      entity_category: diagnostic
+      expire_after: 60
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # BINARY SENSORS
+  # ──────────────────────────────────────────────────────────────────────────
+  binary_sensor:
+    - name: "P1S Printing"
+      unique_id: p1s_printing
+      state_topic: "bambuddy/printers/<P1S_SERIAL>/status"
+      # FIX #10: value_template previously passed value_json.state directly to
+      # payload_on/payload_off matching. Bambuddy publishes multiple states beyond
+      # PRINTING and IDLE: PAUSE, FAILED, FINISH, RUNNING, SLICING. Any of these
+      # left the sensor 'unavailable' rather than 'off', silently disabling the
+      # p1s_chamber_temp_high automation's condition (state: "on" never matched
+      # 'unavailable'). The template now collapses all non-PRINTING states to the
+      # literal string "IDLE" so the binary sensor is always either on or off.
+      value_template: "{{ 'PRINTING' if value_json.state == 'PRINTING' else 'IDLE' }}"
+      payload_on: "PRINTING"
+      payload_off: "IDLE"
+      device_class: running
+      expire_after: 60
+
+    - name: "Bambuddy Online"
+      unique_id: bambuddy_online
+      state_topic: "bambuddy/status"
+      payload_on: "online"
+      payload_off: "offline"
+      device_class: connectivity
+      expire_after: 120
+
+# ──────────────────────────────────────────────────────────────────────────
+# AUTOMATIONS
+# ──────────────────────────────────────────────────────────────────────────
+automation:
+
+  # Print started
+  - id: p1s_print_started
+    alias: "P1S — Print started"
+    mode: single
+    trigger:
+      - platform: mqtt
+        topic: "bambuddy/printers/<P1S_SERIAL>/print/started"
+    action:
+      # FIX #28: notify.notify with no target sends to ALL registered notification
+      # services simultaneously (mobile apps, email, Telegram, etc). Set a specific
+      # target here to avoid that. Options: notify.mobile_app_<device>, notify.telegram,
+      # notify.persistent_notification (always available, no setup needed).
+      # For now this uses persistent_notification as a safe default -- replace with
+      # your preferred service once HA notifications are configured.
+      - action: notify.persistent_notification
+        data:
+          title: "🖨️ P1S Print Started"
+          message: >
+            {% set payload = trigger.payload_json %}
+            {{ payload.print_name | default('Unknown print') }} started.
+      # Log to HA logbook
+      - action: logbook.log
+        data:
+          name: "P1S Printer"
+          message: >
+            {% set payload = trigger.payload_json %}
+            Started: {{ payload.print_name | default('Unknown') }}
+
+  # Print completed
+  - id: p1s_print_completed
+    alias: "P1S — Print completed"
+    mode: single
+    trigger:
+      - platform: mqtt
+        topic: "bambuddy/printers/<P1S_SERIAL>/print/completed"
+    action:
+      # FIX #28: notify.notify with no target sends to ALL registered notification
+      # services simultaneously (mobile apps, email, Telegram, etc). Set a specific
+      # target here to avoid that. Options: notify.mobile_app_<device>, notify.telegram,
+      # notify.persistent_notification (always available, no setup needed).
+      # For now this uses persistent_notification as a safe default -- replace with
+      # your preferred service once HA notifications are configured.
+      - action: notify.persistent_notification
+        data:
+          title: "✅ P1S Print Complete"
+          message: >
+            {% set payload = trigger.payload_json %}
+            {{ payload.print_name | default('Print') }} finished successfully.
+      - action: logbook.log
+        data:
+          name: "P1S Printer"
+          message: >
+            {% set payload = trigger.payload_json %}
+            Completed: {{ payload.print_name | default('Unknown') }}
+
+  # Print failed — urgent, also triggers VentSys purge
+  - id: p1s_print_failed
+    alias: "P1S — Print failed"
+    mode: single
+    trigger:
+      - platform: mqtt
+        topic: "bambuddy/printers/<P1S_SERIAL>/print/failed"
+    action:
+      # FIX #28: notify.notify with no target sends to ALL registered notification
+      # services simultaneously (mobile apps, email, Telegram, etc). Set a specific
+      # target here to avoid that. Options: notify.mobile_app_<device>, notify.telegram,
+      # notify.persistent_notification (always available, no setup needed).
+      # For now this uses persistent_notification as a safe default -- replace with
+      # your preferred service once HA notifications are configured.
+      - action: notify.persistent_notification
+        data:
+          title: "❌ P1S Print Failed"
+          message: >
+            {% set payload = trigger.payload_json %}
+            {{ payload.print_name | default('Print') }} failed.
+            Check Bambuddy for details: http://192.168.20.102:8000
+          data:
+            priority: high
+      # Run VentSys purge to clear any residual fumes from a failed print
+      - action: script.turn_on
+        target:
+          entity_id: script.ventsys_mode_fdm_purge
+      - action: logbook.log
+        data:
+          name: "P1S Printer"
+          message: >
+            {% set payload = trigger.payload_json %}
+            FAILED: {{ payload.print_name | default('Unknown') }} — VentSys purge activated
+
+  # Bambuddy offline alert
+  - id: bambuddy_offline_alert
+    alias: "P1S — Bambuddy went offline"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.bambuddy_online
+        to: "off"
+        for:
+          minutes: 3
+    action:
+      # FIX #28: notify.notify with no target sends to ALL registered notification
+      # services simultaneously (mobile apps, email, Telegram, etc). Set a specific
+      # target here to avoid that. Options: notify.mobile_app_<device>, notify.telegram,
+      # notify.persistent_notification (always available, no setup needed).
+      # For now this uses persistent_notification as a safe default -- replace with
+      # your preferred service once HA notifications are configured.
+      - action: notify.persistent_notification
+        data:
+          title: "⚠️ Bambuddy Offline"
+          message: >
+            Bambuddy on docker-host (192.168.20.102:8000) has been unreachable for 3 minutes.
+            P1S printer events are not being tracked.
+
+  # High chamber temperature from Bambuddy data — supplements VentSys sensors
+  - id: p1s_chamber_temp_high
+    alias: "P1S — Chamber temperature high"
+    mode: single
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.p1s_chamber_temperature
+        above: 45
+        for:
+          minutes: 2
+    condition:
+      - condition: state
+        entity_id: binary_sensor.p1s_printing
+        state: "on"
+    action:
+      # FIX #28: notify.notify with no target sends to ALL registered notification
+      # services simultaneously (mobile apps, email, Telegram, etc). Set a specific
+      # target here to avoid that. Options: notify.mobile_app_<device>, notify.telegram,
+      # notify.persistent_notification (always available, no setup needed).
+      # For now this uses persistent_notification as a safe default -- replace with
+      # your preferred service once HA notifications are configured.
+      - action: notify.persistent_notification
+        data:
+          title: "⚠️ P1S Chamber Temp High"
+          message: >
+            P1S chamber at {{ states('sensor.p1s_chamber_temperature') }}°C while printing.
+            VentSys fan increased.
+      - action: fan.set_percentage
+        target:
+          entity_id: fan.inline_fan
+        data:
+          percentage: 100

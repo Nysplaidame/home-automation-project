@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>VentSys Solar Observatory Screensaver</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void: #02040a;
+    --ink: #d7e4ee;
+    --muted: #73859a;
+    --line: rgba(188, 211, 226, 0.16);
+    --line-strong: rgba(196, 225, 238, 0.34);
+    --ok: #77e4ba;
+    --warn: #f0b46c;
+    --critical: #ff6767;
+    --glass: rgba(4, 10, 16, 0.56);
+    --glass-border: rgba(190, 222, 235, 0.18);
+  }
+
+  * { box-sizing: border-box; }
+
+  html,
+  body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background: var(--void);
+    color: var(--ink);
+    font-family: "Exo 2", "Segoe UI", sans-serif;
+    touch-action: manipulation;
+  }
+
+  body {
+    position: fixed;
+    inset: 0;
+  }
+
+  #scene {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  #focus-scene {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    display: block;
+    width: 100vw;
+    height: 100vh;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1800ms ease;
+  }
+
+  #focus-scene.visible {
+    opacity: 1;
+  }
+
+  .caption {
+    position: fixed;
+    left: 14px;
+    top: 10px;
+    z-index: 2;
+    max-width: min(390px, calc(100vw - 28px));
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 900ms ease, transform 900ms ease;
+    pointer-events: none;
+  }
+
+  .caption.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .caption__eyebrow {
+    color: var(--muted);
+    font-family: "Orbitron", "Segoe UI", sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .caption__title {
+    margin-top: 2px;
+    color: #f4fbff;
+    font-family: "Orbitron", "Segoe UI", sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .caption__body {
+    margin-top: 3px;
+    color: rgba(215, 228, 238, 0.76);
+    font-size: 11px;
+    line-height: 1.25;
+  }
+
+  .safety-strip {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: 6px;
+    min-height: 24px;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    border: 1px solid var(--glass-border);
+    background:
+      linear-gradient(90deg, rgba(119, 228, 186, 0.07), transparent 34%),
+      var(--glass);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 0 24px rgba(119, 228, 186, 0.08);
+  }
+
+  .safety-strip.warning {
+    background:
+      linear-gradient(90deg, rgba(240, 180, 108, 0.13), transparent 42%),
+      var(--glass);
+    box-shadow: 0 0 26px rgba(240, 180, 108, 0.16);
+  }
+
+  .safety-strip.critical {
+    background:
+      linear-gradient(90deg, rgba(255, 103, 103, 0.2), transparent 48%),
+      rgba(24, 6, 8, 0.72);
+    box-shadow: 0 0 34px rgba(255, 103, 103, 0.2);
+  }
+
+  .status-main {
+    color: var(--ok);
+    font-family: "Orbitron", "Segoe UI", sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .warning .status-main { color: var(--warn); }
+  .critical .status-main { color: var(--critical); }
+
+  .status-note {
+    min-width: 0;
+    overflow: hidden;
+    color: rgba(215, 228, 238, 0.64);
+    font-size: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: rgba(215, 228, 238, 0.76);
+    font-family: "Orbitron", "Segoe UI", sans-serif;
+    font-size: 8px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .chip::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--ok);
+    box-shadow: 0 0 8px var(--ok);
+  }
+
+  .chip.off::before { background: var(--warn); box-shadow: 0 0 8px var(--warn); }
+  .chip.bad::before { background: var(--critical); box-shadow: 0 0 8px var(--critical); }
+
+  .wake-hint {
+    position: fixed;
+    right: 12px;
+    top: 10px;
+    color: rgba(215, 228, 238, 0.34);
+    font-family: "Orbitron", "Segoe UI", sans-serif;
+    font-size: 8px;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+
+  .focus-control {
+    position: fixed;
+    right: 12px;
+    top: 28px;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 8px;
+    border: 1px solid rgba(190, 222, 235, 0.18);
+    background: rgba(4, 10, 16, 0.68);
+    color: rgba(232, 244, 250, 0.88);
+    font-family: "Orbitron", "Segoe UI", sans-serif;
+    font-size: 9px;
+    text-transform: uppercase;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+  }
+
+  .focus-control:hover {
+    border-color: rgba(190, 222, 235, 0.34);
+    background: rgba(8, 16, 24, 0.82);
+  }
+
+  .focus-control::before {
+    content: ">";
+    color: rgba(158, 231, 217, 0.88);
+    font-size: 10px;
+    line-height: 1;
+  }
+
+  @media (max-width: 700px) {
+    .caption {
+      left: 10px;
+      top: 8px;
+      max-width: 320px;
+    }
+
+    .caption__title { font-size: 14px; }
+    .caption__body { font-size: 10px; }
+    .safety-strip {
+      left: 6px;
+      right: 6px;
+      bottom: 5px;
+      grid-template-columns: auto 1fr auto;
+      gap: 6px;
+      min-height: 22px;
+      padding: 3px 6px;
+    }
+
+    .safety-strip .chip:nth-of-type(3) { display: none; }
+    .status-main { font-size: 10px; }
+    .status-note { font-size: 9px; }
+    .wake-hint { display: none; }
+    .focus-control {
+      right: 8px;
+      top: 8px;
+      padding: 4px 7px;
+      font-size: 8px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .caption { transition-duration: 0ms; }
+  }
+</style>
+</head>
+<body>
+<canvas id="scene" aria-label="Live solar system screensaver"></canvas>
+<canvas id="focus-scene" aria-label="Focused 3D solar system object"></canvas>
+
+<section id="caption" class="caption" aria-live="polite">
+  <div id="caption-eyebrow" class="caption__eyebrow">Now viewing</div>
+  <div id="caption-title" class="caption__title">Solar System</div>
+  <div id="caption-body" class="caption__body">Quiet Observatory standby</div>
+</section>
+
+<div class="wake-hint">click or tap to wake dashboard</div>
+<button id="focus-control" class="focus-control" type="button" onclick="window.__ventsysCycleFocus && window.__ventsysCycleFocus(event)">next focus</button>
+
+<footer id="safety-strip" class="safety-strip" aria-live="polite">
+  <div id="status-main" class="status-main">VentSys: Normal</div>
+  <div id="status-note" class="status-note">Solar observatory standby</div>
+  <div id="ha-chip" class="chip off">HA Offline</div>
+  <div id="fan-chip" class="chip">Fan OK</div>
+</footer>
+
+<script type="module">
+import * as THREE from "./assets/vendor/three.module.min.js";
+
+(() => {
+  "use strict";
+
+  const CONFIG = {
+    deployment: {
+      dashboardUrl: "ventsys-dashboard.html",
+      wakeOnInput: true
+    },
+    ha: {
+      wsUrl: "ws://192.168.20.101:8123/api/websocket",
+      token: "YOUR_LONG_LIVED_TOKEN_HERE",
+      entities: {
+        failsafe: "input_boolean.ventsys_failsafe",
+        fan: "fan.inline_fan",
+        fdmAirflow: "sensor.fdm_airflow_rps",
+        slaAirflow: "sensor.sla_airflow_rps",
+        boothAirflow: "sensor.booth_airflow_rps",
+        mqttBroker: "binary_sensor.mqtt_broker_online"
+      }
+    },
+    scene: {
+      focusEveryMs: 270000,
+      firstFocusAfterMs: 12000,
+      focusHoldMs: 52000,
+      focusTravelMs: 18000,
+      reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    }
+  };
+
+  const ASSETS = {
+    milkyWay: "https://assets.science.nasa.gov/content/dam/science/psd/photojournal/pia/pia03/pia03239/PIA03239.jpg"
+  };
+
+  const canvas = document.getElementById("scene");
+  const focusCanvas = document.getElementById("focus-scene");
+  const ctx = canvas.getContext("2d", { alpha: false });
+  const caption = document.getElementById("caption");
+  const captionEyebrow = document.getElementById("caption-eyebrow");
+  const captionTitle = document.getElementById("caption-title");
+  const captionBody = document.getElementById("caption-body");
+  const focusControl = document.getElementById("focus-control");
+  const safetyStrip = document.getElementById("safety-strip");
+  const statusMain = document.getElementById("status-main");
+  const statusNote = document.getElementById("status-note");
+  const haChip = document.getElementById("ha-chip");
+  const fanChip = document.getElementById("fan-chip");
+
+  const DAY_MS = 86400000;
+  const EPOCH = Date.UTC(2026, 0, 1);
+  const TAU = Math.PI * 2;
+
+  const planets = [
+    { id: "mercury", name: "Mercury", au: 0.39, period: 87.97, phase: 1.6, size: 2.1, color: "#b8aa99", caption: "Swift inner planet" },
+    { id: "venus", name: "Venus", au: 0.72, period: 224.7, phase: 4.1, size: 3.2, color: "#e2c59a", caption: "Cloud-bright inner world" },
+    { id: "earth", name: "Earth", au: 1, period: 365.25, phase: 2.9, size: 3.5, color: "#8fb9ff", caption: "Earth and Moon system", moons: [{ name: "Moon", au: 0.058, period: 27.32, phase: 0.9, size: 1.5, color: "#d7d4c9" }] },
+    { id: "mars", name: "Mars", au: 1.52, period: 686.98, phase: 0.8, size: 2.8, color: "#d88d6f", caption: "Red planet survey target", moons: [{ name: "Phobos", au: 0.036, period: 0.32, phase: 1.1, size: 0.8, color: "#c9b7a2" }, { name: "Deimos", au: 0.052, period: 1.26, phase: 3.4, size: 0.7, color: "#b9a793" }] },
+    { id: "jupiter", name: "Jupiter", au: 5.2, period: 4332.6, phase: 5.2, size: 6.5, color: "#e5c5a4", caption: "Gas giant with Galilean moons", moons: [{ name: "Io", au: 0.09, period: 1.77, phase: 0.2, size: 1.1, color: "#e6d37c" }, { name: "Europa", au: 0.13, period: 3.55, phase: 2.1, size: 1.0, color: "#d9d7c8" }, { name: "Ganymede", au: 0.18, period: 7.15, phase: 4.2, size: 1.2, color: "#bdb6a6" }, { name: "Callisto", au: 0.24, period: 16.69, phase: 5.4, size: 1.1, color: "#9d9181" }] },
+    { id: "saturn", name: "Saturn", au: 9.58, period: 10759, phase: 3.7, size: 6.0, color: "#e3d09b", caption: "Ringed planet and Titan system", ring: "saturn", moons: [{ name: "Titan", au: 0.2, period: 15.95, phase: 1.2, size: 1.3, color: "#d7a96b" }, { name: "Enceladus", au: 0.11, period: 1.37, phase: 4.5, size: 0.9, color: "#dce8ee" }] },
+    { id: "uranus", name: "Uranus", au: 19.2, period: 30687, phase: 2.2, size: 4.4, color: "#9ed8dc", caption: "Ice giant with narrow dark rings", ring: "uranus", moons: [{ name: "Titania", au: 0.18, period: 8.71, phase: 1.7, size: 1.0, color: "#cfd5d8" }, { name: "Oberon", au: 0.23, period: 13.46, phase: 4.4, size: 0.95, color: "#b8c1c8" }] },
+    { id: "neptune", name: "Neptune", au: 30.05, period: 60190, phase: 4.6, size: 4.3, color: "#6b91df", caption: "Outer ice giant with a faint ring arc", ring: "neptune", moons: [{ name: "Triton", au: 0.12, period: 5.88, phase: 2.8, size: 1.0, color: "#ced9df" }] },
+    { id: "pluto", name: "Pluto", au: 39.48, period: 90560, phase: 0.35, size: 2.1, color: "#d7bfa8", caption: "Dwarf planet beyond Neptune", moons: [{ name: "Charon", au: 0.08, period: 6.39, phase: 0.6, size: 1.0, color: "#b8a99b" }] }
+  ];
+
+  const comets = [
+    { id: "halley", name: "1P/Halley", peri: 0.59, ap: 35, period: 27500, phase: 4.3, tilt: 0.42, color: "#d9f3ff", caption: "Periodic comet on a long return arc" },
+    { id: "encke", name: "2P/Encke", peri: 0.34, ap: 4.1, period: 1205, phase: 1.9, tilt: -0.32, color: "#cfe9dd", caption: "Short-period comet" },
+    { id: "churyumov", name: "67P/Churyumov-Gerasimenko", peri: 1.24, ap: 5.68, period: 2350, phase: 5.6, tilt: 0.18, color: "#e7e1d5", caption: "Rosetta's comet, shown as an always-on visitor" }
+  ];
+
+  const missionObjects = [
+    { id: "jwst", name: "JWST", type: "Telescope", parent: "earth", offsetAu: 0.22, phase: 2.4, color: "#9ee7d9", caption: "Deep space observatory marker near Earth-Sun L2" },
+    { id: "hubble", name: "Hubble", type: "Telescope", parent: "earth", offsetAu: 0.08, phase: 5.1, color: "#b6d7ff", caption: "Earth-orbit telescope, surfaced as a focus object" },
+    { id: "chandra", name: "Chandra", type: "Telescope", parent: "earth", offsetAu: 0.17, phase: 1.1, color: "#9ac7ff", caption: "Active X-ray observatory in high Earth orbit" },
+    { id: "ixpe", name: "IXPE", type: "Telescope", parent: "earth", offsetAu: 0.1, phase: 4.6, color: "#a9e7ff", caption: "NASA's active X-ray polarimetry observatory" },
+    { id: "nicer", name: "NICER", type: "Telescope", parent: "earth", offsetAu: 0.07, phase: 3.6, color: "#d5ecff", caption: "ISS-mounted neutron star X-ray telescope" },
+    { id: "tess", name: "TESS", type: "Telescope", parent: "earth", offsetAu: 0.19, phase: 2.95, color: "#f3d8ac", caption: "Active exoplanet survey telescope" },
+    { id: "nustar", name: "NuSTAR", type: "Telescope", parent: "earth", offsetAu: 0.14, phase: 5.8, color: "#f0caa0", caption: "Active high-energy X-ray observatory" },
+    { id: "swift", name: "Swift", type: "Telescope", parent: "earth", offsetAu: 0.12, phase: 0.85, color: "#f2d2a0", caption: "Neil Gehrels Swift Observatory, still operating in 2026" },
+    { id: "cheops", name: "CHEOPS", type: "Telescope", parent: "earth", offsetAu: 0.09, phase: 2.2, color: "#d7f2b5", caption: "ESA exoplanet telescope in Sun-synchronous orbit" },
+    { id: "mars-relay", name: "Mars Relay Track", type: "Mission Layer", parent: "mars", offsetAu: 0.16, phase: 1.3, color: "#f0b08a", caption: "Placeholder for Mars orbiters and transfer missions" },
+    { id: "lunar-transfer", name: "Lunar Transfer Corridor", type: "Mission Layer", parent: "earth", offsetAu: 0.13, phase: 0.45, color: "#f2e4aa", caption: "Reserved for live lunar mission events" },
+    { id: "euclid", name: "Euclid", type: "Telescope", parent: "earth", offsetAu: 0.24, phase: 3.15, color: "#f1e6b0", caption: "ESA dark-universe telescope at Sun-Earth L2" },
+    { id: "xmm-newton", name: "XMM-Newton", type: "Telescope", parent: "earth", offsetAu: 0.21, phase: 0.22, color: "#cde6ff", caption: "ESA X-ray observatory in a 48-hour elliptical Earth orbit" },
+    { id: "spherex", name: "SPHEREx", type: "Telescope", parent: "earth", offsetAu: 0.11, phase: 1.82, color: "#e9cfff", caption: "NASA all-sky infrared survey observatory active since March 2025" }
+  ];
+
+  const state = {
+    width: 1,
+    height: 1,
+    dpr: 1,
+    last: performance.now(),
+    start: performance.now(),
+    stars: [],
+    belt: [],
+    kuiper: [],
+    activeFocus: null,
+    focusIndex: -1,
+    focusStarted: 0,
+    nextFocusAt: performance.now() + CONFIG.scene.firstFocusAfterMs,
+    camera: { x: 0, y: 0, scale: 1, tilt: 0.45 },
+    targetCamera: { x: 0, y: 0, scale: 1, tilt: 0.45 },
+    cameraMove: null,
+    objectPositions: new Map(),
+    ha: { connected: false, failsafe: false, fan: "unknown", airflowOk: true, mqtt: "unknown" },
+    images: {},
+    three: null
+  };
+
+  function seededRandom(seed) {
+    let value = seed >>> 0;
+    return () => {
+      value = (1664525 * value + 1013904223) >>> 0;
+      return value / 4294967296;
+    };
+  }
+
+  function resize() {
+    state.dpr = Math.min(window.devicePixelRatio || 1, 2);
+    state.width = Math.max(1, Math.floor(window.innerWidth));
+    state.height = Math.max(1, Math.floor(window.innerHeight));
+    canvas.width = Math.floor(state.width * state.dpr);
+    canvas.height = Math.floor(state.height * state.dpr);
+    canvas.style.width = `${state.width}px`;
+    canvas.style.height = `${state.height}px`;
+    ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+    resizeThree();
+    seedScene();
+  }
+
+  function loadImageAsset(key, src) {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.decoding = "async";
+    img.onload = () => { state.images[key] = img; };
+    img.onerror = () => { state.images[key] = null; };
+    img.src = src;
+  }
+
+  function initThree() {
+    const renderer = new THREE.WebGLRenderer({
+      canvas: focusCanvas,
+      alpha: true,
+      antialias: true,
+      powerPreference: "high-performance"
+    });
+    renderer.setPixelRatio(state.dpr);
+    renderer.setSize(state.width, state.height, false);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(32, state.width / state.height, 0.1, 100);
+    camera.position.set(0, 0.15, 6.2);
+
+    const key = new THREE.DirectionalLight(0xffffff, 2.25);
+    key.position.set(-4, 4, 6);
+    scene.add(key);
+    scene.add(new THREE.AmbientLight(0x6f7f92, 0.72));
+
+    const focusGroup = new THREE.Group();
+    scene.add(focusGroup);
+
+    state.three = {
+      renderer,
+      scene,
+      camera,
+      focusGroup,
+      labelSprites: [],
+      moonEntries: [],
+      targetId: null
+    };
+  }
+
+  function resizeThree() {
+    if (!state.three) return;
+    state.three.renderer.setPixelRatio(state.dpr);
+    state.three.renderer.setSize(state.width, state.height, false);
+    state.three.camera.aspect = state.width / state.height;
+    state.three.camera.updateProjectionMatrix();
+  }
+
+  function clearThreeFocus() {
+    if (!state.three) return;
+    const { focusGroup } = state.three;
+    while (focusGroup.children.length) {
+      const child = focusGroup.children.pop();
+      disposeObject(child);
+    }
+    state.three.labelSprites = [];
+    state.three.moonEntries = [];
+    state.three.targetId = null;
+    focusCanvas.classList.remove("visible");
+  }
+
+  function disposeObject(object) {
+    object.traverse?.((child) => {
+      child.geometry?.dispose?.();
+      if (Array.isArray(child.material)) {
+        child.material.forEach((material) => disposeMaterial(material));
+      } else {
+        disposeMaterial(child.material);
+      }
+    });
+  }
+
+  function disposeMaterial(material) {
+    if (!material) return;
+    material.map?.dispose?.();
+    material.alphaMap?.dispose?.();
+    material.dispose?.();
+  }
+
+  function buildThreeFocus(item) {
+    if (!state.three) return;
+    clearThreeFocus();
+    state.three.targetId = item.id;
+    if (item.peri) {
+      buildThreeComet(item);
+    } else if (item.parent) {
+      buildThreeTelescope(item);
+    } else {
+      buildThreePlanet(item);
+    }
+    focusCanvas.classList.add("visible");
+  }
+
+  function buildThreePlanet(planet) {
+    const group = state.three.focusGroup;
+    const radius = planet.id === "jupiter" || planet.id === "saturn" ? 1.35 : planet.id === "mercury" || planet.id === "pluto" ? 1.08 : 1.22;
+    const material = new THREE.MeshStandardMaterial({
+      map: makeBodyTexture(planet),
+      roughness: 0.94,
+      metalness: 0.0
+    });
+    const body = new THREE.Mesh(new THREE.SphereGeometry(radius, 96, 64), material);
+    body.userData.spin = planet.id === "venus" ? -0.00012 : 0.00022;
+    group.add(body);
+    addSpriteLabel(planet.name, new THREE.Vector3(radius + 0.32, radius * 0.62, 0.08), 0.34);
+
+    if (planet.ring) addThreeRings(planet, radius);
+    if (planet.moons) addThreeMoons(planet, radius);
+    state.three.camera.position.set(0, planet.ring === "saturn" ? 0.18 : 0.08, planet.ring ? 4.45 : 3.95);
+  }
+
+  function addThreeRings(planet, radius) {
+    const group = state.three.focusGroup;
+    const configs = planet.ring === "saturn"
+      ? [
+          { inner: 1.46, outer: 2.22, opacity: 0.58 },
+          { inner: 2.34, outer: 2.7, opacity: 0.32 },
+          { inner: 1.16, outer: 1.31, opacity: 0.26 }
+        ]
+      : planet.ring === "uranus"
+        ? [
+            { inner: 1.55, outer: 1.62, opacity: 0.38 },
+            { inner: 1.83, outer: 1.9, opacity: 0.28 }
+          ]
+        : [
+            { inner: 1.65, outer: 1.72, opacity: 0.22 },
+            { inner: 1.92, outer: 2.02, opacity: 0.2 }
+          ];
+
+    for (const config of configs) {
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(radius * config.inner, radius * config.outer, 192),
+        new THREE.MeshBasicMaterial({
+          color: planet.ring === "neptune" ? 0x83a1ec : 0xd9c69f,
+          transparent: true,
+          opacity: config.opacity,
+          side: THREE.DoubleSide,
+          depthWrite: false
+        })
+      );
+      ring.rotation.x = planet.ring === "uranus" ? Math.PI * 0.45 : Math.PI * 0.58;
+      ring.rotation.z = planet.ring === "uranus" ? -0.55 : -0.18;
+      group.add(ring);
+    }
+  }
+
+  function addThreeMoons(planet, radius) {
+    const days = daysSinceEpoch(Date.now());
+    const group = state.three.focusGroup;
+    planet.moons.forEach((moon, index) => {
+      const orbitRadius = radius + 0.82 + index * 0.52;
+      const orbit = makeOrbitLine(orbitRadius, 0.46, "rgba(190, 222, 235, 0.34)");
+      orbit.rotation.x = Math.PI * 0.56;
+      group.add(orbit);
+
+      const moonMaterial = new THREE.MeshStandardMaterial({
+        map: makeMoonTexture(moon),
+        roughness: 0.98
+      });
+      const moonMesh = new THREE.Mesh(new THREE.SphereGeometry(Math.max(0.11, moon.size * 0.13), 48, 32), moonMaterial);
+      group.add(moonMesh);
+      const label = addSpriteLabel(moon.name, new THREE.Vector3(), 0.25);
+      state.three.moonEntries.push({ moon, mesh: moonMesh, label, orbitRadius, phase: moon.phase, period: moon.period, days });
+    });
+  }
+
+  function makeOrbitLine(radius, yScale, color = 0xbedeeb) {
+    const points = [];
+    for (let i = 0; i <= 240; i++) {
+      const a = i / 240 * TAU;
+      points.push(new THREE.Vector3(Math.cos(a) * radius, Math.sin(a) * radius * yScale, 0));
+    }
+    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+    return new THREE.Line(geometry, new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.62 }));
+  }
+
+  function buildThreeComet(comet) {
+    const group = state.three.focusGroup;
+    const nucleus = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(0.42, 2),
+      new THREE.MeshStandardMaterial({ color: 0xd8d2c6, roughness: 1.0, metalness: 0 })
+    );
+    nucleus.scale.set(1.35, 0.78, 0.92);
+    nucleus.rotation.set(0.5, -0.4, 0.2);
+    group.add(nucleus);
+
+    const coma = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: makeGlowTexture("#d9f3ff"),
+      transparent: true,
+      opacity: 0.42,
+      depthWrite: false
+    }));
+    coma.scale.set(2.7, 2.7, 1);
+    group.add(coma);
+
+    const tail = new THREE.Mesh(
+      new THREE.ConeGeometry(0.72, 5.4, 48, 1, true),
+      new THREE.MeshBasicMaterial({ color: 0xd9f3ff, transparent: true, opacity: 0.18, side: THREE.DoubleSide, depthWrite: false })
+    );
+    tail.rotation.z = Math.PI / 2;
+    tail.position.x = 2.75;
+    tail.scale.y = 1.35;
+    group.add(tail);
+
+    addSpriteLabel(comet.name, new THREE.Vector3(-0.2, 0.72, 0.08), 0.31);
+    state.three.camera.position.set(0, 0.02, 5.2);
+  }
+
+  function buildThreeTelescope(item) {
+    const group = state.three.focusGroup;
+    const craft = new THREE.Group();
+    const bodyColor = item.id === "jwst" || item.id === "euclid" ? 0xd9c78d : 0xcfd8df;
+    const body = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.28, 0.32, 1.1, 32),
+      new THREE.MeshStandardMaterial({ color: bodyColor, roughness: 0.65, metalness: 0.35 })
+    );
+    body.rotation.z = Math.PI / 2;
+    craft.add(body);
+
+    const panelMaterial = new THREE.MeshStandardMaterial({ color: 0x274f8f, roughness: 0.55, metalness: 0.2 });
+    for (const side of [-1, 1]) {
+      const panel = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.05, 0.48), panelMaterial);
+      panel.position.x = side * 0.98;
+      craft.add(panel);
+    }
+    if (item.id === "jwst") {
+      const shield = new THREE.Mesh(
+        new THREE.BoxGeometry(1.7, 0.08, 0.72),
+        new THREE.MeshStandardMaterial({ color: 0xd6c18a, roughness: 0.8, metalness: 0.25 })
+      );
+      shield.position.y = -0.48;
+      shield.scale.x = 1.25;
+      craft.add(shield);
+    }
+    craft.rotation.set(-0.22, 0.56, -0.1);
+    group.add(craft);
+    addSpriteLabel(item.name, new THREE.Vector3(0.1, 0.92, 0.08), 0.32);
+    state.three.camera.position.set(0, 0.05, 3.8);
+  }
+
+  function addSpriteLabel(text, position, scale = 0.28) {
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: makeLabelTexture(text),
+      transparent: true,
+      depthWrite: false
+    }));
+    sprite.position.copy(position);
+    sprite.scale.set(scale * Math.max(3.1, text.length * 0.36), scale, 1);
+    state.three.focusGroup.add(sprite);
+    state.three.labelSprites.push(sprite);
+    return sprite;
+  }
+
+  function makeLabelTexture(text) {
+    const c = document.createElement("canvas");
+    c.width = 512;
+    c.height = 96;
+    const g = c.getContext("2d");
+    g.fillStyle = "rgba(3, 8, 13, 0.62)";
+    g.fillRect(0, 0, c.width, c.height);
+    g.strokeStyle = "rgba(190, 222, 235, 0.35)";
+    g.strokeRect(1, 1, c.width - 2, c.height - 2);
+    g.font = "700 34px Orbitron, Segoe UI, sans-serif";
+    g.fillStyle = "rgba(232, 244, 250, 0.92)";
+    g.textBaseline = "middle";
+    g.fillText(text, 22, c.height / 2 + 1);
+    const texture = new THREE.CanvasTexture(c);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  }
+
+  function makeBodyTexture(body) {
+    const c = document.createElement("canvas");
+    c.width = 1024;
+    c.height = 512;
+    const g = c.getContext("2d");
+    g.fillStyle = body.color;
+    g.fillRect(0, 0, c.width, c.height);
+    const rand = seededRandom(body.name.length * 811);
+    if (body.id === "jupiter" || body.id === "saturn") {
+      for (let y = 0; y < c.height; y += 18) {
+        g.fillStyle = y % 54 === 0 ? "rgba(255,255,255,0.18)" : "rgba(80,55,35,0.14)";
+        g.fillRect(0, y + Math.sin(y * 0.04) * 6, c.width, 8 + rand() * 10);
+      }
+    } else if (body.id === "earth") {
+      paintBlotches(g, c, "#314f8f", "#dfe7dc", 140, rand);
+    } else if (body.id === "venus") {
+      paintBlotches(g, c, "#d8bd86", "#f2dfad", 90, rand);
+    } else {
+      paintBlotches(g, c, darkenHex(body.color, 0.18), lightenHex(body.color, 0.12), 120, rand);
+    }
+    const texture = new THREE.CanvasTexture(c);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.anisotropy = 4;
+    return texture;
+  }
+
+  function makeMoonTexture(moon) {
+    const c = document.createElement("canvas");
+    c.width = 512;
+    c.height = 256;
+    const g = c.getContext("2d");
+    g.fillStyle = moon.color;
+    g.fillRect(0, 0, c.width, c.height);
+    paintBlotches(g, c, darkenHex(moon.color, 0.22), lightenHex(moon.color, 0.1), 90, seededRandom(moon.name.length * 371));
+    const texture = new THREE.CanvasTexture(c);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  }
+
+  function paintBlotches(g, c, dark, light, count, rand) {
+    for (let i = 0; i < count; i++) {
+      const x = rand() * c.width;
+      const y = rand() * c.height;
+      const r = 8 + rand() * 46;
+      const gradient = g.createRadialGradient(x, y, 0, x, y, r);
+      gradient.addColorStop(0, rand() > 0.45 ? light : dark);
+      gradient.addColorStop(1, "rgba(0,0,0,0)");
+      g.fillStyle = gradient;
+      g.beginPath();
+      g.arc(x, y, r, 0, TAU);
+      g.fill();
+    }
+  }
+
+  function makeGlowTexture(color) {
+    const c = document.createElement("canvas");
+    c.width = 256;
+    c.height = 256;
+    const g = c.getContext("2d");
+    const gradient = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+    gradient.addColorStop(0, color);
+    gradient.addColorStop(0.22, hexToRgba(color, 0.45));
+    gradient.addColorStop(1, "rgba(255,255,255,0)");
+    g.fillStyle = gradient;
+    g.fillRect(0, 0, c.width, c.height);
+    const texture = new THREE.CanvasTexture(c);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  }
+
+  function seedScene() {
+    const rand = seededRandom(42);
+    const count = state.width <= 900 ? 120 : 190;
+    state.stars = Array.from({ length: count }, () => ({
+      x: rand(),
+      y: rand(),
+      r: 0.35 + rand() * 1.1,
+      alpha: 0.18 + rand() * 0.58,
+      twinkle: rand() * TAU
+    }));
+    state.belt = Array.from({ length: state.width <= 900 ? 120 : 210 }, () => ({
+      a: 2.15 + rand() * 1.18,
+      angle: rand() * TAU,
+      drift: 0.08 + rand() * 0.14,
+      r: 0.35 + rand() * 0.85
+    }));
+    state.kuiper = Array.from({ length: state.width <= 900 ? 90 : 150 }, () => ({
+      a: 33 + rand() * 10,
+      angle: rand() * TAU,
+      r: 0.3 + rand() * 0.65
+    }));
+  }
+
+  function daysSinceEpoch(dateMs) {
+    return (dateMs - EPOCH) / DAY_MS;
+  }
+
+  function planetPosition(planet, days) {
+    const angle = (planet.phase + days / planet.period * TAU) % TAU;
+    return {
+      id: planet.id,
+      name: planet.name,
+      x: Math.cos(angle) * planet.au,
+      y: Math.sin(angle) * planet.au,
+      angle,
+      au: planet.au,
+      source: planet
+    };
+  }
+
+  function cometPosition(comet, days) {
+    const orbitT = (comet.phase + days / comet.period * TAU) % TAU;
+    const a = (comet.peri + comet.ap) / 2;
+    const e = (comet.ap - comet.peri) / (comet.ap + comet.peri);
+    const radius = a * (1 - e * e) / (1 + e * Math.cos(orbitT));
+    return {
+      id: comet.id,
+      name: comet.name,
+      x: Math.cos(orbitT) * radius,
+      y: Math.sin(orbitT) * radius * Math.cos(comet.tilt),
+      angle: orbitT,
+      au: radius,
+      source: comet,
+      comet: true
+    };
+  }
+
+  function missionPosition(mission, days) {
+    const parent = state.objectPositions.get(mission.parent);
+    if (!parent) return null;
+    const angle = (mission.phase + days * 0.003) % TAU;
+    return {
+      id: mission.id,
+      name: mission.name,
+      x: parent.x + Math.cos(angle) * mission.offsetAu,
+      y: parent.y + Math.sin(angle) * mission.offsetAu,
+      angle,
+      au: parent.au,
+      source: mission,
+      mission: true
+    };
+  }
+
+  function scaleForView() {
+    const compact = state.width <= 900;
+    const base = Math.min(state.width, state.height - 34);
+    return compact ? base / 16.1 : base / 18.6;
+  }
+
+  function toVisualSpace(x, y) {
+    const r = Math.hypot(x, y);
+    if (r === 0) return { x: 0, y: 0 };
+    const angle = Math.atan2(y, x);
+    let visualR;
+    if (r <= 1.6) {
+      visualR = 1.35 + r * 2.15;
+    } else if (r <= 6) {
+      visualR = 4.79 + (r - 1.6) * 0.86;
+    } else {
+      visualR = 8.58 + Math.log(r / 6) / Math.log(40 / 6) * 4.7;
+    }
+    return {
+      x: Math.cos(angle) * visualR,
+      y: Math.sin(angle) * visualR
+    };
+  }
+
+  function project(x, y) {
+    const drift = Math.sin((performance.now() - state.start) * 0.000016) * 12;
+    const cx = state.width * 0.52 + drift;
+    const cy = state.height * 0.48;
+    const s = scaleForView() * state.camera.scale;
+    const point = toVisualSpace(x, y);
+    const camera = toVisualSpace(state.camera.x, state.camera.y);
+    return {
+      x: cx + (point.x - camera.x) * s,
+      y: cy + (point.y - camera.y) * s * state.camera.tilt
+    };
+  }
+
+  function easeTo(current, target, amount) {
+    return current + (target - current) * amount;
+  }
+
+  function updateCamera(dt) {
+    const slowDrift = CONFIG.scene.reducedMotion ? 0 : Math.sin(performance.now() * 0.00003) * 0.05;
+    if (!state.activeFocus) {
+      state.targetCamera.x = slowDrift;
+      state.targetCamera.y = 0;
+      state.targetCamera.scale = state.width <= 900 ? 1.18 : 1.12;
+      state.targetCamera.tilt = 0.46;
+    }
+    if (state.cameraMove) {
+      const now = performance.now();
+      const rawT = Math.min(1, (now - state.cameraMove.start) / state.cameraMove.duration);
+      const eased = rawT * rawT * rawT * (rawT * (rawT * 6 - 15) + 10);
+      state.camera.x = lerp(state.cameraMove.from.x, state.cameraMove.to.x, eased);
+      state.camera.y = lerp(state.cameraMove.from.y, state.cameraMove.to.y, eased);
+      state.camera.scale = lerp(state.cameraMove.from.scale, state.cameraMove.to.scale, eased);
+      state.camera.tilt = lerp(state.cameraMove.from.tilt, state.cameraMove.to.tilt, eased);
+      if (rawT >= 1) state.cameraMove = null;
+      return;
+    }
+    const amount = Math.min(1, dt * (CONFIG.scene.reducedMotion ? 0.0022 : state.activeFocus ? 0.00018 : 0.0007));
+    state.camera.x = easeTo(state.camera.x, state.targetCamera.x, amount);
+    state.camera.y = easeTo(state.camera.y, state.targetCamera.y, amount);
+    state.camera.scale = easeTo(state.camera.scale, state.targetCamera.scale, amount);
+    state.camera.tilt = easeTo(state.camera.tilt, state.targetCamera.tilt, amount);
+  }
+
+  function lerp(a, b, t) {
+    return a + (b - a) * t;
+  }
+
+  function rebuildPositions(nowMs) {
+    const days = daysSinceEpoch(nowMs);
+    state.objectPositions.clear();
+    for (const planet of planets) {
+      const pos = planetPosition(planet, days);
+      state.objectPositions.set(planet.id, pos);
+    }
+    for (const comet of comets) {
+      const pos = cometPosition(comet, days);
+      state.objectPositions.set(comet.id, pos);
+    }
+    for (const mission of missionObjects) {
+      const pos = missionPosition(mission, days);
+      if (pos) state.objectPositions.set(mission.id, pos);
+    }
+  }
+
+  function focusCandidates() {
+    return [
+      ...planets,
+      ...comets,
+      ...missionObjects
+    ];
+  }
+
+  function chooseFocus(indexOverride = null) {
+    const candidates = focusCandidates();
+    const index = indexOverride === null
+      ? Math.floor((Date.now() / CONFIG.scene.focusEveryMs) % candidates.length)
+      : ((indexOverride % candidates.length) + candidates.length) % candidates.length;
+    const item = candidates[index];
+    const pos = state.objectPositions.get(item.id);
+    if (!pos) return;
+    state.focusIndex = index;
+    state.activeFocus = { ...item, posId: item.id };
+    state.focusStarted = performance.now();
+    state.nextFocusAt = performance.now() + CONFIG.scene.focusEveryMs;
+    state.targetCamera.x = pos.x;
+    state.targetCamera.y = pos.y;
+    state.targetCamera.scale = focusScaleFor(item);
+    state.targetCamera.tilt = item.parent ? 0.66 : 0.58;
+    state.cameraMove = {
+      start: performance.now(),
+      duration: CONFIG.scene.reducedMotion ? 0 : CONFIG.scene.focusTravelMs,
+      from: { ...state.camera },
+      to: {
+        x: state.targetCamera.x,
+        y: state.targetCamera.y,
+        scale: state.targetCamera.scale,
+        tilt: state.targetCamera.tilt
+      }
+    };
+    try {
+      buildThreeFocus(item);
+    } catch (error) {
+      console.error("[Solar screensaver] 3D focus build failed", error);
+      clearThreeFocus();
+    }
+    showCaption(item);
+  }
+
+  function focusScaleFor(item) {
+    if (item.parent) return 30;
+    if (item.peri) return 14;
+    if (item.id === "jupiter" || item.id === "saturn") return 16.5;
+    if (item.id === "uranus" || item.id === "neptune") return 20;
+    if (item.id === "pluto") return 24;
+    if (item.id === "mercury" || item.id === "venus") return 26;
+    return 22;
+  }
+
+  function updateFocus() {
+    const now = performance.now();
+    if (!state.activeFocus && now >= state.nextFocusAt) chooseFocus();
+    if (!state.activeFocus) return;
+    const pos = state.objectPositions.get(state.activeFocus.posId);
+    if (pos) {
+      state.targetCamera.x = pos.x;
+      state.targetCamera.y = pos.y;
+    }
+    if (now - state.focusStarted > CONFIG.scene.focusHoldMs) {
+      state.activeFocus = null;
+      state.cameraMove = null;
+      clearThreeFocus();
+      caption.classList.remove("visible");
+    }
+  }
+
+  function updateThreeFocus(nowMs) {
+    if (!state.three || !state.activeFocus || !state.three.targetId) return;
+    const days = daysSinceEpoch(nowMs);
+    const elapsed = performance.now() - state.focusStarted;
+    const group = state.three.focusGroup;
+    group.rotation.y = Math.sin(elapsed * 0.00008) * 0.08;
+    group.rotation.x = -0.08 + Math.sin(elapsed * 0.00006) * 0.025;
+
+    group.traverse((child) => {
+      if (child.userData.spin) child.rotation.y += child.userData.spin * 16;
+    });
+
+    for (const entry of state.three.moonEntries) {
+      const angle = (entry.phase + days / entry.period * TAU) % TAU;
+      entry.mesh.position.set(
+        Math.cos(angle) * entry.orbitRadius,
+        Math.sin(angle) * entry.orbitRadius * 0.46,
+        Math.sin(angle) * entry.orbitRadius * 0.18
+      );
+      entry.label.position.set(
+        entry.mesh.position.x + 0.22,
+        entry.mesh.position.y + 0.2,
+        entry.mesh.position.z + 0.08
+      );
+    }
+
+    state.three.renderer.render(state.three.scene, state.three.camera);
+  }
+
+  function showCaption(item) {
+    captionEyebrow.textContent = item.type || (item.peri ? "Comet" : item.id === "pluto" ? "Dwarf planet" : "Now viewing");
+    captionTitle.textContent = item.name;
+    captionBody.textContent = item.caption || "Quiet Observatory focus";
+    caption.classList.add("visible");
+  }
+
+  function cycleFocus() {
+    const candidates = focusCandidates();
+    if (!candidates.length) return;
+    const nextIndex = state.focusIndex < 0 ? 0 : (state.focusIndex + 1) % candidates.length;
+    chooseFocus(nextIndex);
+  }
+
+  window.__ventsysCycleFocus = (event) => {
+    event?.stopPropagation?.();
+    cycleFocus();
+  };
+
+  function drawBackground(now) {
+    ctx.fillStyle = "#02040a";
+    ctx.fillRect(0, 0, state.width, state.height);
+
+    const gradient = ctx.createRadialGradient(state.width * 0.62, state.height * 0.44, 0, state.width * 0.62, state.height * 0.44, Math.max(state.width, state.height) * 0.8);
+    gradient.addColorStop(0, "rgba(56, 76, 82, 0.11)");
+    gradient.addColorStop(0.42, "rgba(2, 4, 10, 0)");
+    gradient.addColorStop(1, "rgba(0, 0, 0, 0.64)");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, state.width, state.height);
+
+    drawMilkyWay(now);
+    for (const star of state.stars) {
+      const flicker = Math.sin(now * 0.001 + star.twinkle) * 0.08;
+      ctx.globalAlpha = Math.max(0, star.alpha + flicker);
+      ctx.fillStyle = "#f4fbff";
+      ctx.beginPath();
+      ctx.arc(star.x * state.width, star.y * state.height, star.r, 0, TAU);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawMilkyWay(now) {
+    const milkyWay = state.images.milkyWay;
+    if (milkyWay) {
+      ctx.save();
+      ctx.globalAlpha = 0.16;
+      ctx.translate(state.width * 0.5, state.height * 0.5);
+      ctx.rotate(-0.18);
+      const scale = Math.max(state.width / milkyWay.width, state.height / milkyWay.height) * 1.18;
+      const w = milkyWay.width * scale;
+      const h = milkyWay.height * scale;
+      ctx.drawImage(milkyWay, -w / 2, -h / 2, w, h);
+      ctx.restore();
+      return;
+    }
+    ctx.save();
+    ctx.translate(state.width * 0.5, state.height * 0.52);
+    ctx.rotate(-0.37);
+    const drift = CONFIG.scene.reducedMotion ? 0 : Math.sin(now * 0.00004) * 10;
+    const band = ctx.createLinearGradient(-state.width * 0.72, -110 + drift, state.width * 0.72, 110 + drift);
+    band.addColorStop(0, "rgba(135, 154, 168, 0)");
+    band.addColorStop(0.28, "rgba(111, 133, 152, 0.045)");
+    band.addColorStop(0.46, "rgba(196, 182, 156, 0.03)");
+    band.addColorStop(0.5, "rgba(16, 20, 27, 0.08)");
+    band.addColorStop(0.54, "rgba(165, 186, 205, 0.032)");
+    band.addColorStop(0.72, "rgba(108, 129, 147, 0.042)");
+    band.addColorStop(1, "rgba(135, 154, 168, 0)");
+    ctx.fillStyle = band;
+    ctx.fillRect(-state.width, -118 + drift, state.width * 2, 236);
+
+    for (let i = 0; i < 11; i++) {
+      const offsetX = -state.width * 0.45 + i * (state.width * 0.09);
+      const offsetY = ((i % 3) - 1) * 18 + drift * 0.4;
+      const cloud = ctx.createRadialGradient(offsetX, offsetY, 0, offsetX, offsetY, state.width * 0.16);
+      cloud.addColorStop(0, i % 2 === 0 ? "rgba(174, 185, 184, 0.05)" : "rgba(138, 164, 188, 0.042)");
+      cloud.addColorStop(0.55, "rgba(86, 104, 117, 0.024)");
+      cloud.addColorStop(1, "rgba(10, 14, 19, 0)");
+      ctx.fillStyle = cloud;
+      ctx.beginPath();
+      ctx.arc(offsetX, offsetY, state.width * 0.16, 0, TAU);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = "rgba(230, 236, 241, 0.07)";
+    for (let i = 0; i < 90; i++) {
+      const px = -state.width * 0.58 + (i / 89) * state.width * 1.16;
+      const py = (Math.sin(i * 0.9) * 22) + ((i % 5) - 2) * 7 + drift * 0.25;
+      ctx.globalAlpha = 0.035 + (i % 7) * 0.003;
+      ctx.beginPath();
+      ctx.arc(px, py, 0.55 + (i % 3) * 0.25, 0, TAU);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+
+  function drawOrbit(radiusAu, color = "rgba(188, 211, 226, 0.13)", width = 1) {
+    ctx.beginPath();
+    for (let i = 0; i <= 180; i++) {
+      const a = i / 180 * TAU;
+      const p = project(Math.cos(a) * radiusAu, Math.sin(a) * radiusAu);
+      if (i === 0) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    }
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.stroke();
+  }
+
+  function drawOrbitalField(now) {
+    for (const planet of planets) {
+      const isOuter = planet.au > 12;
+      drawOrbit(planet.au, isOuter ? "rgba(188, 211, 226, 0.07)" : "rgba(188, 211, 226, 0.14)", planet.id === "pluto" ? 0.8 : 1);
+    }
+
+    ctx.fillStyle = "rgba(204, 190, 162, 0.34)";
+    for (const rock of state.belt) {
+      const angle = rock.angle + now * 0.000004 * rock.drift;
+      const p = project(Math.cos(angle) * rock.a, Math.sin(angle) * rock.a);
+      if (p.x < -10 || p.x > state.width + 10 || p.y < -10 || p.y > state.height + 10) continue;
+      ctx.globalAlpha = 0.2;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, rock.r, 0, TAU);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    ctx.fillStyle = "rgba(188, 211, 226, 0.16)";
+    for (const body of state.kuiper) {
+      const p = project(Math.cos(body.angle) * body.a, Math.sin(body.angle) * body.a);
+      if (p.x < -10 || p.x > state.width + 10 || p.y < -10 || p.y > state.height + 10) continue;
+      ctx.globalAlpha = 0.16;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, body.r, 0, TAU);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawSun() {
+    const p = project(0, 0);
+    const r = Math.max(7, 11.5 * Math.min(state.camera.scale, 1.45));
+    const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 4.2);
+    glow.addColorStop(0, "rgba(255, 232, 154, 0.8)");
+    glow.addColorStop(0.18, "rgba(255, 202, 106, 0.38)");
+    glow.addColorStop(1, "rgba(255, 202, 106, 0)");
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r * 4.2, 0, TAU);
+    ctx.fill();
+    ctx.fillStyle = "#ffe8a0";
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r, 0, TAU);
+    ctx.fill();
+  }
+
+  function drawPlanets(nowMs) {
+    const days = daysSinceEpoch(nowMs);
+    const sorted = planets
+      .map((planet) => ({ planet, pos: state.objectPositions.get(planet.id) }))
+      .filter((entry) => entry.pos)
+      .sort((a, b) => a.pos.y - b.pos.y);
+
+    for (const { planet, pos } of sorted) {
+      const p = project(pos.x, pos.y);
+      const active = state.activeFocus?.id === planet.id;
+      const radius = active
+        ? Math.max(planet.size * 4.6, planet.size * Math.pow(state.camera.scale, 0.9) * 1.55)
+        : Math.max(planet.size, planet.size * Math.sqrt(state.camera.scale) * 0.78);
+      drawPlanet(p, radius, planet.color, active);
+      if (planet.ring) drawPlanetRings(planet, p, radius, active);
+      if (active) {
+        drawFocusBrackets(p, Math.max(18, radius * 3.1), planet.color);
+        drawMoons(planet, pos, days);
+        drawLabel(planet.name, p.x + radius + 8, p.y - radius - 4);
+      }
+    }
+  }
+
+  function drawPlanet(p, radius, color, active) {
+    const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius * (active ? 4.4 : 2.7));
+    glow.addColorStop(0, `${hexToRgba(color, active ? 0.45 : 0.26)}`);
+    glow.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, radius * (active ? 4.4 : 2.7), 0, TAU);
+    ctx.fill();
+
+    const body = ctx.createLinearGradient(p.x - radius * 0.8, p.y - radius * 0.5, p.x + radius * 0.9, p.y + radius * 0.8);
+    body.addColorStop(0, lightenHex(color, active ? 0.18 : 0.12));
+    body.addColorStop(0.48, color);
+    body.addColorStop(1, darkenHex(color, active ? 0.42 : 0.34));
+    ctx.fillStyle = body;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, radius, 0, TAU);
+    ctx.fill();
+
+    const shadow = ctx.createRadialGradient(p.x + radius * 0.18, p.y + radius * 0.12, radius * 0.18, p.x + radius * 0.18, p.y + radius * 0.12, radius * 1.22);
+    shadow.addColorStop(0, "rgba(0, 0, 0, 0)");
+    shadow.addColorStop(0.72, "rgba(0, 0, 0, 0.14)");
+    shadow.addColorStop(1, "rgba(0, 0, 0, 0.34)");
+    ctx.fillStyle = shadow;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, radius, 0, TAU);
+    ctx.fill();
+  }
+
+  function drawPlanetRings(planet, p, radius, active) {
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    if (planet.ring === "saturn") {
+      ctx.rotate(-0.18);
+      const colors = active
+        ? ["rgba(245, 229, 194, 0.82)", "rgba(196, 174, 127, 0.48)", "rgba(244, 235, 216, 0.32)"]
+        : ["rgba(242, 222, 172, 0.55)", "rgba(196, 174, 127, 0.28)", "rgba(244, 235, 216, 0.2)"];
+      const rings = [
+        { rx: radius * 2.7, ry: radius * 0.84, lw: 1.4, color: colors[0] },
+        { rx: radius * 2.35, ry: radius * 0.72, lw: 1.1, color: colors[1] },
+        { rx: radius * 1.95, ry: radius * 0.58, lw: 0.9, color: colors[2] }
+      ];
+      for (const ring of rings) {
+        ctx.strokeStyle = ring.color;
+        ctx.lineWidth = ring.lw;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, ring.rx, ring.ry, 0, 0, TAU);
+        ctx.stroke();
+      }
+    } else if (planet.ring === "uranus") {
+      ctx.rotate(-0.52);
+      ctx.strokeStyle = active ? "rgba(181, 213, 218, 0.68)" : "rgba(171, 201, 206, 0.36)";
+      ctx.lineWidth = 0.9;
+      for (const factor of [1.85, 1.96, 2.08]) {
+        ctx.beginPath();
+        ctx.ellipse(0, 0, radius * factor, radius * 0.28, 0, 0, TAU);
+        ctx.stroke();
+      }
+    } else if (planet.ring === "neptune") {
+      ctx.rotate(-0.34);
+      ctx.strokeStyle = active ? "rgba(141, 175, 236, 0.52)" : "rgba(141, 175, 236, 0.24)";
+      ctx.lineWidth = 0.8;
+      ctx.setLineDash([2, 5]);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, radius * 1.92, radius * 0.31, 0, 0, TAU);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    ctx.restore();
+  }
+
+  function drawMoons(planet, pos, days) {
+    if (!planet.moons) return;
+    for (const moon of planet.moons) {
+      const angle = (moon.phase + days / moon.period * TAU) % TAU;
+      const moonWorld = { x: pos.x + Math.cos(angle) * moon.au, y: pos.y + Math.sin(angle) * moon.au };
+      const mp = project(moonWorld.x, moonWorld.y);
+      ctx.strokeStyle = "rgba(188, 211, 226, 0.14)";
+      ctx.lineWidth = activeMoonScale(planet);
+      ctx.beginPath();
+      const orbitR = Math.abs(project(pos.x + moon.au, pos.y).x - project(pos.x, pos.y).x);
+      const center = project(pos.x, pos.y);
+      ctx.ellipse(center.x, center.y, orbitR, orbitR * state.camera.tilt, 0, 0, TAU);
+      ctx.stroke();
+      ctx.fillStyle = moon.color;
+      ctx.beginPath();
+      ctx.arc(mp.x, mp.y, Math.max(moon.size * 1.9, moon.size * state.camera.scale * 0.18), 0, TAU);
+      ctx.fill();
+      drawLabel(moon.name, mp.x + 8, mp.y - 6);
+    }
+  }
+
+  function activeMoonScale(planet) {
+    return planet.id === "jupiter" || planet.id === "saturn" ? 1 : 0.85;
+  }
+
+  function drawComets(nowMs) {
+    for (const comet of comets) {
+      const pos = state.objectPositions.get(comet.id);
+      if (!pos) continue;
+      const p = project(pos.x, pos.y);
+      const active = state.activeFocus?.id === comet.id;
+      drawCometTail(comet, pos, p, active);
+      drawCometNucleus(comet, p, active);
+      if (active) {
+        drawFocusBrackets(p, 18, comet.color);
+        drawLabel(comet.name, p.x + 10, p.y - 10);
+      }
+    }
+  }
+
+  function drawCometNucleus(comet, p, active) {
+    const coma = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, active ? 26 : 7);
+    coma.addColorStop(0, active ? "rgba(236, 245, 250, 0.52)" : "rgba(236, 245, 250, 0.24)");
+    coma.addColorStop(1, "rgba(255, 255, 255, 0)");
+    ctx.fillStyle = coma;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, active ? 26 : 7, 0, TAU);
+    ctx.fill();
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(-0.46);
+    ctx.fillStyle = comet.color;
+    ctx.beginPath();
+    if (active) {
+      ctx.moveTo(-5.5, -2.5);
+      ctx.lineTo(4.2, -4.5);
+      ctx.lineTo(9.2, 0.6);
+      ctx.lineTo(2.2, 5.2);
+      ctx.lineTo(-6.8, 2.8);
+    } else {
+      ctx.moveTo(-1.4, -0.7);
+      ctx.lineTo(1.2, -1.1);
+      ctx.lineTo(2.2, 0.2);
+      ctx.lineTo(0.5, 1.2);
+      ctx.lineTo(-1.5, 0.7);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawCometTail(comet, pos, p, active) {
+    const sunVector = Math.atan2(pos.y, pos.x);
+    const tailLength = active ? 110 : 28;
+    const dx = Math.cos(sunVector) * tailLength;
+    const dy = Math.sin(sunVector) * tailLength * state.camera.tilt;
+    const gradient = ctx.createLinearGradient(p.x, p.y, p.x + dx, p.y + dy);
+    gradient.addColorStop(0, hexToRgba(comet.color, active ? 0.58 : 0.32));
+    gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+    ctx.strokeStyle = gradient;
+    ctx.lineWidth = active ? 2.2 : 1.2;
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    ctx.lineTo(p.x + dx, p.y + dy);
+    ctx.stroke();
+  }
+
+  function drawMissions() {
+    for (const mission of missionObjects) {
+      const pos = state.objectPositions.get(mission.id);
+      if (!pos) continue;
+      const p = project(pos.x, pos.y);
+      const active = state.activeFocus?.id === mission.id;
+      const markerSize = active ? 16 : 4;
+      const parent = state.objectPositions.get(mission.parent);
+      if (parent) {
+        const pp = project(parent.x, parent.y);
+        ctx.strokeStyle = active ? hexToRgba(mission.color, 0.42) : "rgba(157, 212, 220, 0.12)";
+        ctx.lineWidth = active ? 1.2 : 0.8;
+        ctx.setLineDash([3, 5]);
+        ctx.beginPath();
+        ctx.moveTo(pp.x, pp.y);
+        ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      if (active) {
+        const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 44);
+        glow.addColorStop(0, hexToRgba(mission.color, 0.22));
+        glow.addColorStop(1, "rgba(0, 0, 0, 0)");
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 44, 0, TAU);
+        ctx.fill();
+      }
+      ctx.strokeStyle = active ? mission.color : "rgba(157, 212, 220, 0.36)";
+      ctx.lineWidth = active ? 1.5 : 0.8;
+      ctx.beginPath();
+      ctx.moveTo(p.x - markerSize, p.y);
+      ctx.lineTo(p.x + markerSize, p.y);
+      ctx.moveTo(p.x, p.y - markerSize);
+      ctx.lineTo(p.x, p.y + markerSize);
+      ctx.stroke();
+      if (active) {
+        drawFocusBrackets(p, 17, mission.color);
+        drawLabel(mission.name, p.x + 10, p.y - 9);
+      }
+    }
+  }
+
+  function drawFocusBrackets(p, r, color) {
+    ctx.strokeStyle = hexToRgba(color, 0.72);
+    ctx.lineWidth = 1;
+    const l = 6;
+    for (const sx of [-1, 1]) {
+      for (const sy of [-1, 1]) {
+        ctx.beginPath();
+        ctx.moveTo(p.x + sx * r, p.y + sy * (r - l));
+        ctx.lineTo(p.x + sx * r, p.y + sy * r);
+        ctx.lineTo(p.x + sx * (r - l), p.y + sy * r);
+        ctx.stroke();
+      }
+    }
+  }
+
+  function drawLabel(text, x, y) {
+    ctx.font = "10px 'Orbitron', 'Segoe UI', sans-serif";
+    ctx.textBaseline = "middle";
+    const w = ctx.measureText(text).width + 12;
+    const bx = Math.min(Math.max(6, x), state.width - w - 6);
+    const by = Math.min(Math.max(16, y), state.height - 42);
+    ctx.fillStyle = "rgba(3, 8, 13, 0.64)";
+    ctx.strokeStyle = "rgba(190, 222, 235, 0.2)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.rect(bx, by - 9, w, 18);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "rgba(232, 244, 250, 0.88)";
+    ctx.fillText(text, bx + 6, by);
+  }
+
+  function hexToRgba(hex, alpha) {
+    const value = hex.replace("#", "");
+    const r = parseInt(value.slice(0, 2), 16);
+    const g = parseInt(value.slice(2, 4), 16);
+    const b = parseInt(value.slice(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  function updateSafetyStrip() {
+    const { connected, failsafe, fan, airflowOk, mqtt } = state.ha;
+    const offline = !connected || mqtt === "off";
+    safetyStrip.classList.toggle("warning", offline && !failsafe);
+    safetyStrip.classList.toggle("critical", failsafe);
+
+    if (failsafe) {
+      statusMain.textContent = "VentSys: Failsafe";
+      statusNote.textContent = "Safety state active - wake dashboard";
+    } else if (offline) {
+      statusMain.textContent = "VentSys: Offline";
+      statusNote.textContent = "Live status unavailable";
+    } else if (!airflowOk) {
+      statusMain.textContent = "VentSys: Warning";
+      statusNote.textContent = "Airflow check needs attention";
+    } else {
+      statusMain.textContent = "VentSys: Normal";
+      statusNote.textContent = "Quiet Observatory standby";
+    }
+
+    haChip.textContent = connected ? "HA Live" : "HA Offline";
+    haChip.className = `chip ${connected ? "" : "off"}`;
+    fanChip.textContent = fan === "on" ? "Fan On" : fan === "off" ? "Fan Idle" : "Fan OK";
+    fanChip.className = `chip ${failsafe ? "bad" : ""}`;
+  }
+
+  function wakeDashboard() {
+    if (!CONFIG.deployment.wakeOnInput) return;
+    if (!CONFIG.deployment.dashboardUrl) return;
+    window.location.href = CONFIG.deployment.dashboardUrl;
+  }
+
+  function attachWakeHandlers() {
+    canvas.addEventListener("pointerdown", wakeDashboard, { passive: true });
+    focusControl.addEventListener("pointerdown", (event) => {
+      event.stopPropagation();
+    });
+    focusControl.addEventListener("click", (event) => {
+      event.stopPropagation();
+      window.__ventsysCycleFocus(event);
+    });
+  }
+
+  function adjustHex(hex, amount) {
+    const value = hex.replace("#", "");
+    const parts = [0, 2, 4].map((index) => parseInt(value.slice(index, index + 2), 16));
+    const adjusted = parts.map((part) => Math.max(0, Math.min(255, Math.round(part + amount * 255))));
+    return `rgb(${adjusted[0]}, ${adjusted[1]}, ${adjusted[2]})`;
+  }
+
+  function lightenHex(hex, amount) {
+    return adjustHex(hex, amount);
+  }
+
+  function darkenHex(hex, amount) {
+    return adjustHex(hex, -amount);
+  }
+
+  function connectHa() {
+    if (!CONFIG.ha.token || CONFIG.ha.token === "YOUR_LONG_LIVED_TOKEN_HERE") {
+      updateSafetyStrip();
+      return;
+    }
+    let ws;
+    let msgId = 1;
+    const send = (payload) => {
+      payload.id = msgId++;
+      ws.send(JSON.stringify(payload));
+    };
+
+    ws = new WebSocket(CONFIG.ha.wsUrl);
+    ws.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+      if (msg.type === "auth_required") {
+        ws.send(JSON.stringify({ type: "auth", access_token: CONFIG.ha.token }));
+        return;
+      }
+      if (msg.type === "auth_ok") {
+        state.ha.connected = true;
+        updateSafetyStrip();
+        send({ type: "subscribe_events", event_type: "state_changed" });
+        send({ type: "get_states" });
+        return;
+      }
+      if (msg.type === "auth_invalid") {
+        state.ha.connected = false;
+        updateSafetyStrip();
+        return;
+      }
+      if (msg.type === "result" && Array.isArray(msg.result)) {
+        for (const entry of msg.result) applyHaState(entry.entity_id, entry);
+        updateSafetyStrip();
+        return;
+      }
+      if (msg.type === "event" && msg.event?.event_type === "state_changed") {
+        const { entity_id, new_state } = msg.event.data;
+        applyHaState(entity_id, new_state);
+        updateSafetyStrip();
+      }
+    };
+    ws.onclose = () => {
+      state.ha.connected = false;
+      updateSafetyStrip();
+      setTimeout(connectHa, 10000);
+    };
+    ws.onerror = () => {
+      state.ha.connected = false;
+      updateSafetyStrip();
+    };
+  }
+
+  function applyHaState(entityId, entityState) {
+    const value = entityState?.state;
+    const E = CONFIG.ha.entities;
+    if (entityId === E.failsafe) state.ha.failsafe = value === "on";
+    if (entityId === E.fan) state.ha.fan = value || "unknown";
+    if (entityId === E.mqttBroker) state.ha.mqtt = value || "unknown";
+    if ([E.fdmAirflow, E.slaAirflow, E.boothAirflow].includes(entityId)) {
+      const numeric = parseFloat(value);
+      if (!Number.isNaN(numeric)) state.ha.airflowOk = numeric >= 0;
+    }
+    if (state.ha.failsafe) setTimeout(wakeDashboard, 900);
+  }
+
+  function render(now) {
+    const dt = now - state.last;
+    state.last = now;
+    rebuildPositions(Date.now());
+    updateFocus();
+    updateCamera(dt);
+    drawBackground(now);
+    drawOrbitalField(now);
+    drawSun();
+    drawComets(Date.now());
+    drawPlanets(Date.now());
+    drawMissions();
+    updateThreeFocus(Date.now());
+    requestAnimationFrame(render);
+  }
+
+  window.addEventListener("resize", resize);
+  try {
+    initThree();
+  } catch (error) {
+    console.error("[Solar screensaver] Three.js startup failed", error);
+    state.three = null;
+  }
+  resize();
+  loadImageAsset("milkyWay", ASSETS.milkyWay);
+  attachWakeHandlers();
+  connectHa();
+  updateSafetyStrip();
+  requestAnimationFrame(render);
+})();
+</script>
+</body>
+</html>

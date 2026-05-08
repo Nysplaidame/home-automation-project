@@ -1,0 +1,40 @@
+# Add these blocks to your ESPHome device YAMLs (fan/valve).
+# Replace DEVICE_ID with a short identifier (e.g., espfan, espvalve)
+
+mqtt:
+  # ... your existing mqtt config
+  birth_message:
+    topic: ventsys/devices/DEVICE_ID/birth
+    payload: !lambda |-
+      char buf[128];
+      snprintf(buf, sizeof(buf), "{\"fw\":\"%s\",\"hw\":\"esp32\",\"ip\":\"%s\"}",
+               ESPHOME_VERSION,
+               WiFi.localIP().toString().c_str());
+      return std::string(buf);
+    retain: true
+  will_message:
+    topic: ventsys/devices/DEVICE_ID/status
+    payload: "offline"
+    retain: true
+
+text_sensor:
+  - platform: version
+    name: "ESPHOME Version"
+    id: esphome_version
+    hide_timestamp: true
+
+interval:
+  - interval: 60s
+    then:
+      - mqtt.publish_json:
+          topic: ventsys/devices/DEVICE_ID/heartbeat
+          payload: |-
+            root["ts"] = millis();
+            root["uptime_s"] = (int) (millis() / 1000);
+            root["rssi"] = id(wifi_signal).state;
+
+sensor:
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    id: wifi_signal
+    update_interval: 60s

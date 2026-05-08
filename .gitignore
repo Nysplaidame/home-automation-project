@@ -1,0 +1,9 @@
+# Agent / editor-generated worktree scaffolding
+**/.claude/worktrees/
+**/.git.disabled
+
+# Local repo-repair backups
+.git/worktrees-disabled-*/
+
+# Local HTML backup scratch files
+*.bak

@@ -1,0 +1,73 @@
+# Frigate VM — Docker Compose
+# Host: frigate-nvr (192.168.30.20, VLAN 30 — NVR)
+# Deploy to: /opt/frigate/docker-compose.yml
+#
+# Services:
+#   frigate — NVR, cameras, object detection
+#
+# Bambuddy has been moved to dedicated VM 103 (192.168.20.102, VLAN 20).
+# See scripts/setup/proxmox/bambuddy_vm_setup_guide.md for Bambuddy deployment.
+# See docs/decisions/02-printer-vlan-architecture.md for the rationale.
+
+services:
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # FRIGATE NVR
+  # Web UI: http://192.168.30.20:8971 (Frigate 0.14+)
+  # ──────────────────────────────────────────────────────────────────────────
+  frigate:
+    container_name: frigate
+    image: ghcr.io/blakeblackshear/frigate:stable
+    restart: unless-stopped
+    network_mode: host
+    shm_size: "256mb"
+    environment:
+      - FRIGATE_RTSP_PASSWORD=${FRIGATE_RTSP_PASSWORD}
+      - FRIGATE_MQTT_PASSWORD=${FRIGATE_MQTT_PASSWORD}
+    volumes:
+      - /opt/frigate/config:/config
+      - /opt/frigate/storage:/media/frigate
+      - /opt/frigate/db:/db
+      # NAS recording mount — uncomment after Phase 4 NAS setup:
+      # - /mnt/nas/frigate:/media/frigate/recordings
+      - /etc/localtime:/etc/localtime:ro
+      - /opt/frigate/certs:/config/certs:ro
+    devices:
+      # iGPU for VA-API hardware acceleration (enable after iGPU passthrough setup):
+      # - /dev/dri/renderD128:/dev/dri/renderD128
+    tmpfs:
+      - /tmp/cache
+
+# ──────────────────────────────────────────────────────────────────────────
+# NOTES
+# ──────────────────────────────────────────────────────────────────────────
+#
+# BEFORE FIRST START:
+#   mkdir -p /opt/frigate/db
+#   mkdir -p /opt/frigate/certs
+#   Set the following in /opt/frigate/.env:
+#     FRIGATE_RTSP_PASSWORD=<camera password>
+#     FRIGATE_MQTT_PASSWORD=<mosquitto mqtt user password>
+#
+# STARTING:
+#   docker compose up -d
+#   docker compose logs frigate -f
+#
+# UPDATING:
+#   docker compose pull && docker compose up -d
+#
+# VOLUMES:
+#   /opt/frigate/db/          Frigate SQLite database (event history, snapshots)
+#   /opt/frigate/storage/     Local recording storage (pre-NAS)
+#   /opt/frigate/certs/       CA cert for MQTT TLS validation
+#
+# NAS RECORDING MOUNT:
+#   /mnt/nas/frigate is an NFS mount from the Pi NAS (192.168.40.50).
+#   Uncomment the NAS volume line once the NAS is set up (Phase 4).
+#   The fstab entry is in pi_nas_setup_guide.md.
+#
+# PORTS (host networking):
+#   8971  — Frigate UI/API (0.14+)
+#   5000  — Frigate API (legacy <0.14)
+#   8554  — RTSP restream
+#   8555  — WebRTC

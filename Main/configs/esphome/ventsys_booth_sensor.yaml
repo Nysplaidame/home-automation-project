@@ -1,0 +1,15 @@
+# VentSys Spray Booth Enclosure Sensor Array
+# Device: ventsys-booth-sensor  IP: 192.168.50.33  VLAN 50
+# DHCP hostname: ventsys-booth-sensor
+#
+# This is a deployable per-device wrapper that imports the shared firmware
+# in printairpipe-controller.yaml and overrides only board-specific values.
+
+substitutions:
+  device_name: ventsys-booth-sensor
+  friendly_name: "Booth Enclosure Sensors"
+  device_ip: "192.168.50.33"
+  mqtt_topic_prefix: "ventsys/booth"
+
+packages:
+  base: !include printairpipe-controller.yaml

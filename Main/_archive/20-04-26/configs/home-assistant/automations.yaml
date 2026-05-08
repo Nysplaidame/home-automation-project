@@ -1,0 +1,366 @@
+# Home Assistant Automations — Safety & Ventilation
+# Host: 192.168.20.101 — VLAN 20
+# Loaded via: configuration.yaml  automation: !include automations.yaml
+#
+# FIX #7: All sensor entity IDs updated to match MQTT sensor definitions now
+# present in ventsys_ha_package.yaml. Previous enc1/enc2 names had no matching
+# entity anywhere -- every Tier 1/2/3 safety automation silently never fired.
+# Renames: ventsys_enc1_smoke->fdm_smoke, ventsys_enc2_smoke->sla_smoke,
+# ventsys_enc1_temperature->fdm_temperature, ventsys_enc2_temperature->sla_temperature,
+# ventsys_enc1_iaq->fdm_iaq, ventsys_enc2_iaq->sla_iaq,
+# ventsys_enc1_pressure_diff->fdm_pressure_differential,
+# ventsys_enc2_pressure_diff->sla_pressure_differential,
+# binary_sensor.mqtt_broker->binary_sensor.mqtt_broker_online.
+#
+# NEW FIX (second audit): All notify.notify calls in this file changed to
+# notify.persistent_notification for the same reason as bambuddy_p1s_package.yaml
+# fix #28: notify.notify with no target fans out to every registered notification
+# service simultaneously. persistent_notification is the safe always-available
+# default. Replace with your preferred service (notify.mobile_app_<device>,
+# notify.telegram, etc.) once HA notifications are configured.
+
+# ============================================================================
+# SYSTEM STARTUP — VentSys initialisation to known safe state
+# D4 fix: when HA restarts, physical hardware stays in its last state.
+# This automation drives all actuators to a known sealed state on every start.
+# ============================================================================
+
+- id: ventsys_startup_safe_state
+  alias: "SYS — VentSys initialise to safe state on HA start"
+  description: >
+    Ensures VentSys hardware is in a known sealed state after every HA restart.
+    Without this, valves and fans remain in whatever physical position they were
+    in when HA last stopped — which could be any combination of open paths.
+    The 30-second delay allows the MQTT integration to reconnect before publishing.
+  mode: single
+  trigger:
+    - platform: homeassistant
+      event: start
+  action:
+    - delay: "00:00:30"
+    - action: script.turn_on
+      target:
+        entity_id: script.ventsys_mode_sealed
+    - action: notify.persistent_notification
+      data:
+        title: "ℹ VentSys Initialised"
+        message: "VentSys sealed state applied after HA restart. Verify physical hardware before operating."
+
+# ============================================================================
+# TIER 1 — FIRE DETECTION: immediate emergency response
+# Trigger: any smoke sensor hits FIRE_RISK or smoke detected
+# Action:  cut printer power, open all valves, blast fans, alert
+# ============================================================================
+
+- id: fire_detection_emergency
+  alias: "FIRE — Emergency response"
+  description: "Multi-sensor fire detection triggers immediate power cutoff and max ventilation"
+  mode: single
+  trigger:
+    - platform: state
+      entity_id:
+        - sensor.fdm_smoke
+        - sensor.sla_smoke
+      to: "detected"
+    - platform: state
+      entity_id:
+        - sensor.sla_risk
+        - sensor.fdm_risk
+      to: "FIRE_RISK"
+  condition: []
+  action:
+    # 1. Cut printer power immediately
+    # F-35: Entity IDs switch.fdm_printer_plug and switch.sla_printer_plug depend
+    # on how HA names the smart plug entities from MQTT discovery or manual config.
+    # Expected DHCP hostnames: plug-fdm-printer (.71), plug-sla-printer (.72).
+    # If the plugs are Tasmota or similar, the entity ID follows the MQTT topic —
+    # verify the actual entity IDs in HA Developer Tools before relying on this.
+    - action: switch.turn_off
+      target:
+        entity_id:
+          - switch.fdm_printer_plug
+          - switch.sla_printer_plug
+    # 2. Engage fail-safe (triggers ventsys_failsafe_on_sync automation below)
+    - action: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.ventsys_failsafe
+    # 3. Push notification
+    # NOTE: notify.notify with no target sends to ALL registered notification
+    # services simultaneously. Replace with your preferred service once HA
+    # notifications are configured (same approach as bambuddy_p1s_package.yaml).
+    # Using persistent_notification as safe default — always available, no setup.
+    - action: notify.persistent_notification
+      data:
+        title: "🔥 FIRE ALERT"
+        message: >
+          Fire or smoke detected! Triggered by: {{ trigger.entity_id }}.
+          Printer power cut. Ventilation at maximum. Check immediately.
+
+# ============================================================================
+# TIER 2 — HIGH TEMPERATURE: warning and staged response
+# Trigger: enclosure temp exceeds safe threshold
+# Action:  increase ventilation, alert — do NOT cut power yet
+# ============================================================================
+
+- id: high_temp_fdm_warning
+  alias: "TEMP — FDM enclosure high temperature warning"
+  mode: single
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.fdm_temperature
+      above: 55
+      for:
+        minutes: 2
+  condition:
+    - condition: state
+      entity_id: input_boolean.ventsys_failsafe
+      state: "off"
+  action:
+    - action: fan.set_percentage
+      target:
+        entity_id: fan.inline_fan
+      data:
+        percentage: 100
+    - action: notify.persistent_notification
+      data:
+        title: "⚠ FDM Enclosure High Temp"
+        message: "FDM enclosure at {{ states('sensor.fdm_temperature') }}°C. Fan at 100%. Monitor closely."
+
+- id: high_temp_fdm_critical
+  alias: "TEMP — FDM enclosure critical temperature — cut power"
+  # NOTE: No failsafe condition here — this is intentional.
+  # The WARNING automations (high_temp_fdm_warning, high_temp_sla_warning) check
+  # input_boolean.ventsys_failsafe == off to avoid noise during an active failsafe.
+  # CRITICAL automations must ALWAYS fire regardless of failsafe state — suppressing
+  # a critical temp alert could allow a thermal runaway to go unnoticed.
+  mode: single
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.fdm_temperature
+      above: 70
+  action:
+    - action: switch.turn_off
+      target:
+        entity_id: switch.fdm_printer_plug
+    - action: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.ventsys_failsafe
+    - action: notify.persistent_notification
+      data:
+        title: "🔥 FDM CRITICAL TEMP — Power Cut"
+        message: "FDM enclosure at {{ states('sensor.fdm_temperature') }}°C. Printer power cut!"
+
+- id: high_temp_sla_warning
+  alias: "TEMP — SLA enclosure high temperature warning"
+  mode: single
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.sla_temperature
+      above: 40
+      for:
+        minutes: 2
+  condition:
+    - condition: state
+      entity_id: input_boolean.ventsys_failsafe
+      state: "off"
+  action:
+    - action: fan.set_percentage
+      target:
+        entity_id: fan.inline_fan
+      data:
+        percentage: 100
+    - action: notify.persistent_notification
+      data:
+        title: "⚠ SLA Enclosure High Temp"
+        message: "SLA enclosure at {{ states('sensor.sla_temperature') }}°C. Fan at 100%."
+
+- id: high_temp_sla_critical
+  alias: "TEMP — SLA enclosure critical temperature — cut power"
+  # NOTE: No failsafe condition — intentional. See comment on high_temp_fdm_critical.
+  mode: single
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.sla_temperature
+      above: 55
+  action:
+    - action: switch.turn_off
+      target:
+        entity_id: switch.sla_printer_plug
+    - action: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.ventsys_failsafe
+    - action: notify.persistent_notification
+      data:
+        title: "🔥 SLA CRITICAL TEMP — Power Cut"
+        message: "SLA enclosure at {{ states('sensor.sla_temperature') }}°C. Printer power cut!"
+
+# ============================================================================
+# TIER 3 — AIR QUALITY / VOC: ventilation response
+# Trigger: IAQ or differential pressure out of range
+# Action:  increase ventilation, alert
+# ============================================================================
+
+- id: poor_air_quality_fdm
+  alias: "AIR — FDM poor air quality response"
+  mode: single
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.fdm_iaq
+      # Gas resistance in ohms — LOWER = worse air quality (inverted from IAQ index).
+      # Threshold set for moderate-VOC garage baseline (expected clean-air rest:
+      # 15,000–40,000 Ω). 5,000 Ω is well below that baseline, indicating a
+      # genuine fume event rather than normal garage background VOC variation.
+      # Calibrate against your sensor's 30-min stable baseline after deployment.
+      below: 5000
+      for:
+        minutes: 3
+  condition:
+    - condition: state
+      entity_id: input_boolean.ventsys_failsafe
+      state: "off"
+  action:
+    - action: fan.set_percentage
+      target:
+        entity_id: fan.inline_fan
+      data:
+        percentage: 80
+    - action: notify.persistent_notification
+      data:
+        title: "⚠ FDM Air Quality Alert"
+        message: "FDM IAQ: {{ states('sensor.fdm_iaq') }}. Fan increased to 80%."
+
+- id: poor_air_quality_sla
+  alias: "AIR — SLA poor air quality response"
+  mode: single
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.sla_iaq
+      # Gas resistance in ohms — LOWER = worse air quality.
+      # SLA threshold higher than FDM (8,000 vs 5,000 Ω) — triggers sooner
+      # given resin fume toxicity. Both calibrated for moderate-VOC garage
+      # baseline; adjust after measuring your 30-min stable rest values.
+      below: 8000
+      for:
+        minutes: 3
+  condition:
+    - condition: state
+      entity_id: input_boolean.ventsys_failsafe
+      state: "off"
+  action:
+    - action: fan.set_percentage
+      target:
+        entity_id: fan.inline_fan
+      data:
+        percentage: 80
+    - action: notify.persistent_notification
+      data:
+        title: "⚠ SLA Air Quality Alert"
+        message: "SLA IAQ: {{ states('sensor.sla_iaq') }}. Fan increased to 80%."
+
+- id: pressure_diff_fault
+  alias: "AIR — Differential pressure fault — airflow blocked"
+  description: >
+    Low differential pressure means the fan is running but nothing is moving — valve blocked or fan fault.
+    DEPENDENCY: sensor.fdm_pressure_differential and sensor.sla_pressure_differential are defined in
+    ventsys_ha_optional.yaml. That file MUST be loaded as a package alongside ventsys_ha_package.yaml
+    for this automation to function. Without it these sensor entities don't exist and the trigger
+    never fires — no error is shown, it just silently does nothing.
+  mode: single
+  trigger:
+    - platform: numeric_state
+      entity_id:
+        - sensor.fdm_pressure_differential
+        - sensor.sla_pressure_differential
+      below: 5
+      for:
+        minutes: 5
+  condition:
+    - condition: state
+      entity_id: fan.inline_fan
+      state: "on"
+  action:
+    - action: notify.persistent_notification
+      data:
+        title: "⚠ Ventilation Fault"
+        message: >
+          Low differential pressure on {{ trigger.entity_id }} while fan is running.
+          Possible blocked valve or fan fault. Check ventilation system.
+
+# ============================================================================
+# VENTSYS — fail-safe sync
+# Loads from ventsys_ha_package.yaml but kept here for visibility
+# ============================================================================
+
+# (ventsys_failsafe_on_sync is defined in /config/packages/ventsys_ha_package.yaml)
+# (ventsys_fire_risk_cutoff is defined in /config/packages/ventsys_ha_package.yaml)
+
+# ============================================================================
+# SYSTEM HEALTH — watchdog automations
+# ============================================================================
+
+- id: mqtt_reconnect_alert
+  alias: "SYS — MQTT broker offline alert"
+  mode: single
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.mqtt_broker_online
+      to: "off"
+      for:
+        minutes: 2
+  action:
+    - action: notify.persistent_notification
+      data:
+        title: "⚠ MQTT Broker Offline"
+        message: "Mosquitto MQTT broker has been unreachable for 2 minutes. VentSys devices are not reporting."
+
+- id: esphome_device_offline_main_fan
+  alias: "SYS — VentSys main fan controller offline"
+  mode: single
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.ventsys_main_fan_status
+      to: "off"
+      for:
+        minutes: 5
+  action:
+    - action: notify.persistent_notification
+      data:
+        title: "⚠ VentSys Fan Controller Offline"
+        message: "Fan controller (192.168.50.21) has been unreachable for 5 minutes."
+
+- id: esphome_device_offline_valve
+  alias: "SYS — VentSys valve controller offline"
+  mode: single
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.ventsys_sla_print_valve_status
+      to: "off"
+      for:
+        minutes: 5
+  action:
+    - action: notify.persistent_notification
+      data:
+        title: "⚠ VentSys Valve Controller Offline"
+        message: "Valve controller (192.168.50.56) has been unreachable for 5 minutes."
+
+# ============================================================================
+# CAMERA — Frigate person detection alerts
+# ============================================================================
+
+- id: person_detected_camera
+  alias: "CAM — Person detected"
+  mode: queued
+  max: 5
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.cam_01_person_occupancy
+        - binary_sensor.cam_02_person_occupancy
+        - binary_sensor.cam_03_person_occupancy
+        - binary_sensor.cam_04_person_occupancy
+      to: "on"
+  action:
+    - action: notify.persistent_notification
+      data:
+        title: "📷 Person Detected"
+        message: "Person detected on {{ trigger.entity_id | replace('binary_sensor.', '') | replace('_person_occupancy', '') }}"

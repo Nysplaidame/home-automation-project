@@ -1,0 +1,17 @@
+# Keep text normalized in-repo; Git can convert in working tree as needed.
+* text=auto
+
+# Shell and config files that must stay LF for tooling compatibility.
+*.sh text eol=lf
+*.bash text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.conf text eol=lf
+
+# Documentation and code: prefer LF for cross-platform consistency.
+*.md text eol=lf
+*.json text eol=lf
+*.mmd text eol=lf
+*.mermaid text eol=lf
+*.html text eol=lf
+*.py text eol=lf

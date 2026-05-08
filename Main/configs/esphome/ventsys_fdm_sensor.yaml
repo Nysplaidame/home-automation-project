@@ -1,0 +1,15 @@
+# VentSys FDM Enclosure Sensor Array
+# Device: ventsys-fdm-sensor  IP: 192.168.50.31  VLAN 50
+# DHCP hostname: ventsys-fdm-sensor
+#
+# This is a deployable per-device wrapper that imports the shared firmware
+# in printairpipe-controller.yaml and overrides only board-specific values.
+
+substitutions:
+  device_name: ventsys-fdm-sensor
+  friendly_name: "FDM Enclosure Sensors"
+  device_ip: "192.168.50.31"
+  mqtt_topic_prefix: "ventsys/fdm"
+
+packages:
+  base: !include printairpipe-controller.yaml

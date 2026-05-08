@@ -1,0 +1,142 @@
+graph TB
+    %% Internet and WAN
+    Internet([Internet]) --> WAN[WAN Interface<br/>DHCP from ISP<br/>DNS: 1.1.1.1, 1.0.0.1]
+    
+    %% Main Router
+    WAN --> Router[GL.iNet GL-MT6000<br/>OpenWrt Router<br/>Firewall + DHCP + DNS]
+    
+    %% Physical Ports
+    Router --> Port1[lan1 - Trunk Port<br/>All VLANs Tagged<br/>10,20,30,40,50,60,70]
+    Router --> Port2[lan2 - Management<br/>VLAN 10 Untagged<br/>Others Tagged]
+    Router --> Port3[lan3 - Camera POE<br/>VLAN 30 Untagged<br/>VLAN 10 Tagged]
+    Router --> Port4[lan4 - NAS Direct<br/>VLAN 40 Untagged<br/>VLAN 10 Tagged]
+    
+    %% WiFi Radios
+    Router --> WiFi24[2.4GHz Radio<br/>HE40, 20dBm<br/>Channel Strategy]
+    Router --> WiFi5[5GHz Radio<br/>HE80, 23dBm<br/>Auto Channel]
+    
+    %% WiFi Networks
+    WiFi24 --> MainSSID24[HomeMain - Ch1<br/>VLAN 1, WPA3-Mixed<br/>Main Users]
+    WiFi24 --> IoTSSID[HomeIoT - Ch6<br/>VLAN 50, WPA2<br/>IoT Devices Only]
+    WiFi24 --> GuestSSID[HomeGuest - Ch11<br/>Guest Network, WPA2<br/>Internet Only]
+    WiFi24 --> AdminSSID24[HomeAdmin-2G - Ch11<br/>VLAN 10, WPA3<br/>Hidden, Emergency]
+    
+    WiFi5 --> MainSSID5[HomeMain<br/>VLAN 1, WPA3-Mixed<br/>Main Users]
+    WiFi5 --> AdminSSID5[HomeAdmin<br/>VLAN 10, WPA3<br/>Admin Access]
+    
+    %% Network Segments
+    Port1 --> Proxmox[Proxmox Host<br/>192.168.10.100<br/>VM Hypervisor]
+    Port2 --> AdminLaptop[Admin Devices<br/>192.168.10.10-.99<br/>Management Access]
+    Port3 --> CameraPOE[Camera POE Switch<br/>Multiple IP Cameras<br/>192.168.30.21-.29]
+    Port4 --> NAS[Raspberry Pi NAS<br/>192.168.40.50<br/>Storage Services]
+    
+    %% Virtual Networks and VLANs
+    subgraph "Network Segments"
+        
+        subgraph "VLAN 1 - Main Users (192.168.1.0/24)"
+            LAN[LAN Network<br/>Gateway: .1<br/>DHCP: .100-.199<br/>Lease: 12h]
+            LAN --> LAN_Devices[Phones, Laptops<br/>Tablets, Smart TVs<br/>Full Internet Access]
+        end
+        
+        subgraph "VLAN 10 - Management (192.168.10.0/24)"
+            MGMT[Management Network<br/>Gateway: .1<br/>DHCP: .100-.149<br/>Lease: 48h]
+            MGMT --> MGMT_Devices[Proxmox: .100<br/>Admin Laptop: .10<br/>Full Network Access]
+        end
+        
+        subgraph "VLAN 20 - Automation (192.168.20.0/24)"
+            AUTO[Automation Network<br/>Gateway: .1<br/>DHCP: .110-.149<br/>Lease: 48h]
+            AUTO --> HA[Home Assistant VM<br/>192.168.20.101<br/>Limited Internet]
+            AUTO --> DockerHost[Docker host VM<br/>192.168.20.102<br/>Trusted app workloads]
+        end
+        
+        subgraph "VLAN 30 - CCTV (192.168.30.0/24)"
+            CCTV[CCTV Network<br/>Gateway: .1<br/>DHCP: .100-.149<br/>Lease: 24h<br/>🚫 NO INTERNET]
+            CCTV --> Cameras[IP Cameras<br/>.21-.29 Static<br/>Local DNS Only]
+        end
+        
+        subgraph "VLAN 40 - Storage (192.168.40.0/24)"
+            STORAGE[Storage Network<br/>Gateway: .1<br/>DHCP: .100-.139<br/>Lease: 24h<br/>🚫 NO INTERNET]
+            STORAGE --> NAS_Services[NAS: .50<br/>Backup: .51-.59<br/>Local DNS Only]
+        end
+        
+        subgraph "VLAN 50 - IoT Sensors (192.168.50.0/24)"
+            IOT[IoT Network<br/>Gateway: .1<br/>DHCP: .100-.190<br/>Lease: 6h<br/>🚫 NO INTERNET]
+            IOT --> Sensors[Temp: .31-.39<br/>Smoke: .41-.49<br/>VOC: .51-.59<br/>Smart Plugs: .71-.79]
+        end
+        
+        subgraph "VLAN 60 - Monitoring (192.168.60.0/24)"
+            MON[Monitoring Network<br/>Gateway: .1<br/>DHCP: .100-.149<br/>Lease: 24h]
+            MON --> MonVMs[Zabbix: .10<br/>Grafana: .11<br/>ELK: .12<br/>Scanner: .13]
+        end
+        
+        subgraph "VLAN 70 - DMZ (192.168.70.0/24)"
+            DMZ[DMZ Network<br/>Gateway: .1<br/>DHCP: .100-.149<br/>Lease: 12h]
+            DMZ --> DMZServices[VPN Endpoint: .10<br/>Web Services: .11-.19<br/>Controlled Internet]
+        end
+        
+        subgraph "Guest Network (192.168.99.0/24)"
+            GUEST[Guest Network<br/>Gateway: .1<br/>DHCP: .100-.150<br/>Lease: 2h]
+            GUEST --> GuestDevices[Visitor Devices<br/>Internet Only Access<br/>External DNS Only]
+        end
+    end
+    
+    %% VPN
+    Internet -.-> VPN[WireGuard VPN<br/>Port 51820 UDP<br/>Tunnel: 10.0.99.0/24]
+    VPN --> DMZServices
+    VPN -.-> HA
+    
+    %% Firewall Rules
+    subgraph "Firewall Rules"
+        direction TB
+        
+        subgraph "Internet Access 🌐"
+            InternetRules[LAN: Full Access ✅<br/>Management: Full Access ✅<br/>Guest: Full Access ✅<br/>HA: Limited Access ⚠️<br/>Frigate: Updates Only ⚠️<br/>Monitoring: Limited ⚠️<br/>DMZ: Controlled ⚠️<br/>CCTV: BLOCKED 🚫<br/>Storage: BLOCKED 🚫<br/>IoT: BLOCKED 🚫]
+        end
+        
+        subgraph "Inter-VLAN Rules 🔄"
+            InterVLAN[Management → All Networks ✅<br/>HA → CCTV/Storage/IoT ✅<br/>Frigate → CCTV/NAS ✅<br/>Monitoring → All (Limited) ⚠️<br/>VPN → DMZ/HA Only ⚠️<br/>Guest → BLOCKED from All 🚫<br/>DMZ → BLOCKED from Internal 🚫]
+        end
+        
+        subgraph "DNS Security 🛡️"
+            DNSRules[LAN/MGMT: Full DNS ✅<br/>Guest: External Only ✅<br/>Isolated Networks: Local Only 🛡️<br/>External DNS Blocked: CCTV/Storage/IoT 🚫]
+        end
+        
+        subgraph "Emergency Protocols 🚨"
+            Emergency[Smart Plug Access: DISABLED 🚫<br/>Management Override: Available<br/>Emergency IPs: .71-.73<br/>Manual Activation Required]
+        end
+    end
+    
+    %% Physical Connections
+    Proxmox -.-> HA
+    Proxmox -.-> DockerHost
+    Proxmox -.-> MonVMs
+    Proxmox -.-> DMZServices
+    
+    %% Logical Connections (Firewall Controlled)
+    HA -.-> Cameras
+    HA -.-> NAS_Services  
+    HA -.-> Sensors
+    Frigate -.-> Cameras
+    Frigate -.-> NAS_Services
+    MonVMs -.-> LAN_Devices
+    MonVMs -.-> HA
+    MonVMs -.-> Cameras
+    MonVMs -.-> NAS_Services
+    MonVMs -.-> Sensors
+    
+    %% Styling
+    classDef internetAccess fill:#e1f5fe
+    classDef noInternet fill:#ffebee
+    classDef limitedAccess fill:#fff3e0
+    classDef management fill:#f3e5f5
+    classDef firewall fill:#e8f5e8
+    classDef wifi24 fill:#fff9c4
+    classDef wifi5 fill:#e0f2f1
+    
+    class LAN,MGMT,GUEST internetAccess
+    class CCTV,STORAGE,IOT noInternet  
+    class AUTO,MON,DMZ limitedAccess
+    class Router,AdminLaptop management
+    class InternetRules,InterVLAN,DNSRules,Emergency firewall
+    class MainSSID24,IoTSSID,GuestSSID,AdminSSID24 wifi24
+    class MainSSID5,AdminSSID5 wifi5

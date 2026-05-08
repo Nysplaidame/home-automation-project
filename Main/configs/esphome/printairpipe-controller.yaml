@@ -1,0 +1,301 @@
+# ESPHome — PrintAirPipe Enclosure Sensor Controller
+# Device: ESP32 (one per enclosure)
+# Network: VLAN 50 (IoT Sensors) — 192.168.50.0/24
+# SSID: HomeIoT
+#
+# This config covers the SENSOR board for a single enclosure.
+# Fan control: ventsys_fan_controller.yaml (IP: 192.168.50.21)
+# Valve control: ventsys_valve_controller.yaml (IP: 192.168.50.56)
+#
+# One instance of this config per enclosure:
+#   FDM enclosure sensor board: IP 192.168.50.31 — name: ventsys-fdm-sensor
+#   SLA enclosure sensor board: IP 192.168.50.32 — name: ventsys-sla-sensor
+#
+# HARDWARE PINS — update after physical wiring:
+#   DS18B20 temperature sensor bus: GPIO4 (1-Wire)
+#   BME680 (temp/humidity/pressure/IAQ gas): SDA=GPIO21, SCL=GPIO22 (I2C)
+#   MQ-2 / MQ-135 smoke+VOC: GPIO34 (ADC1 — 3.3V tolerant only)
+#   Pressure differential sensor: GPIO35 (ADC1)
+#   Status LED: GPIO2 (built-in on most dev boards)
+#
+# SENSOR ADDRESSES — fill in after first boot with temperature_scan:
+#   DS18B20 address: 0x00000000000000  (replace after scan)
+#
+# See: esphome_adoption_guide.md for first-flash and adoption workflow
+
+substitutions:
+  device_name: ventsys-fdm-sensor    # Change to ventsys-sla-sensor for the SLA board
+  friendly_name: "FDM Enclosure Sensors"
+  device_ip: "192.168.50.31"         # Change to 192.168.50.32 for SLA board
+  mqtt_topic_prefix: "ventsys/fdm"   # Change to ventsys/sla for SLA board
+  # N-2 fix: temp_threshold substitution allows per-board override without modifying shared firmware.
+  # FDM board: 55.0 (default). SLA board: override to 40.0 in ventsys_sla_sensor.yaml.
+  # Resin enclosures need lower threshold -- SLA resin fumes are flammable at lower temps.
+  temp_threshold: "55.0"              # N-2 fix: override to 40.0 in ventsys_sla_sensor.yaml
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: esp32dev
+
+wifi:
+  ssid: !secret wifi_ssid       # HomeIoT
+  password: !secret wifi_pass
+  manual_ip:
+    static_ip: ${device_ip}
+    gateway: 192.168.50.1
+    subnet: 255.255.255.0
+
+mqtt:
+  broker: 192.168.20.101
+  port: 8883                    # A9-7 fix: comment was backwards. Stage 1 (pre-TLS): change to 1883 for initial bring-up. Stage 2: revert to 8883. Ships as 8883 (post-TLS default).
+  username: !secret mqtt_user
+  password: !secret mqtt_pass
+  discovery: false
+  ca_certificate: !secret mqtt_ca_cert
+
+api:
+  encryption:
+    key: !secret api_key
+
+ota:
+  platform: esphome
+  password: !secret ota_password
+
+logger:
+  level: WARN
+
+# ── TIME SYNC ────────────────────────────────────────────────────────────────
+# Required for MQTT TLS certificate validation.
+# ESP32 boots at 1970-01-01 (no hardware RTC). Without time sync, the TLS
+# handshake fails because certificates appear issued in the future.
+# Syncs from HA via the native API — no NTP server or internet access required.
+# A6-1 fix: pattern established by ventsys_fdm_airflow.yaml, now applied here.
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
+# ── STATUS LED ───────────────────────────────────────────────────────────────
+status_led:
+  pin:
+    number: GPIO2
+    inverted: false
+
+# ── I2C BUS (BME680) ─────────────────────────────────────────────────────────
+i2c:
+  sda: GPIO21
+  scl: GPIO22
+  scan: false
+
+# ── 1-WIRE BUS (DS18B20) ─────────────────────────────────────────────────────
+one_wire:
+  - platform: gpio
+    pin: GPIO4
+
+# ── SENSORS ──────────────────────────────────────────────────────────────────
+sensor:
+
+  # Temperature (DS18B20 — 1-Wire)
+  # After first flash, read logs for "Found Dallas device" to get the address
+  - platform: dallas_temp
+    address: 0x0000000000000000   # Replace with actual address from scan
+    name: "${friendly_name} Temperature"
+    id: enclosure_temperature
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    update_interval: 10s
+    filters:
+      - filter_out: nan
+      - sliding_window_moving_average:
+          window_size: 3
+          send_every: 1
+    on_value:
+      then:
+        - mqtt.publish:
+            topic: "${mqtt_topic_prefix}/temperature"
+            payload: !lambda 'return to_string(x);'
+
+  # Humidity + barometric pressure + IAQ gas resistance (BME680 — I2C)
+  # BME680 provides temperature, humidity, pressure, and gas resistance.
+  #
+  # IAQ source: gas_resistance published to ${mqtt_topic_prefix}/iaq (ohms).
+  # Higher resistance = cleaner air. HA can invert/scale for display.
+  # Note: Bosch's proprietary BSEC2 library gives a 0-500 IAQ score but
+  # requires the ESPHome bsec2 component and a licence agreement. Raw gas
+  # resistance is used here to avoid that dependency — it carries the same
+  # information and can be processed in HA or Node-RED if needed.
+  #
+  # MQ sensor role: fast combustion/smoke alarm ONLY (binary, not IAQ).
+  # The two sensors are complementary — BME680 for air quality trend,
+  # MQ for rapid threshold detection.
+  - platform: bme680_i2c
+    address: 0x76   # 0x77 if SDO pin is HIGH — check your module
+    update_interval: 30s
+
+    temperature:
+      name: "${friendly_name} BME Temperature"
+      id: bme_temperature
+      filters:
+        - filter_out: nan
+
+    humidity:
+      name: "${friendly_name} Humidity"
+      id: enclosure_humidity
+      unit_of_measurement: "%"
+      accuracy_decimals: 1
+      on_value:
+        then:
+          - mqtt.publish:
+              topic: "${mqtt_topic_prefix}/humidity"
+              payload: !lambda 'return to_string(x);'
+
+    pressure:
+      name: "${friendly_name} Pressure"
+      id: enclosure_pressure
+      unit_of_measurement: "hPa"
+      accuracy_decimals: 2
+      on_value:
+        then:
+          - mqtt.publish:
+              topic: "${mqtt_topic_prefix}/baro_pressure"
+              payload: !lambda 'return to_string(x);'
+      # Absolute barometric pressure — used by ventsys_ha_optional.yaml to
+      # compute differential vs. garage ambient (ventsys/garage/baro_pressure).
+      # Separate from the ADC airflow proxy below (blocked valve detection).
+
+    gas_resistance:
+      name: "${friendly_name} IAQ Gas Resistance"
+      id: gas_resistance
+      unit_of_measurement: "Ω"
+      accuracy_decimals: 0
+      filters:
+        - filter_out: nan
+        - sliding_window_moving_average:
+            window_size: 3
+            send_every: 1
+      on_value:
+        then:
+          - mqtt.publish:
+              topic: "${mqtt_topic_prefix}/iaq"
+              payload: !lambda 'return to_string((int)x);'
+      # Requires ~5 min warm-up after boot before readings stabilise.
+      # BME680 gas resistance drifts — allow 30 min for stable baseline.
+
+  # Differential pressure (airflow proxy — analog sensor on GPIO35)
+  # Maps raw ADC (0-4095) to Pa range — calibrate min/max for your sensor
+  - platform: adc
+    pin: GPIO35
+    name: "${friendly_name} Pressure Differential"
+    id: pressure_diff
+    unit_of_measurement: "Pa"
+    accuracy_decimals: 1
+    update_interval: 5s
+    attenuation: auto
+    filters:
+      - multiply: 100.0    # Adjust scaling for your sensor's output range
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 1
+    on_value:
+      then:
+        - mqtt.publish:
+            topic: "${mqtt_topic_prefix}/pressure_diff"
+            payload: !lambda 'return to_string(x);'
+
+  # MQ smoke/combustion sensor (GPIO34 — ADC1 only, 3.3V safe)
+  # Role: fast binary smoke alarm ONLY. IAQ is handled by BME680 gas_resistance above.
+  # MQ sensors need 24-48h burn-in time before alarm thresholds are meaningful.
+  - platform: adc
+    pin: GPIO34
+    name: "${friendly_name} Smoke/VOC Raw"
+    id: smoke_voc_raw
+    unit_of_measurement: "raw"
+    accuracy_decimals: 0
+    update_interval: 5s
+    attenuation: auto
+    filters:
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 1
+    # No MQTT publish here — raw ADC value feeds the binary_sensor below only.
+
+# ── BINARY SENSORS ───────────────────────────────────────────────────────────
+binary_sensor:
+
+  # Smoke alarm — fires when ADC exceeds threshold
+  # Default threshold 2000 (~2.4V on 3.3V ADC) — calibrate in clean air first
+  - platform: template
+    name: "${friendly_name} Smoke Detected"
+    id: smoke_alarm
+    lambda: 'return id(smoke_voc_raw).state > 2000;'
+    device_class: smoke
+    filters:
+      - delayed_on: 3s       # Require 3 continuous seconds to avoid false triggers
+      - delayed_off: 10s     # Keep alarm for 10s after value drops below threshold
+    on_press:
+      then:
+        - mqtt.publish:
+            topic: "${mqtt_topic_prefix}/smoke"
+            payload: "detected"
+    on_release:
+      then:
+        - mqtt.publish:
+            topic: "${mqtt_topic_prefix}/smoke"
+            payload: "clear"
+
+  # High temperature alarm — > 55°C for FDM, > 40°C for SLA
+  # This config uses 55°C (FDM). Change to 40 in the SLA board substitution.
+  - platform: template
+    name: "${friendly_name} High Temperature"
+    id: high_temp_alarm
+    lambda: 'return id(enclosure_temperature).state > ${temp_threshold}f;'  # N-2 fix: use substitution so SLA board can override to 40.0
+    device_class: heat
+    filters:
+      - delayed_on: 10s
+    on_press:
+      then:
+        - mqtt.publish:
+            topic: "${mqtt_topic_prefix}/temp_alarm"
+            payload: "high"
+    on_release:
+      then:
+        - mqtt.publish:
+            topic: "${mqtt_topic_prefix}/temp_alarm"
+            payload: "normal"
+
+  # ESPHome API connectivity status (published for HA watchdog)
+  - platform: status
+    name: "${friendly_name} Status"
+    id: device_status
+
+# ── TEXT SENSORS ─────────────────────────────────────────────────────────────
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "${friendly_name} IP"
+    ssid:
+      name: "${friendly_name} SSID"
+    bssid:
+      name: "${friendly_name} BSSID"
+
+# ── INTERVAL: publish all readings to MQTT on boot ───────────────────────────
+interval:
+  - interval: 60s
+    then:
+      - mqtt.publish:
+          topic: "${mqtt_topic_prefix}/online"
+          payload: "true"
+
+# ── SECRETS REQUIRED IN secrets.yaml ────────────────────────────────────────
+# wifi_ssid: "HomeIoT"
+# wifi_pass: "your-homeiot-password"
+# mqtt_user: "mqtt"
+# mqtt_pass: "your-mqtt-password"
+# mqtt_ca_cert: |
+#   -----BEGIN CERTIFICATE-----
+#   ... (contents of ca.crt from local CA)
+#   -----END CERTIFICATE-----
+# api_key: "your-32-byte-base64-api-key"   # generate: openssl rand -base64 32
+# ota_password: "your-ota-password"
