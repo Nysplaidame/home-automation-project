@@ -26,7 +26,7 @@ status: active
 - [ ] Do not deploy `configs/home-assistant/bambuddy_p1s_package.yaml` until `<P1S_SERIAL>` is replaced and MQTT topics are confirmed
 - [ ] Create `/opt/frigate/.env` after camera RTSP and MQTT credentials/certs are ready
 - [x] Design `apt-cacher-ng` on docker-host for package caching
-- [ ] Deploy `apt-cacher-ng` on docker-host and test with frigate-nvr
+- [x] Deploy `apt-cacher-ng` on docker-host and test with frigate-nvr
 - [ ] Decide whether a Docker registry mirror is justified after more Compose workloads exist
 
 ---

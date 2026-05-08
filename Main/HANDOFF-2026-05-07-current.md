@@ -34,12 +34,15 @@ Current laptop working position:
 - Home Assistant IP: `192.168.20.101`
 - Docker host VM IP: `192.168.20.102`
 - Bambuddy workload UI: `http://192.168.20.102:8000`
+- APT cache endpoint: `http://192.168.20.102:3142`
 
 Router SSH:
 
 ```powershell
 ssh -i G:\home-automation-project\main\tools\router-deploy\keys\router_deploy root@192.168.10.1 '<cmd>'
 ```
+
+The local SSH config also has a `router` alias pointing at this key.
 
 Proxmox SSH:
 
@@ -70,10 +73,15 @@ Physical port notes:
 Important live cleanup completed:
 
 - The temporary router rule `TEMP Docker Host Update Access` was removed after
-  Docker and the Bambuddy image were pulled.
+  Docker/Bambuddy pulls and apt-cache validation.
 - Verified remaining relevant firewall output contains no temp rule.
 - Relevant remaining source/destination mentions of `192.168.20.102` are the
   intended Docker host/Bambuddy workload policy rules.
+- `apt-cacher-ng` is live on docker-host and reachable from `frigate-nvr`.
+- Permanent router rule `Frigate to APT Cache` exists before the NVR-to-Automation
+  block rule.
+- `docker-host` and `frigate-nvr` both have `/etc/apt/apt.conf.d/01proxy`
+  configured for the cache.
 
 Verification from VM 103 after temp rule removal:
 

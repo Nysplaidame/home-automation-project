@@ -4,7 +4,7 @@ description: Local APT package cache design for restricted Debian hosts
 tags: [operations, updates, apt, docker-host, firewall]
 created: 2026-05-08
 type: procedure
-status: design
+status: live
 ---
 
 # apt-cacher-ng Design
@@ -22,6 +22,18 @@ apt-cacher-ng.home.local -> 192.168.20.102:3142
 
 This improves package update hygiene for restricted VMs without opening broad
 WAN access to those VMs.
+
+## Live state
+
+As of 2026-05-08, `apt-cacher-ng` is deployed directly on `docker-host` as a
+Debian service, not as a container.
+
+- Service: `apt-cacher-ng`, enabled and active
+- Listener: `192.168.20.102:3142/tcp`
+- Docker-host UFW: allows `192.168.30.20` to port `3142/tcp`
+- Router firewall: `Frigate to APT Cache` is present before `Block NVR to Automation`
+- Router firewall: `TEMP Docker Host Update Access` is removed outside maintenance
+- Client proof: both `docker-host` and `frigate-nvr` ran `apt-get update` through the cache
 
 ## What this solves
 
@@ -155,8 +167,12 @@ Use local loopback:
 ```sh
 cat >/etc/apt/apt.conf.d/01proxy <<'EOF'
 Acquire::http::Proxy "http://127.0.0.1:3142";
+Acquire::https::Proxy "http://127.0.0.1:3142";
 EOF
 ```
+
+The Debian mirror files were switched from `https://deb.debian.org/...` to
+`http://deb.debian.org/...` so signed Debian packages can be cached normally.
 
 ### frigate-nvr
 
@@ -165,8 +181,12 @@ Use the cache host:
 ```sh
 cat >/etc/apt/apt.conf.d/01proxy <<'EOF'
 Acquire::http::Proxy "http://192.168.20.102:3142";
+Acquire::https::Proxy "http://192.168.20.102:3142";
 EOF
 ```
+
+The Debian mirror files were switched from `https://deb.debian.org/...` to
+`http://deb.debian.org/...`. The Docker APT repo remains HTTPS.
 
 ### Important HTTPS note
 
@@ -178,6 +198,12 @@ For vendor repos that must remain HTTPS, either:
 
 - allow a temporary host-scoped WAN maintenance window, or
 - download/install packages manually during a controlled maintenance window
+
+Live implementation note: `apt-cacher-ng` has a narrow `PassThroughPattern` for
+`download.docker.com:443` so Frigate and docker-host can refresh Docker APT
+metadata through the cache host during maintenance. This passes encrypted HTTPS
+traffic through; it does not cache Docker repo contents in the same useful way
+as standard Debian HTTP package traffic.
 
 ## Update workflow after cache deployment
 
@@ -206,12 +232,12 @@ apt-get upgrade
 
 After deployment:
 
-- [ ] `apt-cacher-ng` service is running on `docker-host`
-- [ ] `docker-host` can update via `127.0.0.1:3142`
-- [ ] `frigate-nvr` can reach `192.168.20.102:3142`
-- [ ] `frigate-nvr` can run `apt-get update` without direct WAN access
-- [ ] `TEMP Docker Host Update Access` is removed after maintenance
-- [ ] direct WAN from `frigate-nvr` remains blocked
+- [x] `apt-cacher-ng` service is running on `docker-host`
+- [x] `docker-host` can update via `127.0.0.1:3142`
+- [x] `frigate-nvr` can reach `192.168.20.102:3142`
+- [x] `frigate-nvr` can run `apt-get update` without direct WAN access
+- [x] `TEMP Docker Host Update Access` is removed after maintenance
+- [x] direct WAN from `frigate-nvr` remains blocked
 
 ## Decision summary
 

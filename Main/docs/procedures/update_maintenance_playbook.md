@@ -163,8 +163,8 @@ is clearly justified.
 
 ### Debian packages via local cache
 
-Preferred next improvement: run `apt-cacher-ng` as an internal service on
-`docker-host`.
+Live implementation: `apt-cacher-ng` runs as an internal service on
+`docker-host` at `192.168.20.102:3142`.
 
 Intended use:
 
@@ -181,14 +181,16 @@ Design reference:
 docs/procedures/apt_cacher_ng_design.md
 ```
 
-Planned cache endpoint:
+Cache endpoint:
 
 ```text
 apt-cacher-ng.home.local -> 192.168.20.102:3142
 ```
 
 Keep Docker image updates separate; `apt-cacher-ng` is for APT package traffic,
-not container image layers.
+not container image layers. The Docker APT repository uses a narrow HTTPS
+pass-through for `download.docker.com:443` during maintenance; Docker image
+pulls still need a separate update method.
 
 ## Recommended next implementation order
 
@@ -197,12 +199,11 @@ not container image layers.
 - Keep manual maintenance windows as the live operational method.
 - Use offline Docker image transfer for Frigate when convenient.
 
-### Phase B — first improvement
+### Phase B — completed first improvement
 
-- Deploy `apt-cacher-ng` on `docker-host`.
-- Add tightly scoped firewall rules so approved managed hosts can reach only the
-  cache service, not the internet broadly.
-- Start with `frigate-nvr` as the first restricted client.
+- `apt-cacher-ng` is deployed on `docker-host`.
+- The router has a tightly scoped `Frigate to APT Cache` rule.
+- `frigate-nvr` is the first restricted client.
 
 ### Phase C — only if needed
 
