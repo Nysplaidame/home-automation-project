@@ -11,6 +11,9 @@
 > MAC: `BC:24:11:9C:25:87`. Docker is installed, the Frigate image is pulled,
 > and `/opt/frigate` is staged. Frigate is not started yet because camera
 > credentials, MQTT secrets, and the MQTT TLS/cert path are still pending.
+> Later camera-feed requirements: Frigate UI must be accessed via HTTPS/SSL,
+> WebRTC audio needs to be configured for supported cameras, and Lumen needs to
+> be set up manually on an Apple device alongside the Android UI.
 
 ---
 

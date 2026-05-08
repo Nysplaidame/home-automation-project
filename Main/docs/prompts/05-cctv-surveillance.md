@@ -30,12 +30,16 @@ Part of home automation project with fire safety focus. Provides video surveilla
 - **Network Isolation:** VLAN 30 with no internet access
 - **Storage Isolation:** VLAN 40 for secure footage storage
 - **Access Control:** Only HA (VLAN 20) can bridge to camera feeds
+- **Frigate UI:** Must be accessed via HTTPS/SSL before regular use
 - **Privacy:** No external access to raw camera feeds
 
 ## Current Status
 - [ ] Camera selection and procurement
 - [ ] POE switch setup and VLAN configuration
 - [ ] Frigate NVR installation and configuration
+- [ ] Frigate HTTPS/SSL UI access
+- [ ] WebRTC audio for camera streams
+- [ ] Lumen setup on Apple device for camera feeds (manual user step, in addition to Android UI)
 - [ ] Pi NAS integration for storage
 - [ ] Motion detection and AI setup
 - [ ] Home Assistant integration
@@ -49,8 +53,10 @@ Part of home automation project with fire safety focus. Provides video surveilla
 4. Integrate Pi NAS for secure footage storage
 5. Set up motion detection and object recognition
 6. Create Home Assistant integration for monitoring
-7. Implement fire safety visual confirmation alerts
-8. Optimize performance and storage management
+7. Configure WebRTC audio for supported camera streams
+8. Set up Lumen on an Apple device for camera feed access, alongside the Android UI
+9. Implement fire safety visual confirmation alerts
+10. Optimize performance and storage management
 
 ## Integration Points
 - **Fire Safety:** Visual confirmation of smoke/fire alerts

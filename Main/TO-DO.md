@@ -89,7 +89,10 @@ status: active
 - [ ] Create `/opt/frigate/.env` with FRIGATE_RTSP_PASSWORD and FRIGATE_MQTT_PASSWORD
 - [x] Create host dirs: `mkdir -p /opt/frigate/db`
 - [ ] Start Frigate: `docker compose up -d`
-- [ ] Confirm Frigate UI at http://192.168.30.20:8971 (Frigate 0.14+) or :5000 (<0.14)  # A9-4 fix
+- [ ] Configure HTTPS/SSL for Frigate UI before regular use
+- [ ] Confirm Frigate UI over HTTPS/SSL, not plain HTTP
+- [ ] Configure WebRTC audio for camera streams
+- [ ] Set up Lumen on an Apple device for camera feeds (manual user step, alongside Android UI)
 - [ ] Manage VM 103 as `docker-host` via `scripts/setup/proxmox/docker_host_setup_guide.md`
 - [ ] Deploy Bambuddy as `/opt/stacks/bambuddy` on docker-host
 - [ ] Confirm Bambuddy UI at http://192.168.20.102:8000
