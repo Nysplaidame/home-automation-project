@@ -1,10 +1,10 @@
 ---
 title: Project Tasks
-description: Implementation tasks by phase — updated March 2026
+description: Implementation tasks by phase — updated May 2026
 tags: [tasks, implementation]
 aliases: [TODO, Tasks]
 created: 2025-09-15
-modified: 2026-03-07
+modified: 2026-05-08
 type: task-list
 status: active
 ---
@@ -24,9 +24,11 @@ status: active
 - [ ] Keep P1S integration parked until printer details are available
 - [ ] Add P1S details and Home Assistant token in the Bambuddy web UI when physically available
 - [ ] Do not deploy `configs/home-assistant/bambuddy_p1s_package.yaml` until `<P1S_SERIAL>` is replaced and MQTT topics are confirmed
+- [x] Remove deprecated InfluxDB connection/auth keys from HA YAML after confirming the UI-managed Influx connection
 - [ ] Create `/opt/frigate/.env` after camera RTSP and MQTT credentials/certs are ready
 - [x] Design `apt-cacher-ng` on docker-host for package caching
 - [x] Deploy `apt-cacher-ng` on docker-host and test with frigate-nvr
+- [x] Move Bambuddy MQTT relay from 1883 to TLS 8883 and verify retained `bambuddy/status`
 - [ ] Decide whether a Docker registry mirror is justified after more Compose workloads exist
 
 ---
@@ -48,8 +50,8 @@ status: active
 - [x] PVID notation (u vs u*) fixed in Phase 2 script ✅
 
 ### Deployment
-- [ ] Flash/configure GL-MT6000 with router phases 1–8
-- [ ] Run network_testing_guide.md — all 14 pass/fail criteria
+- [x] Flash/configure GL-MT6000 with router phases 1–8
+- [x] Run router validation/tests from management IP (`test.ps1`: PASS=62/WARN=0/FAIL=0; `test-connectivity.ps1`: PASS=74/WARN=0/FAIL=0)
 - [ ] Fill in MAC addresses in dhcp-config.conf (Proxmox host, VMs, NAS)
 - [ ] Configure WireGuard VPN clients (3 devices)
 - [ ] Enable DDNS on router for dynamic WAN IP
@@ -59,26 +61,26 @@ status: active
 ## Phase 2 — Core infrastructure ⏳
 
 ### Proxmox
-- [ ] Install Proxmox VE on MINIX
-- [ ] Configure vmbr0 VLAN-aware bridge, trunk on enp1s0
-- [ ] Set static IP 192.168.10.10 on vmbr0.10
+- [x] Install Proxmox VE on MINIX
+- [x] Configure vmbr0 VLAN-aware bridge, trunk on enp1s0
+- [x] Set static IP 192.168.10.10 on vmbr0.10
 - [ ] Enable IOMMU (intel_iommu=on) for iGPU passthrough
 - [ ] Run `configs/proxmox/vm-setup.sh`
-- [x] Configure Proxmox daily backup (Datacenter → Backup, 02:00, VM 100, keep 3)
+- [x] Configure temporary local Proxmox daily backup (02:00, VMs 100/101/102/103, keep 2)
 
 ### Home Assistant VM (VM 100)
-- [ ] Start VM 100, complete HAOS onboarding wizard
-- [ ] Set static IP 192.168.20.101 via nmcli
+- [x] Start VM 100, complete HAOS onboarding wizard
+- [x] Set static IP 192.168.20.101 via nmcli
 - [ ] Install add-ons: Mosquitto, File Editor, Terminal, ESPHome
-- [ ] Configure MQTT integration (`localhost:1883` for Stage 1 pre-TLS; switch to `localhost:8883` after TLS migration)
+- [x] Configure MQTT integration (`localhost:1883` for Stage 1 pre-TLS; switch to `localhost:8883` after TLS migration)
 - [x] Copy `ventsys_ha_package.yaml` and `ventsys_ha_scripts.yaml` to `/config/packages/`
-- [ ] Do not copy `ventsys_ha_optional.yaml` yet (load only after its prerequisites are met)
-- [x] Copy `ventsys-dashboard.html` to `/config/www/ventsys-dashboard.html`
+- [x] Do not copy `ventsys_ha_optional.yaml` yet (load only after its prerequisites are met)
+- [x] Copy `dashboards/ventsys-dashboard.html` to `/config/www/ventsys-dashboard.html`
 - [x] Generate Long-Lived Token → paste into `HA_CONFIG.token` in live dashboard copy
 - [x] Confirm dashboard shows ◉ HA LIVE
 - [x] Enable HA 2FA (TOTP)
 - [ ] Configure NAS as backup target, set daily 03:00 schedule (14 keep)
-- [ ] Validate router-local NTP for non-HA-managed restricted devices
+- [x] Validate router-local NTP for non-HA-managed restricted devices
 
 ### Frigate VM (VM 101)
 - [x] Create VM 101 from Debian 13 cloud image (hostname: frigate-nvr, SSH only)
@@ -93,9 +95,9 @@ status: active
 - [ ] Confirm Frigate UI over HTTPS/SSL, not plain HTTP
 - [ ] Configure WebRTC audio for camera streams
 - [ ] Set up Lumen on an Apple device for camera feeds (manual user step, alongside Android UI)
-- [ ] Manage VM 103 as `docker-host` via `scripts/setup/proxmox/docker_host_setup_guide.md`
-- [ ] Deploy Bambuddy as `/opt/stacks/bambuddy` on docker-host
-- [ ] Confirm Bambuddy UI at http://192.168.20.102:8000
+- [x] Manage VM 103 as `docker-host` via `scripts/setup/proxmox/docker_host_setup_guide.md`
+- [x] Deploy Bambuddy as `/opt/stacks/bambuddy` on docker-host
+- [x] Confirm Bambuddy UI at http://192.168.20.102:8000
 - [ ] Add Frigate integration in HA
 - [ ] Copy `configs/home-assistant/bambuddy_p1s_package.yaml` to `/config/packages/` on HA
 - [ ] Replace `<P1S_SERIAL>` placeholder in bambuddy_p1s_package.yaml with real serial
@@ -158,6 +160,7 @@ status: active
 - [ ] Purchase Raspberry Pi 4 (4GB+) and USB 3.0 storage drive(s)
 - [ ] Follow `pi_nas_setup_guide.md` phases 1–6
 - [ ] Configure NFS exports (Frigate, HA, configs shares)
+- [ ] Keep Frigate "live" recordings on MINIX local storage first; add NAS archiving after the NAS is online
 - [ ] Mount NAS in Frigate VM (`/mnt/nas/frigate`) and update docker-compose.yml volume
 - [ ] Add NAS as HA network storage → verify backup writes successfully
 - [ ] Configure robocopy or rsync scheduled task for vault backup to NAS
@@ -169,6 +172,7 @@ status: active
 
 - [ ] Select PoE IP camera models (H.265, RTSP, compatible with Frigate)
 - [ ] Purchase 4× cameras and PoE switch
+- [ ] Keep LAN3 reserved for the future managed PoE camera switch; Hive placement remains parked
 - [ ] Mount cameras, run CAT6 to PoE switch on VLAN 30
 - [ ] Assign static IPs: cameras at 192.168.30.21–24 (MAC reservations in dhcp-config.conf)
 - [ ] Update RTSP paths in `configs/frigate/config.yml` (currently placeholder `/stream1`)
@@ -179,15 +183,26 @@ status: active
 
 ## Phase 6 — Security hardening
 
-- [ ] Set up MQTT TLS (8883) — follow `docs/procedures/ssl_tls_guide.md`
-- [ ] Remove temporary 1883 firewall rule after TLS confirmed working
+- [x] Set up MQTT TLS (8883) — broker listener live, CA/broker certs installed, authenticated TLS pub/sub verified
+- [ ] Remove temporary 1883 firewall rule only after HA, Bambuddy, Frigate, and future ESPHome/VentSys clients are migrated to 8883
 - [ ] Enable HTTPS on HA — follow `ssl_tls_guide.md` (choose Option A/B/C)
 - [ ] Configure Fail2ban on Frigate VM
-- [ ] Deploy monitoring VM on VLAN 60 (Uptime Kuma → InfluxDB/Grafana/Telegraf)
+- [x] Deploy monitoring VM on VLAN 60 (Uptime Kuma, InfluxDB, Grafana, Telegraf)
+- [x] Create baseline Uptime Kuma monitors for core infrastructure
+- [x] Forward OpenWrt syslog to Telegraf/InfluxDB
+- [x] Export Home Assistant state history to InfluxDB
+- [x] Configure Grafana InfluxDB datasource and baseline Home Automation dashboard
+- [x] Add HA Monitoring page/sidebar entry with direct links to Grafana and Kuma
+- [ ] Stabilize embedded Grafana view inside HA (current issue: login loop / auth behavior)
+- [ ] Revisit Grafana anonymous Viewer access after same-origin HTTPS path is in place
+- [ ] Add Uptime Kuma dashboard view into Home Assistant after same-origin reverse proxy/HTTPS path exists
+- [ ] Add Grafana dashboard view into Home Assistant (Lovelace panel/iframe) once auth/embedding behavior is stable
+- [ ] Evaluate Telegraf UI integration path (direct Telegraf has no real UI; expose Influx/Grafana views in HA instead)
+- [ ] Add an external health signal for monitoring VM (HA-side check) so Kuma-down is still detected
 - [ ] Add `Fail2ban` to live Linux services where exposed/internal auth surfaces justify it
 - [ ] Revisit IDS/IPS only after centralized logging is live; prefer Suricata on dedicated x86 over router-hosted IDS
 - [ ] Set up WireGuard DDNS if ISP IP changes frequently
-- [ ] Run `health_check.sh --watch` and confirm all green before signing off
+- [x] Run staged core health baseline and confirm required live services are green (`health_check.sh --json`: PASS=11/FAIL=0; hardware-dependent checks skipped/unknown until devices exist)
 
 ---
 

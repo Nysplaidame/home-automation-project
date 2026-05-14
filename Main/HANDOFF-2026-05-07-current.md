@@ -35,6 +35,7 @@ Current laptop working position:
 - Docker host VM IP: `192.168.20.102`
 - Bambuddy workload UI: `http://192.168.20.102:8000`
 - APT cache endpoint: `http://192.168.20.102:3142`
+- Monitoring VM IP: `192.168.60.10`
 
 Router SSH:
 
@@ -66,9 +67,10 @@ Physical port notes:
 
 - `lan1`: trunk toward Proxmox.
 - `lan2`: management VLAN 10, tested.
-- `lan3`: NVR VLAN 30, DHCP tested; router UI/ping intentionally not broadly open.
+- `lan3`: NVR VLAN 30, DHCP tested; intended uplink for the future managed PoE camera switch; router UI/ping intentionally not broadly open.
 - `lan4`: storage VLAN 40, DHCP tested; router UI/ping intentionally not broadly open.
 - `lan5`: recovery/LAN VLAN 1, tested.
+- Hive placement is parked for now; no separate router port has been committed to it.
 
 Important live cleanup completed:
 
@@ -82,6 +84,8 @@ Important live cleanup completed:
   block rule.
 - `docker-host` and `frigate-nvr` both have `/etc/apt/apt.conf.d/01proxy`
   configured for the cache.
+- Router-local NTP server is enabled, with UDP/123 input rules for restricted
+  VLANs that need local time.
 
 Verification from VM 103 after temp rule removal:
 
@@ -104,6 +108,11 @@ Proxmox:
 - Enterprise/Ceph enterprise repos disabled.
 - Subscription warning is expected.
 - SSH root login is key-only/prohibit-password.
+- Temporary local Proxmox backups are scheduled daily at `02:00` for VMs
+  `100/101/102/103`, keep `2`, until the NAS backup target is live.
+- Longer-term storage direction: keep fast local recovery on the MINIX for VM/system
+  backups, move HA scheduled backups to the NAS when available, and keep Frigate
+  "live" recordings local first with NAS archiving later.
 
 VMs:
 
@@ -111,7 +120,20 @@ VMs:
 |---|---|---|---|---|
 | 100 | home-assistant | running | 192.168.20.101 | HAOS, core 2026.5.0 |
 | 101 | frigate-nvr | running | 192.168.30.20 | Debian 13 VM, Docker installed, Frigate staged |
+| 102 | monitoring | running | 192.168.60.10 | Debian 13 VM, Docker stack: InfluxDB/Grafana/Telegraf/Uptime Kuma |
 | 103 | docker-host | running | 192.168.20.102 | Debian 13 VM, Docker host, Bambuddy running |
+
+VM 102 monitoring live state:
+
+- Uptime Kuma baseline monitors are configured and green for router DNS, Proxmox UI, HA UI, docker-host SSH, docker-host APT cache, Bambuddy UI port, Grafana, InfluxDB, and Uptime Kuma.
+- OpenWrt forwards syslog to `192.168.60.10:514/udp`; Telegraf receives it on container port `6514/udp` and writes `syslog` measurements to InfluxDB.
+- Home Assistant exports state history to the InfluxDB `homeassistant` bucket using `source=HA`.
+- HA to InfluxDB is allowed by OpenWrt with the scoped rule `HA to InfluxDB` from `192.168.20.101` to `192.168.60.10:8086/tcp`.
+- Grafana has datasource `InfluxDB - Home Automation` (`uid: influxdb-homeassistant`) and dashboard `Home Automation Overview` (`/d/home-automation-overview/home-automation-overview`) in folder `Home Automation`.
+- Grafana iframe embedding is enabled.
+- Grafana anonymous Viewer mode is enabled for HA embedding (`GF_AUTH_ANONYMOUS_ENABLED=true`), but the last observed HA-side behavior still included a login loop, so treat direct Grafana UI access as the reliable path for now.
+- HA has a storage-managed `Monitoring` dashboard at `/monitoring/overview` in the sidebar with direct links to Grafana and Uptime Kuma; the embedded Grafana experience is staged but not yet considered stable.
+- Uptime Kuma direct HA iframe is parked because Kuma currently sends `X-Frame-Options: SAMEORIGIN`; use direct UI access until a same-origin reverse proxy/HTTPS path exists.
 
 VM 101 config highlights:
 
@@ -148,7 +170,8 @@ Home Assistant VM 100:
 - HA Core: `2026.5.0`
 - Supervisor: `2026.04.2`
 - Terminal & SSH add-on exposed on port 22.
-- MQTT/Mosquitto is currently pre-TLS on port `1883`.
+- MQTT/Mosquitto has TLS live on port `8883`, with port `1883` still open as
+  the staged bootstrap path for existing clients.
 
 Known good backup:
 
@@ -198,6 +221,53 @@ Broad automations are staged but disabled with `initial_state: false`, including
 
 Some HA logs contain older MQTT integration errors from before the package
 migration. Those were historical; entities registered after the fixed restart.
+
+Current HA follow-up note:
+
+- HA reports the InfluxDB YAML deprecation warning. The connection/auth keys that
+  were auto-imported into the UI should be removed from `/config/configuration.yaml`
+  after confirming the UI-managed Influx connection and restarting HA.
+- 2026-05-08 update: the deprecated InfluxDB YAML connection/auth cleanup is now
+  reflected in the repo config. No active `influxdb:` YAML block remains in
+  `configs/home-assistant/configuration.yaml`.
+
+## Validation Snapshot - 2026-05-08
+
+Router validation from the management laptop against `192.168.10.1`:
+
+```text
+test.ps1 -RouterIp 192.168.10.1 -Profile first-flight
+PASS=62 WARN=0 FAIL=0
+
+test-connectivity.ps1 -RouterIp 192.168.10.1 -Profile first-flight
+PASS=74 WARN=0 FAIL=0
+```
+
+Core service baseline from Proxmox using the staged default health check:
+
+```text
+health_check.sh --json
+summary: PASS=11 FAIL=0
+```
+
+The default health check now treats Frigate UI, NAS, P1S, VentSys boards, and
+VentSys plugs as parked/future checks unless `--full` is passed. This matches
+the current hardware state: those devices/services are not expected to be live
+yet.
+
+Additional spot checks:
+
+- Proxmox UI `192.168.10.10:8006`: reachable from management laptop.
+- Home Assistant UI `192.168.20.101:8123`: reachable.
+- Mosquitto bootstrap MQTT `192.168.20.101:1883`: reachable.
+- Mosquitto TLS MQTT `192.168.20.101:8883`: reachable; authenticated TLS
+  publish/subscribe with `/ssl/ca.crt` verified.
+- Grafana `192.168.60.10:3000`, InfluxDB `192.168.60.10:8086`, and Uptime Kuma
+  `192.168.60.10:3001`: reachable.
+- `frigate-nvr` can reach docker-host apt cache at `192.168.20.102:3142`
+  (`HTTP/1.1 200 OK`).
+- VMs `100/101/102/103` are all running.
+- Bambuddy container is running and healthy.
 
 ## Docker Host VM State
 
@@ -256,6 +326,21 @@ MQTT_PASSWORD=<set-from-bitwarden>
 Bambuddy container is running and healthy after creating real
 `/opt/stacks/bambuddy/.env` with the MQTT password.
 
+2026-05-08 MQTT TLS update:
+
+- `/opt/stacks/bambuddy/.env` now uses `MQTT_PORT=8883`.
+- Backups were created before the change:
+  `/opt/stacks/bambuddy/.env.bak.20260508-224722` and
+  `/opt/stacks/bambuddy/data/bambuddy.db.bak.20260508-224722`.
+- Bambuddy application settings in `data/bambuddy.db` were updated:
+  `mqtt_enabled=true`, `mqtt_broker=192.168.20.101`, `mqtt_port=8883`,
+  `mqtt_username=mqtt`, `mqtt_use_tls=true`, `mqtt_topic_prefix=bambuddy`.
+- Bambuddy logs confirm both MQTT relay and MQTT smart-plug service connected
+  to `192.168.20.101:8883`.
+- Mosquitto logs confirm Bambuddy negotiated TLSv1.3 from `192.168.20.102`.
+- Retained `bambuddy/status` was verified over TLS on `8883`:
+  `{"status": "online", ...}`.
+
 Current VM firewall:
 
 - Default incoming: deny
@@ -291,43 +376,45 @@ Important source-state notes:
 
 ## Next Plan
 
-1. Create `/opt/stacks/bambuddy/.env` from `.env.example` on VM 103.
-2. Add the real MQTT password from Bitwarden.
-3. Start Bambuddy:
-
-```bash
-cd /opt/stacks/bambuddy
-docker compose up -d
-docker compose logs bambuddy -f
-```
-
-4. Confirm the UI is reachable from the laptop:
-
-```text
-http://192.168.20.102:8000
-```
-
-5. Add Bambuddy application config in its UI:
+1. Keep P1S/Bambuddy integration parked until the printer is physically ready.
+2. When ready, add Bambuddy application config in its UI:
 
 - P1S IP: `192.168.35.200`
 - P1S access code and serial when physically available
 - Home Assistant URL: `http://192.168.20.101:8123`
 - Home Assistant long-lived token
 
-6. Do not deploy `configs/home-assistant/bambuddy_p1s_package.yaml` until:
+3. Do not deploy `configs/home-assistant/bambuddy_p1s_package.yaml` until:
 
 - Bambuddy is running.
 - P1S serial is known.
 - MQTT topics/entities are confirmed.
 - `<P1S_SERIAL>` placeholders are replaced.
 
-7. Later hardening:
+4. Monitoring follow-up:
 
-- Configure Mosquitto TLS.
-- Move Bambuddy MQTT from `1883` to `8883`.
+- Keep using direct Grafana and Kuma links from HA until the embedding/auth path
+  is stable.
+- Add an external health signal so monitoring-VM downtime is still visible when
+  Kuma itself is down.
+
+5. Frigate/CCTV follow-up:
+
+- Leave Frigate staged until camera RTSP details and MQTT credentials are ready.
+- Require HTTPS/SSL for the Frigate UI before regular use.
+- Add WebRTC audio later.
+- Lumen setup on an Apple device is a manual user step to do later, alongside
+  the Android viewing path.
+
+6. Later hardening:
+
+- Move remaining MQTT clients from `1883` to `8883`.
+- Bambuddy MQTT has been moved to `8883`; keep the HA package parked until
+  P1S details and MQTT topics are confirmed.
 - Re-test HA/MQTT/Bambuddy paths.
 - Decide whether docker-host should have periodic, tightly controlled update access
   or remain fully blocked except for manual maintenance windows.
+- Finish WireGuard/DDNS only after the current local infrastructure is stable.
 
 ## Cautions
 
@@ -338,3 +425,5 @@ http://192.168.20.102:8000
 - Keep broad HA automations disabled until the physical devices/sensors they
   depend on are present and tested.
 - Do not deploy the Bambuddy HA package while `<P1S_SERIAL>` placeholders remain.
+- Do not treat Grafana/Kuma HA embedding as fully complete yet; the reliable path
+  today is sidebar links/direct UI access.

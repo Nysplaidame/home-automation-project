@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VentSys Dashboard (HA card)</title>
+<!--
+  Card wrapper for embedding ventsys-dashboard.html in the Home Assistant UI.
+
+  Why this exists:
+    The dashboard is designed at a fixed 1024x600 for the garage Pi kiosk.
+    HA UI cards have arbitrary sizes (depends on column count, screen width,
+    aspect_ratio setting on the iframe card). This wrapper hosts the dashboard
+    at its native size in an iframe and applies a CSS transform to scale it
+    to whatever box HA gives the wrapper, preserving aspect ratio.
+
+  Deploy as:  /config/www/ventsys-card-wrapper.html
+
+  Embed in HA via a Lovelace iframe card pointing at /local/ventsys-card-wrapper.html
+
+  Note: The dashboard inside the iframe loads ventsys-config.js the normal way,
+  so the long-lived token still flows in. No separate auth needed for the wrapper.
+-->
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+  }
+  /* Outer box fills whatever HA gives us. */
+  .fit {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* Inner iframe stays at native dashboard size; transform: scale() shrinks it. */
+  iframe {
+    width: 1024px;
+    height: 600px;
+    border: 0;
+    flex-shrink: 0;
+    transform-origin: center center;
+    /* JS sets the scale on load + resize. */
+  }
+</style>
+</head>
+<body>
+  <div class="fit" id="fit">
+    <iframe id="dash" src="ventsys-dashboard.html" title="VentSys Dashboard"></iframe>
+  </div>
+<script>
+  // Dashboard's intrinsic design size. Keep in sync with ventsys-dashboard.html.
+  const NATIVE_W = 1024;
+  const NATIVE_H = 600;
+
+  const iframe = document.getElementById('dash');
+  const fit    = document.getElementById('fit');
+
+  function rescale() {
+    const w = fit.clientWidth;
+    const h = fit.clientHeight;
+    if (!w || !h) return;
+    // Use the smaller scale so the dashboard fits entirely inside the box
+    // (letterboxes on the long edge rather than cropping). Switch to Math.max
+    // if you want fill-with-crop behaviour instead.
+    const s = Math.min(w / NATIVE_W, h / NATIVE_H);
+    iframe.style.transform = `scale(${s})`;
+  }
+
+  // Track the box size, not just the window size — HA can resize the iframe
+  // container (theme toggles, sidebar expand/collapse) without firing window.resize.
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(rescale).observe(fit);
+  } else {
+    window.addEventListener('resize', rescale);
+  }
+  // Initial paint after the iframe registers a size.
+  window.addEventListener('load', rescale);
+  rescale();
+</script>
+</body>
+</html>

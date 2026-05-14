@@ -97,7 +97,19 @@ fi
 - Firewall service restarts successfully
 - Basic connectivity preserved
 
-### 4.3 Internet Access Validation
+### 4.3 Router-local NTP service
+**Duration**: 5 minutes
+
+```bash
+# Restricted VLAN hosts use the router as their local NTP source.
+uci set system.ntp.enable_server='1'
+uci commit system
+/etc/init.d/sysntpd restart
+
+echo "Router-local NTP server enabled" >> /tmp/deployment_logs/phase4.log
+```
+
+### 4.4 Internet Access Validation
 **Duration**: 45 minutes
 
 ```bash
@@ -134,7 +146,7 @@ fi
 cat /tmp/phase4_internet_test.txt
 ```
 
-### 4.4 Firewall Zone Validation
+### 4.5 Firewall Zone Validation
 **Duration**: 30 minutes
 
 ```bash
@@ -166,7 +178,7 @@ fi
 cat /tmp/phase4_zones_test.txt
 ```
 
-### 4.5 VentSys Critical Rule Validation
+### 4.6 VentSys Critical Rule Validation
 **Duration**: 30 minutes
 
 ```bash
@@ -209,12 +221,14 @@ else
     echo "✗ IoT sensors internet blocking missing" >> /tmp/phase4_ventsys_test.txt
 fi
 
-# Verify NTP rule for IoT devices (required for TLS certificate validation)
-if uci show firewall | grep -q "IoT to Router NTP"; then
-    echo "✓ IoT NTP rule configured (required for TLS cert validation)" >> /tmp/phase4_ventsys_test.txt
-else
-    echo "✗ IoT NTP rule missing (ESPHome TLS will fail without accurate time)" >> /tmp/phase4_ventsys_test.txt
-fi
+# Verify router-local NTP rules for restricted/internal VLANs that need TLS-safe time.
+for rule in "Automation to Router NTP" "NVR to Router NTP" "Monitoring to Router NTP" "Storage to Router NTP" "Printers to Router NTP" "IoT to Router NTP"; do
+    if uci show firewall | grep -q "$rule"; then
+        echo "✓ Router-local NTP rule configured: $rule" >> /tmp/phase4_ventsys_test.txt
+    else
+        echo "✗ Router-local NTP rule missing: $rule" >> /tmp/phase4_ventsys_test.txt
+    fi
+done
 
 # Verify Bambuddy routed rules (automation→printers) plus Docker host temporary bootstrap WAN.
 # Bambuddy→HA stays inside VLAN 20 and is governed by the Automation trust boundary,
@@ -246,7 +260,7 @@ done
 cat /tmp/phase4_ventsys_test.txt
 ```
 
-### 4.6 Network Isolation Testing
+### 4.7 Network Isolation Testing
 **Duration**: 30 minutes
 
 ```bash

@@ -54,7 +54,7 @@ mqtt:
   username: !secret mqtt_user
   password: !secret mqtt_pass
   discovery: false
-  ca_certificate: !secret mqtt_ca_cert
+  certificate_authority: !secret mqtt_ca_cert
 
 api:
   encryption:

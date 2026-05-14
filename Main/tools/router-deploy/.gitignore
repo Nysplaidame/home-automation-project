@@ -1,5 +1,6 @@
 keys/router_deploy
 keys/router_deploy.pub
+keys/router_secrets.json
 keys/uplink_wifi.json
 snapshots/
 generated/

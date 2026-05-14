@@ -1,5 +1,6 @@
 # Secrets and credentials
 secrets.yaml
+ventsys-config.js
 *.pem
 *.key
 *.crt
@@ -15,15 +16,31 @@ home-assistant_v2.db-wal
 
 # ESPHome build artifacts
 .esphome/
+*.factory.bin
+*.ota.bin
+firmware.bin
 
-# Node-RED
+# Node-RED / npm
 node_modules/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Claude Code
+.claude/worktrees/
 
 # OS files
 Thumbs.db
 .DS_Store
+System Volume Information/
 
 # Editor
 *.swp
 *.swo
 *~
+
+# Backups
+*.bak
+* - Copy.html

@@ -30,7 +30,7 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 | Frigate VM | ✅ Live | VM 101 on VLAN 30, Debian 13 base live; Docker and Frigate staging complete |
 | Docker host | ✅ Live | VM 103 on VLAN 20, central trusted Docker host; Bambuddy running as first workload |
 | Pi NAS | ✅ Documented | Setup guide written, hardware needed |
-| VentSys dashboard | ✅ Complete | ventsys-dashboard.html with full HA integration layer |
+| VentSys dashboard | ✅ Complete | dashboards/ventsys-dashboard.html with full HA integration layer |
 | VentSys HA packages | ✅ Complete | Package YAML, scripts, automations all written |
 | ESPHome sensor config | ✅ Written | printairpipe-controller.yaml ready for hardware |
 | VentSys hardware | ⏳ Pending | ESP32 boards, sensors, PrintAirPipe parts not yet purchased |
@@ -60,7 +60,7 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 - Multi-sensor arrays: temperature, humidity, smoke/VOC, differential pressure
 - Emergency power cutoff via smart plugs
 - ESPHome on isolated VLAN 50, controlled via MQTT through HA
-- Full dashboard: `ventsys-dashboard.html` → deploy to `/config/www/`
+- Full dashboard: `dashboards/ventsys-dashboard.html` → deploy to `/config/www/`
 
 ### Network security (10 segments)
 | VLAN | Name | Subnet | Internet |
@@ -107,7 +107,7 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 | Bambuddy workload guide | `scripts/setup/proxmox/bambuddy_vm_setup_guide.md` |
 | ESPHome sensor config | `configs/esphome/printairpipe-controller.yaml` |
 | VentSys ESPHome | `ventsys/ventsys_bundle_updated/` |
-| VentSys dashboard | `ventsys-dashboard.html` |
+| VentSys dashboard | `dashboards/ventsys-dashboard.html` |
 | Router setup (phases 1–8) | `scripts/setup/router/` |
 | Proxmox + VM setup | `scripts/setup/proxmox/` |
 | NAS setup | `scripts/setup/nas/pi_nas_setup_guide.md` |

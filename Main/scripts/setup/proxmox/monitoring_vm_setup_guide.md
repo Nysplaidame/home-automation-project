@@ -1,5 +1,5 @@
 # Monitoring VM Setup Guide
-# VM 102 — Debian 12, VLAN 60 (Monitoring), 192.168.60.10
+# VM 102 — Debian 13, VLAN 60 (Monitoring), 192.168.60.10
 # Stack: Grafana + InfluxDB + Telegraf + Uptime Kuma (Docker Compose)
 #
 # Prerequisites:
@@ -18,11 +18,32 @@
 # RAM:  2048 MB
 # CPU:  2 cores
 
+> Live note, 2026-05-08: VM 102 is deployed from the Debian 13 genericcloud
+> image using cloud-init, not the older manual Debian 12 ISO path. Current MAC:
+> `BC:24:11:A6:94:95`. Docker is installed, and the monitoring stack is running
+> from `/opt/monitoring`. Generated credentials are stored at
+> `/root/monitoring-stack-credentials.txt` on the VM.
+> Uptime Kuma baseline monitors are configured, OpenWrt syslog is flowing into
+> InfluxDB, and Home Assistant is exporting state history to the `homeassistant`
+> bucket with `source=HA`.
+
 ---
 
 ## Phase 1 — Create VM 102 in Proxmox
 
-### 1.1 — Download Debian 12 ISO (skip if already downloaded for VM 101)
+### 1.1 — Preferred path: Debian 13 cloud image
+
+Use the same local cloud-image workflow as `frigate-nvr` and `docker-host` when
+possible. This is the path already used for the live VM 102 on 2026-05-08.
+
+```bash
+ls -lh /var/lib/vz/template/iso/debian-13-genericcloud-amd64.qcow2
+```
+
+If the cloud image is missing, download it or use the older installer path below
+as a fallback.
+
+### 1.2 — Fallback path: Debian 12 ISO
 
 ```bash
 # On Proxmox shell
@@ -30,7 +51,7 @@ wget -O /var/lib/vz/template/iso/debian-12-netinst-amd64.iso \
     https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12-netinst-amd64.iso
 ```
 
-### 1.2 — Create the VM
+### 1.3 — Create the VM
 
 Click **Create VM** in Proxmox web UI:
 
@@ -41,7 +62,7 @@ Click **Create VM** in Proxmox web UI:
 | Name | `monitoring` |
 | Start at boot | ✅ |
 
-**OS** — select the Debian 12 ISO → Guest OS: Linux, Version: 6.x
+**OS** — preferred: Debian 13 cloud image workflow; fallback: Debian 12 ISO → Guest OS: Linux, Version: 6.x
 
 **System**
 | Field | Value |
@@ -70,7 +91,11 @@ Cache: Write back, Discard: ✅, SSD emulation: ✅
 
 Click **Finish**.
 
-### 1.3 — Install Debian 12
+### 1.4 — Install Debian
+
+If you used the Debian 13 cloud image, cloud-init handles the initial user,
+network, and SSH key setup. Confirm SSH access at `192.168.60.10`, then continue
+to the base Debian configuration.
 
 Start VM 102, open the Console, and run through the installer:
 
@@ -88,7 +113,7 @@ After install completes, remove the ISO:
 qm set 102 --delete ide2
 ```
 
-### 1.4 — Note the MAC and update DHCP reservation
+### 1.5 — Note the MAC and update DHCP reservation
 
 ```bash
 qm config 102 | grep net0
@@ -107,7 +132,7 @@ config host
 Re-apply DHCP config to router (`scripts/setup/router/phase_3_dhcp_configuration.md`) then reboot
 VM 102 — it should come up at 192.168.60.10.
 
-### 1.5 — Set startup order
+### 1.6 — Set startup order
 
 `VM 102 → Options → Start/Shutdown Order`
 Order: 3 (after HA=1, Frigate=2)
@@ -119,7 +144,7 @@ Order: 3 (after HA=1, Frigate=2)
 SSH into the VM from your management laptop (VLAN 10 → VLAN 60 allowed):
 
 ```bash
-ssh admin@192.168.60.10
+ssh root@192.168.60.10
 ```
 
 ```bash
@@ -197,7 +222,7 @@ services:
     container_name: influxdb
     restart: unless-stopped
     ports:
-      - "8086:8086"
+      - "192.168.60.10:8086:8086"
     volumes:
       - ./influxdb/data:/var/lib/influxdb2
     environment:
@@ -207,18 +232,24 @@ services:
       - DOCKER_INFLUXDB_INIT_ORG=homelab
       - DOCKER_INFLUXDB_INIT_BUCKET=homeassistant
       - DOCKER_INFLUXDB_INIT_RETENTION=90d
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUXDB_TOKEN}
 
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "192.168.60.10:3000:3000"
     volumes:
       - ./grafana/data:/var/lib/grafana
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
       - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_SECURITY_COOKIE_SAMESITE=lax
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_NAME=Main Org.
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
     depends_on:
       - influxdb
 EOF
@@ -232,9 +263,23 @@ cat >> /opt/monitoring/docker-compose.yml << 'EOF'
     image: telegraf:latest
     container_name: telegraf
     restart: unless-stopped
-    network_mode: host
+    user: telegraf:998
+    group_add:
+      - "989"
+    ports:
+      - "192.168.60.10:514:6514/udp"
     volumes:
       - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - /:/hostfs:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      HOST_ETC: /hostfs/etc
+      HOST_PROC: /hostfs/proc
+      HOST_SYS: /hostfs/sys
+      HOST_VAR: /hostfs/var
+      HOST_RUN: /hostfs/run
+      HOST_MOUNT_PREFIX: /hostfs
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
     depends_on:
       - influxdb
 
@@ -243,7 +288,7 @@ cat >> /opt/monitoring/docker-compose.yml << 'EOF'
     container_name: uptime-kuma
     restart: unless-stopped
     ports:
-      - "3001:3001"
+      - "192.168.60.10:3001:3001"
     volumes:
       - ./uptime-kuma:/app/data
 EOF
@@ -254,6 +299,7 @@ Create the environment file (holds passwords — never commit to git):
 ```bash
 cat > /opt/monitoring/.env << 'EOF'
 INFLUXDB_PASSWORD=your-influxdb-password
+INFLUXDB_TOKEN=your-influxdb-admin-token
 GRAFANA_PASSWORD=your-grafana-password
 EOF
 chmod 600 /opt/monitoring/.env
@@ -270,40 +316,44 @@ syslog from OpenWrt. It pushes everything into InfluxDB.
 
 ```bash
 cat > /opt/monitoring/telegraf/telegraf.conf << 'EOF'
-[global_tags]
-  host = "monitoring-vm"
-
 [agent]
   interval = "30s"
-  flush_interval = "30s"
+  round_interval = true
+  metric_batch_size = 1000
+  metric_buffer_limit = 10000
+  collection_jitter = "0s"
+  flush_interval = "10s"
+  flush_jitter = "0s"
+  hostname = "monitoring-vm"
+  omit_hostname = false
 
 # Output: InfluxDB v2
 [[outputs.influxdb_v2]]
-  urls = ["http://localhost:8086"]
-  token = "INFLUXDB_TOKEN_HERE"    # fill in after Phase 6 step 6.2
+  urls = ["http://influxdb:8086"]
+  token = "$INFLUXDB_TOKEN"
   organization = "homelab"
-  bucket = "system"
+  bucket = "homeassistant"
 
 # System metrics — CPU, RAM, disk, network
 [[inputs.cpu]]
-  percpu = false
+  percpu = true
   totalcpu = true
 [[inputs.mem]]
 [[inputs.disk]]
-  ignore_fs = ["tmpfs", "devtmpfs"]
+  ignore_fs = ["tmpfs", "devtmpfs", "devfs", "iso9660", "overlay", "aufs", "squashfs"]
 [[inputs.net]]
-  ignore_protocol_filters = ["lo"]
 [[inputs.system]]
+[[inputs.docker]]
+  endpoint = "unix:///var/run/docker.sock"
 
-# OpenWrt syslog receiver (UDP 514)
-# OpenWrt sends firewall block events here — see Phase 7 for router config
+# OpenWrt syslog receiver. Docker maps host UDP/514 to container UDP/6514.
 [[inputs.syslog]]
-  server = "udp://:514"
+  server = "udp://:6514"
+  syslog_standard = "RFC3164"
 EOF
 ```
 
-> The `INFLUXDB_TOKEN_HERE` placeholder will be replaced in Phase 6.2 once
-> InfluxDB is running and you've generated an API token.
+> The live stack stores `INFLUXDB_TOKEN` in `/opt/monitoring/.env`, mode `600`.
 
 ---
 
@@ -317,30 +367,24 @@ docker compose up -d
 docker compose ps    # all four services should show "running"
 ```
 
-### 6.2 — Generate InfluxDB API token for Telegraf
+### 6.2 — Confirm InfluxDB token for Telegraf
 
 Open the InfluxDB UI: `http://192.168.60.10:8086`
 Log in with `admin` / your INFLUXDB_PASSWORD.
 
-Navigate: Load Data → API Tokens → Generate API Token → All Access Token.
-Copy the token. Then update the Telegraf config and create a bucket for system metrics:
+The live stack initializes InfluxDB with `DOCKER_INFLUXDB_INIT_ADMIN_TOKEN`
+from `/opt/monitoring/.env`, and Telegraf reads that same value as
+`INFLUXDB_TOKEN`. Confirm the token is present and restart Telegraf after any
+config change:
 
 ```bash
-# Replace the placeholder token in telegraf.conf
-sed -i 's/INFLUXDB_TOKEN_HERE/your-actual-token/' \
-    /opt/monitoring/telegraf/telegraf.conf
+grep '^INFLUXDB_TOKEN=' /opt/monitoring/.env
 
-# Create the system metrics bucket (90-day retention)
-docker exec influxdb influx bucket create \
-    --name system \
-    --org homelab \
-    --retention 90d
-
-# Restart Telegraf to pick up the token
 docker compose restart telegraf
 ```
 
-Save the token to Bitwarden under `influxdb-telegraf-token`.
+The live deployment writes Telegraf host/container metrics, OpenWrt syslog, and
+HA state history into the `homeassistant` bucket.
 
 ### 6.3 — Create InfluxDB retention policy with downsampling
 
@@ -392,38 +436,72 @@ Save to Bitwarden as `influxdb-ha-token`.
 
 ### 8.2 — Add InfluxDB integration to HA
 
-On HA VM (192.168.20.101), add to `/config/configuration.yaml`:
+HA 2026.9 removes YAML-based InfluxDB connection/auth settings. Configure the
+connection in the HA UI and keep only optional filtering/tag behavior in YAML.
+
+UI path:
+
+- Settings -> Devices & services -> InfluxDB -> Configure
+- host: `192.168.60.10`
+- port: `8086`
+- organization: `c0b6f51cbbd36975`
+- bucket: `homeassistant`
+- token: token with write access to `homeassistant`
+
+Optional YAML behavior block in `/config/configuration.yaml`:
 
 ```yaml
 influxdb:
-  api_version: 2
-  ssl: false
-  host: 192.168.60.10
-  port: 8086
-  token: !secret influxdb_token
-  organization: homelab
-  bucket: homeassistant
+  max_retries: 3
+  default_measurement: state
   tags:
-    source: homeassistant
-  # Exclude noisy entities to keep storage lean
+    source: HA
+  tags_attributes:
+    - friendly_name
   exclude:
-    entity_globs:
-      - sensor.*_last_changed
-      - sensor.*_last_updated
-      - sensor.sun_*
+    domains:
+      - automation
+      - persistent_notification
+      - updater
 ```
 
-Add to `/config/secrets.yaml` on the HA VM:
-```yaml
-influxdb_token: "your-ha-influxdb-token"    # Bitwarden: influxdb-ha-token
+OpenWrt must allow HA to reach InfluxDB:
+
+```bash
+uci add firewall rule
+uci set firewall.@rule[-1].name='HA to InfluxDB'
+uci set firewall.@rule[-1].src='automation'
+uci set firewall.@rule[-1].src_ip='192.168.20.101'
+uci set firewall.@rule[-1].dest='monitoring'
+uci set firewall.@rule[-1].dest_ip='192.168.60.10'
+uci set firewall.@rule[-1].dest_port='8086'
+uci set firewall.@rule[-1].proto='tcp'
+uci set firewall.@rule[-1].target='ACCEPT'
+uci commit firewall
+/etc/init.d/firewall reload
 ```
 
-Restart HA. Within a few minutes, sensor data starts flowing into InfluxDB.
-Verify: InfluxDB UI → Data Explorer → bucket: homeassistant → check for measurements.
+Run `ha core check`, restart HA, then verify `source=HA` rows in the
+`homeassistant` bucket.
 
 ---
 
 ## Phase 9 — Set up Grafana dashboards
+
+Live note: Grafana is configured with datasource `InfluxDB - Home Automation`
+(`uid: influxdb-homeassistant`) and dashboard `Home Automation Overview` in the
+`Home Automation` folder:
+
+`http://192.168.60.10:3000/d/home-automation-overview/home-automation-overview`
+
+Grafana iframe embedding is enabled by setting
+`GF_SECURITY_ALLOW_EMBEDDING=true`. HA exposes a storage-managed `Monitoring`
+dashboard at `/monitoring/overview` with an embedded Grafana webpage card and
+direct links to Grafana and Uptime Kuma. Anonymous Grafana Viewer mode is
+enabled in the live stack for iframe reliability in cross-origin browser
+contexts. Uptime Kuma is not directly embedded
+yet because it sends `X-Frame-Options: SAMEORIGIN`; use the direct UI until a
+same-origin reverse proxy/HTTPS route exists.
 
 ### 9.1 — Add InfluxDB as a data source
 
@@ -437,7 +515,7 @@ Connections → Data Sources → Add data source → InfluxDB:
 | Query Language | `Flux` |
 | URL | `http://influxdb:8086` |
 | Organisation | `homelab` |
-| Token | your all-access token (Bitwarden: influxdb-telegraf-token) |
+| Token | `INFLUXDB_TOKEN` from `/opt/monitoring/.env` |
 | Default Bucket | `homeassistant` |
 
 Click **Save & Test** — should show "datasource is working".
@@ -502,11 +580,17 @@ Add monitors for every device in the system. Suggested list:
 **VMs and infrastructure**
 | Name | Type | Target |
 |---|---|---|
-| Proxmox | HTTP(s) | https://192.168.10.10:8006 |
-| Home Assistant | HTTP(s) | http://192.168.20.101:8123 |
-| Frigate | HTTP(s) | http://192.168.30.20:8971 |
-| Pi NAS | Ping | 192.168.40.50 |
-| GL-MT6000 Router | Ping | 192.168.10.1 |
+| Router DNS | TCP port | 192.168.10.1:53 |
+| Proxmox UI | HTTP(s) | https://192.168.10.10:8006 |
+| Home Assistant UI | HTTP(s) | http://192.168.20.101:8123 |
+| Docker Host SSH | TCP port | 192.168.20.102:22 |
+| Docker Host APT Cache | TCP port | 192.168.20.102:3142 |
+| Bambuddy UI Port | TCP port | 192.168.20.102:8000 |
+| Grafana UI | HTTP(s) | http://grafana:3000 |
+| InfluxDB Health | HTTP(s) | http://influxdb:8086/health |
+| Uptime Kuma UI | HTTP(s) | http://127.0.0.1:3001 |
+| Frigate | HTTP(s) | http://192.168.30.20:8971, after Frigate is started |
+| Pi NAS | Ping | 192.168.40.50, after NAS is built |
 
 **All 16 VentSys ESPHome boards (Ping)**
 Add one entry per IP: 192.168.50.21, .22, .31, .32, .33, .34,
@@ -549,6 +633,10 @@ Add VM 102 to the Proxmox backup schedule:
 
 `Datacenter → Backup → select existing job → Edit → add VM 102 to selection`
 
+Live note: VM 102 is already included in the temporary local Proxmox backup job:
+VMs `100,101,102,103`, daily `02:00`, snapshot mode, ZSTD compression, keep last
+2 while the NAS target is not live.
+
 **Important:** VM 102 is relatively small (~14GB at steady state) so local
 backup is fine. However, the InfluxDB data directory grows over time —
 check backup size monthly and adjust max_backups if needed.
@@ -570,7 +658,7 @@ tar czf /tmp/monitoring-config-$(date +%Y%m%d).tar.gz \
 
 **VM 102 — monitoring**
 - [ ] VM created: q35, OVMF, VirtIO SCSI, VLAN 60, 32GB disk, 2GB RAM
-- [ ] Debian 12 installed, SSH only, no desktop
+- [ ] Debian 13 installed, SSH only, no desktop
 - [ ] ISO removed after install (`qm set 102 --delete ide2`)
 - [ ] Start at boot enabled, startup order: 3
 - [ ] Static IP confirmed at 192.168.60.10
@@ -587,26 +675,27 @@ tar czf /tmp/monitoring-config-$(date +%Y%m%d).tar.gz \
 - [ ] Uptime Kuma reachable: http://192.168.60.10:3001
 
 **InfluxDB**
-- [ ] Telegraf API token generated and added to telegraf.conf
-- [ ] HA API token generated and added to HA secrets.yaml
-- [ ] `system` bucket created (90-day retention)
+- [x] Telegraf uses `INFLUXDB_TOKEN` from `/opt/monitoring/.env`
+- [x] HA API token generated and added to HA `secrets.yaml`
+- [x] `homeassistant` bucket active (90-day retention)
 - [ ] `homeassistant_longterm` bucket created (1-year retention)
 - [ ] Downsampling task created (Phase 11)
 
 **Integrations**
-- [ ] HA influxdb integration added to configuration.yaml, HA restarted
-- [ ] Data flowing into homeassistant bucket (check InfluxDB Data Explorer)
-- [ ] OpenWrt syslog forwarding to 192.168.60.10:514 (Phase 7)
-- [ ] Telegraf receiving syslog events
+- [x] HA influxdb integration added to configuration.yaml, HA restarted
+- [x] Data flowing into homeassistant bucket (`source=HA`)
+- [x] OpenWrt syslog forwarding to 192.168.60.10:514 (Phase 7)
+- [x] Telegraf receiving syslog events
 
 **Grafana**
-- [ ] InfluxDB datasource added and tested
-- [ ] Community dashboards imported (system metrics, HA, energy)
+- [x] InfluxDB datasource added and tested
+- [x] Baseline Home Automation dashboard created
+- [ ] Community dashboards imported or replaced with project-specific dashboards (system metrics, HA, energy)
 - [ ] VentSys temperature/IAQ panels created
 - [ ] Alerts configured (IAQ critical, smoke alarm, disk usage)
 
 **Uptime Kuma**
-- [ ] All VMs and infrastructure monitors added
+- [x] Baseline VM and infrastructure monitors added
 - [ ] All 16 VentSys boards added as Ping monitors
 - [ ] All 8 smart plugs added as Ping monitors
 - [ ] Notifications configured for down events

@@ -116,6 +116,7 @@ home_elevation: 10
 external_url: "https://your-vpn-or-domain"
 mqtt_username: "mqtt"
 mqtt_password: "your-mqtt-password"        # Bitwarden: mqtt-credentials
+influxdb_homeassistant_token: "your-token" # Bitwarden: influxdb-ha-token
 ```
 
 | Secret key | Bitwarden entry | Notes |
@@ -124,6 +125,7 @@ mqtt_password: "your-mqtt-password"        # Bitwarden: mqtt-credentials
 | `home_elevation` | `home-location` | Same entry |
 | `external_url` | `ha-external-url` | WireGuard VPN address or Nabu Casa URL |
 | `mqtt_password` | `mqtt-credentials` | Same as Section 3 |
+| `influxdb_homeassistant_token` | `influxdb-ha-token` | Scoped InfluxDB token for HA writes to the `homeassistant` bucket |
 
 ---
 
@@ -177,7 +179,7 @@ mqtt_password: "your-mqtt-password"        # Bitwarden: mqtt-credentials
 | `VentSys Dashboard` | `ha-tokens` | `HA_CONFIG.token` in live `/config/www/ventsys-dashboard.html` only |
 
 > HA shows each token value only once at creation. Store immediately in Bitwarden.
-> Keep the repo source `ventsys-dashboard.html` on the placeholder value
+> Keep the repo source `dashboards/ventsys-dashboard.html` on the placeholder value
 > `__SET_HA_TOKEN__`; only the live HA-served copy should contain the real token.
 
 ---
@@ -216,6 +218,18 @@ mqtt_password: "your-mqtt-password"        # Bitwarden: mqtt-credentials
 
 ---
 
+## 12 — Monitoring VM (VM 102, 192.168.60.10, VLAN 60)
+
+| Secret | Bitwarden entry | Notes |
+|---|---|---|
+| Grafana admin password | `monitoring-stack` | Generated on VM 102; stored in `/root/monitoring-stack-credentials.txt` |
+| InfluxDB admin password | `monitoring-stack` | Generated on VM 102; stored in `/root/monitoring-stack-credentials.txt` |
+| InfluxDB admin/API token | `monitoring-stack` | Used by Telegraf via `/opt/monitoring/.env`; do not commit |
+| InfluxDB HA write token | `influxdb-ha-token` | Stored in HA `/config/secrets.yaml` as `influxdb_homeassistant_token` |
+| Uptime Kuma admin login | `uptime-kuma-monitoring-vm` | Created during first browser login at `http://192.168.60.10:3001` |
+
+---
+
 ## Credential rotation checklist
 
 Run through this after any suspected compromise, or annually as good practice:
@@ -229,7 +243,7 @@ Run through this after any suspected compromise, or annually as good practice:
 - [ ] ESPHome OTA password — OTA push new firmware to all boards
 - [ ] ESPHome API key — OTA push; re-adopt in HA if required
 - [ ] HA long-lived tokens — delete old in HA, create new, update
-      ventsys-dashboard.html and the Bambuddy web UI on docker-host
+      dashboards/ventsys-dashboard.html and the Bambuddy web UI on docker-host
 - [ ] TLS CA/certs — follow `docs/procedures/ssl_tls_guide.md` re-issuance steps
 - [ ] Proxmox root password — `passwd root` on Proxmox shell, update Bitwarden
 - [ ] Docker host admin password — `passwd root` or the configured admin user on VM 103, update Bitwarden

@@ -20,9 +20,12 @@ Two separate TLS concerns:
 
 Current live state on 2026-05-08:
 
-- HA / Mosquitto is still using `1883` as the active bootstrap path.
-- `8883` is the target steady-state port for MQTT TLS.
+- HA / Mosquitto still has `1883` open as the active bootstrap path for existing clients.
+- `8883` is live for MQTT TLS and has been validated with authenticated publish/subscribe.
 - MQTT-backed integrations are still being introduced gradually, not all at once.
+- CA and broker certificate files are installed on HA under `/ssl`:
+  `/ssl/ca.crt`, `/ssl/ca.key`, `/ssl/server.crt`, `/ssl/fullchain.pem`, and
+  `/ssl/privkey.pem`.
 
 Because devices and entities will come online one by one, the migration should
 be phased rather than a big-bang cutover.
@@ -30,8 +33,8 @@ be phased rather than a big-bang cutover.
 ### Staged plan
 
 1. Keep `1883` available for bootstrap and early testing.
-2. Prepare the CA, broker certificate, and Mosquitto TLS listener on `8883`.
-3. Validate one client end-to-end on `8883` with cert trust enabled.
+2. Prepare the CA, broker certificate, and Mosquitto TLS listener on `8883`. ✅
+3. Validate one client end-to-end on `8883` with cert trust enabled. ✅
 4. Move new integrations to `8883` individually as they are deployed.
 5. Remove `1883` only after all real clients are off it.
 
@@ -42,6 +45,8 @@ be phased rather than a big-bang cutover.
   are in place.
 - Do not leave a half-migrated undocumented state; every client should be clearly
   documented as either `bootstrap on 1883` or `steady-state on 8883`.
+- Do not close firewall access to `1883` until all real clients have been moved
+  and retested on `8883`.
 
 ### Expected migration order
 
@@ -177,6 +182,34 @@ Same as Option A - update `configuration.yaml` `http:` block with the cert paths
 ### Issue a certificate for Mosquitto MQTT
 
 Use this same CA for Mosquitto MQTT TLS certificates and client trust chains.
+
+### Live Mosquitto add-on state
+
+The Home Assistant Mosquitto add-on uses these certificate files from `/ssl`:
+
+```yaml
+certfile: fullchain.pem
+keyfile: privkey.pem
+require_certificate: false
+customize:
+  active: false
+```
+
+With those files present, restarting the add-on enables TLS listeners on
+`8883` and `8884` while keeping the non-TLS listeners on `1883` and `1884`
+until the staged migration is complete.
+
+Validation completed on 2026-05-08:
+
+```bash
+mosquitto_sub -h 192.168.20.101 -p 8883 --cafile /ssl/ca.crt \
+  -u mqtt -P '<mqtt-password>' -t '<test-topic>' -C 1
+
+mosquitto_pub -h 192.168.20.101 -p 8883 --cafile /ssl/ca.crt \
+  -u mqtt -P '<mqtt-password>' -t '<test-topic>' -m TLS_OK
+```
+
+Result: authenticated TLS publish/subscribe succeeded.
 
 ---
 

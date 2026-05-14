@@ -243,14 +243,14 @@ Example environment file:
 
 ```env
 MQTT_HOST=192.168.20.101
-MQTT_PORT=1883
+MQTT_PORT=8883
 MQTT_USER=mqtt
 MQTT_PASSWORD=<set-from-bitwarden>
 ```
 
-For the current pre-TLS stage, use MQTT port `1883`. After Mosquitto TLS is
-configured and verified, change this to `8883` and add whatever TLS settings
-Bambuddy requires.
+Use MQTT port `8883` after Mosquitto TLS is configured and verified. Also enable
+TLS in the Bambuddy application settings so its internal MQTT relay connects
+over TLS.
 
 When ready to start the service:
 
@@ -325,8 +325,8 @@ cd /opt/stacks/bambuddy && docker compose config
 # HA API, same VLAN trust boundary
 timeout 5 bash -lc '</dev/tcp/192.168.20.101/8123' && echo HA_8123_OK
 
-# Mosquitto pre-TLS, same VLAN trust boundary
-timeout 5 bash -lc '</dev/tcp/192.168.20.101/1883' && echo MQTT_1883_OK
+# Mosquitto TLS, same VLAN trust boundary
+timeout 5 bash -lc '</dev/tcp/192.168.20.101/8883' && echo MQTT_8883_OK
 
 # Internet should be blocked after temp rule removal
 curl -4I --connect-timeout 5 --max-time 8 https://download.docker.com/
@@ -337,7 +337,7 @@ Expected current result:
 - `hostname` returns `docker-host`
 - Compose config renders from `/opt/stacks/bambuddy`
 - `HA_8123_OK`
-- `MQTT_1883_OK`
+- `MQTT_8883_OK`
 - External Docker download blocked
 
 After the P1S is physically ready, also test:
@@ -366,7 +366,7 @@ nc -zv 192.168.35.200 21
 - [x] UFW enabled with scoped access rules.
 - [x] Temporary Docker host update access removed from router after image pull.
 - [x] VM can reach HA API on 8123.
-- [x] VM can reach Mosquitto pre-TLS on 1883.
+- [x] VM can reach Mosquitto TLS on 8883.
 - [ ] Real `/opt/stacks/bambuddy/.env` created with MQTT password.
 - [ ] Bambuddy container started successfully.
 - [ ] Bambuddy UI accessible at `http://192.168.20.102:8000`.

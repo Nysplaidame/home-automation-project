@@ -3,8 +3,9 @@
 # Run from: Proxmox host (192.168.10.10) or management laptop on VLAN 10
 # Purpose: Single-command check of all critical system components
 # Usage:
-#   ./health_check.sh           — full check, human-readable output
+#   ./health_check.sh           — staged core check, human-readable output
 #   ./health_check.sh --json    — JSON output for automation
+#   ./health_check.sh --full    — include parked hardware/future-service checks
 #   ./health_check.sh --watch   — repeat every 60s (Ctrl+C to stop)
 
 set -u
@@ -27,8 +28,8 @@ P1S_IP="192.168.35.200"   # VLAN 35 (Printers) — see docs/decisions/02-printer
 # indirectly via Bambuddy (which would show HTTP errors if the broker is down).
 NAS_IP="192.168.40.50"
 MQTT_IP="192.168.20.101"
-# N-3 fix: MQTT_PORT updated to 8883 (TLS). Port 1883 is closed post-TLS migration.
-# Mosquitto only listens on 8883 after completing ventsys_tls_implementation_guide.md Phase 4.
+# MQTT TLS listener is live on 8883. Port 1883 remains open only as a staged
+# bootstrap path until all clients are migrated.
 MQTT_PORT="8883"
 
 FAN_CTRL_IP="192.168.50.21"   # legacy var — now superseded by VENTSYS_BOARDS loop; kept for reference
@@ -77,11 +78,13 @@ TIMEOUT=3   # seconds per check
 
 JSON_MODE=0
 WATCH_MODE=0
+FULL_MODE=0
 
 for arg in "$@"; do
     case "$arg" in
         --json)  JSON_MODE=1 ;;
         --watch) WATCH_MODE=1 ;;
+        --full)  FULL_MODE=1 ;;
     esac
 done
 
@@ -101,11 +104,11 @@ check_ping() {
     if ping -c 1 -W "$TIMEOUT" "$ip" >/dev/null 2>&1; then
         [ "$JSON_MODE" -eq 0 ] && printf "  ${GREEN}✓${NC} %s (%s)\n" "$label" "$ip"
         pass=$((pass+1))
-        echo "pass"
+        CHECK_RESULT="pass"
     else
         [ "$JSON_MODE" -eq 0 ] && printf "  ${RED}✗${NC} %s (%s) — unreachable\n" "$label" "$ip"
         fail=$((fail+1))
-        echo "fail"
+        CHECK_RESULT="fail"
     fi
 }
 
@@ -116,11 +119,11 @@ check_port() {
     if nc -z -w "$TIMEOUT" "$ip" "$port" 2>/dev/null; then
         [ "$JSON_MODE" -eq 0 ] && printf "  ${GREEN}✓${NC} %s (%s:%s)\n" "$label" "$ip" "$port"
         pass=$((pass+1))
-        echo "pass"
+        CHECK_RESULT="pass"
     else
         [ "$JSON_MODE" -eq 0 ] && printf "  ${RED}✗${NC} %s (%s:%s) — port closed\n" "$label" "$ip" "$port"
         fail=$((fail+1))
-        echo "fail"
+        CHECK_RESULT="fail"
     fi
 }
 
@@ -132,11 +135,11 @@ check_http() {
     if [ "$code" = "200" ] || [ "$code" = "302" ] || [ "$code" = "401" ]; then
         [ "$JSON_MODE" -eq 0 ] && printf "  ${GREEN}✓${NC} %s — HTTP %s\n" "$label" "$code"
         pass=$((pass+1))
-        echo "pass"
+        CHECK_RESULT="pass"
     else
         [ "$JSON_MODE" -eq 0 ] && printf "  ${RED}✗${NC} %s — HTTP %s\n" "$label" "$code"
         fail=$((fail+1))
-        echo "fail"
+        CHECK_RESULT="fail"
     fi
 }
 
@@ -156,50 +159,64 @@ run_checks() {
     # ── NETWORK LAYER ──
     [ "$JSON_MODE" -eq 0 ] && echo ""
     [ "$JSON_MODE" -eq 0 ] && echo "Network:"
-    r_router=$(check_ping "Router" "$ROUTER_IP")
-    r_internet=$(check_ping "Internet" "$INTERNET_TARGET")
+    check_ping "Router" "$ROUTER_IP"; r_router="$CHECK_RESULT"
+    check_ping "Internet" "$INTERNET_TARGET"; r_internet="$CHECK_RESULT"
 
     # ── CORE SERVICES ──
     [ "$JSON_MODE" -eq 0 ] && echo ""
     [ "$JSON_MODE" -eq 0 ] && echo "Core Services:"
-    r_ha_ping=$(check_ping "Home Assistant VM" "$HA_IP")
-    r_ha_http=$(check_http "Home Assistant UI" "http://${HA_IP}:${HA_PORT}")
-    r_frigate_ping=$(check_ping "Frigate VM" "$FRIGATE_IP")
-    r_frigate_http=$(check_http "Frigate UI" "http://${FRIGATE_IP}:${FRIGATE_PORT}")
-    r_docker_host=$(check_ping "Docker host VM" "$DOCKER_HOST_IP")
-    r_bambuddy=$(check_http "Bambuddy UI" "http://${BAMBUDDY_IP}:${BAMBUDDY_PORT}")
-    r_nas=$(check_ping "NAS" "$NAS_IP")
+    r_ha_ping="skipped"
+    check_http "Home Assistant UI" "http://${HA_IP}:${HA_PORT}"; r_ha_http="$CHECK_RESULT"
+    check_port "Frigate VM SSH" "$FRIGATE_IP" "22"; r_frigate_ping="$CHECK_RESULT"
+    r_frigate_http="skipped"
+    check_port "Docker host VM SSH" "$DOCKER_HOST_IP" "22"; r_docker_host="$CHECK_RESULT"
+    check_http "Bambuddy UI" "http://${BAMBUDDY_IP}:${BAMBUDDY_PORT}"; r_bambuddy="$CHECK_RESULT"
+    r_nas="skipped"
     # C9 fix: was check_port "$P1S_IP" "$P1S_PORT" (TCP connect to 8883).
     # The P1S printer's MQTT port 8883 is the Bambu Lab printer-side MQTT broker
     # which only accepts authenticated connections from Bambu cloud clients —
     # a raw TCP connect returns a TLS handshake, not an open port, causing false
     # failures. Ping is the correct liveness check for a commercial device.
-    r_p1s=$(check_ping "P1S Printer" "$P1S_IP")
-    r_mqtt=$(check_port "MQTT Broker" "$MQTT_IP" "$MQTT_PORT")
+    r_p1s="skipped"
+    check_port "MQTT Broker" "$MQTT_IP" "$MQTT_PORT"; r_mqtt="$CHECK_RESULT"
 
-    # ── VENTSYS ESP32 BOARDS ──
-    [ "$JSON_MODE" -eq 0 ] && echo ""
-    [ "$JSON_MODE" -eq 0 ] && echo "VentSys ESP32 Boards (ESPHome API port ${ESPHOME_PORT}):"
+    if [ "$FULL_MODE" -eq 1 ]; then
+        check_http "Frigate UI" "http://${FRIGATE_IP}:${FRIGATE_PORT}"; r_frigate_http="$CHECK_RESULT"
+        check_ping "NAS" "$NAS_IP"; r_nas="$CHECK_RESULT"
+        check_ping "P1S Printer" "$P1S_IP"; r_p1s="$CHECK_RESULT"
+    elif [ "$JSON_MODE" -eq 0 ]; then
+        echo "  - Frigate UI, NAS, and P1S checks skipped until those services/devices are deployed"
+    fi
+
     declare -A ventsys_results
-    for entry in "${VENTSYS_BOARDS[@]}"; do
-        ip="${entry%%:*}"; rest="${entry#*:}"; key="${rest%%:*}"; label="${rest##*:}"
-        ventsys_results["$key"]=$(check_port "$label" "$ip" "$ESPHOME_PORT")
-    done
+    if [ "$FULL_MODE" -eq 1 ]; then
+        # ── VENTSYS ESP32 BOARDS ──
+        [ "$JSON_MODE" -eq 0 ] && echo ""
+        [ "$JSON_MODE" -eq 0 ] && echo "VentSys ESP32 Boards (ESPHome API port ${ESPHOME_PORT}):"
+        for entry in "${VENTSYS_BOARDS[@]}"; do
+            ip="${entry%%:*}"; rest="${entry#*:}"; key="${rest%%:*}"; label="${rest##*:}"
+            check_port "$label" "$ip" "$ESPHOME_PORT"
+            ventsys_results["$key"]="$CHECK_RESULT"
+        done
+    fi
 
-    # ── VENTSYS SMART PLUGS ──
-    [ "$JSON_MODE" -eq 0 ] && echo ""
-    [ "$JSON_MODE" -eq 0 ] && echo "VentSys Smart Plugs (ping):"
     declare -A plug_results
-    for entry in "${VENTSYS_PLUGS[@]}"; do
-        ip="${entry%%:*}"; rest="${entry#*:}"; key="${rest%%:*}"; label="${rest##*:}"
-        plug_results["$key"]=$(check_ping "$label" "$ip")
-    done
+    if [ "$FULL_MODE" -eq 1 ]; then
+        # ── VENTSYS SMART PLUGS ──
+        [ "$JSON_MODE" -eq 0 ] && echo ""
+        [ "$JSON_MODE" -eq 0 ] && echo "VentSys Smart Plugs (ping):"
+        for entry in "${VENTSYS_PLUGS[@]}"; do
+            ip="${entry%%:*}"; rest="${entry#*:}"; key="${rest%%:*}"; label="${rest##*:}"
+            check_ping "$label" "$ip"
+            plug_results["$key"]="$CHECK_RESULT"
+        done
+    fi
 
     # ── PROXMOX VMs (only if running on Proxmox host) ──
     if command -v qm >/dev/null 2>&1; then
         [ "$JSON_MODE" -eq 0 ] && echo ""
         [ "$JSON_MODE" -eq 0 ] && echo "Proxmox VMs:"
-        for vmid in 100 101; do
+        for vmid in 100 101 102 103; do
             status=$(qm status "$vmid" 2>/dev/null | awk '{print $2}' || echo "unknown")
             name=$(qm config "$vmid" 2>/dev/null | grep "^name:" | awk '{print $2}' || echo "vm-$vmid")
             if [ "$status" = "running" ]; then
@@ -212,16 +229,17 @@ run_checks() {
         done
 
         # Proxmox disk usage
-        [ "$JSON_MODE" -eq 0 ] && echo ""
-        [ "$JSON_MODE" -eq 0 ] && echo "Proxmox Storage:"
-        pvesm status 2>/dev/null | awk 'NR>1 {
-            used=$4; total=$3
-            if (total > 0) {
-                pct = int(used/total*100)
-                status = (pct > 85) ? "WARN" : "OK"
-                printf "  %s  %-20s %d%%\n", (pct>85?"✗":"✓"), $1, pct
-            }
-        }' || true
+        if [ "$JSON_MODE" -eq 0 ]; then
+            echo ""
+            echo "Proxmox Storage:"
+            pvesm status 2>/dev/null | awk 'NR>1 {
+                used=$4; total=$3
+                if (total > 0) {
+                    pct = int(used/total*100)
+                    printf "  %s  %-20s %d%%\n", (pct>85?"✗":"✓"), $1, pct
+                }
+            }' || true
+        fi
     fi
 
     # ── SUMMARY ──

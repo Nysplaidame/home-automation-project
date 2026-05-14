@@ -1,71 +1,55 @@
 ---
-title: "Main Vault Index"
-description: "Primary navigation hub for the Obsidian vault"
-tags:
-  - index
-  - navigation
-  - vault-root
-aliases:
-  - "Home"
-  - "Index"
-  - "Main"
+title: Home Automation Project
+description: Repository root — navigation guide
 created: 2025-09-15
-modified: 2025-09-16
-type: index
+modified: 2026-05-08
 ---
 
-# Main Vault
+# Home Automation Project
 
-Welcome to your organised Obsidian vault! This serves as the central navigation hub for all your projects and documentation.
+Fire safety ventilation, NVR surveillance, secure network architecture, and home automation for 3D printing operations.
 
-## 🏠 Primary Projects
-
-### [[main/home-automation-safety/README|Home Automation Project]]
-Comprehensive home automation system with fire safety, CCTV, and AI integration.
-
-**Quick Links:**
-- [[01-network-architecture|Network Architecture]]
-- [[session_state_20250912|Latest Session]]
-- [[01-network-infrastructure|Network Infrastructure]]
-
-## 📁 Vault Structure
-
-```
-Main/
-└── home-automation-safety/          # Project root
-    ├── README.md                    # Project overview
-    ├── docs/                        # Documentation
-    │   ├── session-states/          # Concise sessions
-	│   │   └── archive/ 	         # Complete sessions - Archived
-    │   ├── decisions/               # Architecture decisions
-    │   ├── procedures/              # Step-by-step guides
-    │   ├── prompts/                 # Sub-project prompts
-    │   └── diagrams/                # Visual documentation
-    ├── configs/                     # System configurations
-    │   ├── openwrt/                 # Router configs
-    │   ├── home-assistant/          # HA configs
-    │   ├── frigate/                 # NVR configs
-    │   ├── esphome/                 # Sensor configs
-    │   └── proxmox/                 # VM configs
-    └── scripts/                     # Automation scripts
-└── README.md                        # This file
-```
-
-## 🔧 Quick Actions
-
-- **Latest Work**: [[session_state_20250912|Current Session State]]
-- **Project Status**: [[main/home-automation-safety/README|Project Overview]]
-- **Network Design**: [[network-diagram|Network Topology]]
-
-## 📚 Documentation Standards
-
-This vault follows Obsidian best practices:
-- ✅ Valid YAML frontmatter on all notes
-- 🔗 Comprehensive bidirectional linking
-- 🏷️ Consistent tagging system
-- 📁 Logical folder structure
-- 🔄 Regular backlink maintenance
+**Repository:** https://github.com/Nysplaidame/home-automation-project
 
 ---
 
-*Last updated: September 16, 2025*
+## Repository layout
+
+```
+home-automation-project/
+├── main/               ← primary working tree (all active docs, configs, scripts)
+│   ├── configs/        ← system configuration files (openwrt, esphome, ha, frigate, proxmox)
+│   ├── docs/           ← decisions, procedures, diagrams, prompts, troubleshooting
+│   ├── scripts/        ← setup guides and operational scripts
+│   ├── tools/          ← router-deploy toolkit, playwright smoke tests
+│   ├── ventsys/        ← VentSys ESPHome bundles and integration docs
+│   ├── wiki/           ← LLM-maintained knowledge base (see wiki/CLAUDE.md)
+│   ├── README.md       ← project overview and status (start here)
+│   ├── PROJECT-INDEX.md← full documentation index
+│   └── TO-DO.md        ← task list by phase
+└── README.md           ← this file
+```
+
+**→ For everything project-related, go to [`main/`](main/).**
+
+The root of this repo is the Obsidian vault wrapper. All active content lives under `main/`.
+
+---
+
+## Quick links
+
+| What | Where |
+|---|---|
+| Project overview and current status | [`main/README.md`](main/README.md) |
+| Full documentation index | [`main/PROJECT-INDEX.md`](main/PROJECT-INDEX.md) |
+| Task list | [`main/TO-DO.md`](main/TO-DO.md) |
+| Current session handoff | [`main/HANDOFF-2026-05-07-current.md`](main/HANDOFF-2026-05-07-current.md) |
+| Router configs | [`main/configs/openwrt/`](main/configs/openwrt/) |
+| ESPHome configs | [`main/configs/esphome/`](main/configs/esphome/) |
+| VentSys bundles | [`main/ventsys/ventsys_bundle_updated/`](main/ventsys/ventsys_bundle_updated/) |
+| Router deploy toolkit | [`main/tools/router-deploy/`](main/tools/router-deploy/) |
+| Wiki | [`main/wiki/`](main/wiki/) |
+
+---
+
+*Last updated: May 2026*

@@ -47,7 +47,7 @@ wifi:
     gateway: 192.168.50.1
     subnet: 255.255.255.0
   ap:
-    ssid: "${friendly_name} Fallback"
+    ssid: "VentSys SLA Print FB"
     password: !secret ota_password
 
 captive_portal:
@@ -58,7 +58,7 @@ mqtt:
   username: !secret mqtt_user
   password: !secret mqtt_pass
   discovery: false
-  ca_certificate: !secret mqtt_ca_cert
+  certificate_authority: !secret mqtt_ca_cert
   on_message:
     # Receive 0-100 percent from HA number entity
     - topic: ${mqtt_command_topic}

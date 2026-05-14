@@ -7,3 +7,7 @@
 
 # Local HTML backup scratch files
 *.bak
+
+# Local agent/debug scratch files
+ssh*.txt
+whoami.txt

@@ -37,7 +37,7 @@ The current implementation wakes the main dashboard on click/tap only. Failsafe 
 The current dashboard target is:
 
 ```text
-ventsys-dashboard.html
+dashboards/ventsys-dashboard.html
 ```
 
 This assumes both files are deployed into the same Home Assistant `/local/` directory.
@@ -60,7 +60,7 @@ http://127.0.0.1:4173/ventsys_solar_screensaver.html
 
 ## Next Build Steps
 
-- Integrate this as an idle overlay or iframe route from `ventsys-dashboard.html`.
+- Integrate this as an idle overlay or iframe route from `dashboards/ventsys-dashboard.html`.
 - Replace static mission placeholders with a curated JSON feed or HA-provided event sensor.
 - Add a small configuration block for focus cadence, dashboard wake target, and safety-strip entity IDs.
 - Run a browser screenshot pass on the actual 7-inch display resolution before deploying permanently.

@@ -7,7 +7,7 @@
 
 | Layer | What | Where stored | Schedule | Retention |
 |---|---|---|---|---|
-| Proxmox snapshot | Entire VM disk (100 only) | MINIX local SSD (`/var/lib/vz/dump`) | Daily 02:00 | 3 snapshots |
+| Proxmox snapshot | Entire VM disks (100/101/102/103 while NAS is pending) | MINIX local SSD (`/var/lib/vz/dump`) | Daily 02:00 | 2 snapshots |
 | HA native backup | HA config, add-ons, automations | HA local + NAS | Daily 03:00 | 14 days on NAS |
 | Frigate recordings | Camera footage | NAS `/mnt/nas/frigate` | Continuous | 7 days motion, 14 days events |
 | Frigate VM state | OS disk, DB, cache, compose/config | MINIX NVMe on VM 101 | Continuous | Rebuildable + config-backed |
@@ -26,15 +26,15 @@
 |---|---|
 | Storage | `local` (stores backup on MINIX SSD) |
 | Schedule | `02:00` (daily) |
-| Selection | VM 100 only |
+| Selection | VMs 100, 101, 102, 103 |
 | Mode | Snapshot |
 | Compression | ZSTD |
-| Max backups | 3 |
+| Max backups | 2 while backups are local/pre-NAS |
 | Email | your@email.com (optional) |
 
-This is intentionally scoped to VM 100. The MINIX NVMe is being treated as
+This is a temporary pre-NAS safety net. The MINIX NVMe is being treated as
 compute/state storage, not as the long-retention home for large media workloads.
-Frigate recordings should live on the NAS directly once it is online.
+Move long-term backup retention to the NAS once it is online.
 
 ### Manual snapshot before major changes
 
@@ -42,6 +42,7 @@ Frigate recordings should live on the NAS directly once it is online.
 # In Proxmox shell before any risky change
 vzdump 100 --mode snapshot --compress zstd --storage local
 vzdump 101 --mode snapshot --compress zstd --storage local
+vzdump 102 --mode snapshot --compress zstd --storage local
 vzdump 103 --mode snapshot --compress zstd --storage local
 ```
 
@@ -241,7 +242,7 @@ ESPHome devices on VLAN 50 will reconnect automatically once HA is back and the 
 
 ## Backup health checklist (run monthly)
 
-- [ ] Proxmox: verify 3 recent backups exist in `Datacenter → Storage → local → Backups`
+- [ ] Proxmox: verify 2 recent backups exist in `Datacenter → Storage → local → Backups` while the temporary local pre-NAS policy is active
 - [ ] HA: open `Settings → System → Backups` — confirm most recent is < 25 hours old
 - [ ] NAS: `df -h /mnt/nas` — confirm usage < 80%
 - [ ] NAS: `smartctl -a /dev/sda` — confirm drive health is PASSED

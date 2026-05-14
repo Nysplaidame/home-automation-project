@@ -28,6 +28,7 @@ from lib.parse_uci import (  # noqa: E402
 ROOT = Path(__file__).resolve().parents[2]
 CONF_DIR = ROOT / "configs" / "openwrt"
 OUT_DIR = Path(__file__).resolve().parent / "generated"
+SECRETS_PATH = Path(__file__).resolve().parent / "keys" / "router_secrets.json"
 
 PLACEHOLDER_PATTERNS = (
     "YOUR_",
@@ -35,6 +36,19 @@ PLACEHOLDER_PATTERNS = (
     "CLIENT2_PUBLIC_KEY_HERE",
     "CLIENT3_PUBLIC_KEY_HERE",
     "XX:XX:XX:XX:XX:XX",
+)
+
+SECRET_KEYS = (
+    "YOUR_MAIN_WIFI_PASSWORD_HERE",
+    "YOUR_ADMIN_WIFI_PASSWORD_HERE",
+    "YOUR_PRINTERS_WIFI_PASSWORD_HERE",
+    "YOUR_IOT_WIFI_PASSWORD_HERE",
+    "YOUR_GUEST_WIFI_PASSWORD_HERE",
+    "YOUR_DMZ_WIFI_PASSWORD_HERE",
+    "YOUR_PRIVATE_KEY_HERE",
+    "CLIENT1_PUBLIC_KEY_HERE",
+    "CLIENT2_PUBLIC_KEY_HERE",
+    "CLIENT3_PUBLIC_KEY_HERE",
 )
 
 
@@ -270,6 +284,55 @@ def _find_placeholders(artifacts: dict[str, str]) -> dict[str, list[tuple[int, s
     return hits
 
 
+def _load_secret_replacements() -> dict[str, str]:
+    if not SECRETS_PATH.exists():
+        return {}
+    try:
+        raw = json.loads(_read(SECRETS_PATH))
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"{SECRETS_PATH} is not valid JSON: {exc}") from exc
+
+    replacements = raw.get("replacements", raw)
+    if not isinstance(replacements, dict):
+        raise ValueError(f"{SECRETS_PATH} must contain a JSON object")
+
+    clean: dict[str, str] = {}
+    for key, value in replacements.items():
+        if key not in SECRET_KEYS and key != "VENTSYS_MAIN_VALVE_1_MAC":
+            continue
+        if value is None or value == "":
+            continue
+        if not isinstance(value, str):
+            raise ValueError(f"{SECRETS_PATH}: value for {key} must be a string")
+        clean[key] = value
+    return clean
+
+
+def _apply_secret_replacements(artifacts: dict[str, str]) -> tuple[dict[str, str], int]:
+    replacements = _load_secret_replacements()
+    if not replacements:
+        return artifacts, 0
+
+    transformed = dict(artifacts)
+    replacements_applied = 0
+    for placeholder, value in replacements.items():
+        if placeholder == "VENTSYS_MAIN_VALVE_1_MAC":
+            placeholder = "XX:XX:XX:XX:XX:XX"
+            transformed["dhcp.uci"], count = re.subn(
+                r"(option name 'ventsys-main-valve-1'\n\s*option dns '1'\n\s*option ip '192\.168\.50\.51'\n\s*option mac ')[^']+(')",
+                rf"\g<1>{value}\g<2>",
+                transformed["dhcp.uci"],
+                count=1,
+            )
+            replacements_applied += count
+            continue
+        for name, content in list(transformed.items()):
+            if placeholder in content:
+                transformed[name] = content.replace(placeholder, value)
+                replacements_applied += 1
+    return transformed, replacements_applied
+
+
 def compile_artifacts(profile: str = "full", allow_placeholders: bool = False) -> int:
     vlan_path = CONF_DIR / "vlan-config.conf"
     dhcp_path = CONF_DIR / "dhcp-config.conf"
@@ -304,6 +367,12 @@ def compile_artifacts(profile: str = "full", allow_placeholders: bool = False) -
         "disabled_wifi_ifaces": 0,
         "stripped_temp_firewall_rules": 0,
     }
+    try:
+        artifacts, secret_replacements_applied = _apply_secret_replacements(artifacts)
+    except ValueError as exc:
+        print(f"[ERROR] {exc}")
+        return 1
+
     if profile == "first-flight":
         artifacts, first_flight_stats = _first_flight_transform(artifacts)
 
@@ -376,6 +445,7 @@ def compile_artifacts(profile: str = "full", allow_placeholders: bool = False) -
         },
         "invariants": invariants,
         "stripped_temp_rules": stripped_temp_rules,
+        "secret_replacements_applied": secret_replacements_applied,
         "first_flight_adjustments": first_flight_stats,
     }
 
@@ -389,6 +459,8 @@ def compile_artifacts(profile: str = "full", allow_placeholders: bool = False) -
         print("[WARN] Placeholder values were allowed for preview-only generation.")
     if stripped_temp_rules:
         print(f"[INFO] Stripped {stripped_temp_rules} TEMP firewall rule(s).")
+    if secret_replacements_applied:
+        print(f"[INFO] Applied {secret_replacements_applied} local secret replacement(s).")
     if profile == "first-flight":
         print("[INFO] First-flight adjustments applied:")
         for key, value in first_flight_stats.items():

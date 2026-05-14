@@ -1,18 +1,15 @@
-# VentSys Butterfly Valve Controller
-# Adapted from ventsys_butterfly_valve.yaml (known working hardware)
-# Adds MQTT integration for VentSys system control while preserving ALL
-# original features: LED colour coding, temperature alerts, touch sensor toggle,
-# configurable open/close positions, PWM auto-shutdown.
+# VentSys Butterfly Valve Controller - Main Duct Valve 1
+# Production identity/connectivity for VLAN 50, with the working valve behavior
+# from the prototype "Colours, PWM Stop, Temp Mon, Temp Alarm" build.
 #
-# PRE-TLS DEPLOYMENT: Change mqtt.port to 1883 and remove mqtt.ca_certificate
-# before first flash. Swap back to 8883 + ca_certificate after TLS is live.
+# PRE-TLS DEPLOYMENT: first flash uses plain MQTT on 1883. Swap to 8883
+# with mqtt_ca_cert after the local CA and Mosquitto TLS path are live.
 #
 # SECRETS REQUIRED (secrets.yaml):
-#   wifi_ssid, wifi_pass, mqtt_user, mqtt_pass, mqtt_ca_cert,
-#   api_key, ota_password
+#   wifi_ssid, wifi_pass, mqtt_user, mqtt_pass, api_key, ota_password
 
 substitutions:
-  device_name: ventsys-main-valve-1  # N-5 fix: hyphens match ESPHome mDNS convention
+  device_name: ventsys-main-valve-1
   friendly_name: "VentSys Main Duct Valve 1"
   device_ip: "192.168.50.51"
   mqtt_command_topic: "ventsys/main/valve1/control"
@@ -47,34 +44,25 @@ wifi:
     gateway: 192.168.50.1
     subnet: 255.255.255.0
   ap:
-    ssid: "${friendly_name} Fallback"
+    ssid: "VentSys Valve 1 Fallback"
     password: !secret ota_password
 
 captive_portal:
 
 mqtt:
   broker: 192.168.20.101
-  port: 8883
+  port: 1883
   username: !secret mqtt_user
   password: !secret mqtt_pass
   discovery: false
-  ca_certificate: !secret mqtt_ca_cert
   on_message:
-    # Receive 0-100 percent from HA number entity
     - topic: ${mqtt_command_topic}
       qos: 0
       then:
-        # Route through the number entity — this triggers set_action which
-        # handles servo write, PWM enable, and LED colour update in one call.
         - number.set:
             id: valve_position_direct_control_number
             value: !lambda 'return (float)atoi(x.c_str());'
-        - mqtt.publish:
-            topic: ${mqtt_state_topic}
-            payload: !lambda 'return x;'
-            retain: true
   on_connect:
-    # Republish current state on reconnect so HA stays in sync
     - mqtt.publish:
         topic: ${mqtt_state_topic}
         payload: !lambda 'return to_string((int)id(valve_position_direct_control_number).state);'
@@ -85,17 +73,127 @@ globals:
     type: bool
     restore_value: no
     initial_value: 'true'
+
   - id: temp_alert_level
     type: int
     restore_value: no
     initial_value: '0'
 
+interval:
+  - interval: 1s
+    then:
+      - lambda: |-
+          if (id(temp_alert_level) == 0) {
+            float pos = id(valve_position_direct_control_number).state;
+            float red, green, blue;
+
+            if (pos >= 100.0) {
+              red = 0.0; green = 1.0; blue = 0.0;
+            } else if (pos > 0.0) {
+              red = 1.0; green = 0.5; blue = 0.0;
+            } else {
+              red = 1.0; green = 0.0; blue = 0.0;
+            }
+
+            id(status_led).turn_on().set_brightness(1.0).set_rgb(red, green, blue).perform();
+          }
+
+  - interval: 200ms
+    then:
+      - lambda: |-
+          float temp = id(internal_temp).state;
+
+          int alert_level = 0;
+          if (temp >= 80.0) {
+            alert_level = 3;
+          } else if (temp >= 70.0) {
+            alert_level = 2;
+          } else if (temp >= 60.0) {
+            alert_level = 1;
+          }
+
+          int current_global = id(temp_alert_level);
+          if (current_global > 0 && alert_level == 0) {
+            alert_level = current_global;
+          } else {
+            id(temp_alert_level) = alert_level;
+          }
+
+          if (alert_level > 0) {
+            static unsigned long last_flash_time = 0;
+            static bool flash_state = false;
+            unsigned long current_time = millis();
+            unsigned long flash_interval = 0;
+
+            if (alert_level == 3) {
+              flash_interval = 300;
+            } else if (alert_level == 2) {
+              flash_interval = 750;
+            } else {
+              flash_interval = 1500;
+            }
+
+            if (current_time - last_flash_time >= flash_interval) {
+              flash_state = !flash_state;
+              last_flash_time = current_time;
+            }
+
+            if (flash_state) {
+              if (alert_level == 1) {
+                auto call = id(status_led).turn_on();
+                call.set_brightness(1.0);
+                call.set_rgb(1.0, 0.25, 0.0);
+                call.perform();
+              } else if (alert_level == 2 || alert_level == 3) {
+                auto call = id(status_led).turn_on();
+                call.set_brightness(1.0);
+                call.set_rgb(1.0, 0.0, 0.0);
+                call.perform();
+              }
+            } else {
+              id(status_led).turn_off().perform();
+            }
+          }
+
+esp32_touch:
+  setup_mode: false
+
 time:
   - platform: homeassistant
     id: homeassistant_time
 
-esp32_touch:
-  setup_mode: False
+text_sensor:
+  - platform: version
+    name: "ESPHome Version"
+
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"
+    ssid:
+      name: "SSID"
+    bssid:
+      name: "BSSID"
+    mac_address:
+      name: "WiFi MAC Address"
+    scan_results:
+      name: "Latest WiFi Scan Results"
+
+  - platform: template
+    name: "Temperature Alert Level"
+    id: temp_alert_level_text
+    icon: "mdi:thermometer-alert"
+    update_interval: 1s
+    lambda: |-
+      int level = id(temp_alert_level);
+      if (level == 3) {
+        return {"Emergency"};
+      } else if (level == 2) {
+        return {"Alarm"};
+      } else if (level == 1) {
+        return {"Notice"};
+      } else {
+        return {"Normal"};
+      }
 
 output:
   - platform: ledc
@@ -107,6 +205,29 @@ servo:
   - id: valve_servo
     output: valve_servo_pwm_output
 
+sensor:
+  - platform: wifi_signal
+    name: "WiFi Signal dB"
+    id: wifi_signal_db
+    update_interval: 60s
+    entity_category: diagnostic
+
+  - platform: copy
+    source_id: wifi_signal_db
+    name: "WiFi Signal Percent"
+    filters:
+      - lambda: return min(max(2 * (x + 100.0), 0.0), 100.0);
+    unit_of_measurement: "Signal %"
+    entity_category: diagnostic
+
+  - platform: uptime
+    name: "Uptime"
+
+  - platform: internal_temperature
+    name: "Internal Temperature"
+    id: internal_temp
+    update_interval: 5s
+
 script:
   - id: check_pwm_shutdown
     mode: restart
@@ -116,6 +237,7 @@ script:
           if (id(valve_position_direct_control_number).state == 0.0) {
             id(valve_servo_pwm_output).turn_off();
             id(pwm_enabled) = false;
+            ESP_LOGI("pwm", "PWM disabled - valve at 0%%");
           }
 
 number:
@@ -133,23 +255,32 @@ number:
             if (!id(pwm_enabled)) {
               id(valve_servo_pwm_output).turn_on();
               id(pwm_enabled) = true;
+              ESP_LOGI("pwm", "PWM enabled - valve moving");
             }
         - servo.write:
             id: valve_servo
-            level: !lambda 'return x / 100.0;'
+            level: !lambda 'return (x / 100.0) * 2.0 - 1.0;'
         - lambda: |-
             float red, green, blue;
-            if (x >= 100.0) { red=0.0; green=1.0; blue=0.0; }
-            else if (x > 0.0) { red=1.0; green=0.5; blue=0.0; }
-            else { red=1.0; green=0.0; blue=0.0; }
-            id(status_led).turn_on().set_brightness(1.0).set_rgb(red,green,blue).perform();
+            if (x >= 100.0) {
+              red = 0.0; green = 1.0; blue = 0.0;
+            } else if (x > 0.0) {
+              red = 1.0; green = 0.5; blue = 0.0;
+            } else {
+              red = 1.0; green = 0.0; blue = 0.0;
+            }
+            id(status_led).turn_on().set_brightness(1.0).set_rgb(red, green, blue).perform();
+        - mqtt.publish:
+            topic: ${mqtt_state_topic}
+            payload: !lambda 'return to_string((int)x);'
+            retain: true
         - script.execute: check_pwm_shutdown
 
   - platform: template
     name: "Valve Open Position"
     id: valve_opened_position
     min_value: 0
-    initial_value: 100
+    initial_value: 50
     max_value: 100
     step: 1
     optimistic: true
@@ -171,15 +302,34 @@ button:
     id: close_valve_button
     on_press:
       then:
+        - lambda: |-
+            if (!id(pwm_enabled)) {
+              id(valve_servo_pwm_output).turn_on();
+              id(pwm_enabled) = true;
+              ESP_LOGI("pwm", "PWM enabled - closing valve");
+            }
+        - servo.write:
+            id: valve_servo
+            level: !lambda 'return (id(valve_closed_position).state / 100.0) * 2.0 - 1.0;'
         - number.set:
             id: valve_position_direct_control_number
             value: !lambda 'return id(valve_closed_position).state;'
+        - script.execute: check_pwm_shutdown
 
   - platform: template
     name: "Open Valve"
     id: open_valve_button
     on_press:
       then:
+        - lambda: |-
+            if (!id(pwm_enabled)) {
+              id(valve_servo_pwm_output).turn_on();
+              id(pwm_enabled) = true;
+              ESP_LOGI("pwm", "PWM enabled - opening valve");
+            }
+        - servo.write:
+            id: valve_servo
+            level: !lambda 'return (id(valve_opened_position).state / 100.0) * 2.0 - 1.0;'
         - number.set:
             id: valve_position_direct_control_number
             value: !lambda 'return id(valve_opened_position).state;'
@@ -190,6 +340,7 @@ button:
     icon: "mdi:alarm-light"
     on_press:
       then:
+        - logger.log: "Temperature alert test started (15 seconds)"
         - lambda: id(temp_alert_level) = 1;
         - delay: 5s
         - lambda: id(temp_alert_level) = 2;
@@ -197,6 +348,7 @@ button:
         - lambda: id(temp_alert_level) = 3;
         - delay: 5s
         - lambda: id(temp_alert_level) = 0;
+        - logger.log: "Temperature alert test complete"
 
 binary_sensor:
   - platform: esp32_touch
@@ -206,67 +358,35 @@ binary_sensor:
     on_press:
       then:
         - lambda: |-
-            if (id(valve_position_direct_control_number).state >= 50)
+            if (id(valve_position_direct_control_number).state >= 50) {
               id(close_valve_button).press();
-            else
+            } else {
               id(open_valve_button).press();
+            }
 
   - platform: template
     name: "Temperature Notice"
+    id: temp_notice
     device_class: problem
-    lambda: 'return id(internal_temp).state >= 60.0;'
+    icon: "mdi:alert-circle-outline"
+    lambda: |-
+      return id(internal_temp).state >= 60.0;
 
   - platform: template
     name: "Temperature Alarm"
+    id: temp_alarm
     device_class: problem
-    lambda: 'return id(internal_temp).state >= 70.0;'
+    icon: "mdi:alert"
+    lambda: |-
+      return id(internal_temp).state >= 70.0;
 
   - platform: template
     name: "Temperature Emergency"
+    id: temp_emergency
     device_class: problem
-    lambda: 'return id(internal_temp).state >= 80.0;'
-
-sensor:
-  - platform: internal_temperature
-    name: "Internal Temperature"
-    id: internal_temp
-    update_interval: 5s
-
-  - platform: wifi_signal
-    name: "WiFi Signal dB"
-    id: wifi_signal_db
-    update_interval: 60s
-    entity_category: diagnostic
-
-  - platform: copy
-    source_id: wifi_signal_db
-    name: "WiFi Signal Percent"
-    filters:
-      - lambda: return min(max(2 * (x + 100.0), 0.0), 100.0);
-    unit_of_measurement: "Signal %"
-    entity_category: diagnostic
-
-  - platform: uptime
-    name: Uptime
-
-text_sensor:
-  - platform: template
-    name: "Temperature Alert Level"
-    id: temp_alert_level_text
-    icon: "mdi:thermometer-alert"
-    update_interval: 1s
+    icon: "mdi:alert-octagon"
     lambda: |-
-      int level = id(temp_alert_level);
-      if (level == 3) return {"Emergency"};
-      else if (level == 2) return {"Alarm"};
-      else if (level == 1) return {"Notice"};
-      else return {"Normal"};
-
-  - platform: wifi_info
-    ip_address:
-      name: "IP Address"
-    ssid:
-      name: "SSID"
+      return id(internal_temp).state >= 80.0;
 
 light:
   - platform: neopixelbus
@@ -278,47 +398,3 @@ light:
     num_leds: 1
     internal: true
     default_transition_length: 0s
-
-interval:
-  # LED position colour (when no temperature alert)
-  - interval: 1s
-    then:
-      - lambda: |-
-          if (id(temp_alert_level) == 0) {
-            float pos = id(valve_position_direct_control_number).state;
-            float red, green, blue;
-            if (pos >= 100.0)      { red=0.0; green=1.0; blue=0.0; }
-            else if (pos > 0.0)    { red=1.0; green=0.5; blue=0.0; }
-            else                   { red=1.0; green=0.0; blue=0.0; }
-            id(status_led).turn_on().set_brightness(1.0).set_rgb(red,green,blue).perform();
-          }
-
-  # Temperature alert flashing (200ms tick)
-  - interval: 200ms
-    then:
-      - lambda: |-
-          float temp = id(internal_temp).state;
-          int alert_level = 0;
-          if (temp >= 80.0) alert_level = 3;
-          else if (temp >= 70.0) alert_level = 2;
-          else if (temp >= 60.0) alert_level = 1;
-          int current_global = id(temp_alert_level);
-          if (current_global > 0 && alert_level == 0) alert_level = current_global;
-          else id(temp_alert_level) = alert_level;
-          if (alert_level > 0) {
-            static unsigned long last_flash = 0;
-            static bool flash_state = false;
-            unsigned long now = millis();
-            unsigned long interval = (alert_level==3) ? 300 : (alert_level==2) ? 750 : 1500;
-            if (now - last_flash >= interval) { flash_state = !flash_state; last_flash = now; }
-            if (flash_state) {
-              auto call = id(status_led).turn_on();
-              call.set_brightness(1.0);
-              call.set_rgb((alert_level==1) ? 1.0f : 1.0f,
-                           (alert_level==1) ? 0.25f : 0.0f, 0.0f);
-              call.perform();
-            } else {
-              id(status_led).turn_off().perform();
-            }
-          }
-

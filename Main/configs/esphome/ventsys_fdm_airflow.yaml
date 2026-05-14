@@ -46,7 +46,7 @@ wifi:
     gateway: 192.168.50.1
     subnet: 255.255.255.0
   ap:
-    ssid: "${friendly_name} Fallback"
+    ssid: "VentSys FDM Air FB"
     password: !secret ota_password
 
 captive_portal:
@@ -57,7 +57,7 @@ mqtt:
   username: !secret mqtt_user
   password: !secret mqtt_pass
   discovery: false
-  ca_certificate: !secret mqtt_ca_cert
+  certificate_authority: !secret mqtt_ca_cert
   on_connect:
     # Republish last known readings on reconnect so HA stays in sync
     - mqtt.publish:

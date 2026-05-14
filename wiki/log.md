@@ -112,3 +112,30 @@
 10. **history:/logbook: keys deprecated** in HA since 2024.6 — still functional but log deprecation warnings on startup; recorder handles filtering instead
 11. **scripts.yaml and scenes.yaml do not exist** — including them in configuration.yaml causes hard startup error (FIX #2)
 12. **iGPU passthrough** fully documented: PCI 00:02.0, x-vga=0 critical, VA-API + OpenVINO; expect 60–90%→10–30% CPU
+
+## [2026-05-08] update | Sync to live deployment state (May 2026)
+
+**Context:** Wiki was last updated 2026-04-07, before any physical deployment. All infrastructure is now live. This entry records the May 2026 sync.
+
+**Pages updated:**
+
+- [[entities/gl-mt6000]] — Status: deployed and stable. 10-VLAN table, all ports physically validated, router-deploy first-flight applied (PASS=72/0/0). Temp rule cleanup noted.
+- [[entities/proxmox]] — Status: live (PVE 9.1.9, kernel 7.0.0-3-pve). VM table corrected: VM 102 was never created, VM 103 is docker-host. Known good HA backup slug recorded.
+- [[entities/home-assistant]] — Status: live (HAOS 2026.5.0). VentSys packages staged and config-checked. MQTT pre-TLS on 1883. 2FA enabled.
+- [[entities/frigate]] — Status: VM 101 live on Debian 13; Frigate image pulled and staged; container not yet started (blocked on .env, cameras, MQTT TLS). Bambuddy no longer on this VM.
+- [[entities/bambuddy]] — Status: running on VM 103 at http://192.168.20.102:8000. Compose/env details added. P1S integration parked pending serial.
+- [[entities/monitoring-vm]] — Clarified: VM 102 never created; planning still deferred.
+
+**Pages created:**
+
+- [[entities/docker-host]] — New entity: VM 103, Debian 13, VLAN 20, running Bambuddy + apt-cacher-ng.
+
+**Index updated:** entity statuses, stats (17 entities), docker-host added.
+
+**Key corrections vs April wiki:**
+1. **VM 102 never created** — monitoring VM is still planned only; docker-host is VM 103
+2. **Bambuddy runs on VM 103**, not VM 101 — separate trusted Docker host on VLAN 20
+3. **Router is live** — first-flight deployed, 10 VLANs not 9 (VLAN 35 printers added)
+4. **HA is live** — core 2026.5.0, VentSys packages staged, MQTT running pre-TLS
+5. **MQTT is still 1883** — TLS migration not yet done; 8883 target remains pending
+6. **Frigate VM is Debian 13**, not Debian 12 as originally planned

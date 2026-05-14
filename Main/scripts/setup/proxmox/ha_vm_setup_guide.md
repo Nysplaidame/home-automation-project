@@ -228,13 +228,13 @@ using the New File button.
 
 ```bash
 mkdir -p /config/www
-# Then copy ventsys-dashboard.html into /config/www/ventsys-dashboard.html
+# Then copy dashboards/ventsys-dashboard.html into /config/www/ventsys-dashboard.html
 ```
 
 After copying, edit the live HA copy and set your Long-Lived Token:
 `Settings → Profile → Security → Long-Lived Access Tokens → Create Token`
 Copy the token and paste it into `HA_CONFIG.token` in `/config/www/ventsys-dashboard.html`.
-Leave the repo source `ventsys-dashboard.html` on the placeholder value
+Leave the repo source `dashboards/ventsys-dashboard.html` on the placeholder value
 `__SET_HA_TOKEN__` so the token never lands in Git.
 
 ### 3.5 — Restart HA to load packages
@@ -363,7 +363,7 @@ option. Store credentials in your password manager.
 
 Create tokens only when needed and document what each token is used for.
 Current tokens needed:
-- VentSys dashboard (`HA_CONFIG.token` in `ventsys-dashboard.html`)
+- VentSys dashboard (`HA_CONFIG.token` in `dashboards/ventsys-dashboard.html`)
 
 ### 7.4 — Trusted networks (optional)
 

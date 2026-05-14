@@ -37,15 +37,18 @@ hostname
 cd /opt/stacks/bambuddy && docker compose config
 nc -zv 192.168.35.200 8883
 nc -zv 192.168.35.200 21
-nc -zv 192.168.20.101 1883
+nc -zv 192.168.20.101 8883
 nc -zv 192.168.20.101 8123
 ```
 
 From Home Assistant:
 
 ```bash
-mosquitto_sub -h localhost -p 1883 -u mqtt -P '<password>' -t 'bambuddy/#' -v
+mosquitto_sub -h 192.168.20.101 -p 8883 --cafile /ssl/ca.crt \
+  -u mqtt -P '<password>' -t 'bambuddy/#' -v
 ```
 
 After Mosquitto TLS is enabled, switch the MQTT checks and Bambuddy `.env` from
-port `1883` to `8883` per `docs/procedures/ssl_tls_guide.md`.
+port `1883` to `8883` per `docs/procedures/ssl_tls_guide.md`, enable TLS in
+the Bambuddy application settings, and confirm retained `bambuddy/status`
+arrives.

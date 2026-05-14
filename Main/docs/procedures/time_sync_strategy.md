@@ -16,8 +16,8 @@ The intended model is:
 
 - **ESPHome / VentSys boards:** Home Assistant time via native API
 - **Other restricted devices that need NTP:** router-local NTP
-- **General Linux infrastructure:** normal OS time sync, preferably against the
-  router once a local-first pattern is validated
+- **General Linux infrastructure:** router-local NTP on each host's local VLAN
+  gateway
 
 This matches the current repo intent and keeps restricted devices simple.
 
@@ -50,14 +50,20 @@ Why:
 - keeps time sync inside the trust boundary
 - supports TLS validation for devices that need accurate clocks
 
-This is why the firewall contains the `IoT to Router NTP` rule.
+This is why the firewall contains router-input NTP rules for restricted VLANs
+that need local time, including Automation, NVR, Monitoring, Storage, Printers,
+and IoT Sensors.
 
 ### Infrastructure hosts
 
 For Proxmox, docker-host, Frigate, and future NAS/monitoring hosts:
 
-- short term: existing OS time sync is acceptable
-- preferred direction: document and validate a local-first pattern using the router as the internal reference point
+- Proxmox uses its normal host time sync.
+- Debian VMs should prefer their local VLAN gateway as NTP.
+- Current validated examples:
+  - `docker-host` -> `192.168.20.1`
+  - `frigate-nvr` -> `192.168.30.1`
+  - `monitoring` -> `192.168.60.1`
 
 That keeps internal infrastructure less dependent on direct external time queries.
 
@@ -66,12 +72,13 @@ That keeps internal infrastructure less dependent on direct external time querie
 ### Already explicit in repo
 
 - ESPHome boards are expected to use Home Assistant time
-- router NTP allowance exists for restricted devices that need it
+- router NTP server is enabled
+- router NTP allowance exists for restricted VLANs that need it
+- docker-host, Frigate, and monitoring have been validated against router-local NTP
 
 ### Still worth validating later
 
-- confirm OpenWrt local NTP service behavior end-to-end
-- decide whether all Linux hosts should explicitly prefer router time
+- add NAS to the router-local NTP pattern when it is live
 - document any exceptions for devices that insist on vendor/cloud time sync
 
 ## Practical rule
