@@ -30,6 +30,8 @@ esp32:
     version: recommended
 
 logger:
+  logs:
+    internal_temperature.esp32: INFO
 
 api:
   encryption:
@@ -136,10 +138,10 @@ number:
             }
         - servo.write:
             id: valve_servo
-            level: !lambda 'return x / 100.0;'
+            level: !lambda 'return (x / 100.0) * 2.0 - 1.0;'
         - lambda: |-
             float red, green, blue;
-            if (x >= 100.0) { red=0.0; green=1.0; blue=0.0; }
+            if (x >= id(valve_opened_position).state) { red=0.0; green=1.0; blue=0.0; }
             else if (x > 0.0) { red=1.0; green=0.5; blue=0.0; }
             else { red=1.0; green=0.0; blue=0.0; }
             id(status_led).turn_on().set_brightness(1.0).set_rgb(red,green,blue).perform();
@@ -149,7 +151,7 @@ number:
     name: "Valve Open Position"
     id: valve_opened_position
     min_value: 0
-    initial_value: 100
+    initial_value: 50
     max_value: 100
     step: 1
     optimistic: true
@@ -188,6 +190,7 @@ button:
     name: "Test Temperature Alerts"
     id: test_temp_alerts
     icon: "mdi:alarm-light"
+    disabled_by_default: true
     on_press:
       then:
         - lambda: id(temp_alert_level) = 1;
@@ -214,16 +217,19 @@ binary_sensor:
   - platform: template
     name: "Temperature Notice"
     device_class: problem
+    disabled_by_default: true
     lambda: 'return id(internal_temp).state >= 60.0;'
 
   - platform: template
     name: "Temperature Alarm"
     device_class: problem
+    disabled_by_default: true
     lambda: 'return id(internal_temp).state >= 70.0;'
 
   - platform: template
     name: "Temperature Emergency"
     device_class: problem
+    disabled_by_default: true
     lambda: 'return id(internal_temp).state >= 80.0;'
 
 sensor:
@@ -231,6 +237,8 @@ sensor:
     name: "Internal Temperature"
     id: internal_temp
     update_interval: 5s
+    entity_category: diagnostic
+    disabled_by_default: true
 
   - platform: wifi_signal
     name: "WiFi Signal dB"
@@ -255,6 +263,7 @@ text_sensor:
     id: temp_alert_level_text
     icon: "mdi:thermometer-alert"
     update_interval: 1s
+    disabled_by_default: true
     lambda: |-
       int level = id(temp_alert_level);
       if (level == 3) return {"Emergency"};

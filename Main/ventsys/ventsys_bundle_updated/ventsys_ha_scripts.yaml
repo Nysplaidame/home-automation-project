@@ -22,14 +22,14 @@
 #   ventsys/fan/percent           → "0"–"100"       (main fan speed)
 #   ventsys/spray-fan/control     → "on" / "off"   (spray booth fan)
 #   ventsys/spray-fan/percent     → "0"–"100"       (spray fan speed)
-#   ventsys/main/valve1/control   → "0"–"100"       (main duct valve 1)
-#   ventsys/main/valve2/control   → "0"–"100"       (main duct valve 2)
-#   ventsys/fdm/branch/control    → "0"–"100"       (ENC01 branch valve)
-#   ventsys/fdm/valve/control     → "0"–"100"       (ENC01 print valve)
-#   ventsys/fdm/360/control       → "0"–"100"       (ENC01 360° intake)
-#   ventsys/sla/branch/control    → "0"–"100"       (ENC02 branch valve)
-#   ventsys/sla/valve/control     → "0"–"100"       (ENC02 print valve)
-#   ventsys/sla/360/control       → "0"–"100"       (ENC02 360° intake)
+#   ventsys/main/valve1/control   → "0"–"50"        (main duct valve 1, calibrated open)
+#   ventsys/main/valve2/control   → "0"–"50"        (main duct valve 2, calibrated open)
+#   ventsys/fdm/branch/control    → "0"–"50"        (ENC01 branch valve, calibrated open)
+#   ventsys/fdm/valve/control     → "0"–"50"        (ENC01 print valve, calibrated open)
+#   ventsys/fdm/360/control       → "0"–"50"        (ENC01 360° intake, calibrated open)
+#   ventsys/sla/branch/control    → "0"–"50"        (ENC02 branch valve, calibrated open)
+#   ventsys/sla/valve/control     → "0"–"50"        (ENC02 print valve, calibrated open)
+#   ventsys/sla/360/control       → "0"–"50"        (ENC02 360° intake, calibrated open)
 
 script:
 
@@ -188,39 +188,39 @@ script:
             data:
               topic: "ventsys/fdm/branch/control"
               entity_id: "number.fdm_branch_valve"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/fdm/valve/control"
               entity_id: "number.fdm_valve"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/fdm/360/control"
               entity_id: "number.fdm_360_intake"
-              target: 100
+              target: 50
           # Open all SLA enclosure paths fully
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/sla/branch/control"
               entity_id: "number.sla_branch_valve"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/sla/valve/control"
               entity_id: "number.sla_valve"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/sla/360/control"
               entity_id: "number.sla_360_intake"
-              target: 100
+              target: 50
           # Open main-1 to allow full enclosure extraction
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/main/valve1/control"
               entity_id: "number.main_duct_valve_1"
-              target: 100
+              target: 50
           # Close spray booth path — isolates booth from fire event
           - action: script.ventsys_ramp_valve
             data:
@@ -245,42 +245,42 @@ script:
             data:
               topic: "ventsys/main/valve1/control"
               entity_id: "number.main_duct_valve_1"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/main/valve2/control"
               entity_id: "number.main_duct_valve_2"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/fdm/branch/control"
               entity_id: "number.fdm_branch_valve"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/fdm/valve/control"
               entity_id: "number.fdm_valve"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/fdm/360/control"
               entity_id: "number.fdm_360_intake"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/sla/branch/control"
               entity_id: "number.sla_branch_valve"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/sla/valve/control"
               entity_id: "number.sla_valve"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/sla/360/control"
               entity_id: "number.sla_360_intake"
-              target: 100
+              target: 50
 
   # ─── BOOTH: main-1 + main-2 open, spray fan on, main fan on ──────────
   # Enclosure paths (FDM/SLA branch valves, print valves, 360° intakes) are
@@ -302,12 +302,12 @@ script:
             data:
               topic: "ventsys/main/valve1/control"
               entity_id: "number.main_duct_valve_1"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/main/valve2/control"
               entity_id: "number.main_duct_valve_2"
-              target: 100
+              target: 50
 
   # ─── BOOTH SEAL: main-2 closed, spray fan off ────────────────────────
   # Closes the spray booth extraction path and stops the booth fan.
@@ -339,12 +339,12 @@ script:
             data:
               topic: "ventsys/fdm/valve/control"
               entity_id: "number.fdm_valve"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/fdm/branch/control"
               entity_id: "number.fdm_branch_valve"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/fdm/360/control"
@@ -363,12 +363,12 @@ script:
             data:
               topic: "ventsys/fdm/360/control"
               entity_id: "number.fdm_360_intake"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/fdm/branch/control"
               entity_id: "number.fdm_branch_valve"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/fdm/valve/control"
@@ -387,17 +387,17 @@ script:
             data:
               topic: "ventsys/fdm/360/control"
               entity_id: "number.fdm_360_intake"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/fdm/valve/control"
               entity_id: "number.fdm_valve"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/fdm/branch/control"
               entity_id: "number.fdm_branch_valve"
-              target: 100
+              target: 50
 
   # ─── FDM SEAL: enc1 branch=0, enc1 print=0, enc1-360=0 ───────────────
   ventsys_mode_fdm_seal:
@@ -433,17 +433,17 @@ script:
             data:
               topic: "ventsys/sla/valve/control"
               entity_id: "number.sla_valve"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/sla/branch/control"
               entity_id: "number.sla_branch_valve"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/main/valve1/control"
               entity_id: "number.main_duct_valve_1"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/sla/360/control"
@@ -462,17 +462,17 @@ script:
             data:
               topic: "ventsys/sla/360/control"
               entity_id: "number.sla_360_intake"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/sla/branch/control"
               entity_id: "number.sla_branch_valve"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/main/valve1/control"
               entity_id: "number.main_duct_valve_1"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/sla/valve/control"
@@ -491,22 +491,22 @@ script:
             data:
               topic: "ventsys/sla/360/control"
               entity_id: "number.sla_360_intake"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/sla/valve/control"
               entity_id: "number.sla_valve"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/sla/branch/control"
               entity_id: "number.sla_branch_valve"
-              target: 100
+              target: 50
           - action: script.ventsys_ramp_valve
             data:
               topic: "ventsys/main/valve1/control"
               entity_id: "number.main_duct_valve_1"
-              target: 100
+              target: 50
 
   # ─── SLA SEAL: enc2 branch=0, enc2 print=0, enc2-360=0 ───────────────
   ventsys_mode_sla_seal:

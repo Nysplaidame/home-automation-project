@@ -18,11 +18,12 @@ Two separate TLS concerns:
 
 ## MQTT Transition Strategy
 
-Current live state on 2026-05-08:
+Current live state on 2026-05-15:
 
 - HA / Mosquitto still has `1883` open as the active bootstrap path for existing clients.
 - `8883` is live for MQTT TLS and has been validated with authenticated publish/subscribe.
-- MQTT-backed integrations are still being introduced gradually, not all at once.
+- Valve1 has been validated end-to-end on MQTT TLS over `8883`.
+- New MQTT-backed ESPHome integrations should now be introduced directly on TLS.
 - CA and broker certificate files are installed on HA under `/ssl`:
   `/ssl/ca.crt`, `/ssl/ca.key`, `/ssl/server.crt`, `/ssl/fullchain.pem`, and
   `/ssl/privkey.pem`.
@@ -35,14 +36,15 @@ be phased rather than a big-bang cutover.
 1. Keep `1883` available for bootstrap and early testing.
 2. Prepare the CA, broker certificate, and Mosquitto TLS listener on `8883`. ✅
 3. Validate one client end-to-end on `8883` with cert trust enabled. ✅
-4. Move new integrations to `8883` individually as they are deployed.
+4. Deploy new integrations directly on `8883` where practical.
 5. Remove `1883` only after all real clients are off it.
 
 ### Client guidance during transition
 
-- New integrations may use `1883` temporarily if the cert chain is not ready yet.
-- Prefer moving each new client straight to `8883` once the CA and broker certs
-  are in place.
+- New integrations should use `8883` directly now that the CA and broker certs
+  are proven.
+- Use `1883` only as an explicit temporary recovery/bootstrap exception, and
+  document the exception before enabling it.
 - Do not leave a half-migrated undocumented state; every client should be clearly
   documented as either `bootstrap on 1883` or `steady-state on 8883`.
 - Do not close firewall access to `1883` until all real clients have been moved
@@ -54,6 +56,36 @@ be phased rather than a big-bang cutover.
 - Bambuddy, if it ultimately needs HA MQTT in practice
 - Future ESPHome / VentSys devices
 - Any later MQTT consumers
+
+### ESPHome client baseline after valve1 pilot
+
+The successful valve1 migration on 2026-05-15 established this working client
+pattern for ESPHome devices on VLAN 50:
+
+```yaml
+wifi:
+  use_address: ${device_ip}
+  manual_ip:
+    static_ip: ${device_ip}
+    gateway: 192.168.50.1
+    subnet: 255.255.255.0
+    dns1: 192.168.50.1
+
+mqtt:
+  broker: 192.168.20.101
+  port: 8883
+  username: !secret mqtt_user
+  password: !secret mqtt_pass
+  discovery: false
+  discover_ip: false
+  certificate_authority: !secret mqtt_ca_cert
+```
+
+Validation evidence from the broker log:
+
+- Valve1's last plain MQTT connection was on `1883` at `2026-05-15 10:23:13`.
+- Its first TLS connection was on `8883` at `2026-05-15 10:24:08`.
+- Mosquitto recorded `negotiated TLSv1.2 cipher ECDHE-RSA-AES256-GCM-SHA384`.
 
 ---
 

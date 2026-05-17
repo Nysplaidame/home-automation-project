@@ -4,7 +4,7 @@ description: Implementation tasks by phase — updated May 2026
 tags: [tasks, implementation]
 aliases: [TODO, Tasks]
 created: 2025-09-15
-modified: 2026-05-08
+modified: 2026-05-14
 type: task-list
 status: active
 ---
@@ -12,6 +12,21 @@ status: active
 # Project Task List
 
 **Links:** [[README|Overview]] | [[PROJECT-INDEX|Index]]
+
+---
+
+## Next 10 project steps
+
+1. [ ] Add the live `ventsys-main-valve-1` plain-MQTT firewall exception to `configs/openwrt/firewall-config.conf` so router redeploys do not wipe it before TLS migration
+2. [ ] Run router validation after the valve-1 firewall-source change (`python tools/router-deploy/lint.py` and `python tools/router-deploy/compile.py --profile first-flight`)
+3. [ ] Configure WireGuard VPN clients for the first 3 devices and test real remote access
+4. [ ] Enable DDNS on the router if WAN IP churn makes WireGuard endpoint updates annoying
+5. [x] Deploy `dashboards/ventsys-card-wrapper.html` to HA and verify the VentSys dashboard works inside a Lovelace iframe card
+6. [ ] Stabilize embedded Grafana view inside HA or explicitly park it behind direct-link-only access until HTTPS/reverse proxy work is done
+7. [ ] Add an external health signal for the monitoring VM so monitoring failure is visible even when Uptime Kuma itself is down
+8. [ ] Configure NAS-backed Home Assistant backups once NAS storage is live, while keeping fast local Proxmox recovery on the MINIX
+9. [ ] Start Frigate properly after `.env`, RTSP details, and MQTT credentials are ready; keep HTTPS/SSL and WebRTC audio as required prerequisites
+10. [ ] Expand VentSys beyond valve 1: finish the MQTT TLS migration path, then flash/adopt the remaining ESPHome devices
 
 ---
 
@@ -53,6 +68,8 @@ status: active
 - [x] Flash/configure GL-MT6000 with router phases 1–8
 - [x] Run router validation/tests from management IP (`test.ps1`: PASS=62/WARN=0/FAIL=0; `test-connectivity.ps1`: PASS=74/WARN=0/FAIL=0)
 - [ ] Fill in MAC addresses in dhcp-config.conf (Proxmox host, VMs, NAS)
+- [ ] Add the live valve-1 temporary plain-MQTT exception to `configs/openwrt/firewall-config.conf` in source, ordered before `Block IoT to Automation`
+- [ ] Re-deploy/validate router config after the valve-1 firewall-source change so live state matches repo state again
 - [ ] Configure WireGuard VPN clients (3 devices)
 - [ ] Enable DDNS on router for dynamic WAN IP
 
@@ -71,7 +88,7 @@ status: active
 ### Home Assistant VM (VM 100)
 - [x] Start VM 100, complete HAOS onboarding wizard
 - [x] Set static IP 192.168.20.101 via nmcli
-- [ ] Install add-ons: Mosquitto, File Editor, Terminal, ESPHome
+- [x] Install add-ons: Mosquitto, File Editor, Terminal, ESPHome
 - [x] Configure MQTT integration (`localhost:1883` for Stage 1 pre-TLS; switch to `localhost:8883` after TLS migration)
 - [x] Copy `ventsys_ha_package.yaml` and `ventsys_ha_scripts.yaml` to `/config/packages/`
 - [x] Do not copy `ventsys_ha_optional.yaml` yet (load only after its prerequisites are met)
@@ -79,6 +96,8 @@ status: active
 - [x] Generate Long-Lived Token → paste into `HA_CONFIG.token` in live dashboard copy
 - [x] Confirm dashboard shows ◉ HA LIVE
 - [x] Enable HA 2FA (TOTP)
+- [x] Copy `dashboards/ventsys-card-wrapper.html` to `/config/www/ventsys-card-wrapper.html`
+- [x] Add a Lovelace iframe/panel view that uses the VentSys card wrapper
 - [ ] Configure NAS as backup target, set daily 03:00 schedule (14 keep)
 - [x] Validate router-local NTP for non-HA-managed restricted devices
 
@@ -148,10 +167,17 @@ status: active
 - [ ] Flash FDM sensor board via USB (`ventsys_fdm_sensor.yaml`)  # A5-3: per-device YAML now exists (A4-4)
 - [ ] Flash SLA sensor board via USB (`ventsys_sla_sensor.yaml`)  # A5-3: per-device YAML now exists (A4-4)
 - [ ] Flash booth sensor board via USB (`ventsys_booth_sensor.yaml`)  # A5-3: per-device YAML now exists (A4-4)
+- [ ] Add `mqtt_ca_cert` to both repo and HA-side ESPHome `secrets.yaml` as part of the VentSys TLS migration path
+- [ ] Migrate `ventsys_main_valve1.yaml` from MQTT `1883` to `8883` with `certificate_authority: !secret mqtt_ca_cert`
+- [ ] Remove the valve-1 temporary plain-MQTT firewall rule after `ventsys-main-valve-1` is confirmed working on TLS MQTT
 - [ ] Adopt all devices in ESPHome add-on (17 ESP32 boards + plugs)  # A5-3: was 'all 4 devices' - pre-expansion count
 - [ ] Verify MQTT topics publishing: `mosquitto_sub -t 'ventsys/#' -v`
 - [ ] Confirm automations fire on test sensor triggers
 - [ ] Test emergency power cutoff sequence end-to-end
+- [ ] Evaluate `mode: restart` on the 12 VentSys HA mode scripts if rapid mode-click queueing causes oscillation in practice
+- [ ] Harden the dashboard page-init valve visual calls so a future script reorder cannot publish `0` to all valve topics on refresh
+- [ ] Revisit `restore_value` behavior for valve position entities so device restarts do not assume `0%` after physical movement
+- [ ] Stand up the garage Pi 4 kiosk for the VentSys dashboard once the display hardware is ready
 
 ---
 

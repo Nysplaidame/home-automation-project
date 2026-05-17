@@ -60,7 +60,7 @@ ESPHome devices go through three stages:
 ESPHome reads credentials from a `secrets.yaml` file in the same folder as
 the YAML config. Create this file before flashing anything.
 See `docs/secrets_reference.md` Section 4 for the full template.
-Minimum required for stage-1 (pre-TLS) flashing:
+Minimum required for direct-TLS flashing:
 
 ```yaml
 # secrets.yaml — DO NOT COMMIT TO GITHUB
@@ -68,6 +68,10 @@ wifi_ssid: "HomeIoT"
 wifi_pass: "your-homeiot-password"    # Bitwarden: wifi-homeiot
 mqtt_user: "mqtt"
 mqtt_pass: "your-mqtt-password"       # Bitwarden: mqtt-credentials
+mqtt_ca_cert: |-
+  -----BEGIN CERTIFICATE-----
+  ...
+  -----END CERTIFICATE-----
 api_key: "your-32-byte-base64-key"    # openssl rand -base64 32
 ota_password: "your-ota-password"
 ```
@@ -298,15 +302,36 @@ Device reboots and reconnects within ~30 seconds.
 
 ---
 
-## Phase 5 — TLS migration (after router deployment)
+## Phase 5 — MQTT TLS baseline
 
-The `_pretls.yaml` configs use port 1883 with no encryption — stage 1 only.
+New VentSys devices should be deployed directly onto TLS now that the broker
+listener and CA trust path are proven.
 
-After completing MQTT TLS migration in `docs/procedures/ssl_tls_guide.md`:
-1. Add `mqtt_ca_cert` to secrets.yaml (Bitwarden: `tls-ca-cert`)
-2. OTA-push the production YAML to each board — these use port 8883
-   with `ca_certificate: !secret mqtt_ca_cert`
-3. Verify MQTT reconnects on port 8883 via `mosquitto_sub` on that port
+Each production YAML should include:
+
+```yaml
+wifi:
+  use_address: ${device_ip}
+  manual_ip:
+    static_ip: ${device_ip}
+    gateway: 192.168.50.1
+    subnet: 255.255.255.0
+    dns1: 192.168.50.1
+
+mqtt:
+  broker: 192.168.20.101
+  port: 8883
+  username: !secret mqtt_user
+  password: !secret mqtt_pass
+  discovery: false
+  discover_ip: false
+  certificate_authority: !secret mqtt_ca_cert
+```
+
+`certificate_authority` is the current ESPHome key for trusting the broker CA.
+`discover_ip: false` avoids the ESPHome MQTT IP-discovery path when the native
+API is already enabled for logs and OTA. `use_address` keeps OTA targeting the
+static VLAN 50 address directly.
 
 ---
 

@@ -6,7 +6,7 @@
 # NOTE: Hardware is ESP32-C6. Framework is esp-idf (required for C6).
 # internal_temperature is NOT available on C6 — omitted intentionally.
 #
-# PRE-TLS: Change mqtt.port to 1883 and remove ca_certificate before first flash.
+# Direct-TLS deployment: keep MQTT on 8883 and trust the local CA from first flash.
 #
 # SECRETS REQUIRED (secrets.yaml):
 #   wifi_ssid, wifi_pass, mqtt_user, mqtt_pass, mqtt_ca_cert,
@@ -33,6 +33,7 @@ logger:
 api:
   encryption:
     key: !secret api_key
+  reboot_timeout: 0s
 
 ota:
   platform: esphome
@@ -41,10 +42,12 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_pass
+  use_address: ${device_ip}
   manual_ip:
     static_ip: ${device_ip}
     gateway: 192.168.50.1
     subnet: 255.255.255.0
+    dns1: 192.168.50.1
   ap:
     ssid: "VentSys FDM Air FB"
     password: !secret ota_password
@@ -57,6 +60,7 @@ mqtt:
   username: !secret mqtt_user
   password: !secret mqtt_pass
   discovery: false
+  discover_ip: false
   certificate_authority: !secret mqtt_ca_cert
   on_connect:
     # Republish last known readings on reconnect so HA stays in sync
@@ -105,7 +109,7 @@ sensor:
   - platform: pulse_meter
     id: flow_meter_pulse_rate
     pin:
-      number: GPIO10
+      number: GPIO0
       inverted: true
       mode: INPUT_PULLUP
     unit_of_measurement: 'pulses/s'
@@ -116,6 +120,9 @@ sensor:
     timeout: 2s
     filters:
       - lambda: return x / 60.0;
+    total:
+      name: "Flow Meter Total Pulses"
+      id: flow_meter_total_pulses
     on_value:
       then:
         - if:
@@ -124,7 +131,7 @@ sensor:
             then:
               - number.set:
                   id: animation_speed
-                  value: !lambda 'return (x / id(pulses_at_max_speed)) * 100.0;'
+                  value: !lambda 'return min(max((x / id(pulses_at_max_speed)) * 100.0, 0.0f), 100.0f);'
         # Publish pulse rate to HA via MQTT
         - mqtt.publish:
             topic: ${mqtt_topic_pulses}
@@ -196,7 +203,7 @@ light:
     id: light_1
     rgb_order: GRB
     chipset: WS2812
-    pin: GPIO9
+    pin: GPIO1
     num_leds: 3
     name: "LEDs"
     internal: true

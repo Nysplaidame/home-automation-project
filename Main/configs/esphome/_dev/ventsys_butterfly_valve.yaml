@@ -17,6 +17,8 @@ esp32:
 
 # Enable logging
 logger:
+  logs:
+    internal_temperature.esp32: INFO
 
 # Enable Home Assistant API
 api:
@@ -248,10 +250,10 @@ number:
             }
         - servo.write:
             id: valve_servo
-            level: !lambda 'return x / 100.0;'
+            level: !lambda 'return (x / 100.0) * 2.0 - 1.0;'
         - lambda: |-
             float red, green, blue;
-            if (x >= 100.0) {
+            if (x >= id(valve_opened_position).state) {
               red = 0.0; green = 1.0; blue = 0.0;  // GREEN
             } else if (x > 0.0) {
               red = 1.0; green = 0.5; blue = 0.0;  // ORANGE
@@ -265,7 +267,7 @@ number:
     name: Valve Open position
     id: valve_opened_position
     min_value: 0
-    initial_value: 100
+    initial_value: 50
     max_value: 100
     step: 1
     optimistic: true
