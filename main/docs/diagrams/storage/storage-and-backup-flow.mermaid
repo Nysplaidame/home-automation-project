@@ -1,0 +1,24 @@
+flowchart LR
+    HA["Home Assistant<br/>VM 100"]
+    Frigate["Frigate<br/>VM 101"]
+    DockerHost["docker-host<br/>VM 103"]
+    Immich["Immich<br/>on docker-host"]
+    OMV["OMV NAS<br/>192.168.40.50<br/>NFS/SMB shares"]
+    Proxmox["Proxmox host<br/>local fast recovery"]
+    Vault["Project vault<br/>Obsidian repo"]
+    Offsite["Future offsite copy<br/>manual or automated"]
+
+    HA -->|"daily HA backups"| OMV
+    Frigate -->|"recording archive / media share"| OMV
+    Immich -->|"library and upload storage"| OMV
+    DockerHost -->|"Compose configs and selected app data"| OMV
+    Proxmox -->|"local VM backups, short retention"| Proxmox
+    Vault -->|"rsync/robocopy backup"| OMV
+    OMV -.->|"periodic copy after restore plan exists"| Offsite
+
+    SMART["OMV SMART monitoring<br/>disk health alerts"]
+    Restore["Restore drills<br/>HA, Frigate, Immich, router configs"]
+
+    OMV --> SMART
+    OMV --> Restore
+    Proxmox --> Restore

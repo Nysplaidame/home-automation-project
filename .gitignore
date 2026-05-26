@@ -11,3 +11,6 @@
 # Local agent/debug scratch files
 ssh*.txt
 whoami.txt
+
+# Google Drive transient upload staging
+.tmp.driveupload/

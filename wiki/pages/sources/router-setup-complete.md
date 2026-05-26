@@ -44,7 +44,7 @@ Comprehensive 8-phase router deployment guide for the GL-MT6000 running OpenWrt 
 
 ## Entities Mentioned
 
-[[entities/gl-mt6000]], [[entities/home-assistant]], [[entities/ventsys]], [[entities/proxmox]], [[entities/frigate]], [[entities/raspberry-pi-nas]]
+[[entities/gl-mt6000]], [[entities/home-assistant]], [[entities/ventsys]], [[entities/proxmox]], [[entities/frigate]], [[entities/openmediavault-nas]]
 
 ## Concepts Mentioned
 

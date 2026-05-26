@@ -43,7 +43,7 @@ Full Frigate NVR setup on Debian 12 (VM 101), including Docker install, UFW rule
 
 ## Entities Mentioned
 
-[[entities/frigate]], [[entities/bambuddy]], [[entities/home-assistant]], [[entities/mosquitto-mqtt]], [[entities/raspberry-pi-nas]], [[entities/proxmox]]
+[[entities/frigate]], [[entities/bambuddy]], [[entities/home-assistant]], [[entities/mosquitto-mqtt]], [[entities/openmediavault-nas]], [[entities/proxmox]]
 
 ## Concepts Mentioned
 

@@ -1,0 +1,51 @@
+flowchart TB
+    User["Trusted user devices<br/>VLAN 1"]
+    Router["OpenWrt firewall<br/>zone policy and DHCP/DNS"]
+    Mgmt["Management<br/>VLAN 10"]
+    Automation["Automation<br/>VLAN 20"]
+    NVR["NVR<br/>VLAN 30"]
+    Printers["Printers<br/>VLAN 35"]
+    Storage["Storage<br/>VLAN 40"]
+    IoT["IoT sensors<br/>VLAN 50"]
+    Monitoring["Monitoring<br/>VLAN 60"]
+    DMZ["DMZ<br/>VLAN 70"]
+    Guest["Guest<br/>VLAN 99"]
+    Tailscale["Tailscale ACLs<br/>daily remote"]
+    HostFW["Host firewalls / UFW<br/>Linux services"]
+    ServiceAuth["Service auth<br/>HA 2FA, app logins, tokens"]
+
+    User --> Router
+    Router --> Mgmt
+    Router --> Automation
+    Router --> NVR
+    Router --> Printers
+    Router --> Storage
+    Router --> IoT
+    Router --> Monitoring
+    Router --> DMZ
+    Router --> Guest
+
+    Tailscale --> Automation
+    Tailscale --> Storage
+    Automation --> HostFW
+    Storage --> HostFW
+    HostFW --> ServiceAuth
+
+    Automation -.->|"MQTT / ESPHome only"| IoT
+    NVR -.->|"camera streams only"| Printers
+    NVR -.->|"recording/archive only"| Storage
+    Monitoring -.->|"health checks and metrics only"| Automation
+    Monitoring -.->|"health checks and metrics only"| NVR
+    Monitoring -.->|"health checks and metrics only"| Storage
+
+    GuestX["Guest cannot reach internal VLANs"]
+    IoTX["IoT cannot initiate broad access"]
+    StorageX["Storage has no broad internet"]
+    NVRX["NVR has no broad internet"]
+    PrinterX["Printers limited to required OTA/cloud paths"]
+
+    Guest -.->|"blocked"| GuestX
+    IoT -.->|"blocked"| IoTX
+    Storage -.->|"blocked"| StorageX
+    NVR -.->|"blocked"| NVRX
+    Printers -.->|"limited"| PrinterX

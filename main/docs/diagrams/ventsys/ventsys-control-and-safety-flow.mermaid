@@ -1,0 +1,54 @@
+flowchart TB
+    HA["Home Assistant<br/>VM 100<br/>automation authority"]
+    MQTT["Mosquitto MQTT<br/>TLS 8883 target"]
+    ESPHome["ESPHome add-on<br/>firmware and adoption"]
+
+    subgraph Devices["VentSys devices on VLAN 50"]
+        Fan["Fan controllers<br/>inline and booth fans"]
+        Sensors["Sensor arrays<br/>temperature, humidity, VOC, smoke, pressure"]
+        Valves["Valve controllers<br/>branch, enclosure, 360-degree valves"]
+        Plugs["Smart plugs<br/>printer power cutoff"]
+    end
+
+    subgraph Physical["Physical airflow"]
+        FDM["FDM enclosure"]
+        SLA["SLA enclosure"]
+        Booth["Spray booth"]
+        Duct["PrintAirPipe ducting"]
+        Exhaust["Inline fan to window exhaust"]
+    end
+
+    HA --> MQTT
+    ESPHome --> Devices
+    Devices --> MQTT
+    MQTT --> HA
+
+    Sensors --> HA
+    HA --> Fan
+    HA --> Valves
+    HA --> Plugs
+
+    FDM --> Duct
+    SLA --> Duct
+    Booth --> Duct
+    Duct --> Exhaust
+    Fan --> Exhaust
+    Valves --> Duct
+    Sensors --> FDM
+    Sensors --> SLA
+    Sensors --> Booth
+
+    subgraph Safety["Safety behavior"]
+        Emergency["Emergency shutdown sequence"]
+        Manual["Manual override path"]
+        Failsafe["Device failsafe defaults<br/>safe fan/valve behavior on HA loss"]
+    end
+
+    Sensors -.->|"alarm threshold"| Emergency
+    HA -.->|"automation trigger"| Emergency
+    Emergency --> Plugs
+    Emergency --> Fan
+    Emergency --> Valves
+    Manual --> Fan
+    Manual --> Valves
+    Devices -.->|"network or HA loss"| Failsafe

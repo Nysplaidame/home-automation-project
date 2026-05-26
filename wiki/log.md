@@ -139,3 +139,21 @@
 4. **HA is live** — core 2026.5.0, VentSys packages staged, MQTT running pre-TLS
 5. **MQTT is still 1883** — TLS migration not yet done; 8883 target remains pending
 6. **Frigate VM is Debian 13**, not Debian 12 as originally planned
+
+## [2026-05-18] lint | Wiki maintenance sync to May 2026 canonical state
+
+- Sources checked: `main/README.md`, `main/PROJECT-INDEX.md`, `main/TO-DO.md`, current handoffs, and shared `agent-ops` wiki-maintenance docs.
+- Pages created: [[analyses/lint-2026-05-18]]
+- Pages updated: [[entities/gl-mt6000]], [[entities/proxmox]], [[entities/home-assistant]], [[entities/monitoring-vm]], [[entities/mosquitto-mqtt]], [[entities/bambuddy]], [[entities/ventsys]], [[entities/esphome]], [[concepts/mqtt-tls]], [[index]]
+- Notes: Repaired stale wiki state for live monitoring VM, MQTT TLS mixed-mode state, Bambuddy TLS migration, live `ventsys-main-valve-1`, current router validation counts, and the live-only valve-1 plain-MQTT firewall exception risk.
+
+## [2026-05-23] update | Self-hosted services and remote access architecture
+
+- Canonical project docs now select OMV NAS, Tailscale daily remote access, AdGuard Home DNS, Immich, Homepage, Dozzle, and WireGuard fallback.
+- Pages created: [[entities/openmediavault-nas]], [[entities/adguard-home]], [[entities/immich]], [[entities/homepage]], [[entities/dozzle]], [[concepts/tailscale-remote-access]]
+- Pages updated: [[entities/raspberry-pi-nas]], [[entities/docker-host]], [[entities/frigate]], [[entities/proxmox]], [[entities/gl-mt6000]], [[concepts/wireguard-vpn]], [[concepts/vlan-segmentation]], [[index]]
+- Notes: Deprecated the old Raspberry Pi NAS direction, recorded host-route-only Tailscale access, and reframed WireGuard as dormant fallback.
+## [2026-05-25] update | Documentation consolidation sync
+- Updated wiki summaries after canonical docs removed old prompt-era sub-project files and stale dashboard/kanban files.
+- Current canonical docs now use the fresh rebuild manual, 10-segment network, OMV NAS, docker-host service tiers, Tailscale daily access, and WireGuard fallback.
+- Pages updated: [[sources/project-readme]], [[sources/network-architecture-decision]], [[concepts/vlan-segmentation]], [[index]]

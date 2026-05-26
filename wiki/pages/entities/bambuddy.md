@@ -3,7 +3,7 @@ title: "Bambuddy"
 category: entity
 tags: [software, bambuddy, docker, bambulab, p1s, mqtt]
 created: 2026-04-07
-updated: 2026-05-08
+updated: 2026-05-18
 sources: [project-readme, bambuddy-p1s-setup-guide]
 status: stable
 ---
@@ -12,11 +12,11 @@ status: stable
 
 **Type:** integration — Bambu Lab printer bridge (Docker container)
 **Status:** ✅ Running on VM 103 (docker-host) at `http://192.168.20.102:8000`
-**Related:** [[entities/bambu-p1s]], [[entities/home-assistant]], [[entities/mosquitto-mqtt]], [[entities/proxmox]]
+**Related:** [[entities/bambu-p1s]], [[entities/home-assistant]], [[entities/mosquitto-mqtt]], [[entities/proxmox]], [[entities/docker-host]]
 
 ## Overview
 
-Bambuddy bridges the Bambu Lab P1S's proprietary protocol to MQTT, publishing print state to Home Assistant. It runs on VM 103 (docker-host) at `192.168.20.102`, port 8000, using `network_mode: host`. The container is live and healthy. P1S integration in HA is parked until the printer's serial number and RTSP details are physically available.
+Bambuddy bridges the Bambu Lab P1S's proprietary protocol to MQTT, publishing print state to Home Assistant. It runs on VM 103 (docker-host) at `192.168.20.102`, port 8000, using `network_mode: host`. The container is live and healthy. P1S integration in HA is parked until the printer's serial number and RTSP/details are physically available.
 
 Note: Bambuddy originally planned to run on VM 101 (frigate-nvr). It was moved to VM 103 (docker-host) as a dedicated, trusted Docker host on VLAN 20.
 
@@ -54,14 +54,20 @@ services:
 
 ## Environment (`.env` on VM 103)
 
-```
+```env
 MQTT_HOST=192.168.20.101
-MQTT_PORT=1883
+MQTT_PORT=8883
 MQTT_USER=mqtt
 MQTT_PASSWORD=<from Bitwarden>
 ```
 
-Update `MQTT_PORT` to `8883` after MQTT TLS migration.
+Bambuddy's application database settings also use `mqtt_enabled=true`, `mqtt_broker=192.168.20.101`, `mqtt_port=8883`, `mqtt_username=mqtt`, `mqtt_use_tls=true`, and `mqtt_topic_prefix=bambuddy`.
+
+## Live MQTT Verification
+
+- Bambuddy logs confirmed both MQTT relay and MQTT smart-plug service connected to `192.168.20.101:8883`.
+- Mosquitto logs confirmed Bambuddy negotiated TLSv1.3 from `192.168.20.102`.
+- Retained `bambuddy/status` was verified over TLS on `8883`.
 
 ## Firewall (VM 103 UFW)
 
@@ -74,24 +80,25 @@ Update `MQTT_PORT` to `8883` after MQTT TLS migration.
 ## HA Integration (parked)
 
 - HA package: `configs/home-assistant/bambuddy_p1s_package.yaml`
-- **Do not deploy** until `<P1S_SERIAL>` placeholder is replaced and MQTT topics confirmed
+- **Do not deploy** until `<P1S_SERIAL>` placeholder is replaced and MQTT topics are confirmed
 - Will publish: `binary_sensor.p1s_printing`, print state entities
 - P1S must be in Developer Mode (LAN Only Mode) with known access code and serial
 
 ## Pending
 
-- [ ] Add P1S details and HA Long-Lived Token in Bambuddy web UI once printer is physically available
-- [ ] Replace `<P1S_SERIAL>` in `bambuddy_p1s_package.yaml` then deploy to HA
-- [ ] Switch MQTT from 1883 → 8883 after TLS migration
+- [ ] Add P1S details and HA Long-Lived Token in Bambuddy web UI once printer is physically available.
+- [ ] Replace `<P1S_SERIAL>` in `bambuddy_p1s_package.yaml` then deploy to HA.
+- [ ] Confirm Bambuddy P1S MQTT topics before enabling HA package entities.
 
 ## Troubleshooting
 
-- Container won't start: `docker compose logs bambuddy --tail=40`
-- P1S "Connection Failed": ensure Developer Mode enabled; verify access code
-- MQTT not publishing: `mosquitto_sub -t 'bambuddy/#' -v` from HA terminal
-- See [[sources/troubleshooting-reference]]
+- Container won't start: `docker compose logs bambuddy --tail=40`.
+- P1S "Connection Failed": ensure Developer Mode enabled; verify access code.
+- MQTT not publishing: subscribe to `bambuddy/#` over TLS from HA Terminal.
+- See [[sources/troubleshooting-reference]].
 
 ## Change Log
 
-- 2026-05-08: Major update — Bambuddy live on VM 103 (moved from VM 101); compose/env details added; P1S integration still parked
-- 2026-04-07: Page created from project-wide ingest
+- 2026-05-18: Updated MQTT status from 1883 pending migration to live TLS on 8883; added verification details.
+- 2026-05-08: Major update — Bambuddy live on VM 103 (moved from VM 101); compose/env details added; P1S integration still parked.
+- 2026-04-07: Page created from project-wide ingest.

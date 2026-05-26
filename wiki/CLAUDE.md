@@ -32,7 +32,13 @@ wiki/
 
 ## 2. Workflows
 
-### 2A. INGEST — adding a new source
+### 2A. AUTHORITY RULE
+
+- The project repo is the source of truth for current state.
+- The wiki is a compiled knowledge layer, not the canonical live-status layer.
+- If a wiki page conflicts with canonical project docs, update the wiki to match the project docs and record the correction in `log.md`.
+
+### 2B. INGEST — adding a new source
 
 Triggered when the human says: `ingest`, `process this`, or drops a file path.
 
@@ -49,7 +55,7 @@ Triggered when the human says: `ingest`, `process this`, or drops a file path.
 
 **Scope rule:** A single ingest typically touches 5–15 pages. If a source is narrow, fewer is fine.
 
-### 2B. QUERY — answering a question
+### 2C. QUERY — answering a question
 
 Triggered when the human asks a question or says `query`.
 
@@ -60,18 +66,23 @@ Triggered when the human asks a question or says `query`.
 4. Ask: "Should I file this as an analysis?" If yes → write to `pages/analyses/<slug>.md`.
 5. If filed, update `index.md` and `log.md`.
 
-### 2C. LINT — wiki health check
+### 2D. LINT — wiki health check
 
 Triggered when the human says `lint` or `health check`.
 
 **Check for:**
 - Pages with no inbound links (orphans) — list them.
 - Claims that newer sources may have superseded.
+- Claims that conflict with current canonical project docs.
 - Concepts mentioned on multiple pages but lacking their own page.
 - Missing cross-links between obviously related pages.
 - Gaps that could be filled with a web search or a new source.
 
 **Output:** A lint report filed to `pages/analyses/lint-<date>.md`, plus a prioritised action list.
+
+**Required cadence:**
+- Run lint after major project-state changes that affect entities or concepts.
+- Run periodic lint even if no new source has been ingested.
 
 ---
 

@@ -28,7 +28,7 @@ All software, configs, and documentation are complete. The project is blocked at
 | 1 — Network | ✅ Configs complete / ⏳ Not deployed | Must flash GL-MT6000 with phases 1–8 |
 | 2 — Core infra (Proxmox, HA, Frigate) | ⏳ Pending | Router must be live first |
 | 3 — VentSys | ⏳ Hardware not purchased | Router + HA needed; then hardware |
-| 4 — Storage (NAS) | ⏳ Hardware not purchased | Pi 4 + HDDs needed |
+| 4 — Storage (NAS) | ⏳ Hardware not purchased | Now superseded by OMV NAS direction |
 | 5 — CCTV | ⏳ Camera models TBD | Router + Frigate VM needed; then cameras |
 | 6 — Security hardening (TLS, HTTPS) | ⏳ Not started | All above must be deployed first |
 
@@ -50,7 +50,7 @@ All software, configs, and documentation are complete. The project is blocked at
 
 | Item | For | Est. Cost |
 |---|---|---|
-| Raspberry Pi 4 (8GB) + 2× 4TB HDD | [[entities/raspberry-pi-nas]] | ~£160 |
+| OMV-capable NAS hardware + storage | [[entities/openmediavault-nas]] | TBD |
 | 8-port PoE+ switch | Phase 5 CCTV | ~£80 |
 | 4× PoE cameras (model TBD) | Phase 5 CCTV | ~£240 |
 | 4+ ESP32 DevKit boards | [[entities/ventsys]] sensors | ~£50 |

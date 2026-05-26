@@ -1,8 +1,8 @@
 ---
 title: Home Automation Project
-description: Repository root — navigation guide
+description: Repository root navigation guide
 created: 2025-09-15
-modified: 2026-05-08
+modified: 2026-05-25
 ---
 
 # Home Automation Project
@@ -13,30 +13,29 @@ Fire safety ventilation, NVR surveillance, secure network architecture, and home
 
 ---
 
-## Repository layout
+## Repository Layout
 
-```
+```text
 home-automation-project/
 ├── main/               ← primary working tree (all active docs, configs, scripts)
-│   ├── configs/        ← system configuration files (openwrt, esphome, ha, frigate, proxmox)
-│   ├── docs/           ← decisions, procedures, diagrams, prompts, troubleshooting
+│   ├── configs/        ← system configuration files
+│   ├── docs/           ← decisions, install manuals, procedures, diagrams, troubleshooting
 │   ├── scripts/        ← setup guides and operational scripts
-│   ├── tools/          ← router-deploy toolkit, playwright smoke tests
+│   ├── tools/          ← router-deploy toolkit, smoke tests
 │   ├── ventsys/        ← VentSys ESPHome bundles and integration docs
-│   ├── wiki/           ← LLM-maintained knowledge base (see wiki/CLAUDE.md)
-│   ├── README.md       ← project overview and status (start here)
-│   ├── PROJECT-INDEX.md← full documentation index
-│   └── TO-DO.md        ← task list by phase
+│   ├── README.md       ← project overview and status
+│   ├── PROJECT-INDEX.md← documentation index
+│   └── TO-DO.md        ← current task list
+├── wiki/               ← separate LLM-maintained knowledge base
 └── README.md           ← this file
 ```
 
-**→ For everything project-related, go to [`main/`](main/).**
-
-The root of this repo is the Obsidian vault wrapper. All active content lives under `main/`.
+For active project work, start in [`main/`](main/).
+The root of this repo is the Obsidian vault wrapper. The wiki lives separately under [`wiki/`](wiki/).
 
 ---
 
-## Quick links
+## Quick Links
 
 | What | Where |
 |---|---|
@@ -44,11 +43,12 @@ The root of this repo is the Obsidian vault wrapper. All active content lives un
 | Full documentation index | [`main/PROJECT-INDEX.md`](main/PROJECT-INDEX.md) |
 | Task list | [`main/TO-DO.md`](main/TO-DO.md) |
 | Current session handoff | [`main/HANDOFF-2026-05-07-current.md`](main/HANDOFF-2026-05-07-current.md) |
+| Fresh rebuild manual | [`main/docs/install/START-HERE.md`](main/docs/install/START-HERE.md) |
 | Router configs | [`main/configs/openwrt/`](main/configs/openwrt/) |
+| Router deploy toolkit | [`main/tools/router-deploy/`](main/tools/router-deploy/) |
 | ESPHome configs | [`main/configs/esphome/`](main/configs/esphome/) |
 | VentSys bundles | [`main/ventsys/ventsys_bundle_updated/`](main/ventsys/ventsys_bundle_updated/) |
-| Router deploy toolkit | [`main/tools/router-deploy/`](main/tools/router-deploy/) |
-| Wiki | [`main/wiki/`](main/wiki/) |
+| Wiki operating rules | [`wiki/CLAUDE.md`](wiki/CLAUDE.md) |
 
 ---
 

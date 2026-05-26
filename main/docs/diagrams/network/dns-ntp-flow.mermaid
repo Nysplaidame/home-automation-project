@@ -1,0 +1,28 @@
+flowchart TB
+    Clients["LAN, management, automation, printer, guest clients"]
+    Restricted["Restricted VLAN clients<br/>NVR, storage, IoT"]
+    Router["OpenWrt router<br/>dnsmasq + DHCP + local DNS + NTP<br/>192.168.10.1"]
+    AdGuard["AdGuard Home on docker-host<br/>192.168.20.102<br/>DNS filtering"]
+    Quad9["Quad9 public DNS<br/>9.9.9.9 preferred fallback"]
+    Cloudflare["Cloudflare public DNS<br/>secondary fallback"]
+    HA["Home Assistant<br/>time source can point at router NTP"]
+    ESPHome["ESPHome / VentSys devices<br/>router-derived time through HA and/or direct NTP when allowed"]
+
+    Clients --> Router
+    Restricted --> Router
+    Router --> AdGuard
+    AdGuard --> Quad9
+    AdGuard --> Cloudflare
+    Router -.->|"automatic public DNS fallback if AdGuard unavailable"| Quad9
+    Router -.->|"secondary fallback"| Cloudflare
+
+    Router --> HA
+    Router --> ESPHome
+    HA -.->|"manages ESPHome devices and schedules"| ESPHome
+
+    LocalNames["Local hostnames and DHCP leases<br/>router remains authority"]
+    Router --- LocalNames
+
+    Blocked["No Google DNS fallback<br/>no client DNS bypass when enforcement is enabled"]
+    Clients -.->|"policy"| Blocked
+    Restricted -.->|"policy"| Blocked

@@ -38,7 +38,7 @@ The complete OpenWrt network and firewall configuration for the GL-MT6000. `vlan
 
 ## Entities Mentioned
 
-[[entities/gl-mt6000]], [[entities/home-assistant]], [[entities/ventsys]], [[entities/frigate]], [[entities/bambuddy]], [[entities/proxmox]], [[entities/raspberry-pi-nas]]
+[[entities/gl-mt6000]], [[entities/home-assistant]], [[entities/ventsys]], [[entities/frigate]], [[entities/bambuddy]], [[entities/proxmox]], [[entities/openmediavault-nas]]
 
 ## Concepts Mentioned
 

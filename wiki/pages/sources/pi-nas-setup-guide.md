@@ -1,5 +1,5 @@
 ---
-title: "Pi NAS Setup Guide"
+title: "Pi NAS Setup Guide (Superseded)"
 category: source
 tags: [nas, raspberry-pi, nfs, samba, storage]
 created: 2026-04-07
@@ -7,7 +7,7 @@ updated: 2026-04-07
 status: stable
 ---
 
-# Source: Pi NAS Setup Guide
+# Source: Pi NAS Setup Guide (Superseded)
 
 **Original file:** `scripts/setup/nas/pi_nas_setup_guide.md`
 **Date ingested:** 2026-04-07
@@ -15,12 +15,13 @@ status: stable
 
 ## Summary
 
-6-phase guide for deploying the Raspberry Pi 4 as a NAS on VLAN 40. Covers OS flash (Pi OS Lite 64-bit), static IP, UFW hardening, storage formatting, NFS exports for Frigate and HA, optional Samba for Windows access, HA backup integration, and SMART monitoring.
+Superseded historical guide for deploying a Raspberry Pi as a NAS on VLAN 40.
+The active project direction is now [[entities/openmediavault-nas]] using
+`main/scripts/setup/nas/omv_nas_setup_guide.md`.
 
 ## Key Takeaways
 
-- **Boot from USB SSD** (not microSD) — SD cards fail under continuous NAS write loads; highly recommended
-- **Imager settings:** hostname `pi-nas`, SSH key-based, no WiFi, locale Europe/London
+- **Status:** superseded by OMV NAS direction
 - **Static IP:** `192.168.40.50/24`, gw `192.168.40.1` via nmcli
 - **UFW rules:** allow only VLAN 10 (SSH), HA VM (SSH, NFS, Samba), Frigate VM (NFS, Samba) — deny everything else
 - **NFS exports:** `/mnt/nas/frigate` → Frigate VM only; `/mnt/nas/ha-backups` → HA VM only; `/mnt/nas/configs` → Management + HA
@@ -39,7 +40,7 @@ status: stable
 
 ## Entities Mentioned
 
-[[entities/raspberry-pi-nas]], [[entities/frigate]], [[entities/home-assistant]]
+[[entities/openmediavault-nas]], [[entities/frigate]], [[entities/home-assistant]]
 
 ## Concepts Mentioned
 
@@ -47,4 +48,4 @@ status: stable
 
 ## Contradictions / Updates
 
-None — first detailed NAS guide ingested.
+Superseded by the OMV NAS plan selected on 2026-05-23.

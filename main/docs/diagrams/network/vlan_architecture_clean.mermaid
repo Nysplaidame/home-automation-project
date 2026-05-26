@@ -1,0 +1,78 @@
+flowchart TB
+    Internet["Internet"]
+    Router["OpenWrt router<br/>GL-MT6000<br/>192.168.10.1<br/>DHCP, local DNS, firewall, NTP"]
+    Internet --- Router
+
+    subgraph Ports["Physical ports"]
+        LAN1["LAN1 trunk<br/>Proxmox VLAN trunk"]
+        LAN2["LAN2 management access"]
+        LAN3["LAN3 future camera switch"]
+        LAN4["LAN4 OMV NAS"]
+        LAN5["LAN5 recovery / AP"]
+        WiFi["Router Wi-Fi SSIDs"]
+    end
+
+    Router --- LAN1
+    Router --- LAN2
+    Router --- LAN3
+    Router --- LAN4
+    Router --- LAN5
+    Router --- WiFi
+
+    subgraph VLANs["Current VLAN and subnet plan"]
+        V1["VLAN 1 LAN<br/>192.168.1.0/24<br/>trusted users"]
+        V10["VLAN 10 Management<br/>192.168.10.0/24<br/>router, Proxmox"]
+        V20["VLAN 20 Automation<br/>192.168.20.0/24<br/>Home Assistant, docker-host"]
+        V30["VLAN 30 NVR<br/>192.168.30.0/24<br/>Frigate, cameras"]
+        V35["VLAN 35 Printers<br/>192.168.35.0/24<br/>Bambu P1S, future printers"]
+        V40["VLAN 40 Storage<br/>192.168.40.0/24<br/>OMV NAS"]
+        V50["VLAN 50 IoT<br/>192.168.50.0/24<br/>ESPHome and VentSys devices"]
+        V60["VLAN 60 Monitoring<br/>192.168.60.0/24<br/>Kuma, Grafana, InfluxDB"]
+        V70["VLAN 70 DMZ<br/>192.168.70.0/24<br/>reserved controlled public edge"]
+        V99["VLAN 99 Guest<br/>192.168.99.0/24<br/>guest Wi-Fi"]
+    end
+
+    Router --- V1
+    Router --- V10
+    Router --- V20
+    Router --- V30
+    Router --- V35
+    Router --- V40
+    Router --- V50
+    Router --- V60
+    Router --- V70
+    Router --- V99
+
+    subgraph Core["Core hosts"]
+        Proxmox["Proxmox host<br/>192.168.10.10"]
+        HA["Home Assistant VM 100<br/>192.168.20.101"]
+        Frigate["Frigate VM 101<br/>192.168.30.20"]
+        DockerHost["docker-host VM 103<br/>192.168.20.102<br/>Compose apps + Tailscale subnet router"]
+        OMV["OMV NAS<br/>192.168.40.50"]
+    end
+
+    V10 --- Proxmox
+    Proxmox --- HA
+    Proxmox --- Frigate
+    Proxmox --- DockerHost
+    V40 --- OMV
+
+    subgraph Remote["Remote access"]
+        Tailnet["Tailscale tailnet<br/>daily access"]
+        WireGuard["WireGuard fallback<br/>dormant split tunnel"]
+    end
+
+    Tailnet --> DockerHost
+    DockerHost -.->|"host routes only: HA and OMV"| HA
+    DockerHost -.->|"host route only"| OMV
+    WireGuard -.->|"fallback only; no broad storage subnet"| Router
+
+    classDef router fill:#f8f3d4,stroke:#8a6d00,stroke-width:2px
+    classDef vlan fill:#edf7ff,stroke:#2b6cb0,stroke-width:1px
+    classDef host fill:#eef8ee,stroke:#2f855a,stroke-width:1px
+    classDef remote fill:#fff0f6,stroke:#b83280,stroke-width:1px
+
+    class Router router
+    class V1,V10,V20,V30,V35,V40,V50,V60,V70,V99 vlan
+    class Proxmox,HA,Frigate,DockerHost,OMV host
+    class Tailnet,WireGuard remote

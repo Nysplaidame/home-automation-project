@@ -47,7 +47,7 @@ status: stable
 
 ## Entities Mentioned
 
-[[entities/gl-mt6000]], [[entities/home-assistant]], [[entities/frigate]], [[entities/ventsys]], [[entities/raspberry-pi-nas]]
+[[entities/gl-mt6000]], [[entities/home-assistant]], [[entities/frigate]], [[entities/ventsys]], [[entities/openmediavault-nas]]
 
 ## Concepts Mentioned
 

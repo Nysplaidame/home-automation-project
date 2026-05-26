@@ -3,7 +3,7 @@ title: "MQTT TLS with Local Certificate Authority"
 category: concept
 tags: [mqtt, tls, security, certificates, mosquitto]
 created: 2026-04-07
-updated: 2026-04-07
+updated: 2026-05-18
 sources: [ventsys-technical-specs, ventsys-implementation-roadmap, troubleshooting-reference]
 status: stable
 ---
@@ -12,39 +12,44 @@ status: stable
 
 ## Definition
 
-MQTT TLS replaces plaintext MQTT (port 1883) with TLS-encrypted MQTT (port 8883), using a self-hosted Certificate Authority (CA) on Home Assistant to issue and validate all certificates. No internet dependency at any stage — certificates are generated on HA and embedded in ESPHome firmware at flash time.
+MQTT TLS replaces plaintext MQTT (port `1883`) with TLS-encrypted MQTT (port `8883`), using a self-hosted Certificate Authority (CA) on Home Assistant to validate broker certificates for local clients. No internet dependency is required for runtime validation; certificates are generated and stored locally.
 
 ## Relevance to This Project
 
-All 17 VentSys ESP32 devices communicate via MQTT. Without TLS, messages are readable by any device on VLAN 50. Implementing MQTT TLS is Phase 6 (security hardening) of the project deployment plan.
+MQTT carries VentSys control/state, Bambuddy status, and future Frigate/automation messages. TLS matters because VLAN 50 devices are intentionally restricted and should not depend on plaintext credentials or control messages long-term.
 
-## CA Architecture
+The project is now in a mixed migration state: Mosquitto TLS on `8883` is live and Bambuddy has migrated successfully, but `1883` remains open as a temporary bootstrap path. `ventsys-main-valve-1` is the important remaining live plaintext client and must move to `8883` before its temporary firewall exception can be removed.
 
+## Current Migration State
+
+| Area | State |
+|---|---|
+| Mosquitto listener `8883` | ✅ Live and verified |
+| CA-based TLS pub/sub test | ✅ Verified with `/ssl/ca.crt` |
+| Bambuddy → Mosquitto | ✅ Migrated to `8883`, TLSv1.3 observed |
+| Mosquitto listener `1883` | ⏳ Still open for bootstrap/legacy clients |
+| `ventsys-main-valve-1` | ⏳ Live on `1883`; TLS migration pending |
+| Remaining VentSys devices | ⏳ TLS-ready YAMLs blocked until `mqtt_ca_cert` exists in ESPHome secrets |
+| Temporary valve-1 firewall rule | ⚠️ Live on router but not yet in canonical `firewall-config.conf` |
+
+## CA / Certificate Placement
+
+The live HA-side CA certificate is used for TLS validation. For ESPHome, the next documented step is to copy the CA certificate into both repo and HA-side ESPHome `secrets.yaml` as `mqtt_ca_cert`, then reference it from TLS YAMLs.
+
+```yaml
+mqtt_ca_cert: |
+  -----BEGIN CERTIFICATE-----
+  ...
+  -----END CERTIFICATE-----
 ```
-/config/ssl/ca/
-├── certs/
-│   ├── ca-cert.pem          ← Root CA (10-year validity)
-│   ├── 192.168.20.101-cert.pem  ← MQTT broker cert
-│   └── <device>-cert.pem    ← Per-device certs (3-year validity)
-├── private/
-│   ├── ca-key.pem           ← Root CA private key (chmod 700)
-│   └── <device>-key.pem
-└── openssl.cnf
-```
+
+ESPHome YAML should then use the project-supported TLS form, e.g. `port: 8883` plus `certificate_authority: !secret mqtt_ca_cert` where the device YAML expects it.
 
 ## Certificate Naming Rule
 
-**Critical:** Certificate CN must exactly match the ESPHome `device_name` (= mDNS hostname). Mismatch = TLS validation failure.
+For per-device certificate designs, certificate CN must exactly match the ESPHome `device_name` / mDNS hostname. A mismatch causes TLS validation failure. The current live migration path uses username/password plus broker TLS validation rather than requiring client certificates.
 
-Canonical device names (from `dhcp-config.conf`):
-- `ventsys-main-fan` (192.168.50.21)
-- `ventsys-sla-print-valve` (192.168.50.56)
-- `ventsys-fdm-print-valve` (192.168.50.55)
-- `ventsys-booth-sensor` (192.168.50.33)
-- `enc-fdm-sensors` (192.168.50.31)
-- `enc-sla-sensors` (192.168.50.32)
-
-## Mosquitto TLS Config (key settings)
+## Mosquitto TLS Config (design settings)
 
 ```conf
 listener 8883
@@ -56,41 +61,20 @@ tls_version tlsv1.2
 allow_anonymous false
 ```
 
-## ESPHome Integration
-
-The CA certificate is embedded directly in each device's YAML at flash time:
-```yaml
-mqtt:
-  broker: 192.168.20.101
-  port: 8883
-  ca_certificate: |
-    -----BEGIN CERTIFICATE-----
-    # ca-cert.pem content pasted here
-    -----END CERTIFICATE-----
-```
-
 ## Firewall Change
 
-- After TLS migration: remove the temporary 1883 rule, keep only 8883 rule
-- Explicit block on 1883: `Block IoT Plain MQTT` rule in `firewall-config.conf`
-- OpenWrt NTP on port 123 must be open from VLAN 50 (for ESP32 time sync)
+- Keep `8883` allowed from approved clients to Home Assistant/Mosquitto.
+- Remove the temporary `1883` rule after `ventsys-main-valve-1` is confirmed working on TLS.
+- If router config is redeployed before TLS migration, the live valve-1 `1883` exception must be added to `configs/openwrt/firewall-config.conf` or it will be wiped.
+- OpenWrt NTP on UDP/123 must remain available from VLAN 50 for ESP32 time sync.
 
-## Certificate Lifecycle
+## Next Migration Actions
 
-- Root CA: 10 years (low maintenance)
-- Device certs: 3 years (renew 6 months before expiry)
-- Renewal distribution: via MQTT publish to `ventsys/system/certificate/<device>/renewal`
-- HA monitors cert expiry via template sensor — alerts when < 60 days remain
-
-## Implementation Timeline
-
-9-week plan — see [[sources/ventsys-implementation-roadmap]]:
-1. Wks 1–2: OpenWrt NTP + CA deployment
-2. Wk 3: Mosquitto TLS on 8883
-3. Wks 4–5: Flash all devices with TLS certs
-4. Wk 6: HA + Node-RED updated to TLS
-5. Wks 7–8: Automated certificate renewal
-6. Wk 9: Full validation
+1. Add `mqtt_ca_cert` to both repo and HA-side ESPHome `secrets.yaml`.
+2. Move `ventsys_main_valve1.yaml` from `1883` to `8883` with `certificate_authority: !secret mqtt_ca_cert`.
+3. OTA/flash `ventsys-main-valve-1` and confirm MQTT TLS works.
+4. Remove the temporary plain-MQTT firewall rule.
+5. Flash/adopt remaining VentSys devices on the TLS path.
 
 ## Key Entities Using This Concept
 
@@ -98,8 +82,10 @@ mqtt:
 - [[entities/ventsys]]
 - [[entities/esphome]]
 - [[entities/home-assistant]]
+- [[entities/bambuddy]]
 
 ## Sources
 
 - [[sources/ventsys-technical-specs]]
 - [[sources/ventsys-implementation-roadmap]]
+- Current canonical project docs: `main/TO-DO.md`, `main/HANDOFF-2026-05-07-current.md`, `main/HANDOFF-2026-05-13-valve1-deployment-and-stepping.md`.

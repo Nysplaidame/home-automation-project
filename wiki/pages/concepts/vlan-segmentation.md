@@ -1,56 +1,65 @@
 ---
-title: "9-VLAN Network Segmentation"
+title: "10-Segment Network Segmentation"
 category: concept
 tags: [network, vlan, security, openwrt, architecture]
 created: 2026-04-07
-updated: 2026-04-07
+updated: 2026-05-25
 sources: [network-architecture-decision, project-readme, troubleshooting-reference]
 status: stable
 ---
 
-# 9-VLAN Network Segmentation
+# 10-Segment Network Segmentation
 
 ## Definition
 
-A network architecture that divides devices into 9 isolated Layer 2 broadcast domains (VLANs), each with its own subnet, firewall zone, and internet access policy. Implemented on the [[entities/gl-mt6000]] using OpenWrt DSA.
+A network architecture that divides devices into 10 isolated Layer 2 broadcast
+domains, each with its own subnet, firewall zone, and internet access policy.
+Implemented on the [[entities/gl-mt6000]] using OpenWrt DSA.
 
 ## Relevance to This Project
 
-The 9-VLAN design is the security foundation for the entire home automation system. It ensures that safety-critical IoT devices (VLAN 50) and CCTV equipment (VLAN 30) are completely isolated from the internet and from each other, while still allowing controlled inter-VLAN communication through Home Assistant as a bridge.
+The 10-segment design is the security foundation for the home automation system.
+It keeps safety-critical IoT devices, NVR/cameras, printers, and storage
+isolated while allowing only narrow, documented inter-VLAN paths.
 
 ## VLAN Reference Table
 
 | VLAN | Name | Subnet | Internet | Key Devices |
 |---|---|---|---|---|
-| 1 | LAN | 192.168.1.0/24 | Full | Everyday users, [[entities/bambu-p1s]] |
-| 10 | Management | 192.168.10.0/24 | Full | [[entities/proxmox]] (192.168.10.10), admin devices |
-| 20 | Automation | 192.168.20.0/24 | Limited | [[entities/home-assistant]] (192.168.20.101) |
-| 30 | CCTV | 192.168.30.0/24 | None | [[entities/frigate]], [[entities/bambuddy]] (192.168.30.20) |
-| 40 | Storage | 192.168.40.0/24 | None | [[entities/raspberry-pi-nas]] (192.168.40.50) |
+| 1 | LAN | 192.168.1.0/24 | Full | Everyday users |
+| 10 | Management | 192.168.10.0/24 | Full | [[entities/proxmox]], admin devices |
+| 20 | Automation | 192.168.20.0/24 | Limited | [[entities/home-assistant]], [[entities/docker-host]] |
+| 30 | NVR | 192.168.30.0/24 | None | [[entities/frigate]], cameras |
+| 35 | Printers | 192.168.35.0/24 | OTA only | [[entities/bambu-p1s]], Athena 2 |
+| 40 | Storage | 192.168.40.0/24 | None | [[entities/openmediavault-nas]] |
 | 50 | IoT Sensors | 192.168.50.0/24 | None | [[entities/ventsys]] ESP32 fleet |
-| 60 | Monitoring | 192.168.60.0/24 | Limited | Future Grafana/Zabbix |
-| 70 | DMZ | 192.168.70.0/24 | Controlled | [[concepts/wireguard-vpn]] endpoint |
-| 99 | Guest | 192.168.99.0/24 | Full | WiFi-only visitor access |
+| 60 | Monitoring | 192.168.60.0/24 | Limited | Monitoring stack |
+| 70 | DMZ | 192.168.70.0/24 | Controlled | Fallback/public-service staging |
+| 99 | Guest | 192.168.99.0/24 | Full | Visitor WiFi |
 
 ## Key Design Decisions
 
-- **Proxmox on VLAN 10, not 20:** Infrastructure separated from workloads. The hypervisor host should be on the management plane.
-- **Frigate on VLAN 30, not 20:** CCTV belongs with cameras. No-internet posture is correct for NVR.
-- **VLANs 50 and 99 WiFi-only:** No physical port carries them untagged — prevents Layer 2 attacks from wired access.
-- **HA as inter-VLAN bridge:** IoT devices (VLAN 50) reach CCTV data (VLAN 30) only via HA's controlled integrations, not directly.
+- **Proxmox on VLAN 10, not 20:** infrastructure stays on the management plane.
+- **Frigate on VLAN 30, not 20:** NVR belongs with cameras and has no default internet.
+- **Printers on VLAN 35:** Bambu P1S and Athena 2 are multi-service devices, not simple IoT sensors.
+- **Storage on VLAN 40:** OMV is storage-focused and not the Docker app platform.
+- **Tailscale host routes:** daily remote access reaches only Home Assistant and OMV host routes through docker-host.
+- **WireGuard fallback:** kept dormant and split-tunnel, not the daily access layer.
 
-## Inter-VLAN Traffic Rules (key)
+## Inter-VLAN Traffic Rules (Key)
 
-- VLAN 50 → VLAN 20 port 8883: ALLOW (VentSys MQTT TLS to HA)
-- VLAN 50 → Router port 123: ALLOW (NTP — no internet needed)
-- VLAN 50 → WAN: DENY + log
-- VLAN 30 → VLAN 20 port 8883: ALLOW (Frigate MQTT to HA)
-- VLAN 20 → VLAN 30: ALLOW (HA pulls Frigate)
-- VLAN 20 → VLAN 40 port 2049: ALLOW (HA backup to NAS)
+- VLAN 50 -> VLAN 20 port 8883: VentSys MQTT TLS to HA
+- VLAN 50 -> Router port 123: router-local NTP safety net
+- VLAN 50 -> WAN: denied and logged
+- VLAN 30 -> VLAN 20 port 8883: Frigate MQTT to HA
+- VLAN 20 -> VLAN 30: HA pulls Frigate
+- VLAN 20 -> VLAN 40: HA/Frigate/docker-host reach only required OMV services
 
 ## History
 
-Started as 4-VLAN design (Sep 2025). A firewall audit (Sep 24, 2025) identified: missing user VLAN, missing management VLAN, Frigate and Proxmox misplaced. Revised to 9-VLAN (Sep 25, 2025) and all OpenWrt configs rewritten.
+Started as a 4-VLAN design in September 2025. A firewall audit revised it to 9
+VLANs, then the printer VLAN decision added VLAN 35, making the active
+architecture 10 segments.
 
 ## Sources
 

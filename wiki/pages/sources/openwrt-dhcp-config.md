@@ -36,7 +36,7 @@ Complete DHCP and DNS configuration for all 9 VLANs. Includes all static DHCP re
 | Proxmox host | 192.168.10.10 | 10 |
 | Home Assistant | 192.168.20.101 | 20 |
 | Frigate NVR | 192.168.30.20 | 30 |
-| Pi NAS | 192.168.40.50 | 40 |
+| OMV NAS | 192.168.40.50 | 40 |
 | ventsys-main-fan | 192.168.50.21 | 50 |
 | ventsys-booth-fan | 192.168.50.22 | 50 |
 | enc-fdm-sensors | 192.168.50.31 | 50 |
@@ -70,7 +70,7 @@ Complete DHCP and DNS configuration for all 9 VLANs. Includes all static DHCP re
 
 ## Entities Mentioned
 
-[[entities/gl-mt6000]], [[entities/home-assistant]], [[entities/frigate]], [[entities/proxmox]], [[entities/raspberry-pi-nas]], [[entities/ventsys]], [[entities/bambu-p1s]], [[entities/tplink-ap]], [[entities/monitoring-vm]]
+[[entities/gl-mt6000]], [[entities/home-assistant]], [[entities/frigate]], [[entities/proxmox]], [[entities/openmediavault-nas]], [[entities/ventsys]], [[entities/bambu-p1s]], [[entities/tplink-ap]], [[entities/monitoring-vm]]
 
 ## Concepts Mentioned
 

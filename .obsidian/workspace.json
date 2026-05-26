@@ -20,8 +20,23 @@
               "icon": "lucide-file",
               "title": "PROJECT-INDEX"
             }
+          },
+          {
+            "id": "b10305bd368764eb",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "main/docs/diagrams/mind-map/excalibrain.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "excalibrain"
+            }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -175,7 +190,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 269.5
+    "width": 614.5
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -195,8 +210,9 @@
       "obsidian-trash-explorer:Open trash explorer": false
     }
   },
-  "active": "27457ccf20dc0bb6",
+  "active": "79dfeba9a7f78d99",
   "lastOpenFiles": [
+    "main/PROJECT-INDEX.md",
     "main/configs/esphome/ventsys_booth_sensor.yaml",
     "main/configs/esphome/ventsys_sla_sensor.yaml",
     "main/configs/esphome/ventsys_fdm_sensor.yaml",
@@ -215,7 +231,6 @@
     "main/backend/app/services/downloader.py",
     "main/backend/app/services/thumbnails.py",
     "main/backend/app/services/extractor.py",
-    "main/backend/app/services/file_ops.py",
     "main/docs/prompts/JAMES_MASTER_PROMPT_v4.md",
     "main/docs/prompts/CLAUDE.md",
     "SKILL_ROUTING.md",

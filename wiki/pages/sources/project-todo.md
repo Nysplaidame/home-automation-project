@@ -28,7 +28,7 @@ Full implementation task list organised across 6 phases. As of March 2026, Phase
 
 ## Entities Mentioned
 
-[[entities/gl-mt6000]], [[entities/proxmox]], [[entities/home-assistant]], [[entities/frigate]], [[entities/bambuddy]], [[entities/ventsys]], [[entities/esphome]], [[entities/raspberry-pi-nas]]
+[[entities/gl-mt6000]], [[entities/proxmox]], [[entities/home-assistant]], [[entities/frigate]], [[entities/bambuddy]], [[entities/ventsys]], [[entities/esphome]], [[entities/openmediavault-nas]]
 
 ## Concepts Mentioned
 

@@ -1,24 +1,30 @@
 ---
 title: "Docker Host (VM 103)"
 category: entity
-tags: [software, docker, proxmox, bambuddy, apt-cache]
+tags: [software, docker, proxmox, bambuddy, apt-cache, tailscale]
 created: 2026-05-08
-updated: 2026-05-08
+updated: 2026-05-23
 sources: [project-readme]
 status: stable
 ---
 
 # Docker Host (VM 103)
 
-**Type:** integration — trusted Docker host
-**Status:** ✅ Live — Debian 13, Docker installed, Bambuddy running
-**Related:** [[entities/proxmox]], [[entities/bambuddy]], [[entities/frigate]], [[entities/home-assistant]]
+**Type:** integration - trusted Docker host
+**Status:** Live - Debian 13, Docker installed, Bambuddy running
+**Related:** [[entities/proxmox]], [[entities/bambuddy]], [[entities/home-assistant]], [[concepts/tailscale-remote-access]], [[entities/adguard-home]], [[entities/immich]], [[entities/homepage]], [[entities/dozzle]]
 
 ## Overview
 
-VM 103 is the central trusted Docker host on VLAN 20. It runs workloads that need to communicate with Home Assistant or the automation network. Bambuddy is its first Compose workload. It also hosts `apt-cacher-ng` for package caching across VMs.
+VM 103 is the central trusted Docker host on VLAN 20. It runs internal services
+that need to communicate with Home Assistant or the automation network. Bambuddy
+is the first live Compose workload. It also hosts `apt-cacher-ng` for package
+caching across VMs.
 
-Internet access is blocked by router policy. Updates must go through a controlled maintenance window using the temporary firewall rule `TEMP Docker Host Update Access` (always remove this rule after use).
+Internet access is blocked by router policy except for narrowly documented
+Tailscale and AdGuard egress. General updates still go through a controlled
+maintenance window using the temporary firewall rule `TEMP Docker Host Update
+Access`.
 
 ## Key Properties
 
@@ -26,41 +32,37 @@ Internet access is blocked by router policy. Updates must go through a controlle
 - VLAN: 20 (Automation)
 - IP: `192.168.20.102`
 - MAC: `BC:24:11:BC:B8:1A`
-- OS: Debian GNU/Linux 13 (trixie), kernel `6.12.85+deb13-cloud-amd64`
-- Docker: installed and active
-- Docker Compose: installed
-- `qemu-guest-agent`: installed and active
-- Startup: `onboot: 1`, order 3
+- OS: Debian GNU/Linux 13
+- Docker and Docker Compose: installed
+- Stack path convention: `/opt/stacks/<service>/`
 
 ## Running Workloads
 
 | Stack | Path | Port | Status |
 |---|---|---|---|
-| Bambuddy | `/opt/stacks/bambuddy/` | 8000 | ✅ Running |
-| apt-cacher-ng | (system service) | 3142 | ✅ Running |
+| Bambuddy | `/opt/stacks/bambuddy/` | 8000 | Running |
+| apt-cacher-ng | system service | 3142 | Running |
 
-## apt-cacher-ng
+## Tier 1 Planned Workloads
 
-Package cache for VMs that have limited or no internet access.
-- Endpoint: `http://192.168.20.102:3142`
-- `frigate-nvr` (VM 101) configured via `/etc/apt/apt.conf.d/01proxy`
-- Permanent router rule: `Frigate to APT Cache` (VLAN 30 → VLAN 20, port 3142)
+| Service | Path | Port | Notes |
+|---|---|---|---|
+| [[entities/adguard-home]] | `/opt/stacks/adguard-home/` | 53, 8080 | DNS filtering; router remains DNS/DHCP authority |
+| [[entities/immich]] | `/opt/stacks/immich/` | 2283 | Gallery/photos; OMV-backed storage |
+| [[entities/homepage]] | `/opt/stacks/homepage/` | 3001 | Internal dashboard |
+| [[entities/dozzle]] | `/opt/stacks/dozzle/` | 8081 | Docker logs; admin/internal only |
 
-## Setup Guide
+## Tailscale Role
 
-`scripts/setup/proxmox/docker_host_setup_guide.md` — VM creation, Docker install, Bambuddy workload, apt-cache setup.
+docker-host is the planned Tailscale subnet router. It should advertise host
+routes only:
 
-## Firewall (VM-level)
+- `192.168.20.101/32` for Home Assistant
+- `192.168.40.50/32` for OMV
 
-- Incoming default: deny
-- Allow `192.168.10.0/24` → TCP 22 (management SSH)
-- Allow `192.168.10.0/24` + `192.168.1.0/24` + `192.168.20.0/24` → TCP 8000 (Bambuddy UI)
-
-## Open Questions
-
-- [ ] Decide whether docker-host should have periodic controlled update access or remain fully blocked
-- [ ] Decide whether a Docker registry mirror is justified as more Compose workloads are added
+Docker-host services should be reached by docker-host Tailscale identity/MagicDNS.
 
 ## Change Log
 
-- 2026-05-08: Page created — VM 103 live with Bambuddy and apt-cache
+- 2026-05-23: Added Tailscale host-route role and Tier 1 service roadmap.
+- 2026-05-08: Page created - VM 103 live with Bambuddy and apt-cache.

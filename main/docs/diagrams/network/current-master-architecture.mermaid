@@ -1,0 +1,67 @@
+flowchart TB
+    Operator["Admin laptop / phone"]
+    Internet["Internet"]
+    Router["OpenWrt router<br/>DHCP, local DNS, firewall, NTP<br/>192.168.10.1"]
+    Proxmox["Proxmox host<br/>MINIX NEO Z350<br/>192.168.10.10"]
+
+    Internet --- Router
+    Operator --> Router
+    Router --- Proxmox
+
+    subgraph VMs["Proxmox VMs"]
+        HA["VM 100 Home Assistant OS<br/>192.168.20.101<br/>Mosquitto, ESPHome, dashboards"]
+        Frigate["VM 101 Frigate NVR<br/>192.168.30.20<br/>Docker, camera recording"]
+        Monitoring["Monitoring VM<br/>192.168.60.x<br/>Kuma, InfluxDB, Grafana"]
+        DockerHost["VM 103 docker-host<br/>192.168.20.102<br/>Compose stacks, Tailscale, AdGuard"]
+    end
+
+    Proxmox --- HA
+    Proxmox --- Frigate
+    Proxmox --- Monitoring
+    Proxmox --- DockerHost
+
+    subgraph Storage["Storage"]
+        OMV["OMV NAS<br/>192.168.40.50<br/>NFS/SMB, SMART, backups"]
+    end
+
+    Router --- OMV
+
+    subgraph DockerApps["docker-host Tier 1 services"]
+        AdGuard["AdGuard Home<br/>DNS filtering"]
+        Immich["Immich<br/>photo gallery"]
+        Homepage["Homepage<br/>service dashboard"]
+        Dozzle["Dozzle<br/>container logs"]
+        Bambuddy["Bambuddy<br/>P1S bridge"]
+    end
+
+    DockerHost --- AdGuard
+    DockerHost --- Immich
+    DockerHost --- Homepage
+    DockerHost --- Dozzle
+    DockerHost --- Bambuddy
+
+    subgraph Physical["Physical integrations"]
+        Cameras["PoE cameras<br/>192.168.30.21-24"]
+        Printers["Bambu P1S / printers<br/>192.168.35.0/24"]
+        VentSys["VentSys ESPHome devices<br/>192.168.50.0/24"]
+    end
+
+    Cameras --> Frigate
+    Printers --> Bambuddy
+    VentSys --> HA
+
+    OMV -.->|"HA backups"| HA
+    OMV -.->|"Frigate archive"| Frigate
+    OMV -.->|"Immich library/storage"| Immich
+
+    subgraph Remote["Remote access"]
+        Tailscale["Tailscale daily access<br/>docker-host identity + host routes"]
+        WireGuard["WireGuard dormant fallback<br/>router split tunnel"]
+    end
+
+    Operator --> Tailscale
+    Tailscale --> DockerHost
+    DockerHost -.->|"192.168.20.101/32"| HA
+    DockerHost -.->|"192.168.40.50/32"| OMV
+    Operator -.->|"fallback only"| WireGuard
+    WireGuard -.->|"controlled router access"| Router

@@ -1,0 +1,45 @@
+flowchart TB
+    DockerHost["docker-host VM 103<br/>192.168.20.102<br/>Debian + Docker Engine + Compose"]
+    Stacks["/opt/stacks/<service>/"]
+    Network["Docker networks<br/>service-specific where practical"]
+    Volumes["Named volumes and bind mounts<br/>document per service"]
+    Backups["Backups<br/>OMV-backed where appropriate"]
+    Logs["Logs<br/>Dozzle + host journal"]
+
+    DockerHost --> Stacks
+    DockerHost --> Network
+    DockerHost --> Volumes
+    DockerHost --> Backups
+    DockerHost --> Logs
+
+    subgraph Tier1["Tier 1 core"]
+        AdGuard["adguard-home<br/>DNS filtering"]
+        Immich["immich<br/>photos/gallery"]
+        Homepage["homepage<br/>service dashboard"]
+        Dozzle["dozzle<br/>container logs"]
+        Bambuddy["bambuddy<br/>P1S bridge"]
+        Tailscale["tailscale<br/>subnet router"]
+    end
+
+    subgraph Tier2["Tier 2 candidates"]
+        Paperless["paperless-ngx"]
+        Mealie["mealie"]
+        Ntfy["ntfy"]
+        Actual["actual-budget"]
+        Scrypted["scrypted"]
+    end
+
+    subgraph Tier3["Tier 3 evaluate"]
+        Vaultwarden["vaultwarden<br/>security gate"]
+        Portainer["portainer<br/>admin-surface gate"]
+        Watchtower["watchtower<br/>monitor-only"]
+        Registry["local registry mirror"]
+        NodeRED["node-red<br/>automation gate"]
+    end
+
+    Stacks --> Tier1
+    Stacks --> Tier2
+    Stacks --> Tier3
+    Tier1 --> Backups
+    Tier2 --> Backups
+    Tier3 --> Backups

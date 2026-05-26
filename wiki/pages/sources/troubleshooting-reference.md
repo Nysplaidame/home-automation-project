@@ -31,7 +31,7 @@ Cross-system quick-reference for the most common failure modes across all projec
 
 ## Entities Mentioned
 
-[[entities/home-assistant]], [[entities/frigate]], [[entities/proxmox]], [[entities/gl-mt6000]], [[entities/mosquitto-mqtt]], [[entities/ventsys]], [[entities/esphome]], [[entities/bambuddy]], [[entities/bambu-p1s]], [[entities/raspberry-pi-nas]]
+[[entities/home-assistant]], [[entities/frigate]], [[entities/proxmox]], [[entities/gl-mt6000]], [[entities/mosquitto-mqtt]], [[entities/ventsys]], [[entities/esphome]], [[entities/bambuddy]], [[entities/bambu-p1s]], [[entities/openmediavault-nas]]
 
 ## Concepts Mentioned
 
