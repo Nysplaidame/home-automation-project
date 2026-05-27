@@ -59,6 +59,8 @@ without live assistance.
 - [x] ntfy: install, topic policy, public/private exposure decision, backup, rollback.
 - [ ] Actual Budget: install, auth, backup/export, rollback.
 - [ ] Scrypted: hardware/camera decision gate, install, storage, HA/Frigate overlap, rollback.
+- [ ] SearXNG: install, instance secret, egress policy, rate-limit/abuse controls, backup, rollback.
+- [ ] Whoogle: install, egress policy, rate-limit/abuse controls, backup, rollback.
 - [ ] Vaultwarden: explicit security gate, backup/encryption, exposure decision, restore test.
 - [ ] Portainer: explicit admin-surface gate, auth, backup, rollback.
 - [x] Watchtower monitor-only: install, notifications, no automatic updates, rollback.

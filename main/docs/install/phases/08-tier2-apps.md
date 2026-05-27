@@ -1,9 +1,9 @@
 ---
 title: Phase 08 - Tier 2 Apps
-description: Draft installable manuals for Paperless-ngx, Mealie, ntfy, Actual Budget, and Scrypted
+description: Draft installable manuals for Paperless-ngx, Mealie, ntfy, Actual Budget, Scrypted, SearXNG, and Whoogle
 tags: [install, docker-host, tier2]
 created: 2026-05-24
-modified: 2026-05-24
+modified: 2026-05-27
 type: install-guide
 status: active
 ---
@@ -34,13 +34,14 @@ docker-host over SSH unless a service manual says a decision gate may move it.
 - `<NTFY_ADMIN_PASSWORD>`
 - `<ACTUAL_PASSWORD>`
 - `<SCRYPTED_ADMIN_PASSWORD>`
+- `<SEARXNG_SECRET_KEY>`
 
 ## Commands
 
 Run on: docker-host over SSH.
 
 ```sh
-mkdir -p /opt/stacks/paperless-ngx /opt/stacks/mealie /opt/stacks/ntfy /opt/stacks/actual-budget /opt/stacks/scrypted
+mkdir -p /opt/stacks/paperless-ngx /opt/stacks/mealie /opt/stacks/ntfy /opt/stacks/actual-budget /opt/stacks/scrypted /opt/stacks/searxng /opt/stacks/whoogle
 ```
 
 Follow:
@@ -50,6 +51,8 @@ Follow:
 - [../services/ntfy.md](../services/ntfy.md)
 - [../services/actual-budget.md](../services/actual-budget.md)
 - [../services/scrypted.md](../services/scrypted.md)
+- [../services/searxng.md](../services/searxng.md)
+- [../services/whoogle.md](../services/whoogle.md)
 
 ## Explanation
 
@@ -66,7 +69,7 @@ before household use.
 Run on: docker-host over SSH.
 
 ```sh
-for s in paperless-ngx mealie ntfy actual-budget scrypted; do
+for s in paperless-ngx mealie ntfy actual-budget scrypted searxng whoogle; do
   test -d "/opt/stacks/$s" && echo "$s directory exists"
 done
 ```

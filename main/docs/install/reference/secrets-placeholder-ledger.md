@@ -3,7 +3,7 @@ title: Secrets Placeholder Ledger
 description: Central placeholder list for the installation manual suite
 tags: [install, secrets, placeholders]
 created: 2026-05-24
-modified: 2026-05-24
+modified: 2026-05-27
 type: reference
 status: active
 ---
@@ -42,6 +42,7 @@ Store real values in the password manager. Never commit real values.
 | `<NTFY_ADMIN_PASSWORD>` | ntfy auth setup | ntfy admin | ntfy server |
 | `<ACTUAL_PASSWORD>` | Actual first run | Actual password | Actual Budget |
 | `<SCRYPTED_ADMIN_PASSWORD>` | Scrypted first run | Scrypted admin | Scrypted UI |
+| `<SEARXNG_SECRET_KEY>` | SearXNG config | SearXNG instance secret | SearXNG |
 | `<VAULTWARDEN_ADMIN_TOKEN>` | Password manager | Vaultwarden admin token | Vaultwarden gate |
 | `<PORTAINER_ADMIN_PASSWORD>` | Portainer first run | Portainer admin | Portainer UI |
 | `<WATCHTOWER_HTTP_API_TOKEN>` | Password manager | Watchtower token | Watchtower metrics/API |

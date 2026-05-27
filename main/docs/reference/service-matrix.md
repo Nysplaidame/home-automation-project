@@ -3,7 +3,7 @@ title: Service Matrix
 description: Central service, port, DNS, backup, monitoring, and runbook reference
 tags: [reference, services, ports, dns, docker-host]
 created: 2026-05-23
-modified: 2026-05-23
+modified: 2026-05-27
 type: reference
 status: active
 ---
@@ -46,6 +46,8 @@ remote exposure, backup expectations, monitoring, and runbook coverage.
 | Tier 2 | ntfy | `/opt/stacks/ntfy/` | 8085 | Pre-flight live internal-only; `docs/install/services/ntfy.md` |
 | Tier 2 | Actual Budget | `/opt/stacks/actual-budget/` | 5006 | `docs/install/services/actual-budget.md`; sensitive data gate |
 | Tier 2 | Scrypted | `/opt/stacks/scrypted/` | 10443 / 11080 | `docs/install/services/scrypted.md`; placement gate |
+| Tier 2 | SearXNG | `/opt/stacks/searxng/` | 8087 | `docs/install/services/searxng.md`; egress/rate-limit gate |
+| Tier 2 | Whoogle | `/opt/stacks/whoogle/` | 8088 | `docs/install/services/whoogle.md`; egress/rate-limit gate |
 | Tier 3 | Vaultwarden | `/opt/stacks/vaultwarden/` | 8082 | `docs/install/services/vaultwarden.md`; security gate |
 | Tier 3 | Portainer | `/opt/stacks/portainer/` | 9443 | `docs/install/services/portainer.md`; socket exposure gate |
 | Tier 3 | Watchtower monitor-only | `/opt/stacks/watchtower/` | none | Pre-flight live monitor-only; useful during approved registry egress windows |
@@ -63,6 +65,8 @@ remote exposure, backup expectations, monitoring, and runbook coverage.
 | `dozzle.home.local` | `192.168.20.102` | Dozzle UI |
 | `bambuddy.home.local` | `192.168.20.102` | Bambuddy UI |
 | `ntfy.home.local` | `192.168.20.102` | ntfy UI/API |
+| `searxng.home.local` | `192.168.20.102` | Future SearXNG UI |
+| `whoogle.home.local` | `192.168.20.102` | Future Whoogle UI |
 | `omv-nas.home.local` | `192.168.40.50` | OMV hostname |
 | `omv.home.local` | `192.168.40.50` | OMV convenience alias |
 | `nas.home.local` | `192.168.40.50` | Storage convenience alias |
