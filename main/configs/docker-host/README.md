@@ -22,7 +22,9 @@ Live stack paths:
 | Immich | `/opt/stacks/immich` | `stacks/immich/` |
 | ntfy | `/opt/stacks/ntfy` | `stacks/ntfy/` |
 | Watchtower monitor-only | `/opt/stacks/watchtower` | `stacks/watchtower/` |
+| SearXNG | `/opt/stacks/searxng` | `stacks/searxng/` |
+| Whoogle | `/opt/stacks/whoogle` | `stacks/whoogle/` |
 | Docker host firewall | `/usr/local/sbin/docker-host-firewall.sh` | `system/docker-host-firewall.sh` |
 
 Do not commit live `.env` files, app databases, generated auth databases,
-AdGuard password hashes, or Immich database credentials.
+AdGuard password hashes, SearXNG secrets, or Immich database credentials.

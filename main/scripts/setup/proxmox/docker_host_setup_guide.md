@@ -54,6 +54,9 @@ Completed live:
   with default access denied and credentials stored at `/root/ntfy-credentials.txt`.
 - Watchtower monitor-only stack staged at `/opt/stacks/watchtower`, with
   `WATCHTOWER_MONITOR_ONLY=true` and notifications pointed at internal ntfy.
+- SearXNG and Whoogle direct-access pre-flight stacks staged at
+  `/opt/stacks/searxng` and `/opt/stacks/whoogle`, live on ports `8087` and
+  `8088`.
 - Non-secret rebuild templates for these live stacks and the host firewall are
   stored under `configs/docker-host/`; live secrets and app databases stay on
   VM 103 and are not committed.
@@ -69,6 +72,9 @@ Completed live:
 - VM 103 disk was expanded online to 32 GiB on 2026-05-27.
 - Uptime Kuma notification `ntfy Monitoring` is live and mapped to all active
   monitors through ntfy topic `monitoring`.
+- UFW route rules allow only AdGuard's Docker bridge subnet `172.20.0.0/16`
+  to reach upstream DNS ports `53/tcp`, `53/udp`, and `853/tcp`; this is
+  required because UFW otherwise denies Docker routed traffic.
 
 Current service direction:
 
@@ -281,6 +287,8 @@ mkdir -p /opt/stacks/homepage/config
 mkdir -p /opt/stacks/dozzle
 mkdir -p /opt/stacks/ntfy/{cache,etc}
 mkdir -p /opt/stacks/watchtower
+mkdir -p /opt/stacks/searxng/searxng
+mkdir -p /opt/stacks/whoogle
 ```
 
 Bambuddy Compose file:
@@ -344,6 +352,8 @@ docker compose logs bambuddy -f
 | Immich | `/opt/stacks/immich/` | 2283/tcp | Pre-flight live with local placeholder storage; store real media on OMV-backed mount, not the VM disk |
 | Homepage | `/opt/stacks/homepage/` | 3001/tcp | Internal dashboard |
 | Dozzle | `/opt/stacks/dozzle/` | 8081/tcp | Internal Docker log viewer |
+| SearXNG | `/opt/stacks/searxng/` | 8087/tcp | Direct-access metasearch pre-flight |
+| Whoogle | `/opt/stacks/whoogle/` | 8088/tcp | Direct-access Google search proxy pre-flight |
 
 Do not make router-deploy manage these containers. Router-deploy only owns
 OpenWrt DHCP/DNS/firewall/WireGuard generated artifacts.

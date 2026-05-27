@@ -1,0 +1,7 @@
+services:
+  whoogle:
+    image: benbusby/whoogle-search:latest
+    container_name: whoogle
+    restart: unless-stopped
+    ports:
+      - "8088:5000"

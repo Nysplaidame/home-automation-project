@@ -149,7 +149,7 @@ Run-Check `
 # DNS resolution via the router's own resolver for known local hostnames.
 # busybox nslookup emits "Address 1:" rather than "Address:", and `|| echo`
 # after a pipe doesn't trigger when grep returns 0 — use explicit assignment.
-foreach ($dnsName in @("homeassistant.home.local", "docker-host.home.local", "bambuddy.home.local", "adguard.home.local", "immich.home.local", "homepage.home.local", "dozzle.home.local", "ntfy.home.local", "nas.home.local", "omv.home.local", "omv-nas.home.local", "frigate.home.local")) {
+foreach ($dnsName in @("homeassistant.home.local", "docker-host.home.local", "bambuddy.home.local", "adguard.home.local", "immich.home.local", "homepage.home.local", "dozzle.home.local", "ntfy.home.local", "searxng.home.local", "whoogle.home.local", "nas.home.local", "omv.home.local", "omv-nas.home.local", "frigate.home.local")) {
     $dnsCmd = @"
 RES=`$(nslookup $dnsName 127.0.0.1 2>/dev/null | grep -iE '^Address' | grep -vF '127.0.0.1' | head -1)
 if [ -n "`$RES" ]; then echo "RESOLVED `$RES"; else echo NORESOLVE; fi

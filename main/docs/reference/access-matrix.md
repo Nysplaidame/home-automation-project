@@ -3,7 +3,7 @@ title: ACL And Access Matrix
 description: Canonical OpenWrt, Tailscale, host firewall, and service-auth access intent
 tags: [reference, acl, firewall, tailscale, access-control]
 created: 2026-05-23
-modified: 2026-05-23
+modified: 2026-05-27
 type: reference
 status: active
 ---
@@ -41,13 +41,13 @@ Do not advertise or allow `192.168.10.0/24`, `192.168.30.0/24`,
 | Source | Destination | Allowed | Notes |
 |---|---|---|---|
 | LAN | Home Assistant | 8123/tcp | HA UI |
-| LAN | docker-host app UIs | 8000, 2283, 3001, 8080, 8081, 8085/tcp | Bambuddy, Immich, Homepage, AdGuard admin, Dozzle, ntfy |
+| LAN | docker-host app UIs | 8000, 2283, 3001, 8080, 8081, 8085, 8087, 8088/tcp | Bambuddy, Immich, Homepage, AdGuard admin, Dozzle, ntfy, SearXNG, Whoogle |
 | LAN | Printers | 8883, 21, 80, 8080/tcp | Slicer/local printer access |
 | HA | Frigate | 8971, 5000, 8554, 8555/tcp | HA integration |
 | HA | OMV | 22, 445, 2049/tcp | Backup/storage |
 | HA | IoT | 6053, 3232/tcp | ESPHome API/OTA |
 | docker-host | P1S | 8883, 21/tcp | Bambuddy |
-| docker-host | WAN | Tailscale and AdGuard upstream only | No general Docker pulls outside maintenance |
+| docker-host | WAN | Tailscale, AdGuard upstream, and approved pre-flight search egress only | No general Docker pulls outside maintenance |
 | Frigate | OMV | 22, 445, 2049/tcp | Recording/archive storage |
 | Frigate | HA | 8883/tcp | MQTT TLS |
 | Frigate | docker-host | 3142/tcp | apt-cacher-ng |
@@ -75,6 +75,8 @@ Do not advertise or allow `192.168.10.0/24`, `192.168.30.0/24`,
 | Homepage | internal-only; avoid secrets in visible config |
 | Dozzle | admin/internal-only; do not expose to Guest/DMZ |
 | ntfy | internal-only; default anonymous access denied; topic users stored in Bitwarden |
+| SearXNG | internal-only pre-flight; direct HTTP until reverse proxy/HTTPS pass |
+| Whoogle | internal-only pre-flight; direct HTTP until reverse proxy/HTTPS pass |
 | Watchtower | monitor-only; no automatic updates |
 | OMV | unique admin and service-user credentials |
 | Vaultwarden candidate | separate security review before deployment |

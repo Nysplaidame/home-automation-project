@@ -62,6 +62,10 @@ ssh -i $env:USERPROFILE\.ssh\proxmox_admin_ed25519 root@192.168.20.102
 The GL.iNet/OpenWrt router is deployed and stable. It is still in staged mode
 where its own internet path can piggy-back the existing home router via WiFi,
 but the final architecture will eventually make this router the internet edge.
+As of 2026-05-27, the temporary `wwan_uplink` WiFi uplink is enabled against
+`ZyXEL_F1E9` and has DHCP address `192.168.1.143` with upstream gateway
+`192.168.1.254`; SearXNG/Whoogle pre-flight search depends on this while the
+GL-MT6000 is not yet the internet edge.
 
 Physical port notes:
 
@@ -121,11 +125,11 @@ VMs:
 | 100 | home-assistant | running | 192.168.20.101 | HAOS, core 2026.5.0 |
 | 101 | frigate-nvr | running | 192.168.30.20 | Debian 13 VM, Docker installed, Frigate staged |
 | 102 | monitoring | running | 192.168.60.10 | Debian 13 VM, Docker stack: InfluxDB/Grafana/Telegraf/Uptime Kuma |
-| 103 | docker-host | running | 192.168.20.102 | Debian 13 VM, Docker host, Bambuddy/Homepage/Dozzle/AdGuard/Immich pre-flight running |
+| 103 | docker-host | running | 192.168.20.102 | Debian 13 VM, Docker host, Bambuddy/Homepage/Dozzle/AdGuard/Immich/SearXNG/Whoogle pre-flight running |
 
 VM 102 monitoring live state:
 
-- Uptime Kuma baseline monitors are configured and green for router DNS, Proxmox UI, HA UI, docker-host SSH, docker-host APT cache, Bambuddy UI port, Homepage UI, Dozzle UI, AdGuard DNS, AdGuard UI, Immich UI, ntfy UI, Grafana, InfluxDB, and Uptime Kuma.
+- Uptime Kuma baseline monitors are configured and green for router DNS, Proxmox UI, HA UI, docker-host SSH, docker-host APT cache, Bambuddy UI port, Homepage UI, Dozzle UI, AdGuard DNS, AdGuard UI, Immich UI, ntfy UI, SearXNG UI, Whoogle UI, Grafana, InfluxDB, and Uptime Kuma.
 - Uptime Kuma notification `ntfy Monitoring` is active/default and mapped to all
   active monitors. It publishes to ntfy topic `monitoring` with write-only user
   `monitoring`; the password is stored on docker-host at
@@ -250,10 +254,24 @@ VM 103 config highlights:
 - 2026-05-27: Uptime Kuma notification `ntfy Monitoring` was added after backup
   `/opt/monitoring/uptime-kuma/kuma.db.backup-20260527-172349-before-ntfy-notification`
   and mapped to all 15 active monitors.
+- 2026-05-27: SearXNG and Whoogle are pre-flight live at
+  `/opt/stacks/searxng` and `/opt/stacks/whoogle`, direct URLs
+  `http://192.168.20.102:8087` / `http://searxng.home.local:8087` and
+  `http://192.168.20.102:8088` / `http://whoogle.home.local:8088`. Both UI
+  and search queries returned `200 OK`. SearXNG secret is live-only in
+  `/opt/stacks/searxng/.env` and `/root/searxng-secret.txt`.
+- 2026-05-27: Uptime Kuma monitors `SearXNG UI` and `Whoogle UI` were added
+  after backup
+  `/opt/monitoring/uptime-kuma/kuma.db.backup-20260527-235748-before-search-monitors`
+  and returned `200 OK`; both are mapped to `ntfy Monitoring`.
+- 2026-05-27: UFW route rules were added so only AdGuard's Docker bridge subnet
+  `172.20.0.0/16` can forward to upstream DNS ports `53/tcp`, `53/udp`, and
+  `853/tcp`; without this, `ufw default deny routed` made AdGuard return
+  upstream DNS timeouts.
 - 2026-05-27: Temporary router egress for docker-host image pulls was removed
   again after Immich image pulls; router connectivity validation returned
-  `PASS=83 WARN=0 FAIL=0` after adding `ntfy.home.local` to connectivity
-  validation.
+  `PASS=85 WARN=0 FAIL=0` after adding `searxng.home.local` and
+  `whoogle.home.local` to connectivity validation.
 
 ## Home Assistant State
 

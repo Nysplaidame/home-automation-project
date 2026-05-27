@@ -69,8 +69,8 @@ status: active
 - [x] Configure Uptime Kuma ntfy notifications through a dedicated write-only topic
 - [ ] Evaluate Actual Budget under `/opt/stacks/actual-budget/`
 - [ ] Evaluate Scrypted under `/opt/stacks/scrypted/`
-- [ ] Evaluate SearXNG under `/opt/stacks/searxng/`
-- [ ] Evaluate Whoogle under `/opt/stacks/whoogle/`
+- [x] Deploy SearXNG direct-access pre-flight under `/opt/stacks/searxng/`
+- [x] Deploy Whoogle direct-access pre-flight under `/opt/stacks/whoogle/`
 
 ### Tier 3 - evaluate carefully
 

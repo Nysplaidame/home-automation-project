@@ -27,3 +27,9 @@
     - ntfy:
         href: http://192.168.20.102:8085/
         description: Internal notifications
+    - SearXNG:
+        href: http://192.168.20.102:8087/
+        description: Metasearch pre-flight
+    - Whoogle:
+        href: http://192.168.20.102:8088/
+        description: Google search proxy pre-flight

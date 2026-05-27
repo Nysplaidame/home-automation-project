@@ -5,7 +5,7 @@ tags: [install, docker-host, whoogle, search, privacy]
 created: 2026-05-27
 modified: 2026-05-27
 type: install-guide
-status: draft-installable
+status: preflight-live
 ---
 
 # Whoogle Install Manual
@@ -30,6 +30,20 @@ docker-host over SSH at `192.168.20.102`.
 ## Inputs
 
 No required project secrets for a basic internal evaluation.
+
+## Current pre-flight live state
+
+As of 2026-05-27:
+
+- Stack path: `/opt/stacks/whoogle`.
+- Direct URL: `http://192.168.20.102:8088/` /
+  `http://whoogle.home.local:8088/`.
+- Whoogle is not behind Caddy/nginx yet; this is intentional for pre-flight.
+- UFW and `docker-host-firewall.service` scope `8088/tcp` to management, LAN,
+  monitoring, and `tailscale0`.
+- Uptime Kuma monitor `Whoogle UI` is live and returned `200 OK`.
+- Temporary router WiFi uplink is currently required for upstream search while
+  the GL-MT6000 is staged behind the existing home router.
 
 ## Commands
 
@@ -84,7 +98,7 @@ or host egress policy.
 
 ## Completion checklist
 
-- [ ] Current upstream deployment docs checked.
-- [ ] Egress/rate-limit policy accepted.
-- [ ] Internal-only access confirmed.
-- [ ] Uptime Kuma monitor added if promoted beyond evaluation.
+- [x] Current upstream deployment docs checked.
+- [x] Egress/rate-limit policy accepted for pre-flight.
+- [x] Internal-only access confirmed.
+- [x] Uptime Kuma monitor added.

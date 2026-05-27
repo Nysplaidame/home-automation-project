@@ -5,7 +5,7 @@ tags: [install, docker-host, searxng, search, privacy]
 created: 2026-05-27
 modified: 2026-05-27
 type: install-guide
-status: draft-installable
+status: preflight-live
 ---
 
 # SearXNG Install Manual
@@ -29,6 +29,22 @@ docker-host over SSH at `192.168.20.102`.
 ## Inputs
 
 - `<SEARXNG_SECRET_KEY>`
+
+## Current pre-flight live state
+
+As of 2026-05-27:
+
+- Stack path: `/opt/stacks/searxng`.
+- Direct URL: `http://192.168.20.102:8087/` /
+  `http://searxng.home.local:8087/`.
+- SearXNG is not behind Caddy/nginx yet; this is intentional for pre-flight.
+- `SEARXNG_SECRET` is stored live-only in `/opt/stacks/searxng/.env` and
+  `/root/searxng-secret.txt`.
+- UFW and `docker-host-firewall.service` scope `8087/tcp` to management, LAN,
+  monitoring, and `tailscale0`.
+- Uptime Kuma monitor `SearXNG UI` is live and returned `200 OK`.
+- Temporary router WiFi uplink is currently required for upstream search while
+  the GL-MT6000 is staged behind the existing home router.
 
 ## Commands
 
@@ -89,8 +105,8 @@ outbound access.
 
 ## Completion checklist
 
-- [ ] Current upstream deployment docs checked.
-- [ ] `secret_key` generated and stored outside git.
-- [ ] Egress/rate-limit policy accepted.
-- [ ] Internal-only access confirmed.
-- [ ] Uptime Kuma monitor added if promoted beyond evaluation.
+- [x] Current upstream deployment docs checked.
+- [x] `secret_key` generated and stored outside git.
+- [x] Egress/rate-limit policy accepted for pre-flight.
+- [x] Internal-only access confirmed.
+- [x] Uptime Kuma monitor added.
