@@ -36,6 +36,15 @@ This is a temporary pre-NAS safety net. The MINIX NVMe is being treated as
 compute/state storage, not as the long-retention home for large media workloads.
 Move long-term backup retention to the NAS once it is online.
 
+Current pre-NAS check on 2026-05-27:
+
+- Backup job is enabled for VMs `100,101,102,103`.
+- Schedule is daily at `02:00`.
+- Storage is `local`.
+- Retention is `keep-last=2`.
+- Latest 2026-05-27 logs for VMs `100`, `101`, `102`, and `103` all ended with
+  `Finished Backup`.
+
 ### Manual snapshot before major changes
 
 ```bash

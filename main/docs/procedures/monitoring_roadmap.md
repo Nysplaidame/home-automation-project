@@ -35,7 +35,7 @@ status: active
 - Stack path: `/opt/monitoring`
 - Credentials file: `/root/monitoring-stack-credentials.txt` on VM 102
 - Uptime Kuma admin account has been created
-- Baseline Uptime Kuma monitors are live and green for router DNS, Proxmox UI, HA UI, docker-host SSH, docker-host APT cache, Bambuddy UI port, Grafana, InfluxDB, and Uptime Kuma
+- Baseline Uptime Kuma monitors are live and green for router DNS, Proxmox UI, HA UI, docker-host SSH, docker-host APT cache, Bambuddy UI port, Homepage UI, Dozzle UI, AdGuard DNS, AdGuard UI, Immich UI, Grafana, InfluxDB, and Uptime Kuma
 - OpenWrt syslog is forwarding to Telegraf on UDP/514 and writing `syslog` measurements into InfluxDB
 - Home Assistant is exporting state history into the `homeassistant` bucket with `source=HA`
 - Grafana datasource `InfluxDB - Home Automation` is configured and tested
@@ -44,6 +44,14 @@ status: active
 - Grafana anonymous Viewer mode is enabled for HA embedding to avoid iframe login-cookie loops
 - Home Assistant has a storage-managed `Monitoring` dashboard at `/monitoring/overview` with an embedded Grafana webpage card and links to Grafana and Uptime Kuma
 - Uptime Kuma direct iframe embedding is blocked by its `SAMEORIGIN` frame header; integrate it later through a same-origin reverse proxy/HTTPS route or use API/notification integration instead
+- HA-side external monitoring health package is live at
+  `/config/packages/monitoring_external_health_package.yaml`, with source in
+  `configs/home-assistant/monitoring_external_health_package.yaml`. It creates
+  command-line binary sensors for Grafana, InfluxDB, and Uptime Kuma reachability
+  from HA plus the aggregate `Monitoring Stack Externally Healthy` template
+  sensor. Router rule `HA to Monitoring Health` allows HA to reach Grafana and
+  Kuma on `192.168.60.10:3000/3001`; the existing `HA to InfluxDB` rule covers
+  `8086`.
 - `scripts/monitoring/health_check.sh` defaults to staged core checks only. Use
   `--full` later when Frigate UI, NAS, P1S, VentSys boards, and smart plugs are
   expected to be online.

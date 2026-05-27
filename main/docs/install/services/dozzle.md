@@ -54,6 +54,11 @@ docker compose up -d
 Dozzle needs read-only Docker socket access to read logs. Keep it off Guest, DMZ,
 and public networks.
 
+Do not rely on UFW alone for this published port. Docker DNAT can bypass the
+normal UFW `INPUT` path, so docker-host should also enforce a `DOCKER-USER`
+allow/drop rule for port `8081`. The live VM uses
+`docker-host-firewall.service` for this.
+
 ## Expected result
 
 Dozzle loads at `http://dozzle.home.local:8081/`.
@@ -75,7 +80,7 @@ No critical app data. Back up the Compose file for reproducibility.
 ## Failure recovery
 
 - If it shows no containers, check the Docker socket mount.
-- If access is too broad, stop the stack until firewall/UFW is corrected.
+- If access is too broad, stop the stack until `DOCKER-USER` and UFW are corrected.
 
 ## Completion checklist
 

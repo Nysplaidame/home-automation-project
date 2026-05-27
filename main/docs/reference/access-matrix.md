@@ -41,7 +41,7 @@ Do not advertise or allow `192.168.10.0/24`, `192.168.30.0/24`,
 | Source | Destination | Allowed | Notes |
 |---|---|---|---|
 | LAN | Home Assistant | 8123/tcp | HA UI |
-| LAN | docker-host app UIs | 8000, 2283, 3001, 8080, 8081/tcp | Bambuddy, Immich, Homepage, AdGuard admin, Dozzle |
+| LAN | docker-host app UIs | 8000, 2283, 3001, 8080, 8081, 8085/tcp | Bambuddy, Immich, Homepage, AdGuard admin, Dozzle, ntfy |
 | LAN | Printers | 8883, 21, 80, 8080/tcp | Slicer/local printer access |
 | HA | Frigate | 8971, 5000, 8554, 8555/tcp | HA integration |
 | HA | OMV | 22, 445, 2049/tcp | Backup/storage |
@@ -74,5 +74,7 @@ Do not advertise or allow `192.168.10.0/24`, `192.168.30.0/24`,
 | Immich | app accounts and library backup before import |
 | Homepage | internal-only; avoid secrets in visible config |
 | Dozzle | admin/internal-only; do not expose to Guest/DMZ |
+| ntfy | internal-only; default anonymous access denied; topic users stored in Bitwarden |
+| Watchtower | monitor-only; no automatic updates |
 | OMV | unique admin and service-user credentials |
 | Vaultwarden candidate | separate security review before deployment |

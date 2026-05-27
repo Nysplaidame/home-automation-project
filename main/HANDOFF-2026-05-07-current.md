@@ -121,11 +121,11 @@ VMs:
 | 100 | home-assistant | running | 192.168.20.101 | HAOS, core 2026.5.0 |
 | 101 | frigate-nvr | running | 192.168.30.20 | Debian 13 VM, Docker installed, Frigate staged |
 | 102 | monitoring | running | 192.168.60.10 | Debian 13 VM, Docker stack: InfluxDB/Grafana/Telegraf/Uptime Kuma |
-| 103 | docker-host | running | 192.168.20.102 | Debian 13 VM, Docker host, Bambuddy running |
+| 103 | docker-host | running | 192.168.20.102 | Debian 13 VM, Docker host, Bambuddy/Homepage/Dozzle/AdGuard/Immich pre-flight running |
 
 VM 102 monitoring live state:
 
-- Uptime Kuma baseline monitors are configured and green for router DNS, Proxmox UI, HA UI, docker-host SSH, docker-host APT cache, Bambuddy UI port, Grafana, InfluxDB, and Uptime Kuma.
+- Uptime Kuma baseline monitors are configured and green for router DNS, Proxmox UI, HA UI, docker-host SSH, docker-host APT cache, Bambuddy UI port, Homepage UI, Dozzle UI, AdGuard DNS, AdGuard UI, Immich UI, Grafana, InfluxDB, and Uptime Kuma.
 - OpenWrt forwards syslog to `192.168.60.10:514/udp`; Telegraf receives it on container port `6514/udp` and writes `syslog` measurements to InfluxDB.
 - Home Assistant exports state history to the InfluxDB `homeassistant` bucket using `source=HA`.
 - HA to InfluxDB is allowed by OpenWrt with the scoped rule `HA to InfluxDB` from `192.168.20.101` to `192.168.60.10:8086/tcp`.
@@ -134,6 +134,18 @@ VM 102 monitoring live state:
 - Grafana anonymous Viewer mode is enabled for HA embedding (`GF_AUTH_ANONYMOUS_ENABLED=true`), but the last observed HA-side behavior still included a login loop, so treat direct Grafana UI access as the reliable path for now.
 - HA has a storage-managed `Monitoring` dashboard at `/monitoring/overview` in the sidebar with direct links to Grafana and Uptime Kuma; the embedded Grafana experience is staged but not yet considered stable.
 - Uptime Kuma direct HA iframe is parked because Kuma currently sends `X-Frame-Options: SAMEORIGIN`; use direct UI access until a same-origin reverse proxy/HTTPS path exists.
+- HA-side external monitoring health is live at
+  `/config/packages/monitoring_external_health_package.yaml`. It adds
+  command-line binary sensors for Grafana, InfluxDB, and Uptime Kuma reachability
+  from HA plus the aggregate `binary_sensor.monitoring_stack_externally_healthy`.
+- HA HTTPS pre-flight certificate files exist but are not enabled:
+  `/ssl/ha_https_preflight_fullchain.pem` and
+  `/ssl/ha_https_preflight_privkey.pem`. Do not switch HA to HTTPS without a
+  maintenance window, because that affects browser trust, Companion App URLs,
+  dashboard URLs, and token-using clients.
+- Router firewall rule `HA to Monitoring Health` allows HA
+  `192.168.20.101` to monitoring VM `192.168.60.10` on TCP `3000` and `3001`;
+  the existing `HA to InfluxDB` rule covers TCP `8086`.
 
 VM 101 config highlights:
 
@@ -160,7 +172,66 @@ VM 103 config highlights:
 - `net0`: `virtio=BC:24:11:BC:B8:1A,bridge=vmbr0,tag=20`
 - Static cloud-init IP: `192.168.20.102/24`, gateway/DNS `192.168.20.1`.
 - `qemu-guest-agent` installed and active.
+- VM sizing is currently `2 cores / 4096 MiB`. It was increased on 2026-05-27
+  after Immich pre-flight overwhelmed the earlier 1 core / 2048 MiB recovery
+  sizing.
+  The recovery restart used Proxmox's firm stop path because QGA did not respond
+  to shutdown during the overload.
 - `onboot: 1`, startup order 3.
+- 2026-05-27: Homepage is live at `http://192.168.20.102:3001`.
+- 2026-05-27: Dozzle is live at `http://192.168.20.102:8081` and restricted
+  with `docker-host-firewall.service` / `DOCKER-USER` so LAN5 cannot reach it.
+- 2026-05-27: Docker image-pull router egress was added only temporarily and
+  removed after pulling Homepage and Dozzle images.
+- 2026-05-27: Uptime Kuma monitors for Homepage UI and Dozzle UI were added and
+  returned `200 OK`.
+- 2026-05-27: Tailscale `1.98.3` is installed and `tailscaled` is active on
+  docker-host. docker-host is authenticated as `100.94.122.18`, and only
+  `192.168.20.101/32` and `192.168.40.50/32` are advertised/approved. Local
+  forwarding to HA returned `200`; off-LAN mobile validation was confirmed.
+- 2026-05-27: AdGuard Home is live at `/opt/stacks/adguard-home`, admin UI
+  `http://192.168.20.102:8080`, DNS bound to `192.168.20.102:53`, with approved
+  upstreams `9.9.9.9`, `1.1.1.1`, and `1.0.0.1`. Admin password is stored on
+  docker-host at `/root/adguard-home-admin-password.txt`; copy it to Bitwarden.
+- 2026-05-27: Uptime Kuma monitors for AdGuard DNS and AdGuard UI were added and
+  are green.
+- 2026-05-27: Immich skeleton is live at `/opt/stacks/immich`, UI
+  `http://192.168.20.102:2283`, version `v2.7.5`, with local placeholder
+  `./library` uploads and `./postgres` database storage. Database password is
+  stored on docker-host at `/root/immich-db-password.txt`.
+- 2026-05-27: Immich is pre-flight only. Do not import a real photo library until
+  OMV-backed storage and backup/restore steps are documented and tested.
+- 2026-05-27: `immich_machine_learning` is intentionally stopped to keep VM 103
+  stable; `immich_server`, `immich_postgres`, and `immich_redis` are healthy.
+- 2026-05-27: `vm.overcommit_memory=1` is persisted via
+  `/etc/sysctl.d/98-immich-valkey.conf` for Valkey/Redis.
+- 2026-05-27: UFW and `docker-host-firewall.service` / `DOCKER-USER` scope
+  Immich UI `2283/tcp` to management, LAN, monitoring, and `tailscale0`.
+- 2026-05-27: Uptime Kuma monitor `Immich UI` was added after backup
+  `/opt/monitoring/uptime-kuma/kuma.db.backup-20260527-125113-before-immich-monitor`
+  and returned `200 OK`.
+- 2026-05-27: VM 103 disk was expanded online from 16 GiB to 32 GiB; root
+  filesystem now has about 21 GiB free after resize.
+- 2026-05-27: ntfy is live at `/opt/stacks/ntfy`, URL
+  `http://192.168.20.102:8085` / `http://ntfy.home.local:8085`, with default
+  anonymous access denied. Credentials are stored on docker-host at
+  `/root/ntfy-credentials.txt`; copy them to Bitwarden.
+- 2026-05-27: ntfy users are `admin` and `watchtower`; `watchtower` has
+  write-only access to topic `watchtower`.
+- 2026-05-27: UFW, OpenWrt, and `docker-host-firewall.service` scope ntfy
+  `8085/tcp` to management, LAN, HA, monitoring, and `tailscale0`.
+- 2026-05-27: Watchtower monitor-only is live at `/opt/stacks/watchtower`.
+  It has `WATCHTOWER_MONITOR_ONLY=true`, `DOCKER_API_VERSION=1.40`, no exposed
+  HTTP port, and shoutrrr notifications pointed at internal ntfy. Because
+  docker-host's Tailscale rule allows TCP `443` for DERP/HTTPS fallback, generic
+  HTTPS egress is technically possible; still treat Docker pulls and updates as
+  maintenance-window work, not routine background updates.
+- 2026-05-27: Uptime Kuma monitor `ntfy UI` was added after backup
+  `/opt/monitoring/uptime-kuma/kuma.db.backup-20260527-162424-before-ntfy-monitor`
+  and returned `200 OK`.
+- 2026-05-27: Temporary router egress for docker-host image pulls was removed
+  again after Immich image pulls; router connectivity validation returned
+  `PASS=82 WARN=0 FAIL=0`.
 
 ## Home Assistant State
 
@@ -195,6 +266,17 @@ Live packages:
 
 - `/config/packages/ventsys_ha_package.yaml`
 - `/config/packages/ventsys_ha_scripts.yaml`
+
+External monitoring health:
+
+- `configs/home-assistant/monitoring_external_health_package.yaml` is deployed
+  live at `/config/packages/monitoring_external_health_package.yaml`.
+- `ha core check` passed and HA Core was restarted successfully on 2026-05-27.
+- HA-side curl probes to Grafana `3000`, InfluxDB `8086`, and Uptime Kuma `3001`
+  all returned successfully after adding router rule `HA to Monitoring Health`.
+- The package entities are registered in HA's entity registry. No HA API token
+  was available to query live states from automation, so final validation used
+  endpoint probes, HA config check, HA restart, and entity-registry presence.
 
 `ha core check` passes.
 

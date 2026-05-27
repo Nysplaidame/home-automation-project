@@ -31,15 +31,15 @@ status: active
 
 1. [ ] Add the live `ventsys-main-valve-1` plain-MQTT firewall exception to `configs/openwrt/firewall-config.conf` so router redeploys do not wipe it before TLS migration
 2. [ ] Run router validation after the valve-1 firewall-source change (`python tools/router-deploy/lint.py` and `python tools/router-deploy/compile.py --profile first-flight`)
-3. [ ] Deploy Tailscale on docker-host and advertise only `192.168.20.101/32` and `192.168.40.50/32`
+3. [x] Deploy Tailscale on docker-host and advertise only `192.168.20.101/32` and `192.168.40.50/32`
 4. [ ] Keep WireGuard configured as a dormant fallback; update clients only after Tailscale is tested
 5. [x] Deploy `dashboards/ventsys-card-wrapper.html` to HA and verify the VentSys dashboard works inside a Lovelace iframe card
 6. [ ] Stabilize embedded Grafana view inside HA or explicitly park it behind direct-link-only access until HTTPS/reverse proxy work is done
-7. [ ] Add an external health signal for the monitoring VM so monitoring failure is visible even when Uptime Kuma itself is down
+7. [x] Add an external health signal for the monitoring VM so monitoring failure is visible even when Uptime Kuma itself is down
 8. [ ] Configure OMV-backed Home Assistant backups once NAS storage is live, while keeping fast local Proxmox recovery on the MINIX
 9. [ ] Start Frigate properly after `.env`, RTSP details, and MQTT credentials are ready; keep HTTPS/SSL and WebRTC audio as required prerequisites
 10. [ ] Expand VentSys beyond valve 1: finish the MQTT TLS migration path, then flash/adopt the remaining ESPHome devices
-11. [ ] Deploy AdGuard Home on docker-host per `docs/decisions/04-dns-resolver-and-adblocking.md`
+11. [x] Deploy AdGuard Home on docker-host per `docs/decisions/04-dns-resolver-and-adblocking.md`
 12. [ ] Re-run router-deploy validation after the router-local NTP/deploy-tooling update
 
 ---
@@ -48,17 +48,23 @@ status: active
 
 ### Tier 1 - near-term core
 
-- [ ] Deploy Tailscale on docker-host as host-route subnet router
-- [ ] Deploy AdGuard Home under `/opt/stacks/adguard-home/`
-- [ ] Deploy Immich under `/opt/stacks/immich/` with OMV-backed storage planned
-- [ ] Deploy Homepage under `/opt/stacks/homepage/`
-- [ ] Deploy Dozzle under `/opt/stacks/dozzle/`
+- [x] Validate Tailscale from an off-LAN client after docker-host auth and route approval
+- [x] Deploy AdGuard Home under `/opt/stacks/adguard-home/`
+- [x] Deploy Immich skeleton under `/opt/stacks/immich/` with local placeholder storage; OMV-backed real imports still blocked
+- [x] Deploy Homepage under `/opt/stacks/homepage/`
+- [x] Deploy Dozzle under `/opt/stacks/dozzle/`
+- [x] Add docker-host `DOCKER-USER` guard so Dozzle is management-only despite Docker published-port forwarding
+- [x] Add Uptime Kuma checks for Homepage and Dozzle
+- [x] Add Uptime Kuma checks for AdGuard DNS and UI
+- [x] Add Uptime Kuma check for Immich UI
+- [x] Add docker-host `DOCKER-USER` guard for Immich UI on `2283`
+- [x] Expand docker-host VM disk to 32 GiB
 
 ### Tier 2 - roadmap candidates
 
 - [ ] Evaluate Paperless-ngx under `/opt/stacks/paperless-ngx/`
 - [ ] Evaluate Mealie under `/opt/stacks/mealie/`
-- [ ] Evaluate ntfy under `/opt/stacks/ntfy/`
+- [x] Deploy ntfy internal-only under `/opt/stacks/ntfy/`
 - [ ] Evaluate Actual Budget under `/opt/stacks/actual-budget/`
 - [ ] Evaluate Scrypted under `/opt/stacks/scrypted/`
 
@@ -66,7 +72,7 @@ status: active
 
 - [ ] Evaluate Vaultwarden only after a backup/security review
 - [ ] Evaluate Portainer only if its convenience beats the added admin surface
-- [ ] Evaluate Watchtower in monitor-only mode only
+- [x] Deploy Watchtower in monitor-only mode only
 - [ ] Revisit local registry mirror after more Compose workloads exist
 - [ ] Evaluate Node-RED only if HA native automations are insufficient
 
@@ -304,15 +310,18 @@ must work without HACS.
 - [x] Export Home Assistant state history to InfluxDB
 - [x] Configure Grafana InfluxDB datasource and baseline Home Automation dashboard
 - [x] Add HA Monitoring page/sidebar entry with direct links to Grafana and Kuma
+- [x] Deploy internal ntfy notification service for future HA/Kuma/Grafana alerts
+- [x] Prepare HA HTTPS certificate files without enabling HTTPS cutover
 - [ ] Stabilize embedded Grafana view inside HA (current issue: login loop / auth behavior)
 - [ ] Revisit Grafana anonymous Viewer access after same-origin HTTPS path is in place
 - [ ] Add Uptime Kuma dashboard view into Home Assistant after same-origin reverse proxy/HTTPS path exists
 - [ ] Add Grafana dashboard view into Home Assistant (Lovelace panel/iframe) once auth/embedding behavior is stable
 - [ ] Evaluate Telegraf UI integration path (direct Telegraf has no real UI; expose Influx/Grafana views in HA instead)
-- [ ] Add an external health signal for monitoring VM (HA-side check) so Kuma-down is still detected
-- [ ] Deploy AdGuard Home on docker-host as selected DNS filtering engine
-- [ ] Add/validate router DNS enforcement rules for filtering coverage and public fallback
-- [ ] Add monitoring for the DNS filtering service before making it the only resolver path
+- [x] Add an external health signal for monitoring VM (HA-side check) so Kuma-down is still detected
+- [x] Deploy AdGuard Home on docker-host as selected DNS filtering engine
+- [x] Add/validate router DNS enforcement rules for filtering coverage and public fallback
+- [x] Add monitoring for the DNS filtering service before making it the only resolver path
+- [x] Verify pre-NAS Proxmox local backup job and latest backups for VMs 100/101/102/103
 - [ ] Add `Fail2ban` to live Linux services where exposed/internal auth surfaces justify it
 - [ ] Revisit IDS/IPS only after centralized logging is live; prefer Suricata on dedicated x86 over router-hosted IDS
 - [ ] Set up WireGuard DDNS if ISP IP changes frequently

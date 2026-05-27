@@ -1,0 +1,68 @@
+# Home Assistant Package - Monitoring External Health
+# Deploy to: /config/packages/monitoring_external_health_package.yaml on HA VM.
+# Purpose: HA-side visibility when the monitoring VM or Uptime Kuma is down.
+#
+# Apply from the Home Assistant Terminal add-on:
+#   cp /config/packages/monitoring_external_health_package.yaml /config/packages/monitoring_external_health_package.yaml.bak.$(date +%Y%m%d_%H%M%S) 2>/dev/null || true
+#   # paste/copy this file into /config/packages/monitoring_external_health_package.yaml
+#   ha core check
+#   ha core restart
+
+command_line:
+  - binary_sensor:
+      name: "Monitoring VM Grafana Reachable"
+      unique_id: monitoring_vm_grafana_reachable
+      command: "curl -fsS --connect-timeout 5 --max-time 8 http://192.168.60.10:3000/api/health >/dev/null && echo ON || echo OFF"
+      scan_interval: 60
+      device_class: connectivity
+      payload_on: "ON"
+      payload_off: "OFF"
+
+  - binary_sensor:
+      name: "Monitoring VM InfluxDB Reachable"
+      unique_id: monitoring_vm_influxdb_reachable
+      command: "curl -fsS --connect-timeout 5 --max-time 8 http://192.168.60.10:8086/health >/dev/null && echo ON || echo OFF"
+      scan_interval: 60
+      device_class: connectivity
+      payload_on: "ON"
+      payload_off: "OFF"
+
+  - binary_sensor:
+      name: "Uptime Kuma Reachable From HA"
+      unique_id: uptime_kuma_reachable_from_ha
+      command: "curl -fsS --connect-timeout 5 --max-time 8 http://192.168.60.10:3001/ >/dev/null && echo ON || echo OFF"
+      scan_interval: 60
+      device_class: connectivity
+      payload_on: "ON"
+      payload_off: "OFF"
+
+template:
+  - binary_sensor:
+      - name: "Monitoring Stack Externally Healthy"
+        unique_id: monitoring_stack_externally_healthy
+        device_class: connectivity
+        state: >
+          {{
+            is_state('binary_sensor.monitoring_vm_grafana_reachable', 'on')
+            and is_state('binary_sensor.monitoring_vm_influxdb_reachable', 'on')
+            and is_state('binary_sensor.uptime_kuma_reachable_from_ha', 'on')
+          }}
+
+automation:
+  - id: monitoring_stack_external_health_lost
+    alias: "Monitoring Stack External Health Lost"
+    mode: single
+    initial_state: false
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.monitoring_stack_externally_healthy
+        to: "off"
+        for: "00:03:00"
+    action:
+      - service: persistent_notification.create
+        data:
+          title: "Monitoring stack unreachable from Home Assistant"
+          message: >
+            Home Assistant cannot reach one or more monitoring endpoints on
+            192.168.60.10. Check Grafana, InfluxDB, Uptime Kuma, and router
+            VLAN 20 -> VLAN 60 firewall policy.

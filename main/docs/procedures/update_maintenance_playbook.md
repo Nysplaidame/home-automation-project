@@ -29,7 +29,7 @@ This document defines the chosen strategy:
 |---|---|---|
 | VLAN 10 management | Full internet | Normal package updates |
 | HA VM `192.168.20.101` | Allowed | Normal add-on / integration updates |
-| Docker host `192.168.20.102` | Blocked except maintenance window | Temporary WAN rule now; cache later |
+| Docker host `192.168.20.102` | No broad update rule; Tailscale requires limited WAN egress | Temporary WAN rule for Docker pulls; cache later |
 | Frigate VM `192.168.30.20` | Blocked except maintenance window | Temporary WAN rule now; offline image transfer or cache later |
 | Printers VLAN 35 | `443` only | Vendor OTA only |
 | Storage VLAN 40 | Blocked | Manual / local-only maintenance |
@@ -57,6 +57,13 @@ These are the only temporary internet rules that should routinely exist in this
 project.
 
 ### Docker host maintenance window
+
+Important caveat: docker-host has a standing `Docker Host Tailscale Egress` rule
+for Tailscale (`443`, `3478`, `41641`). Because Tailscale may need TCP `443`
+for DERP/HTTPS fallback, generic HTTPS from docker-host is not perfectly blocked
+at the router. Do not treat that as approval for routine updates; Docker pulls
+and package upgrades still require an intentional maintenance window and a
+post-change health check.
 
 Add:
 
@@ -191,6 +198,14 @@ Keep Docker image updates separate; `apt-cacher-ng` is for APT package traffic,
 not container image layers. The Docker APT repository uses a narrow HTTPS
 pass-through for `download.docker.com:443` during maintenance; Docker image
 pulls still need a separate update method.
+
+### Watchtower monitor-only caveat
+
+Watchtower monitor-only is installed on docker-host, but docker-host remains
+blocked from general WAN access by design. Watchtower can only check upstream
+container registries during an approved Docker-host egress window unless a
+future decision creates narrow permanent registry access. It must remain
+monitor-only; do not use it for automatic updates.
 
 ## Recommended next implementation order
 

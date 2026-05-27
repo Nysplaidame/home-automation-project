@@ -60,6 +60,16 @@ the system can be safely maintained after installation.
 - docker-host stack data paths are known.
 - OMV storage health is visible.
 - Monitoring has an external failure signal or a documented gap.
+- HA-side external monitoring health package is deployed at
+  `/config/packages/monitoring_external_health_package.yaml`, with source in
+  `configs/home-assistant/monitoring_external_health_package.yaml`.
+
+## Current pre-NAS backup readiness
+
+As of 2026-05-27, Proxmox has an enabled daily `02:00` snapshot job for VMs
+`100,101,102,103` to local storage with `keep-last=2`. The latest backup logs
+for all four VMs finished successfully on 2026-05-27. This is still a local
+pre-NAS safety net, not long-term disaster recovery.
 
 ## Validation
 
@@ -75,12 +85,13 @@ Test-Connection 192.168.40.50 -Count 2
 ## Failure recovery
 
 - If a backup restore is untested, do not call the service live.
-- If monitoring depends only on itself, record the visibility gap in `TO-DO.md`.
+- If monitoring depends only on itself, record the visibility gap in `TO-DO.md`
+  and stage or deploy the HA-side external health package.
 - If updates fail, roll back one service stack at a time; do not mass-update.
 
 ## Completion checklist
 
 - [ ] Backup strategy read.
 - [ ] Restore drill scheduled.
-- [ ] Monitoring health checks documented.
+- [x] Monitoring health checks documented.
 - [ ] Update maintenance playbook read.

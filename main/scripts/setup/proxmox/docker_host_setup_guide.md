@@ -30,8 +30,8 @@ own appliance model.
 | MAC | BC:24:11:BC:B8:1A |
 | Machine | q35 |
 | BIOS | OVMF, pre-enrolled keys disabled |
-| Disk | local-lvm, 16 GiB, SCSI, discard on, SSD emulation |
-| CPU/RAM | 1 core, 1024 MiB |
+| Disk | local-lvm, 32 GiB, SCSI, discard on, SSD emulation |
+| CPU/RAM | 2 cores, 4096 MiB |
 | Network | vmbr0, VLAN tag 20, VirtIO |
 | Boot | onboot enabled, startup order 3 |
 
@@ -43,14 +43,35 @@ Completed live:
 - Docker and Docker Compose installed and active.
 - Bambuddy image `ghcr.io/maziggy/bambuddy:latest` pulled.
 - Bambuddy stack staged at `/opt/stacks/bambuddy`.
+- Homepage stack staged at `/opt/stacks/homepage` and live on port `3001`.
+- Dozzle stack staged at `/opt/stacks/dozzle` and live on port `8081`.
+- AdGuard Home stack staged at `/opt/stacks/adguard-home`, with DNS on
+  `192.168.20.102:53` and admin UI on `8080`.
+- Immich skeleton stack staged at `/opt/stacks/immich` and live on port `2283`;
+  it uses local placeholder storage only until OMV storage and backup/restore
+  are ready.
+- ntfy stack staged at `/opt/stacks/ntfy` and live internally on port `8085`,
+  with default access denied and credentials stored at `/root/ntfy-credentials.txt`.
+- Watchtower monitor-only stack staged at `/opt/stacks/watchtower`, with
+  `WATCHTOWER_MONITOR_ONLY=true` and notifications pointed at internal ntfy.
 - UFW enabled with default deny incoming and scoped allows.
+- `docker-host-firewall.service` applies `DOCKER-USER` rules so Docker-published
+  admin/DNS ports stay scoped despite Docker DNAT bypassing normal UFW input.
+- Tailscale installed and `tailscaled` active; docker-host is authenticated as
+  `100.94.122.18` and advertises only `192.168.20.101/32` and
+  `192.168.40.50/32`.
+- `/etc/apt/apt.conf.d/01proxy` keeps HTTP apt traffic through apt-cacher-ng and
+  sends HTTPS apt traffic direct because apt-cacher-ng rejects HTTPS CONNECT.
 - Router temporary internet rule removed after image pull.
+- VM 103 disk was expanded online to 32 GiB on 2026-05-27.
 
 Current service direction:
 
 - Bambuddy is the first live workload.
 - Tailscale will run as a host service, not a Compose workload.
-- Tier 1 Compose stacks are AdGuard Home, Immich, Homepage, and Dozzle.
+- Tier 1 Compose stack still needing real storage cutover is Immich.
+- Tier 2 notification service `ntfy` is pre-flight live for internal alerts.
+- Tier 3 Watchtower is monitor-only and does not update containers.
 - All Compose stacks use `/opt/stacks/<service>/`.
 
 ---
@@ -89,8 +110,8 @@ wget -O debian-13-genericcloud-amd64.qcow2 \
 
 qm create 103 \
   --name docker-host \
-  --memory 1024 \
-  --cores 1 \
+  --memory 4096 \
+  --cores 2 \
   --cpu host \
   --machine q35 \
   --bios ovmf \
@@ -104,7 +125,7 @@ qm set 103 --efidisk0 local-lvm:0,efitype=4m,pre-enrolled-keys=0
 qm importdisk 103 debian-13-genericcloud-amd64.qcow2 local-lvm
 qm set 103 --scsihw virtio-scsi-single
 qm set 103 --scsi0 local-lvm:vm-103-disk-0,discard=on,ssd=1,cache=writeback
-qm resize 103 scsi0 16G
+qm resize 103 scsi0 32G
 qm set 103 --boot order=scsi0
 qm set 103 --ide2 local-lvm:cloudinit
 qm set 103 --ciuser root
@@ -202,11 +223,13 @@ ufw --force enable
 ufw status verbose
 ```
 
-Tier 1 planned additions:
+Current Tier 1 service additions:
 
 ```bash
 ufw allow from 192.168.10.0/24 to any port 2283 proto tcp comment "Management to Immich"
 ufw allow from 192.168.1.0/24 to any port 2283 proto tcp comment "LAN to Immich"
+ufw allow from 192.168.60.10 to any port 2283 proto tcp comment "Monitoring to Immich"
+ufw allow in on tailscale0 to any port 2283 proto tcp comment "Tailscale Immich"
 ufw allow from 192.168.10.0/24 to any port 3001 proto tcp comment "Management to Homepage"
 ufw allow from 192.168.1.0/24 to any port 3001 proto tcp comment "LAN to Homepage"
 ufw allow from 192.168.10.0/24 to any port 8080 proto tcp comment "Management to AdGuard UI"
@@ -218,6 +241,23 @@ addresses. Do not open admin tools to Guest, DMZ, NVR, Printers, or IoT.
 
 Add ports only for workloads that are intentionally exposed. Keep workload
 access scoped by source subnet.
+
+Docker-published ports can bypass UFW's normal `INPUT` path. For admin-only
+published ports, use `DOCKER-USER` as well. Live VM 103 has
+`/usr/local/sbin/docker-host-firewall.sh` and
+`docker-host-firewall.service` applying:
+
+```bash
+iptables -A DOCKER-USER -m conntrack --ctstate RELATED,ESTABLISHED -j RETURN
+iptables -A DOCKER-USER -p tcp -s 192.168.10.0/24 -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 2283 -j RETURN
+iptables -A DOCKER-USER -p tcp -s 192.168.1.0/24 -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 2283 -j RETURN
+iptables -A DOCKER-USER -p tcp -s 192.168.60.10 -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 2283 -j RETURN
+iptables -A DOCKER-USER -i tailscale0 -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 2283 -j RETURN
+iptables -A DOCKER-USER -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 2283 -j DROP
+iptables -A DOCKER-USER -p tcp -s 192.168.10.0/24 -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8081 -j RETURN
+iptables -A DOCKER-USER -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8081 -j DROP
+iptables -A DOCKER-USER -j RETURN
+```
 
 ---
 
@@ -286,12 +326,12 @@ docker compose up -d
 docker compose logs bambuddy -f
 ```
 
-### Tier 1 planned stack paths
+### Tier 1 stack paths
 
 | Service | Path | Planned port(s) | Notes |
 |---|---|---|---|
 | AdGuard Home | `/opt/stacks/adguard-home/` | 53/tcp+udp, 3000 initial, 8080 admin target | Router forwards DNS here first; public fallback stays on router |
-| Immich | `/opt/stacks/immich/` | 2283/tcp | Store media on OMV-backed mount, not the VM disk |
+| Immich | `/opt/stacks/immich/` | 2283/tcp | Pre-flight live with local placeholder storage; store real media on OMV-backed mount, not the VM disk |
 | Homepage | `/opt/stacks/homepage/` | 3001/tcp | Internal dashboard |
 | Dozzle | `/opt/stacks/dozzle/` | 8081/tcp | Internal Docker log viewer |
 
@@ -439,4 +479,4 @@ nc -zv 192.168.35.200 21
 | ID | Name | VLAN | IP | RAM | Cores | Boot |
 |---|---|---|---|---|---|---|
 | 100 | home-assistant | 20 | 192.168.20.101 | 4096 MB | 2 | order 1 |
-| 103 | docker-host | 20 | 192.168.20.102 | 1024 MB | 1 | order 3 |
+| 103 | docker-host | 20 | 192.168.20.102 | 4096 MB | 2 | order 3 |

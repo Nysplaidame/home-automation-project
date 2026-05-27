@@ -26,6 +26,20 @@ them.
 
 Do not advertise broad VLAN or RFC1918 ranges.
 
+Live state, 2026-05-27:
+
+- Tailscale `1.98.3` is installed on docker-host.
+- `tailscaled` is active.
+- docker-host is authenticated into the tailnet as `100.94.122.18`.
+- `tailscale up` is configured with `--accept-dns=false` and only
+  `192.168.20.101/32,192.168.40.50/32`.
+- The advertised routes have been approved in the Tailscale admin console.
+- Local forwarding to Home Assistant has been validated from docker-host
+  (`http://192.168.20.101:8123` returned `200`).
+- Final validation still needs an off-LAN Tailscale client test.
+- docker-host keeps HTTP apt traffic through apt-cacher-ng, but HTTPS apt traffic
+  is direct because apt-cacher-ng rejects HTTPS CONNECT.
+
 ## Target access
 
 | Target | Route |
@@ -51,14 +65,15 @@ Use interface-scoped or tailnet-scoped rules. Example intent:
 
 ```bash
 ufw allow in on tailscale0 to any port 22 proto tcp comment "Tailscale SSH admin"
-ufw allow in on tailscale0 to any port 8123 proto tcp comment "Routed HA"
-ufw allow in on tailscale0 to any port 2283 proto tcp comment "Immich"
 ufw allow in on tailscale0 to any port 3001 proto tcp comment "Homepage"
 ufw allow in on tailscale0 to any port 8081 proto tcp comment "Dozzle"
+ufw route allow in on tailscale0 out on eth0 to 192.168.20.101 port 8123 proto tcp comment "Tailscale routed HA UI"
+ufw route allow in on tailscale0 out on eth0 to 192.168.40.50 port 22 proto tcp comment "Tailscale routed OMV SSH"
+ufw route allow in on tailscale0 out on eth0 to 192.168.40.50 port 80 proto tcp comment "Tailscale routed OMV HTTP"
+ufw route allow in on tailscale0 out on eth0 to 192.168.40.50 port 443 proto tcp comment "Tailscale routed OMV HTTPS"
 ```
 
-Adjust before applying; routed HA/OMV traffic may need forwarding policy rather
-than local input-only rules.
+Routed HA/OMV traffic uses UFW route rules, not local input-only rules.
 
 ## Validation
 

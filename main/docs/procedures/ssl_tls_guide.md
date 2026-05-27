@@ -91,6 +91,20 @@ Validation evidence from the broker log:
 
 ## Option A - Self-signed certificate (simplest)
 
+### Current HA HTTPS pre-flight state
+
+As of 2026-05-27, HA has separate HTTPS pre-flight files:
+
+```text
+/ssl/ha_https_preflight_fullchain.pem
+/ssl/ha_https_preflight_privkey.pem
+```
+
+These files are not enabled in `/config/configuration.yaml`. The active HA web
+UI remains HTTP on `http://192.168.20.101:8123`. Do not switch to HTTPS without
+a maintenance window, because the cutover affects browser trust, Companion App
+URLs, dashboard URLs, and token-using clients.
+
 ### Generate cert on the HA VM
 
 In HA Terminal:

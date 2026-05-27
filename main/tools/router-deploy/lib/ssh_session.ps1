@@ -89,6 +89,7 @@ function Invoke-RouterCommand {
         [int]$ConnectTimeoutSeconds = 10
     )
 
+    $normalizedCommand = $Command.Replace("`r`n", "`n").Replace("`r", "`n")
     $target = Get-RouterSshTarget -RouterIp $RouterIp -User $User
     $sshArgs = @(
         "-i", $KeyPath,
@@ -96,7 +97,7 @@ function Invoke-RouterCommand {
         "-o", "StrictHostKeyChecking=accept-new",
         "-o", "ConnectTimeout=$ConnectTimeoutSeconds",
         $target,
-        $Command
+        $normalizedCommand
     )
     Invoke-NativeCapture { & ssh @sshArgs }
 }

@@ -43,9 +43,8 @@ services:
     container_name: adguard-home
     restart: unless-stopped
     ports:
-      - "53:53/tcp"
-      - "53:53/udp"
-      - "3000:3000/tcp"
+      - "192.168.20.102:53:53/tcp"
+      - "192.168.20.102:53:53/udp"
       - "8080:80/tcp"
     volumes:
       - ./work:/opt/adguardhome/work
@@ -58,22 +57,32 @@ docker compose logs --tail=80
 
 ## Explanation
 
-The first-run UI uses port 3000. After setup, the admin UI is mapped to 8080 so
-port 80 on docker-host stays free for other future patterns.
+Bind DNS to `192.168.20.102:53`, not `0.0.0.0:53`, because Debian's local
+resolver may already own loopback DNS. The first-run UI may temporarily use port
+3000, but the steady-state admin UI is mapped to 8080 so port 80 on docker-host
+stays free for other future patterns.
+
+Docker-published ports can bypass UFW's normal `INPUT` path. The live host uses
+`docker-host-firewall.service` / `DOCKER-USER` so only the router and monitoring
+VM can query AdGuard DNS directly; ordinary clients should query router-local
+DNS instead.
 
 ## Expected result
 
-AdGuard first-run UI loads at `http://192.168.20.102:3000/`, then admin UI at
-`http://adguard.home.local:8080/`.
+AdGuard admin UI loads at `http://adguard.home.local:8080/`.
 
 ## Validation
 
 Run on: Admin laptop.
 
 ```powershell
-nslookup example.com 192.168.20.102
 nslookup example.com 192.168.10.1
+Test-NetConnection 192.168.20.102 -Port 8080
 ```
+
+Run direct `nslookup example.com 192.168.20.102` from the router or monitoring
+VM, not from arbitrary clients, because direct client DNS bypass is intentionally
+blocked.
 
 ## Backup
 
@@ -87,7 +96,8 @@ Back up `/opt/stacks/adguard-home/conf` and `/opt/stacks/adguard-home/work`.
 
 ## Completion checklist
 
-- [ ] Compose config passes.
-- [ ] DNS query to docker-host works.
-- [ ] Router query works with AdGuard first.
-- [ ] Admin password stored.
+- [x] Compose config passes.
+- [x] DNS query to docker-host works from router/monitoring.
+- [x] Router query works with AdGuard first.
+- [x] Admin password stored.
+- [x] Uptime Kuma monitors added for DNS and UI.
