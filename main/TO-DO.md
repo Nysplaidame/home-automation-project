@@ -29,8 +29,8 @@ status: active
 
 ## Operational next steps
 
-1. [ ] Add the live `ventsys-main-valve-1` plain-MQTT firewall exception to `configs/openwrt/firewall-config.conf` so router redeploys do not wipe it before TLS migration
-2. [ ] Run router validation after the valve-1 firewall-source change (`python tools/router-deploy/lint.py` and `python tools/router-deploy/compile.py --profile first-flight`)
+1. [x] Confirm live/source parity for valve-1 MQTT firewall state: no temporary plain-MQTT `1883` exception exists live, and source remains TLS `8883`-only for VentSys MQTT
+2. [x] Close stale valve-1 plain-MQTT follow-up tasks to avoid reintroducing insecure `1883` access while VentSys migration proceeds on TLS
 3. [x] Deploy Tailscale on docker-host and advertise only `192.168.20.101/32` and `192.168.40.50/32`
 4. [ ] Keep WireGuard configured as a dormant fallback; update clients only after Tailscale is tested
 5. [x] Deploy `dashboards/ventsys-card-wrapper.html` to HA and verify the VentSys dashboard works inside a Lovelace iframe card
@@ -163,8 +163,8 @@ must work without HACS.
 - [x] Flash/configure GL-MT6000 with router phases 1–8
 - [x] Run router validation/tests from management IP (`test.ps1`: PASS=62/WARN=0/FAIL=0; `test-connectivity.ps1`: PASS=74/WARN=0/FAIL=0)
 - [ ] Fill in MAC addresses in dhcp-config.conf (Proxmox host, VMs, NAS)
-- [ ] Add the live valve-1 temporary plain-MQTT exception to `configs/openwrt/firewall-config.conf` in source, ordered before `Block IoT to Automation`
-- [ ] Re-deploy/validate router config after the valve-1 firewall-source change so live state matches repo state again
+- [x] Confirm no live valve-1 temporary plain-MQTT firewall exception exists; keep source as TLS `8883`-only for VentSys MQTT
+- [x] Remove stale valve-1 firewall-source drift items after parity verification
 - [ ] Configure WireGuard fallback clients only after Tailscale daily access is tested
 - [ ] Enable DDNS on router only if WireGuard fallback endpoint maintenance becomes annoying
 
@@ -264,7 +264,7 @@ must work without HACS.
 - [ ] Flash booth sensor board via USB (`ventsys_booth_sensor.yaml`)  # A5-3: per-device YAML now exists (A4-4)
 - [ ] Add `mqtt_ca_cert` to both repo and HA-side ESPHome `secrets.yaml` as part of the VentSys TLS migration path
 - [ ] Migrate `ventsys_main_valve1.yaml` from MQTT `1883` to `8883` with `certificate_authority: !secret mqtt_ca_cert`
-- [ ] Remove the valve-1 temporary plain-MQTT firewall rule after `ventsys-main-valve-1` is confirmed working on TLS MQTT
+- [x] Remove valve-1 temporary plain-MQTT firewall follow-up task because no live/source `1883` exception is present
 - [ ] Adopt all devices in ESPHome add-on (17 ESP32 boards + plugs)  # A5-3: was 'all 4 devices' - pre-expansion count
 - [ ] Verify MQTT topics publishing: `mosquitto_sub -t 'ventsys/#' -v`
 - [ ] Confirm automations fire on test sensor triggers

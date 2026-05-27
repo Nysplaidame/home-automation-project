@@ -75,6 +75,9 @@ Completed live:
 - UFW route rules allow only AdGuard's Docker bridge subnet `172.20.0.0/16`
   to reach upstream DNS ports `53/tcp`, `53/udp`, and `853/tcp`; this is
   required because UFW otherwise denies Docker routed traffic.
+- Rebuildable source script for these routed DNS allowances is
+  `configs/docker-host/system/docker-host-ufw-route-dns.sh` (deploy to
+  `/usr/local/sbin/` and run after UFW baseline policy is active).
 
 Current service direction:
 
@@ -245,6 +248,14 @@ ufw allow from 192.168.10.0/24 to any port 3001 proto tcp comment "Management to
 ufw allow from 192.168.1.0/24 to any port 3001 proto tcp comment "LAN to Homepage"
 ufw allow from 192.168.10.0/24 to any port 8080 proto tcp comment "Management to AdGuard UI"
 ufw allow from 192.168.10.0/24 to any port 8081 proto tcp comment "Management to Dozzle"
+```
+
+Apply routed DNS allowances for the AdGuard Docker bridge subnet:
+
+```bash
+install -m 0755 /path/to/repo/main/configs/docker-host/system/docker-host-ufw-route-dns.sh /usr/local/sbin/docker-host-ufw-route-dns.sh
+/usr/local/sbin/docker-host-ufw-route-dns.sh
+ufw status verbose
 ```
 
 Tailscale rules should be scoped to `tailscale0` or approved tailnet source
