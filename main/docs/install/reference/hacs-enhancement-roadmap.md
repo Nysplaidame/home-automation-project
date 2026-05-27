@@ -3,7 +3,7 @@ title: Home Assistant Apps and Enhancement Roadmap
 description: Home Assistant companion apps, add-ons, HACS ideas, dashboards, maintenance, and quality of life
 tags: [hacs, home-assistant, roadmap, dashboards, companion-app]
 created: 2026-05-24
-modified: 2026-05-24
+modified: 2026-05-27
 type: reference
 status: active
 ---
@@ -37,6 +37,8 @@ work.
 ## Core deployment rule
 
 - Install the Companion App only after HA users and 2FA are configured.
+- Use `docs/procedures/home_assistant_companion_app_guide.md` for the operator
+  phone install, push test, actionable notification test, and sensor review.
 - Do not route life-safety behavior through mobile-only actions.
 - Use mobile notifications for alerting and acknowledgement, not as the only
   emergency control path.

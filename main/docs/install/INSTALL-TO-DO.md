@@ -27,7 +27,7 @@ without live assistance.
 ## Phase Manual Expansion
 
 - [ ] Phase 00 operator basics: add examples for hardware inventory, IP plan, MAC addresses, and secret placeholders.
-- [ ] Phase 01 router/OpenWrt: add full fresh-flash path, first-flight deploy path, full deploy path, router-local NTP validation, and lan5 recovery drill.
+- [x] Phase 01 router/OpenWrt: add full fresh-flash path, first-flight deploy path, full deploy path, router-local NTP validation, and lan5 recovery drill.
 - [ ] Phase 02 Proxmox: add ISO verification, install checkpoints, storage layout choices, bridge/VLAN validation, and rollback notes.
 - [ ] Phase 03 Home Assistant: add HAOS install, onboarding, add-on installs, MQTT setup, Companion App setup, router-derived time config, HACS decision gate, and backup validation.
 - [ ] Phase 04 Frigate: add Debian base install, Docker install, Frigate compose, `.env` creation, camera placeholders, HTTPS requirement, and HA integration validation.
@@ -42,11 +42,11 @@ without live assistance.
 
 ## Router-Deploy Documentation Tasks
 
-- [ ] Document that router-deploy is router-only: network, DHCP, DNS, firewall, local hostnames, WireGuard fallback, router-local NTP, and validation artifacts.
-- [ ] Document that router-deploy does not deploy Docker services, OMV, Tailscale auth, or app stacks.
-- [ ] Add beginner notes for `first-flight` versus `full` profiles.
-- [ ] Add expected output examples for `lint.py`, `compile.py`, `deploy.ps1`, `test.ps1`, and `test-connectivity.ps1`.
-- [ ] Add a recovery drill for failed deploy, watchdog rollback, and physical lan5 recovery.
+- [x] Document that router-deploy is router-only: network, DHCP, DNS, firewall, local hostnames, WireGuard fallback, router-local NTP, and validation artifacts.
+- [x] Document that router-deploy does not deploy Docker services, OMV, Tailscale auth, or app stacks.
+- [x] Add beginner notes for `first-flight` versus `full` profiles.
+- [x] Add expected output examples for `lint.py`, `compile.py`, `deploy.ps1`, `test.ps1`, and `test-connectivity.ps1`.
+- [x] Add a recovery drill for failed deploy, watchdog rollback, and physical lan5 recovery.
 
 ## Service Manual Coverage
 
@@ -79,7 +79,7 @@ without live assistance.
 
 ## Current-State Annotations
 
-- [ ] Add current-state callouts for router first-flight deployed state.
+- [x] Add current-state callouts for router first-flight deployed state.
 - [x] Add current-state callouts for Proxmox, HAOS, Frigate base, docker-host, and Bambuddy live state.
 - [ ] Add current-state callouts for pending OMV, cameras, Tier 1 apps, and VentSys hardware.
 - [ ] Add current-state callout for core HA tools: Mosquitto, ESPHome, Terminal & SSH, Studio Code Server/File Editor, and Companion App status.

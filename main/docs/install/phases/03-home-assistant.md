@@ -3,7 +3,7 @@ title: Phase 03 - Home Assistant
 description: HAOS baseline, add-ons, MQTT, VentSys package base, and backup target
 tags: [install, home-assistant, mqtt]
 created: 2026-05-24
-modified: 2026-05-24
+modified: 2026-05-27
 type: install-guide
 status: active
 ---
@@ -83,6 +83,9 @@ native API.
 - 2FA is enabled for the admin account.
 - HACS remains optional and enhancement-only; see
   `docs/install/reference/hacs-enhancement-roadmap.md`.
+- Companion App onboarding, push tests, actionable notification tests, and
+  sensor policy are covered in
+  `docs/procedures/home_assistant_companion_app_guide.md`.
 - HAOS system time is sourced from router-local NTP, not arbitrary external
   internet NTP.
 

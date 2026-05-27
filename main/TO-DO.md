@@ -87,7 +87,7 @@ must work without HACS.
 
 ### Core HA tools
 
-- [ ] Install Home Assistant Companion App on operator phones after HA users and 2FA are configured
+- [ ] Install Home Assistant Companion App on operator phones using `docs/procedures/home_assistant_companion_app_guide.md`
 - [ ] Test push notifications and actionable notification acknowledgements
 - [ ] Review Companion App sensors and enable only useful presence, battery, network, and notification sensors
 - [x] Keep Mosquitto as the required MQTT broker add-on

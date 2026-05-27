@@ -3,7 +3,7 @@ title: Phase 01 - Router OpenWrt
 description: Fresh OpenWrt baseline, VLANs, DHCP, DNS, firewall, and WireGuard fallback
 tags: [install, router, openwrt]
 created: 2026-05-24
-modified: 2026-05-24
+modified: 2026-05-27
 type: install-guide
 status: active
 ---
@@ -16,8 +16,10 @@ Build the GL-MT6000 network foundation: VLANs, DHCP reservations, local DNS,
 firewall policy, router-local NTP, AdGuard-first DNS forwarding with
 Quad9/Cloudflare fallback, and dormant WireGuard fallback.
 
-Router-deploy remains router-only. It must not deploy containers, OMV packages,
-Tailscale auth, or app stacks.
+Router-deploy remains router-only. It owns OpenWrt network, DHCP, DNS,
+firewall, wireless, dormant WireGuard fallback, router-local NTP, generated
+artifacts, snapshots, and validation. It must not deploy containers, OMV
+packages, Tailscale auth, Uptime Kuma/ntfy state, HA add-ons, or app stacks.
 
 ## Runs on
 
@@ -63,6 +65,9 @@ The router packages support fallback VPN and diagnostics. The router-deploy
 checks prove the desired UCI/firewall artifacts compile before anything is
 applied to a router.
 
+Use `tools/router-deploy/README.md` for the full deployment boundary, expected
+command output examples, profile notes, and lan5 recovery drill.
+
 ## Expected result
 
 - VLANs and DHCP scopes match `configs/openwrt/`.
@@ -102,10 +107,10 @@ uci show system.ntp
 
 ## Completion checklist
 
-- [ ] Router packages installed.
-- [ ] Router-deploy lint passes.
-- [ ] First-flight compile passes.
-- [ ] Router reachable at `192.168.10.1`.
-- [ ] Local hostnames resolve.
-- [ ] Router-local NTP is enabled and `sysntpd` is running.
-- [ ] WireGuard is configured but not the daily remote access layer.
+- [x] Router packages installed.
+- [x] Router-deploy lint passes.
+- [x] First-flight compile passes.
+- [x] Router reachable at `192.168.10.1`.
+- [x] Local hostnames resolve.
+- [x] Router-local NTP is enabled and `sysntpd` is running.
+- [x] WireGuard is configured but not the daily remote access layer.

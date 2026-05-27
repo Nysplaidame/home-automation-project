@@ -122,6 +122,7 @@ status: active
 | [[docs/troubleshooting/troubleshooting_reference.md]] | Per-system quick diagnosis for common failures |
 | [[docs/procedures/ssl_tls_guide.md]] | HTTPS for HA, local CA, Let's Encrypt via DuckDNS |
 | [[docs/procedures/tailscale_remote_access_guide.md]] | Daily remote access through docker-host Tailscale host routes |
+| [[docs/procedures/home_assistant_companion_app_guide.md]] | HA Companion App phone onboarding, push test, actionable notification test, and sensor policy |
 | [[scripts/monitoring/health_check.sh]] | Single-command health check for all systems |
 
 ---

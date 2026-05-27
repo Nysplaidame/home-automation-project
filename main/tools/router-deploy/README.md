@@ -15,6 +15,28 @@ It uses a compile-first model:
 3. `deploy.ps1` applies only router-owned generated state to the router (`network/dhcp/wireless` copied to `/etc/config`, `firewall.sh` executed, and narrow system/NTP UCI settings applied).
 4. `test.ps1` performs post-deploy validation.
 
+## Ownership Boundary
+
+Router-deploy is deliberately router-only. It owns generated OpenWrt state for:
+
+- VLAN bridge/interface configuration.
+- DHCP scopes, static reservations, and local DNS names.
+- Router firewall zones, forwarding policy, and narrow host/port rules.
+- Wireless SSID definitions.
+- Dormant WireGuard fallback config.
+- Router-local NTP intent.
+- Validation artifacts and router snapshots.
+
+Router-deploy does not deploy or configure:
+
+- Docker containers, Compose stacks, or docker-host host services.
+- Proxmox VMs, HAOS add-ons, Frigate, OMV, Tailscale auth, or app databases.
+- ntfy users/topics, Uptime Kuma monitors/notifications, or service credentials.
+- Live app state under `/opt/stacks/`, `/config`, `/opt/monitoring`, or NAS paths.
+
+If a task changes a non-router endpoint, use that endpoint's manual and keep the
+router-deploy side limited to DNS, DHCP, firewall, NTP, and validation support.
+
 ## Current First-Flight State
 
 As of 2026-05-07, first-flight has been applied to the GL-MT6000 and the
@@ -94,18 +116,59 @@ python .\compile.py --profile first-flight
 ```
 
 For controlled first flight, `--profile first-flight` is the intended path.
+It is the safe bring-up profile: placeholders are contained, WiFi with
+placeholder keys is disabled, WireGuard peers are removed, and temporary
+maintenance egress rules are stripped from generated output.
 Strict full deploy still requires:
 
 ```powershell
 python .\compile.py --profile full
 ```
 
-`--profile full` blocks if WiFi passwords, WireGuard keys, or DHCP MAC addresses still contain placeholders.
+`--profile full` is the final populated profile. It blocks if WiFi passwords,
+WireGuard keys, or DHCP MAC addresses still contain placeholders, and it is the
+profile to use only after secrets and real hardware identities are ready.
+
+Expected `lint.py` success shape:
+
+```text
+Router Config Lint
+============================================================
+PASSED: all checks clean.
+```
+
+Expected `compile.py --profile first-flight` success shape:
+
+```text
+[INFO] Stripped 2 TEMP firewall rule(s).
+[INFO] First-flight adjustments applied:
+  - wg0_stubbed: 1
+  - removed_wg_peer_sections: 3
+  - removed_placeholder_hosts: <count>
+  - disabled_wifi_ifaces: <count>
+[OK] Artifacts written:
+  - ...\generated\network.uci
+  - ...\generated\dhcp.uci
+  - ...\generated\wireless.uci
+  - ...\generated\system.uci
+  - ...\generated\firewall.sh
+  - ...\generated\summary.json
+```
 
 5. Deploy:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\deploy.ps1 -Profile first-flight
+```
+
+Expected deploy success shape:
+
+```text
+[OK] Router identity verified.
+[OK] Router snapshots created.
+[OK] Generated configs copied.
+[OK] Services restarted and health checks passed.
+[OK] Watchdog cancelled.
 ```
 
 For a later fully populated rollout:
@@ -119,6 +182,19 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\deploy.ps1 -Profile full
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\test.ps1 -Profile first-flight
 powershell -NoProfile -ExecutionPolicy Bypass -File .\test-connectivity.ps1 -Profile first-flight
+```
+
+Expected `test.ps1` success shape is a PASS-only summary, for example:
+
+```text
+Summary: PASS=<count> WARN=0 FAIL=0
+```
+
+Expected `test-connectivity.ps1` success shape after the current first-flight
+deployment is:
+
+```text
+Summary: PASS=83 WARN=0 FAIL=0
 ```
 
 `test.ps1` checks that the deployed UCI config matches expectations, including
@@ -145,6 +221,43 @@ jumps; the Section 4 zone-pair checks depend on this firewall4 render.
 - In `first-flight`, temporary Docker-host/Frigate WAN exception rules are stripped during compile so generated `firewall.sh` is already hardened.
 - First-flight is bring-up only: expect no client-usable WiFi until secrets are populated and full profile is deployed.
 - If router becomes unreachable, use physical lan5 recovery path and restore `/etc/config/*` manually.
+
+## Physical lan5 Recovery Drill
+
+Use this path when deploy connectivity is lost and the watchdog did not restore
+access automatically.
+
+1. Move the laptop Ethernet cable to router `lan5`.
+2. Set the laptop adapter to DHCP, or use static `192.168.1.10/24` with gateway
+   `192.168.1.1`.
+3. Confirm the router answers:
+
+```powershell
+ping 192.168.1.1
+ssh -i .\keys\router_deploy root@192.168.1.1 "echo RECOVERY_OK"
+```
+
+4. Inspect the latest router-side snapshot:
+
+```sh
+ls -1 /tmp/router-deploy-snapshots
+```
+
+5. Restore the newest known-good snapshot, then restart services:
+
+```sh
+SNAP=/tmp/router-deploy-snapshots/<timestamp>
+cp "$SNAP"/network /etc/config/network
+cp "$SNAP"/dhcp /etc/config/dhcp
+cp "$SNAP"/wireless /etc/config/wireless
+cp "$SNAP"/firewall /etc/config/firewall
+/etc/init.d/network restart
+/etc/init.d/dnsmasq restart
+/etc/init.d/firewall restart
+```
+
+6. Return to management access on `lan2` / `192.168.10.1` and rerun both test
+   scripts before attempting another deploy.
 
 ## Optional Temporary Uplink Phase
 
@@ -191,9 +304,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\uplink.ps1 -Action disable
   - Wait full timeout; rollback should trigger.
   - If not reachable, recover via lan5 and restore latest snapshot.
 
-## Scope
+## Scope Summary
 
 - Router config only.
-- Wipe-and-rebuild deployment model.
+- Wipe-and-rebuild deployment model for router-owned UCI state.
 - No firmware install/upgrade orchestration.
-- No Proxmox/HA/NAS orchestration in this toolkit.
+- No Proxmox, HA, Docker, NAS, Tailscale, monitoring, or app orchestration in
+  this toolkit.
