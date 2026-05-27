@@ -1,0 +1,29 @@
+- Infrastructure:
+    - Home Assistant:
+        href: http://192.168.20.101:8123/
+        description: Automation dashboard
+    - Proxmox:
+        href: https://192.168.10.10:8006/
+        description: VM host
+    - Monitoring:
+        href: http://192.168.60.10:3000/
+        description: Grafana
+    - Uptime Kuma:
+        href: http://192.168.60.10:3001/
+        description: Service health
+- Docker Host:
+    - Bambuddy:
+        href: http://192.168.20.102:8000/
+        description: Bambu printer helper
+    - Immich:
+        href: http://192.168.20.102:2283/
+        description: Photo library pre-flight
+    - AdGuard Home:
+        href: http://192.168.20.102:8080/
+        description: DNS filtering
+    - Dozzle:
+        href: http://192.168.20.102:8081/
+        description: Container logs
+    - ntfy:
+        href: http://192.168.20.102:8085/
+        description: Internal notifications

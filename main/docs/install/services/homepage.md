@@ -3,9 +3,9 @@ title: Homepage Install Manual
 description: Tier 1 internal dashboard for service links
 tags: [install, docker-host, homepage]
 created: 2026-05-24
-modified: 2026-05-24
+modified: 2026-05-27
 type: install-guide
-status: draft-installable
+status: preflight-live
 ---
 
 # Homepage Install Manual
@@ -26,6 +26,13 @@ docker-host over SSH at `192.168.20.102`.
 ## Inputs
 
 No required secrets. Do not place tokens or passwords in visible Homepage config.
+
+## Current live state
+
+- Live at `/opt/stacks/homepage` on docker-host.
+- URL: `http://homepage.home.local:3001/`.
+- Uptime Kuma monitor `Homepage UI` is live.
+- Rebuildable template: `configs/docker-host/stacks/homepage/`.
 
 ## Commands
 
@@ -87,6 +94,6 @@ Back up `/opt/stacks/homepage/config`.
 
 ## Completion checklist
 
-- [ ] UI loads.
-- [ ] No secrets visible in config.
-- [ ] Config directory backed up.
+- [x] UI loads.
+- [x] No secrets visible in config.
+- [x] Config template is stored in repo.

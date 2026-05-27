@@ -1,0 +1,28 @@
+---
+title: Docker Host Config Templates
+description: Rebuildable source templates for VM 103 docker-host stacks and host firewall
+tags: [docker-host, compose, firewall, templates]
+created: 2026-05-27
+type: config-reference
+status: active
+---
+
+# Docker Host Config Templates
+
+These files mirror the intended live layout on VM 103 (`docker-host`,
+`192.168.20.102`). They are safe rebuild templates, not a secret backup.
+
+Live stack paths:
+
+| Service | Live path | Template path |
+|---|---|---|
+| Homepage | `/opt/stacks/homepage` | `stacks/homepage/` |
+| Dozzle | `/opt/stacks/dozzle` | `stacks/dozzle/` |
+| AdGuard Home | `/opt/stacks/adguard-home` | `stacks/adguard-home/` |
+| Immich | `/opt/stacks/immich` | `stacks/immich/` |
+| ntfy | `/opt/stacks/ntfy` | `stacks/ntfy/` |
+| Watchtower monitor-only | `/opt/stacks/watchtower` | `stacks/watchtower/` |
+| Docker host firewall | `/usr/local/sbin/docker-host-firewall.sh` | `system/docker-host-firewall.sh` |
+
+Do not commit live `.env` files, app databases, generated auth databases,
+AdGuard password hashes, or Immich database credentials.

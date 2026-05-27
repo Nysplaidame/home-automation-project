@@ -1,0 +1,20 @@
+services:
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower
+    restart: unless-stopped
+    environment:
+      DOCKER_API_VERSION: "1.40"
+      WATCHTOWER_MONITOR_ONLY: "true"
+      WATCHTOWER_SCHEDULE: "0 0 4 * * *"
+      WATCHTOWER_NOTIFICATIONS: "shoutrrr"
+      WATCHTOWER_NOTIFICATION_URL: "ntfy://watchtower:${WATCHTOWER_NTFY_PASSWORD}@ntfy/watchtower?scheme=http"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - alerting
+
+networks:
+  alerting:
+    name: local-alerting
+    external: true

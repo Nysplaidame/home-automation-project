@@ -3,7 +3,7 @@ title: Phase 07 - Tier 1 Apps
 description: AdGuard Home, Immich, Homepage, and Dozzle on docker-host
 tags: [install, docker-host, tier1]
 created: 2026-05-24
-modified: 2026-05-24
+modified: 2026-05-27
 type: install-guide
 status: active
 ---
@@ -52,6 +52,9 @@ Then follow each service manual:
 The stack directories enforce one consistent operational pattern and keep
 container state away from random home directories.
 
+Current non-secret Compose templates are stored under `configs/docker-host/stacks/`.
+Use them as the rebuild source, then add live secrets on docker-host only.
+
 ## Expected result
 
 - AdGuard answers DNS and the router can fall back if it is down.
@@ -79,7 +82,7 @@ done
 
 ## Completion checklist
 
-- [ ] Each Tier 1 service has a stack directory.
-- [ ] Each stack passes `docker compose config`.
-- [ ] Each service has a backup note.
-- [ ] Each service has a troubleshooting entry.
+- [x] Each Tier 1 service has a stack directory.
+- [x] Each stack passes `docker compose config`.
+- [x] Each service has a backup note.
+- [x] Each service has a troubleshooting entry.

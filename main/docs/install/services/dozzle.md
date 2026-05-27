@@ -3,9 +3,9 @@ title: Dozzle Install Manual
 description: Tier 1 internal Docker log viewer
 tags: [install, docker-host, dozzle, logs]
 created: 2026-05-24
-modified: 2026-05-24
+modified: 2026-05-27
 type: install-guide
-status: draft-installable
+status: preflight-live
 ---
 
 # Dozzle Install Manual
@@ -26,6 +26,14 @@ docker-host over SSH at `192.168.20.102`.
 ## Inputs
 
 No required secrets for the basic internal deployment.
+
+## Current live state
+
+- Live at `/opt/stacks/dozzle` on docker-host.
+- URL: `http://dozzle.home.local:8081/`.
+- Uptime Kuma monitor `Dozzle UI` is live.
+- Access is restricted by UFW and `docker-host-firewall.service` / `DOCKER-USER`.
+- Rebuildable template: `configs/docker-host/stacks/dozzle/`.
 
 ## Commands
 
@@ -84,6 +92,6 @@ No critical app data. Back up the Compose file for reproducibility.
 
 ## Completion checklist
 
-- [ ] UI loads.
-- [ ] Docker socket mounted read-only.
-- [ ] Access restricted to approved networks.
+- [x] UI loads.
+- [x] Docker socket mounted read-only.
+- [x] Access restricted to approved networks.

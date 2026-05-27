@@ -1,0 +1,17 @@
+services:
+  ntfy:
+    image: binwiederhier/ntfy:latest
+    container_name: ntfy
+    command: serve
+    restart: unless-stopped
+    ports:
+      - "8085:80"
+    volumes:
+      - ./cache:/var/cache/ntfy
+      - ./etc:/etc/ntfy
+    networks:
+      - alerting
+
+networks:
+  alerting:
+    name: local-alerting

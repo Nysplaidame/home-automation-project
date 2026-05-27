@@ -54,6 +54,9 @@ Completed live:
   with default access denied and credentials stored at `/root/ntfy-credentials.txt`.
 - Watchtower monitor-only stack staged at `/opt/stacks/watchtower`, with
   `WATCHTOWER_MONITOR_ONLY=true` and notifications pointed at internal ntfy.
+- Non-secret rebuild templates for these live stacks and the host firewall are
+  stored under `configs/docker-host/`; live secrets and app databases stay on
+  VM 103 and are not committed.
 - UFW enabled with default deny incoming and scoped allows.
 - `docker-host-firewall.service` applies `DOCKER-USER` rules so Docker-published
   admin/DNS ports stay scoped despite Docker DNAT bypassing normal UFW input.
@@ -64,6 +67,8 @@ Completed live:
   sends HTTPS apt traffic direct because apt-cacher-ng rejects HTTPS CONNECT.
 - Router temporary internet rule removed after image pull.
 - VM 103 disk was expanded online to 32 GiB on 2026-05-27.
+- Uptime Kuma notification `ntfy Monitoring` is live and mapped to all active
+  monitors through ntfy topic `monitoring`.
 
 Current service direction:
 
@@ -265,12 +270,17 @@ iptables -A DOCKER-USER -j RETURN
 
 All Compose workloads live under `/opt/stacks/<service>/`.
 
+Repo-side rebuild templates live under `configs/docker-host/` and mirror the
+intended `/opt/stacks/<service>/` layout without live secrets or app databases.
+
 ```bash
 mkdir -p /opt/stacks/bambuddy/{data,logs}
 mkdir -p /opt/stacks/adguard-home/{conf,work}
 mkdir -p /opt/stacks/immich
 mkdir -p /opt/stacks/homepage/config
 mkdir -p /opt/stacks/dozzle
+mkdir -p /opt/stacks/ntfy/{cache,etc}
+mkdir -p /opt/stacks/watchtower
 ```
 
 Bambuddy Compose file:

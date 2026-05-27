@@ -4,7 +4,7 @@ description: Implementation tasks by phase — updated May 2026
 tags: [tasks, implementation]
 aliases: [TODO, Tasks]
 created: 2025-09-15
-modified: 2026-05-25
+modified: 2026-05-27
 type: task-list
 status: active
 ---
@@ -40,7 +40,7 @@ status: active
 9. [ ] Start Frigate properly after `.env`, RTSP details, and MQTT credentials are ready; keep HTTPS/SSL and WebRTC audio as required prerequisites
 10. [ ] Expand VentSys beyond valve 1: finish the MQTT TLS migration path, then flash/adopt the remaining ESPHome devices
 11. [x] Deploy AdGuard Home on docker-host per `docs/decisions/04-dns-resolver-and-adblocking.md`
-12. [ ] Re-run router-deploy validation after the router-local NTP/deploy-tooling update
+12. [x] Re-run router-deploy validation after the router-local NTP/deploy-tooling update
 
 ---
 
@@ -59,12 +59,14 @@ status: active
 - [x] Add Uptime Kuma check for Immich UI
 - [x] Add docker-host `DOCKER-USER` guard for Immich UI on `2283`
 - [x] Expand docker-host VM disk to 32 GiB
+- [x] Add repo-side rebuild templates for live docker-host stacks and host firewall
 
 ### Tier 2 - roadmap candidates
 
 - [ ] Evaluate Paperless-ngx under `/opt/stacks/paperless-ngx/`
 - [ ] Evaluate Mealie under `/opt/stacks/mealie/`
 - [x] Deploy ntfy internal-only under `/opt/stacks/ntfy/`
+- [x] Configure Uptime Kuma ntfy notifications through a dedicated write-only topic
 - [ ] Evaluate Actual Budget under `/opt/stacks/actual-budget/`
 - [ ] Evaluate Scrypted under `/opt/stacks/scrypted/`
 

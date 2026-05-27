@@ -27,6 +27,7 @@ docker-host over SSH at `192.168.20.102`.
 
 - `<NTFY_ADMIN_PASSWORD>`
 - `<NTFY_WATCHTOWER_PASSWORD>`
+- `<NTFY_MONITORING_PASSWORD>`
 
 ## Commands
 
@@ -77,9 +78,13 @@ As of 2026-05-27:
 - Users:
   - `admin`: admin role.
   - `watchtower`: write-only access to topic `watchtower`.
+  - `monitoring`: write-only access to topic `monitoring`.
 - UFW and `docker-host-firewall.service` scope `8085/tcp` to management, LAN,
   HA, monitoring, and `tailscale0`.
 - Uptime Kuma monitor `ntfy UI` is live.
+- Uptime Kuma notification `ntfy Monitoring` is active/default and mapped to all
+  active monitors; database backup before enabling it:
+  `/opt/monitoring/uptime-kuma/kuma.db.backup-20260527-172349-before-ntfy-notification`.
 
 ## Explanation
 
@@ -112,4 +117,5 @@ before changing firewall exposure.
 
 - [x] Internal/public decision recorded.
 - [x] Default access is not open.
+- [x] Topic users created for Watchtower and Uptime Kuma monitoring.
 - [x] Config is backed up by stack path and Proxmox VM backup.

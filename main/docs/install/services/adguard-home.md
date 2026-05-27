@@ -3,9 +3,9 @@ title: AdGuard Home Install Manual
 description: Tier 1 docker-host DNS filtering service
 tags: [install, docker-host, adguard, dns]
 created: 2026-05-24
-modified: 2026-05-24
+modified: 2026-05-27
 type: install-guide
-status: draft-installable
+status: preflight-live
 ---
 
 # AdGuard Home Install Manual
@@ -28,6 +28,16 @@ docker-host over SSH at `192.168.20.102`; admin UI from Management network.
 ## Inputs
 
 - `<ADGUARD_ADMIN_PASSWORD>`
+
+## Current live state
+
+- Live at `/opt/stacks/adguard-home` on docker-host.
+- DNS is bound to `192.168.20.102:53/tcp+udp`.
+- Admin UI: `http://adguard.home.local:8080/`.
+- Uptime Kuma monitors `AdGuard DNS` and `AdGuard UI` are live.
+- Router DNS prefers AdGuard first, with public fallback retained on the router.
+- Admin password is stored on docker-host at `/root/adguard-home-admin-password.txt`; copy it to Bitwarden.
+- Rebuildable Compose template: `configs/docker-host/stacks/adguard-home/`.
 
 ## Commands
 

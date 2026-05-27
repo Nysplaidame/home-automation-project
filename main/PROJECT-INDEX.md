@@ -4,7 +4,7 @@ description: Master navigation hub for all project documentation
 tags: [index, navigation, home-automation]
 aliases: [Project Index, Documentation Hub]
 created: 2025-09-15
-modified: 2026-05-25
+modified: 2026-05-27
 type: index
 status: active
 ---
@@ -35,6 +35,7 @@ status: active
 | WireGuard fallback guide | ✅ Written |
 | Wiring reference | ✅ Written |
 | Physical deployment | ✅ Router, Proxmox trunk, HAOS, and docker-host live |
+| Docker-host service templates | ✅ Written for live VM 103 stacks and host firewall |
 | Hardware procurement (sensors/cameras/NAS) | ⏳ Pending |
 
 ---
@@ -56,6 +57,11 @@ status: active
 ### Frigate NVR
 - [[configs/frigate/config.yml]] — cameras, MQTT, retention, detector
 - [[configs/frigate/docker-compose.yml]] — Frigate service, volumes, env vars
+
+### Docker Host
+- [[configs/docker-host/README.md]] — rebuildable source templates for VM 103 Compose stacks and host firewall
+- [[configs/docker-host/system/docker-host-firewall.sh]] — canonical `DOCKER-USER` source for docker-host published-port scoping
+- [[configs/docker-host/stacks/]] — non-secret Compose/config templates for live docker-host services
 
 ### Bambuddy / P1S
 - [[configs/home-assistant/bambuddy_p1s_package.yaml]] — HA MQTT sensors, binary sensors, automations for P1S

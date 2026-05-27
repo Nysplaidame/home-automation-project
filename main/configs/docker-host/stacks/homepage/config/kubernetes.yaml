@@ -1,0 +1,2 @@
+---
+# Homepage requires this file to exist even though Kubernetes is not used here.

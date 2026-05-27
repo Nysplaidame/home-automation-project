@@ -125,7 +125,12 @@ VMs:
 
 VM 102 monitoring live state:
 
-- Uptime Kuma baseline monitors are configured and green for router DNS, Proxmox UI, HA UI, docker-host SSH, docker-host APT cache, Bambuddy UI port, Homepage UI, Dozzle UI, AdGuard DNS, AdGuard UI, Immich UI, Grafana, InfluxDB, and Uptime Kuma.
+- Uptime Kuma baseline monitors are configured and green for router DNS, Proxmox UI, HA UI, docker-host SSH, docker-host APT cache, Bambuddy UI port, Homepage UI, Dozzle UI, AdGuard DNS, AdGuard UI, Immich UI, ntfy UI, Grafana, InfluxDB, and Uptime Kuma.
+- Uptime Kuma notification `ntfy Monitoring` is active/default and mapped to all
+  active monitors. It publishes to ntfy topic `monitoring` with write-only user
+  `monitoring`; the password is stored on docker-host at
+  `/root/ntfy-credentials.txt`. Backup before DB edit:
+  `/opt/monitoring/uptime-kuma/kuma.db.backup-20260527-172349-before-ntfy-notification`.
 - OpenWrt forwards syslog to `192.168.60.10:514/udp`; Telegraf receives it on container port `6514/udp` and writes `syslog` measurements to InfluxDB.
 - Home Assistant exports state history to the InfluxDB `homeassistant` bucket using `source=HA`.
 - HA to InfluxDB is allowed by OpenWrt with the scoped rule `HA to InfluxDB` from `192.168.20.101` to `192.168.60.10:8086/tcp`.
@@ -168,7 +173,7 @@ VM 103 config highlights:
 
 - Debian 13 genericcloud image.
 - q35, OVMF, pre-enrolled keys disabled.
-- `local-lvm`, 16 GiB SCSI disk.
+- `local-lvm`, 32 GiB SCSI disk.
 - `net0`: `virtio=BC:24:11:BC:B8:1A,bridge=vmbr0,tag=20`
 - Static cloud-init IP: `192.168.20.102/24`, gateway/DNS `192.168.20.1`.
 - `qemu-guest-agent` installed and active.
@@ -212,12 +217,17 @@ VM 103 config highlights:
   and returned `200 OK`.
 - 2026-05-27: VM 103 disk was expanded online from 16 GiB to 32 GiB; root
   filesystem now has about 21 GiB free after resize.
+- 2026-05-27: Non-secret rebuild templates for VM 103 live stacks and
+  `docker-host-firewall.service` source now exist under
+  `configs/docker-host/`. Secrets, ntfy auth DBs, app databases, and AdGuard
+  password hashes remain live-only and must not be committed.
 - 2026-05-27: ntfy is live at `/opt/stacks/ntfy`, URL
   `http://192.168.20.102:8085` / `http://ntfy.home.local:8085`, with default
   anonymous access denied. Credentials are stored on docker-host at
   `/root/ntfy-credentials.txt`; copy them to Bitwarden.
-- 2026-05-27: ntfy users are `admin` and `watchtower`; `watchtower` has
-  write-only access to topic `watchtower`.
+- 2026-05-27: ntfy users are `admin`, `watchtower`, and `monitoring`;
+  `watchtower` has write-only access to topic `watchtower`, and `monitoring`
+  has write-only access to topic `monitoring`.
 - 2026-05-27: UFW, OpenWrt, and `docker-host-firewall.service` scope ntfy
   `8085/tcp` to management, LAN, HA, monitoring, and `tailscale0`.
 - 2026-05-27: Watchtower monitor-only is live at `/opt/stacks/watchtower`.
@@ -229,9 +239,13 @@ VM 103 config highlights:
 - 2026-05-27: Uptime Kuma monitor `ntfy UI` was added after backup
   `/opt/monitoring/uptime-kuma/kuma.db.backup-20260527-162424-before-ntfy-monitor`
   and returned `200 OK`.
+- 2026-05-27: Uptime Kuma notification `ntfy Monitoring` was added after backup
+  `/opt/monitoring/uptime-kuma/kuma.db.backup-20260527-172349-before-ntfy-notification`
+  and mapped to all 15 active monitors.
 - 2026-05-27: Temporary router egress for docker-host image pulls was removed
   again after Immich image pulls; router connectivity validation returned
-  `PASS=82 WARN=0 FAIL=0`.
+  `PASS=83 WARN=0 FAIL=0` after adding `ntfy.home.local` to connectivity
+  validation.
 
 ## Home Assistant State
 

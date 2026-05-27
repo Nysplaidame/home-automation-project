@@ -4,7 +4,7 @@ description: Fire safety ventilation, NVR surveillance, secure network, and home
 tags: [home-automation, project-overview]
 aliases: [Project Overview]
 created: 2025-09-15
-modified: 2026-05-25
+modified: 2026-05-27
 type: project-overview
 status: active
 ---
@@ -28,9 +28,9 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 | Proxmox | ✅ Live | MINIX NEO Z350 on 192.168.10.10, Proxmox VE 9 |
 | HA VM | ✅ Live | HAOS VM 100 at 192.168.20.101, VentSys packages staged |
 | Frigate VM | ✅ Live | VM 101 on VLAN 30, Debian 13 base live; Docker and Frigate staging complete |
-| Docker host | ✅ Live | VM 103 on VLAN 20, central trusted Docker host; Bambuddy live, Tier 1 app platform planned |
+| Docker host | ✅ Live | VM 103 on VLAN 20, central trusted Docker host; Bambuddy, Tier 1 apps, ntfy, and Watchtower monitor-only pre-flight live |
 | OMV NAS | ⏳ Planned | OpenMediaVault at 192.168.40.50 on VLAN 40; hardware/storage needed |
-| Remote access | ⏳ Planned | Tailscale daily access via docker-host host routes; WireGuard kept dormant as fallback |
+| Remote access | ✅ Live | Tailscale daily access via docker-host host routes; WireGuard kept dormant as fallback |
 | VentSys dashboard | ✅ Complete | dashboards/ventsys-dashboard.html with full HA integration layer |
 | VentSys HA packages | ✅ Complete | Package YAML, scripts, automations all written |
 | ESPHome sensor config | ✅ Written | printairpipe-controller.yaml ready for hardware |
@@ -83,7 +83,7 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 - Footage to NAS via NFS, HA integration via Frigate card
 
 ### Docker host + Bambuddy / P1S printer (VLAN 20 → VLAN 35)
-- Docker host runs on VM 103 at 192.168.20.102; Bambuddy is the first Compose workload on port 8000
+- Docker host runs on VM 103 at 192.168.20.102; Bambuddy is live on port 8000
 - Monitors Bambu Lab P1S at 192.168.35.200 via MQTT over VLAN 35
 - Publishes print state to Mosquitto; HA package in `configs/home-assistant/bambuddy_p1s_package.yaml`
 - Setup guide: `scripts/setup/proxmox/docker_host_setup_guide.md`
@@ -91,7 +91,9 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 ### Self-hosted services and remote access
 - OpenMediaVault is the NAS OS at 192.168.40.50; OMV is storage-focused, not the Docker app platform
 - docker-host runs internal Compose stacks under `/opt/stacks/<service>/`
-- Tier 1 docker-host services: AdGuard Home, Immich, Homepage, Dozzle, plus Bambuddy already live
+- Tier 1 docker-host services are pre-flight live: AdGuard Home, Immich, Homepage, Dozzle, plus Bambuddy
+- Tier 2/Tier 3 pre-flight services are live: ntfy internal alerts and Watchtower monitor-only
+- Rebuildable docker-host templates live in `configs/docker-host/`; live secrets and app databases stay on VM 103, not in git
 - Tailscale is daily remote access through docker-host with host routes only: `192.168.20.101/32` and `192.168.40.50/32`
 - WireGuard remains configured as a dormant split-tunnel fallback
 
@@ -110,6 +112,7 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 | HA config | `configs/home-assistant/` |
 | Frigate config | `configs/frigate/config.yml` |
 | Frigate docker-compose | `configs/frigate/docker-compose.yml` |
+| Docker-host rebuild templates | `configs/docker-host/` |
 | Bambuddy HA package | `configs/home-assistant/bambuddy_p1s_package.yaml` |
 | Docker host setup guide | `scripts/setup/proxmox/docker_host_setup_guide.md` |
 | Fresh rebuild entrypoint | `docs/install/START-HERE.md` |

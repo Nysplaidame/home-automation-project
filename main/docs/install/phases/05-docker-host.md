@@ -3,7 +3,7 @@ title: Phase 05 - docker-host
 description: Docker app host baseline, Compose policy, UFW, and Tailscale host routes
 tags: [install, docker-host, tailscale]
 created: 2026-05-24
-modified: 2026-05-24
+modified: 2026-05-27
 type: install-guide
 status: active
 ---
@@ -64,6 +64,11 @@ Docker hosts the internal Compose stacks under `/opt/stacks/<service>/`.
 Tailscale advertises only host routes for HA and OMV; broad VLAN subnet routes
 are intentionally not used.
 
+Current non-secret rebuild templates for the live docker-host stacks and host
+firewall are stored under `configs/docker-host/`. They are source templates,
+not backups of live secrets, app databases, ntfy auth DBs, or AdGuard password
+hashes.
+
 ## Expected result
 
 - Docker Compose works.
@@ -92,8 +97,8 @@ ufw status verbose
 
 ## Completion checklist
 
-- [ ] Docker Compose installed.
-- [ ] `/opt/stacks/` created.
-- [ ] Tailscale installed and authenticated.
-- [ ] Only HA and OMV host routes are advertised.
-- [ ] No containers are deployed outside `/opt/stacks/<service>/`.
+- [x] Docker Compose installed.
+- [x] `/opt/stacks/` created.
+- [x] Tailscale installed and authenticated.
+- [x] Only HA and OMV host routes are advertised.
+- [x] No containers are deployed outside `/opt/stacks/<service>/`.

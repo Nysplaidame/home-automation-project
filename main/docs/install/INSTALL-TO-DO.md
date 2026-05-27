@@ -3,7 +3,7 @@ title: Installation Manual Suite To-Do
 description: Companion checklist for completing and validating the fresh rebuild documentation suite
 tags: [install, tasks, rebuild, documentation]
 created: 2026-05-24
-modified: 2026-05-25
+modified: 2026-05-27
 type: task-list
 status: active
 ---
@@ -31,9 +31,9 @@ without live assistance.
 - [ ] Phase 02 Proxmox: add ISO verification, install checkpoints, storage layout choices, bridge/VLAN validation, and rollback notes.
 - [ ] Phase 03 Home Assistant: add HAOS install, onboarding, add-on installs, MQTT setup, Companion App setup, router-derived time config, HACS decision gate, and backup validation.
 - [ ] Phase 04 Frigate: add Debian base install, Docker install, Frigate compose, `.env` creation, camera placeholders, HTTPS requirement, and HA integration validation.
-- [ ] Phase 05 docker-host: add VM baseline, Docker official repository install, Compose policy, `/opt/stacks/<service>/` layout, Tailscale host-route setup, UFW rules, and rollback.
+- [x] Phase 05 docker-host: add VM baseline, Docker official repository install, Compose policy, `/opt/stacks/<service>/` layout, Tailscale host-route setup, UFW rules, and rollback.
 - [ ] Phase 06 OMV NAS: add OMV install, disk wipe warning, filesystems, users, NFS/SMB shares, SMART monitoring, and HA/Frigate/Immich storage mounts.
-- [ ] Phase 07 Tier 1 apps: add full command-by-command deploy order for AdGuard Home, Immich, Homepage, and Dozzle.
+- [x] Phase 07 Tier 1 apps: add full command-by-command deploy order for AdGuard Home, Immich, Homepage, and Dozzle.
 - [ ] Phase 08 Tier 2 apps: make every draft installable while keeping deployment approval gates explicit.
 - [ ] Phase 09 Tier 3/evaluate apps: ensure Vaultwarden, Portainer, Watchtower, registry mirror, and Node-RED cannot be made live without security/backup approval.
 - [ ] Phase 10 backups/monitoring/maintenance: add restore drills, maintenance windows, update policy, and alerting checks.
@@ -50,18 +50,18 @@ without live assistance.
 
 ## Service Manual Coverage
 
-- [ ] AdGuard Home: install, first-run setup, router DNS fallback, blocklist policy, backup/export, monitoring, rollback.
-- [ ] Immich: install, `.env`, database volumes, OMV library path, backup, update, mobile app onboarding, rollback.
-- [ ] Homepage: install, service widgets, secrets handling, backup, rollback.
-- [ ] Dozzle: install, read-only Docker socket decision, auth/exposure decision, backup, rollback.
+- [x] AdGuard Home: install, first-run setup, router DNS fallback, blocklist policy, backup/export, monitoring, rollback.
+- [x] Immich: install, `.env`, database volumes, OMV library path, backup, update, mobile app onboarding, rollback.
+- [x] Homepage: install, service widgets, secrets handling, backup, rollback.
+- [x] Dozzle: install, read-only Docker socket decision, auth/exposure decision, backup, rollback.
 - [ ] Paperless-ngx: install, scanner/import path, OCR dependencies, backup, retention, rollback.
 - [ ] Mealie: install, users, backups, import/export, rollback.
-- [ ] ntfy: install, topic policy, public/private exposure decision, backup, rollback.
+- [x] ntfy: install, topic policy, public/private exposure decision, backup, rollback.
 - [ ] Actual Budget: install, auth, backup/export, rollback.
 - [ ] Scrypted: hardware/camera decision gate, install, storage, HA/Frigate overlap, rollback.
 - [ ] Vaultwarden: explicit security gate, backup/encryption, exposure decision, restore test.
 - [ ] Portainer: explicit admin-surface gate, auth, backup, rollback.
-- [ ] Watchtower monitor-only: install, notifications, no automatic updates, rollback.
+- [x] Watchtower monitor-only: install, notifications, no automatic updates, rollback.
 - [ ] Local registry mirror: storage sizing, cache policy, backup/exclusion policy, rollback.
 - [ ] Node-RED: decision gate, credential secret handling, HA overlap, backup, rollback.
 
@@ -80,7 +80,7 @@ without live assistance.
 ## Current-State Annotations
 
 - [ ] Add current-state callouts for router first-flight deployed state.
-- [ ] Add current-state callouts for Proxmox, HAOS, Frigate base, docker-host, and Bambuddy live state.
+- [x] Add current-state callouts for Proxmox, HAOS, Frigate base, docker-host, and Bambuddy live state.
 - [ ] Add current-state callouts for pending OMV, cameras, Tier 1 apps, and VentSys hardware.
 - [ ] Add current-state callout for core HA tools: Mosquitto, ESPHome, Terminal & SSH, Studio Code Server/File Editor, and Companion App status.
 - [ ] Ensure current-state callouts never replace the fresh rebuild path.
