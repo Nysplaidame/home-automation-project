@@ -149,10 +149,13 @@ VM 102 monitoring live state:
   maintenance window, because that affects browser trust, Companion App URLs,
   dashboard URLs, and token-using clients.
 - 2026-05-27: HA Companion App onboarding is documented in
-  `docs/procedures/home_assistant_companion_app_guide.md`, but phone install
-  and push/actionable notification tests still need the operator phone. HAOS SSH
-  from this laptop using the Proxmox key was rejected with publickey auth, so no
-  live HA Companion App state was changed from the repo side.
+  `docs/procedures/home_assistant_companion_app_guide.md`. Operator phone
+  service `notify.mobile_app_mai_foenn` is registered, reachable over
+  Tailscale, and validated for both basic push notifications and actionable
+  acknowledgement events (`mobile_app_notification_action` with
+  `action: ACK_TEST`). HAOS SSH from this laptop using the Proxmox key was
+  rejected with publickey auth, so live validation was completed via the HA UI
+  and operator phone.
 - Router firewall rule `HA to Monitoring Health` allows HA
   `192.168.20.101` to monitoring VM `192.168.60.10` on TCP `3000` and `3001`;
   the existing `HA to InfluxDB` rule covers TCP `8086`.

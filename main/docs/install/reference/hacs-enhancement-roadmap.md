@@ -99,8 +99,8 @@ work.
 
 ## Completion checklist
 
-- [ ] Companion App installed on operator phones.
-- [ ] Companion App notifications and actionable notification categories tested.
+- [x] Companion App installed on operator phone.
+- [x] Companion App notifications and actionable notification categories tested.
 - [ ] Companion App device sensors reviewed; enable only useful sensors.
 - [ ] ESPHome, Mosquitto, Terminal & SSH, and Studio Code Server/File Editor are installed or explicitly deferred with reason.
 - [ ] HA backup exists before HACS install.

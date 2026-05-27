@@ -123,7 +123,7 @@ ha host info
 
 - [ ] HA UI loads.
 - [ ] Required add-ons installed.
-- [ ] Companion App installed on operator phones and notification test passes.
+- [x] Companion App installed on operator phone and notification/action test passes.
 - [ ] MQTT publish/subscribe test passes.
 - [ ] VentSys files staged.
 - [ ] HA backup target is planned, even if OMV is not live yet.

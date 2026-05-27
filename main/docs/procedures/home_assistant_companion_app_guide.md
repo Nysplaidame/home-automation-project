@@ -25,7 +25,8 @@ References:
 ## Current Project State
 
 - HA admin 2FA is recorded as complete in `TO-DO.md`.
-- Companion App phone install is not yet confirmed.
+- Companion App phone install is confirmed for device notify service
+  `notify.mobile_app_mai_foenn`.
 - HA is currently local HTTP at `http://192.168.20.101:8123`.
 - HA HTTPS pre-flight certificates exist but HTTPS is not enabled yet.
 - Tailscale remote access to HA is live through docker-host route
@@ -59,6 +60,12 @@ notify.mobile_app_operator_pixel
 
 The service name is created after the app registers. If it does not appear,
 restart Home Assistant once, then check the app notification settings.
+
+Confirmed project service:
+
+```text
+notify.mobile_app_mai_foenn
+```
 
 ## Basic Push Test
 
@@ -137,10 +144,10 @@ VentSys or Bambuddy until:
 
 ## Completion Checklist
 
-- [ ] Companion App installed on operator phone.
-- [ ] Phone can reach HA locally or through Tailscale.
-- [ ] `notify.mobile_app_<device_id>` action appears in HA.
-- [ ] Basic push test succeeds.
-- [ ] Actionable notification event test succeeds.
+- [x] Companion App installed on operator phone.
+- [x] Phone can reach HA locally or through Tailscale.
+- [x] `notify.mobile_app_mai_foenn` action appears in HA.
+- [x] Basic push test succeeds.
+- [x] Actionable notification event test succeeds.
 - [ ] Enabled sensors reviewed and noisy sensors disabled.
-- [ ] Handoff updated with device notify service name.
+- [x] Handoff updated with device notify service name.
