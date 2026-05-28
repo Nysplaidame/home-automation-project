@@ -47,7 +47,7 @@ status: active
 16. [x] Add repo-side Frigate credential template at `configs/frigate/frigate.env.example`
 17. [x] Re-verify pre-NAS Proxmox backup policy/retention and run one archive integrity check (`zstd -t` on latest VM 100 backup)
 18. [x] Draft OMV storage cutover execution checklist at `docs/procedures/omv_storage_cutover_checklist.md`
-19. [ ] Confirm HA-side state of `binary_sensor.monitoring_stack_externally_healthy` from Home Assistant (requires authenticated HA UI/API access)
+19. [x] Confirm HA-side monitoring health states from Home Assistant UI (all `on`): `binary_sensor.monitoring_stack_externally_healthy`, `binary_sensor.monitoring_vm_grafana_reachable`, `binary_sensor.monitoring_vm_influxdb_reachable`, `binary_sensor.uptime_kuma_reachable_from_ha`
 
 ---
 

@@ -193,10 +193,11 @@ Pre-flight sweep run on 2026-05-28 (steps 1-4 and 6-8, excluding MQTT migration 
   - Grafana `http://192.168.60.10:3000/api/health` -> `200`
   - InfluxDB `http://192.168.60.10:8086/health` -> `200`
   - Uptime Kuma `http://192.168.60.10:3001/` -> `302`
-- HA-side entity-state confirmation for
-  `monitoring_external_health_package.yaml` still needs authenticated HA UI/API
-  access; unauthenticated probe to
-  `/api/states/binary_sensor.monitoring_stack_externally_healthy` returned `401`.
+- HA-side entity-state confirmation is complete via Home Assistant UI:
+  - `binary_sensor.monitoring_stack_externally_healthy` = `on`
+  - `binary_sensor.monitoring_vm_grafana_reachable` = `on`
+  - `binary_sensor.monitoring_vm_influxdb_reachable` = `on`
+  - `binary_sensor.uptime_kuma_reachable_from_ha` = `on`
 - Controlled outage test: Whoogle was stopped and Uptime Kuma logged repeated
   failures, then Whoogle was restored (`HTTP 200`).
 - Uptime Kuma -> ntfy dispatch was validated in a follow-up outage test:
@@ -251,14 +252,12 @@ rebuildable.
 
 Recommended order:
 
-1. Confirm HA-side entity state for `monitoring_external_health_package.yaml`
-   using authenticated Home Assistant UI/API access.
-2. Stage Frigate startup prerequisites without starting Frigate:
+1. Stage Frigate startup prerequisites without starting Frigate:
    `.env` secrets and MQTT CA cert at `/opt/frigate/certs/ca-cert.pem`.
-3. Keep Grafana/Kuma embedding parked behind direct-link usage until HTTPS/same-origin path is intentionally implemented.
-4. Prepare OMV storage cutover execution using
+2. Keep Grafana/Kuma embedding parked behind direct-link usage until HTTPS/same-origin path is intentionally implemented.
+3. Prepare OMV storage cutover execution using
    `main/docs/procedures/omv_storage_cutover_checklist.md`.
-5. Keep WireGuard dormant fallback posture unless there is a deliberate decision
+4. Keep WireGuard dormant fallback posture unless there is a deliberate decision
    to roll out fallback clients.
 
 ## Possible App Candidates After Tightening
