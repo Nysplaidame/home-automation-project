@@ -43,10 +43,11 @@ status: active
 12. [ ] Expand VentSys beyond valve 1: finish the MQTT TLS migration path, then flash/adopt the remaining ESPHome devices
 13. [x] Deploy AdGuard Home on docker-host per `docs/decisions/04-dns-resolver-and-adblocking.md`
 14. [x] Re-run router-deploy validation after the router-local NTP/deploy-tooling update
-15. [ ] Validate Uptime Kuma notification dispatch to ntfy (`ntfy Monitoring`) after controlled outage test; Whoogle failure detection was logged on 2026-05-28 but no ntfy publish was observed
+15. [x] Validate Uptime Kuma notification dispatch to ntfy (`ntfy Monitoring`): monitor #17 (Whoogle) failure was detected and ntfy `messages_published` increased (`14` -> `15`) during controlled outage on 2026-05-28
 16. [x] Add repo-side Frigate credential template at `configs/frigate/frigate.env.example`
 17. [x] Re-verify pre-NAS Proxmox backup policy/retention and run one archive integrity check (`zstd -t` on latest VM 100 backup)
 18. [x] Draft OMV storage cutover execution checklist at `docs/procedures/omv_storage_cutover_checklist.md`
+19. [ ] Confirm HA-side state of `binary_sensor.monitoring_stack_externally_healthy` from Home Assistant (requires authenticated HA UI/API access)
 
 ---
 

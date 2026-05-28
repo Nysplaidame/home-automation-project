@@ -194,11 +194,14 @@ Pre-flight sweep run on 2026-05-28 (steps 1-4 and 6-8, excluding MQTT migration 
   - InfluxDB `http://192.168.60.10:8086/health` -> `200`
   - Uptime Kuma `http://192.168.60.10:3001/` -> `302`
 - HA-side entity-state confirmation for
-  `monitoring_external_health_package.yaml` is still a manual HA UI task when
-  operator access is available.
+  `monitoring_external_health_package.yaml` still needs authenticated HA UI/API
+  access; unauthenticated probe to
+  `/api/states/binary_sensor.monitoring_stack_externally_healthy` returned `401`.
 - Controlled outage test: Whoogle was stopped and Uptime Kuma logged repeated
-  failures, then Whoogle was restored (`HTTP 200`). No ntfy publish was observed
-  during this test window, so notification dispatch requires follow-up.
+  failures, then Whoogle was restored (`HTTP 200`).
+- Uptime Kuma -> ntfy dispatch was validated in a follow-up outage test:
+  ntfy `messages_published` increased from `14` to `15` during the monitor-17
+  failure window.
 - Frigate pre-flight status on VM 101:
   - `/opt/frigate/.env` missing (expected pre-start blocker)
   - `/opt/frigate/certs/ca-cert.pem` missing (expected TLS blocker)
@@ -248,7 +251,8 @@ rebuildable.
 
 Recommended order:
 
-1. Validate Uptime Kuma -> ntfy dispatch path (monitor failure was detected, but ntfy publish was not observed in the controlled Whoogle outage test).
+1. Confirm HA-side entity state for `monitoring_external_health_package.yaml`
+   using authenticated Home Assistant UI/API access.
 2. Stage Frigate startup prerequisites without starting Frigate:
    `.env` secrets and MQTT CA cert at `/opt/frigate/certs/ca-cert.pem`.
 3. Keep Grafana/Kuma embedding parked behind direct-link usage until HTTPS/same-origin path is intentionally implemented.
