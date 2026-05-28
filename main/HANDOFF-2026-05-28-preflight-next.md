@@ -168,6 +168,14 @@ test-connectivity.ps1 -RouterIp 192.168.10.1
 PASS=85 WARN=0 FAIL=0
 ```
 
+Validation snapshot run on 2026-05-28 after uplink-policy documentation update:
+
+```text
+python main\tools\router-deploy\lint.py -> PASSED: all checks clean
+python main\tools\router-deploy\compile.py --profile first-flight -> OK artifacts generated
+main\tools\router-deploy\test-connectivity.ps1 -RouterIp 192.168.10.1 -> PASS=85 WARN=0 FAIL=0
+```
+
 SearXNG direct search and Whoogle UI/search tests returned HTTP `200`.
 
 HA Companion App:
@@ -297,6 +305,10 @@ Useful command if the uplink needs to be restored:
 ```powershell
 main\tools\router-deploy\uplink.ps1 -Action enable -RouterIp 192.168.10.1
 ```
+
+Canonical policy doc:
+
+- `main/docs/procedures/router_temporary_uplink_policy.md`
 
 ## Possible App Candidates After Tightening
 

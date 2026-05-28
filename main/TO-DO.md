@@ -33,14 +33,16 @@ status: active
 2. [x] Close stale valve-1 plain-MQTT follow-up tasks to avoid reintroducing insecure `1883` access while VentSys migration proceeds on TLS
 3. [x] Deploy Tailscale on docker-host and advertise only `192.168.20.101/32` and `192.168.40.50/32`
 4. [ ] Keep WireGuard configured as a dormant fallback; update clients only after Tailscale is tested
-5. [x] Deploy `dashboards/ventsys-card-wrapper.html` to HA and verify the VentSys dashboard works inside a Lovelace iframe card
-6. [ ] Stabilize embedded Grafana view inside HA or explicitly park it behind direct-link-only access until HTTPS/reverse proxy work is done
-7. [x] Add an external health signal for the monitoring VM so monitoring failure is visible even when Uptime Kuma itself is down
-8. [ ] Configure OMV-backed Home Assistant backups once NAS storage is live, while keeping fast local Proxmox recovery on the MINIX
-9. [ ] Start Frigate properly after `.env`, RTSP details, and MQTT credentials are ready; keep HTTPS/SSL and WebRTC audio as required prerequisites
-10. [ ] Expand VentSys beyond valve 1: finish the MQTT TLS migration path, then flash/adopt the remaining ESPHome devices
-11. [x] Deploy AdGuard Home on docker-host per `docs/decisions/04-dns-resolver-and-adblocking.md`
-12. [x] Re-run router-deploy validation after the router-local NTP/deploy-tooling update
+5. [ ] Clean up duplicate docker-host UFW routed DNS forward rules (`172.20.0.0/16` to `53/udp`, `53/tcp`, `853/tcp`) while preserving current AdGuard upstream behavior
+6. [x] Document temporary router WiFi uplink (`wwan_uplink`) operating policy in `docs/procedures/router_temporary_uplink_policy.md`
+7. [x] Deploy `dashboards/ventsys-card-wrapper.html` to HA and verify the VentSys dashboard works inside a Lovelace iframe card
+8. [ ] Stabilize embedded Grafana view inside HA or explicitly park it behind direct-link-only access until HTTPS/reverse proxy work is done
+9. [x] Add an external health signal for the monitoring VM so monitoring failure is visible even when Uptime Kuma itself is down
+10. [ ] Configure OMV-backed Home Assistant backups once NAS storage is live, while keeping fast local Proxmox recovery on the MINIX
+11. [ ] Start Frigate properly after `.env`, RTSP details, and MQTT credentials are ready; keep HTTPS/SSL and WebRTC audio as required prerequisites
+12. [ ] Expand VentSys beyond valve 1: finish the MQTT TLS migration path, then flash/adopt the remaining ESPHome devices
+13. [x] Deploy AdGuard Home on docker-host per `docs/decisions/04-dns-resolver-and-adblocking.md`
+14. [x] Re-run router-deploy validation after the router-local NTP/deploy-tooling update
 
 ---
 
