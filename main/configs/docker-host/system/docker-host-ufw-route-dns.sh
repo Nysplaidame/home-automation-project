@@ -16,12 +16,14 @@ add_rule() {
     proto="$1"
     port="$2"
     comment="$3"
-    "$UFW_BIN" route allow in on docker0 out on eth0 from "$SRC_SUBNET" to any port "$port" proto "$proto" comment "$comment" >/dev/null
+    # Do not pin to a bridge interface name; Compose bridge names vary
+    # (for example br-<hash>) and docker0 may be down/unused.
+    "$UFW_BIN" route allow from "$SRC_SUBNET" to any port "$port" proto "$proto" comment "$comment" >/dev/null
 }
 
 # Idempotence relies on UFW de-duplicating equivalent rules.
-add_rule udp 53 "AdGuard bridge DNS UDP upstream"
-add_rule tcp 53 "AdGuard bridge DNS TCP upstream"
-add_rule tcp 853 "AdGuard bridge DoT upstream"
+add_rule udp 53 "AdGuard container upstream DNS UDP"
+add_rule tcp 53 "AdGuard container upstream DNS TCP"
+add_rule tcp 853 "AdGuard container upstream DoT"
 
 echo "Applied routed DNS UFW rules for $SRC_SUBNET"

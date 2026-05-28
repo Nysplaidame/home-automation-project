@@ -112,8 +112,8 @@ Home Assistant:
 
 - HAOS VM 100 is live at `192.168.20.101:8123`.
 - Mosquitto MQTT is live with TLS listener on `8883`.
-- Plain MQTT `1883` remains open as a staged/bootstrap path until remaining
-  clients are migrated.
+- Plain MQTT `1883` should be treated as deprecated; 2026-05-28 Frigate-path
+  probe to `192.168.20.101:1883` returned closed/refused.
 - VentSys packages and dashboard are staged.
 - Companion App service `notify.mobile_app_mai_foenn` is registered.
 - Basic push notification and actionable notification acknowledgement were
@@ -176,6 +176,39 @@ python main\tools\router-deploy\compile.py --profile first-flight -> OK artifact
 main\tools\router-deploy\test-connectivity.ps1 -RouterIp 192.168.10.1 -> PASS=85 WARN=0 FAIL=0
 ```
 
+Pre-flight sweep run on 2026-05-28 (steps 1-4 and 6-8, excluding MQTT migration planning):
+
+- Router/source parity rechecked: `lint` clean, `compile --profile first-flight`
+  produced artifacts, `test-connectivity` remained `PASS=85/WARN=0/FAIL=0`.
+- `wwan_uplink` confirmed enabled/up with staged upstream DHCP (`192.168.1.143`)
+  and gateway (`192.168.1.254`).
+- Live firewall remains TLS-oriented for MQTT (`8883` rules active for Bambuddy,
+  Frigate, and VentSys IoT-to-HA path; no valve-specific plain `1883` exception).
+- docker-host UFW routed DNS rules were normalized to subnet-based entries for
+  `172.20.0.0/16 -> 53/udp,53/tcp,853/tcp`; duplicate interface-scoped entries
+  were removed.
+- Tailscale still advertises only `192.168.20.101/32` and `192.168.40.50/32`.
+- Router WireGuard remains dormant (`network.wg0.auto='0'`, interface down).
+- Monitoring endpoints are directly reachable from management:
+  - Grafana `http://192.168.60.10:3000/api/health` -> `200`
+  - InfluxDB `http://192.168.60.10:8086/health` -> `200`
+  - Uptime Kuma `http://192.168.60.10:3001/` -> `302`
+- HA-side entity-state confirmation for
+  `monitoring_external_health_package.yaml` is still a manual HA UI task when
+  operator access is available.
+- Controlled outage test: Whoogle was stopped and Uptime Kuma logged repeated
+  failures, then Whoogle was restored (`HTTP 200`). No ntfy publish was observed
+  during this test window, so notification dispatch requires follow-up.
+- Frigate pre-flight status on VM 101:
+  - `/opt/frigate/.env` missing (expected pre-start blocker)
+  - `/opt/frigate/certs/ca-cert.pem` missing (expected TLS blocker)
+  - MQTT TLS path reachable: `192.168.20.101:8883` open
+  - Plain MQTT path not reachable: `192.168.20.101:1883` closed
+- Proxmox backup preflight:
+  - Job enabled daily at `02:00`, `keep-last=2`, VMs `100,101,102,103`
+  - Latest 2026-05-28 artifacts present for all four VMs in `/var/lib/vz/dump`
+  - Integrity spot-check passed: `zstd -t` on latest VM 100 backup
+
 SearXNG direct search and Whoogle UI/search tests returned HTTP `200`.
 
 HA Companion App:
@@ -215,100 +248,14 @@ rebuildable.
 
 Recommended order:
 
-1. Validate and maintain VentSys MQTT TLS-only firewall posture (do not reintroduce plain `1883` valve exceptions).
-2. Canonicalize docker-host UFW route rules.
-3. Review Home Assistant Companion App sensors.
-4. Document the temporary router WiFi uplink operating policy.
-5. Only then consider the next app candidate.
-
-### 1. Keep valve-1 MQTT on TLS-only firewall posture
-
-Live/source checks on 2026-05-28 found no valve-specific temporary plain-MQTT
-`1883` firewall exception, while VentSys MQTT firewall policy is `8883` TLS-only.
-Do not add a valve-1 plain-MQTT exception unless a verified rollback scenario
-explicitly requires it.
-
-Suggested first checks:
-
-```powershell
-Get-Content main\configs\openwrt\firewall-config.conf | Select-Object -Skip 650 -First 100
-```
-
-```powershell
-ssh -i main\tools\router-deploy\keys\router_deploy root@192.168.10.1 "uci show firewall | grep -Ei 'VentSys|valve|MQTT|1883|8883'"
-```
-
-If a live temporary valve-1 `1883` rule ever appears again, treat it as
-time-boxed drift and document the rollback rationale before copying it into
-source.
-
-Router validation commands:
-
-```powershell
-python main\tools\router-deploy\lint.py
-python main\tools\router-deploy\compile.py --profile first-flight
-main\tools\router-deploy\test-connectivity.ps1 -RouterIp 192.168.10.1
-```
-
-Only redeploy if source changes need to be applied:
-
-```powershell
-main\tools\router-deploy\deploy.ps1 -RouterIp 192.168.10.1 -Profile first-flight -Force
-```
-
-### 2. Canonicalize docker-host UFW route rules
-
-Live UFW route rules were added on docker-host so AdGuard's Docker bridge subnet
-can reach upstream DNS despite `ufw default deny routed`.
-
-Current live intent:
-
-- Allow `172.20.0.0/16` to any `53/udp`
-- Allow `172.20.0.0/16` to any `53/tcp`
-- Allow `172.20.0.0/16` to any `853/tcp`
-
-This is now backed by rebuildable source at
-`main/configs/docker-host/system/docker-host-ufw-route-dns.sh`. Keep this script
-deployed on docker-host as `/usr/local/sbin/docker-host-ufw-route-dns.sh` and
-run it after UFW baseline policy is enabled on rebuilds.
-
-Be careful not to conflate this with `docker-host-firewall.service`, which owns
-the Docker `DOCKER-USER` chain for published-port scoping. UFW host/routed rules
-and Docker published-port guard rules are related but distinct.
-
-### 3. Review HA Companion App sensors
-
-The app is installed and notification/action testing works. Remaining work is
-sensor hygiene:
-
-- Enable useful presence, battery, network, and notification sensors.
-- Avoid enabling noisy or privacy-heavy sensors unless there is a specific use.
-- Update `main/docs/procedures/home_assistant_companion_app_guide.md` and
-  `main/TO-DO.md` after the review.
-
-This is partly a manual phone/UI task.
-
-### 4. Document temporary router WiFi uplink policy
-
-The temporary uplink exists because the GL-MT6000 is staged behind the current
-home router. It should be documented as an explicit operating mode:
-
-- Keep enabled while SearXNG/Whoogle need upstream internet search.
-- Keep enabled when router-side package/image access is needed during pre-flight.
-- Disable only when testing final-edge behavior or when another upstream path is
-  intentionally provided.
-- Confirm after changes that laptop management access and internet access still
-  coexist.
-
-Useful command if the uplink needs to be restored:
-
-```powershell
-main\tools\router-deploy\uplink.ps1 -Action enable -RouterIp 192.168.10.1
-```
-
-Canonical policy doc:
-
-- `main/docs/procedures/router_temporary_uplink_policy.md`
+1. Validate Uptime Kuma -> ntfy dispatch path (monitor failure was detected, but ntfy publish was not observed in the controlled Whoogle outage test).
+2. Stage Frigate startup prerequisites without starting Frigate:
+   `.env` secrets and MQTT CA cert at `/opt/frigate/certs/ca-cert.pem`.
+3. Keep Grafana/Kuma embedding parked behind direct-link usage until HTTPS/same-origin path is intentionally implemented.
+4. Prepare OMV storage cutover execution using
+   `main/docs/procedures/omv_storage_cutover_checklist.md`.
+5. Keep WireGuard dormant fallback posture unless there is a deliberate decision
+   to roll out fallback clients.
 
 ## Possible App Candidates After Tightening
 

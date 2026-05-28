@@ -78,6 +78,8 @@ Completed live:
 - Rebuildable source script for these routed DNS allowances is
   `configs/docker-host/system/docker-host-ufw-route-dns.sh` (deploy to
   `/usr/local/sbin/` and run after UFW baseline policy is active).
+  The script is intentionally subnet-based (not pinned to `docker0`) because
+  live Compose bridge names are usually `br-<hash>`.
 
 Current service direction:
 
