@@ -32,7 +32,7 @@ status: active
 1. [x] Confirm live/source parity for valve-1 MQTT firewall state: no temporary plain-MQTT `1883` exception exists live, and source remains TLS `8883`-only for VentSys MQTT
 2. [x] Close stale valve-1 plain-MQTT follow-up tasks to avoid reintroducing insecure `1883` access while VentSys migration proceeds on TLS
 3. [x] Deploy Tailscale on docker-host and advertise only `192.168.20.101/32` and `192.168.40.50/32`
-4. [ ] Keep WireGuard configured as a dormant fallback; update clients only after Tailscale is tested
+4. [x] Keep WireGuard configured as a dormant fallback (confirmed `wg0` disabled/down on 2026-05-28); do not roll out fallback clients unless Tailscale daily-access posture changes
 5. [x] Clean up duplicate docker-host UFW routed DNS forward rules and keep canonical subnet-based rules for `172.20.0.0/16` (`53/udp`, `53/tcp`, `853/tcp`)
 6. [x] Document temporary router WiFi uplink (`wwan_uplink`) operating policy in `docs/procedures/router_temporary_uplink_policy.md`
 7. [x] Deploy `dashboards/ventsys-card-wrapper.html` to HA and verify the VentSys dashboard works inside a Lovelace iframe card
@@ -45,7 +45,7 @@ status: active
 14. [x] Re-run router-deploy validation after the router-local NTP/deploy-tooling update
 15. [x] Validate Uptime Kuma notification dispatch to ntfy (`ntfy Monitoring`): monitor #17 (Whoogle) failure was detected and ntfy `messages_published` increased (`14` -> `15`) during controlled outage on 2026-05-28
 16. [x] Add repo-side Frigate credential template at `configs/frigate/frigate.env.example`
-17. [x] Re-verify pre-NAS Proxmox backup policy/retention and run one archive integrity check (`zstd -t` on latest VM 100 backup)
+17. [x] Re-verify pre-NAS Proxmox backup policy/retention and run restore-readiness integrity drill (`zstd -t` + `Finished Backup` log checks on latest VM 100/101/102/103 archives)
 18. [x] Draft OMV storage cutover execution checklist at `docs/procedures/omv_storage_cutover_checklist.md`
 19. [x] Confirm HA-side monitoring health states from Home Assistant UI (all `on`): `binary_sensor.monitoring_stack_externally_healthy`, `binary_sensor.monitoring_vm_grafana_reachable`, `binary_sensor.monitoring_vm_influxdb_reachable`, `binary_sensor.uptime_kuma_reachable_from_ha`
 20. [ ] Parked: add Mullvad egress path for SearXNG/Whoogle on docker-host (privacy hardening), only after current Frigate + OMV pre-flight blockers are cleared

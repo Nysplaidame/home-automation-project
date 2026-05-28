@@ -213,7 +213,9 @@ Pre-flight sweep run on 2026-05-28 (steps 1-4 and 6-8, excluding MQTT migration 
 - Proxmox backup preflight:
   - Job enabled daily at `02:00`, `keep-last=2`, VMs `100,101,102,103`
   - Latest 2026-05-28 artifacts present for all four VMs in `/var/lib/vz/dump`
-  - Integrity spot-check passed: `zstd -t` on latest VM 100 backup
+  - Restore-readiness drill passed on latest VM `100/101/102/103` backups:
+    each archive passed `zstd -t`, and each matching `2026-05-28` backup log
+    contains `Finished Backup`
 
 SearXNG direct search and Whoogle UI/search tests returned HTTP `200`.
 
@@ -254,13 +256,13 @@ rebuildable.
 
 Recommended order:
 
-1. Stage Frigate startup prerequisites without starting Frigate:
-   `.env` secrets and MQTT CA cert at `/opt/frigate/certs/ca-cert.pem`.
-2. Keep Grafana/Kuma embedding parked behind direct-link usage until HTTPS/same-origin path is intentionally implemented.
-3. Prepare OMV storage cutover execution using
+1. Prepare OMV storage cutover execution using
    `main/docs/procedures/omv_storage_cutover_checklist.md`.
-4. Keep WireGuard dormant fallback posture unless there is a deliberate decision
+2. Keep Grafana/Kuma embedding parked behind direct-link usage until HTTPS/same-origin path is intentionally implemented.
+3. Keep WireGuard dormant fallback posture unless there is a deliberate decision
    to roll out fallback clients.
+4. Keep Mullvad egress hardening for SearXNG/Whoogle parked until storage and
+   backup priorities are complete.
 
 ## Possible App Candidates After Tightening
 

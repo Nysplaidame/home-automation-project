@@ -45,6 +45,13 @@ Current pre-NAS check on 2026-05-27:
 - Latest 2026-05-27 logs for VMs `100`, `101`, `102`, and `103` all ended with
   `Finished Backup`.
 
+Restore-readiness drill on 2026-05-28:
+
+- Confirmed latest `2026-05-28` archives exist for VMs `100`, `101`, `102`,
+  and `103` in `/var/lib/vz/dump`.
+- Ran `zstd -t` integrity checks on each latest archive (all passed).
+- Confirmed each matching backup log includes `Finished Backup`.
+
 ### Manual snapshot before major changes
 
 ```bash
