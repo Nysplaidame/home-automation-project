@@ -48,6 +48,7 @@ status: active
 17. [x] Re-verify pre-NAS Proxmox backup policy/retention and run one archive integrity check (`zstd -t` on latest VM 100 backup)
 18. [x] Draft OMV storage cutover execution checklist at `docs/procedures/omv_storage_cutover_checklist.md`
 19. [x] Confirm HA-side monitoring health states from Home Assistant UI (all `on`): `binary_sensor.monitoring_stack_externally_healthy`, `binary_sensor.monitoring_vm_grafana_reachable`, `binary_sensor.monitoring_vm_influxdb_reachable`, `binary_sensor.uptime_kuma_reachable_from_ha`
+20. [ ] Parked: add Mullvad egress path for SearXNG/Whoogle on docker-host (privacy hardening), only after current Frigate + OMV pre-flight blockers are cleared
 
 ---
 
@@ -209,7 +210,9 @@ must work without HACS.
 - [x] Note MAC and add to dhcp-config.conf (`BC:24:11:9C:25:87`)
 - [x] Install Docker (official repo)
 - [x] Deploy `configs/frigate/config.yml` to `/opt/frigate/config/`
-- [ ] Create `/opt/frigate/.env` with FRIGATE_RTSP_PASSWORD and FRIGATE_MQTT_PASSWORD
+- [x] Stage `/opt/frigate/.env` from template with `FRIGATE_MQTT_PASSWORD` set and secure permissions (`600`)
+- [ ] Set final `FRIGATE_RTSP_PASSWORD` in `/opt/frigate/.env` after camera model/credentials are selected
+- [x] Stage MQTT CA trust for Frigate at `/opt/frigate/certs/ca-cert.pem` and verify TLS (`Verify return code: 0`)
 - [x] Create host dirs: `mkdir -p /opt/frigate/db`
 - [ ] Start Frigate: `docker compose up -d`
 - [ ] Configure HTTPS/SSL for Frigate UI before regular use

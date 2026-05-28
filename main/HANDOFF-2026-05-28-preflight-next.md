@@ -204,8 +204,10 @@ Pre-flight sweep run on 2026-05-28 (steps 1-4 and 6-8, excluding MQTT migration 
   ntfy `messages_published` increased from `14` to `15` during the monitor-17
   failure window.
 - Frigate pre-flight status on VM 101:
-  - `/opt/frigate/.env` missing (expected pre-start blocker)
-  - `/opt/frigate/certs/ca-cert.pem` missing (expected TLS blocker)
+  - `/opt/frigate/.env` is staged with MQTT secret set; RTSP password remains
+    a placeholder until camera selection
+  - `/opt/frigate/certs/ca-cert.pem` is staged and validates against
+    `192.168.20.101:8883` (`Verify return code: 0`)
   - MQTT TLS path reachable: `192.168.20.101:8883` open
   - Plain MQTT path not reachable: `192.168.20.101:1883` closed
 - Proxmox backup preflight:
