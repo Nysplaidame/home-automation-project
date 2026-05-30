@@ -4,7 +4,7 @@ description: Master navigation hub for all project documentation
 tags: [index, navigation, home-automation]
 aliases: [Project Index, Documentation Hub]
 created: 2025-09-15
-modified: 2026-05-27
+modified: 2026-05-30
 type: index
 status: active
 ---
@@ -63,6 +63,11 @@ status: active
 - [[configs/docker-host/README.md]] — rebuildable source templates for VM 103 Compose stacks and host firewall
 - [[configs/docker-host/system/docker-host-firewall.sh]] — canonical `DOCKER-USER` source for docker-host published-port scoping
 - [[configs/docker-host/stacks/]] — non-secret Compose/config templates for live docker-host services
+
+### Monitoring / Grafana
+- [[configs/grafana/README.md]] — rebuildable source exports for Grafana dashboards
+- [[configs/grafana/dashboards/]] — architecture dashboard JSON exports
+- [[configs/home-assistant/lovelace/monitoring-grafana-links.yaml]] — HA Lovelace direct-link snippet for Grafana/Kuma
 
 ### Bambuddy / P1S
 - [[configs/home-assistant/bambuddy_p1s_package.yaml]] — HA MQTT sensors, binary sensors, automations for P1S
@@ -126,8 +131,17 @@ status: active
 | [[docs/procedures/omv_storage_cutover_checklist.md]] | Cutover checklist for HA/Immich/Frigate storage once OMV is live |
 | [[docs/procedures/omv_cutover_execution_runbook.md]] | Command-by-command OMV cutover runbook with validation gates and rollback |
 | [[docs/procedures/tailscale_remote_access_guide.md]] | Daily remote access through docker-host Tailscale host routes |
+| [[docs/procedures/wireguard_fallback_governance.md]] | Activation/deactivation governance for dormant WireGuard fallback |
+| [[docs/procedures/ids_ips_progression_plan.md]] | Phased IDS/IPS and host hardening progression plan |
+| [[docs/procedures/monitoring_roadmap.md]] | Monitoring stack rollout, direct-link posture, and IDS/IPS progression |
+| [[docs/procedures/proxmox_grafana_metrics.md]] | Native Proxmox metrics into InfluxDB and Grafana dashboard state |
+| [[docs/procedures/grafana_architecture_dashboards.md]] | Architecture-level Grafana dashboards and lightweight Influx exporters |
 | [[docs/procedures/home_assistant_companion_app_guide.md]] | HA Companion App phone onboarding, push test, actionable notification test, and sensor policy |
+| [[docs/procedures/update_maintenance_playbook.md]] | Update windows, caching/offline patterns, and update-monitoring posture |
+| [[docs/procedures/update_review_log.md]] | Weekly update-candidate review execution log and follow-up tracking |
 | [[scripts/monitoring/health_check.sh]] | Single-command health check for all systems |
+| [[scripts/monitoring/export_uptime_kuma_to_influx.py]] | Lightweight Uptime Kuma monitor-state export into InfluxDB |
+| [[scripts/monitoring/export_fail2ban_to_influx.sh]] | Lightweight docker-host Fail2ban counter export into InfluxDB |
 
 ---
 

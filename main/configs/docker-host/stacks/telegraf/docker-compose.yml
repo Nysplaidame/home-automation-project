@@ -1,0 +1,20 @@
+services:
+  telegraf:
+    image: telegraf:latest
+    container_name: docker-host-telegraf
+    restart: unless-stopped
+    user: telegraf:998
+    group_add:
+      - "${DOCKER_SOCK_GID:-989}"
+    volumes:
+      - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - /:/hostfs:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      HOST_ETC: /hostfs/etc
+      HOST_PROC: /hostfs/proc
+      HOST_SYS: /hostfs/sys
+      HOST_VAR: /hostfs/var
+      HOST_RUN: /hostfs/run
+      HOST_MOUNT_PREFIX: /hostfs
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}

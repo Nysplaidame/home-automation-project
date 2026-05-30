@@ -157,3 +157,10 @@
 - Updated wiki summaries after canonical docs removed old prompt-era sub-project files and stale dashboard/kanban files.
 - Current canonical docs now use the fresh rebuild manual, 10-segment network, OMV NAS, docker-host service tiers, Tailscale daily access, and WireGuard fallback.
 - Pages updated: [[sources/project-readme]], [[sources/network-architecture-decision]], [[concepts/vlan-segmentation]], [[index]]
+
+## [2026-05-30] lint | Documentation and wiki audit after monitoring/Grafana updates
+
+- Sources checked: `main/README.md`, `main/PROJECT-INDEX.md`, `main/TO-DO.md`, `main/HANDOFF-2026-05-28-preflight-next.md`, new monitoring/Grafana procedure docs, and active wiki pages.
+- Pages created: [[analyses/lint-2026-05-30]]
+- Pages updated: [[sources/project-readme]], [[sources/project-todo]], [[entities/docker-host]], [[entities/monitoring-vm]], [[entities/home-assistant]], [[entities/mosquitto-mqtt]], [[entities/frigate]], [[entities/proxmox]], [[entities/adguard-home]], [[entities/immich]], [[entities/homepage]], [[entities/dozzle]], [[entities/ventsys]], [[entities/esphome]], [[concepts/mqtt-tls]], [[concepts/tailscale-remote-access]], [[concepts/wireguard-vpn]], [[analyses/lint-2026-05-18]], [[index]]
+- Notes: Synced docker-host Tier 1 live state, Grafana architecture dashboards, exporters, docker-host Fail2ban baseline, TLS-oriented MQTT posture, Frigate staging guardrails, and direct-link monitoring posture.

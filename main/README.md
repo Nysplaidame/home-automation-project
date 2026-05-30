@@ -4,7 +4,7 @@ description: Fire safety ventilation, NVR surveillance, secure network, and home
 tags: [home-automation, project-overview]
 aliases: [Project Overview]
 created: 2025-09-15
-modified: 2026-05-27
+modified: 2026-05-30
 type: project-overview
 status: active
 ---
@@ -27,12 +27,12 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 | Router deployment | ✅ Live | GL-MT6000 stable on management IP 192.168.10.1 |
 | Proxmox | ✅ Live | MINIX NEO Z350 on 192.168.10.10, Proxmox VE 9 |
 | HA VM | ✅ Live | HAOS VM 100 at 192.168.20.101, VentSys packages staged |
-| Frigate VM | ✅ Live | VM 101 on VLAN 30, Debian 13 base live; Docker and Frigate staging complete |
+| Frigate VM | ⏳ Shell live / app unbuilt | VM 101 on VLAN 30 has Debian base and Docker staging; Frigate app is not live until cameras, RTSP credentials, HTTPS, and audio path are ready |
 | Docker host | ✅ Live | VM 103 on VLAN 20, central trusted Docker host; Bambuddy, Tier 1 apps, ntfy, and Watchtower monitor-only pre-flight live |
 | OMV NAS | ⏳ Planned | OpenMediaVault at 192.168.40.50 on VLAN 40; hardware/storage needed |
 | Remote access | ✅ Live | Tailscale daily access via docker-host host routes; WireGuard kept dormant as fallback |
-| VentSys dashboard | ✅ Complete | dashboards/ventsys-dashboard.html with full HA integration layer |
-| VentSys HA packages | ✅ Complete | Package YAML, scripts, automations all written |
+| VentSys dashboard | ✅ Written / staged | dashboards/ventsys-dashboard.html with full HA integration layer; entities remain hardware-dependent |
+| VentSys HA packages | ✅ Written / staged | Package YAML, scripts, automations all written; do not treat VentSys entities as live until hardware is adopted |
 | ESPHome sensor config | ✅ Written | printairpipe-controller.yaml ready for hardware |
 | VentSys hardware | ⏳ Pending | ESP32 boards, sensors, PrintAirPipe parts not yet purchased |
 | Cameras | ⏳ Pending | Models not yet selected; RTSP URLs are placeholders |
@@ -78,9 +78,10 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 | 99 | Guest | 192.168.99.0/24 | ✅ |
 
 ### NVR / Cameras (VLAN 30)
-- Frigate NVR on Proxmox VM 101
-- 4 cameras at 192.168.30.21–24
-- Footage to NAS via NFS, HA integration via Frigate card
+- Frigate VM shell on Proxmox VM 101; Frigate app remains unbuilt for regular use
+- 4 future cameras at 192.168.30.21–24
+- Future footage path to NAS via NFS after NAS and cameras are built
+- HA integration and Frigate card remain planned, not live
 
 ### Docker host + Bambuddy / P1S printer (VLAN 20 → VLAN 35)
 - Docker host runs on VM 103 at 192.168.20.102; Bambuddy is live on port 8000
@@ -97,10 +98,18 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 - Tailscale is daily remote access through docker-host with host routes only: `192.168.20.101/32` and `192.168.40.50/32`
 - WireGuard remains configured as a dormant split-tunnel fallback
 
+### Monitoring and dashboards (VLAN 60)
+- Monitoring VM 102 is live at 192.168.60.10 with Uptime Kuma, InfluxDB, Grafana, and Telegraf
+- Grafana dashboards cover home automation baseline, Proxmox/docker-host resources, service availability, DNS, and security posture
+- Docker-host Telegraf and lightweight Uptime Kuma/Fail2ban exporters feed InfluxDB buckets for architecture dashboards
+- Home Assistant monitoring uses direct Grafana/Kuma links for now; embedding remains parked until same-origin HTTPS/reverse proxy is deliberate
+
 ### Home Assistant (VLAN 20)
 - HAOS on Proxmox VM 100 at 192.168.20.101
-- Mosquitto MQTT, ESPHome, Frigate integrations
+- Mosquitto MQTT and ESPHome add-ons; Frigate integration remains planned
 - VentSys packages in `/config/packages/`
+- Treat Frigate app state, OMV storage, and VentSys hardware entities as unbuilt
+  until explicitly revalidated.
 
 ---
 
@@ -115,6 +124,9 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 | Docker-host rebuild templates | `configs/docker-host/` |
 | Bambuddy HA package | `configs/home-assistant/bambuddy_p1s_package.yaml` |
 | Docker host setup guide | `scripts/setup/proxmox/docker_host_setup_guide.md` |
+| Grafana source dashboards | `configs/grafana/` |
+| Grafana architecture dashboards | `docs/procedures/grafana_architecture_dashboards.md` |
+| Proxmox/docker-host metrics guide | `docs/procedures/proxmox_grafana_metrics.md` |
 | Fresh rebuild entrypoint | `docs/install/START-HERE.md` |
 | Install phases | `docs/install/phases/` |
 | Install references | `docs/install/reference/` |

@@ -80,6 +80,8 @@ Completed live:
   `/usr/local/sbin/` and run after UFW baseline policy is active).
   The script is intentionally subnet-based (not pinned to `docker0`) because
   live Compose bridge names are usually `br-<hash>`.
+- `fail2ban` is installed and enabled on docker-host, with an SSH jail defined
+  at `/etc/fail2ban/jail.d/docker-host-sshd.local`.
 
 Current service direction:
 
@@ -258,6 +260,20 @@ Apply routed DNS allowances for the AdGuard Docker bridge subnet:
 install -m 0755 /path/to/repo/main/configs/docker-host/system/docker-host-ufw-route-dns.sh /usr/local/sbin/docker-host-ufw-route-dns.sh
 /usr/local/sbin/docker-host-ufw-route-dns.sh
 ufw status verbose
+```
+
+Install and configure Fail2ban (host hardening baseline):
+
+```bash
+apt-get update
+apt-get install -y fail2ban
+install -d -m 0755 /etc/fail2ban/jail.d
+install -m 0644 /path/to/repo/main/configs/docker-host/system/docker-host-fail2ban-sshd.local \
+  /etc/fail2ban/jail.d/docker-host-sshd.local
+systemctl enable --now fail2ban
+systemctl restart fail2ban
+fail2ban-client status
+fail2ban-client status sshd
 ```
 
 Tailscale rules should be scoped to `tailscale0` or approved tailnet source

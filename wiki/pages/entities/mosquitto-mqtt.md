@@ -3,7 +3,7 @@ title: "Mosquitto MQTT Broker"
 category: entity
 tags: [software, mqtt, mosquitto, broker, tls]
 created: 2026-04-07
-updated: 2026-05-18
+updated: 2026-05-30
 sources: [project-readme, ventsys-technical-specs, ventsys-implementation-roadmap, troubleshooting-reference]
 status: active
 ---
@@ -11,29 +11,35 @@ status: active
 # Mosquitto MQTT Broker
 
 **Type:** integration — MQTT message broker (HA add-on)
-**Status:** ✅ Live — plaintext bootstrap on `1883` and TLS on `8883`
+**Status:** ✅ Live — TLS on `8883`; plaintext `1883` deprecated
 **Related:** [[entities/home-assistant]], [[entities/ventsys]], [[entities/esphome]], [[entities/frigate]], [[entities/bambuddy]], [[concepts/mqtt-tls]]
 
 ## Overview
 
-Mosquitto runs as a Home Assistant add-on at `192.168.20.101`. It is the central message bus for VentSys ESP32 devices, Frigate, Bambuddy, and Home Assistant automations.
+Mosquitto runs as a Home Assistant add-on at `192.168.20.101`. It is the
+central message bus for VentSys ESP32 devices, Frigate, Bambuddy, and Home
+Assistant automations.
 
-The broker is in a mixed migration state: TLS on port `8883` is live and verified, while port `1883` remains open as a staged bootstrap path. Bambuddy has migrated to `8883` with TLS. `ventsys-main-valve-1` still uses `1883` temporarily and depends on a live OpenWrt exception that is not yet reflected in the canonical firewall source.
+TLS on port `8883` is live and verified. Plain MQTT `1883` is deprecated and
+should not be opened through router policy for VentSys. Bambuddy has migrated to
+`8883` with TLS; Frigate and remaining VentSys clients should follow the TLS
+path before they are treated as live integrations.
 
 ## Ports
 
 | Port | Status | Purpose |
 |---|---|---|
-| 1883 | Temporary bootstrap / legacy clients | Plain MQTT; keep only until remaining clients migrate |
+| 1883 | Deprecated bootstrap / legacy clients | Do not expose through router policy for VentSys |
 | 8883 | ✅ Live | MQTT over TLS with local CA |
 
 ## Live Validations
 
-- `192.168.20.101:1883` reachable as bootstrap MQTT.
 - `192.168.20.101:8883` reachable; authenticated TLS publish/subscribe with `/ssl/ca.crt` verified.
 - Bambuddy logs confirmed MQTT relay and smart-plug service connected to `192.168.20.101:8883`.
 - Mosquitto logs confirmed Bambuddy negotiated TLSv1.3 from `192.168.20.102`.
 - Retained `bambuddy/status` was verified over TLS on `8883`.
+- 2026-05-28 Frigate-path probe to `192.168.20.101:1883` returned closed/refused.
+- Router/source parity confirmed no valve-specific plain-MQTT `1883` firewall exception.
 
 ## User Accounts & ACL
 
@@ -57,14 +63,8 @@ The durable design uses named MQTT users/classes for HA, VentSys controllers, Ve
 ## Troubleshooting
 
 ```bash
-# Test broker connectivity (bootstrap/plain MQTT)
-mosquitto_pub -h localhost -p 1883 -u mqtt -P <password> -t test -m hello
-
 # Test broker connectivity (TLS)
 mosquitto_pub -h 192.168.20.101 -p 8883 --cafile /ssl/ca.crt -u mqtt -P <password> -t test -m hello
-
-# Subscribe to VentSys topics during bootstrap
-mosquitto_sub -h localhost -p 1883 -u mqtt -P <password> -t 'ventsys/#' -v
 ```
 
 - Broker not running: Settings → Add-ons → Mosquitto → Start.
@@ -74,5 +74,6 @@ mosquitto_sub -h localhost -p 1883 -u mqtt -P <password> -t 'ventsys/#' -v
 
 ## Change Log
 
+- 2026-05-30: Corrected plain-MQTT state; TLS is live, Bambuddy is on TLS, and no valve-specific router `1883` exception should be treated as current.
 - 2026-05-18: Updated from planned/pre-TLS to live mixed-mode state: 8883 TLS verified, 1883 still open temporarily, Bambuddy migrated to TLS, valve-1 still on plain MQTT.
 - 2026-04-07: Page created from project-wide ingest.

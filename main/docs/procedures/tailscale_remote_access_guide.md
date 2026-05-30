@@ -3,9 +3,9 @@ title: Tailscale Remote Access Guide
 description: Daily remote access through docker-host host routes, with WireGuard as fallback
 tags: [tailscale, remote-access, docker-host, vpn]
 created: 2026-05-23
-modified: 2026-05-23
+modified: 2026-05-28
 type: procedure
-status: planned
+status: active
 ---
 
 # Tailscale Remote Access Guide
@@ -26,7 +26,7 @@ them.
 
 Do not advertise broad VLAN or RFC1918 ranges.
 
-Live state, 2026-05-27:
+Live state, 2026-05-28:
 
 - Tailscale `1.98.3` is installed on docker-host.
 - `tailscaled` is active.
@@ -36,7 +36,8 @@ Live state, 2026-05-27:
 - The advertised routes have been approved in the Tailscale admin console.
 - Local forwarding to Home Assistant has been validated from docker-host
   (`http://192.168.20.101:8123` returned `200`).
-- Final validation still needs an off-LAN Tailscale client test.
+- Off-LAN client validation passed on 2026-05-28 for docker-host and routed
+  Home Assistant and OMV host paths.
 - docker-host keeps HTTP apt traffic through apt-cacher-ng, but HTTPS apt traffic
   is direct because apt-cacher-ng rejects HTTPS CONNECT.
 

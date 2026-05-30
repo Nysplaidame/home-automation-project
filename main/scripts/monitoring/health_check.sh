@@ -233,7 +233,7 @@ run_checks() {
             echo ""
             echo "Proxmox Storage:"
             pvesm status 2>/dev/null | awk 'NR>1 {
-                used=$4; total=$3
+                total=$4; used=$5
                 if (total > 0) {
                     pct = int(used/total*100)
                     printf "  %s  %-20s %d%%\n", (pct>85?"✗":"✓"), $1, pct

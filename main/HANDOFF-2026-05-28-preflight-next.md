@@ -127,12 +127,42 @@ Monitoring:
 - Uptime Kuma notification `ntfy Monitoring` is active and mapped to active
   monitors.
 - Grafana/Influx are usable directly; HA embedding remains not fully stable.
+- Proxmox native metric export is live through metric server `proxmox-influx`,
+  writing to InfluxDB bucket `proxmox`.
+- Grafana datasource `InfluxDB - Proxmox` and dashboard `Proxmox Resource
+  Overview` are live at
+  `http://192.168.60.10:3000/d/proxmox-resource-overview/proxmox-resource-overview`.
+- `Proxmox Resource Overview` now uses the shared wallboard visual style.
+- Docker-host Telegraf is live under `/opt/stacks/telegraf` on VM 103, writing
+  host/container metrics to InfluxDB bucket `dockerhost`.
+- Grafana datasource `InfluxDB - Docker Host` is live, and Docker-host/container
+  panels are folded into `Proxmox Resource Overview`.
+- Grafana datasource `InfluxDB - Uptime Kuma` is live, backed by InfluxDB bucket
+  `uptimekuma`.
+- Architecture dashboards are live:
+  - `Service Availability`:
+    `http://192.168.60.10:3000/d/service-availability-overview/service-availability`
+  - `Network DNS`:
+    `http://192.168.60.10:3000/d/network-dns-overview/network-dns`
+  - `Security Posture`:
+    `http://192.168.60.10:3000/d/security-posture-overview/security-posture`
+- `NAS Resource Overview` exists as a planned Grafana dashboard shell at
+  `http://192.168.60.10:3000/d/nas-resource-overview/nas-resource-overview`;
+  it should not be treated as live NAS telemetry until the NAS is built.
 
 Docker host:
 
 - VM 103 is live at `192.168.20.102`.
 - VM size is currently 2 cores, 4096 MiB RAM, 32 GiB disk.
 - Rebuildable non-secret templates live under `main/configs/docker-host/`.
+- `fail2ban` is installed/enabled with active `sshd` jail and baseline config at
+  `/etc/fail2ban/jail.d/docker-host-sshd.local` (template:
+  `main/configs/docker-host/system/docker-host-fail2ban-sshd.local`).
+- Docker-host Telegraf runs as `docker-host-telegraf` from `/opt/stacks/telegraf`.
+- Rebuildable Docker-host Telegraf templates are in
+  `main/configs/docker-host/stacks/telegraf/`.
+- docker-host Fail2ban counters export through `fail2ban-influx-export.timer`
+  into InfluxDB bucket `dockerhost`.
 - Secrets, app databases, ntfy auth DB, AdGuard password hash, and generated
   service secrets remain live-only and must not be committed.
 
@@ -148,6 +178,10 @@ Live docker-host services:
 - SearXNG: `http://192.168.20.102:8087` and `http://searxng.home.local:8087`
 - Whoogle: `http://192.168.20.102:8088` and `http://whoogle.home.local:8088`
 - Watchtower is monitor-only with no exposed HTTP UI.
+- Docker-host Telegraf has no exposed HTTP UI; it writes metrics to
+  `192.168.60.10:8086`.
+- Uptime Kuma state exports through `uptime-kuma-influx-export.timer` on the
+  monitoring VM; this feeds the `Service Availability` Grafana dashboard.
 
 Search-service state:
 
@@ -218,6 +252,53 @@ Pre-flight sweep run on 2026-05-28 (steps 1-4 and 6-8, excluding MQTT migration 
     contains `Finished Backup`
 
 SearXNG direct search and Whoogle UI/search tests returned HTTP `200`.
+
+Pre-flight metrics pass on 2026-05-29:
+
+- Router source updated with narrow `Docker Host to InfluxDB` rule
+  (`192.168.20.102` -> `192.168.60.10:8086`) and live rule confirmed.
+- Router deploy validation stayed green:
+  `test-connectivity.ps1 -RouterIp 192.168.10.1 -> PASS=85/WARN=0/FAIL=0`.
+- Docker-host Telegraf deployed by transferring `telegraf:latest` from the
+  monitoring VM with `docker save/load`, avoiding broad registry egress.
+- InfluxDB bucket `dockerhost` and scoped tokens created.
+- Grafana datasource `InfluxDB - Docker Host` created.
+- `Proxmox Resource Overview` now includes Docker-host CPU/RAM/root disk,
+  Docker container/image counts, per-container CPU/RAM/network, and container
+  status panels.
+- `health_check.sh` storage parsing fixed; final run reported `ALL OK 11/11`
+  with Proxmox storage `local 41%` and `local-lvm 5%`.
+- docker-host Fail2ban sshd jail remained quiet: `0` failed, `0` banned.
+
+Architecture dashboard pass on 2026-05-29:
+
+- Created `Service Availability`, `Network DNS`, and `Security Posture`
+  dashboards in Grafana.
+- Added source exports under `main/configs/grafana/dashboards/`.
+- Added Uptime Kuma SQLite-to-Influx exporter:
+  `scripts/monitoring/export_uptime_kuma_to_influx.py`.
+- Added docker-host Fail2ban-to-Influx exporter:
+  `scripts/monitoring/export_fail2ban_to_influx.sh`.
+- Added HA Lovelace direct-link snippet:
+  `configs/home-assistant/lovelace/monitoring-grafana-links.yaml`.
+- Live HA dashboard update was not applied from the session because HA API
+  required auth and VM 100 has no QEMU guest agent; apply the Lovelace snippet
+  via the HA UI Monitoring dashboard when convenient.
+
+Documentation/wiki audit on 2026-05-30:
+
+- Canonical docs were audited against the current monitoring/Grafana/exporter,
+  docker-host Fail2ban, Tailscale/WireGuard, Frigate, OMV, and VentSys planning
+  state.
+- The wiki was updated to match project docs, including docker-host Tier 1 live
+  state, direct-link monitoring posture, MQTT TLS posture, Frigate staging
+  guardrails, and VentSys hardware revalidation guardrails.
+- Filed the wiki lint report at `wiki/pages/analyses/lint-2026-05-30.md`.
+- Validation after edits:
+  - `python main\tools\router-deploy\lint.py` -> PASSED
+  - `python main\tools\router-deploy\compile.py --profile first-flight` -> OK
+  - `python -m py_compile main\scripts\monitoring\export_uptime_kuma_to_influx.py` -> OK
+  - active `main/` wikilinks -> 0 unresolved after excluding code blocks/examples
 
 HA Companion App:
 

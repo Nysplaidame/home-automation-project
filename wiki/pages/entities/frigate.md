@@ -3,7 +3,7 @@ title: "Frigate NVR"
 category: entity
 tags: [software, frigate, cctv, docker, nvr]
 created: 2026-04-07
-updated: 2026-05-23
+updated: 2026-05-30
 sources: [project-readme, frigate-vm-setup-guide, igpu-passthrough-guide]
 status: active
 ---
@@ -11,14 +11,15 @@ status: active
 # Frigate NVR
 
 **Type:** integration - network video recorder
-**Status:** VM live (Debian 13, Docker installed) / Frigate not yet started
+**Status:** VM shell live / Docker staging complete / Frigate app unbuilt for regular use
 **Related:** [[entities/proxmox]], [[entities/home-assistant]], [[entities/mosquitto-mqtt]], [[entities/openmediavault-nas]]
 
 ## Overview
 
-Frigate NVR runs in Docker on Proxmox VM 101 (Debian 13). Frigate image is
-pulled and config is staged at `/opt/frigate/`. The container is not yet started
-because it needs camera hardware, a finalized `.env`, and MQTT TLS/cert details.
+Frigate NVR is staged for Docker on Proxmox VM 101 (Debian 13). The VM shell,
+Docker base, config, MQTT secret, and MQTT CA trust are staged, but the Frigate
+application is not live for regular use. It still needs camera hardware, final
+RTSP credentials, HTTPS/SSL, and WebRTC audio planning.
 
 ## Key Properties
 
@@ -29,12 +30,16 @@ because it needs camera hardware, a finalized `.env`, and MQTT TLS/cert details.
 - Image pulled: `ghcr.io/blakeblackshear/frigate:stable`
 - NVR internet access: blocked by design
 - `apt-cacher-ng` proxy: `http://192.168.20.102:3142`
+- MQTT path: TLS `192.168.20.101:8883` verified with staged CA
 
 ## Staging Gaps
 
-- [ ] Create `/opt/frigate/.env` with RTSP and MQTT secrets.
-- [ ] Finalize MQTT TLS cert path.
+- [x] Stage `/opt/frigate/.env` with MQTT secret.
+- [x] Stage MQTT CA trust and verify TLS path.
+- [ ] Set final RTSP password after camera model/credentials are selected.
 - [ ] Confirm camera RTSP URLs.
+- [ ] Configure HTTPS/SSL for regular Frigate UI use.
+- [ ] Configure WebRTC audio path for camera streams.
 - [ ] Run `docker compose up -d` from `/opt/frigate/`.
 
 ## NAS Storage
@@ -44,6 +49,7 @@ because it needs camera hardware, a finalized `.env`, and MQTT TLS/cert details.
 
 ## Change Log
 
+- 2026-05-30: Synced staging state: MQTT secret/CA are staged and TLS verified, but Frigate remains unbuilt for regular use until cameras, RTSP, HTTPS, and audio are ready.
 - 2026-05-23: Updated storage target from deprecated Pi NAS plan to OMV NAS.
 - 2026-05-08: Major update - VM 101 live on Debian 13; Frigate staged not started; Bambuddy moved to VM 103; apt-cache proxy noted.
 - 2026-04-07: Page created from project-wide ingest.

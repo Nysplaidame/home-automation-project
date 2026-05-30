@@ -3,8 +3,8 @@
 > **LLM:** Read this file first on every query. Master catalog of all wiki content.
 > Updated after every ingest, query (if filed), or lint pass.
 
-**Stats:** 25 sources - 22 entities - 7 concepts - 2 analyses
-**Last updated:** 2026-05-25
+**Stats:** 25 sources - 22 entities - 7 concepts - 3 analyses
+**Last updated:** 2026-05-30
 
 ---
 
@@ -14,8 +14,8 @@
 - [[sources/llm-wiki-idea-file]] - Founding methodology doc; RAG vs Wiki pattern
 
 ### Project overview
-- [[sources/project-readme]] - Project overview; current canonical docs supersede older NAS/VPN claims
-- [[sources/project-todo]] - Full task list across phases; current roadmap now includes Tailscale, OMV, AdGuard, Immich, Homepage, Dozzle
+- [[sources/project-readme]] - Project overview; current canonical docs supersede older NAS/VPN, Frigate, VentSys, and monitoring-embedding claims
+- [[sources/project-todo]] - Full task list across phases; current roadmap tracks live monitoring/Grafana/exporter state and keeps OMV/Frigate/VentSys hardware gated
 - [[sources/hardware-bom]] - Hardware BOM; current NAS direction is OMV
 
 ### Architecture & design
@@ -60,21 +60,21 @@
 
 ### Infrastructure
 - [[entities/proxmox]] - Proxmox VE on MINIX; VMs 100/101/102/103 live
-- [[entities/docker-host]] - VM 103; Bambuddy + apt-cache live; Tailscale/Tier 1 app host planned
-- [[entities/monitoring-vm]] - VM 102 monitoring stack
+- [[entities/docker-host]] - VM 103; Bambuddy, Tier 1 apps, ntfy/search pre-flight, Tailscale, Telegraf, Fail2ban
+- [[entities/monitoring-vm]] - VM 102; Uptime Kuma, InfluxDB, Grafana, Telegraf, architecture dashboards, exporters
 
 ### Software / integrations
-- [[entities/home-assistant]] - HAOS on VM 100; VentSys packages/dashboard live
-- [[entities/frigate]] - Frigate NVR VM 101; container staged not started
+- [[entities/home-assistant]] - HAOS on VM 100; VentSys packages/dashboard staged and Frigate integration planned
+- [[entities/frigate]] - Frigate VM 101 shell/Docker staging live; Frigate app not yet in regular use
 - [[entities/bambuddy]] - Bambu P1S bridge on docker-host
-- [[entities/adguard-home]] - Selected DNS filtering/adblocking service on docker-host
-- [[entities/immich]] - Planned gallery/photos service on docker-host with OMV-backed storage
-- [[entities/homepage]] - Planned internal dashboard on docker-host
-- [[entities/dozzle]] - Planned Docker log viewer on docker-host
-- [[entities/ventsys]] - Fire safety ventilation
+- [[entities/adguard-home]] - Live DNS filtering/adblocking service on docker-host
+- [[entities/immich]] - Live skeleton gallery/photos service; real imports blocked until OMV/backup readiness
+- [[entities/homepage]] - Live internal dashboard on docker-host
+- [[entities/dozzle]] - Live Docker log viewer on docker-host
+- [[entities/ventsys]] - Fire safety ventilation packages/dashboard staged; hardware rollout gated by TLS-path revalidation
 - [[entities/smart-plugs-ventsys]] - VentSys smart plugs
-- [[entities/esphome]] - ESP32 firmware platform
-- [[entities/mosquitto-mqtt]] - MQTT broker on HA
+- [[entities/esphome]] - ESP32 firmware platform; VentSys hardware adoption pending revalidation
+- [[entities/mosquitto-mqtt]] - MQTT broker on HA; TLS `8883` live and plain `1883` deprecated
 
 ---
 
@@ -83,7 +83,7 @@
 - [[concepts/rag-vs-wiki-pattern]] - RAG vs Wiki Pattern
 - [[concepts/vlan-segmentation]] - 10-VLAN architecture
 - [[concepts/ventsys-architecture]] - ESP32 to MQTT to HA
-- [[concepts/mqtt-tls]] - Local CA and Mosquitto TLS state
+- [[concepts/mqtt-tls]] - Local CA and Mosquitto TLS state; VentSys rollout should use `8883`
 - [[concepts/printairpipe]] - 125mm printable ducting and valves
 - [[concepts/tailscale-remote-access]] - Daily remote access through docker-host host routes
 - [[concepts/wireguard-vpn]] - Dormant fallback VPN; HA and OMV host routes only
@@ -94,6 +94,7 @@
 
 - [[analyses/deployment-status-2026-04]] - Project snapshot from April 2026
 - [[analyses/lint-2026-05-18]] - Wiki maintenance lint against May 2026 canonical docs
+- [[analyses/lint-2026-05-30]] - Documentation/wiki audit after monitoring, Grafana, Fail2ban, and docker-host service updates
 
 ---
 

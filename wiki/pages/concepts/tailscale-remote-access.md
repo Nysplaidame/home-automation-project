@@ -3,7 +3,7 @@ title: "Tailscale Remote Access"
 category: concept
 tags: [tailscale, vpn, remote-access, subnet-router]
 created: 2026-05-23
-updated: 2026-05-23
+updated: 2026-05-30
 sources: [project-readme, project-todo]
 status: active
 ---
@@ -23,12 +23,16 @@ for docker-host services, plus two approved host routes:
 - `192.168.20.101/32` for Home Assistant
 - `192.168.40.50/32` for OMV
 
+Off-LAN validation passed on 2026-05-28 for docker-host and routed Home
+Assistant/OMV host paths.
+
 ## Trade-offs / Considerations
 
 - Simpler mobile access than maintaining WAN WireGuard endpoint changes.
 - Requires persistent docker-host outbound connectivity.
 - Does not replace OpenWrt firewall policy.
 - Must not advertise Management, NVR, Printers, IoT, or broad Storage VLANs.
+- WireGuard remains a dormant fallback, not a parallel daily-access default.
 
 ## Key Entities Using This Concept
 

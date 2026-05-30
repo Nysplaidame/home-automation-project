@@ -3,6 +3,7 @@ title: Monitoring and Logging Roadmap
 description: Deployment order for health checks, uptime monitoring, metrics, alerts, and syslog
 tags: [monitoring, logging, grafana, influxdb, telegraf, uptime-kuma]
 created: 2026-05-08
+modified: 2026-05-30
 type: procedure
 status: active
 ---
@@ -40,9 +41,16 @@ status: active
 - Home Assistant is exporting state history into the `homeassistant` bucket with `source=HA`
 - Grafana datasource `InfluxDB - Home Automation` is configured and tested
 - Grafana dashboard `Home Automation Overview` is live with monitoring VM, Docker, HA write, and OpenWrt syslog panels
-- Grafana iframe embedding is enabled
-- Grafana anonymous Viewer mode is enabled for HA embedding to avoid iframe login-cookie loops
-- Home Assistant has a storage-managed `Monitoring` dashboard at `/monitoring/overview` with an embedded Grafana webpage card and links to Grafana and Uptime Kuma
+- Proxmox native metric export is live via metric server `proxmox-influx`, writing to InfluxDB bucket `proxmox`
+- Grafana datasource `InfluxDB - Proxmox` and dashboard `Proxmox Resource Overview` are live
+- Docker-host Telegraf is live under `/opt/stacks/telegraf`, writing host and container metrics to InfluxDB bucket `dockerhost`
+- Grafana datasource `InfluxDB - Docker Host` is live, and `Proxmox Resource Overview` includes Docker-host/container panels
+- Grafana dashboards `Service Availability`, `Network DNS`, and `Security Posture` are live for architecture-level monitoring
+- Uptime Kuma monitor snapshots are exported to InfluxDB bucket `uptimekuma` by `uptime-kuma-influx-export.timer`
+- docker-host Fail2ban counters are exported to InfluxDB bucket `dockerhost` by `fail2ban-influx-export.timer`
+- Grafana dashboard shell `NAS Resource Overview` is present but planned only; do not treat NAS metrics as live until the NAS is built
+- Home Assistant has a storage-managed `Monitoring` dashboard at `/monitoring/overview` with direct links to Grafana and Uptime Kuma
+- Embedded Grafana and Uptime Kuma views in HA remain intentionally parked until a same-origin HTTPS/reverse-proxy path is implemented and validated
 - Uptime Kuma direct iframe embedding is blocked by its `SAMEORIGIN` frame header; integrate it later through a same-origin reverse proxy/HTTPS route or use API/notification integration instead
 - HA-side external monitoring health package is live at
   `/config/packages/monitoring_external_health_package.yaml`, with source in
@@ -101,9 +109,22 @@ Live state:
 - Home Assistant writes state history to the same bucket with `source=HA`.
 - Grafana uses InfluxDB v2, organization `homelab`, and bucket `homeassistant`.
 - Baseline dashboard URL: `http://192.168.60.10:3000/d/home-automation-overview/home-automation-overview`
+- Proxmox dashboard URL: `http://192.168.60.10:3000/d/proxmox-resource-overview/proxmox-resource-overview`
+- Service Availability URL: `http://192.168.60.10:3000/d/service-availability-overview/service-availability`
+- Network DNS URL: `http://192.168.60.10:3000/d/network-dns-overview/network-dns`
+- Security Posture URL: `http://192.168.60.10:3000/d/security-posture-overview/security-posture`
+- NAS dashboard shell URL: `http://192.168.60.10:3000/d/nas-resource-overview/nas-resource-overview`
 - Home Assistant monitoring dashboard: `http://192.168.20.101:8123/monitoring/overview`
-- Embedded Grafana card URL: `http://192.168.60.10:3000/d/home-automation-overview/home-automation-overview?orgId=1&kiosk`
-- Grafana iframe prerequisite: `GF_SECURITY_ALLOW_EMBEDDING=true`
+- Docker-host/container metrics are folded into the Proxmox dashboard for now
+  rather than creating a third dashboard, preserving the two-dashboard model:
+  live infrastructure now, NAS-focused dashboard later.
+
+## Monitoring posture consistency
+
+- Day-to-day operator path is direct-link monitoring access (HA links out to Grafana and Uptime Kuma).
+- HA-embedded Grafana/Kuma is not a current dependency and should not be treated as an in-scope reliability target.
+- Do not widen anonymous access solely to force embedding; re-evaluate embedding only after same-origin HTTPS is in place.
+- External monitoring health in HA (`binary_sensor.monitoring_stack_externally_healthy`) remains the backstop when the monitoring VM itself is degraded.
 
 ### Phase 4 — add Telegraf collection
 
@@ -113,6 +134,13 @@ Use Telegraf for:
 - container metrics
 - OpenWrt syslog ingestion
 - later, NAS and other Linux host metrics
+
+Live collectors:
+
+- monitoring VM Telegraf: monitoring VM host/container metrics and OpenWrt syslog
+- docker-host Telegraf: VM 103 host metrics plus Docker engine/container metrics
+- monitoring VM Uptime Kuma exporter: monitor status/latency into bucket `uptimekuma`
+- docker-host Fail2ban exporter: jail counters into bucket `dockerhost`
 
 ### Phase 5 — wire in alerting
 
@@ -156,9 +184,12 @@ Preferred progression:
 
 ## IDS / IPS progression
 
+Reference plan: `docs/procedures/ids_ips_progression_plan.md`
+
 ### Now
 
 - rely on segmentation, firewall policy, selective deny logging, and `health_check.sh`
+- keep docker-host `Fail2ban` SSH baseline active and observed through the security dashboard
 - do **not** introduce a heavy IDS/IPS stack before basic monitoring is live
 
 ### Later
@@ -175,12 +206,12 @@ Preferred progression:
 
 ## Current answer
 
-As of May 8, 2026:
+As of May 30, 2026:
 
 - true IDS: not deployed
 - true IPS: not deployed
-- host-based banning: not deployed yet (`Fail2ban` planned)
-- security foundations: segmentation, firewall rules, WireGuard, selective logging
+- host-based banning: docker-host `Fail2ban` SSH baseline is deployed; Frigate and other Linux service hosts remain planned
+- security foundations: segmentation, firewall rules, Tailscale daily access, dormant WireGuard fallback, selective logging, Grafana/Kuma visibility
 
 ## Success criteria
 

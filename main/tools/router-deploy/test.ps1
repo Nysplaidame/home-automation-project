@@ -150,6 +150,7 @@ $criticalRules = @(
     "Allow DNS input vpn_clients",
     "Docker Host AdGuard Upstream DNS",
     "Docker Host Tailscale Egress",
+    "Docker Host to InfluxDB",
     "LAN to Docker Host App UIs",
     "VPN to OMV NAS",
     "Block VPN to Storage",

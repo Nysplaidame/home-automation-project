@@ -315,6 +315,7 @@ def architecture_policy_check(files: dict[str, list]) -> None:
     required_rules = [
         "Docker Host AdGuard Upstream DNS",
         "Docker Host Tailscale Egress",
+        "Docker Host to InfluxDB",
         "LAN to Docker Host App UIs",
         "VPN to OMV NAS",
         "Block VPN to Storage",

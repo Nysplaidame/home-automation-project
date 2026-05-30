@@ -1,0 +1,34 @@
+# Lovelace view snippet: Grafana monitoring links
+#
+# Intended use:
+# - Add this as a view/card set to the existing HA Monitoring dashboard.
+# - Keep these as direct links for now. Do not depend on embedded Grafana
+#   iframes until same-origin HTTPS and auth behavior are deliberately approved.
+
+title: Monitoring
+path: monitoring-grafana
+icon: mdi:monitor-dashboard
+cards:
+  - type: markdown
+    title: Grafana Dashboards
+    content: |
+      Open these in Grafana:
+
+      - [Service Availability](http://192.168.60.10:3000/d/service-availability-overview/service-availability)
+      - [Network DNS](http://192.168.60.10:3000/d/network-dns-overview/network-dns)
+      - [Security Posture](http://192.168.60.10:3000/d/security-posture-overview/security-posture)
+      - [Proxmox Resource Overview](http://192.168.60.10:3000/d/proxmox-resource-overview/proxmox-resource-overview)
+      - [Home Automation Overview](http://192.168.60.10:3000/d/home-automation-overview/home-automation-overview)
+      - [NAS Resource Overview](http://192.168.60.10:3000/d/nas-resource-overview/nas-resource-overview) - planned only until NAS exists
+
+      Uptime Kuma:
+
+      - [Uptime Kuma](http://192.168.60.10:3001/)
+
+  - type: entities
+    title: Monitoring Health From HA
+    entities:
+      - binary_sensor.monitoring_stack_externally_healthy
+      - binary_sensor.monitoring_vm_grafana_reachable
+      - binary_sensor.monitoring_vm_influxdb_reachable
+      - binary_sensor.uptime_kuma_reachable_from_ha

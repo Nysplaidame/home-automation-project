@@ -4,7 +4,7 @@ description: Implementation tasks by phase — updated May 2026
 tags: [tasks, implementation]
 aliases: [TODO, Tasks]
 created: 2025-09-15
-modified: 2026-05-27
+modified: 2026-05-30
 type: task-list
 status: active
 ---
@@ -26,6 +26,12 @@ status: active
 7. [ ] Continue expanding each install phase until every command has expected output examples and every failure mode has a tested recovery path
 8. [ ] Work through the comprehensive checklist in `docs/install/INSTALL-TO-DO.md`
 9. [ ] Run a full dry-read from `docs/install/START-HERE.md` after the next content expansion pass
+
+Planning baseline until explicitly revalidated:
+
+- Treat OMV as unbuilt for implementation planning.
+- Treat Frigate as unbuilt for implementation planning.
+- Treat VentSys entities as unbuilt for implementation planning.
 
 ## Operational next steps
 
@@ -50,6 +56,22 @@ status: active
 19. [x] Confirm HA-side monitoring health states from Home Assistant UI (all `on`): `binary_sensor.monitoring_stack_externally_healthy`, `binary_sensor.monitoring_vm_grafana_reachable`, `binary_sensor.monitoring_vm_influxdb_reachable`, `binary_sensor.uptime_kuma_reachable_from_ha`
 20. [ ] Parked: add Mullvad egress path for SearXNG/Whoogle on docker-host (privacy hardening), only after current Frigate + OMV pre-flight blockers are cleared
 21. [x] Add command-by-command OMV execution runbook at `docs/procedures/omv_cutover_execution_runbook.md` for fast cutover when OMV hardware is ready
+22. [x] Add explicit WireGuard fallback governance at `docs/procedures/wireguard_fallback_governance.md` (activation criteria, guardrails, and rollback)
+23. [x] Add IDS/IPS progression planning at `docs/procedures/ids_ips_progression_plan.md` aligned to current monitoring maturity
+24. [x] Align monitoring posture docs to direct-link operations and keep HA embedding parked until same-origin HTTPS path is ready
+25. [x] Deploy docker-host Fail2ban SSH hardening baseline (`/etc/fail2ban/jail.d/docker-host-sshd.local`) and add repo rebuild template at `configs/docker-host/system/docker-host-fail2ban-sshd.local`
+26. [x] Expand update governance with explicit update-monitoring posture in `docs/procedures/update_maintenance_playbook.md` (monitor-only alerts + planned patch windows)
+27. [x] Add weekly update-review execution log at `docs/procedures/update_review_log.md` and record initial docker-host-only baseline entry
+28. [x] Enable Proxmox native metrics export to InfluxDB bucket `proxmox` and add Grafana dashboard `Proxmox Resource Overview`
+29. [x] Rework `Proxmox Resource Overview` into the shared wallboard visual style
+30. [x] Add planned Grafana shell `NAS Resource Overview` for the future NAS-focused dashboard
+31. [x] Deploy docker-host Telegraf metrics under `/opt/stacks/telegraf`, add InfluxDB bucket `dockerhost`, and fold Docker-host/container panels into `Proxmox Resource Overview`
+32. [x] Fix `health_check.sh` Proxmox storage usage parsing so `local` and `local-lvm` report real percentages
+33. [x] Add architecture Grafana dashboards: `Service Availability`, `Network DNS`, and `Security Posture`
+34. [x] Add lightweight exporters for Uptime Kuma monitor snapshots and docker-host Fail2ban counters
+35. [ ] Apply `configs/home-assistant/lovelace/monitoring-grafana-links.yaml` to the live HA Monitoring dashboard through the HA UI
+36. [ ] Schedule controlled docker-host patch window for Docker engine/component and kernel package candidates from `docs/procedures/update_review_log.md`
+37. [ ] When NAS is built, add NAS telemetry using existing monitoring patterns first (prefer Telegraf -> InfluxDB -> Grafana before adding new containers)
 
 ---
 
@@ -174,7 +196,7 @@ must work without HACS.
 - [ ] Fill in MAC addresses in dhcp-config.conf (Proxmox host, VMs, NAS)
 - [x] Confirm no live valve-1 temporary plain-MQTT firewall exception exists; keep source as TLS `8883`-only for VentSys MQTT
 - [x] Remove stale valve-1 firewall-source drift items after parity verification
-- [ ] Configure WireGuard fallback clients only after Tailscale daily access is tested
+- [ ] Keep WireGuard fallback clients unrolled unless Tailscale daily-access posture changes or resilience drills require activation
 - [ ] Enable DDNS on router only if WireGuard fallback endpoint maintenance becomes annoying
 
 ---
@@ -316,19 +338,26 @@ must work without HACS.
 ## Phase 6 — Security hardening
 
 - [x] Set up MQTT TLS (8883) — broker listener live, CA/broker certs installed, authenticated TLS pub/sub verified
-- [ ] Remove temporary 1883 firewall rule only after HA, Bambuddy, Frigate, and future ESPHome/VentSys clients are migrated to 8883
+- [x] Keep router source TLS-oriented for MQTT: no valve-specific `1883` exception exists, and remaining clients should migrate to `8883` without reintroducing plain-MQTT router rules
 - [ ] Enable HTTPS on HA — follow `ssl_tls_guide.md` (choose Option A/B/C)
+- [x] Configure Fail2ban on docker-host (`sshd` jail baseline live at `/etc/fail2ban/jail.d/docker-host-sshd.local`)
 - [ ] Configure Fail2ban on Frigate VM
 - [x] Deploy monitoring VM on VLAN 60 (Uptime Kuma, InfluxDB, Grafana, Telegraf)
 - [x] Create baseline Uptime Kuma monitors for core infrastructure
 - [x] Forward OpenWrt syslog to Telegraf/InfluxDB
 - [x] Export Home Assistant state history to InfluxDB
 - [x] Configure Grafana InfluxDB datasource and baseline Home Automation dashboard
+- [x] Configure Proxmox native metrics export to InfluxDB and add `Proxmox Resource Overview` Grafana dashboard
+- [x] Deploy docker-host Telegraf host/container metrics to InfluxDB bucket `dockerhost`
+- [x] Add Docker-host/container panels to `Proxmox Resource Overview`
+- [x] Add `Service Availability`, `Network DNS`, and `Security Posture` Grafana dashboards
+- [x] Export Uptime Kuma monitor state to InfluxDB bucket `uptimekuma`
+- [x] Export docker-host Fail2ban counters to InfluxDB bucket `dockerhost`
 - [x] Add HA Monitoring page/sidebar entry with direct links to Grafana and Kuma
 - [x] Deploy internal ntfy notification service for future HA/Kuma/Grafana alerts
 - [x] Prepare HA HTTPS certificate files without enabling HTTPS cutover
-- [ ] Stabilize embedded Grafana view inside HA (current issue: login loop / auth behavior)
-- [ ] Revisit Grafana anonymous Viewer access after same-origin HTTPS path is in place
+- [x] Keep monitoring operational posture as direct-link access from HA, with embedding intentionally parked for now
+- [ ] Re-open Grafana/Uptime Kuma embedding work only after same-origin HTTPS/reverse-proxy path and auth model are approved
 - [ ] Add Uptime Kuma dashboard view into Home Assistant after same-origin reverse proxy/HTTPS path exists
 - [ ] Add Grafana dashboard view into Home Assistant (Lovelace panel/iframe) once auth/embedding behavior is stable
 - [ ] Evaluate Telegraf UI integration path (direct Telegraf has no real UI; expose Influx/Grafana views in HA instead)
@@ -337,8 +366,10 @@ must work without HACS.
 - [x] Add/validate router DNS enforcement rules for filtering coverage and public fallback
 - [x] Add monitoring for the DNS filtering service before making it the only resolver path
 - [x] Verify pre-NAS Proxmox local backup job and latest backups for VMs 100/101/102/103
-- [ ] Add `Fail2ban` to live Linux services where exposed/internal auth surfaces justify it
-- [ ] Revisit IDS/IPS only after centralized logging is live; prefer Suricata on dedicated x86 over router-hosted IDS
+- [ ] Extend `Fail2ban` from docker-host baseline to Frigate and other applicable Linux service hosts
+- [ ] Execute IDS/IPS progression Phase A (`docs/procedures/ids_ips_progression_plan.md`): monitor Fail2ban jails/bans and tune policy after live observation
+- [ ] After at least 30 days of baseline security-event data, decide CrowdSec pilot vs defer and document the decision
+- [ ] Add a scoped internal penetration-testing pass after hardening + update governance stabilize; record findings and remediation evidence
 - [ ] Set up WireGuard DDNS if ISP IP changes frequently
 - [x] Run staged core health baseline and confirm required live services are green (`health_check.sh --json`: PASS=11/FAIL=0; hardware-dependent checks skipped/unknown until devices exist)
 
@@ -348,6 +379,8 @@ must work without HACS.
 
 - [ ] Monthly: run backup health checklist (`backup_strategy.md`)
 - [ ] Monthly: check SMART status on NAS drives
+- [ ] Weekly: append an entry to `docs/procedures/update_review_log.md` (Watchtower monitor-only signals + host package candidates + planned patch window)
+- [ ] Next patch window: update docker-host packages from the current candidate list, reboot if kernel package changes, and rerun router/health/Grafana checks
 - [ ] After any config change: `git add -A && git commit && git push`
 - [ ] When hardware arrives: update MAC addresses in `dhcp-config.conf`
 - [ ] When cameras confirmed: update RTSP URLs in `configs/frigate/config.yml`

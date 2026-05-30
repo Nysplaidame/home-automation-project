@@ -3,7 +3,7 @@ title: Installation Manual Suite To-Do
 description: Companion checklist for completing and validating the fresh rebuild documentation suite
 tags: [install, tasks, rebuild, documentation]
 created: 2026-05-24
-modified: 2026-05-27
+modified: 2026-05-30
 type: task-list
 status: active
 ---
@@ -89,12 +89,12 @@ without live assistance.
 
 ## Sanity Checks
 
-- [ ] Run local Markdown link validation.
-- [ ] Search for stale `Main/` paths.
-- [ ] Search for stale Pi OS Lite NAS claims.
-- [ ] Search for Pi-hole-preferred claims.
-- [ ] Search for Google DNS fallback references.
-- [ ] Search for broad Tailscale/WireGuard storage subnet claims.
+- [x] Run local Markdown link validation (2026-05-30: active docs checked; one historical wikilink repaired; remaining hits are known code/example false positives).
+- [x] Search for stale `Main/` paths (active docs clean; legacy `Main/` paths remain in `_archive/` historical files).
+- [x] Search for stale Pi OS Lite NAS claims.
+- [x] Search for Pi-hole-preferred claims.
+- [x] Search for Google DNS fallback references.
+- [x] Search for broad Tailscale/WireGuard storage subnet claims.
 - [ ] Search for unresolved placeholders outside approved examples.
 - [ ] Confirm every command block has a `Run on:` label.
 - [ ] Run router-deploy lint/compile after router config or router-deploy edits.

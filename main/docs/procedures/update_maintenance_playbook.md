@@ -5,6 +5,7 @@ title: Update Maintenance Playbook
 description: Temporary WAN access, local caching, and offline update patterns for restricted VLAN hosts
 tags: [operations, updates, firewall, docker-host, frigate, maintenance]
 created: 2026-05-08
+modified: 2026-05-28
 type: procedure
 status: active
 ---
@@ -206,6 +207,52 @@ blocked from general WAN access by design. Watchtower can only check upstream
 container registries during an approved Docker-host egress window unless a
 future decision creates narrow permanent registry access. It must remain
 monitor-only; do not use it for automatic updates.
+
+## Update monitoring posture
+
+Automatic updates are not the default in this project. The baseline is:
+
+1. monitor available updates continuously enough to avoid surprise drift,
+2. patch intentionally in maintenance windows,
+3. verify health after every patch cycle.
+
+### Container update monitoring
+
+- Keep Watchtower in `monitor-only` mode with ntfy notifications.
+- Treat these notifications as update candidates, not approval to patch.
+
+### Host package update monitoring
+
+On docker-host (current live baseline), run this during a maintenance window:
+
+```sh
+apt-get update
+apt list --upgradable
+```
+
+Add additional hosts only after they are actually built and in scope.
+
+Record meaningful security updates in the current handoff and schedule the
+patch window.
+
+### Post-update verification
+
+After host/container patching:
+
+```sh
+scripts/monitoring/health_check.sh --json
+```
+
+Also verify key service endpoints from Uptime Kuma before closing the window.
+
+## Weekly execution logging
+
+Use `docs/procedures/update_review_log.md` to record each weekly review run:
+
+- what was checked,
+- what updates were available,
+- what was intentionally deferred,
+- and what follow-up window is planned.
 
 ## Recommended next implementation order
 

@@ -3,7 +3,7 @@ title: "Home Assistant (HAOS)"
 category: entity
 tags: [software, home-assistant, automation, mqtt, esphome]
 created: 2026-04-07
-updated: 2026-05-18
+updated: 2026-05-30
 sources: [project-readme, ha-vm-setup-guide, ha-configuration-yaml]
 status: stable
 ---
@@ -16,9 +16,17 @@ status: stable
 
 ## Overview
 
-Home Assistant OS runs on Proxmox VM 100 at `192.168.20.101`. It is the central automation hub — brokering MQTT, hosting the ESPHome add-on, integrating Frigate CCTV, controlling VentSys, monitoring the Bambu P1S via Bambuddy, and exporting state history to InfluxDB on the monitoring VM.
+Home Assistant OS runs on Proxmox VM 100 at `192.168.20.101`. It is the
+central automation hub: brokering MQTT, hosting the ESPHome add-on, staging
+VentSys packages/dashboard assets, monitoring the Bambu P1S through Bambuddy
+when printer details are available, and exporting state history to InfluxDB on
+the monitoring VM. Frigate integration remains planned until cameras, RTSP
+details, HTTPS, and audio requirements are ready.
 
-Mosquitto TLS is live on port `8883`; port `1883` is still open as a staged bootstrap path for clients that have not moved to TLS yet. Bambuddy is already on TLS. `ventsys-main-valve-1` is still using plain MQTT on `1883` via a temporary source-specific firewall rule until its ESPHome config is migrated.
+Mosquitto TLS is live on port `8883`. Plain MQTT `1883` is deprecated and must
+not be reintroduced through router policy for VentSys; the 2026-05-28 parity
+check found no live/source valve-specific `1883` exception. Bambuddy is already
+on TLS, and remaining Frigate/VentSys paths should use the TLS migration plan.
 
 ## Key Properties
 
@@ -34,7 +42,7 @@ Mosquitto TLS is live on port `8883`; port `1883` is still open as a staged boot
 
 ## Add-ons Installed
 
-- **Mosquitto MQTT** — broker on ports `1883` (bootstrap) and `8883` (TLS live).
+- **Mosquitto MQTT** — TLS broker on `8883`; plain `1883` is deprecated.
 - **ESPHome** — compiles and manages ESP32 firmware.
 - **Terminal & SSH** — command line access.
 - **File Editor** — config file management.
@@ -47,15 +55,15 @@ Mosquitto TLS is live on port `8883`; port `1883` is still open as a staged boot
 - `/config/www/ventsys-dashboard.html` ✅ deployed.
 - `/config/www/ventsys-config.js` ✅ live-only token/config file; do not commit.
 - `/config/www/ventsys-card-wrapper.html` ✅ deployed for Lovelace iframe/card use.
+- `/config/packages/monitoring_external_health_package.yaml` ✅ deployed for monitoring-stack external health visibility.
 
 ## VentSys Entities
 
-Key registered entities include:
-`fan.inline_fan`, `fan.spray_booth_fan`, `number.fdm_valve`, `number.sla_valve`,
-`number.main_duct_valve_1`, `sensor.fdm_temperature`, `sensor.sla_temperature`,
-`binary_sensor.mqtt_broker_online`, and `input_boolean.ventsys_failsafe`.
-
-`ventsys-main-valve-1` is live and controllable. Broad safety automations are staged but disabled with `initial_state: false`; do not enable them until the physical devices/sensors they depend on are present and tested.
+VentSys packages and dashboard assets are written/staged, but hardware-dependent
+entities must not be treated as globally live until ESPHome devices are built,
+adopted, and explicitly revalidated. Broad safety automations remain staged;
+do not enable them until the physical devices/sensors they depend on are
+present and tested.
 
 ## Known Good Backup
 
@@ -70,9 +78,10 @@ Key registered entities include:
 
 ## Pending
 
-- Finish MQTT TLS migration for remaining clients, especially `ventsys-main-valve-1`; then remove the temporary plain-MQTT firewall rule.
+- Finish MQTT TLS migration for remaining Frigate/VentSys clients without reintroducing broad or source-specific plain-MQTT router access.
 - Frigate integration — pending camera hardware, Frigate `.env`, and Frigate start.
 - HA HTTPS/reverse proxy path — needed before treating Grafana/Kuma embedding as stable.
+- Apply `configs/home-assistant/lovelace/monitoring-grafana-links.yaml` to the storage-managed Monitoring dashboard through the HA UI.
 
 ## Troubleshooting Quick Reference
 
@@ -83,6 +92,7 @@ Key registered entities include:
 
 ## Change Log
 
+- 2026-05-30: Corrected Frigate/VentSys/MQTT posture: Frigate integration remains planned, VentSys hardware entities are staged, and no valve-specific router `1883` exception should be treated as live.
 - 2026-05-18: Corrected MQTT status to mixed-mode with TLS live on 8883; added monitoring Influx export, external dashboard token config, card wrapper, and live valve-1 note.
 - 2026-05-08: Major update — HA live at 2026.5.0; VentSys packages staged; backup slug recorded; MQTT still pre-TLS; 2FA enabled.
 - 2026-04-07: Page created from project-wide ingest.

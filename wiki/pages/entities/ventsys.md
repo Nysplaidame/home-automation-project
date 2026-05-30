@@ -3,7 +3,7 @@ title: "VentSys — Fire Safety Ventilation System"
 category: entity
 tags: [ventsys, esphome, mqtt, safety, ventilation, 3d-printing]
 created: 2026-04-07
-updated: 2026-05-18
+updated: 2026-05-30
 sources: [project-readme, ventsys-technical-specs, ventsys-implementation-roadmap, troubleshooting-reference]
 status: active
 ---
@@ -11,14 +11,17 @@ status: active
 # VentSys — Fire Safety Ventilation System
 
 **Type:** integration — custom fire safety ventilation subsystem
-**Status:** ⏳ Partially live — HA/dashboard complete; `ventsys-main-valve-1` flashed and controllable; remaining hardware/device rollout pending
+**Status:** ⏳ Written/staged — HA packages and dashboard exist; hardware/device rollout pending revalidation
 **Related:** [[entities/esphome]], [[entities/home-assistant]], [[entities/mosquitto-mqtt]], [[concepts/ventsys-architecture]], [[concepts/printairpipe]], [[concepts/mqtt-tls]]
 
 ## Overview
 
 VentSys is a bespoke fire safety and ventilation system built around ESP32 microcontrollers, ESPHome firmware, MQTT, and Home Assistant automations. It manages airflow across two 3D printer enclosures (FDM and SLA) and a spray booth using servo-controlled butterfly valves and inline duct fans. Sensors monitor temperature, humidity, smoke, VOC, and differential pressure. Emergency power cutoff is handled via smart plugs.
 
-The Home Assistant integration, dashboard, mode scripts, and package layer are deployed. `ventsys-main-valve-1` is flashed, online at `192.168.50.51`, and controllable from Home Assistant and the VentSys dashboard. Most physical VentSys devices remain pending.
+The Home Assistant integration, dashboard, mode scripts, and package layer are
+written/staged. Hardware-dependent entities must not be treated as live until
+the ESPHome devices are built, adopted, and explicitly revalidated. Historical
+main-valve-1 work should be resumed only on the MQTT TLS path.
 
 ## Physical Setup
 
@@ -26,11 +29,12 @@ The Home Assistant integration, dashboard, mode scripts, and package layer are d
 - **Enclosures:** FDM printer, SLA printer, spray booth.
 - **Fan:** inline duct fan plus spray booth fan control in HA entities/scripts.
 - **Valves:** multiple servo-driven butterfly valves per zone.
-- **Live device:** main duct valve 1 (`ventsys-main-valve-1`).
+- **Device baseline:** all hardware-dependent devices remain pending or require
+  explicit revalidation before use.
 
 ## ESP32 Device Fleet (21 YAML/device entries)
 
-> Full canonical table from `esphome_adoption_guide.md` and current handoff state. All YAMLs exist in `configs/esphome/`. `ventsys-main-valve-1` is live on the temporary pre-TLS path; the rest remain pending hardware/flash/adoption. **Flash wrong YAML = wrong GPIO/MQTT topics; requires full USB re-flash to fix.**
+> Full canonical table from `esphome_adoption_guide.md` and current handoff state. All YAMLs exist in `configs/esphome/`. Treat all hardware-dependent devices as pending or needing explicit TLS-path revalidation. **Flash wrong YAML = wrong GPIO/MQTT topics; requires full USB re-flash to fix.**
 
 | Role | device_name | IP | YAML | State |
 |---|---|---|---|---|
@@ -43,7 +47,7 @@ The Home Assistant integration, dashboard, mode scripts, and package layer are d
 | FDM airflow | ventsys-fdm-airflow | 192.168.50.41 | ventsys_fdm_airflow.yaml | pending |
 | SLA airflow | ventsys-sla-airflow | 192.168.50.42 | ventsys_sla_airflow.yaml | pending |
 | Booth airflow | ventsys-booth-airflow | 192.168.50.43 | ventsys_booth_airflow.yaml | pending |
-| Main valve 1 | ventsys-main-valve-1 | 192.168.50.51 | ventsys_main_valve1.yaml | ✅ live on 1883 temp path |
+| Main valve 1 | ventsys-main-valve-1 | 192.168.50.51 | ventsys_main_valve1.yaml | revalidate on TLS path before treating live |
 | Main valve 2 | ventsys-main-valve-2 | 192.168.50.52 | ventsys_main_valve2.yaml | pending |
 | FDM branch valve | ventsys-fdm-branch-valve | 192.168.50.53 | ventsys_fdm_branch_valve.yaml | pending |
 | SLA branch valve | ventsys-sla-branch-valve | 192.168.50.54 | ventsys_sla_branch_valve.yaml | pending |
@@ -56,22 +60,25 @@ The Home Assistant integration, dashboard, mode scripts, and package layer are d
 | Wash/cure plug | ventsys-plug-wash-cure | 192.168.50.75 | ventsys_plug_wash_cure.yaml | pending |
 | Ultrasonic plug | ventsys-plug-ultrasonic | 192.168.50.76 | ventsys_plug_ultrasonic.yaml | pending |
 
-## Main Valve 1 Live Facts
+## Main Valve 1 Historical Facts
 
 - Device name: `ventsys-main-valve-1`.
 - MAC: `EC:E3:34:B4:79:7C`.
 - Static IP: `192.168.50.51` (VLAN 50 / HomeIoT).
 - ESPHome API: port `6053` with noise encryption.
 - OTA: port `3232`.
-- MQTT broker: `192.168.20.101:1883` for now.
+- MQTT broker target: `192.168.20.101:8883` with CA validation before current use.
 - Control topic: `ventsys/main/valve1/control`.
 - State topic: `ventsys/main/valve1/state`.
 - HA entity: `number.main_duct_valve_1`.
 
+These historical facts are useful for continuity, but current planning should
+not depend on the valve as live until it is explicitly revalidated on TLS.
+
 ## MQTT Architecture
 
-- **Current mixed state:** broker TLS on `8883` is live; `1883` remains open temporarily for `ventsys-main-valve-1` and other not-yet-migrated clients.
-- **Required next migration:** add `mqtt_ca_cert` to repo and HA-side ESPHome `secrets.yaml`, move `ventsys_main_valve1.yaml` to `8883` with `certificate_authority`, OTA/flash it, then remove the temporary plain-MQTT firewall rule.
+- **Current state:** broker TLS on `8883` is live; plain MQTT `1883` should not be reintroduced through router policy for VentSys.
+- **Required next migration:** add `mqtt_ca_cert` to repo and HA-side ESPHome `secrets.yaml`, then keep VentSys device YAMLs on `8883` with `certificate_authority` before adoption/revalidation.
 - **Topic structure:** `ventsys/<zone>/<sensor|control>/<type>`.
 - **WiFi:** HomeIoT SSID (VLAN 50, 2.4GHz, channel 6, WPA2).
 
@@ -93,7 +100,7 @@ The Home Assistant integration, dashboard, mode scripts, and package layer are d
 
 ## Open Questions
 
-- [ ] Finish MQTT TLS migration for valve 1 and remove the live temporary 1883 firewall exception.
+- [ ] Finish MQTT TLS migration/revalidation for valve 1 without reintroducing plain-MQTT router access.
 - [ ] Purchase/build/flash/adopt the remaining VentSys devices.
 - [ ] Record DS18B20 addresses after first flash; update YAMLs.
 - [ ] Deploy/verify HA card wrapper in a Lovelace iframe if not already stable.
@@ -104,5 +111,6 @@ The Home Assistant integration, dashboard, mode scripts, and package layer are d
 
 ## Change Log
 
+- 2026-05-30: Synced to canonical planning baseline: VentSys packages/dashboard are staged, hardware-dependent entities require revalidation, and plain-MQTT router access should not be reintroduced.
 - 2026-05-18: Updated for live main-valve-1, dashboard token externalization, HA-side ramp helper, mixed MQTT state, and current TLS migration blockers.
 - 2026-04-07: Page created; full device fleet, MQTT architecture, and safety notes from ingest.

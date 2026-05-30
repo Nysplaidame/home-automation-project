@@ -3,7 +3,7 @@ title: "WireGuard VPN"
 category: concept
 tags: [vpn, wireguard, remote-access, network, security]
 created: 2026-04-07
-updated: 2026-05-23
+updated: 2026-05-30
 sources: [project-readme, network-architecture-decision, troubleshooting-reference]
 status: active
 ---
@@ -30,6 +30,7 @@ or if router-level fallback access is needed.
 - Split-tunnel only
 - Allowed host routes include Home Assistant `192.168.20.101/32` and OMV `192.168.40.50/32`
 - Broad Management, NVR, Printers, Storage, and IoT access stays blocked
+- `wg0` is configured but disabled/down by default
 
 ## Firewall Rules
 
@@ -44,6 +45,13 @@ or if router-level fallback access is needed.
 - **Connects but can't reach OMV:** Confirm `AllowedIPs` includes `192.168.40.50/32`, not the whole storage VLAN.
 - **WAN IP changed:** Update client config endpoint or use DDNS if fallback endpoint churn matters.
 - **Handshake fails:** WireGuard is time-sensitive; sync system clock if timestamps are skewed.
+
+## Governance
+
+Activate WireGuard only when Tailscale is unavailable for expected operator
+tasks, a deliberate policy/account change freezes Tailscale use, or a planned
+resilience drill has explicit start/end times. Record activation and
+deactivation in the current handoff.
 
 ## Key Entities Using This Concept
 

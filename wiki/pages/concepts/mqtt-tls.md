@@ -3,7 +3,7 @@ title: "MQTT TLS with Local Certificate Authority"
 category: concept
 tags: [mqtt, tls, security, certificates, mosquitto]
 created: 2026-04-07
-updated: 2026-05-18
+updated: 2026-05-30
 sources: [ventsys-technical-specs, ventsys-implementation-roadmap, troubleshooting-reference]
 status: stable
 ---
@@ -18,7 +18,10 @@ MQTT TLS replaces plaintext MQTT (port `1883`) with TLS-encrypted MQTT (port `88
 
 MQTT carries VentSys control/state, Bambuddy status, and future Frigate/automation messages. TLS matters because VLAN 50 devices are intentionally restricted and should not depend on plaintext credentials or control messages long-term.
 
-The project is now in a mixed migration state: Mosquitto TLS on `8883` is live and Bambuddy has migrated successfully, but `1883` remains open as a temporary bootstrap path. `ventsys-main-valve-1` is the important remaining live plaintext client and must move to `8883` before its temporary firewall exception can be removed.
+The project is TLS-oriented now: Mosquitto TLS on `8883` is live and Bambuddy
+has migrated successfully. Plain MQTT `1883` is deprecated, and canonical
+router policy should not reintroduce a VentSys `1883` exception. Remaining
+Frigate/VentSys clients should move onto `8883` before they are treated as live.
 
 ## Current Migration State
 
@@ -27,10 +30,10 @@ The project is now in a mixed migration state: Mosquitto TLS on `8883` is live a
 | Mosquitto listener `8883` | ✅ Live and verified |
 | CA-based TLS pub/sub test | ✅ Verified with `/ssl/ca.crt` |
 | Bambuddy → Mosquitto | ✅ Migrated to `8883`, TLSv1.3 observed |
-| Mosquitto listener `1883` | ⏳ Still open for bootstrap/legacy clients |
-| `ventsys-main-valve-1` | ⏳ Live on `1883`; TLS migration pending |
-| Remaining VentSys devices | ⏳ TLS-ready YAMLs blocked until `mqtt_ca_cert` exists in ESPHome secrets |
-| Temporary valve-1 firewall rule | ⚠️ Live on router but not yet in canonical `firewall-config.conf` |
+| Mosquitto listener `1883` | Deprecated bootstrap/legacy path; not a router-policy dependency |
+| Frigate MQTT path | ✅ TLS path verified; app still not live |
+| VentSys devices | ⏳ TLS-ready rollout blocked until `mqtt_ca_cert` exists in ESPHome secrets and hardware is adopted/revalidated |
+| Temporary valve-1 firewall rule | ✅ No live/source valve-specific `1883` exception found in the 2026-05-28 parity check |
 
 ## CA / Certificate Placement
 
@@ -64,17 +67,15 @@ allow_anonymous false
 ## Firewall Change
 
 - Keep `8883` allowed from approved clients to Home Assistant/Mosquitto.
-- Remove the temporary `1883` rule after `ventsys-main-valve-1` is confirmed working on TLS.
-- If router config is redeployed before TLS migration, the live valve-1 `1883` exception must be added to `configs/openwrt/firewall-config.conf` or it will be wiped.
+- Do not add broad or source-specific VentSys `1883` router access.
 - OpenWrt NTP on UDP/123 must remain available from VLAN 50 for ESP32 time sync.
 
 ## Next Migration Actions
 
 1. Add `mqtt_ca_cert` to both repo and HA-side ESPHome `secrets.yaml`.
-2. Move `ventsys_main_valve1.yaml` from `1883` to `8883` with `certificate_authority: !secret mqtt_ca_cert`.
-3. OTA/flash `ventsys-main-valve-1` and confirm MQTT TLS works.
-4. Remove the temporary plain-MQTT firewall rule.
-5. Flash/adopt remaining VentSys devices on the TLS path.
+2. Keep VentSys device YAMLs on `8883` with `certificate_authority: !secret mqtt_ca_cert` before treating them as live.
+3. Flash/adopt remaining VentSys devices on the TLS path.
+4. Confirm MQTT TLS works with `mosquitto_sub`/`mosquitto_pub` before enabling dependent HA automations.
 
 ## Key Entities Using This Concept
 
@@ -88,4 +89,4 @@ allow_anonymous false
 
 - [[sources/ventsys-technical-specs]]
 - [[sources/ventsys-implementation-roadmap]]
-- Current canonical project docs: `main/TO-DO.md`, `main/HANDOFF-2026-05-07-current.md`, `main/HANDOFF-2026-05-13-valve1-deployment-and-stepping.md`.
+- Current canonical project docs: `main/TO-DO.md`, `main/HANDOFF-2026-05-28-preflight-next.md`.

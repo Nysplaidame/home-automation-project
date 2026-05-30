@@ -8,7 +8,7 @@
 > This is a point-in-time analysis. All decisions referenced here have since been resolved:
 > - Proxmox Host: **192.168.10.10** (VLAN 10) — static, outside DHCP range
 > - Frigate NVR VM: **192.168.30.20** (VLAN 30 CCTV) — internet isolated
-> - Architecture: **9-VLAN** (not 4-VLAN) — see [[01-network-architecture]]
+> - Architecture: **9-VLAN** (not 4-VLAN) — see [[docs/decisions/01-network-architecture]]
 > - Configs written: `configs/openwrt/` contains the final, corrected implementations
 >
 > IPs and recommendations below reflect the pre-decision state and are superseded.

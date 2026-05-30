@@ -1,11 +1,11 @@
 ---
 title: "Monitoring VM"
 category: entity
-tags: [software, monitoring, grafana, proxmox]
+tags: [software, monitoring, grafana, proxmox, influxdb, uptime-kuma, telegraf]
 created: 2026-04-07
-updated: 2026-05-18
-sources: [proxmox-setup-guide, project-readme]
-status: active
+updated: 2026-05-30
+sources: [proxmox-setup-guide, project-readme, project-todo]
+status: stable
 ---
 
 # Monitoring VM
@@ -16,9 +16,15 @@ status: active
 
 ## Overview
 
-The monitoring VM is live as Proxmox VM 102 on VLAN 60. It runs the project observability stack: Uptime Kuma for availability checks, InfluxDB for metrics/history storage, Grafana for dashboards, and Telegraf for collection including forwarded OpenWrt syslog.
+The monitoring VM is live as Proxmox VM 102 on VLAN 60. It runs the project
+observability stack: Uptime Kuma for availability checks, InfluxDB for
+metrics/history storage, Grafana for dashboards, and Telegraf for collection
+including forwarded OpenWrt syslog.
 
-Home Assistant has a storage-managed `Monitoring` dashboard/sidebar entry with direct links to Grafana and Uptime Kuma. Direct UI access is the reliable path for now; embedded Grafana/Kuma inside HA remains partially parked until the same-origin HTTPS/reverse-proxy path is stable.
+Home Assistant has a storage-managed `Monitoring` dashboard/sidebar entry with
+direct links to Grafana and Uptime Kuma. Direct UI access is the reliable path
+for now; embedded Grafana/Kuma inside HA is intentionally parked until a
+same-origin HTTPS/reverse-proxy path is designed and tested.
 
 ## Key Properties
 
@@ -39,16 +45,24 @@ Home Assistant has a storage-managed `Monitoring` dashboard/sidebar entry with d
 - Router policy includes scoped `HA to InfluxDB` access from `192.168.20.101` to `192.168.60.10:8086/tcp`.
 - Grafana datasource: `InfluxDB - Home Automation` (`uid: influxdb-homeassistant`).
 - Grafana dashboard: `Home Automation Overview` (`/d/home-automation-overview/home-automation-overview`).
+- Proxmox native metrics write to bucket `proxmox` through metric server `proxmox-influx`.
+- Docker-host Telegraf writes host/container metrics to bucket `dockerhost`.
+- Uptime Kuma monitor snapshots are exported to bucket `uptimekuma`.
+- Docker-host Fail2ban counters are exported to bucket `dockerhost`.
+- Grafana dashboards now include `Proxmox Resource Overview`, `Service Availability`, `Network DNS`, and `Security Posture`.
+- `NAS Resource Overview` exists as a planned shell only; do not treat NAS telemetry as live.
 
 ## Open Questions
 
-- [ ] Add an external health signal so monitoring-VM downtime is visible even when Uptime Kuma itself is down.
-- [ ] Stabilize Grafana embedding inside HA; last observed behavior included an auth/login loop.
-- [ ] Keep Uptime Kuma direct HA iframe parked until same-origin reverse proxy/HTTPS avoids `X-Frame-Options: SAMEORIGIN`.
-- [ ] Add Fail2ban to exposed/internal auth surfaces where justified.
+- [x] Add an external health signal so monitoring-VM downtime is visible even when Uptime Kuma itself is down.
+- [x] Park Grafana/Kuma embedding behind same-origin HTTPS/reverse-proxy approval instead of treating it as a current reliability target.
+- [x] Deploy docker-host Fail2ban baseline and export counters.
+- [ ] Apply the repo-side HA Lovelace direct-link snippet through the HA UI.
+- [ ] Add NAS telemetry only after OMV/NAS exists.
 
 ## Change Log
 
+- 2026-05-30: Added Proxmox/docker-host metrics, architecture dashboards, Uptime Kuma/Fail2ban exporters, external HA health state, and direct-link monitoring posture.
 - 2026-05-18: Corrected stale planned-state page. VM 102 is live with Grafana, InfluxDB, Telegraf, and Uptime Kuma.
 - 2026-05-08: Clarified — VM 102 never created at that point; docker-host is VM 103; monitoring still planned.
 - 2026-04-07: Page created as stub from proxmox-setup-guide ingest.

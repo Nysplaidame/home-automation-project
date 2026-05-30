@@ -13,11 +13,12 @@
 # BITWARDEN ORGANISATION: Create a collection named "Home Automation"
 # with folders matching the sections below.
 #
-# Updated 2026-04-10:
+# Updated 2026-05-30:
 #   - Section 1: HomePrinters WiFi added (VLAN 35)
 #   - Section 7: P1S IP updated to 192.168.35.200; Docker host reference updated
 #   - Section 9: Frigate-only note added (Bambuddy removed from VM 101)
 #   - Section 11: Docker host (VM 103) added
+#   - Section 12: Monitoring/Grafana/InfluxDB exporter token inventory expanded
 #   - Credential rotation checklist: HomePrinters and Docker host entries added
 
 ---
@@ -230,6 +231,12 @@ influxdb_homeassistant_token: "your-token" # Bitwarden: influxdb-ha-token
 | InfluxDB admin password | `monitoring-stack` | Generated on VM 102; stored in `/root/monitoring-stack-credentials.txt` |
 | InfluxDB admin/API token | `monitoring-stack` | Used by Telegraf via `/opt/monitoring/.env`; do not commit |
 | InfluxDB HA write token | `influxdb-ha-token` | Stored in HA `/config/secrets.yaml` as `influxdb_homeassistant_token` |
+| InfluxDB Proxmox write token | `monitoring-stack` | Stored live by Proxmox at `/etc/pve/priv/metricserver/proxmox-influx.pw`; do not commit |
+| InfluxDB Proxmox Grafana read token | `monitoring-stack` | Stored in Grafana secure datasource field for `InfluxDB - Proxmox`; do not commit |
+| InfluxDB Docker-host Telegraf write token | `monitoring-stack` | Stored live on VM 103 in `/opt/stacks/telegraf/.env`; do not commit |
+| InfluxDB Docker-host Grafana read token | `monitoring-stack` | Stored in Grafana secure datasource field for `InfluxDB - Docker Host`; do not commit |
+| InfluxDB Uptime Kuma exporter token | `monitoring-stack` | Stored live on VM 102 in `/etc/uptime-kuma-influx-export.env`; do not commit |
+| InfluxDB Fail2ban exporter token | `monitoring-stack` | Stored live on VM 103 in `/etc/fail2ban-influx-export.env`; do not commit |
 | Uptime Kuma admin login | `uptime-kuma-monitoring-vm` | Created during first browser login at `http://192.168.60.10:3001` |
 
 ---

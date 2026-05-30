@@ -3,7 +3,7 @@ title: Self Hosted Services And Remote Access Platform
 description: OMV NAS, docker-host app platform, Tailscale host-route access, AdGuard DNS, Immich, and WireGuard fallback
 tags: [architecture-decision, docker-host, omv, tailscale, wireguard, immich, adguard]
 created: 2026-05-23
-modified: 2026-05-23
+modified: 2026-05-28
 type: decision
 status: active
 ---
@@ -74,6 +74,9 @@ unavailable. Its client configs remain split-tunnel and should include only:
 
 WireGuard must not grant broad access to Management, NVR, Printers, Storage, or
 IoT networks. The OMV exception is a host route, not VLAN 40 access.
+
+Fallback governance is documented in
+`docs/procedures/wireguard_fallback_governance.md`.
 
 ## Docker-host service tiers
 

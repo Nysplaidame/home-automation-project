@@ -3,7 +3,7 @@ title: ACL And Access Matrix
 description: Canonical OpenWrt, Tailscale, host firewall, and service-auth access intent
 tags: [reference, acl, firewall, tailscale, access-control]
 created: 2026-05-23
-modified: 2026-05-27
+modified: 2026-05-28
 type: reference
 status: active
 ---
@@ -36,6 +36,9 @@ in the tailnet admin console.
 Do not advertise or allow `192.168.10.0/24`, `192.168.30.0/24`,
 `192.168.35.0/24`, or `192.168.50.0/24` through Tailscale.
 
+WireGuard fallback activation/deactivation governance is defined in
+`docs/procedures/wireguard_fallback_governance.md`.
+
 ## OpenWrt access intent
 
 | Source | Destination | Allowed | Notes |
@@ -47,6 +50,7 @@ Do not advertise or allow `192.168.10.0/24`, `192.168.30.0/24`,
 | HA | OMV | 22, 445, 2049/tcp | Backup/storage |
 | HA | IoT | 6053, 3232/tcp | ESPHome API/OTA |
 | docker-host | P1S | 8883, 21/tcp | Bambuddy |
+| docker-host | Monitoring VM | 8086/tcp | Telegraf metrics export to InfluxDB bucket `dockerhost` |
 | docker-host | WAN | Tailscale, AdGuard upstream, and approved pre-flight search egress only | No general Docker pulls outside maintenance |
 | Frigate | OMV | 22, 445, 2049/tcp | Recording/archive storage |
 | Frigate | HA | 8883/tcp | MQTT TLS |

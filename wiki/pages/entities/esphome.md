@@ -3,7 +3,7 @@ title: "ESPHome"
 category: entity
 tags: [software, esphome, esp32, firmware, iot]
 created: 2026-04-07
-updated: 2026-05-18
+updated: 2026-05-30
 sources: [project-readme, ventsys-technical-specs, troubleshooting-reference]
 status: active
 ---
@@ -11,14 +11,19 @@ status: active
 # ESPHome
 
 **Type:** integration — ESP32 firmware platform and HA add-on
-**Status:** ✅ Add-on installed / ⏳ one VentSys device live, remaining devices pending
+**Status:** ✅ Add-on installed / ⏳ VentSys hardware adoption pending revalidation
 **Related:** [[entities/home-assistant]], [[entities/ventsys]], [[entities/mosquitto-mqtt]], [[concepts/mqtt-tls]]
 
 ## Overview
 
-ESPHome compiles and manages firmware for VentSys ESP32 devices. It runs as a Home Assistant add-on. VentSys devices use MQTT for telemetry/control, while the native ESPHome API (port `6053`) remains active for HA adoption, logs, and OTA updates.
+ESPHome compiles and manages firmware for VentSys ESP32 devices. It runs as a
+Home Assistant add-on. VentSys devices use MQTT for telemetry/control, while the
+native ESPHome API (port `6053`) remains active for HA adoption, logs, and OTA
+updates.
 
-`ventsys-main-valve-1` is flashed, online, adopted/visible, and controllable. Most remaining VentSys devices still need hardware, secrets/TLS readiness, flashing, and adoption.
+The current planning baseline treats VentSys hardware/entities as unbuilt until
+explicitly revalidated. Historical valve-1 work should be brought forward only
+on the TLS path, not by reintroducing a plain-MQTT router exception.
 
 ## Device Adoption Flow
 
@@ -43,13 +48,13 @@ ESPHome compiles and manages firmware for VentSys ESP32 devices. It runs as a Ho
 - Timezone: `Europe/London`.
 - OTA: enabled with safe mode and retry behavior.
 - Logger: serial disabled (`baud_rate: 0`) in production configs.
-- `ventsys-main-valve-1` currently uses MQTT `1883`; remaining TLS-ready YAMLs require `mqtt_ca_cert` before deployment.
+- TLS-ready YAMLs require `mqtt_ca_cert` before deployment.
 
-## Live Device
+## Device Baseline
 
 | Device | IP | MQTT | HA entity | Notes |
 |---|---|---|---|---|
-| `ventsys-main-valve-1` | `192.168.50.51` | `192.168.20.101:1883` temporary | `number.main_duct_valve_1` | Live and controllable; must migrate to TLS 8883 next |
+| `ventsys-main-valve-1` | `192.168.50.51` | target `192.168.20.101:8883` | `number.main_duct_valve_1` | Historical valve-1 state needs TLS-path revalidation before being treated as live |
 
 ## Troubleshooting
 
@@ -61,5 +66,6 @@ ESPHome compiles and manages firmware for VentSys ESP32 devices. It runs as a Ho
 
 ## Change Log
 
+- 2026-05-30: Synced planning baseline: VentSys hardware/entities are treated as unbuilt until revalidated, and remaining rollout should use MQTT TLS rather than plain `1883`.
 - 2026-05-18: Updated for live `ventsys-main-valve-1`, mixed MQTT/TLS state, and `mqtt_ca_cert` blocker for remaining TLS-ready YAMLs.
 - 2026-04-07: Page created from project-wide ingest.
