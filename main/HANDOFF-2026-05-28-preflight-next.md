@@ -244,6 +244,9 @@ Pre-flight sweep run on 2026-05-28 (steps 1-4 and 6-8, excluding MQTT migration 
     `192.168.20.101:8883` (`Verify return code: 0`)
   - MQTT TLS path reachable: `192.168.20.101:8883` open
   - Plain MQTT path not reachable: `192.168.20.101:1883` closed
+  - Fail2ban is installed/enabled with active `sshd` jail at
+    `/etc/fail2ban/jail.d/frigate-nvr-sshd.local`; status on 2026-05-30 was
+    `0` failed and `0` banned
 - Proxmox backup preflight:
   - Job enabled daily at `02:00`, `keep-last=2`, VMs `100,101,102,103`
   - Latest 2026-05-28 artifacts present for all four VMs in `/var/lib/vz/dump`
@@ -299,6 +302,21 @@ Documentation/wiki audit on 2026-05-30:
   - `python main\tools\router-deploy\compile.py --profile first-flight` -> OK
   - `python -m py_compile main\scripts\monitoring\export_uptime_kuma_to_influx.py` -> OK
   - active `main/` wikilinks -> 0 unresolved after excluding code blocks/examples
+
+Frigate Fail2ban hardening on 2026-05-30:
+
+- Added docker-host patch-window runbook at
+  `docs/procedures/docker_host_patch_window_runbook.md`.
+- Added Frigate Fail2ban template at
+  `configs/frigate/system/frigate-nvr-fail2ban-sshd.local`.
+- Installed Fail2ban on VM 101 and deployed the template to
+  `/etc/fail2ban/jail.d/frigate-nvr-sshd.local`.
+- Validation: `systemctl is-active fail2ban` -> `active`;
+  `fail2ban-client status sshd` -> `0` failed, `0` banned.
+- Temporary router update rules used during package install were removed.
+- Note: the first `apt-cacher-ng` package fetch attempt failed under the current
+  staged-uplink posture; cached `.deb` packages were copied from docker-host as
+  a fallback and the install then completed successfully.
 
 HA Companion App:
 

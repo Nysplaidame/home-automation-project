@@ -341,7 +341,7 @@ must work without HACS.
 - [x] Keep router source TLS-oriented for MQTT: no valve-specific `1883` exception exists, and remaining clients should migrate to `8883` without reintroducing plain-MQTT router rules
 - [ ] Enable HTTPS on HA — follow `ssl_tls_guide.md` (choose Option A/B/C)
 - [x] Configure Fail2ban on docker-host (`sshd` jail baseline live at `/etc/fail2ban/jail.d/docker-host-sshd.local`)
-- [ ] Configure Fail2ban on Frigate VM
+- [x] Configure Fail2ban on Frigate VM (`sshd` jail baseline live at `/etc/fail2ban/jail.d/frigate-nvr-sshd.local`)
 - [x] Deploy monitoring VM on VLAN 60 (Uptime Kuma, InfluxDB, Grafana, Telegraf)
 - [x] Create baseline Uptime Kuma monitors for core infrastructure
 - [x] Forward OpenWrt syslog to Telegraf/InfluxDB

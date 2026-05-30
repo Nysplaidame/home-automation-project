@@ -65,7 +65,7 @@
 
 ### Software / integrations
 - [[entities/home-assistant]] - HAOS on VM 100; VentSys packages/dashboard staged and Frigate integration planned
-- [[entities/frigate]] - Frigate VM 101 shell/Docker staging live; Frigate app not yet in regular use
+- [[entities/frigate]] - Frigate VM 101 shell/Docker staging and Fail2ban live; Frigate app not yet in regular use
 - [[entities/bambuddy]] - Bambu P1S bridge on docker-host
 - [[entities/adguard-home]] - Live DNS filtering/adblocking service on docker-host
 - [[entities/immich]] - Live skeleton gallery/photos service; real imports blocked until OMV/backup readiness

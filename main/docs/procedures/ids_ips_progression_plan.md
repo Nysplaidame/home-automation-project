@@ -19,13 +19,14 @@ stack too early.
 - OpenWrt selective deny logging is live and forwarded.
 - True network IDS and IPS are not deployed.
 - Docker-host Fail2ban `sshd` baseline is deployed and exported into the `dockerhost` InfluxDB bucket.
-- Frigate and other applicable Linux service hosts still need Fail2ban/hardening review when they become active.
+- Frigate VM Fail2ban `sshd` baseline is deployed at `/etc/fail2ban/jail.d/frigate-nvr-sshd.local`.
+- Other applicable Linux service hosts still need Fail2ban/hardening review when they become active.
 
 ## Phase plan
 
 ### Phase A - host hardening first
 
-1. Extend Fail2ban from docker-host to Frigate and any other Linux service host
+1. Extend Fail2ban from docker-host/Frigate to any other Linux service host
    with meaningful auth surfaces.
 2. Standardize jail policies and ban windows.
 3. Add monitoring signals for Fail2ban service health and active bans.

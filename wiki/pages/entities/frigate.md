@@ -31,6 +31,7 @@ RTSP credentials, HTTPS/SSL, and WebRTC audio planning.
 - NVR internet access: blocked by design
 - `apt-cacher-ng` proxy: `http://192.168.20.102:3142`
 - MQTT path: TLS `192.168.20.101:8883` verified with staged CA
+- Fail2ban: `sshd` jail live at `/etc/fail2ban/jail.d/frigate-nvr-sshd.local`
 
 ## Staging Gaps
 
@@ -49,6 +50,7 @@ RTSP credentials, HTTPS/SSL, and WebRTC audio planning.
 
 ## Change Log
 
+- 2026-05-30: Added VM-level Fail2ban SSH hardening baseline; `sshd` jail active with 0 failed and 0 banned after install.
 - 2026-05-30: Synced staging state: MQTT secret/CA are staged and TLS verified, but Frigate remains unbuilt for regular use until cameras, RTSP, HTTPS, and audio are ready.
 - 2026-05-23: Updated storage target from deprecated Pi NAS plan to OMV NAS.
 - 2026-05-08: Major update - VM 101 live on Debian 13; Frigate staged not started; Bambuddy moved to VM 103; apt-cache proxy noted.

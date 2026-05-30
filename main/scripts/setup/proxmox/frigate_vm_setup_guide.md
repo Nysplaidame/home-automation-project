@@ -163,6 +163,20 @@ ufw allow from 192.168.10.0/24 to any port 22      # Management SSH
 ufw enable
 ```
 
+Install and configure Fail2ban (SSH hardening baseline):
+
+```bash
+apt-get update
+apt-get install -y fail2ban
+install -d -m 0755 /etc/fail2ban/jail.d
+install -m 0644 /path/to/repo/main/configs/frigate/system/frigate-nvr-fail2ban-sshd.local \
+  /etc/fail2ban/jail.d/frigate-nvr-sshd.local
+systemctl enable --now fail2ban
+systemctl restart fail2ban
+fail2ban-client status
+fail2ban-client status sshd
+```
+
 ---
 
 ## Phase 3 — Install Docker and Frigate

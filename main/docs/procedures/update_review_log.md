@@ -169,5 +169,67 @@ Post-check:
 
 Follow-up window:
 
-- perform docker-host package patching with explicit pre-check, snapshot/rollback
-  note, package upgrade, reboot if kernel changes, and post-check validation
+- perform docker-host package patching with
+  `docs/procedures/docker_host_patch_window_runbook.md`, including explicit
+  pre-checks, temporary update window, package upgrade, reboot if kernel
+  changes, post-check validation, and closeout logging
+
+## 2026-05-30 — Frigate Fail2ban hardening and patch runbook prep
+
+Date:
+
+- 2026-05-30
+
+Operator:
+
+- Codex session
+
+Scope:
+
+- docker-host patch-window runbook
+- Frigate VM SSH hardening baseline
+
+Maintenance window:
+
+- Frigate package-install window; temporary router update rules opened and then removed
+
+Host package candidates:
+
+- docker-host package candidates remain deferred to the dedicated patch window
+- Frigate installed `fail2ban` and dependencies
+
+Container image candidates:
+
+- no container images updated
+
+Security-relevant items:
+
+- added repo-side Frigate Fail2ban SSH jail template at
+  `configs/frigate/system/frigate-nvr-fail2ban-sshd.local`
+- installed and enabled Fail2ban on VM 101
+- `sshd` jail active with `0` currently failed and `0` currently banned
+
+Actions taken:
+
+- added `docs/procedures/docker_host_patch_window_runbook.md`
+- attempted Frigate install through `apt-cacher-ng`; the first package fetch failed while docker-host/cache had no useful upstream HTTP path
+- opened temporary Frigate and docker-host update rules during troubleshooting
+- copied cached Fail2ban package set from docker-host to Frigate as a fallback; install then completed successfully
+- deployed `/etc/fail2ban/jail.d/frigate-nvr-sshd.local`
+- removed temporary router update rules after install
+
+Actions deferred:
+
+- docker-host package upgrades remain deferred to the controlled patch window
+- Frigate app/container start remains blocked by camera RTSP, HTTPS/SSL, and audio prerequisites
+
+Post-check:
+
+- Frigate `fail2ban` service: active
+- Frigate `sshd` jail: active, `0` failed, `0` banned
+- router temporary update rules: removed
+
+Follow-up window:
+
+- run docker-host patch window from `docs/procedures/docker_host_patch_window_runbook.md`
+- investigate the staged-uplink/cache behavior before relying on `apt-cacher-ng` for future restricted-host installs

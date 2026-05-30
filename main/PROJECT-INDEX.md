@@ -58,6 +58,7 @@ status: active
 - [[configs/frigate/config.yml]] — cameras, MQTT, retention, detector
 - [[configs/frigate/docker-compose.yml]] — Frigate service, volumes, env vars
 - [[configs/frigate/frigate.env.example]] — required environment keys for RTSP and MQTT credentials
+- [[configs/frigate/system/frigate-nvr-fail2ban-sshd.local]] — VM 101 Fail2ban SSH jail baseline
 
 ### Docker Host
 - [[configs/docker-host/README.md]] — rebuildable source templates for VM 103 Compose stacks and host firewall
@@ -139,6 +140,7 @@ status: active
 | [[docs/procedures/home_assistant_companion_app_guide.md]] | HA Companion App phone onboarding, push test, actionable notification test, and sensor policy |
 | [[docs/procedures/update_maintenance_playbook.md]] | Update windows, caching/offline patterns, and update-monitoring posture |
 | [[docs/procedures/update_review_log.md]] | Weekly update-candidate review execution log and follow-up tracking |
+| [[docs/procedures/docker_host_patch_window_runbook.md]] | Command-by-command docker-host package/container patch window |
 | [[scripts/monitoring/health_check.sh]] | Single-command health check for all systems |
 | [[scripts/monitoring/export_uptime_kuma_to_influx.py]] | Lightweight Uptime Kuma monitor-state export into InfluxDB |
 | [[scripts/monitoring/export_fail2ban_to_influx.sh]] | Lightweight docker-host Fail2ban counter export into InfluxDB |

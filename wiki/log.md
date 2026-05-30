@@ -164,3 +164,9 @@
 - Pages created: [[analyses/lint-2026-05-30]]
 - Pages updated: [[sources/project-readme]], [[sources/project-todo]], [[entities/docker-host]], [[entities/monitoring-vm]], [[entities/home-assistant]], [[entities/mosquitto-mqtt]], [[entities/frigate]], [[entities/proxmox]], [[entities/adguard-home]], [[entities/immich]], [[entities/homepage]], [[entities/dozzle]], [[entities/ventsys]], [[entities/esphome]], [[concepts/mqtt-tls]], [[concepts/tailscale-remote-access]], [[concepts/wireguard-vpn]], [[analyses/lint-2026-05-18]], [[index]]
 - Notes: Synced docker-host Tier 1 live state, Grafana architecture dashboards, exporters, docker-host Fail2ban baseline, TLS-oriented MQTT posture, Frigate staging guardrails, and direct-link monitoring posture.
+
+## [2026-05-30] update | Frigate Fail2ban hardening
+
+- Canonical docs now include a docker-host patch-window runbook and a Frigate Fail2ban SSH jail template.
+- Pages updated: [[entities/frigate]]
+- Notes: VM 101 now has Fail2ban installed/enabled with an active `sshd` jail; Frigate app state remains unbuilt for regular use.
