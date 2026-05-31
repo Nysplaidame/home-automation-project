@@ -38,7 +38,70 @@ As of this handoff, the local branch was clean and aligned with origin:
 
 Recent pushed commits include the docker-host rebuild templates, router-only
 deployment documentation, Home Assistant Companion App validation, search-service
-candidates, and live SearXNG/Whoogle pre-flight deployment.
+candidates, live SearXNG/Whoogle pre-flight deployment, Grafana dashboard
+source exports, docker-host/Frigate Fail2ban hardening, mobile monitoring route
+prep, and VentSys dashboard/valve actuation fixes.
+
+## Human-Input Sprint - Start Here Next
+
+The next work target is to clear every currently-known item that needs the
+operator's hands, phone, UI session, hardware choice, or approval. Do these
+before opening another broad service deployment thread.
+
+1. Approve and test the new Tailscale monitoring route.
+   - docker-host already advertises `192.168.60.10/32`.
+   - docker-host already has routed UFW allowances for Grafana `3000` and Uptime
+     Kuma `3001`.
+   - User action: in the Tailscale admin console, approve `192.168.60.10/32` if
+     it is pending for `docker-host`, then test from mobile data:
+     `http://192.168.60.10:3000` and `http://192.168.60.10:3001`.
+   - Context docs:
+     - `main/docs/procedures/tailscale_remote_access_guide.md`
+     - `main/docs/troubleshooting/troubleshooting_reference.md`
+     - `main/docs/reference/access-matrix.md`
+     - `main/docs/reference/service-matrix.md`
+
+2. Apply the HA Monitoring dashboard direct-link snippet.
+   - User action: use the Home Assistant UI to apply
+     `main/configs/home-assistant/lovelace/monitoring-grafana-links.yaml` to the
+     live Monitoring dashboard, or recreate the same Markdown card manually.
+   - HA embedding remains parked; this is direct links only.
+   - Context docs:
+     - `main/docs/procedures/grafana_architecture_dashboards.md`
+     - `main/configs/home-assistant/lovelace/monitoring-grafana-links.yaml`
+     - `main/docs/procedures/home_assistant_companion_app_guide.md`
+
+3. Decide whether to run the docker-host patch window now.
+   - User action: approve timing for a controlled maintenance window.
+   - Codex can execute the runbook over SSH once approved.
+   - Context docs:
+     - `main/docs/procedures/docker_host_patch_window_runbook.md`
+     - `main/docs/procedures/update_review_log.md`
+     - `main/docs/procedures/update_maintenance_playbook.md`
+
+4. VentSys physical checks that still need the user.
+   - User action: check whether the HA live copies match the repo/source copies,
+     then report back.
+   - User action: inspect main valve 2 wiring/power; logs suggested the device
+     was not powering or actuating, not merely a dashboard/control bug.
+   - Context docs:
+     - `main/docs/procedures/ventsys_esphome_tls_rollout_guide.md`
+     - `main/docs/procedures/ssl_tls_guide.md`
+     - `main/ventsys/ventsys_bundle_updated/ventsys_ha_scripts.yaml`
+     - `main/dashboards/ventsys-dashboard.html`
+
+5. Hardware-dependent gates to keep visible but not force.
+   - NAS/OMV: still unbuilt; do not configure HA backups, Immich real library, or
+     Frigate NAS archive until OMV hardware/storage exists.
+   - Frigate app: do not start for regular use until camera models, RTSP URLs,
+     HTTPS/SSL, and WebRTC audio decisions are ready.
+   - Camera/Lumen/kiosk/mobile hardware items remain user-selection or
+     hardware-arrival tasks.
+   - Context docs:
+     - `main/docs/procedures/omv_storage_cutover_checklist.md`
+     - `main/docs/procedures/omv_cutover_execution_runbook.md`
+     - `main/scripts/setup/proxmox/frigate_vm_setup_guide.md`
+     - `main/TO-DO.md`
 
 ## Network Position
 
@@ -69,12 +132,23 @@ ssh -i $env:USERPROFILE\.ssh\proxmox_admin_ed25519 root@192.168.10.10
 Docker host SSH:
 
 ```powershell
-ssh -i $env:USERPROFILE\.ssh\proxmox_admin_ed25519 root@192.168.20.102
+ssh -i $env:USERPROFILE\.ssh\id_ed25519_codex_ha -o IdentitiesOnly=yes root@192.168.20.102
+```
+
+Monitoring VM SSH:
+
+```powershell
+ssh -i $env:USERPROFILE\.ssh\id_ed25519_codex_ha -o IdentitiesOnly=yes root@192.168.60.10
 ```
 
 HAOS SSH using the Proxmox key previously failed with `Permission denied
 (publickey)`, so Home Assistant live validation may need the HA UI, Terminal &
 SSH add-on, or user-provided access.
+
+Note, 2026-05-31: Proxmox root SSH works from this laptop, and QEMU guest agents
+were alive on VMs `102` and `103`. The Codex laptop key was injected into both
+VMs through Proxmox guest-agent, so direct root SSH to docker-host and monitoring
+now works with `id_ed25519_codex_ha`.
 
 ## Important Live State
 
@@ -133,6 +207,10 @@ Monitoring:
   Overview` are live at
   `http://192.168.60.10:3000/d/proxmox-resource-overview/proxmox-resource-overview`.
 - `Proxmox Resource Overview` now uses the shared wallboard visual style.
+- `Proxmox Resource Overview` live dashboard version `6` now labels formerly
+  ambiguous percentage panels as `Guest RAM`, `RAM Pressure`, and `Root Disk`.
+- Source export now exists at
+  `main/configs/grafana/dashboards/proxmox-resource-overview.json`.
 - Docker-host Telegraf is live under `/opt/stacks/telegraf` on VM 103, writing
   host/container metrics to InfluxDB bucket `dockerhost`.
 - Grafana datasource `InfluxDB - Docker Host` is live, and Docker-host/container
@@ -163,6 +241,13 @@ Docker host:
   `main/configs/docker-host/stacks/telegraf/`.
 - docker-host Fail2ban counters export through `fail2ban-influx-export.timer`
   into InfluxDB bucket `dockerhost`.
+- Tailscale currently advertises `192.168.20.101/32`, `192.168.40.50/32`, and
+  `192.168.60.10/32`.
+- UFW routed rules allow Tailscale clients to reach only monitoring VM Grafana
+  `3000` and Uptime Kuma `3001`; InfluxDB `8086` is intentionally not exposed
+  over this daily mobile route.
+- Rebuildable source for those monitoring route rules:
+  `main/configs/docker-host/system/docker-host-ufw-route-monitoring-tailscale.sh`.
 - Secrets, app databases, ntfy auth DB, AdGuard password hash, and generated
   service secrets remain live-only and must not be committed.
 
@@ -221,7 +306,9 @@ Pre-flight sweep run on 2026-05-28 (steps 1-4 and 6-8, excluding MQTT migration 
 - docker-host UFW routed DNS rules were normalized to subnet-based entries for
   `172.20.0.0/16 -> 53/udp,53/tcp,853/tcp`; duplicate interface-scoped entries
   were removed.
-- Tailscale still advertises only `192.168.20.101/32` and `192.168.40.50/32`.
+- At the time of the 2026-05-28 sweep, Tailscale advertised only
+  `192.168.20.101/32` and `192.168.40.50/32`; this was superseded on
+  2026-05-31 when `192.168.60.10/32` was added for Grafana/Kuma mobile access.
 - Router WireGuard remains dormant (`network.wg0.auto='0'`, interface down).
 - Monitoring endpoints are directly reachable from management:
   - Grafana `http://192.168.60.10:3000/api/health` -> `200`
@@ -318,6 +405,47 @@ Frigate Fail2ban hardening on 2026-05-30:
   staged-uplink posture; cached `.deb` packages were copied from docker-host as
   a fallback and the install then completed successfully.
 
+Monitoring/mobile route and Grafana label pass on 2026-05-31:
+
+- Proxmox guest-agent was used to grant this laptop direct root SSH to
+  docker-host and monitoring VM with `id_ed25519_codex_ha`.
+- docker-host Tailscale route advertisement updated to include
+  `192.168.60.10/32`.
+- docker-host UFW route rules added:
+  - `tailscale0 -> eth0 -> 192.168.60.10:3000/tcp`
+  - `tailscale0 -> eth0 -> 192.168.60.10:3001/tcp`
+- Tailscale admin console approval may still be required for the new route.
+- Grafana admin credentials were read locally on the monitoring VM from
+  `/root/monitoring-stack-credentials.txt` without exposing secrets in chat.
+- Grafana API confirmed `Proxmox Resource Overview`, `Home Automation Overview`,
+  and `NAS Resource Overview` are saveable with admin credentials.
+- `Proxmox Resource Overview` panels were relabelled live/source:
+  - `Home Assistant Guest RAM`
+  - `Monitoring Guest RAM`
+  - `docker-host Guest RAM`
+  - `Frigate Guest RAM`
+  - `RAM Pressure`
+  - `Docker Host Root Disk`
+- Validation:
+  - dashboard JSON parses
+  - YAML/frontmatter parses
+  - live UFW helper script passes `bash -n`
+  - worktree was clean after commit/push
+
+VentSys/dashboard pass on 2026-05-31:
+
+- Dashboard node live counter now uses configured node list/diagnostic status
+  instead of counting all HA entities for configured nodes.
+- Valve visual/control logic now treats configured open position (`50`, i.e.
+  90 degrees) as fully open for main valve 1.
+- Mode animations still step visually, but HA script publishing now sends direct
+  target commands instead of stepped actuation.
+- Source docs/configs updated:
+  - `main/dashboards/ventsys-dashboard.html`
+  - `main/dashboards/ventsys-config.js.example`
+  - `main/ventsys/ventsys_bundle_updated/ventsys_ha_scripts.yaml`
+  - `main/docs/procedures/ventsys_esphome_tls_rollout_guide.md`
+
 HA Companion App:
 
 - `notify.mobile_app_mai_foenn` received a test notification.
@@ -349,18 +477,22 @@ credentials/certs, HTTPS/SSL, and WebRTC audio requirements are resolved.
 
 ## Best Next Tasks
 
-The next conversation should probably avoid starting another big service first.
-The highest-value work is to remove drift and make the pre-flight state more
-rebuildable.
+The next conversation should complete the human-input sprint above before
+starting another big service. Keep the work narrow and close tasks as soon as
+the user provides the necessary UI approval, mobile test result, timing approval,
+or hardware observation.
 
 Recommended order:
 
-1. Prepare OMV storage cutover execution using
-   `main/docs/procedures/omv_storage_cutover_checklist.md`.
-2. Keep Grafana/Kuma embedding parked behind direct-link usage until HTTPS/same-origin path is intentionally implemented.
-3. Keep WireGuard dormant fallback posture unless there is a deliberate decision
+1. Tailscale admin route approval and mobile test for Grafana/Kuma.
+2. HA UI application of the Monitoring dashboard direct-link snippet.
+3. Decide/execute docker-host patch window if the user approves timing.
+4. Record user-reported VentSys HA-copy and valve-2 wiring findings, then act on
+   any software/docs follow-up.
+5. Keep Grafana/Kuma embedding parked behind direct-link usage until HTTPS/same-origin path is intentionally implemented.
+6. Keep WireGuard dormant fallback posture unless there is a deliberate decision
    to roll out fallback clients.
-4. Keep Mullvad egress hardening for SearXNG/Whoogle parked until storage and
+7. Keep Mullvad egress hardening for SearXNG/Whoogle parked until storage and
    backup priorities are complete.
 
 ## Possible App Candidates After Tightening
@@ -382,4 +514,5 @@ Use this if starting a new chat:
 
 ```text
 Read AGENTS.md, main/README.md, main/PROJECT-INDEX.md, main/TO-DO.md, and main/HANDOFF-2026-05-28-preflight-next.md. Then reassess the best next infrastructure task. Prefer resolving live/source drift before deploying new apps.
+Current aim: complete every task that requires my input first. Start with Tailscale route approval/mobile Grafana-Kuma test, then HA Monitoring dashboard snippet, then docker-host patch-window timing, then VentSys live-copy/valve-2 physical findings.
 ```
