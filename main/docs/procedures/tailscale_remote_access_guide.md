@@ -3,7 +3,7 @@ title: Tailscale Remote Access Guide
 description: Daily remote access through docker-host host routes, with WireGuard as fallback
 tags: [tailscale, remote-access, docker-host, vpn]
 created: 2026-05-23
-modified: 2026-05-28
+modified: 2026-05-31
 type: procedure
 status: active
 ---
@@ -18,7 +18,7 @@ dormant fallback.
 docker-host joins the tailnet and advertises host routes only:
 
 ```bash
-tailscale up --advertise-routes=192.168.20.101/32,192.168.40.50/32
+tailscale up --advertise-routes=192.168.20.101/32,192.168.40.50/32,192.168.60.10/32
 ```
 
 Routes must be approved in the Tailscale admin console before clients can use
@@ -41,6 +41,15 @@ Live state, 2026-05-28:
 - docker-host keeps HTTP apt traffic through apt-cacher-ng, but HTTPS apt traffic
   is direct because apt-cacher-ng rejects HTTPS CONNECT.
 
+Validation note, 2026-05-31:
+
+- Mobile HA access works through Tailscale, but Grafana and Uptime Kuma on
+  `192.168.60.10` are not reachable from mobile.
+- LAN access to `192.168.60.10:3000` and `192.168.60.10:3001` works.
+- The likely missing piece is the monitoring VM host route plus docker-host UFW
+  route allowances. Apply the updated target advertisement and approve the new
+  `192.168.60.10/32` route in Tailscale before retesting from mobile data.
+
 ## Target access
 
 | Target | Route |
@@ -48,13 +57,14 @@ Live state, 2026-05-28:
 | docker-host services | docker-host Tailscale node / MagicDNS name |
 | Home Assistant | `192.168.20.101/32` routed through docker-host |
 | OMV | `192.168.40.50/32` routed through docker-host |
+| Grafana and Uptime Kuma | `192.168.60.10/32` routed through docker-host; expose only ports `3000` and `3001` |
 
 ## Deployment notes
 
 1. Install Tailscale on docker-host.
 2. Authenticate interactively or with a short-lived auth key stored outside the repo.
 3. Enable IP forwarding on docker-host.
-4. Start Tailscale with the two host routes.
+4. Start Tailscale with the approved host routes.
 5. Approve routes in the Tailscale admin console.
 6. Add Tailscale ACLs matching `docs/reference/access-matrix.md`.
 7. Update docker-host UFW to allow approved service ports on `tailscale0`.
@@ -72,9 +82,13 @@ ufw route allow in on tailscale0 out on eth0 to 192.168.20.101 port 8123 proto t
 ufw route allow in on tailscale0 out on eth0 to 192.168.40.50 port 22 proto tcp comment "Tailscale routed OMV SSH"
 ufw route allow in on tailscale0 out on eth0 to 192.168.40.50 port 80 proto tcp comment "Tailscale routed OMV HTTP"
 ufw route allow in on tailscale0 out on eth0 to 192.168.40.50 port 443 proto tcp comment "Tailscale routed OMV HTTPS"
+ufw route allow in on tailscale0 out on eth0 to 192.168.60.10 port 3000 proto tcp comment "Tailscale routed Grafana"
+ufw route allow in on tailscale0 out on eth0 to 192.168.60.10 port 3001 proto tcp comment "Tailscale routed Uptime Kuma"
 ```
 
-Routed HA/OMV traffic uses UFW route rules, not local input-only rules.
+Routed HA/OMV/monitoring traffic uses UFW route rules, not local input-only
+rules. Do not expose InfluxDB (`8086`) over Tailscale unless a separate
+admin-only need is documented.
 
 ## Validation
 
@@ -86,6 +100,9 @@ ping 192.168.20.101
 curl -I http://192.168.20.101:8123
 ping 192.168.40.50
 curl -I http://192.168.40.50/
+ping 192.168.60.10
+curl -I http://192.168.60.10:3000/
+curl -I http://192.168.60.10:3001/
 ```
 
 Confirm blocked paths:

@@ -3,7 +3,7 @@ title: Grafana Source Dashboards
 description: Rebuildable source exports for Grafana dashboards
 tags: [grafana, dashboards, monitoring]
 created: 2026-05-29
-modified: 2026-05-29
+modified: 2026-05-31
 type: config-reference
 status: active
 ---
@@ -21,6 +21,16 @@ Current source exports:
 - `dashboards/service-availability-overview.json`
 - `dashboards/network-dns-overview.json`
 - `dashboards/security-posture-overview.json`
+
+Known missing source exports:
+
+- `Proxmox Resource Overview`
+- `Home Automation Overview`
+- `NAS Resource Overview`
+
+Re-export these after Grafana admin access is available. In particular,
+`Proxmox Resource Overview` should label VM percent cards as `CPU`, `Guest
+memory`, `Root disk`, or equivalent rather than showing bare percentages.
 
 Operational notes:
 

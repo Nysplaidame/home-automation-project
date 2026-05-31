@@ -396,16 +396,19 @@ Tailscale is installed on the host OS, not inside Docker.
 Target route advertisement:
 
 ```bash
-tailscale up --advertise-routes=192.168.20.101/32,192.168.40.50/32
+tailscale up --advertise-routes=192.168.20.101/32,192.168.40.50/32,192.168.60.10/32
 ```
 
-Approve both routes in the Tailscale admin console. Do not advertise broad VLAN
-routes such as `192.168.20.0/24` or `192.168.40.0/24`.
+Approve each host route in the Tailscale admin console. Do not advertise broad
+VLAN routes such as `192.168.20.0/24`, `192.168.40.0/24`, or
+`192.168.60.0/24`.
 
 Remote access model:
 
 - Home Assistant through `192.168.20.101/32`.
 - OMV through `192.168.40.50/32`.
+- Grafana and Uptime Kuma through `192.168.60.10/32`, with only ports `3000`
+  and `3001` allowed through docker-host routed firewall policy.
 - Docker-host services through docker-host's Tailscale node identity/MagicDNS.
 - WireGuard remains dormant fallback, not daily access.
 

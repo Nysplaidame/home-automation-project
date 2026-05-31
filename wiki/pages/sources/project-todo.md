@@ -3,14 +3,14 @@ title: "Project Task List"
 category: source
 tags: [tasks, implementation, phases, todo]
 created: 2026-04-07
-updated: 2026-05-30
+updated: 2026-05-31
 status: stable
 ---
 
 # Source: Project Task List
 
 **Original file:** `main/TO-DO.md`
-**Date ingested:** 2026-04-07; audited against May 30 task list on 2026-05-30
+**Date ingested:** 2026-04-07; audited against May 31 task list on 2026-05-31
 **Type:** task list (living document)
 
 ## Summary
@@ -26,6 +26,10 @@ explicitly revalidated.
 
 - **Planning baseline:** Treat OMV, Frigate app state, and VentSys hardware entities as unbuilt
 - **Operational follow-up:** Apply the HA monitoring Grafana/Kuma direct-link snippet through the HA UI
+- **Operational follow-up:** Add the monitoring VM Tailscale host route and
+  routed UFW allowances so mobile clients can reach Grafana and Uptime Kuma
+- **Operational follow-up:** Re-export/recreate `Proxmox Resource Overview`
+  with explicit metric labels for bare percentage panels
 - **Update governance:** Schedule a controlled docker-host patch window for Docker engine/component and kernel package candidates
 - **Phase 3 (VentSys):** 17 ESP32 boards to flash and adopt in ESPHome; sensors still to be purchased
 - **Phase 5 (CCTV):** Camera models TBD; RTSP URLs are placeholders
@@ -43,6 +47,6 @@ explicitly revalidated.
 
 ## Contradictions / Updates
 
-The old April source summary is superseded by the May 30 audit above. Current
+The old April source summary is superseded by the May 31 audit above. Current
 canonical docs intentionally park OMV, Frigate app state, and VentSys hardware
 entities until explicit live revalidation.

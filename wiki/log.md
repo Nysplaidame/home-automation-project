@@ -170,3 +170,10 @@
 - Canonical docs now include a docker-host patch-window runbook and a Frigate Fail2ban SSH jail template.
 - Pages updated: [[entities/frigate]]
 - Notes: VM 101 now has Fail2ban installed/enabled with an active `sshd` jail; Frigate app state remains unbuilt for regular use.
+
+## [2026-05-31] update | Mobile monitoring access and Grafana metric labels
+
+- Canonical docs now call for adding `192.168.60.10/32` as a docker-host Tailscale host route for Grafana/Uptime Kuma mobile access only, with routed UFW allowances for ports `3000` and `3001`.
+- Grafana datasource validation showed high unlabeled VM percentages are Proxmox guest-memory values, not CPU or disk saturation.
+- Pages updated: [[concepts/tailscale-remote-access]], [[entities/docker-host]], [[entities/monitoring-vm]], [[entities/proxmox]], [[sources/project-todo]]
+- Notes: Live apply is still blocked from this laptop by SSH public-key auth to docker-host; `Proxmox Resource Overview` also needs admin access to re-export/recreate and label panels.

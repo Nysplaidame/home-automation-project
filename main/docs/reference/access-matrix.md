@@ -3,7 +3,7 @@ title: ACL And Access Matrix
 description: Canonical OpenWrt, Tailscale, host firewall, and service-auth access intent
 tags: [reference, acl, firewall, tailscale, access-control]
 created: 2026-05-23
-modified: 2026-05-28
+modified: 2026-05-31
 type: reference
 status: active
 ---
@@ -18,7 +18,7 @@ in the tailnet admin console.
 
 | Path | Allowed target | Denied target | Enforcement |
 |---|---|---|---|
-| Tailscale daily access | docker-host node services, HA `192.168.20.101/32`, OMV `192.168.40.50/32` | broad VLAN routes | Tailscale route approval + ACLs + docker-host UFW |
+| Tailscale daily access | docker-host node services, HA `192.168.20.101/32`, OMV `192.168.40.50/32`, Grafana/Kuma host `192.168.60.10/32` on ports `3000`/`3001` | broad VLAN routes, monitoring InfluxDB `8086` | Tailscale route approval + ACLs + docker-host UFW |
 | WireGuard dormant fallback | LAN, HA host, OMV host, DMZ fallback | Management, NVR, Printers, IoT, broad Storage VLAN | OpenWrt `vpn_clients` firewall zone |
 | Management VLAN | all local admin targets | WAN-exposed admin | OpenWrt + service auth |
 | Guest VLAN | internet only through router DNS | all internal VLANs | OpenWrt |
@@ -30,11 +30,14 @@ in the tailnet admin console.
 | Admin devices | tailnet admin group | docker-host Tailscale IP / MagicDNS | 22, service UI ports | Admin only |
 | Admin devices | tailnet admin group | `192.168.20.101/32` | 8123 | Home Assistant |
 | Admin devices | tailnet admin group | `192.168.40.50/32` | 80, 443, 445, 2049, 22 | OMV admin/shares as needed |
+| Admin devices | tailnet admin group | `192.168.60.10/32` | 3000, 3001 | Grafana and Uptime Kuma only |
 | Household mobile devices | approved user/device tags | docker-host service UI ports | 2283, 3001, selected apps | No Management/NVR/IoT/Printers |
+| Household mobile devices | approved user/device tags | `192.168.60.10/32` | 3000, 3001 | Monitoring dashboards only if desired for daily mobile use |
 | Unknown devices | any | any routed subnet | none | Require explicit approval |
 
 Do not advertise or allow `192.168.10.0/24`, `192.168.30.0/24`,
-`192.168.35.0/24`, or `192.168.50.0/24` through Tailscale.
+`192.168.35.0/24`, `192.168.50.0/24`, or the broad monitoring VLAN
+`192.168.60.0/24` through Tailscale.
 
 WireGuard fallback activation/deactivation governance is defined in
 `docs/procedures/wireguard_fallback_governance.md`.

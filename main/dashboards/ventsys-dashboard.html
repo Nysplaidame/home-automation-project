@@ -1361,6 +1361,7 @@
   let sprayFanRunning = false;
   let activeModes = new Set();
   let animationIntervals = {};
+  let valveDisplayOpenPosition = 100;
 
   function toggleMenu() {
     const menu = document.getElementById('left-menu');
@@ -1537,8 +1538,8 @@
     const e2On    = fanRunning && main1 > 0 && enc2Vert > 0 && enc2Down > 0;
     const sprayOn = sprayFanRunning && main1 > 0 && main2 > 0;
 
-    // Flow strength: 0.0–1.0 based on valve positions, floored at 0.3 when on
-    const str = (val, floor=0.3) => Math.max(floor, val / 100);
+    // Flow strength: 0.0–1.0 based on calibrated valve opening, floored at 0.3 when on
+    const str = (val, floor=0.3) => Math.max(floor, Math.min(1, val / valveDisplayOpenPosition));
 
     const sec1Str  = 1.0;
     const sec2Str  = str(main1);
@@ -1748,12 +1749,14 @@
   }
 
   function valveColor(position) {
-    // Neon green at 100% open, neon red at 0% closed
-    if (position >= 99) return 'rgb(0,255,100)';
+    const open = valveDisplayOpenPosition || 100;
+    const pct = Math.max(0, Math.min(1, position / open));
+    // Neon green at calibrated open, neon red at 0% closed
+    if (pct >= 0.99) return 'rgb(0,255,100)';
     if (position <= 1)  return 'rgb(255,30,30)';
-    const r = Math.round(255 * (1 - position / 100));
-    const g = Math.round(255 * (position / 100));
-    const b = Math.round(100 * (position / 100));
+    const r = Math.round(255 * (1 - pct));
+    const g = Math.round(255 * pct);
+    const b = Math.round(100 * pct);
     return `rgb(${r},${g},${b})`;
   }
 
@@ -1810,13 +1813,15 @@
     // ROTATION: open=0° (natural shape), closed=90° (rotated to blocking position)
     // Horizontal (rx=20,ry=4): natural=wide flat=OPEN, rotated 90°=tall thin=CLOSED
     // Vertical   (rx=4,ry=20): natural=tall thin=OPEN, rotated 90°=wide flat=CLOSED
-    const rotation = 90 - (position * 0.9);
+    const open = valveDisplayOpenPosition || 100;
+    const openPct = Math.max(0, Math.min(1, position / open));
+    const rotation = 90 - (openPct * 90);
     ellipse.setAttribute('transform', `rotate(${rotation} ${cx} ${cy})`);
 
     const col = valveColor(position);
     // dimFactor: 1.0 when closed (full), lower when open (dim but still visible)
     // Raised minimum from 0.28 to 0.35 so open valves remain readable
-    const dimFactor = 1 - (position / 100) * 0.40;
+    const dimFactor = 1 - openPct * 0.40;
 
     // Circle BORDER: colour green→red, dims when open, glows when closed
     circle.setAttribute('stroke', col);
@@ -1825,7 +1830,7 @@
     circle.style.filter = `drop-shadow(0 0 ${Math.round(6 * dimFactor)}px ${col})`;
 
     // Circle FILL: transparent when open so flow lines show, opaque dark when closed
-    const fillOpacity = 1 - (position / 100) * 0.82;
+    const fillOpacity = 1 - openPct * 0.82;
     circle.setAttribute('fill', `rgba(8,8,24,${fillOpacity.toFixed(2)})`);
 
     // Ellipse FILL: red closed → green open; full brightness closed, dim when open
@@ -1847,7 +1852,9 @@
     const circle = document.getElementById(circleId);
     const bgCircle = document.getElementById(bgCircleId);
     
-    const angle = position * 3.6;
+    const open = valveDisplayOpenPosition || 100;
+    const openPct = Math.max(0, Math.min(1, position / open));
+    const angle = openPct * 360;
     const radians = (angle - 90) * Math.PI / 180;
     const x = Math.cos(radians) * 30;
     const y = Math.sin(radians) * 30;
@@ -1857,9 +1864,9 @@
     circle.setAttribute('cx', x);
     circle.setAttribute('cy', y - 1.5);
 
-    const r = Math.round(255 * (1 - position/100));
-    const g = Math.round(255 * (position/100));
-    const b = Math.round(100 * (position/100));
+    const r = Math.round(255 * (1 - openPct));
+    const g = Math.round(255 * openPct);
+    const b = Math.round(100 * openPct);
     const color = `rgb(${r}, ${g}, ${b})`;
     line.setAttribute('stroke', color);
     circle.setAttribute('fill', color);
@@ -1896,9 +1903,11 @@
     const enc1Down = Math.max(enc1Print, intake1);
     const enc2Down = Math.max(enc2Print, intake2);
 
-    const flow1 = fanRunning ? (enc1Vert/100) * (enc1Down/100) * 42.5 : 0;
-    const flow2 = fanRunning ? (main1/100) * (enc2Vert/100) * (enc2Down/100) * 42.5 : 0;
-    const flow3 = sprayFanRunning ? (main1/100) * (main2/100) * 35.0 : 0;
+    const open = valveDisplayOpenPosition || 100;
+    const frac = v => Math.max(0, Math.min(1, v / open));
+    const flow1 = fanRunning ? frac(enc1Vert) * frac(enc1Down) * 42.5 : 0;
+    const flow2 = fanRunning ? frac(main1) * frac(enc2Vert) * frac(enc2Down) * 42.5 : 0;
+    const flow3 = sprayFanRunning ? frac(main1) * frac(main2) * 35.0 : 0;
 
     const str  = v => Math.max(0, Math.min(1, v / 42.5));
     const str3 = v => Math.max(0, Math.min(1, v / 35.0));
@@ -1933,9 +1942,9 @@
       activeModes.clear(); activeModes.add('purge');
       if (!fanRunning) toggleFan();
       if (!sprayFanRunning) toggleSprayFan();
-      animateValveTo('valve-main-1', 100); animateValveTo('valve-main-2', 100);
-      animateValveTo('valve-enc1-vert', 100); animateValveTo('valve-enc1-print', 100); animateIntakeTo(1, 100);
-      animateValveTo('valve-enc2-vert', 100); animateValveTo('valve-enc2-print', 100); animateIntakeTo(2, 100);
+      animateValveTo('valve-main-1', valveOpenPosition()); animateValveTo('valve-main-2', valveOpenPosition());
+      animateValveTo('valve-enc1-vert', valveOpenPosition()); animateValveTo('valve-enc1-print', valveOpenPosition()); animateIntakeTo(1, valveOpenPosition());
+      animateValveTo('valve-enc2-vert', valveOpenPosition()); animateValveTo('valve-enc2-print', valveOpenPosition()); animateIntakeTo(2, valveOpenPosition());
       updateModeButtons(); updateModeDisplay(); return;
     }
 
@@ -1943,7 +1952,7 @@
     if (mode === 'booth') {
       activeModes.delete('booth-seal'); activeModes.delete('sealed'); activeModes.delete('purge');
       activeModes.add('booth');
-      animateValveTo('valve-main-1', 100); animateValveTo('valve-main-2', 100);
+      animateValveTo('valve-main-1', valveOpenPosition()); animateValveTo('valve-main-2', valveOpenPosition());
       if (!sprayFanRunning) toggleSprayFan();
       if (!fanRunning) toggleFan();
       updateModeButtons(); updateModeDisplay(); return;
@@ -1980,77 +1989,77 @@
       updateModeButtons(); updateModeDisplay(); return;
     }
 
-    // ── FDM ENCLOSURE: enc1-360=100, enc1-vert=100, enc1-print=0, main-fan ON ─
+    // ── FDM ENCLOSURE: enc1-360=open, enc1-vert=open, enc1-print=0, main-fan ON ─
     if (mode === 'fdm-enclosure') {
       activeModes.delete('sealed'); activeModes.delete('purge');
       ['fdm-print','fdm-enclosure','fdm-purge','fdm-seal'].forEach(m => activeModes.delete(m));
       activeModes.add('fdm-enclosure');
       animateValveTo('valve-enc1-print', 0);
-      animateIntakeTo(1, 100);
-      animateValveTo('valve-enc1-vert', 100);
+      animateIntakeTo(1, valveOpenPosition());
+      animateValveTo('valve-enc1-vert', valveOpenPosition());
       if (!fanRunning) toggleFan();
       updateModeButtons(); updateModeDisplay(); return;
     }
 
-    // ── FDM PRINTER: enc1-print=100, enc1-vert=100, enc1-360=0, main-fan ON ─
+    // ── FDM PRINTER: enc1-print=open, enc1-vert=open, enc1-360=0, main-fan ON ─
     if (mode === 'fdm-print') {
       activeModes.delete('sealed'); activeModes.delete('purge');
       ['fdm-print','fdm-enclosure','fdm-purge','fdm-seal'].forEach(m => activeModes.delete(m));
       activeModes.add('fdm-print');
-      animateValveTo('valve-enc1-print', 100);
-      animateValveTo('valve-enc1-vert', 100);
+      animateValveTo('valve-enc1-print', valveOpenPosition());
+      animateValveTo('valve-enc1-vert', valveOpenPosition());
       animateIntakeTo(1, 0);
       if (!fanRunning) toggleFan();
       updateModeButtons(); updateModeDisplay(); return;
     }
 
-    // ── FDM PURGE: enc1-360=100, enc1-print=100, enc1-vert=100, main-fan ON ─
+    // ── FDM PURGE: enc1-360=open, enc1-print=open, enc1-vert=open, main-fan ON ─
     if (mode === 'fdm-purge') {
       activeModes.delete('sealed'); activeModes.delete('purge');
       ['fdm-print','fdm-enclosure','fdm-purge','fdm-seal'].forEach(m => activeModes.delete(m));
       activeModes.add('fdm-purge');
-      animateIntakeTo(1, 100);
-      animateValveTo('valve-enc1-print', 100);
-      animateValveTo('valve-enc1-vert', 100);
+      animateIntakeTo(1, valveOpenPosition());
+      animateValveTo('valve-enc1-print', valveOpenPosition());
+      animateValveTo('valve-enc1-vert', valveOpenPosition());
       if (!fanRunning) toggleFan();
       updateModeButtons(); updateModeDisplay(); return;
     }
 
-    // ── SLA ENCLOSURE: enc2-360=100, enc2-vert=100, main-1=100, main-fan ON, enc2-print=0 ─
+    // ── SLA ENCLOSURE: enc2-360=open, enc2-vert=open, main-1=open, main-fan ON, enc2-print=0 ─
     if (mode === 'sla-enclosure') {
       activeModes.delete('sealed'); activeModes.delete('purge');
       ['sla-print','sla-enclosure','sla-purge','sla-seal'].forEach(m => activeModes.delete(m));
       activeModes.add('sla-enclosure');
-      animateIntakeTo(2, 100);
-      animateValveTo('valve-enc2-vert', 100);
-      animateValveTo('valve-main-1', 100);
+      animateIntakeTo(2, valveOpenPosition());
+      animateValveTo('valve-enc2-vert', valveOpenPosition());
+      animateValveTo('valve-main-1', valveOpenPosition());
       animateValveTo('valve-enc2-print', 0);
       if (!fanRunning) toggleFan();
       updateModeButtons(); updateModeDisplay(); return;
     }
 
-    // ── SLA PRINTER: enc2-print=100, enc2-vert=100, main-1=100, enc2-360=0, main-fan ON ─
+    // ── SLA PRINTER: enc2-print=open, enc2-vert=open, main-1=open, enc2-360=0, main-fan ON ─
     if (mode === 'sla-print') {
       activeModes.delete('sealed'); activeModes.delete('purge');
       ['sla-print','sla-enclosure','sla-purge','sla-seal'].forEach(m => activeModes.delete(m));
       activeModes.add('sla-print');
-      animateValveTo('valve-enc2-print', 100);
-      animateValveTo('valve-enc2-vert', 100);
-      animateValveTo('valve-main-1', 100);
+      animateValveTo('valve-enc2-print', valveOpenPosition());
+      animateValveTo('valve-enc2-vert', valveOpenPosition());
+      animateValveTo('valve-main-1', valveOpenPosition());
       animateIntakeTo(2, 0);
       if (!fanRunning) toggleFan();
       updateModeButtons(); updateModeDisplay(); return;
     }
 
-    // ── SLA PURGE: enc2-360=100, enc2-print=100, enc2-vert=100, main-1=100, main-fan ON ─
+    // ── SLA PURGE: enc2-360=open, enc2-print=open, enc2-vert=open, main-1=open, main-fan ON ─
     if (mode === 'sla-purge') {
       activeModes.delete('sealed'); activeModes.delete('purge');
       ['sla-print','sla-enclosure','sla-purge','sla-seal'].forEach(m => activeModes.delete(m));
       activeModes.add('sla-purge');
-      animateIntakeTo(2, 100);
-      animateValveTo('valve-enc2-print', 100);
-      animateValveTo('valve-enc2-vert', 100);
-      animateValveTo('valve-main-1', 100);
+      animateIntakeTo(2, valveOpenPosition());
+      animateValveTo('valve-enc2-print', valveOpenPosition());
+      animateValveTo('valve-enc2-vert', valveOpenPosition());
+      animateValveTo('valve-main-1', valveOpenPosition());
       if (!fanRunning) toggleFan();
       updateModeButtons(); updateModeDisplay(); return;
     }
@@ -2311,6 +2320,7 @@
     // 'rpm' displays wheel RPM; 'estimated_cfm' multiplies rps by cfmPerRps values.
     airflowDisplay: 'rpm',
     cfmPerRps: { fdm: 12, sla: 12, booth: 10 },
+    valveOpenPosition: 50,
 
     entities: {
       // Enclosure sensors (native ESPHome preferred + MQTT fallbacks where relevant)
@@ -2385,6 +2395,23 @@
       'sla-purge':   'script.ventsys_mode_sla_purge',
       'sla-seal':    'script.ventsys_mode_sla_seal',
     },
+
+    // Commissioned physical nodes only. This badge intentionally uses
+    // diagnostic ESPHome-style entities, not retained MQTT actuator numbers.
+    nodes: [
+      {
+        name: 'MAIN-1',
+        slugs: ['ventsys_main_valve_1', 'ventsys_main_duct_valve_1', 'main_duct_valve_1'],
+      },
+      {
+        name: 'MAIN-2',
+        slugs: ['ventsys_main_valve_2', 'ventsys_main_duct_valve_2', 'main_duct_valve_2'],
+      },
+      {
+        name: 'FAN',
+        slugs: ['ventsys_fan_controller', 'ventsys_inline_fan', 'inline_fan'],
+      },
+    ],
   };
 
   // ───────────────────────────────────────────────────────────────────────
@@ -2410,6 +2437,31 @@
   } else {
     console.warn('[HA] No window.VENTSYS_CONFIG found — using inline defaults. ' +
                  'Token will be the placeholder unless ventsys-config.js is present.');
+  }
+
+  function valveOpenPosition() {
+    const value = Number(HA_CONFIG.valveOpenPosition);
+    return Number.isFinite(value) ? Math.max(1, Math.min(100, Math.round(value))) : 50;
+  }
+
+  function configureValveSliderLimits() {
+    const max = valveOpenPosition();
+    valveDisplayOpenPosition = max;
+    [
+      'valve-main-1-slider',
+      'valve-main-2-slider',
+      'valve-enc1-vert-slider',
+      'valve-enc1-print-slider',
+      'intake1-slider',
+      'valve-enc2-vert-slider',
+      'valve-enc2-print-slider',
+      'intake2-slider',
+    ].forEach((id) => {
+      const slider = document.getElementById(id);
+      if (!slider) return;
+      slider.max = String(max);
+      if (Number(slider.value) > max) slider.value = String(max);
+    });
   }
 
   window._haConnected = false;
@@ -2709,14 +2761,30 @@
     badge.style.background = connected ? 'rgba(0,255,187,0.07)' : 'rgba(255,100,0,0.06)';
   }
 
-  function trackedEntityIds() {
-    return [...new Set(Object.values(HA_CONFIG.entities).filter(Boolean))];
-  }
-
   function stateIsLive(stateObj) {
     if (!stateObj) return false;
     const s = String(stateObj.state ?? '').toLowerCase();
     return s !== '' && s !== 'unknown' && s !== 'unavailable';
+  }
+
+  function nodeDiagnosticEntityIds(node) {
+    const explicit = Array.isArray(node?.health_entities) ? node.health_entities : [];
+    const slugs = Array.isArray(node?.slugs) ? node.slugs : [];
+    const diagnosticTerms = ['uptime', 'ip_address', 'wifi_signal', 'ssid'];
+    const discovered = [];
+
+    _haEntityStateById.forEach((_state, entityId) => {
+      const id = String(entityId).toLowerCase();
+      const matchesSlug = slugs.some(slug => id.includes(String(slug).toLowerCase()));
+      const isDiagnostic = diagnosticTerms.some(term => id.includes(term));
+      if (matchesSlug && isDiagnostic) discovered.push(entityId);
+    });
+
+    return [...new Set([...explicit, ...discovered].filter(Boolean))];
+  }
+
+  function nodeIsLive(node) {
+    return nodeDiagnosticEntityIds(node).some(id => stateIsLive(_haEntityStateById.get(id)));
   }
 
   function refreshNodeStatus() {
@@ -2725,12 +2793,9 @@
     const logLine = document.getElementById('log-msg-5');
     if (!sysBadge && !badge && !logLine) return;
 
-    const tracked = trackedEntityIds();
-    const total = tracked.length;
-    let live = 0;
-    tracked.forEach((id) => {
-      if (stateIsLive(_haEntityStateById.get(id))) live += 1;
-    });
+    const nodes = Array.isArray(HA_CONFIG.nodes) ? HA_CONFIG.nodes : [];
+    const total = nodes.length;
+    const live = nodes.filter(nodeIsLive).length;
 
     const connected = window._haConnected;
     const pct = total > 0 ? Math.round((live / total) * 100) : 0;
@@ -2802,14 +2867,14 @@
   }
 
   function applyValveState(domId, sliderId, value) {
-    const v = Math.max(0, Math.min(100, Math.round(value)));
+    const v = Math.max(0, Math.min(valveOpenPosition(), Math.round(value)));
     const slider = document.getElementById(sliderId);
     if (slider) slider.value = v;
     _origUpdateValveVisual(domId, v);
   }
 
   function applyIntakeState(enclosure, sliderId, value) {
-    const v = Math.max(0, Math.min(100, Math.round(value)));
+    const v = Math.max(0, Math.min(valveOpenPosition(), Math.round(value)));
     const slider = document.getElementById(sliderId);
     if (slider) slider.value = v;
     _origUpdateIntakeVisual(enclosure, v);
@@ -3097,15 +3162,17 @@
   };
 
   window.updateValveVisual = function(id, position) {
-    _origUpdateValveVisual(id, position);
+    const v = Math.max(0, Math.min(valveOpenPosition(), Math.round(Number(position))));
+    _origUpdateValveVisual(id, v);
     const topic = _valveTopicMap[id];
-    if (topic) haPublish(topic, String(position));
+    if (topic) haPublish(topic, String(v));
   };
 
   window.updateIntakeVisual = function(enclosure, position) {
-    _origUpdateIntakeVisual(enclosure, position);
+    const v = Math.max(0, Math.min(valveOpenPosition(), Math.round(Number(position))));
+    _origUpdateIntakeVisual(enclosure, v);
     const topic = enclosure === 1 ? HA_CONFIG.topics.valve_fdm_360 : HA_CONFIG.topics.valve_sla_360;
-    haPublish(topic, String(position));
+    haPublish(topic, String(v));
   };
 
   window.applyMode = function(mode) {
@@ -3136,6 +3203,7 @@
   pushSystemEvent({ key: 'boot.ready', label: 'DASHBOARD READY', severity: 'info', cooldownMs: 1 });
   pushSystemEvent({ key: 'boot.stream', label: 'EVENT STREAM ONLINE', severity: 'info', cooldownMs: 1 });
   updateConnectionBadge(false);
+  configureValveSliderLimits();
   refreshNodeStatus();
   haConnect();
 

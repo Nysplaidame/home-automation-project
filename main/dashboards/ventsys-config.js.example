@@ -17,6 +17,14 @@ window.VENTSYS_CONFIG = {
   //
   // haUrl: 'http://192.168.20.101:8123',
   // wsUrl: 'ws://192.168.20.101:8123/api/websocket',
+  // valveOpenPosition: 50,
+  // nodes: [
+  //   {
+  //     name: 'MAIN-1',
+  //     health_entities: ['sensor.ventsys_main_duct_valve_1_uptime'],
+  //     slugs: ['ventsys_main_duct_valve_1', 'ventsys_main_valve_1'],
+  //   },
+  // ],
   // entities: {
   //   mainValve1: 'number.main_duct_valve_1',
   // },

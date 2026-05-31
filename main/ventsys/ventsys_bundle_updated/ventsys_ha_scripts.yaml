@@ -1,21 +1,11 @@
 # VentSys HA Scripts — Mode Execution
 # Place in config/packages/ alongside ventsys_ha_package.yaml
 #
-# 2026-05-12: Reworked to ramp valves server-side. Previously each mode
-# published a single instant value per valve, which produced an immediate
-# snap on the physical actuator. Now each mode calls the reusable
-# `ventsys_ramp_valve` helper in a `parallel:` block, so every valve steps
-# smoothly from its current position to its target over ~2 seconds.
-#
-# This change applies the slow ramp REGARDLESS of trigger source —
-# dashboard button, automation (incl. fire-safe), voice assistant,
-# REST API, all use the same stepped path. The dashboard's local valve
-# animation is now purely visual (driven by HA state coming back from the
-# valves), with no MQTT publishing of its own during animation.
-#
-# Helper script timing: 40 steps × 50ms = 2000ms total.
-# Tweak `duration_ms` per call if you want a faster/slower ramp for a
-# specific mode (e.g. pass duration_ms: 500 for a faster fire response).
+# 2026-05-31: Hardware commands are direct-to-target again. The only stepped
+# motion should be the dashboard's cosmetic animation; mode scripts publish one
+# calibrated target value per valve and let firmware move the actuator there.
+# The helper name `ventsys_ramp_valve` is retained for compatibility with the
+# existing mode calls, but it no longer ramps.
 #
 # MQTT topic schema (must match firmware and HA package):
 #   ventsys/fan/control           → "on" / "off"   (main inline fan)
@@ -33,21 +23,11 @@
 
 script:
 
-  # ─── HELPER: ramp a single valve from current → target position ──────
-  # Reads the valve's current state from `entity_id`, then publishes a
-  # linear ramp of values to `topic` over `duration_ms` milliseconds in
-  # 40 evenly-spaced steps.
-  #
-  # mode: parallel + max: 16 means multiple valves can ramp at the same
-  # time (used by mode scripts that call this from a `parallel:` block).
-  #
-  # If the valve is already at target (delta == 0), the script exits
-  # immediately without publishing — avoids needless network traffic.
-  #
-  # All mode scripts below call this helper. Do NOT publish directly to
-  # any valve `*/control` topic from anywhere else — go through this.
+  # ─── HELPER: set a single valve to a calibrated target position ──────
+  # Historical name retained because the mode scripts already call it.
+  # This now publishes exactly one MQTT command.
   ventsys_ramp_valve:
-    alias: VentSys — Ramp Valve
+    alias: VentSys — Set Valve Target
     mode: parallel
     max: 16
     fields:
@@ -58,50 +38,35 @@ script:
         selector:
           text:
       entity_id:
-        description: "HA entity to read current position from (must match topic)"
+        description: "HA entity matching the topic; kept for caller compatibility"
         example: "number.main_duct_valve_1"
         required: true
         selector:
           entity:
             domain: number
       target:
-        description: "Target position, 0-100"
-        example: 100
+        description: "Target position, 0-50 calibrated open"
+        example: 50
         required: true
         selector:
           number:
             min: 0
-            max: 100
+            max: 50
             step: 1
       duration_ms:
-        description: "Total ramp duration in ms (default 2000)"
-        example: 2000
-        default: 2000
+        description: "Compatibility field; ignored because hardware commands are direct"
+        example: 0
+        default: 0
         selector:
           number:
-            min: 100
+            min: 0
             max: 10000
             step: 100
-    variables:
-      steps: 40
-      start_pos: "{{ states(entity_id) | int(0) }}"
-      delta: "{{ (target | int) - start_pos }}"
-      interval_ms: "{{ ((duration_ms | default(2000) | int) / 40) | int }}"
     sequence:
-      - if:
-          - condition: template
-            value_template: "{{ delta == 0 }}"
-        then:
-          - stop: "Valve already at target position"
-      - repeat:
-          count: "{{ steps }}"
-          sequence:
-            - action: mqtt.publish
-              data:
-                topic: "{{ topic }}"
-                payload: "{{ (start_pos + (delta * repeat.index / steps)) | round(0) | int | string }}"
-            - delay:
-                milliseconds: "{{ interval_ms }}"
+      - action: mqtt.publish
+        data:
+          topic: "{{ topic }}"
+          payload: "{{ target | int | string }}"
 
   # ─── SEAL ALL: everything closed, both fans off ──────────────────────
   # SAFETY NOTE (D2): This script explicitly sets ALL 10 actuator paths to
@@ -168,10 +133,8 @@ script:
   #   ✗ Does NOT activate the spray booth fan
   # This is the correct script to call from the fail-safe automation.
   #
-  # NOTE: valve ramps take ~2s here, same as routine modes. The user has
-  # accepted this 2s as acceptable in a fire event. If a future review
-  # decides faster snap is needed, add `duration_ms: 500` (or 0) to each
-  # ramp call below.
+  # NOTE: valve commands are direct-to-target; the dashboard may animate its
+  # display separately, but this safety script does not step physical commands.
   ventsys_mode_fire_safe:
     alias: VentSys Mode — Fire-Safe Ventilation
     icon: mdi:fire-alert

@@ -3,7 +3,7 @@ title: Grafana Architecture Dashboards
 description: Full-architecture Grafana dashboard set, exporters, and Home Assistant link posture
 tags: [grafana, monitoring, dashboards, home-assistant, uptime-kuma, fail2ban]
 created: 2026-05-29
-modified: 2026-05-29
+modified: 2026-05-31
 type: procedure
 status: active
 ---
@@ -24,6 +24,14 @@ VM and the small exporters that feed them.
 | Security Posture | `http://192.168.60.10:3000/d/security-posture-overview/security-posture` | docker-host Fail2ban counters and router warning logs |
 | NAS Resource Overview | `http://192.168.60.10:3000/d/nas-resource-overview/nas-resource-overview` | Planned shell only until OMV/NAS exists |
 
+Current validation, 2026-05-31:
+
+- Grafana anonymous search lists Home Automation Overview, NAS Resource
+  Overview, Service Availability, Network DNS, and Security Posture.
+- `Proxmox Resource Overview` was not returned by anonymous dashboard search,
+  and its source export is not in the repo. Re-export or recreate it with admin
+  access before relying on it as rebuildable dashboard source.
+
 ## Source exports
 
 Dashboard source exports live in:
@@ -37,6 +45,12 @@ Current exported dashboards:
 - `service-availability-overview.json`
 - `network-dns-overview.json`
 - `security-posture-overview.json`
+
+Missing source exports:
+
+- `proxmox-resource-overview.json`
+- `home-automation-overview.json`
+- `nas-resource-overview.json`
 
 ## Exporters
 

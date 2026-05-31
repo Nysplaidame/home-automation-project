@@ -245,6 +245,21 @@ curl -I http://192.168.40.50/
 - Check docker-host UFW for `tailscale0` allowances.
 - Check the service is bound to the expected port from `docs/reference/service-matrix.md`.
 
+### Grafana or Uptime Kuma unreachable over Tailscale
+
+```bash
+ping 192.168.60.10
+curl -I http://192.168.60.10:3000/
+curl -I http://192.168.60.10:3001/
+```
+
+- Confirm docker-host advertises `192.168.60.10/32` and that the route is
+  approved in the Tailscale admin console.
+- Confirm docker-host has UFW route rules from `tailscale0` to
+  `192.168.60.10` ports `3000` and `3001`.
+- Keep InfluxDB port `8086` off the daily mobile route unless an admin-only
+  exception is explicitly documented.
+
 ## WireGuard VPN
 
 ### VPN won't connect

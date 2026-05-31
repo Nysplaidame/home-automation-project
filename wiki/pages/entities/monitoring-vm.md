@@ -3,7 +3,7 @@ title: "Monitoring VM"
 category: entity
 tags: [software, monitoring, grafana, proxmox, influxdb, uptime-kuma, telegraf]
 created: 2026-04-07
-updated: 2026-05-30
+updated: 2026-05-31
 sources: [proxmox-setup-guide, project-readme, project-todo]
 status: stable
 ---
@@ -51,6 +51,13 @@ same-origin HTTPS/reverse-proxy path is designed and tested.
 - Docker-host Fail2ban counters are exported to bucket `dockerhost`.
 - Grafana dashboards now include `Proxmox Resource Overview`, `Service Availability`, `Network DNS`, and `Security Posture`.
 - `NAS Resource Overview` exists as a planned shell only; do not treat NAS telemetry as live.
+- Mobile Tailscale access to Grafana/Kuma is not yet live. The canonical fix is
+  to add docker-host route advertisement for `192.168.60.10/32`, approve it in
+  Tailscale, and allow only routed ports `3000` and `3001`.
+- A 2026-05-31 datasource check found the high unlabeled VM percentages on the
+  Proxmox dashboard are Proxmox guest-memory values, not CPU or disk saturation.
+  Current samples were about `98%` for Home Assistant, `91%` for docker-host,
+  and `85%` for monitoring; Proxmox host CPU and RAM pressure were low.
 
 ## Open Questions
 
@@ -58,11 +65,15 @@ same-origin HTTPS/reverse-proxy path is designed and tested.
 - [x] Park Grafana/Kuma embedding behind same-origin HTTPS/reverse-proxy approval instead of treating it as a current reliability target.
 - [x] Deploy docker-host Fail2ban baseline and export counters.
 - [ ] Apply the repo-side HA Lovelace direct-link snippet through the HA UI.
+- [ ] Re-export or recreate `Proxmox Resource Overview`; anonymous dashboard
+  search did not list it and no source export exists in the repo.
+- [ ] Add explicit metric labels to Proxmox dashboard percentage panels.
 - [ ] Add NAS telemetry only after OMV/NAS exists.
 
 ## Change Log
 
 - 2026-05-30: Added Proxmox/docker-host metrics, architecture dashboards, Uptime Kuma/Fail2ban exporters, external HA health state, and direct-link monitoring posture.
+- 2026-05-31: Recorded mobile Tailscale monitoring route gap and clarified that high Proxmox VM percentages are guest-memory values.
 - 2026-05-18: Corrected stale planned-state page. VM 102 is live with Grafana, InfluxDB, Telegraf, and Uptime Kuma.
 - 2026-05-08: Clarified — VM 102 never created at that point; docker-host is VM 103; monitoring still planned.
 - 2026-04-07: Page created as stub from proxmox-setup-guide ingest.

@@ -3,7 +3,7 @@ title: Proxmox Grafana Metrics
 description: Native Proxmox metric export into InfluxDB v2 and Grafana dashboard state
 tags: [proxmox, grafana, influxdb, monitoring, metrics]
 created: 2026-05-29
-modified: 2026-05-29
+modified: 2026-05-31
 type: procedure
 status: active
 ---
@@ -30,6 +30,23 @@ Grafana reads those metrics through a dedicated datasource.
 - Grafana dashboard URL: `http://192.168.60.10:3000/d/proxmox-resource-overview/proxmox-resource-overview`
 - Grafana paired NAS dashboard shell: `NAS Resource Overview`
 - Grafana NAS dashboard URL: `http://192.168.60.10:3000/d/nas-resource-overview/nas-resource-overview`
+
+Validation note, 2026-05-31:
+
+- Grafana anonymous dashboard search did not list `Proxmox Resource Overview`,
+  although the datasource and InfluxDB bucket remain queryable through Grafana.
+- The dashboard source export is not present under `configs/grafana/dashboards/`.
+  Re-export the dashboard after admin access is available before treating it as
+  rebuildable source.
+- The ambiguous high VM percentages currently read as Proxmox guest memory
+  usage (`mem / maxmem`), not CPU or disk. Current samples were:
+  Home Assistant about `98%`, docker-host about `91%`, monitoring about `85%`,
+  and Frigate about `18%`.
+- Proxmox host CPU was about `0.5%`, Proxmox RAM pressure was about `37%`, root
+  storage was about `45%`, and `local-lvm` was about `6%`.
+- Docker-host in-guest Telegraf reported memory `used_percent` about `59%` and
+  root filesystem about `52%`, so the docker-host Proxmox `91%` guest-memory
+  card is cache-inclusive and not an immediate capacity concern by itself.
 
 ## Validation
 
@@ -82,7 +99,8 @@ live infrastructure only:
 - root storage usage (`local`)
 - VM storage usage (`local-lvm`)
 - per-VM CPU
-- per-VM memory
+- per-VM guest memory (`mem / maxmem`; label this explicitly, because it can
+  appear high when the guest is using RAM for cache)
 - per-VM network throughput
 - per-VM disk throughput
 - current VM status table
@@ -133,6 +151,10 @@ The Proxmox host currently has about `31 GiB` RAM (`33,107,255,296` bytes).
 Linux may use free memory for cache, so the dashboard uses available memory to
 show pressure rather than treating cache as unavailable. A `RAM Pressure` value
 around one third means the hypervisor is not maxed out.
+
+For VM cards and rows, do not display a bare percent without a metric label.
+Use labels such as `CPU`, `Guest memory`, `Root disk`, or `Storage` so high
+guest-memory values are not mistaken for host CPU or disk saturation.
 
 ## Prometheus note
 

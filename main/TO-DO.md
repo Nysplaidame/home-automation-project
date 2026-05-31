@@ -4,7 +4,7 @@ description: Implementation tasks by phase — updated May 2026
 tags: [tasks, implementation]
 aliases: [TODO, Tasks]
 created: 2025-09-15
-modified: 2026-05-30
+modified: 2026-05-31
 type: task-list
 status: active
 ---
@@ -70,8 +70,10 @@ Planning baseline until explicitly revalidated:
 33. [x] Add architecture Grafana dashboards: `Service Availability`, `Network DNS`, and `Security Posture`
 34. [x] Add lightweight exporters for Uptime Kuma monitor snapshots and docker-host Fail2ban counters
 35. [ ] Apply `configs/home-assistant/lovelace/monitoring-grafana-links.yaml` to the live HA Monitoring dashboard through the HA UI
-36. [ ] Schedule controlled docker-host patch window for Docker engine/component and kernel package candidates from `docs/procedures/update_review_log.md`
-37. [ ] When NAS is built, add NAS telemetry using existing monitoring patterns first (prefer Telegraf -> InfluxDB -> Grafana before adding new containers)
+36. [ ] Apply mobile Tailscale monitoring fix: advertise/approve `192.168.60.10/32` on docker-host and add routed UFW allowances for Grafana `3000` and Uptime Kuma `3001`; LAN validation passed on 2026-05-31, but live apply is blocked from this laptop by SSH public-key auth
+37. [ ] Re-export or recreate `Proxmox Resource Overview` with explicit labels (`CPU`, `Guest memory`, `Root disk`, etc.); 2026-05-31 datasource check found high HA/docker-host/monitoring percentages are guest-memory values, not CPU/disk saturation
+38. [ ] Schedule controlled docker-host patch window for Docker engine/component and kernel package candidates from `docs/procedures/update_review_log.md`
+39. [ ] When NAS is built, add NAS telemetry using existing monitoring patterns first (prefer Telegraf -> InfluxDB -> Grafana before adding new containers)
 
 ---
 
