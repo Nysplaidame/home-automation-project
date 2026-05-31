@@ -28,9 +28,11 @@ Off-LAN validation passed on 2026-05-28 for docker-host and routed Home
 Assistant/OMV host paths.
 
 As of the 2026-05-31 mobile-access diagnosis, Home Assistant works over
-Tailscale but Grafana and Uptime Kuma do not. Canonical docs now call for adding
-the monitoring VM host route and docker-host routed UFW allowances for ports
-`3000` and `3001`; do not expose InfluxDB `8086` as part of daily mobile access.
+Tailscale but Grafana and Uptime Kuma needed a new monitoring VM route.
+docker-host now advertises the monitoring VM host route and has routed UFW
+allowances for ports `3000` and `3001`; do not expose InfluxDB `8086` as part
+of daily mobile access. Mobile clients may still need the new route approved in
+Tailscale admin before it works off-LAN.
 
 ## Trade-offs / Considerations
 

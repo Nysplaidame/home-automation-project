@@ -28,9 +28,9 @@ Current validation, 2026-05-31:
 
 - Grafana anonymous search lists Home Automation Overview, NAS Resource
   Overview, Service Availability, Network DNS, and Security Posture.
-- `Proxmox Resource Overview` was not returned by anonymous dashboard search,
-  and its source export is not in the repo. Re-export or recreate it with admin
-  access before relying on it as rebuildable dashboard source.
+- Grafana admin API access confirmed `Proxmox Resource Overview` is live and
+  saveable; the dashboard was re-exported to source and its ambiguous resource
+  percentage panels were relabelled.
 
 ## Source exports
 
@@ -42,13 +42,13 @@ configs/grafana/dashboards/
 
 Current exported dashboards:
 
+- `proxmox-resource-overview.json`
 - `service-availability-overview.json`
 - `network-dns-overview.json`
 - `security-posture-overview.json`
 
 Missing source exports:
 
-- `proxmox-resource-overview.json`
 - `home-automation-overview.json`
 - `nas-resource-overview.json`
 

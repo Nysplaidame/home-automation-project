@@ -28,8 +28,8 @@ explicitly revalidated.
 - **Operational follow-up:** Apply the HA monitoring Grafana/Kuma direct-link snippet through the HA UI
 - **Operational follow-up:** Add the monitoring VM Tailscale host route and
   routed UFW allowances so mobile clients can reach Grafana and Uptime Kuma
-- **Operational follow-up:** Re-export/recreate `Proxmox Resource Overview`
-  with explicit metric labels for bare percentage panels
+- **Operational follow-up:** Approve/retest the monitoring VM host route in
+  Tailscale admin if mobile clients still cannot reach Grafana/Kuma
 - **Update governance:** Schedule a controlled docker-host patch window for Docker engine/component and kernel package candidates
 - **Phase 3 (VentSys):** 17 ESP32 boards to flash and adopt in ESPHome; sensors still to be purchased
 - **Phase 5 (CCTV):** Camera models TBD; RTSP URLs are placeholders

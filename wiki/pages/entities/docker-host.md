@@ -36,8 +36,8 @@ maintenance window.
 - OS: Debian GNU/Linux 13
 - Docker and Docker Compose: installed
 - Stack path convention: `/opt/stacks/<service>/`
-- Tailscale routes: live `192.168.20.101/32`, `192.168.40.50/32`; planned
-  addition `192.168.60.10/32` for Grafana/Kuma mobile access only
+- Tailscale routes: live `192.168.20.101/32`, `192.168.40.50/32`,
+  `192.168.60.10/32` for Grafana/Kuma mobile access only
 - Metrics: Docker-host Telegraf writes to InfluxDB bucket `dockerhost`
 - Host hardening: Fail2ban `sshd` jail at `/etc/fail2ban/jail.d/docker-host-sshd.local`
 
@@ -65,7 +65,8 @@ only:
 
 - `192.168.20.101/32` for Home Assistant
 - `192.168.40.50/32` for OMV
-- `192.168.60.10/32` for monitoring VM UIs after route approval
+- `192.168.60.10/32` for monitoring VM UIs; approve in Tailscale admin if
+  still pending
 
 Docker-host services should be reached by docker-host Tailscale identity/MagicDNS.
 Grafana and Uptime Kuma should use routed access to the monitoring VM on ports
@@ -92,6 +93,6 @@ Grafana and Uptime Kuma should use routed access to the monitoring VM on ports
 ## Change Log
 
 - 2026-05-30: Synced live service state: Tier 1 apps, ntfy, Watchtower monitor-only, Telegraf metrics, Tailscale routes, and Fail2ban baseline are live.
-- 2026-05-31: Added planned monitoring VM Tailscale host route and routed UFW source artifact for Grafana/Kuma mobile access; live apply still needs docker-host SSH/admin access.
+- 2026-05-31: Applied monitoring VM Tailscale host route on docker-host and added routed UFW source artifact for Grafana/Kuma mobile access; route may still need Tailscale admin approval before mobile clients can use it.
 - 2026-05-23: Added Tailscale host-route role and Tier 1 service roadmap.
 - 2026-05-08: Page created - VM 103 live with Bambuddy and apt-cache.

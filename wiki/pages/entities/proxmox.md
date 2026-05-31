@@ -44,8 +44,8 @@ VLAN-aware bridge (`vmbr0`). The Proxmox host itself sits on VLAN 10
 - 2026-05-31 datasource validation found high unlabeled VM percentage cards are
   guest-memory values (`mem / maxmem`), not CPU or disk saturation. Dashboard
   panels should label `CPU`, `Guest memory`, `Root disk`, or equivalent.
-- Anonymous Grafana search did not list `Proxmox Resource Overview`; re-export
-  or recreate the dashboard before treating it as rebuildable source.
+- `Proxmox Resource Overview` is exported to repo source and live dashboard
+  version `6` has explicit labels for guest RAM, RAM pressure, and root disk.
 - `NAS Resource Overview` is only a planned shell until the NAS is built.
 
 ## Open Questions
@@ -57,7 +57,7 @@ VLAN-aware bridge (`vmbr0`). The Proxmox host itself sits on VLAN 10
 ## Change Log
 
 - 2026-05-30: Added backup drill status and Proxmox/Grafana metrics state.
-- 2026-05-31: Clarified Proxmox dashboard percent values and source-export gap.
+- 2026-05-31: Clarified Proxmox dashboard percent values, exported the dashboard source, and applied metric labels live.
 - 2026-05-23: Updated backup target direction from deprecated Pi NAS plan to OMV NAS.
 - 2026-05-18: Added VM 102 monitoring as live and corrected backup schedule/current VM table.
 - 2026-05-08: Major update - Proxmox live; VM table corrected for then-current state.

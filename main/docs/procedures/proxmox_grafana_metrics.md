@@ -35,9 +35,11 @@ Validation note, 2026-05-31:
 
 - Grafana anonymous dashboard search did not list `Proxmox Resource Overview`,
   although the datasource and InfluxDB bucket remain queryable through Grafana.
-- The dashboard source export is not present under `configs/grafana/dashboards/`.
-  Re-export the dashboard after admin access is available before treating it as
-  rebuildable source.
+- Grafana admin API access confirmed the dashboard is live and saveable.
+- Source export now lives at
+  `configs/grafana/dashboards/proxmox-resource-overview.json`.
+- Live dashboard version `6` labels the formerly ambiguous percentage panels as
+  `Guest RAM`, `RAM Pressure`, and `Root Disk`.
 - The ambiguous high VM percentages currently read as Proxmox guest memory
   usage (`mem / maxmem`), not CPU or disk. Current samples were:
   Home Assistant about `98%`, docker-host about `91%`, monitoring about `85%`,
@@ -153,7 +155,7 @@ show pressure rather than treating cache as unavailable. A `RAM Pressure` value
 around one third means the hypervisor is not maxed out.
 
 For VM cards and rows, do not display a bare percent without a metric label.
-Use labels such as `CPU`, `Guest memory`, `Root disk`, or `Storage` so high
+Use labels such as `CPU`, `Guest RAM`, `Root Disk`, or `Storage` so high
 guest-memory values are not mistaken for host CPU or disk saturation.
 
 ## Prometheus note

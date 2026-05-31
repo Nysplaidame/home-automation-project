@@ -46,9 +46,10 @@ Validation note, 2026-05-31:
 - Mobile HA access works through Tailscale, but Grafana and Uptime Kuma on
   `192.168.60.10` are not reachable from mobile.
 - LAN access to `192.168.60.10:3000` and `192.168.60.10:3001` works.
-- The likely missing piece is the monitoring VM host route plus docker-host UFW
-  route allowances. Apply the updated target advertisement and approve the new
-  `192.168.60.10/32` route in Tailscale before retesting from mobile data.
+- docker-host now advertises `192.168.60.10/32` and has routed UFW allowances
+  for ports `3000` and `3001`.
+- Approve the new `192.168.60.10/32` route in Tailscale admin if it is pending,
+  then retest from mobile data.
 
 ## Target access
 

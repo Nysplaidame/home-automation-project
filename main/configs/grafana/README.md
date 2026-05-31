@@ -18,19 +18,19 @@ The durable identity is the dashboard `uid`.
 
 Current source exports:
 
+- `dashboards/proxmox-resource-overview.json`
 - `dashboards/service-availability-overview.json`
 - `dashboards/network-dns-overview.json`
 - `dashboards/security-posture-overview.json`
 
 Known missing source exports:
 
-- `Proxmox Resource Overview`
 - `Home Automation Overview`
 - `NAS Resource Overview`
 
-Re-export these after Grafana admin access is available. In particular,
-`Proxmox Resource Overview` should label VM percent cards as `CPU`, `Guest
-memory`, `Root disk`, or equivalent rather than showing bare percentages.
+Re-export these after Grafana admin access is available. Keep resource
+dashboards labelled by metric type, such as `CPU`, `Guest RAM`, `RAM Pressure`,
+or `Root Disk`, rather than showing bare percentages.
 
 Operational notes:
 
