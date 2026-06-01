@@ -43,13 +43,17 @@ Live state, 2026-05-28:
 
 Validation note, 2026-05-31:
 
-- Mobile HA access works through Tailscale, but Grafana and Uptime Kuma on
-  `192.168.60.10` are not reachable from mobile.
+- Mobile HA access works through Tailscale, and Grafana/Uptime Kuma on
+  `192.168.60.10` were confirmed reachable from mobile after route approval.
 - LAN access to `192.168.60.10:3000` and `192.168.60.10:3001` works.
 - docker-host now advertises `192.168.60.10/32` and has routed UFW allowances
   for ports `3000` and `3001`.
-- Approve the new `192.168.60.10/32` route in Tailscale admin if it is pending,
-  then retest from mobile data.
+- OpenWrt now allows docker-host `192.168.20.102` to reach the monitoring VM
+  only on Grafana/Kuma ports `3000` and `3001` for this routed path.
+- The new `192.168.60.10/32` route is approved in Tailscale admin.
+- During validation, the GL-MT6000 temporary `wwan_uplink` was found missing;
+  restoring it and restarting `tailscaled` on docker-host restored Tailscale
+  control/DERP sync.
 
 ## Target access
 
@@ -90,6 +94,13 @@ ufw route allow in on tailscale0 out on eth0 to 192.168.60.10 port 3001 proto tc
 Routed HA/OMV/monitoring traffic uses UFW route rules, not local input-only
 rules. Do not expose InfluxDB (`8086`) over Tailscale unless a separate
 admin-only need is documented.
+
+OpenWrt must also allow the narrow routed monitoring path from docker-host to
+the monitoring VM:
+
+```text
+192.168.20.102 -> 192.168.60.10 tcp/3000,3001
+```
 
 ## Validation
 

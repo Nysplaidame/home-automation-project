@@ -48,23 +48,26 @@ The next work target is to clear every currently-known item that needs the
 operator's hands, phone, UI session, hardware choice, or approval. Do these
 before opening another broad service deployment thread.
 
-1. Approve and test the new Tailscale monitoring route.
+1. Completed: approve and test the new Tailscale monitoring route.
    - docker-host already advertises `192.168.60.10/32`.
    - docker-host already has routed UFW allowances for Grafana `3000` and Uptime
      Kuma `3001`.
-   - User action: in the Tailscale admin console, approve `192.168.60.10/32` if
-     it is pending for `docker-host`, then test from mobile data:
-     `http://192.168.60.10:3000` and `http://192.168.60.10:3001`.
+   - User approved `192.168.60.10/32` for `docker-host` in the Tailscale admin
+     console.
+   - Mobile-data Tailscale access now works for Home Assistant, Grafana, and
+     Uptime Kuma:
+     `http://192.168.20.101:8123`, `http://192.168.60.10:3000`, and
+     `http://192.168.60.10:3001`.
    - Context docs:
      - `main/docs/procedures/tailscale_remote_access_guide.md`
      - `main/docs/troubleshooting/troubleshooting_reference.md`
      - `main/docs/reference/access-matrix.md`
      - `main/docs/reference/service-matrix.md`
 
-2. Apply the HA Monitoring dashboard direct-link snippet.
-   - User action: use the Home Assistant UI to apply
-     `main/configs/home-assistant/lovelace/monitoring-grafana-links.yaml` to the
-     live Monitoring dashboard, or recreate the same Markdown card manually.
+2. Completed: apply the HA Monitoring dashboard direct-link snippet.
+   - User used the Home Assistant UI to apply
+     `main/configs/home-assistant/lovelace/monitoring-grafana-links.yaml`.
+   - Confirmed visible in another dashboard tab on 2026-06-01.
    - HA embedding remains parked; this is direct links only.
    - Context docs:
      - `main/docs/procedures/grafana_architecture_dashboards.md`
@@ -414,7 +417,35 @@ Monitoring/mobile route and Grafana label pass on 2026-05-31:
 - docker-host UFW route rules added:
   - `tailscale0 -> eth0 -> 192.168.60.10:3000/tcp`
   - `tailscale0 -> eth0 -> 192.168.60.10:3001/tcp`
-- Tailscale admin console approval may still be required for the new route.
+- Follow-up on 2026-05-31 added the matching OpenWrt source/live rule:
+  `192.168.20.102 -> 192.168.60.10 tcp/3000,3001`.
+- Validation after the OpenWrt rule:
+  - docker-host guest-agent curl to Grafana API returned `200`
+  - docker-host guest-agent curl to Uptime Kuma returned `302`
+  - router `test-connectivity.ps1 -RouterIp 192.168.10.1` returned
+    `PASS=85/WARN=0/FAIL=0`
+- Tailscale admin console approval is complete and mobile access was confirmed
+  working after temporary uplink recovery.
+- Recovery note, later 2026-05-31:
+  - User approved the `192.168.60.10/32` route in Tailscale admin.
+  - Laptop HA/Grafana/Kuma timeouts were partly local Windows routing: Wi-Fi
+    default route outranked management Ethernet. Persistent Windows routes were
+    added on the laptop for `192.168.20.0/24` and `192.168.60.0/24` via
+    `192.168.10.1` on Ethernet.
+  - Phone/Tailscale HA timeout was caused by the GL-MT6000 temporary
+    `wwan_uplink` being absent, leaving the router without an upstream default
+    route and docker-host unable to sync with Tailscale control/DERP.
+  - Ran `main\tools\router-deploy\uplink.ps1 -Action enable -RouterIp
+    192.168.10.1`; router default returned via upstream gateway
+    `192.168.1.254`, and public DNS/ping worked again.
+  - Restarted `tailscaled` on docker-host after upstream recovery. docker-host
+    then reached Tailscale control, `tailscale netcheck` reported UDP/IPv4
+    working, and `tailscale ping oneplus-9-pro` returned pongs via DERP.
+  - Local validation after recovery: HA `192.168.20.101:8123`, Grafana
+    `192.168.60.10:3000`, and Uptime Kuma `192.168.60.10:3001` were open from
+    the laptop; docker-host direct curls returned HA `200`, Grafana `200`, and
+    Kuma `302`; router `test-connectivity.ps1` remained `PASS=85/WARN=0/FAIL=0`.
+  - User confirmed phone/mobile-data access is working with Tailscale enabled.
 - Grafana admin credentials were read locally on the monitoring VM from
   `/root/monitoring-stack-credentials.txt` without exposing secrets in chat.
 - Grafana API confirmed `Proxmox Resource Overview`, `Home Automation Overview`,
@@ -484,15 +515,13 @@ or hardware observation.
 
 Recommended order:
 
-1. Tailscale admin route approval and mobile test for Grafana/Kuma.
-2. HA UI application of the Monitoring dashboard direct-link snippet.
-3. Decide/execute docker-host patch window if the user approves timing.
-4. Record user-reported VentSys HA-copy and valve-2 wiring findings, then act on
+1. Decide/execute docker-host patch window if the user approves timing.
+2. Record user-reported VentSys HA-copy and valve-2 wiring findings, then act on
    any software/docs follow-up.
-5. Keep Grafana/Kuma embedding parked behind direct-link usage until HTTPS/same-origin path is intentionally implemented.
-6. Keep WireGuard dormant fallback posture unless there is a deliberate decision
+3. Keep Grafana/Kuma embedding parked behind direct-link usage until HTTPS/same-origin path is intentionally implemented.
+4. Keep WireGuard dormant fallback posture unless there is a deliberate decision
    to roll out fallback clients.
-7. Keep Mullvad egress hardening for SearXNG/Whoogle parked until storage and
+5. Keep Mullvad egress hardening for SearXNG/Whoogle parked until storage and
    backup priorities are complete.
 
 ## Possible App Candidates After Tightening

@@ -18,7 +18,7 @@ in the tailnet admin console.
 
 | Path | Allowed target | Denied target | Enforcement |
 |---|---|---|---|
-| Tailscale daily access | docker-host node services, HA `192.168.20.101/32`, OMV `192.168.40.50/32`, Grafana/Kuma host `192.168.60.10/32` on ports `3000`/`3001` | broad VLAN routes, monitoring InfluxDB `8086` | Tailscale route approval + ACLs + docker-host UFW |
+| Tailscale daily access | docker-host node services, HA `192.168.20.101/32`, OMV `192.168.40.50/32`, Grafana/Kuma host `192.168.60.10/32` on ports `3000`/`3001` | broad VLAN routes, monitoring InfluxDB `8086` | Tailscale route approval + ACLs + docker-host UFW + narrow OpenWrt allow rules |
 | WireGuard dormant fallback | LAN, HA host, OMV host, DMZ fallback | Management, NVR, Printers, IoT, broad Storage VLAN | OpenWrt `vpn_clients` firewall zone |
 | Management VLAN | all local admin targets | WAN-exposed admin | OpenWrt + service auth |
 | Guest VLAN | internet only through router DNS | all internal VLANs | OpenWrt |
@@ -54,6 +54,7 @@ WireGuard fallback activation/deactivation governance is defined in
 | HA | IoT | 6053, 3232/tcp | ESPHome API/OTA |
 | docker-host | P1S | 8883, 21/tcp | Bambuddy |
 | docker-host | Monitoring VM | 8086/tcp | Telegraf metrics export to InfluxDB bucket `dockerhost` |
+| docker-host | Monitoring VM | 3000, 3001/tcp | Tailscale-routed mobile access to Grafana and Uptime Kuma only |
 | docker-host | WAN | Tailscale, AdGuard upstream, and approved pre-flight search egress only | No general Docker pulls outside maintenance |
 | Frigate | OMV | 22, 445, 2049/tcp | Recording/archive storage |
 | Frigate | HA | 8883/tcp | MQTT TLS |
