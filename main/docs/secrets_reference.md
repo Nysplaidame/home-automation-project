@@ -267,7 +267,7 @@ Run through this after any suspected compromise, or annually as good practice:
 ## Paper backup
 
 Print or handwrite the following. Store in a locked location physically
-separate from the hardware (not the same room as the MINIX):
+separate from the hardware (not the same room as the MINISFORUM host):
 
 1. Router admin password
 2. Proxmox root password

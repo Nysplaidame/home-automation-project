@@ -54,7 +54,7 @@ Create storage in OMV using the web UI:
 | `immich` | Immich upload/library storage |
 | `configs` | Project config and vault backup target |
 
-Keep Frigate live recordings on MINIX local storage first. Move to OMV only
+Keep Frigate live recordings on MINISFORUM local storage first. Move to OMV only
 after camera retention, disk load, and restore expectations are clear.
 
 ---

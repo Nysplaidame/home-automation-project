@@ -114,7 +114,7 @@ Proxmox:
 - SSH root login is key-only/prohibit-password.
 - Temporary local Proxmox backups are scheduled daily at `02:00` for VMs
   `100/101/102/103`, keep `2`, until the NAS backup target is live.
-- Longer-term storage direction: keep fast local recovery on the MINIX for VM/system
+- Longer-term storage direction: keep fast local recovery on the MINISFORUM host for VM/system
   backups, move HA scheduled backups to the NAS when available, and keep Frigate
   "live" recordings local first with NAS archiving later.
 

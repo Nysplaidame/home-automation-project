@@ -1,5 +1,5 @@
-# iGPU Passthrough Guide — Intel i3-N350 Xe Graphics → Frigate VM
-# Host: Proxmox on MINIX NEO Z350
+# iGPU Passthrough Guide — Intel Core Ultra 5 125H iGPU → Frigate VM
+# Host: Proxmox on MINISFORUM M1 Pro-125H
 # Target VM: 101 (frigate-nvr, VLAN 30, 192.168.30.20)
 # Goal: OpenVINO AI detection + VA-API hardware video decode in Frigate
 #
@@ -8,8 +8,14 @@
 #   1. VA-API  — hardware FFmpeg decode (4x 1080p streams, lower CPU load)
 #   2. OpenVINO — GPU-accelerated AI object detection (person/car/etc)
 # Both are served by passing the Intel GPU's PCI device into the Frigate VM.
-# This is simpler than VFIO passthrough for discrete GPUs because the i3-N350's
-# Xe iGPU sits alone in its IOMMU group on most systems — no ACS override needed.
+# This is simpler than VFIO passthrough for discrete GPUs because Intel integrated
+# GPUs often sit in a straightforward IOMMU group on small x86 systems.
+#
+# NOTE:
+# The MINISFORUM M1 Pro-125H also includes an Intel NPU. This guide is for the
+# existing VM 101 iGPU/OpenVINO path, not NPU passthrough. NPU offload should be
+# documented separately because it likely uses `/dev/accel/accel0` and an
+# LXC-oriented device mapping rather than PCI GPU passthrough into the VM.
 #
 # PREREQUISITES:
 #   - proxmox_setup_guide.md Phase C complete (intel_iommu=on iommu=pt in grub)
@@ -55,10 +61,11 @@ ls /sys/kernel/iommu_groups/ | wc -l
 # List all GPU-related PCI devices
 lspci | grep -i "vga\|display\|3d\|gpu"
 # Expected output (address will match — device name may vary):
-#   00:02.0 Display controller: Intel Corporation Alder Lake-N [UHD Graphics]
+#   00:02.0 VGA compatible controller: Intel Corporation Meteor Lake-P [Intel Graphics]
 ```
 
-Note the PCI address — almost certainly `00:02.0` on the N350.
+Note the PCI address. It is commonly `00:02.0` for the integrated GPU, but
+verify it on the live Proxmox host before adding passthrough.
 
 Now confirm it has a clean IOMMU group (ideally alone or with only iGPU sub-functions):
 ```bash
@@ -70,7 +77,7 @@ echo "iGPU IOMMU group: $(ls /sys/bus/pci/devices/${GPU_ADDR}/iommu_group/device
 ```
 
 What you want to see: only `0000:00:02.0` in the group (iGPU alone).
-What causes problems: other devices sharing the same group (rare on N350 but check).
+What causes problems: unrelated devices sharing the same group.
 
 If other devices share the group, passthrough still works on most systems — the
 `iommu=pt` flag we set helps isolate groups. Only a problem if a critical

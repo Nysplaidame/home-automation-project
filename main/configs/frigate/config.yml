@@ -46,7 +46,7 @@ detectors:
   #
   cpu1:          # ACTIVE: remove when switching to Coral or OpenVINO
     type: cpu
-    num_threads: 3   # i3-N350 has 4 cores - leave 1 for OS
+    num_threads: 2   # VM 101 currently has 2 vCPU; switch to OpenVINO when acceleration is enabled
   #
   # OPTION A - Coral USB TPU:
   # coral:

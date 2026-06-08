@@ -15,7 +15,7 @@ status: active
 | Admin laptop | Your local workstation on a trusted network | PowerShell, Windows Terminal, Linux shell, or browser |
 | OpenWrt router over SSH | GL-MT6000 router | SSH prompt for `root@192.168.10.1` after management VLAN is live |
 | OpenWrt LuCI | Router web UI | Browser at `http://192.168.10.1/` or the recovery IP during early setup |
-| Proxmox host shell | MINIX NEO Z350 Proxmox host | Shell as `root` on `192.168.10.10` or Proxmox web shell |
+| Proxmox host shell | MINISFORUM M1 Pro-125H Proxmox host | Shell as `root` on `192.168.10.10` or Proxmox web shell |
 | Home Assistant UI | HAOS VM 100 | Browser at `http://192.168.20.101:8123/` |
 | Home Assistant Terminal add-on | HAOS Terminal & SSH add-on | Shell prompt inside HA, usually `/config` available |
 | Frigate VM over SSH | Debian VM 101 | SSH prompt on `192.168.30.20` |

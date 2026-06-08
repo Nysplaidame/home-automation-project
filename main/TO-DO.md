@@ -4,7 +4,7 @@ description: Implementation tasks by phase — updated May 2026
 tags: [tasks, implementation]
 aliases: [TODO, Tasks]
 created: 2025-09-15
-modified: 2026-05-31
+modified: 2026-06-08
 type: task-list
 status: active
 ---
@@ -44,7 +44,7 @@ Planning baseline until explicitly revalidated:
 7. [x] Deploy `dashboards/ventsys-card-wrapper.html` to HA and verify the VentSys dashboard works inside a Lovelace iframe card
 8. [x] Explicitly park embedded Grafana-in-HA work behind direct-link-only access until HTTPS/reverse proxy same-origin path is in place
 9. [x] Add an external health signal for the monitoring VM so monitoring failure is visible even when Uptime Kuma itself is down
-10. [ ] Configure OMV-backed Home Assistant backups once NAS storage is live, while keeping fast local Proxmox recovery on the MINIX
+10. [ ] Configure OMV-backed Home Assistant backups once NAS storage is live, while keeping fast local Proxmox recovery on the MINISFORUM host
 11. [ ] Start Frigate properly after `.env`, RTSP details, and MQTT credentials are ready; keep HTTPS/SSL and WebRTC audio as required prerequisites
 12. [ ] Expand VentSys beyond valve 1: finish the MQTT TLS migration path, then flash/adopt the remaining ESPHome devices
 13. [x] Deploy AdGuard Home on docker-host per `docs/decisions/04-dns-resolver-and-adblocking.md`
@@ -206,7 +206,7 @@ must work without HACS.
 ## Phase 2 — Core infrastructure ⏳
 
 ### Proxmox
-- [x] Install Proxmox VE on MINIX
+- [x] Install Proxmox VE on MINISFORUM M1 Pro-125H
 - [x] Configure vmbr0 VLAN-aware bridge, trunk on enp1s0
 - [x] Set static IP 192.168.10.10 on vmbr0.10
 - [ ] Enable IOMMU (intel_iommu=on) for iGPU passthrough
@@ -316,7 +316,7 @@ must work without HACS.
 - [ ] Purchase or allocate OMV-capable NAS hardware and storage drive(s)
 - [ ] Follow `omv_nas_setup_guide.md` phases 1–7
 - [ ] Configure NFS exports (Frigate, HA, Immich, configs shares)
-- [ ] Keep Frigate "live" recordings on MINIX local storage first; add NAS archiving after the NAS is online
+- [ ] Keep Frigate "live" recordings on MINISFORUM local storage first; add NAS archiving after the NAS is online
 - [ ] Mount NAS in Frigate VM (`/mnt/nas/frigate`) and update docker-compose.yml volume
 - [ ] Add OMV as HA network storage → verify backup writes successfully
 - [ ] Configure robocopy or rsync scheduled task for vault backup to NAS

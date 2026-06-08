@@ -1,6 +1,6 @@
 # Frigate NVR VM — Setup Guide
 **VM ID:** 101  **IP:** 192.168.30.20 — VLAN 30 (NVR)
-**Host:** Proxmox on MINIX NEO Z350
+**Host:** Proxmox on MINISFORUM M1 Pro-125H
 **Cameras:** 4x IP cameras at 192.168.30.21–24
 **Storage:** Local SSD + NAS at 192.168.40.50
 
@@ -436,9 +436,15 @@ Add the card to a dashboard for a full camera view with event timeline.
 ## Phase 6 — Hardware acceleration (Intel iGPU + OpenVINO)
 
 With 4 camera streams and AI detection, hardware acceleration is strongly
-recommended. The i3-N350's Intel Xe GPU supports both VA-API hardware video
-decode and OpenVINO GPU-accelerated object detection — together they reduce
+recommended. The MINISFORUM M1 Pro-125H's Intel Core Ultra 5 125H platform
+provides Intel integrated GPU resources for VA-API hardware video decode and
+OpenVINO GPU-accelerated object detection — together they reduce
 CPU load from ~70-90% down to ~10-30%.
+
+The host also has an Intel NPU. The current documented production path remains
+VM 101 plus iGPU passthrough. A future NPU path would likely require a separate
+LXC-oriented device-mapping design for `/dev/accel/accel0`, plus Frigate
+OpenVINO `device: NPU` validation.
 
 **Full setup guide:** `scripts/setup/proxmox/igpu_passthrough_guide.md`
 

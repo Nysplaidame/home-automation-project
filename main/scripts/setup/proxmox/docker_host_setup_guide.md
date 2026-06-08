@@ -4,7 +4,7 @@
 **Hostname:** docker-host  
 **IP:** 192.168.20.102  
 **VLAN:** 20, Automation / trusted app services  
-**Host:** Proxmox on MINIX NEO Z350  
+**Host:** Proxmox on MINISFORUM M1 Pro-125H
 **Purpose:** Central Docker Compose host for lightweight trusted internal containers and Tailscale host-route access
 **First workload:** Bambuddy, exposed at `http://192.168.20.102:8000`
 

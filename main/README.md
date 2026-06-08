@@ -4,7 +4,7 @@ description: Fire safety ventilation, NVR surveillance, secure network, and home
 tags: [home-automation, project-overview]
 aliases: [Project Overview]
 created: 2025-09-15
-modified: 2026-05-30
+modified: 2026-06-08
 type: project-overview
 status: active
 ---
@@ -25,7 +25,7 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 | Network design | ✅ Complete | 10-segment architecture, all configs written and audited |
 | Router configs | ✅ Live | vlan/firewall/dhcp/wireless deployed through router-deploy first-flight |
 | Router deployment | ✅ Live | GL-MT6000 stable on management IP 192.168.10.1 |
-| Proxmox | ✅ Live | MINIX NEO Z350 on 192.168.10.10, Proxmox VE 9 |
+| Proxmox | ✅ Live | MINISFORUM M1 Pro-125H on 192.168.10.10, Proxmox VE 9 |
 | HA VM | ✅ Live | HAOS VM 100 at 192.168.20.101, VentSys packages staged |
 | Frigate VM | ⏳ Shell live / app unbuilt | VM 101 on VLAN 30 has Debian base and Docker staging; Frigate app is not live until cameras, RTSP credentials, HTTPS, and audio path are ready |
 | Docker host | ✅ Live | VM 103 on VLAN 20, central trusted Docker host; Bambuddy, Tier 1 apps, ntfy, and Watchtower monitor-only pre-flight live |
@@ -44,7 +44,7 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 
 | Device | Model | Status |
 |---|---|---|
-| Compute | MINIX NEO Z350-0dB (i3-N350, 16GB RAM, 512GB SSD) | ✅ Owned |
+| Compute | MINISFORUM M1 Pro-125H (Intel Core Ultra 5 125H, 32GB RAM, 1TB NVMe) | ✅ Owned |
 | Router | GL.iNet GL-MT6000 (OpenWrt, WiFi 6) | ✅ Owned and deployed |
 | NAS | OMV-capable storage host | ⏳ Needed |
 | PoE switch | 8-port Gigabit PoE+ | ⏳ Needed |

@@ -431,7 +431,7 @@ Decided:
 
 ### Hardware Context
 - **Router:** GL.iNet GL-MT6000 with OpenWrt
-- **Proxmox Server:** MINIX NEO Z350-0dB, single Ethernet connection
+- **Proxmox Server:** MINISFORUM M1 Pro-125H, single Ethernet connection
 - **Network:** 4-VLAN security architecture for home automation safety
 
 ### Security Model

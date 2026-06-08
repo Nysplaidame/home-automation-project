@@ -2,7 +2,7 @@
 **VM ID:** 100
 **Name:** home-assistant
 **IP:** 192.168.20.101 — VLAN 20 (Automation)
-**Host:** Proxmox on MINIX NEO Z350, 192.168.10.10
+**Host:** Proxmox on MINISFORUM M1 Pro-125H, 192.168.10.10
 
 > **Prerequisite:** VM 100 already created and HAOS booting per
 > `scripts/setup/proxmox/proxmox_setup_guide.md` Phases D and F.

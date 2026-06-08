@@ -347,7 +347,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File <repo-root>\main\tools\route
 
 ### Hardware
 - Router: GL.iNet GL-MT6000 (OpenWrt), lan1-lan5
-- Server: MINIX NEO Z350-0dB (Proxmox, wired mgmt `enp86s0`)
+- Server: MINISFORUM M1 Pro-125H (Proxmox, wired mgmt `enp86s0`)
 - NAS: OMV at `192.168.40.50` via lan4 (VLAN 40)
 
 ### VLAN architecture

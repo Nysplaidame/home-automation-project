@@ -31,7 +31,7 @@ that can be rebuilt or debugged independently.
 | Host | Role | Notes |
 |---|---|---|
 | GL-MT6000 OpenWrt | Router, DHCP, DNS policy, firewall, dormant WireGuard | Router-deploy remains router-only |
-| Proxmox MINIX | VM host | Runs HAOS, Frigate, monitoring, docker-host |
+| Proxmox MINISFORUM M1 Pro-125H | VM host | Runs HAOS, Frigate, monitoring, docker-host |
 | VM 100 `home-assistant` | HAOS appliance | Not collapsed into Docker |
 | VM 101 `frigate-nvr` | Camera/NVR VM | Stays on VLAN 30 |
 | VM 103 `docker-host` | Docker Compose app host and Tailscale subnet router | `/opt/stacks/<service>/` |

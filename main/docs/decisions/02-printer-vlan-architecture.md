@@ -94,7 +94,7 @@ Bambuddy is the first Docker Compose workload at `/opt/stacks/bambuddy`.
   service block entirely.
 - VM 103 can host future lightweight trusted internal containers without
   collocating them with Frigate, HAOS, NAS/storage, or DMZ-facing services.
-- Hardware headroom is sufficient: MINIX has 16GB RAM. VM 103 requires only 1GB RAM
+- Hardware headroom is sufficient: the MINISFORUM M1 Pro-125H has 32GB RAM. VM 103 requires only 1GB RAM
   and 1 core. Current VM allocation (HA 4GB + Frigate 4GB + Monitoring 2GB) = 10GB,
   leaving 6GB. VM 103 uses 1GB, leaving 5GB headroom.
 

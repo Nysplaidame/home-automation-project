@@ -12,7 +12,7 @@ status: active
 
 ## Purpose
 
-Install and harden Proxmox on the MINIX host, configure the VLAN-aware bridge,
+Install and harden Proxmox on the MINISFORUM M1 Pro-125H host, configure the VLAN-aware bridge,
 and create the VM shells used by Home Assistant, Frigate, monitoring, and
 docker-host.
 
@@ -23,7 +23,7 @@ Proxmox host shell at `192.168.10.10` after network setup.
 ## Prerequisites
 
 - Router phase validated.
-- MINIX connected to the router trunk port.
+- MINISFORUM host connected to the router trunk port.
 - Proxmox installer media prepared.
 - `<ADMIN_SSH_PUBLIC_KEY>` available.
 

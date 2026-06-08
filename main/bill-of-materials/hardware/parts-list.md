@@ -4,7 +4,7 @@ description: Comprehensive hardware requirements list organized by system compon
 tags: [hardware, parts-list, shopping-list]
 aliases: [Hardware Parts List, Shopping List]
 created: 2025-09-17
-modified: 2026-05-25
+modified: 2026-06-06
 type: hardware-specification
 status: active
 ---
@@ -39,12 +39,12 @@ status: active
 
 |Component|Model|Specifications|Purpose|
 |---|---|---|---|
-|**Mini PC**|MINIX NEO Z350-0dB|Intel i3-N350, 16GB RAM, 512GB SSD|Proxmox hypervisor host|
+|**Mini PC**|MINISFORUM M1 Pro-125H|Intel Core Ultra 5 125H, 32GB RAM, 1TB NVMe|Proxmox hypervisor host|
 |**Operating System**|Proxmox VE installer|Bare-metal hypervisor|Base OS for virtualization|
 
 ### Core Computing Checklist:
 
-- [x] MINIX NEO Z350-0dB
+- [x] MINISFORUM M1 Pro-125H
 - [x] Proxmox VE installed
 
 **System Role:** Runs Proxmox virtualization with Home Assistant VM 100, Frigate VM 101, docker-host VM 103, and future VMs.

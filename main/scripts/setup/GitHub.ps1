@@ -48,7 +48,7 @@ A comprehensive home automation system focused on fire safety and safe ventilati
 
 ## System Overview
 - **Network:** 4-VLAN security-segmented architecture
-- **Hardware:** MINIX mini PC with Proxmox virtualization
+- **Hardware:** MINISFORUM M1 Pro-125H mini PC with Proxmox virtualization
 - **Safety:** PrintAirPipe smart ventilation with fire detection
 - **Monitoring:** Frigate NVR with isolated CCTV network
 - **AI:** Claude MCP integration for intelligent automation

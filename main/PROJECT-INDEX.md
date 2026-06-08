@@ -4,7 +4,7 @@ description: Master navigation hub for all project documentation
 tags: [index, navigation, home-automation]
 aliases: [Project Index, Documentation Hub]
 created: 2025-09-15
-modified: 2026-05-30
+modified: 2026-06-08
 type: index
 status: active
 ---
@@ -108,7 +108,7 @@ status: active
 - [[scripts/setup/router/wireguard_vpn_guide.md]] — client setup and key management
 
 ### 2. Proxmox + VMs
-- [[scripts/setup/proxmox/proxmox_setup_guide.md]] — MINIX hardware, network config, IOMMU
+- [[scripts/setup/proxmox/proxmox_setup_guide.md]] — MINISFORUM M1 Pro-125H hardware, network config, IOMMU
 - [[scripts/setup/proxmox/ha_vm_setup_guide.md]] — HAOS onboarding through VentSys integration
 - [[scripts/setup/proxmox/frigate_vm_setup_guide.md]] — Debian + Docker + Frigate + iGPU
 

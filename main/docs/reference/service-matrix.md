@@ -18,7 +18,7 @@ remote exposure, backup expectations, monitoring, and runbook coverage.
 | Service | Host | IP / VLAN | Port(s) | Local URL / DNS | Tailscale exposure | Backup / data | Monitoring | Runbook |
 |---|---|---:|---|---|---|---|---|---|
 | OpenWrt router | GL-MT6000 | `192.168.10.1` / VLAN 10 mgmt | 80/443, 22 | `router.home.local` | No daily exposure; WireGuard fallback endpoint on WAN | router-deploy source + generated artifacts | ping, DNS, firewall tests | `docs/troubleshooting/troubleshooting_reference.md` |
-| Proxmox | MINIX | `192.168.10.10` / VLAN 10 | 8006, 22 | `proxmox.home.local` | Not advertised | local Proxmox backups, later NAS copy | Uptime Kuma | `scripts/setup/proxmox/proxmox_setup_guide.md` |
+| Proxmox | MINISFORUM M1 Pro-125H | `192.168.10.10` / VLAN 10 | 8006, 22 | `proxmox.home.local` | Not advertised | local Proxmox backups, later NAS copy | Uptime Kuma | `scripts/setup/proxmox/proxmox_setup_guide.md` |
 | Home Assistant | VM 100 | `192.168.20.101` / VLAN 20 | 8123, 8883 MQTT | `homeassistant.home.local` | `192.168.20.101/32` via docker-host | HA backups to OMV | Uptime Kuma, HA checks | `scripts/setup/proxmox/ha_vm_setup_guide.md` |
 | Frigate | VM 101 | `192.168.30.20` / VLAN 30 | 8971, 8554, 8555 | `frigate.home.local` | Not advertised | local first, OMV archive later | parked until cameras live | `scripts/setup/proxmox/frigate_vm_setup_guide.md` |
 | Monitoring stack | VM 102 | `192.168.60.10` / VLAN 60 | 3000, 3001, 8086 | monitoring dashboard links in HA | Host route `192.168.60.10/32` advertised via docker-host for Grafana/Kuma only; do not expose InfluxDB | stack config + Influx backups | Uptime Kuma self-monitor plus HA-side external health sensors | `scripts/setup/proxmox/monitoring_vm_setup_guide.md` |

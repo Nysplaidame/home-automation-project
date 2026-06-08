@@ -1,5 +1,5 @@
 # Proxmox VE — Setup Guide
-**Hardware:** MINIX/AI Series mini PC (observed: Intel Core Ultra 5 125H, 16GB RAM, 1TB NVMe)
+**Hardware:** MINISFORUM M1 Pro-125H (Intel Core Ultra 5 125H, 32GB RAM, 1TB NVMe)
 **Target host IP:** 192.168.10.10 — VLAN 10 (Management)
 **First VM:** Home Assistant OS — 192.168.20.101, VLAN 20 (Automation)
 
@@ -11,22 +11,22 @@
 > Current setup flow:
 > - **Phase A** - use `lan2` or local console for initial Proxmox access
 > - **Phase B** - configure the VLAN-aware bridge and permanent VLAN 10 host IP
-> - **Phase F** - move the MINIX to `lan1` and verify the trunk
+> - **Phase F** - move the MINISFORUM host to `lan1` and verify the trunk
 
 ---
 
 ## Phase A — Find Proxmox and reach the web UI
 
-### A1 — Connect the MINIX for initial setup
+### A1 — Connect the MINISFORUM host for initial setup
 
-Preferred current path: plug the MINIX ethernet into **lan2** on the GL-MT6000.
+Preferred current path: plug the MINISFORUM ethernet into **lan2** on the GL-MT6000.
 `lan2` is VLAN 10 untagged and should provide a temporary DHCP address in
 `192.168.10.x`.
 
 Do **not** start on `lan1`. `lan1` is the tagged Proxmox trunk; an ordinary
 untagged host config may get no DHCP lease there.
 
-Fallback path: use monitor + keyboard directly on the MINIX if network access is
+Fallback path: use monitor + keyboard directly on the MINISFORUM host if network access is
 not available yet.
 
 ### A2 — Find the IP Proxmox assigned itself
@@ -34,7 +34,7 @@ not available yet.
 **Option 1 — home router DHCP table**
 Log into your home router admin page. Look for a device named `proxmox` or `pve`.
 
-**Option 2 — monitor + keyboard directly on the MINIX**
+**Option 2 — monitor + keyboard directly on the MINISFORUM host**
 At the Proxmox boot screen you'll see the IP. Or log in as `root` and run:
 ```bash
 ip addr show
@@ -104,7 +104,7 @@ EOF
 ```
 
 This final config expects the cable to move to **lan1** after `ifreload -a`.
-If the MINIX is still on `lan2`, the tagged `vmbr0.10` interface will not match
+If the MINISFORUM host is still on `lan2`, the tagged `vmbr0.10` interface will not match
 the untagged access-port behavior.
 
 ### B3 — Apply
@@ -116,7 +116,7 @@ apt-get install -y ifupdown2
 ifreload -a
 ```
 
-You will lose the temporary `lan2` DHCP address. Move the MINIX ethernet cable
+You will lose the temporary `lan2` DHCP address. Move the MINISFORUM ethernet cable
 to **lan1** on the GL-MT6000, keep your laptop on **lan2**, then reconnect at
 `https://192.168.10.10:8006`.
 
@@ -478,7 +478,7 @@ Frigate NVR setup continues in `scripts/setup/proxmox/frigate_vm_setup_guide.md`
 | Compression | `ZSTD` |
 | Max backups | `3` |
 
-> **F-13 — Space planning:** The MINIX has a 512GB SSD shared between Proxmox,
+> **F-13 — Space planning:** The MINISFORUM M1 Pro-125H has a 1TB NVMe shared between Proxmox,
 > local-lvm (VM disks), and local (backups/ISOs). Snapshot backups are
 > compressed but still significant — plan accordingly:
 >
@@ -510,7 +510,7 @@ Proxmox trunk after the VLAN-aware bridge is configured.
 
 ### F1 — Move the cable
 
-Plug the MINIX into **lan1** on the GL-MT6000. This port carries tagged VLANs
+Plug the MINISFORUM host into **lan1** on the GL-MT6000. This port carries tagged VLANs
 `10,20,30,35,40,50,60,70`.
 
 ### F2 — Confirm no temporary access interface remains
@@ -562,7 +562,7 @@ Or: `HA web UI → Settings → System → Network → IPv4 → Static`
 | Access method | URL | Available |
 |---|---|---|
 | Proxmox (temporary) | `https://<lan2-dhcp-ip>:8006` | Before trunk config, while plugged into lan2 |
-| Proxmox (permanent) | `https://192.168.10.10:8006` | After moving MINIX to lan1 trunk |
+| Proxmox (permanent) | `https://192.168.10.10:8006` | After moving MINISFORUM host to lan1 trunk |
 | Home Assistant (local) | `http://192.168.20.101:8123` | After VM 100 is running on VLAN 20 |
 | Home Assistant (remote) | `http://192.168.20.101:8123` via WireGuard | After VPN setup |
 
@@ -579,7 +579,7 @@ Or: `HA web UI → Settings → System → Network → IPv4 → Static`
 - [ ] IOMMU enabled (intel_iommu=on iommu=pt) + grub updated
 - [ ] SSH key added, password auth disabled
 - [ ] No stale `vmbr0.1` temporary interface remains
-- [ ] Proxmox reachable at 192.168.10.10:8006 after moving MINIX to lan1
+- [ ] Proxmox reachable at 192.168.10.10:8006 after moving MINISFORUM host to lan1
 
 **VM 100 — home-assistant**
 - [ ] VM created: q35, OVMF, VirtIO SCSI, VLAN 20
