@@ -4,7 +4,7 @@ description: Master navigation hub for all project documentation
 tags: [index, navigation, home-automation]
 aliases: [Project Index, Documentation Hub]
 created: 2025-09-15
-modified: 2026-06-08
+modified: 2026-06-10
 type: index
 status: active
 ---
@@ -93,6 +93,8 @@ status: active
 ### Fresh rebuild manual suite
 - [[docs/install/START-HERE.md]] — beginner-safe rebuild entrypoint from a blank environment
 - [[docs/install/INSTALL-TO-DO.md]] — comprehensive setup-documentation completion checklist
+- [[docs/install/garage-pi-desktop-setup-guide.md]] — garage Raspberry Pi 5 desktop, NVMe, OLED, project access, and optional AI readiness
+- [[docs/install/oled-screen-setup-guide.md]] — 52Pi/GeeekPi case OLED setup and `minitower_oled.service`
 - [[docs/diagrams/README.md]] — canonical install and architecture diagram library
 - [[docs/install/reference/command-location-legend.md]] — where every command runs
 - [[docs/install/reference/secrets-placeholder-ledger.md]] — central placeholder and secret ledger

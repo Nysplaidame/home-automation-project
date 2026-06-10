@@ -4,7 +4,7 @@ description: Implementation tasks by phase — updated May 2026
 tags: [tasks, implementation]
 aliases: [TODO, Tasks]
 created: 2025-09-15
-modified: 2026-06-08
+modified: 2026-06-10
 type: task-list
 status: active
 ---
@@ -307,7 +307,7 @@ must work without HACS.
 - [ ] Evaluate `mode: restart` on the 12 VentSys HA mode scripts if rapid mode-click queueing causes oscillation in practice
 - [ ] Harden the dashboard page-init valve visual calls so a future script reorder cannot publish `0` to all valve topics on refresh
 - [ ] Revisit `restore_value` behavior for valve position entities so device restarts do not assume `0%` after physical movement
-- [ ] Stand up the garage Pi 4 kiosk for the VentSys dashboard once the display hardware is ready
+- [ ] Stand up the garage Pi 5 desktop/kiosk for the VentSys dashboard using `docs/install/garage-pi-desktop-setup-guide.md` once the display hardware is ready
 
 ---
 

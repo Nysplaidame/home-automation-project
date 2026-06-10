@@ -4,7 +4,7 @@ description: Fresh-rebuild-first manual for replicating the home automation syst
 tags: [install, rebuild, runbook, beginner]
 aliases: [Install Start Here, Rebuild Manual]
 created: 2026-05-24
-modified: 2026-05-25
+modified: 2026-06-10
 type: install-guide
 status: active
 ---
@@ -41,6 +41,8 @@ Use the location names in [command-location-legend.md](reference/command-locatio
 | Reference | Purpose |
 |---|---|
 | [INSTALL-TO-DO.md](INSTALL-TO-DO.md) | Companion checklist for finishing and validating the full manual suite |
+| [garage-pi-desktop-setup-guide.md](garage-pi-desktop-setup-guide.md) | Optional garage Raspberry Pi desktop/operator station, OLED display, project access, and experimental AI readiness |
+| [oled-screen-setup-guide.md](oled-screen-setup-guide.md) | Detailed OLED status display setup used by the garage Pi case |
 | [manual-template.md](reference/manual-template.md) | Required structure for every phase and service manual |
 | [command-location-legend.md](reference/command-location-legend.md) | Names each shell/UI context and how to recognize it |
 | [rebuild-state-matrix.md](reference/rebuild-state-matrix.md) | Defines blank, prepared, installed, configured, validated, and live |

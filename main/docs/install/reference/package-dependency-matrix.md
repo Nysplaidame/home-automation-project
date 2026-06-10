@@ -3,7 +3,7 @@ title: Package Dependency Matrix
 description: Packages and tools required by host during rebuild
 tags: [install, packages, dependencies]
 created: 2026-05-24
-modified: 2026-05-24
+modified: 2026-06-10
 type: reference
 status: active
 ---
@@ -45,3 +45,17 @@ status: active
 | Browser | Web UIs | Load Proxmox, HA, OMV |
 | Git | Repository work | `git --version` |
 | Text editor | Manual config edits | Open repo files |
+
+## Garage Raspberry Pi desktop
+
+| Package | Purpose | Install command | Verify |
+|---|---|---|---|
+| `firefox-esr` | Lean primary browser for HA, VentSys, Proxmox, Grafana, and project UIs | `apt install -y firefox-esr` | `firefox-esr --version` |
+| `git curl wget jq tree rsync zip unzip` | Project files, downloads, API checks, and archive handling | `apt install -y git curl wget jq tree rsync zip unzip` | `git --version && curl --version && jq --version` |
+| `htop btop` | Local resource monitoring | `apt install -y htop btop` | `htop --version && btop --version` |
+| `dnsutils traceroute nmap iperf3 tcpdump` | Network diagnostics from the management VLAN | `apt install -y dnsutils traceroute nmap iperf3 tcpdump` | `dig -v && nmap --version && iperf3 --version` |
+| `mosquitto-clients` | MQTT TLS subscribe/publish diagnostics | `apt install -y mosquitto-clients` | `mosquitto_sub --help` |
+| `cifs-utils smbclient nfs-common` | NAS SMB/NFS client access | `apt install -y cifs-utils smbclient nfs-common` | `smbclient --version && showmount --version` |
+| `python3 python3-venv python3-pip pipx python3-dev` | Isolated Python tooling for OLED, ESPHome, and experiments | `apt install -y python3 python3-venv python3-pip pipx python3-dev` | `python3 --version && pipx --version` |
+| `i2c-tools python3-pil` | Case OLED setup support | `apt install -y i2c-tools python3-pil` | `i2cdetect -V` |
+| `smartmontools nvme-cli` | NVMe health checks | `apt install -y smartmontools nvme-cli` | `smartctl --version && nvme version` |
