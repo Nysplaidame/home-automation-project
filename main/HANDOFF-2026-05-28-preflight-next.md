@@ -87,6 +87,18 @@ before opening another broad service deployment thread.
      then report back.
    - User action: inspect main valve 2 wiring/power; logs suggested the device
      was not powering or actuating, not merely a dashboard/control bug.
+    - New repo-side 360 intake v2 candidates exist at
+      `main/configs/esphome/ventsys_fdm_360_valve_v2_nerdiy.yaml` and
+      `main/configs/esphome/ventsys_sla_360_valve_v2_nerdiy.yaml`.
+      They keep the existing VentSys MQTT/HA contract, target the physical
+      ESP32-C6 board, use the corrected soldered pins (`servo PWM=GPIO0`,
+      `LED data=GPIO1`), park the local touch toggle until C6-compatible input
+      wiring is confirmed, and use Nerdiy's one-sided servo mapping limited to
+      `0-35` with logical endpoints `open=35` and `closed=0`. Buttons, MQTT,
+      and direct number changes now force a servo write even when the optimistic
+      number state is stale. PWM detaches after 1s at the fully open or fully
+      closed endpoints to reduce servo wear; intermediate manual positions keep
+      PWM enabled until a new endpoint command is sent.
    - Context docs:
      - `main/docs/procedures/ventsys_esphome_tls_rollout_guide.md`
      - `main/docs/procedures/ssl_tls_guide.md`

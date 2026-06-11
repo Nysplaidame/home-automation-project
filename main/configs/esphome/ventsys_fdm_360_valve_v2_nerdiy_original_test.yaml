@@ -1,0 +1,228 @@
+# NOTE: 360-degree intake valve original-profile test.
+# This recreates the first bench-working v2 profile for the FDM 360 intake:
+# ESP32-C6 target, Nerdiy's original servo/LED pins, 0-35 travel range,
+# number.set command path, and the earlier PWM shutdown behavior.
+# Expected behavior from the original bench result: servo actuates, but
+# open/close may be inverted and 35 may not represent full travel.
+#
+# SECRETS REQUIRED (secrets.yaml):
+#   wifi_ssid, wifi_pass, mqtt_user, mqtt_pass, mqtt_ca_cert,
+#   api_key, ota_password
+
+substitutions:
+  device_name: ventsys-fdm-360-valve
+  friendly_name: "VentSys FDM 360 Intake Valve"
+  device_ip: "192.168.50.61"
+  mqtt_command_topic: "ventsys/fdm/360/control"
+  mqtt_state_topic:   "ventsys/fdm/360/state"
+  servo_gpio: GPIO21
+  status_led_gpio: GPIO16
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: esp32-c6-devkitc-1
+  framework:
+    type: esp-idf
+
+logger:
+
+api:
+  encryption:
+    key: !secret api_key
+
+ota:
+  platform: esphome
+  password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  use_address: ${device_ip}
+  manual_ip:
+    static_ip: ${device_ip}
+    gateway: 192.168.50.1
+    subnet: 255.255.255.0
+    dns1: 192.168.50.1
+  ap:
+    ssid: "VentSys FDM 360 FB"
+    password: !secret ota_password
+
+captive_portal:
+
+mqtt:
+  broker: 192.168.20.101
+  port: 8883
+  username: !secret mqtt_user
+  password: !secret mqtt_pass
+  discovery: false
+  discover_ip: false
+  certificate_authority: !secret mqtt_ca_cert
+  on_message:
+    - topic: ${mqtt_command_topic}
+      qos: 0
+      then:
+        - number.set:
+            id: valve_position_direct_control_number
+            value: !lambda |-
+              float requested = (float)atoi(x.c_str());
+              if (requested < 0.0f) requested = 0.0f;
+              if (requested > id(valve_opened_position).state) requested = id(valve_opened_position).state;
+              return requested;
+        - mqtt.publish:
+            topic: ${mqtt_state_topic}
+            payload: !lambda |-
+              float requested = (float)atoi(x.c_str());
+              if (requested < 0.0f) requested = 0.0f;
+              if (requested > id(valve_opened_position).state) requested = id(valve_opened_position).state;
+              return to_string((int)requested);
+            retain: true
+  on_connect:
+    - mqtt.publish:
+        topic: ${mqtt_state_topic}
+        payload: !lambda 'return to_string((int)id(valve_position_direct_control_number).state);'
+        retain: true
+
+globals:
+  - id: pwm_enabled
+    type: bool
+    restore_value: no
+    initial_value: 'true'
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
+output:
+  - platform: ledc
+    id: valve_servo_pwm_output
+    pin: ${servo_gpio}
+    frequency: 50Hz
+
+servo:
+  - id: valve_servo
+    output: valve_servo_pwm_output
+
+script:
+  - id: check_pwm_shutdown
+    mode: restart
+    then:
+      - delay: 2s
+      - lambda: |-
+          if (id(valve_position_direct_control_number).state == 0.0) {
+            id(valve_servo_pwm_output).turn_off();
+            id(pwm_enabled) = false;
+          }
+
+number:
+  - platform: template
+    name: "Valve Position"
+    id: valve_position_direct_control_number
+    min_value: 0
+    initial_value: 0
+    max_value: 35
+    step: 1
+    optimistic: true
+    set_action:
+      then:
+        - lambda: |-
+            if (!id(pwm_enabled)) {
+              id(valve_servo_pwm_output).turn_on();
+              id(pwm_enabled) = true;
+            }
+        - servo.write:
+            id: valve_servo
+            level: !lambda 'return x / 100.0;'
+        - lambda: |-
+            float red, green, blue;
+            if (x >= id(valve_opened_position).state) { red=0.0; green=1.0; blue=0.0; }
+            else if (x > 0.0) { red=1.0; green=0.5; blue=0.0; }
+            else { red=1.0; green=0.0; blue=0.0; }
+            id(status_led).turn_on().set_brightness(1.0).set_rgb(red,green,blue).perform();
+        - script.execute: check_pwm_shutdown
+
+  - platform: template
+    name: "Valve Open Position"
+    id: valve_opened_position
+    min_value: 0
+    initial_value: 35
+    max_value: 35
+    step: 1
+    optimistic: true
+    mode: box
+
+  - platform: template
+    name: "Valve Closed Position"
+    id: valve_closed_position
+    min_value: 0
+    initial_value: 0
+    max_value: 35
+    step: 1
+    optimistic: true
+    mode: box
+
+button:
+  - platform: template
+    name: "Close Valve"
+    id: close_valve_button
+    on_press:
+      then:
+        - number.set:
+            id: valve_position_direct_control_number
+            value: !lambda 'return id(valve_closed_position).state;'
+
+  - platform: template
+    name: "Open Valve"
+    id: open_valve_button
+    on_press:
+      then:
+        - number.set:
+            id: valve_position_direct_control_number
+            value: !lambda 'return id(valve_opened_position).state;'
+
+sensor:
+  - platform: wifi_signal
+    name: "WiFi Signal dB"
+    id: wifi_signal_db
+    update_interval: 60s
+    entity_category: diagnostic
+
+  - platform: copy
+    source_id: wifi_signal_db
+    name: "WiFi Signal Percent"
+    filters:
+      - lambda: return min(max(2 * (x + 100.0), 0.0), 100.0);
+    unit_of_measurement: "Signal %"
+    entity_category: diagnostic
+
+  - platform: uptime
+    name: Uptime
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"
+    ssid:
+      name: "SSID"
+
+light:
+  - platform: esp32_rmt_led_strip
+    id: status_led
+    rgb_order: GRB
+    chipset: WS2812
+    pin: ${status_led_gpio}
+    num_leds: 1
+    internal: true
+
+interval:
+  - interval: 1s
+    then:
+      - lambda: |-
+          float pos = id(valve_position_direct_control_number).state;
+          float red, green, blue;
+          if (pos >= id(valve_opened_position).state) { red=0.0; green=1.0; blue=0.0; }
+          else if (pos > 0.0)    { red=1.0; green=0.5; blue=0.0; }
+          else                   { red=1.0; green=0.0; blue=0.0; }
+          id(status_led).turn_on().set_brightness(1.0).set_rgb(red,green,blue).perform();

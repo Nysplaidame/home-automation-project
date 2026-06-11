@@ -1,0 +1,257 @@
+# NOTE: 360-degree intake valve v2 candidate.
+# Keeps the existing VentSys calibrated-open MQTT/HA contract, but uses
+# Nerdiy's 360 intake one-sided servo mapping.
+# Physical boards identify as ESP32-C6 at boot. ESP32-C6 does not use the S3
+# esp32_touch setup from the older configs, so the local touch toggle is parked
+# until the installed board/input wiring is confirmed.
+# Safety: the PrintAirPipe 360 intake linkage opens with a short actuation-arm
+# throw. Uses Nerdiy's one-sided servo mapping, but limits default travel to
+# 35% of that range: closed at 0, open at 35.
+# Before driving this from HA mode scripts, make sure the HA 360-intake targets
+# use this same inverted contract; older scripts treat 0 as closed and 50 as open.
+# VentSys 360 Intake Valve Controller
+# Adapted from the VentSys valve controller pattern, with the ESP32-C6 baseline
+# used by the airflow sensors. C6-incompatible internal temperature and touch
+# features are omitted intentionally.
+#
+# PRE-TLS DEPLOYMENT: Change mqtt.port to 1883 and remove mqtt.ca_certificate
+# before first flash. Swap back to 8883 + ca_certificate after TLS is live.
+#
+# SECRETS REQUIRED (secrets.yaml):
+#   wifi_ssid, wifi_pass, mqtt_user, mqtt_pass, mqtt_ca_cert,
+#   api_key, ota_password
+
+substitutions:
+  device_name: ventsys-sla-360-valve  # N-5 fix: hyphens match ESPHome mDNS convention
+  friendly_name: "VentSys SLA 360 Intake Valve"
+  device_ip: "192.168.50.62"
+  mqtt_command_topic: "ventsys/sla/360/control"
+  mqtt_state_topic:   "ventsys/sla/360/state"
+  servo_gpio: GPIO0
+  status_led_gpio: GPIO1
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: esp32-c6-devkitc-1
+  framework:
+    type: esp-idf
+
+logger:
+
+api:
+  encryption:
+    key: !secret api_key
+
+ota:
+  platform: esphome
+  password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  use_address: ${device_ip}
+  manual_ip:
+    static_ip: ${device_ip}
+    gateway: 192.168.50.1
+    subnet: 255.255.255.0
+    dns1: 192.168.50.1
+  ap:
+    ssid: "VentSys SLA 360 FB"
+    password: !secret ota_password
+
+captive_portal:
+
+mqtt:
+  broker: 192.168.20.101
+  port: 8883
+  username: !secret mqtt_user
+  password: !secret mqtt_pass
+  discovery: false
+  discover_ip: false
+  certificate_authority: !secret mqtt_ca_cert
+  on_message:
+    # Receive 0-35 calibrated position from HA. Clamp anything higher so a
+    # dashboard/manual publish cannot overdrive the short 360-intake linkage.
+    - topic: ${mqtt_command_topic}
+      qos: 0
+      then:
+        - script.execute:
+            id: drive_valve_to
+            target: !lambda |-
+              float requested = (float)atoi(x.c_str());
+              if (requested < 0.0f) requested = 0.0f;
+              if (requested > id(valve_opened_position).state) requested = id(valve_opened_position).state;
+              return requested;
+  on_connect:
+    # Republish current state on reconnect so HA stays in sync
+    - mqtt.publish:
+        topic: ${mqtt_state_topic}
+        payload: !lambda 'return to_string((int)id(valve_position_direct_control_number).state);'
+        retain: true
+
+globals:
+  - id: pwm_enabled
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
+output:
+  - platform: ledc
+    id: valve_servo_pwm_output
+    pin: ${servo_gpio}
+    frequency: 50Hz
+
+servo:
+  - id: valve_servo
+    output: valve_servo_pwm_output
+
+script:
+  - id: drive_valve_to
+    mode: restart
+    parameters:
+      target: float
+    then:
+      - lambda: |-
+          id(valve_servo_pwm_output).turn_on();
+          id(pwm_enabled) = true;
+          ESP_LOGI("pwm", "PWM enabled - target %.0f%%", target);
+      - servo.write:
+          id: valve_servo
+          level: !lambda 'return target / 100.0;'
+      - lambda: |-
+          id(valve_position_direct_control_number).publish_state(target);
+          float red, green, blue;
+          if (target >= id(valve_opened_position).state) { red=0.0; green=1.0; blue=0.0; }
+          else if (target > id(valve_closed_position).state) { red=1.0; green=0.5; blue=0.0; }
+          else { red=1.0; green=0.0; blue=0.0; }
+          id(status_led).turn_on().set_brightness(1.0).set_rgb(red,green,blue).perform();
+      - mqtt.publish:
+          topic: ${mqtt_state_topic}
+          payload: !lambda 'return to_string((int)target);'
+          retain: true
+      - script.execute: check_pwm_shutdown
+
+  - id: check_pwm_shutdown
+    mode: restart
+    then:
+      - delay: 1s
+      - lambda: |-
+          float pos = id(valve_position_direct_control_number).state;
+          float open = id(valve_opened_position).state;
+          float closed = id(valve_closed_position).state;
+          bool at_open = pos >= (open - 0.5f) && pos <= (open + 0.5f);
+          bool at_closed = pos >= (closed - 0.5f) && pos <= (closed + 0.5f);
+          if (at_open || at_closed) {
+            id(valve_servo_pwm_output).turn_off();
+            id(pwm_enabled) = false;
+            ESP_LOGI("pwm", "PWM disabled - valve at endpoint %.0f%%", pos);
+          } else {
+            ESP_LOGI("pwm", "PWM left enabled - valve at intermediate %.0f%%", pos);
+          }
+
+number:
+  - platform: template
+    name: "Valve Position"
+    id: valve_position_direct_control_number
+    min_value: 0
+    initial_value: 0
+    max_value: 35
+    step: 1
+    optimistic: true
+    set_action:
+      then:
+        - script.execute:
+            id: drive_valve_to
+            target: !lambda 'return x;'
+
+  - platform: template
+    name: "Valve Open Position"
+    id: valve_opened_position
+    min_value: 0
+    initial_value: 35
+    max_value: 35
+    step: 1
+    optimistic: true
+    mode: box
+
+  - platform: template
+    name: "Valve Closed Position"
+    id: valve_closed_position
+    min_value: 0
+    initial_value: 0
+    max_value: 35
+    step: 1
+    optimistic: true
+    mode: box
+
+button:
+  - platform: template
+    name: "Close Valve"
+    id: close_valve_button
+    on_press:
+      then:
+        - script.execute:
+            id: drive_valve_to
+            target: !lambda 'return id(valve_closed_position).state;'
+
+  - platform: template
+    name: "Open Valve"
+    id: open_valve_button
+    on_press:
+      then:
+        - script.execute:
+            id: drive_valve_to
+            target: !lambda 'return id(valve_opened_position).state;'
+
+sensor:
+  - platform: wifi_signal
+    name: "WiFi Signal dB"
+    id: wifi_signal_db
+    update_interval: 60s
+    entity_category: diagnostic
+
+  - platform: copy
+    source_id: wifi_signal_db
+    name: "WiFi Signal Percent"
+    filters:
+      - lambda: return min(max(2 * (x + 100.0), 0.0), 100.0);
+    unit_of_measurement: "Signal %"
+    entity_category: diagnostic
+
+  - platform: uptime
+    name: Uptime
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"
+    ssid:
+      name: "SSID"
+
+light:
+  - platform: esp32_rmt_led_strip
+    id: status_led
+    rgb_order: GRB
+    chipset: WS2812
+    pin: ${status_led_gpio}
+    num_leds: 1
+    internal: true
+
+interval:
+  # LED position colour
+  - interval: 1s
+    then:
+      - lambda: |-
+          float pos = id(valve_position_direct_control_number).state;
+          float red, green, blue;
+          if (pos >= id(valve_opened_position).state) { red=0.0; green=1.0; blue=0.0; }
+          else if (pos > id(valve_closed_position).state) { red=1.0; green=0.5; blue=0.0; }
+          else                   { red=1.0; green=0.0; blue=0.0; }
+          id(status_led).turn_on().set_brightness(1.0).set_rgb(red,green,blue).perform();

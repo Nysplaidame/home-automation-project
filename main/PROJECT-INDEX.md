@@ -77,6 +77,8 @@ status: active
 
 ### ESPHome
 - [[configs/esphome/printairpipe-controller.yaml]] — enclosure sensor board (temperature, smoke, VOC, pressure)
+- [[configs/esphome/ventsys_fdm_360_valve_v2_nerdiy.yaml]] — 360 intake v2 candidate for ESP32-C6 Zero using GPIO0 servo PWM, GPIO1 LED data, Nerdiy one-sided servo mapping limited to `0-35`, and 1s endpoint PWM detach
+- [[configs/esphome/ventsys_sla_360_valve_v2_nerdiy.yaml]] — 360 intake v2 candidate for ESP32-C6 Zero using GPIO0 servo PWM, GPIO1 LED data, Nerdiy one-sided servo mapping limited to `0-35`, and 1s endpoint PWM detach
 - [[ventsys/ventsys_bundle_updated/ventsys_fan_controller.yaml]] — fan PWM control
 - [[ventsys/ventsys_bundle_updated/ventsys_valve_controller.yaml]] — valve servo control
 - [[ventsys/ventsys_bundle_updated/ventsys_ha_package.yaml]] — HA entities + automations
@@ -143,6 +145,7 @@ status: active
 | [[docs/procedures/update_maintenance_playbook.md]] | Update windows, caching/offline patterns, and update-monitoring posture |
 | [[docs/procedures/update_review_log.md]] | Weekly update-candidate review execution log and follow-up tracking |
 | [[docs/procedures/docker_host_patch_window_runbook.md]] | Command-by-command docker-host package/container patch window |
+| [[docs/procedures/garage_admin_pi_setup_guide.md]] | Raspberry Pi setup for a trusted garage admin workstation on HomeAdmin |
 | [[scripts/monitoring/health_check.sh]] | Single-command health check for all systems |
 | [[scripts/monitoring/export_uptime_kuma_to_influx.py]] | Lightweight Uptime Kuma monitor-state export into InfluxDB |
 | [[scripts/monitoring/export_fail2ban_to_influx.sh]] | Lightweight docker-host Fail2ban counter export into InfluxDB |
