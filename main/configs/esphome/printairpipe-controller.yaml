@@ -12,8 +12,9 @@
 #   SLA enclosure sensor board: IP 192.168.50.32 — name: ventsys-sla-sensor
 #
 # HARDWARE PINS — update after physical wiring:
-#   DS18B20 temperature sensor bus: GPIO4 (1-Wire)
-#   BME680 (temp/humidity/pressure/IAQ gas): SDA=GPIO21, SCL=GPIO22 (I2C)
+#   DS18B20 temperature sensor bus: GPIO3 (1-Wire)
+#   BME680 (temp/humidity/pressure/IAQ gas): SDA=GPIO4, SCL=GPIO5 (I2C)
+#     ESP32-C6 Zero note: GPIO6-GPIO10 are not physically accessible on this board.
 #   MQ-2 / MQ-135 smoke+VOC: GPIO34 (ADC1 — 3.3V tolerant only)
 #   Pressure differential sensor: GPIO35 (ADC1)
 #   Status LED: GPIO2 (built-in on most dev boards)
@@ -85,14 +86,14 @@ status_led:
 
 # ── I2C BUS (BME680) ─────────────────────────────────────────────────────────
 i2c:
-  sda: GPIO21
-  scl: GPIO22
+  sda: GPIO4
+  scl: GPIO5
   scan: false
 
 # ── 1-WIRE BUS (DS18B20) ─────────────────────────────────────────────────────
 one_wire:
   - platform: gpio
-    pin: GPIO4
+    pin: GPIO3
 
 # ── SENSORS ──────────────────────────────────────────────────────────────────
 sensor:

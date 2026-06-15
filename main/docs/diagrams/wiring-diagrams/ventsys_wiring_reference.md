@@ -61,9 +61,9 @@ Controls one or more MG90S servo motors driving butterfly valves.
 
 | GPIO | Function | Component | Notes |
 |---|---|---|---|
-| GPIO4 | 1-Wire data | DS18B20 temperature | 4.7kΩ pull-up resistor between GPIO4 and 3.3V |
-| GPIO21 | I2C SDA | BME680 | Shared bus — pull-up 4.7kΩ to 3.3V |
-| GPIO22 | I2C SCL | BME680 | Shared bus — pull-up 4.7kΩ to 3.3V |
+| GPIO3 | 1-Wire data | DS18B20 temperature | 4.7kΩ pull-up resistor between GPIO3 and 3.3V |
+| GPIO4 | I2C SDA | BME680 air quality sensor | ESP32-C6 Zero accessible pin; GPIO6-GPIO10 are not physically accessible |
+| GPIO5 | I2C SCL | BME680 air quality sensor | ESP32-C6 Zero accessible pin; GPIO6-GPIO10 are not physically accessible |
 | GPIO34 | ADC input | MQ-2 or MQ-135 (smoke/VOC) | ADC1 only, 3.3V max — use voltage divider if sensor outputs 5V |
 | GPIO35 | ADC input | Differential pressure sensor | ADC1 only, 3.3V max |
 | GPIO2 | Status LED | Built-in LED | Active HIGH on most dev boards |
@@ -78,7 +78,7 @@ Controls one or more MG90S servo motors driving butterfly valves.
        │
       4.7kΩ
        │
-GPIO4 ─┴──── DS18B20 DATA (yellow/white)
+GPIO3 ─┴──── DS18B20 DATA (yellow/white)
 GND ──────── DS18B20 GND (black)
 ```
 
@@ -90,8 +90,8 @@ After first flash, run with `logger: level: DEBUG` and check serial output for:
 ```
 3.3V ─── VCC
 GND  ─── GND
-GPIO21 ─ SDA
-GPIO22 ─ SCL
+GPIO4 ── SDA
+GPIO5 ── SCL
 SDO  ─── GND (sets I2C address to 0x76)
        or
 SDO  ─── 3.3V (sets I2C address to 0x77)
@@ -168,8 +168,8 @@ PrintAirPipe 125mm butterfly valves use MG90S micro servos mounted in printed ho
 ## Checklist before first power-on
 
 - [ ] All ADC inputs checked for 3.3V compliance (voltage dividers fitted where needed)
-- [ ] DS18B20 pull-up resistor (4.7kΩ) fitted on GPIO4
-- [ ] I2C pull-ups (4.7kΩ each) on GPIO21 and GPIO22
+- [ ] DS18B20 pull-up resistor (4.7kΩ) fitted on GPIO3
+- [ ] I2C pull-ups (4.7kΩ each) on GPIO4 and GPIO5
 - [ ] Servo power from 5V rail, NOT from ESP 3.3V
 - [ ] Fan driver MOSFET or driver board fitted (not direct GPIO to fan)
 - [ ] Common GND shared between ESP boards, sensors, and motor drivers

@@ -63,13 +63,13 @@ status_led:
     inverted: false
 
 i2c:
-  sda: GPIO21
-  scl: GPIO22
+  sda: GPIO4
+  scl: GPIO5
   scan: false
 
 one_wire:
   - platform: gpio
-    pin: GPIO4
+    pin: GPIO3
 
 sensor:
 
