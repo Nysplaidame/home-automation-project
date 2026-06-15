@@ -57,6 +57,9 @@ qm list
 expected VM definitions from `configs/proxmox/vm-setup.sh`; manual VM creation
 is documented in the deep-dive guide.
 
+VM 104 `llm-host` is optional and documented separately in Phase 05A and
+`scripts/setup/proxmox/llm_host_setup_guide.md`.
+
 ## Expected result
 
 - Proxmox host is reachable on VLAN 10 at `192.168.10.10`.
@@ -86,3 +89,4 @@ cat /etc/network/interfaces
 - [ ] VLAN-aware bridge is configured.
 - [ ] SSH key access works.
 - [ ] VM shells are created or manually documented.
+- [ ] Optional VM 104 local AI plan is either deferred or followed from Phase 05A.

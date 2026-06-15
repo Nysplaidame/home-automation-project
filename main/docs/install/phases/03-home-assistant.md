@@ -14,7 +14,7 @@ status: active
 
 Bring HAOS VM 100 online, install required add-ons, enable MQTT, stage VentSys
 packages, configure operator mobile access, and prepare later Frigate, Bambuddy,
-ESPHome, and backup integrations.
+ESPHome, local AI voice, and backup integrations.
 
 ## Runs on
 
@@ -88,6 +88,8 @@ native API.
   `docs/procedures/home_assistant_companion_app_guide.md`.
 - HAOS system time is sourced from router-local NTP, not arbitrary external
   internet NTP.
+- Local AI voice is optional and handled in Phase 05A. When deployed, HA uses
+  Ollama at `http://192.168.20.104:11434` and Wyoming voice services on VM 104.
 
 ## Validation
 
@@ -129,3 +131,4 @@ ha host info
 - [ ] HA backup target is planned, even if OMV is not live yet.
 - [ ] HACS is not installed until a backup exists and enhancement choices are documented.
 - [ ] HAOS router-NTP override applied or explicitly deferred.
+- [ ] Optional local AI voice integration is deferred or validated from Phase 05A.

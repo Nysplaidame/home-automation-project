@@ -49,6 +49,9 @@ status: active
 - Uptime Kuma monitor snapshots are exported to InfluxDB bucket `uptimekuma` by `uptime-kuma-influx-export.timer`
 - docker-host Fail2ban counters are exported to InfluxDB bucket `dockerhost` by `fail2ban-influx-export.timer`
 - Grafana dashboard shell `NAS Resource Overview` is present but planned only; do not treat NAS metrics as live until the NAS is built
+- VM 104 `llm-host` monitoring is planned only. Do not treat Ollama, Open WebUI,
+  Wyoming Whisper, or Wyoming Piper as live until Phase 05A is deployed and
+  `docs/procedures/local_ai_performance_testing.md` passes.
 - Home Assistant has a storage-managed `Monitoring` dashboard at `/monitoring/overview` with direct links to Grafana and Uptime Kuma
 - Embedded Grafana and Uptime Kuma views in HA remain intentionally parked until a same-origin HTTPS/reverse-proxy path is implemented and validated
 - Uptime Kuma direct iframe embedding is blocked by its `SAMEORIGIN` frame header; integrate it later through a same-origin reverse proxy/HTTPS route or use API/notification integration instead
@@ -90,6 +93,8 @@ Initial monitors should cover:
 - monitoring stack self-checks
 - Frigate VM when Frigate is started
 - NAS when built
+- llm-host VM 104 services when Phase 05A is deployed: Ollama `11434`, Open
+  WebUI `3002`, Piper `10200`, and Whisper `10300`
 
 ### Phase 3 — add metrics with InfluxDB + Grafana
 
@@ -102,6 +107,7 @@ Primary targets:
 - smart plug energy data
 - Proxmox / VM resource usage
 - docker-host resource usage
+- llm-host resource usage and local AI container memory after Phase 05A
 
 Live state:
 
@@ -139,6 +145,7 @@ Live collectors:
 
 - monitoring VM Telegraf: monitoring VM host/container metrics and OpenWrt syslog
 - docker-host Telegraf: VM 103 host metrics plus Docker engine/container metrics
+- llm-host Telegraf or equivalent Proxmox/container metrics after Phase 05A
 - monitoring VM Uptime Kuma exporter: monitor status/latency into bucket `uptimekuma`
 - docker-host Fail2ban exporter: jail counters into bucket `dockerhost`
 

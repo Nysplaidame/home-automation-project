@@ -36,6 +36,7 @@ status: active
 | Wiring reference | ✅ Written |
 | Physical deployment | ✅ Router, Proxmox trunk, HAOS, and docker-host live |
 | Docker-host service templates | ✅ Written for live VM 103 stacks and host firewall |
+| Local AI / voice inference | ⏳ Planned; VM 104 `llm-host` docs written for 32GB first phase and 64GB upgrade path |
 | Hardware procurement (sensors/cameras/NAS) | ⏳ Pending |
 
 ---
@@ -85,8 +86,9 @@ status: active
 - [[ventsys/ventsys_bundle_updated/ventsys_ha_scripts.yaml]] — 12 ventilation mode scripts
 
 ### Proxmox
-- [[configs/proxmox/vm-configs.conf]] — expected qm config output for VMs 100, 101, and 103
+- [[configs/proxmox/vm-configs.conf]] — expected qm config output for VMs 100, 101, 103, and planned 104
 - [[configs/proxmox/vm-setup.sh]] — shell script to create VMs 100, 101, and 103
+- [[scripts/setup/proxmox/llm_host_setup_guide.md]] — VM 104 local AI inference host for Ollama, Open WebUI, and Wyoming voice services
 
 ---
 
@@ -115,6 +117,7 @@ status: active
 - [[scripts/setup/proxmox/proxmox_setup_guide.md]] — MINISFORUM M1 Pro-125H hardware, network config, IOMMU
 - [[scripts/setup/proxmox/ha_vm_setup_guide.md]] — HAOS onboarding through VentSys integration
 - [[scripts/setup/proxmox/frigate_vm_setup_guide.md]] — Debian + Docker + Frigate + iGPU
+- [[scripts/setup/proxmox/llm_host_setup_guide.md]] — Debian + Docker + Ollama/Open WebUI/Wyoming local AI host
 
 ### 3. Storage
 - [[scripts/setup/nas/omv_nas_setup_guide.md]] — OpenMediaVault NAS, NFS/SMB, HA/Frigate/Immich storage
@@ -146,6 +149,7 @@ status: active
 | [[docs/procedures/update_review_log.md]] | Weekly update-candidate review execution log and follow-up tracking |
 | [[docs/procedures/docker_host_patch_window_runbook.md]] | Command-by-command docker-host package/container patch window |
 | [[docs/procedures/garage_admin_pi_setup_guide.md]] | Raspberry Pi setup for a trusted garage admin workstation on HomeAdmin |
+| [[docs/procedures/local_ai_performance_testing.md]] | Baseline, model/context, voice, and upgrade tests for VM 104 local AI |
 | [[scripts/monitoring/health_check.sh]] | Single-command health check for all systems |
 | [[scripts/monitoring/export_uptime_kuma_to_influx.py]] | Lightweight Uptime Kuma monitor-state export into InfluxDB |
 | [[scripts/monitoring/export_fail2ban_to_influx.sh]] | Lightweight docker-host Fail2ban counter export into InfluxDB |
@@ -159,6 +163,7 @@ status: active
 - [[docs/decisions/03-docker-host-service-policy.md]] — VM 103 service placement policy
 - [[docs/decisions/04-dns-resolver-and-adblocking.md]] — non-Google DNS and network-wide filtering strategy
 - [[docs/decisions/05-self-hosted-services-remote-access.md]] — OMV, docker-host apps, Tailscale host routes, WireGuard fallback
+- [[docs/decisions/06-local-ai-infrastructure.md]] — VM 104 local inference boundary, 32GB sizing, 64GB upgrade path, and Hermes Agent gate
 - [[docs/reference/service-matrix.md]] — service, port, DNS, backup, monitoring, and runbook matrix
 - [[docs/reference/access-matrix.md]] — OpenWrt, Tailscale, host firewall, and service auth access intent
 - [[docs/diagrams/README.md]] — canonical diagram library

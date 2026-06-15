@@ -20,6 +20,7 @@ status: active
 | Home Assistant Terminal add-on | HAOS Terminal & SSH add-on | Shell prompt inside HA, usually `/config` available |
 | Frigate VM over SSH | Debian VM 101 | SSH prompt on `192.168.30.20` |
 | docker-host over SSH | Debian VM 103 | SSH prompt on `192.168.20.102` |
+| llm-host over SSH | Debian VM 104 | SSH prompt on `192.168.20.104` |
 | OMV web UI | OpenMediaVault NAS | Browser at `http://192.168.40.50/` or `http://omv.home.local/` |
 | OMV shell | OMV NAS shell | SSH prompt on `192.168.40.50` if enabled |
 | Tailscale admin console | Tailscale web admin | Browser session at Tailscale admin UI |

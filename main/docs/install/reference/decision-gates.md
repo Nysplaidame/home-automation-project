@@ -33,6 +33,9 @@ Decision gates prevent a draft install from silently becoming a risky live servi
 | Scrypted | Confirm Docker placement is acceptable despite upstream preference for Proxmox on dedicated servers |
 | ntfy | Decide internal-only versus public relay; define auth and topic policy |
 | Actual Budget | Backup and access review because financial data is sensitive |
+| Local AI inference | Confirm 32 GB sizing, model class, HA exposure list, and performance test pass before calling live |
+| Hermes Agent | Confirm advisory/tooling scope, tool allowlist, sandboxing, credentials, logging, and no safety-critical direct control |
+| Future AI query apps | Define app-specific API, egress, storage, auth, monitoring, and firewall rules before deployment |
 | Penetration testing pass | Confirm scope, authorized targets, time window, and remediation logging owner before active testing |
 
 Do not remove a gate from a service manual unless the decision is recorded in

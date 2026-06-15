@@ -30,6 +30,15 @@ status: active
 | `docker-ce docker-ce-cli containerd.io docker-compose-plugin` | Docker Compose app runtime | Docker official apt repo install | `docker --version && docker compose version` |
 | `tailscale` | Daily remote access route host | Tailscale official install | `tailscale version` |
 
+## llm-host VM 104 containers
+
+| Image | Purpose | Pull / start path | Verify |
+|---|---|---|---|
+| `ollama/ollama` | Local LLM runtime and Ollama API | `/opt/stacks/local-ai/docker-compose.yml` | `curl -s http://127.0.0.1:11434/api/tags` |
+| `ghcr.io/open-webui/open-webui` | Internal web UI for local chat and model testing | `/opt/stacks/local-ai/docker-compose.yml` | `docker compose ps open-webui` |
+| `rhasspy/wyoming-whisper` | Wyoming STT server for Home Assistant voice | `/opt/stacks/local-ai/docker-compose.yml` | `docker compose ps wyoming-whisper` |
+| `rhasspy/wyoming-piper` | Wyoming TTS server for Home Assistant voice | `/opt/stacks/local-ai/docker-compose.yml` | `docker compose ps wyoming-piper` |
+
 ## Proxmox host
 
 | Package | Purpose | Install command | Verify |

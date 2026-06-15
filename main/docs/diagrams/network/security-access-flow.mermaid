@@ -13,6 +13,7 @@ flowchart TB
     Tailscale["Tailscale ACLs<br/>daily remote"]
     HostFW["Host firewalls / UFW<br/>Linux services"]
     ServiceAuth["Service auth<br/>HA 2FA, app logins, tokens"]
+    LocalAI["llm-host VM 104<br/>Ollama + Wyoming<br/>approved HA entities only"]
 
     User --> Router
     Router --> Mgmt
@@ -28,13 +29,16 @@ flowchart TB
     Tailscale --> Automation
     Tailscale --> Storage
     Automation --> HostFW
+    Automation --> LocalAI
     Storage --> HostFW
     HostFW --> ServiceAuth
+    LocalAI --> ServiceAuth
 
     Automation -.->|"MQTT / ESPHome only"| IoT
     NVR -.->|"camera streams only"| Printers
     NVR -.->|"recording/archive only"| Storage
     Monitoring -.->|"health checks and metrics only"| Automation
+    Monitoring -.->|"AI service checks only"| LocalAI
     Monitoring -.->|"health checks and metrics only"| NVR
     Monitoring -.->|"health checks and metrics only"| Storage
 

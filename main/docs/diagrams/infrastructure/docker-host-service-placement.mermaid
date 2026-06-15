@@ -37,9 +37,15 @@ flowchart TB
         NodeRED["node-red<br/>automation gate"]
     end
 
+    subgraph Future["Future app/tool containers"]
+        QueryApps["AI-adjacent query apps<br/>app-specific design required"]
+    end
+
     Stacks --> Tier1
     Stacks --> Tier2
     Stacks --> Tier3
+    Stacks -.-> Future
     Tier1 --> Backups
     Tier2 --> Backups
     Tier3 --> Backups
+    Future -.-> Backups

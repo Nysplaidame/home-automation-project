@@ -13,6 +13,11 @@ status: active
 These files mirror the intended live layout on VM 103 (`docker-host`,
 `192.168.20.102`). They are safe rebuild templates, not a secret backup.
 
+VM 103 is also the expected target for future containerized AI-adjacent query
+apps. Do not add a future query app template until its app-specific API,
+storage, egress, monitoring, and firewall rules are approved. Local LLM, STT,
+and TTS inference belongs on VM 104 `llm-host`, not here.
+
 Live stack paths:
 
 | Service | Live path | Template path |

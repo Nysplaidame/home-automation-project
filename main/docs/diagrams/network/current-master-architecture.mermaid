@@ -13,12 +13,14 @@ flowchart TB
         Frigate["VM 101 Frigate NVR<br/>192.168.30.20<br/>Docker, camera recording"]
         Monitoring["Monitoring VM<br/>192.168.60.x<br/>Kuma, InfluxDB, Grafana"]
         DockerHost["VM 103 docker-host<br/>192.168.20.102<br/>Compose stacks, Tailscale, AdGuard"]
+        LLMHost["VM 104 llm-host<br/>192.168.20.104<br/>Ollama, Open WebUI, Wyoming voice"]
     end
 
     Proxmox --- HA
     Proxmox --- Frigate
     Proxmox --- Monitoring
     Proxmox --- DockerHost
+    Proxmox --- LLMHost
 
     subgraph Storage["Storage"]
         OMV["OMV NAS<br/>192.168.40.50<br/>NFS/SMB, SMART, backups"]
@@ -32,6 +34,7 @@ flowchart TB
         Homepage["Homepage<br/>service dashboard"]
         Dozzle["Dozzle<br/>container logs"]
         Bambuddy["Bambuddy<br/>P1S bridge"]
+        FutureQuery["Future query apps<br/>containerized tools, TBD design"]
     end
 
     DockerHost --- AdGuard
@@ -39,6 +42,10 @@ flowchart TB
     DockerHost --- Homepage
     DockerHost --- Dozzle
     DockerHost --- Bambuddy
+    DockerHost -.-> FutureQuery
+
+    HA -.->|"Ollama + Wyoming"| LLMHost
+    LLMHost -.->|"future approved app queries only"| FutureQuery
 
     subgraph Physical["Physical integrations"]
         Cameras["PoE cameras<br/>192.168.30.21-24"]

@@ -17,6 +17,11 @@ Keep Frigate on VM 101 because it belongs on VLAN 30 and may need iGPU
 passthrough. Keep Home Assistant OS on VM 100 because HAOS Supervisor is its
 own appliance model.
 
+Keep local LLM, STT, and TTS inference on VM 104 `llm-host`. VM 103 is the
+expected target for future containerized AI-adjacent query apps, but those apps
+must define their own API, egress, monitoring, and firewall rules before
+deployment.
+
 ---
 
 ## Current Live Build
@@ -103,6 +108,7 @@ Use this VM for lightweight trusted internal containers, such as:
 - internal dashboards or status pages
 - MQTT helpers or bridges
 - local admin utilities
+- future internal AI-adjacent query/tool apps after app-specific review
 - AdGuard Home DNS filtering
 - Immich gallery/photos, with OMV-backed media storage
 - Tailscale as a host-level remote-access service
@@ -114,6 +120,7 @@ Do not place these here without a separate architecture review:
 - NAS/storage appliances
 - public/DMZ-facing services
 - privileged hardware/USB passthrough services
+- local LLM, STT, or TTS inference services
 
 ---
 

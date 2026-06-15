@@ -29,6 +29,7 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 | HA VM | ✅ Live | HAOS VM 100 at 192.168.20.101, VentSys packages staged |
 | Frigate VM | ⏳ Shell live / app unbuilt | VM 101 on VLAN 30 has Debian base and Docker staging; Frigate app is not live until cameras, RTSP credentials, HTTPS, and audio path are ready |
 | Docker host | ✅ Live | VM 103 on VLAN 20, central trusted Docker host; Bambuddy, Tier 1 apps, ntfy, and Watchtower monitor-only pre-flight live |
+| Local AI | ⏳ Planned | VM 104 `llm-host` on VLAN 20 for Ollama, Open WebUI, Wyoming STT/TTS, and HA Assist testing; first phase sized for current 32GB RAM with 7B/8B Q4 model |
 | OMV NAS | ⏳ Planned | OpenMediaVault at 192.168.40.50 on VLAN 40; hardware/storage needed |
 | Remote access | ✅ Live | Tailscale daily access via docker-host host routes; WireGuard kept dormant as fallback |
 | VentSys dashboard | ✅ Written / staged | dashboards/ventsys-dashboard.html with full HA integration layer; entities remain hardware-dependent |
@@ -92,6 +93,7 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 ### Self-hosted services and remote access
 - OpenMediaVault is the NAS OS at 192.168.40.50; OMV is storage-focused, not the Docker app platform
 - docker-host runs internal Compose stacks under `/opt/stacks/<service>/`
+- docker-host is the expected target for future containerized AI-adjacent query apps; no YouTube transcript app architecture, ports, APIs, MCP contract, or firewall rules are defined yet
 - Tier 1 docker-host services are pre-flight live: AdGuard Home, Immich, Homepage, Dozzle, plus Bambuddy
 - Tier 2/Tier 3 pre-flight services are live: ntfy internal alerts and Watchtower monitor-only
 - Rebuildable docker-host templates live in `configs/docker-host/`; live secrets and app databases stay on VM 103, not in git
@@ -110,6 +112,18 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 - VentSys packages in `/config/packages/`
 - Treat Frigate app state, OMV storage, and VentSys hardware entities as unbuilt
   until explicitly revalidated.
+
+### Local AI / voice (VLAN 20)
+- Planned VM 104 `llm-host` at 192.168.20.104 runs local inference only:
+  Ollama, Open WebUI, Wyoming Whisper STT, and Wyoming Piper TTS
+- First phase assumes the current 32GB Proxmox host and uses an 8GB VM with a
+  7B/8B Q4 model alias `home-assistant-llm`
+- Later 64GB host RAM upgrade can resize VM 104 and retarget the same model
+  alias to a tested 14B Q4/Q5 model without changing HA integration endpoints
+- Home Assistant uses official Ollama and Wyoming integrations; HA Assist is
+  the first control path
+- Hermes Agent remains roadmap-only until the core local AI and voice path are
+  stable, monitored, and safety-gated
 
 ---
 
@@ -132,6 +146,9 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 | Install references | `docs/install/reference/` |
 | Diagram library | `docs/diagrams/README.md` |
 | Docker-host service manuals | `docs/install/services/` |
+| Local AI decision | `docs/decisions/06-local-ai-infrastructure.md` |
+| LLM host setup guide | `scripts/setup/proxmox/llm_host_setup_guide.md` |
+| Local AI performance testing | `docs/procedures/local_ai_performance_testing.md` |
 | Bambuddy workload guide | `scripts/setup/proxmox/bambuddy_vm_setup_guide.md` |
 | ESPHome sensor config | `configs/esphome/printairpipe-controller.yaml` |
 | VentSys ESPHome | `ventsys/ventsys_bundle_updated/` |
@@ -168,6 +185,7 @@ The older setup guides remain deep-dive appendices for individual systems.
 4. **HA VM** — follow `docs/install/phases/03-home-assistant.md`
 5. **Frigate VM** — follow `docs/install/phases/04-frigate.md`
 6. **Docker host / Tailscale** — follow `docs/install/phases/05-docker-host.md`
+6A. **Optional local AI inference** — follow `docs/install/phases/05a-local-ai.md`
 7. **NAS** — follow `docs/install/phases/06-omv-nas.md`
 8. **Tier 1 apps** — follow `docs/install/phases/07-tier1-apps.md`
 9. **Tier 2 drafts** — follow `docs/install/phases/08-tier2-apps.md`

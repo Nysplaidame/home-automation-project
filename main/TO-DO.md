@@ -26,6 +26,7 @@ status: active
 7. [ ] Continue expanding each install phase until every command has expected output examples and every failure mode has a tested recovery path
 8. [ ] Work through the comprehensive checklist in `docs/install/INSTALL-TO-DO.md`
 9. [ ] Run a full dry-read from `docs/install/START-HERE.md` after the next content expansion pass
+10. [x] Add local AI infrastructure docs for VM 104 `llm-host`, 32GB first-phase sizing, HA voice integration, performance testing, and 64GB upgrade path
 
 Planning baseline until explicitly revalidated:
 
@@ -74,6 +75,13 @@ Planning baseline until explicitly revalidated:
 37. [x] Re-export `Proxmox Resource Overview` and apply explicit labels (`Guest RAM`, `RAM Pressure`, `Root Disk`) to live/source panels; 2026-05-31 datasource check found high HA/docker-host/monitoring percentages are guest-memory values, not CPU/disk saturation
 38. [ ] Schedule controlled docker-host patch window for Docker engine/component and kernel package candidates from `docs/procedures/update_review_log.md`
 39. [ ] When NAS is built, add NAS telemetry using existing monitoring patterns first (prefer Telegraf -> InfluxDB -> Grafana before adding new containers)
+40. [ ] Build VM 104 `llm-host` only after confirming current Proxmox RAM pressure is healthy enough for an 8GB AI VM
+41. [ ] Deploy Ollama, Open WebUI, Wyoming Whisper, and Wyoming Piper on VM 104 per `scripts/setup/proxmox/llm_host_setup_guide.md`
+42. [ ] Configure HA Ollama and Wyoming integrations against VM 104, then validate only non-critical HA Assist actions first
+43. [ ] Run `docs/procedures/local_ai_performance_testing.md` before calling local AI live or increasing context/model size
+44. [ ] Add Uptime Kuma/Grafana monitoring for VM 104 AI services after deployment
+45. [ ] Keep Hermes Agent roadmap-only until local LLM, STT, TTS, monitoring, and safety gates are stable
+46. [ ] Keep future YouTube transcript/query app architecture undecided; VM 103 is only the expected target for future containerized query apps
 
 ---
 
@@ -212,6 +220,9 @@ must work without HACS.
 - [ ] Enable IOMMU (intel_iommu=on) for iGPU passthrough
 - [ ] Run `configs/proxmox/vm-setup.sh`
 - [x] Configure temporary local Proxmox daily backup (02:00, VMs 100/101/102/103, keep 2)
+- [ ] Create VM 104 `llm-host` on VLAN 20 at 192.168.20.104 with 8GB RAM, 4 cores, and 160GB thin-provisioned disk
+- [ ] Add VM 104 DNS aliases: `llm-host.home.local`, `ollama.home.local`, and `openwebui.home.local`
+- [ ] After a future 64GB RAM upgrade, resize VM 104 to 20-24GB and retest before moving `home-assistant-llm` to a 14B model
 
 ### Home Assistant VM (VM 100)
 - [x] Start VM 100, complete HAOS onboarding wizard

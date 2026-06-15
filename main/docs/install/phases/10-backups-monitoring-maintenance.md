@@ -19,6 +19,7 @@ Make the rebuilt system recoverable and maintainable before relying on it.
 - Proxmox host shell.
 - Home Assistant UI.
 - docker-host over SSH.
+- llm-host over SSH if Phase 05A is deployed.
 - OMV web UI.
 - Admin laptop.
 
@@ -60,6 +61,8 @@ the system can be safely maintained after installation.
 - docker-host stack data paths are known.
 - OMV storage health is visible.
 - Monitoring has an external failure signal or a documented gap.
+- If Phase 05A is deployed, VM 104 AI services have uptime checks and the local
+  AI performance test procedure has a recorded pass.
 - HA-side external monitoring health package is deployed at
   `/config/packages/monitoring_external_health_package.yaml`, with source in
   `configs/home-assistant/monitoring_external_health_package.yaml`.
@@ -79,6 +82,7 @@ Run on: Admin laptop.
 Test-Connection 192.168.10.10 -Count 2
 Test-Connection 192.168.20.101 -Count 2
 Test-Connection 192.168.20.102 -Count 2
+Test-Connection 192.168.20.104 -Count 2
 Test-Connection 192.168.40.50 -Count 2
 ```
 
@@ -94,4 +98,5 @@ Test-Connection 192.168.40.50 -Count 2
 - [ ] Backup strategy read.
 - [ ] Restore drill scheduled.
 - [x] Monitoring health checks documented.
+- [ ] VM 104 local AI checks documented if Phase 05A is deployed.
 - [ ] Update maintenance playbook read.

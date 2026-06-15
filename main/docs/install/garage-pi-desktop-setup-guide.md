@@ -51,8 +51,8 @@ The garage Pi should:
 
 Use a 1 TB NVMe SSD if the price difference is tolerable. A 512 GB SSD is
 acceptable, but 1 TB leaves room for Python virtual environments, package caches,
-ESPHome / PlatformIO build artifacts, browser cache, camera clips, local AI
-models, and future experiments without constant cleanup.
+ESPHome / PlatformIO build artifacts, browser cache, camera clips, small local
+AI experiments, and future experiments without constant cleanup.
 
 Do not design this build around a PCIe AI HAT while the NVMe adapter is installed.
 The Pi 5 PCIe path is already being used for storage. If local acceleration is
@@ -60,7 +60,8 @@ needed later, prefer one of these paths:
 
 - Raspberry Pi AI Camera, because the accelerator is in the camera module
 - USB accelerator, if software support is confirmed
-- offload inference to Frigate, Proxmox, docker-host, or a future dedicated node
+- offload camera inference to Frigate or heavier LLM/voice inference to VM 104
+  `llm-host`
 
 ## Prerequisites
 

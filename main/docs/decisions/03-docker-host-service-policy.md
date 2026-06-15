@@ -23,6 +23,8 @@ public/DMZ workloads.
 - internal operations helpers like `Dozzle`
 - internal notification or utility services like `ntfy`
 - internal package/cache helpers like `apt-cacher-ng`
+- future AI-adjacent query/tool apps, after their own API, egress, storage,
+  monitoring, and firewall rules are approved
 - lightweight dashboards such as `Homepage`
 - AdGuard Home, with the router remaining DHCP/local DNS/firewall authority
 - Immich, with bulk media storage backed by OMV rather than the VM disk
@@ -43,6 +45,8 @@ public/DMZ workloads.
 - internet-facing reverse proxies or public services by default
 - DMZ workloads
 - heavy GPU / transcoding / surveillance jobs
+- local LLM, STT, or TTS inference workloads; those belong on VM 104
+  `llm-host`
 
 ## Why this boundary exists
 
@@ -100,6 +104,11 @@ Before adding a new docker-host service, answer:
 5. Would failure or compromise of this service create a trust problem for other VLAN 20 systems?
 
 If any answer is uncomfortable, stop and reconsider placement.
+
+Future query apps, including the planned YouTube transcript query app, should
+not inherit an implied port, API, MCP contract, egress rule, or firewall
+allowance from this policy. This policy only says VM 103 is the expected target
+for those containers once the app-specific design is approved.
 
 ## Recommended near-term additions
 

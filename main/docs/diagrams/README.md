@@ -19,17 +19,17 @@ project can keep diagrams versioned and reviewable.
 | Diagram | Purpose |
 |---|---|
 | [current-master-architecture.mermaid](network/current-master-architecture.mermaid) | Whole-system placement: router, Proxmox, VMs, docker-host, OMV, services, physical integrations |
-| [vlan_architecture_clean.mermaid](network/vlan_architecture_clean.mermaid) | VLANs, subnets, router role, physical ports, remote-access placement |
+| [vlan_architecture_clean.mermaid](network/vlan_architecture_clean.mermaid) | VLANs, subnets, router role, physical ports, local AI, remote-access placement |
 | [remote-access-flow.mermaid](network/remote-access-flow.mermaid) | Tailscale daily access, docker-host host routes, WireGuard fallback |
 | [dns-ntp-flow.mermaid](network/dns-ntp-flow.mermaid) | Router DNS/NTP authority, AdGuard Home, Quad9-preferred fallback, HA/ESPHome time |
-| [security-access-flow.mermaid](network/security-access-flow.mermaid) | Firewall, ACL, host firewall, service-auth, and blocked-path intent |
+| [security-access-flow.mermaid](network/security-access-flow.mermaid) | Firewall, ACL, local AI, host firewall, service-auth, and blocked-path intent |
 
 ## Install suite and services
 
 | Diagram | Purpose |
 |---|---|
 | [install-sequence.mermaid](install/install-sequence.mermaid) | Fresh rebuild phase order and validation gates |
-| [docker-host-service-placement.mermaid](infrastructure/docker-host-service-placement.mermaid) | docker-host stack layout, Tier 1-3 services, backup/logging placement |
+| [docker-host-service-placement.mermaid](infrastructure/docker-host-service-placement.mermaid) | docker-host stack layout, Tier 1-3 services, future query-app boundary, backup/logging placement |
 | [storage-and-backup-flow.mermaid](storage/storage-and-backup-flow.mermaid) | OMV shares, HA/Frigate/Immich storage, backups, restore drills |
 
 ## Physical integration

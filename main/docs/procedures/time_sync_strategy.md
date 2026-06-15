@@ -89,12 +89,13 @@ and IoT Sensors.
 
 ### Infrastructure hosts
 
-For Proxmox, docker-host, Frigate, and future NAS/monitoring hosts:
+For Proxmox, docker-host, Frigate, llm-host, and future NAS/monitoring hosts:
 
 - Proxmox uses its normal host time sync.
 - Debian VMs should prefer their local VLAN gateway as NTP.
 - Current validated examples:
   - `docker-host` -> `192.168.20.1`
+  - `llm-host` -> `192.168.20.1`
   - `frigate-nvr` -> `192.168.30.1`
   - `monitoring` -> `192.168.60.1`
 
@@ -108,6 +109,7 @@ That keeps internal infrastructure less dependent on direct external time querie
 - router NTP server is enabled
 - router NTP allowance exists for restricted VLANs that need it
 - docker-host, Frigate, and monitoring have been validated against router-local NTP
+- llm-host should be validated against router-local NTP after Phase 05A is deployed
 - HAOS router-derived time now has a repo artifact at
   `configs/home-assistant/haos-timesyncd-router.conf`
 

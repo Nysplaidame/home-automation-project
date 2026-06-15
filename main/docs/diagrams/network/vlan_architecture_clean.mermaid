@@ -22,7 +22,7 @@ flowchart TB
     subgraph VLANs["Current VLAN and subnet plan"]
         V1["VLAN 1 LAN<br/>192.168.1.0/24<br/>trusted users"]
         V10["VLAN 10 Management<br/>192.168.10.0/24<br/>router, Proxmox"]
-        V20["VLAN 20 Automation<br/>192.168.20.0/24<br/>Home Assistant, docker-host"]
+        V20["VLAN 20 Automation<br/>192.168.20.0/24<br/>Home Assistant, docker-host, llm-host"]
         V30["VLAN 30 NVR<br/>192.168.30.0/24<br/>Frigate, cameras"]
         V35["VLAN 35 Printers<br/>192.168.35.0/24<br/>Bambu P1S, future printers"]
         V40["VLAN 40 Storage<br/>192.168.40.0/24<br/>OMV NAS"]
@@ -48,6 +48,7 @@ flowchart TB
         HA["Home Assistant VM 100<br/>192.168.20.101"]
         Frigate["Frigate VM 101<br/>192.168.30.20"]
         DockerHost["docker-host VM 103<br/>192.168.20.102<br/>Compose apps + Tailscale subnet router"]
+        LLMHost["llm-host VM 104<br/>192.168.20.104<br/>local AI inference"]
         OMV["OMV NAS<br/>192.168.40.50"]
     end
 
@@ -55,6 +56,7 @@ flowchart TB
     Proxmox --- HA
     Proxmox --- Frigate
     Proxmox --- DockerHost
+    Proxmox --- LLMHost
     V40 --- OMV
 
     subgraph Remote["Remote access"]

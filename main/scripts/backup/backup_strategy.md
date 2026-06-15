@@ -7,7 +7,7 @@
 
 | Layer | What | Where stored | Schedule | Retention |
 |---|---|---|---|---|
-| Proxmox snapshot | Entire VM disks (100/101/102/103 while NAS is pending) | MINISFORUM local NVMe (`/var/lib/vz/dump`) | Daily 02:00 | 2 snapshots |
+| Proxmox snapshot | Entire VM disks (100/101/102/103, and 104 after Phase 05A if deployed, while NAS is pending) | MINISFORUM local NVMe (`/var/lib/vz/dump`) | Daily 02:00 | 2 snapshots |
 | HA native backup | HA config, add-ons, automations | HA local + NAS | Daily 03:00 | 14 days on NAS |
 | Frigate recordings | Camera footage | NAS `/mnt/nas/frigate` | Continuous | 7 days motion, 14 days events |
 | Frigate VM state | OS disk, DB, cache, compose/config | MINISFORUM NVMe on VM 101 | Continuous | Rebuildable + config-backed |
@@ -129,7 +129,7 @@ Recordings are stored at `/mnt/nas/frigate` (NAS) or `/opt/frigate/storage` (loc
 
 Why this split:
 
-- NVMe is better reserved for VM disks, Frigate DB/cache, HA, docker-host, and future VMs.
+- NVMe is better reserved for VM disks, Frigate DB/cache, HA, docker-host, llm-host model data, and future VMs.
 - The NAS has the right capacity profile for continuous video retention.
 - Direct-to-NAS recording avoids the extra complexity of recording locally first
   and then archiving later.

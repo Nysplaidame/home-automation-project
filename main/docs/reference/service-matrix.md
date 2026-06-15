@@ -23,6 +23,7 @@ remote exposure, backup expectations, monitoring, and runbook coverage.
 | Frigate | VM 101 | `192.168.30.20` / VLAN 30 | 8971, 8554, 8555 | `frigate.home.local` | Not advertised | local first, OMV archive later | parked until cameras live | `scripts/setup/proxmox/frigate_vm_setup_guide.md` |
 | Monitoring stack | VM 102 | `192.168.60.10` / VLAN 60 | 3000, 3001, 8086 | monitoring dashboard links in HA | Host route `192.168.60.10/32` advertised via docker-host for Grafana/Kuma only; do not expose InfluxDB | stack config + Influx backups | Uptime Kuma self-monitor plus HA-side external health sensors | `scripts/setup/proxmox/monitoring_vm_setup_guide.md` |
 | Docker host | VM 103 | `192.168.20.102` / VLAN 20 | 22 plus service ports | `docker-host.home.local` | Tailscale node identity / MagicDNS | `/opt/stacks/<service>/` | Uptime Kuma, Dozzle | `scripts/setup/proxmox/docker_host_setup_guide.md` |
+| Local AI inference | VM 104 | `192.168.20.104` / VLAN 20 | 11434, 3002, 10200, 10300 | `llm-host.home.local`, `ollama.home.local`, `openwebui.home.local` | Not advertised by default; management/LAN/Tailscale access only if explicitly allowed | `/opt/stacks/local-ai/`; model data local to VM 104 | Planned Kuma checks and Grafana VM/container panels | `scripts/setup/proxmox/llm_host_setup_guide.md`, `docs/procedures/local_ai_performance_testing.md` |
 | OMV NAS | NAS hardware | `192.168.40.50` / VLAN 40 | 80/443, 22, 445, 2049 | `omv.home.local`, `nas.home.local` | `192.168.40.50/32` via docker-host | shared folders, SMART, OMV config backup | ping, web UI, SMART, NFS checks | `scripts/setup/nas/omv_nas_setup_guide.md` |
 
 ## Docker-host Tier 1
@@ -53,6 +54,7 @@ remote exposure, backup expectations, monitoring, and runbook coverage.
 | Tier 3 | Watchtower monitor-only | `/opt/stacks/watchtower/` | none | Pre-flight live monitor-only; useful during approved registry egress windows |
 | Tier 3 | local registry mirror | `/opt/stacks/registry-mirror/` | 5000 | `docs/install/services/local-registry-mirror.md`; daemon rollback gate |
 | Tier 3 | Node-RED | `/opt/stacks/node-red/` | 1880 | `docs/install/services/node-red.md`; HA-native automation gate |
+| Future | AI-adjacent query apps | `/opt/stacks/<service>/` | TBD | VM 103 is the expected target for future containerized query apps; define app-specific API, egress, storage, monitoring, and firewall rules before deployment |
 
 ## DNS aliases
 
@@ -67,6 +69,9 @@ remote exposure, backup expectations, monitoring, and runbook coverage.
 | `ntfy.home.local` | `192.168.20.102` | ntfy UI/API |
 | `searxng.home.local` | `192.168.20.102` | Future SearXNG UI |
 | `whoogle.home.local` | `192.168.20.102` | Future Whoogle UI |
+| `llm-host.home.local` | `192.168.20.104` | VM 104 local AI host |
+| `ollama.home.local` | `192.168.20.104` | Ollama API host |
+| `openwebui.home.local` | `192.168.20.104` | Open WebUI host |
 | `omv-nas.home.local` | `192.168.40.50` | OMV hostname |
 | `omv.home.local` | `192.168.40.50` | OMV convenience alias |
 | `nas.home.local` | `192.168.40.50` | Storage convenience alias |

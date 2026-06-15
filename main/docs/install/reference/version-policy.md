@@ -30,6 +30,7 @@ status: active
 | Compose plugin | Install with Docker Engine; verify `docker compose version` |
 | Databases | Avoid surprise major upgrades; note image tag before updates |
 | Vaultwarden | Deploy only after security/backup gate; avoid blind latest updates |
+| Local AI model alias | Keep `home-assistant-llm` stable, but record the underlying Ollama model/tag and quantization before live use |
 
 ## Use official latest lookup
 
@@ -39,6 +40,7 @@ status: active
 | Immich stack files | Use official Immich release downloads, then record release used |
 | Tailscale | Use official install script/repo and record `tailscale version` |
 | AdGuard Home Docker image | Use supported Docker image and record image digest/tag |
+| Ollama / Open WebUI / Wyoming images | Use documented upstream images, verify current tags before deploy, and record image digests after first live use |
 | Tier 2/3 app drafts | Use documented upstream images but record tag before first live use |
 
 ## Official references used by this suite
@@ -56,3 +58,7 @@ status: active
 - Scrypted install docs: <https://docs.scrypted.app/installation.html>
 - Portainer Docker standalone docs: <https://docs.portainer.io/start/install-ce/server/docker>
 - Docker registry mirror docs: <https://docs.docker.com/docker-hub/mirror/>
+- Ollama Docker image: <https://hub.docker.com/r/ollama/ollama>
+- Open WebUI docs: <https://docs.openwebui.com/>
+- Wyoming Whisper image: <https://hub.docker.com/r/rhasspy/wyoming-whisper>
+- Wyoming Piper image: <https://hub.docker.com/r/rhasspy/wyoming-piper>

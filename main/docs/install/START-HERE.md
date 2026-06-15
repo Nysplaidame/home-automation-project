@@ -62,6 +62,7 @@ Use the location names in [command-location-legend.md](reference/command-locatio
 | 3 | Home Assistant baseline | [03-home-assistant.md](phases/03-home-assistant.md) | `scripts/setup/proxmox/ha_vm_setup_guide.md` |
 | 4 | Frigate VM base | [04-frigate.md](phases/04-frigate.md) | `scripts/setup/proxmox/frigate_vm_setup_guide.md` |
 | 5 | docker-host baseline and Tailscale | [05-docker-host.md](phases/05-docker-host.md) | `scripts/setup/proxmox/docker_host_setup_guide.md` |
+| 5A | Optional local AI inference | [05a-local-ai.md](phases/05a-local-ai.md) | `scripts/setup/proxmox/llm_host_setup_guide.md`, `docs/procedures/local_ai_performance_testing.md` |
 | 6 | OMV NAS storage | [06-omv-nas.md](phases/06-omv-nas.md) | `scripts/setup/nas/omv_nas_setup_guide.md` |
 | 7 | Tier 1 docker-host apps | [07-tier1-apps.md](phases/07-tier1-apps.md) | [services/README.md](services/README.md) |
 | 8 | Tier 2 app drafts | [08-tier2-apps.md](phases/08-tier2-apps.md) | [services/README.md](services/README.md) |
