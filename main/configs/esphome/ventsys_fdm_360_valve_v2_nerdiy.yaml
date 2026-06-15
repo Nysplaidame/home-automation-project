@@ -6,7 +6,8 @@
 # until the installed board/input wiring is confirmed.
 # Safety: the PrintAirPipe 360 intake linkage opens with a short actuation-arm
 # throw. Uses Nerdiy's one-sided servo mapping, but limits default travel to
-# 35% of that range: closed at 0, open at 35.
+# Calibrated inside the full ESPHome servo travel: closed at 30 maps to
+# servo level -0.4, open at 60 maps to servo level +0.2.
 # Before driving this from HA mode scripts, make sure the HA 360-intake targets
 # use this same inverted contract; older scripts treat 0 as closed and 50 as open.
 # VentSys 360 Intake Valve Controller
@@ -73,7 +74,7 @@ mqtt:
   discover_ip: false
   certificate_authority: !secret mqtt_ca_cert
   on_message:
-    # Receive 0-35 calibrated position from HA. Clamp anything higher so a
+    # Receive calibrated position from HA. Clamp out-of-range values so a
     # dashboard/manual publish cannot overdrive the short 360-intake linkage.
     - topic: ${mqtt_command_topic}
       qos: 0
@@ -82,7 +83,7 @@ mqtt:
             id: drive_valve_to
             target: !lambda |-
               float requested = (float)atoi(x.c_str());
-              if (requested < 0.0f) requested = 0.0f;
+              if (requested < id(valve_closed_position).state) requested = id(valve_closed_position).state;
               if (requested > id(valve_opened_position).state) requested = id(valve_opened_position).state;
               return requested;
   on_connect:
@@ -124,7 +125,7 @@ script:
           ESP_LOGI("pwm", "PWM enabled - target %.0f%%", target);
       - servo.write:
           id: valve_servo
-          level: !lambda 'return target / 100.0;'
+          level: !lambda 'return (target / 100.0) * 2.0 - 1.0;'
       - lambda: |-
           id(valve_position_direct_control_number).publish_state(target);
           float red, green, blue;
@@ -160,9 +161,9 @@ number:
   - platform: template
     name: "Valve Position"
     id: valve_position_direct_control_number
-    min_value: 0
-    initial_value: 0
-    max_value: 35
+    min_value: 30
+    initial_value: 30
+    max_value: 60
     step: 1
     optimistic: true
     set_action:
@@ -175,8 +176,8 @@ number:
     name: "Valve Open Position"
     id: valve_opened_position
     min_value: 0
-    initial_value: 35
-    max_value: 35
+    initial_value: 60
+    max_value: 100
     step: 1
     optimistic: true
     mode: box
@@ -185,8 +186,8 @@ number:
     name: "Valve Closed Position"
     id: valve_closed_position
     min_value: 0
-    initial_value: 0
-    max_value: 35
+    initial_value: 30
+    max_value: 100
     step: 1
     optimistic: true
     mode: box
