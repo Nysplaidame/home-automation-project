@@ -29,9 +29,11 @@ Purpose: verify safety-critical dependencies before allowing unattended print jo
 
 1. Confirm board-to-file mapping before flashing:
    - SLA print valve: `main/configs/esphome/ventsys_sla_print_valve.yaml`
-   - FDM sensor board: `main/configs/esphome/ventsys_fdm_sensor.yaml`
-   - SLA sensor board: `main/configs/esphome/ventsys_sla_sensor.yaml`
-   - Booth sensor board: `main/configs/esphome/ventsys_booth_sensor.yaml`
+   - FDM pipe air sensor: `main/configs/esphome/ventsys_fdm_pipe_air_sensor.yaml`
+   - SLA pipe air sensor: `main/configs/esphome/ventsys_sla_pipe_air_sensor.yaml`
+   - Garage air sensor: `main/configs/esphome/ventsys_garage_air_sensor.yaml`
+   - FDM sensor arrays: `main/configs/esphome/ventsys_fdm_array_1.yaml`, `main/configs/esphome/ventsys_fdm_array_2.yaml`
+   - SLA sensor arrays: `main/configs/esphome/ventsys_sla_array_1.yaml`, `main/configs/esphome/ventsys_sla_array_2.yaml`
    - Main inline fan: `main/configs/esphome/ventsys_main_fan.yaml`
 2. Confirm expected IP reservations match `main/configs/openwrt/dhcp-config.conf`.
 3. Do not flash from template/reference docs in `main/ventsys/integration-process/`.

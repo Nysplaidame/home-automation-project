@@ -248,7 +248,7 @@ $networkDecision | Out-File -FilePath "docs\decisions\001-network-architecture.m
 "# Home Assistant Configuration" | Out-File -FilePath "configs\home-assistant\configuration.yaml" -Encoding UTF8
 "# Home Assistant Automations" | Out-File -FilePath "configs\home-assistant\automations.yaml" -Encoding UTF8
 "# Frigate NVR Configuration" | Out-File -FilePath "configs\frigate\config.yml" -Encoding UTF8
-"# ESPHome PrintAirPipe Configuration" | Out-File -FilePath "configs\esphome\printairpipe-controller.yaml" -Encoding UTF8
+"# ESPHome VentSys Air Sensor Base Configuration" | Out-File -FilePath "configs\esphome\ventsys_air_sensor_base.yaml" -Encoding UTF8
 "# Proxmox VM Configurations" | Out-File -FilePath "configs\proxmox\vm-configs.conf" -Encoding UTF8
 
 Write-Host ""

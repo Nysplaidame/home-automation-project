@@ -1,0 +1,214 @@
+# ESPHome - VentSys shared air sensor firmware
+#
+# Used by:
+#   - 3 pipe/ambient air sensors: garage, FDM pipe, SLA pipe
+#   - 4 enclosure sensor arrays: FDM array 1/2, SLA array 1/2
+#
+# ESPHome device names stay hyphenated for mDNS/DHCP. Exposed entity names use
+# the `ventsys_...` prefix through entity_prefix so Home Assistant entities match
+# the VentSys dashboard nomenclature.
+
+substitutions:
+  device_name: ventsys-air-sensor
+  friendly_name: "ventsys_air_sensor"
+  entity_prefix: "ventsys_air_sensor"
+  device_ip: "192.168.50.35"
+  mqtt_topic_prefix: "ventsys/air"
+  temp_threshold: "55.0"
+  bme680_address: "0x77"
+  bme680_update_interval: "30s"
+  smoke_update_interval: "5s"
+  heartbeat_interval: "60s"
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: esp32-c6-devkitc-1
+  framework:
+    type: esp-idf
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  use_address: ${device_ip}
+  manual_ip:
+    static_ip: ${device_ip}
+    gateway: 192.168.50.1
+    subnet: 255.255.255.0
+    dns1: 192.168.50.1
+
+mqtt:
+  broker: 192.168.20.101
+  port: 8883
+  username: !secret mqtt_user
+  password: !secret mqtt_pass
+  discovery: false
+  discover_ip: false
+  certificate_authority: !secret mqtt_ca_cert
+
+api:
+  encryption:
+    key: !secret api_key
+
+ota:
+  platform: esphome
+  password: !secret ota_password
+
+logger:
+  level: WARN
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
+status_led:
+  pin:
+    number: GPIO2
+    inverted: false
+
+i2c:
+  sda: GPIO4
+  scl: GPIO5
+  scan: false
+
+sensor:
+  - platform: bme680
+    address: ${bme680_address}
+    update_interval: ${bme680_update_interval}
+
+    temperature:
+      name: "${entity_prefix}_temperature"
+      id: air_temperature
+      unit_of_measurement: "°C"
+      accuracy_decimals: 1
+      filters:
+        - filter_out: nan
+        - sliding_window_moving_average:
+            window_size: 3
+            send_every: 1
+      on_value:
+        then:
+          - mqtt.publish:
+              topic: "${mqtt_topic_prefix}/temperature"
+              payload: !lambda 'return to_string(x);'
+
+    humidity:
+      name: "${entity_prefix}_humidity"
+      id: air_humidity
+      unit_of_measurement: "%"
+      accuracy_decimals: 1
+      filters:
+        - filter_out: nan
+      on_value:
+        then:
+          - mqtt.publish:
+              topic: "${mqtt_topic_prefix}/humidity"
+              payload: !lambda 'return to_string(x);'
+
+    pressure:
+      name: "${entity_prefix}_baro_pressure"
+      id: air_baro_pressure
+      unit_of_measurement: "hPa"
+      accuracy_decimals: 2
+      filters:
+        - filter_out: nan
+      on_value:
+        then:
+          - mqtt.publish:
+              topic: "${mqtt_topic_prefix}/baro_pressure"
+              payload: !lambda 'return to_string(x);'
+
+    gas_resistance:
+      name: "${entity_prefix}_iaq_gas_resistance"
+      id: air_gas_resistance
+      unit_of_measurement: "Ω"
+      accuracy_decimals: 0
+      filters:
+        - filter_out: nan
+        - sliding_window_moving_average:
+            window_size: 3
+            send_every: 1
+      on_value:
+        then:
+          - mqtt.publish:
+              topic: "${mqtt_topic_prefix}/iaq"
+              payload: !lambda 'return to_string((int)x);'
+
+  - platform: adc
+    pin: GPIO3
+    name: "${entity_prefix}_smoke_voc_raw"
+    id: smoke_voc_raw
+    unit_of_measurement: "raw"
+    accuracy_decimals: 0
+    update_interval: ${smoke_update_interval}
+    attenuation: auto
+    filters:
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 1
+
+binary_sensor:
+  - platform: template
+    name: "${entity_prefix}_smoke_detected"
+    id: smoke_alarm
+    lambda: 'return id(smoke_voc_raw).state > 2000;'
+    device_class: smoke
+    filters:
+      - delayed_on: 3s
+      - delayed_off: 10s
+    on_press:
+      then:
+        - mqtt.publish:
+            topic: "${mqtt_topic_prefix}/smoke"
+            payload: "detected"
+    on_release:
+      then:
+        - mqtt.publish:
+            topic: "${mqtt_topic_prefix}/smoke"
+            payload: "clear"
+
+  - platform: template
+    name: "${entity_prefix}_high_temperature"
+    id: high_temp_alarm
+    lambda: 'return id(air_temperature).state > ${temp_threshold}f;'
+    device_class: heat
+    filters:
+      - delayed_on: 10s
+    on_press:
+      then:
+        - mqtt.publish:
+            topic: "${mqtt_topic_prefix}/temp_alarm"
+            payload: "high"
+    on_release:
+      then:
+        - mqtt.publish:
+            topic: "${mqtt_topic_prefix}/temp_alarm"
+            payload: "normal"
+
+  - platform: status
+    name: "${entity_prefix}_status"
+    id: device_status
+
+text_sensor:
+  - platform: version
+    name: "${entity_prefix}_esphome_version"
+    entity_category: diagnostic
+  - platform: wifi_info
+    ip_address:
+      name: "${entity_prefix}_ip"
+      entity_category: diagnostic
+    ssid:
+      name: "${entity_prefix}_ssid"
+      entity_category: diagnostic
+    bssid:
+      name: "${entity_prefix}_bssid"
+      entity_category: diagnostic
+
+interval:
+  - interval: ${heartbeat_interval}
+    then:
+      - mqtt.publish:
+          topic: "${mqtt_topic_prefix}/online"
+          payload: "true"

@@ -10,6 +10,8 @@
 ## Working Rules
 
 - Treat `README.md`, `PROJECT-INDEX.md`, `TO-DO.md`, and `docs/decisions/` as the main durable project record.
+- Use `E:\home-automation-project` as the active local checkout path in this Codex desktop environment.
+- For Home Assistant dashboard/config deploys, use Samba at `\\192.168.20.101\config\www\` with the `homeassistant` credential stored in Windows Credential Manager; never store the Samba password in tracked files.
 - Prefer updating existing docs over adding duplicate summaries.
 - For deployment or live-system work, preserve exact commands, validation, and rollback notes in the relevant handoff or procedure file.
 - Use the wiki only when the task is explicitly about the wiki knowledge base.

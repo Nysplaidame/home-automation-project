@@ -2304,12 +2304,18 @@
   // =====================================================================
   // HOME ASSISTANT INTEGRATION FOR WIRED DASHBOARD
   // =====================================================================
+  function defaultHaWsUrl() {
+    const host = window.location.host || '192.168.20.101:8123';
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${protocol}//${host}/api/websocket`;
+  }
+
   const HA_CONFIG = {
     // 2026-05-13: This file is the SOURCE-OF-TRUTH copy. Token MUST stay as the
     // placeholder here. The real production token lives in /config/www/ventsys-config.js
     // on the HA host (NOT in this repo) and is merged into HA_CONFIG at runtime
     // by the block immediately below this object literal. See file header for setup.
-    wsUrl: 'ws://192.168.20.101:8123/api/websocket',
+    wsUrl: defaultHaWsUrl(),
     token: '__SET_HA_TOKEN__',
 
     // IAQ source mode:
@@ -2323,31 +2329,31 @@
     valveOpenPosition: 50,
 
     entities: {
-      // Enclosure sensors (native ESPHome preferred + MQTT fallbacks where relevant)
-      enc1_temp: 'sensor.fdm_enclosure_sensors_temperature',
+      // Air sensors (native ESPHome preferred + MQTT fallbacks where relevant)
+      enc1_temp: 'sensor.ventsys_fdm_pipe_air_temperature',
       enc1_temp_fallback: 'sensor.fdm_temperature',
-      enc1_humidity: 'sensor.fdm_enclosure_sensors_humidity',
-      enc1_pressure: 'sensor.fdm_enclosure_sensors_pressure_differential',
+      enc1_humidity: 'sensor.ventsys_fdm_pipe_air_humidity',
+      enc1_pressure: 'sensor.ventsys_fdm_pipe_air_baro_pressure',
       enc1_pressure_fallback: 'sensor.fdm_pressure_differential',
-      enc1_smoke_binary: 'binary_sensor.fdm_enclosure_sensors_smoke_detected',
+      enc1_smoke_binary: 'binary_sensor.ventsys_fdm_pipe_air_smoke_detected',
       enc1_smoke_text: 'sensor.fdm_smoke',
-      enc1_iaq: 'sensor.fdm_enclosure_sensors_iaq_gas_resistance',
+      enc1_iaq: 'sensor.ventsys_fdm_pipe_air_iaq_gas_resistance',
       enc1_iaq_fallback: 'sensor.fdm_iaq',
 
-      enc2_temp: 'sensor.sla_enclosure_sensors_temperature',
+      enc2_temp: 'sensor.ventsys_sla_pipe_air_temperature',
       enc2_temp_fallback: 'sensor.sla_temperature',
-      enc2_humidity: 'sensor.sla_enclosure_sensors_humidity',
-      enc2_pressure: 'sensor.sla_enclosure_sensors_pressure_differential',
+      enc2_humidity: 'sensor.ventsys_sla_pipe_air_humidity',
+      enc2_pressure: 'sensor.ventsys_sla_pipe_air_baro_pressure',
       enc2_pressure_fallback: 'sensor.sla_pressure_differential',
-      enc2_smoke_binary: 'binary_sensor.sla_enclosure_sensors_smoke_detected',
+      enc2_smoke_binary: 'binary_sensor.ventsys_sla_pipe_air_smoke_detected',
       enc2_smoke_text: 'sensor.sla_smoke',
-      enc2_iaq: 'sensor.sla_enclosure_sensors_iaq_gas_resistance',
+      enc2_iaq: 'sensor.ventsys_sla_pipe_air_iaq_gas_resistance',
       enc2_iaq_fallback: 'sensor.sla_iaq',
 
-      ambient_temp: 'sensor.garage_temperature',
-      ambient_humidity: 'sensor.garage_humidity',
-      ambient_baro: 'sensor.garage_baro_pressure',
-      ambient_iaq: 'sensor.garage_iaq',
+      ambient_temp: 'sensor.ventsys_garage_air_temperature',
+      ambient_humidity: 'sensor.ventsys_garage_air_humidity',
+      ambient_baro: 'sensor.ventsys_garage_air_baro_pressure',
+      ambient_iaq: 'sensor.ventsys_garage_air_iaq_gas_resistance',
 
       flow_fdm_rps: 'sensor.fdm_airflow_wheel_speed',
       flow_sla_rps: 'sensor.sla_airflow_wheel_speed',
@@ -2396,8 +2402,9 @@
       'sla-seal':    'script.ventsys_mode_sla_seal',
     },
 
-    // Commissioned physical nodes only. This badge intentionally uses
-    // diagnostic ESPHome-style entities, not retained MQTT actuator numbers.
+    // Optional alias hints for node discovery. This is not the inventory:
+    // refreshNodeStatus() discovers HA/ESPHome device groups from diagnostic
+    // entities as boards are adopted.
     nodes: [
       {
         name: 'MAIN-1',
@@ -2408,8 +2415,20 @@
         slugs: ['ventsys_main_valve_2', 'ventsys_main_duct_valve_2', 'main_duct_valve_2'],
       },
       {
-        name: 'FAN',
-        slugs: ['ventsys_fan_controller', 'ventsys_inline_fan', 'inline_fan'],
+        name: 'FDM-360',
+        slugs: ['ventsys_fdm_360_intake_valve', 'ventsys_fdm_360_valve', 'fdm_360_intake'],
+      },
+      {
+        name: 'SLA-360',
+        slugs: ['ventsys_sla_360_intake_valve', 'ventsys_sla_360_valve', 'sla_360_intake'],
+      },
+      {
+        name: 'FDM AIR',
+        slugs: ['ventsys_fdm_airflow_sensor', 'ventsys_fdm_airflow', 'fdm_airflow'],
+      },
+      {
+        name: 'SLA AIR',
+        slugs: ['sla_enclosure_sensor_array_1_sla_enclosure_sensors', 'ventsys_sla_array_1', 'sla_array_1'],
       },
     ],
   };
@@ -2430,13 +2449,53 @@
   // include every entity key it intends to use. If you only want to set the
   // token (the common case), just set `token:` and leave everything else.
   // ───────────────────────────────────────────────────────────────────────
-  if (typeof window.VENTSYS_CONFIG === 'object' && window.VENTSYS_CONFIG !== null) {
-    Object.assign(HA_CONFIG, window.VENTSYS_CONFIG);
+  const _localHaConfig = (typeof window.VENTSYS_CONFIG === 'object' && window.VENTSYS_CONFIG !== null)
+    ? window.VENTSYS_CONFIG
+    : null;
+
+  if (_localHaConfig) {
+    Object.assign(HA_CONFIG, _localHaConfig);
     console.log('[HA] Merged ventsys-config.js overrides:',
-                Object.keys(window.VENTSYS_CONFIG).join(', '));
+                Object.keys(_localHaConfig).join(', '));
   } else {
     console.warn('[HA] No window.VENTSYS_CONFIG found — using inline defaults. ' +
                  'Token will be the placeholder unless ventsys-config.js is present.');
+  }
+
+  function httpUrlToWsUrl(rawUrl) {
+    try {
+      const url = new URL(rawUrl);
+      url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+      url.pathname = '/api/websocket';
+      url.search = '';
+      url.hash = '';
+      return url.toString();
+    } catch (e) {
+      console.warn('[HA] Invalid haUrl/httpUrl in VENTSYS_CONFIG:', rawUrl);
+      return HA_CONFIG.wsUrl;
+    }
+  }
+
+  function normalizeHaConfig() {
+    HA_CONFIG.token = String(HA_CONFIG.token || '').trim();
+    HA_CONFIG.wsUrl = String(HA_CONFIG.wsUrl || '').trim() || defaultHaWsUrl();
+
+    if (_localHaConfig && !_localHaConfig.wsUrl && (_localHaConfig.httpUrl || _localHaConfig.haUrl)) {
+      HA_CONFIG.wsUrl = httpUrlToWsUrl(_localHaConfig.httpUrl || _localHaConfig.haUrl);
+    }
+  }
+
+  normalizeHaConfig();
+
+  function isPlaceholderHaToken(token) {
+    const value = String(token || '').trim();
+    return !value ||
+      value.length < 40 ||
+      value === '__SET_HA_TOKEN__' ||
+      value === 'PASTE_YOUR_LONG_LIVED_TOKEN_HERE' ||
+      value === 'YOUR_LONG_LIVED_TOKEN_HERE' ||
+      /placeholder|replace|paste|token_here|your_/i.test(value) ||
+      /\byour[-_ ]long[-_ ]lived[-_ ]token\b/i.test(value);
   }
 
   function valveOpenPosition() {
@@ -2468,6 +2527,7 @@
   let _haMsgId = 1;
   let _haWs = null;
   let _haPendingCalls = {};
+  let _haAuthFailed = false;
   const _flowRps = { fdm: null, sla: null, booth: null };
   const _haEntityStateById = new Map();
   const _lastEntityState = new Map();
@@ -2767,24 +2827,128 @@
     return s !== '' && s !== 'unknown' && s !== 'unavailable';
   }
 
+  const NODE_DIAGNOSTIC_SUFFIXES = [
+    '_latest_wifi_scan_results',
+    '_wifi_signal_percent',
+    '_wifi_mac_address',
+    '_internal_temperature',
+    '_temperature_alert_level',
+    '_connected_ssid',
+    '_esphome_version',
+    '_wifi_signal_db',
+    '_ip_address',
+    '_uptime',
+    '_status',
+    '_bssid',
+    '_ssid',
+    '_ip',
+  ].sort((a, b) => b.length - a.length);
+
+  function normalizeNodeSlug(slug) {
+    return String(slug || '')
+      .toLowerCase()
+      .replace(/^.*\./, '')
+      .replace(/[^a-z0-9_]+/g, '_')
+      .replace(/^_+|_+$/g, '');
+  }
+
+  function labelFromNodeSlug(slug) {
+    return normalizeNodeSlug(slug)
+      .replace(/^ventsys_/, '')
+      .replace(/_sensor$/, '')
+      .replace(/_/g, ' ')
+      .toUpperCase();
+  }
+
+  function diagnosticSuffixForEntity(entityId) {
+    const raw = normalizeNodeSlug(entityId);
+    return NODE_DIAGNOSTIC_SUFFIXES.find(suffix => raw.endsWith(suffix)) || '';
+  }
+
+  function nodeSlugFromDiagnosticEntity(entityId) {
+    const id = String(entityId || '').toLowerCase();
+    const domain = id.split('.')[0];
+    if (!['sensor', 'binary_sensor', 'text_sensor'].includes(domain)) return '';
+
+    const raw = normalizeNodeSlug(id);
+    const suffix = diagnosticSuffixForEntity(id);
+    if (!suffix) return '';
+
+    const slug = raw.slice(0, -suffix.length);
+    if (!slug || slug === 'ventsys' || slug.startsWith('mqtt_broker')) return '';
+    return slug;
+  }
+
+  function mergeNode(target, source) {
+    if (!target.name && source.name) target.name = source.name;
+    target.slugs = [...new Set([...(target.slugs || []), ...(source.slugs || [])].map(normalizeNodeSlug).filter(Boolean))];
+    target.health_entities = [...new Set([...(target.health_entities || []), ...(source.health_entities || [])].filter(Boolean))];
+    return target;
+  }
+
+  function discoveredNodes() {
+    const seeds = Array.isArray(HA_CONFIG.nodes) ? HA_CONFIG.nodes : [];
+    const byKey = new Map();
+    const aliasToKey = new Map();
+
+    seeds.forEach((seed) => {
+      const seedSlugs = Array.isArray(seed?.slugs) ? seed.slugs : [];
+      const key = normalizeNodeSlug(seed?.key || seedSlugs[0] || seed?.name);
+      if (!key) return;
+      const aliases = [...new Set([key, ...seedSlugs.map(normalizeNodeSlug)].filter(Boolean))];
+      aliases.forEach(alias => aliasToKey.set(alias, key));
+      byKey.set(key, mergeNode(byKey.get(key) || { name: seed.name || labelFromNodeSlug(key) }, {
+        ...seed,
+        slugs: aliases,
+      }));
+    });
+
+    _haEntityStateById.forEach((_state, entityId) => {
+      const discoveredSlug = nodeSlugFromDiagnosticEntity(entityId);
+      if (!discoveredSlug) return;
+      const key = aliasToKey.get(discoveredSlug) || discoveredSlug;
+      byKey.set(key, mergeNode(byKey.get(key) || { name: labelFromNodeSlug(discoveredSlug) }, {
+        slugs: [discoveredSlug],
+        health_entities: [entityId],
+      }));
+    });
+
+    return [...byKey.values()].filter(node => nodeDiagnosticEntityIds(node).some(id => _haEntityStateById.has(id)));
+  }
+
   function nodeDiagnosticEntityIds(node) {
     const explicit = Array.isArray(node?.health_entities) ? node.health_entities : [];
     const slugs = Array.isArray(node?.slugs) ? node.slugs : [];
-    const diagnosticTerms = ['uptime', 'ip_address', 'wifi_signal', 'ssid'];
     const discovered = [];
 
     _haEntityStateById.forEach((_state, entityId) => {
       const id = String(entityId).toLowerCase();
-      const matchesSlug = slugs.some(slug => id.includes(String(slug).toLowerCase()));
-      const isDiagnostic = diagnosticTerms.some(term => id.includes(term));
+      const matchesSlug = slugs.some(slug => id.includes(normalizeNodeSlug(slug)));
+      const isDiagnostic = Boolean(diagnosticSuffixForEntity(id));
       if (matchesSlug && isDiagnostic) discovered.push(entityId);
     });
 
     return [...new Set([...explicit, ...discovered].filter(Boolean))];
   }
 
+  function diagnosticEntityIsLive(entityId) {
+    const stateObj = _haEntityStateById.get(entityId);
+    if (!stateIsLive(stateObj)) return false;
+    const state = String(stateObj.state ?? '').toLowerCase();
+    if (/^binary_sensor\..*_status$/.test(String(entityId).toLowerCase())) {
+      return state === 'on';
+    }
+    return state !== 'off';
+  }
+
   function nodeIsLive(node) {
-    return nodeDiagnosticEntityIds(node).some(id => stateIsLive(_haEntityStateById.get(id)));
+    const ids = nodeDiagnosticEntityIds(node);
+    const statusIds = ids.filter(id => /^binary_sensor\..*_status$/.test(String(id).toLowerCase()));
+    const knownStatusIds = statusIds.filter(id => stateIsLive(_haEntityStateById.get(id)));
+    if (knownStatusIds.length > 0) {
+      return knownStatusIds.some(id => diagnosticEntityIsLive(id));
+    }
+    return ids.some(diagnosticEntityIsLive);
   }
 
   function refreshNodeStatus() {
@@ -2793,7 +2957,7 @@
     const logLine = document.getElementById('log-msg-5');
     if (!sysBadge && !badge && !logLine) return;
 
-    const nodes = Array.isArray(HA_CONFIG.nodes) ? HA_CONFIG.nodes : [];
+    const nodes = discoveredNodes();
     const total = nodes.length;
     const live = nodes.filter(nodeIsLive).length;
 
@@ -3086,11 +3250,23 @@
   }
 
   function haConnect() {
-    if (!HA_CONFIG.token || HA_CONFIG.token === '__SET_HA_TOKEN__') {
-      console.warn('[HA] No token set in HA_CONFIG.token; running in demo mode.');
+    if (isPlaceholderHaToken(HA_CONFIG.token)) {
+      console.warn('[HA] No real token set in HA_CONFIG.token. Set /config/www/ventsys-config.js with a Home Assistant long-lived access token.');
+      updateConnectionBadge(false);
+      pushSystemEvent({ key: 'ha.config', label: 'HA TOKEN NOT SET', severity: 'warn', cooldownMs: 10000 });
       return;
     }
-    _haWs = new WebSocket(HA_CONFIG.wsUrl);
+
+    _haAuthFailed = false;
+    try {
+      _haWs = new WebSocket(HA_CONFIG.wsUrl);
+    } catch (e) {
+      console.error('[HA] WebSocket connection failed:', e);
+      updateConnectionBadge(false);
+      pushSystemEvent({ key: 'ha.conn', label: 'HA CONNECTION LOST', severity: 'warn', cooldownMs: 4000 });
+      setTimeout(haConnect, 10000);
+      return;
+    }
 
     _haWs.onmessage = (evt) => {
       const msg = JSON.parse(evt.data);
@@ -3108,8 +3284,10 @@
         return;
       }
       if (msg.type === 'auth_invalid') {
+        _haAuthFailed = true;
         console.error('[HA] Auth invalid. Check token.');
         pushSystemEvent({ key: 'ha.auth', label: 'HA AUTH FAILED', severity: 'alarm', cooldownMs: 10000 });
+        _haWs.close();
         return;
       }
       if (msg.type === 'result' && _haPendingCalls[msg.id]) {
@@ -3129,6 +3307,7 @@
       window._haConnected = false;
       updateConnectionBadge(false);
       refreshNodeStatus();
+      if (_haAuthFailed) return;
       pushSystemEvent({ key: 'ha.conn', label: 'HA CONNECTION LOST', severity: 'warn', cooldownMs: 4000 });
       setTimeout(haConnect, 10000);
     };

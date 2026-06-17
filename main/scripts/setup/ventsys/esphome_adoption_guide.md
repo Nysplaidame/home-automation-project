@@ -13,10 +13,13 @@
 > |---|---|---|---|
 > | Main fan controller | ventsys_fan_controller.yaml | ventsys-main-fan | 192.168.50.21 |
 > | Booth fan controller | ventsys_booth_fan.yaml | ventsys-booth-fan | 192.168.50.22 |
-> | FDM sensor board | ventsys_fdm_sensor.yaml | ventsys-fdm-sensor | 192.168.50.31 |
-> | SLA sensor board | ventsys_sla_sensor.yaml | ventsys-sla-sensor | 192.168.50.32 |
-> | Booth sensor board | ventsys_booth_sensor.yaml | ventsys-booth-sensor | 192.168.50.33 |
-> | Garage sensor | ventsys_garage_sensor.yaml | ventsys-garage-sensor | 192.168.50.34 |
+> | FDM sensor array 1 | ventsys_fdm_array_1.yaml | ventsys-fdm-array-1 | 192.168.50.31 |
+> | FDM sensor array 2 | ventsys_fdm_array_2.yaml | ventsys-fdm-array-2 | 192.168.50.32 |
+> | SLA sensor array 1 | ventsys_sla_array_1.yaml | ventsys-sla-array-1 | 192.168.50.33 |
+> | SLA sensor array 2 | ventsys_sla_array_2.yaml | ventsys-sla-array-2 | 192.168.50.34 |
+> | Garage air sensor | ventsys_garage_air_sensor.yaml | ventsys-garage-air-sensor | 192.168.50.35 |
+> | FDM pipe air sensor | ventsys_fdm_pipe_air_sensor.yaml | ventsys-fdm-pipe-air-sensor | 192.168.50.36 |
+> | SLA pipe air sensor | ventsys_sla_pipe_air_sensor.yaml | ventsys-sla-pipe-air-sensor | 192.168.50.37 |
 > | FDM airflow sensor | ventsys_fdm_airflow.yaml | ventsys-fdm-airflow | 192.168.50.41 |
 > | SLA airflow sensor | ventsys_sla_airflow.yaml | ventsys-sla-airflow | 192.168.50.42 |
 > | Booth airflow sensor | ventsys_booth_airflow.yaml | ventsys-booth-airflow | 192.168.50.43 |
@@ -40,7 +43,7 @@
 # Managed via: ESPHome add-on on HA (192.168.20.101)
 #
 # Covers: All VentSys ESPHome boards — fan controllers, valve controllers,
-#         and sensor arrays (FDM, SLA, booth, garage)
+#         airflow sensors, four enclosure sensor arrays, and three air sensors
 # Canonical IP allocations: configs/openwrt/dhcp-config.conf
 # ESPHome configs: ventsys/ventsys_bundle_updated/ and configs/esphome/
 
@@ -78,7 +81,7 @@ ota_password: "your-ota-password"
 
 Place `secrets.yaml` in both:
 - `ventsys/ventsys_bundle_updated/` (fan and valve controllers)
-- `configs/esphome/` (sensor arrays and garage sensor)
+- `configs/esphome/` (sensor arrays, air sensors, and airflow sensors)
 
 ---
 
@@ -139,72 +142,48 @@ WiFi connected! IP: 192.168.50.21
 MQTT connected
 ```
 
-### 1.3 — Flash sensor arrays (FDM, SLA, booth)
+### 1.3 — Flash sensor arrays and air sensors
 
 Config files: `configs/esphome/`
-Use: `printairpipe-controller_pretls.yaml`
-Targets: 192.168.50.31 (FDM) / 192.168.50.32 (SLA) / 192.168.50.33 (booth)
 
-Each board needs its own IP and hostname. Set the substitution variables at the
-top of the config before flashing each board:
+Each board has its own YAML wrapper, hostname, static IP, MQTT topic prefix, and
+Home Assistant entity prefix. The wrappers all import `ventsys_air_sensor_base.yaml`.
 
-```yaml
-# printairpipe-controller_pretls.yaml — edit these per board before flashing:
-substitutions:
-  device_name: "ventsys-fdm-sensor"     # ventsys-fdm-sensor / ventsys-sla-sensor / ventsys-booth-sensor
-  device_ip: "192.168.50.31"            # .31 FDM  /  .32 SLA  /  .33 booth
-  device_description: "FDM sensor array"
-```
+| Device | YAML | IP |
+|---|---|---:|
+| FDM sensor array 1 | `ventsys_fdm_array_1.yaml` | 192.168.50.31 |
+| FDM sensor array 2 | `ventsys_fdm_array_2.yaml` | 192.168.50.32 |
+| SLA sensor array 1 | `ventsys_sla_array_1.yaml` | 192.168.50.33 |
+| SLA sensor array 2 | `ventsys_sla_array_2.yaml` | 192.168.50.34 |
+| Garage air sensor | `ventsys_garage_air_sensor.yaml` | 192.168.50.35 |
+| FDM pipe air sensor | `ventsys_fdm_pipe_air_sensor.yaml` | 192.168.50.36 |
+| SLA pipe air sensor | `ventsys_sla_pipe_air_sensor.yaml` | 192.168.50.37 |
 
 Flash each board one at a time:
 ```bash
 cd "\\VBoxSvr\home-automation-safety\configs\esphome"
 
-# Set substitutions for FDM (.31), flash, then repeat for SLA (.32) and booth (.33)
-esphome run printairpipe-controller_pretls.yaml
+esphome run ventsys_garage_air_sensor.yaml
+esphome run ventsys_fdm_pipe_air_sensor.yaml
+esphome run ventsys_sla_pipe_air_sensor.yaml
+esphome run ventsys_fdm_array_1.yaml
+esphome run ventsys_fdm_array_2.yaml
+esphome run ventsys_sla_array_1.yaml
+esphome run ventsys_sla_array_2.yaml
 ```
 
-### 1.4 — Flash garage ambient sensor
+### 1.4 — Verify BME680 I2C address
 
-Config: `configs/esphome/ventsys_garage_sensor_pretls.yaml`
-Target IP: 192.168.50.34
-
-```bash
-cd "\\VBoxSvr\home-automation-safety\configs\esphome"
-esphome run ventsys_garage_sensor_pretls.yaml
-```
-
-### 1.5 — Find the DS18B20 one-wire address (sensor boards only)
-
-The DS18B20 address in `printairpipe-controller.yaml` is a placeholder
-(`0x0000000000000000`) — it must be replaced with the real address of the
-physical sensor soldered to each board. After first flash, read it from logs:
-
-```bash
-esphome logs printairpipe-controller_pretls.yaml
-# Look for:
-# Found 1 sensors on the 1-Wire bus.
-# Sensor address: 0x28FF6D5A92180342
-```
-
-Or from the ESPHome add-on after adoption: open the device → Logs on first boot.
-
-Once you have the address for each board, update the production config:
-- Open `configs/esphome/printairpipe-controller.yaml`
-- Replace `0x0000000000000000` with the real address for that board
-- Each board has a different address — update separately per device
-
-### 1.6 — Verify BME680 I2C address
-
-BME680 defaults to I2C address `0x76`. If the SDO pin is soldered high it will
-be `0x77`. The ESPHome log shows which was found:
+BME680 uses I2C address `0x77` when SDO is tied to 3.3V and `0x76` when SDO is
+tied to GND. The current wrappers default to `0x77`. The ESPHome log shows
+which address was found:
 
 ```
-[I2C] Found device at 0x76
+[I2C] Found device at 0x77
 ```
 
-If your board shows `0x77`, update the `address:` field in the YAML config
-before flashing the production (non-pretls) version.
+If your board shows `0x76`, override `bme680_address: "0x76"` in that device's
+YAML before flashing.
 
 ---
 
@@ -218,10 +197,13 @@ From HA Terminal add-on (HA on VLAN 20; firewall allows HA → VLAN 50):
 # ESPHome native API port 6053
 nc -zv 192.168.50.21 6053   # fan controller
 nc -zv 192.168.50.56 6053   # valve controller
-nc -zv 192.168.50.31 6053   # FDM sensor
-nc -zv 192.168.50.32 6053   # SLA sensor
-nc -zv 192.168.50.33 6053   # booth sensor
-nc -zv 192.168.50.34 6053   # garage sensor
+nc -zv 192.168.50.31 6053   # FDM sensor array 1
+nc -zv 192.168.50.32 6053   # FDM sensor array 2
+nc -zv 192.168.50.33 6053   # SLA sensor array 1
+nc -zv 192.168.50.34 6053   # SLA sensor array 2
+nc -zv 192.168.50.35 6053   # garage air sensor
+nc -zv 192.168.50.36 6053   # FDM pipe air sensor
+nc -zv 192.168.50.37 6053   # SLA pipe air sensor
 ```
 
 If any fail: confirm the device got its static IP (`ping 192.168.50.xx` from
@@ -237,7 +219,7 @@ flash (look for `WiFi connected! MAC: XX:XX:XX:XX:XX:XX`).
 Update each placeholder in `configs/openwrt/dhcp-config.conf`:
 ```
 config host
-    option name 'ventsys-fdm-sensor'
+    option name 'ventsys-fdm-array-1'
     option mac 'XX:XX:XX:XX:XX:XX'    <- replace with real MAC
     option ip '192.168.50.31'
 ```
@@ -277,10 +259,10 @@ mosquitto_sub -h localhost -p 1883 \
 
 Power-cycle a sensor board. You should see:
 ```
-ventsys/fdm/temperature 24.3
-ventsys/fdm/humidity 45.1
-ventsys/fdm/iaq 18500
-ventsys/fdm/smoke_alarm OFF
+ventsys/fdm/pipe_air/temperature 24.3
+ventsys/fdm/pipe_air/humidity 45.1
+ventsys/fdm/pipe_air/iaq 18500
+ventsys/fdm/pipe_air/smoke OFF
 ventsys/fan/state on
 ventsys/fan/percent_state 50
 ```
@@ -350,7 +332,8 @@ static VLAN 50 address directly.
 | Range | Device type |
 |---|---|
 | .21–.22 | Fan controllers |
-| .31–.34 | Sensor arrays (FDM / SLA / booth / garage) |
+| .31–.34 | Sensor arrays (two FDM, two SLA) |
+| .35–.37 | Air sensors (garage, FDM pipe, SLA pipe) |
 | .41–.43 | Airflow sensors |
 | .51–.56 | Butterfly valves |
 | .61–.62 | 360° intake valves |

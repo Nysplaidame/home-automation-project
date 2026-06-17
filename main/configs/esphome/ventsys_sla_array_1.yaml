@@ -1,0 +1,13 @@
+# VentSys SLA enclosure sensor array 1
+# Device: ventsys-sla-array-1  IP: 192.168.50.33  VLAN 50
+
+substitutions:
+  device_name: ventsys-sla-array-1
+  friendly_name: "ventsys_sla_array_1"
+  entity_prefix: "ventsys_sla_array_1"
+  device_ip: "192.168.50.33"
+  mqtt_topic_prefix: "ventsys/sla/array_1"
+  temp_threshold: "40.0"
+
+packages:
+  base: !include ventsys_air_sensor_base.yaml

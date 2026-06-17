@@ -37,16 +37,19 @@ VALVE_CTRL_IP="192.168.50.56" # legacy var — was .82 (old pre-canonical); now 
 ESPHOME_PORT="6053"
 
 # ── VENTSYS DEVICE REGISTRY (C8/F-30 fix) ───────────────────────────────────
-# All 17 ESP32 boards. Format: "IP:key:Label"  # A5-1 fix: was 16 (same miss as R-1 in dhcp-config.conf)
+# All 20 ESPHome boards. Format: "IP:key:Label"
 # key is used as the JSON field name (lowercase, underscores).
 # Smart plugs are checked by ping (no ESPHome API port — commercial units).
 VENTSYS_BOARDS=(
     "192.168.50.21:main_fan:Main Fan"
     "192.168.50.22:booth_fan:Booth Fan"
-    "192.168.50.31:fdm_sensor:FDM Sensor Array"
-    "192.168.50.32:sla_sensor:SLA Sensor Array"
-    "192.168.50.33:booth_sensor:Booth Sensor Array"
-    "192.168.50.34:garage_sensor:Garage Ambient Sensor"
+    "192.168.50.31:fdm_array_1:FDM Sensor Array 1"
+    "192.168.50.32:fdm_array_2:FDM Sensor Array 2"
+    "192.168.50.33:sla_array_1:SLA Sensor Array 1"
+    "192.168.50.34:sla_array_2:SLA Sensor Array 2"
+    "192.168.50.35:garage_air_sensor:Garage Air Sensor"
+    "192.168.50.36:fdm_pipe_air_sensor:FDM Pipe Air Sensor"
+    "192.168.50.37:sla_pipe_air_sensor:SLA Pipe Air Sensor"
     "192.168.50.41:fdm_airflow:FDM Airflow Sensor"
     "192.168.50.42:sla_airflow:SLA Airflow Sensor"
     "192.168.50.43:booth_airflow:Booth Airflow Sensor"

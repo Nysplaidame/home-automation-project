@@ -288,7 +288,7 @@ light:
     variant: WS2812
     pin: GPIO21
     # A6-9 note: GPIO21 is used for NeoPixel on valve controller boards.
-    # GPIO21 is also used for I2C SDA (BME680) on sensor boards (printairpipe-controller.yaml).
+    # GPIO4/GPIO5 are used for I2C on ESP32-C6 air sensor and sensor array boards.
     # This is safe because valve boards and sensor boards are ALWAYS separate physical ESP32s.
     # NEVER combine valve controller and sensor array firmware on a single board —
     # GPIO21 cannot serve both NeoPixel and I2C SDA simultaneously.
@@ -338,4 +338,3 @@ interval:
               id(status_led).turn_off().perform();
             }
           }
-

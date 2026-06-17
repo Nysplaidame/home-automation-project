@@ -1,0 +1,12 @@
+# VentSys FDM pipe air sensor
+# Device: ventsys-fdm-pipe-air-sensor  IP: 192.168.50.36  VLAN 50
+
+substitutions:
+  device_name: ventsys-fdm-pipe-air-sensor
+  friendly_name: "ventsys_fdm_pipe_air"
+  entity_prefix: "ventsys_fdm_pipe_air"
+  device_ip: "192.168.50.36"
+  mqtt_topic_prefix: "ventsys/fdm/pipe_air"
+
+packages:
+  base: !include ventsys_air_sensor_base.yaml

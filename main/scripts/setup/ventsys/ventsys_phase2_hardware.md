@@ -50,12 +50,12 @@ Each hardware component added includes standardized certificate provisioning, de
 
 **Sub-tasks**:
 - **Hardware Setup**: Configure ESP32 DevKit with servo motor for booth valve control and integrate with spray booth duct connection
-- **Certificate Generation**: Generate device certificate for ventsys-booth-sensor  # A7-2 fix: was ventsys-booth-valve (device does not exist; A4-3) using established CA procedures and integrate with device configuration
-- **Configuration Development**: Use ventsys_booth_sensor.yaml (file exists in configs/esphome/)  # A7-2 fix: was ventsys_booth_valve.yaml (stale name) using base TLS template with booth-specific MQTT topics and priority control logic
-- **Device Registry Update**: Add booth sensor to device registry with IP assignment (192.168.50.33)  # A7-2 fix: was .84; canonical is ventsys-booth-sensor@.33, certificate tracking, and deployment status
+- **Certificate Generation**: Generate device certificate for the future booth valve controller once its hostname and IP are assigned
+- **Configuration Development**: Create a dedicated booth valve YAML; do not reuse sensor-array or air-sensor YAMLs
+- **Device Registry Update**: Add booth valve controller to the device registry only after the final static reservation is chosen
 
 **Code Requirements**:
-- Use ventsys_booth_sensor.yaml (exists in configs/esphome/)  # A7-2 fix: was ventsys_booth_valve.yaml with servo control, MQTT topics for ventsys/booth/valve/, and booth priority integration
+- Use a dedicated booth valve YAML with servo control, MQTT topics for `ventsys/booth/valve/`, and booth priority integration
 - Generate device certificate and update device registry with booth valve controller entry including hardware specifications and deployment details
 - Implement booth valve control logic with priority handling, rapid response capability, and emergency full-open positioning
 
@@ -261,20 +261,20 @@ Each hardware component added includes standardized certificate provisioning, de
 
 ---
 
-## Week 6: Environmental Sensor Array Deployment
+## Week 6: Environmental Sensor and Air Sensor Deployment
 
 ### 6.1 SLA Sensor Array Implementation
-**Objective**: Deploy comprehensive environmental sensor array for SLA enclosure with temperature, humidity, VOC, smoke, and pressure monitoring
+**Objective**: Deploy two environmental sensor arrays for the SLA enclosure with temperature, humidity, IAQ gas resistance, smoke/VOC raw ADC, and barometric pressure monitoring
 
 **Sub-tasks**:
-- **Hardware Installation**: Install BME680 (temp/humidity/pressure/IAQ gas), SGP30 (VOC), optical smoke detector, and SDP610 (pressure differential) sensors in SLA enclosure
-- **ESP32 Configuration**: Configure ESP32 controller for SLA sensor array with TLS connectivity and sensor data processing
-- **Certificate Provisioning**: Generate device certificate for ventsys-sla-sensor and integrate with sensor array configuration
+- **Hardware Installation**: Install BME680 and smoke/MEMS analog sensors for `ventsys-sla-array-1` and `ventsys-sla-array-2`
+- **ESP32 Configuration**: Configure ESP32-C6 controllers with TLS MQTT/API using `ventsys_sla_array_1.yaml` and `ventsys_sla_array_2.yaml`
+- **Certificate Provisioning**: Generate device certificates for `ventsys-sla-array-1` and `ventsys-sla-array-2`
 - **Data Processing**: Implement sensor data processing logic with smoothing, validation, and environmental change detection
 
 **Code Requirements**:
-- Create ventsys_sla_sensor.yaml configuration with BME680, SGP30, optical smoke, and pressure sensors using base TLS template
-- Generate device certificate for IP 192.168.50.32 and update device registry with SLA sensor array specifications
+- Use `ventsys_sla_array_1.yaml` at 192.168.50.33 and `ventsys_sla_array_2.yaml` at 192.168.50.34
+- Both wrappers import `ventsys_air_sensor_base.yaml` and expose `ventsys_sla_array_1_*` / `ventsys_sla_array_2_*` entities
 - Implement sensor data processing with moving averages, outlier detection, and environmental trend analysis for accurate monitoring
 
 **Interdependencies**:
@@ -293,19 +293,19 @@ Each hardware component added includes standardized certificate provisioning, de
 - Data processing provides stable, validated environmental measurements
 - Environmental change detection functional for rapid response
 
-### 6.2 FDM Sensor Array Implementation  
-**Objective**: Deploy comprehensive environmental sensor array for FDM enclosure with identical sensor suite and monitoring capability
+### 6.2 FDM Sensor Array Implementation
+**Objective**: Deploy two environmental sensor arrays for the FDM enclosure with identical sensor suite and monitoring capability
 
 **Sub-tasks**:
 - **Hardware Installation**: Install complete sensor suite in FDM enclosure with proper positioning for accurate environmental monitoring
-- **ESP32 Configuration**: Configure ESP32 controller for FDM sensor array using standardized sensor template with FDM-specific settings
-- **Certificate Provisioning**: Generate device certificate for ventsys-fdm-sensor and integrate with sensor array configuration
+- **ESP32 Configuration**: Configure ESP32-C6 controllers using `ventsys_fdm_array_1.yaml` and `ventsys_fdm_array_2.yaml`
+- **Certificate Provisioning**: Generate device certificates for `ventsys-fdm-array-1` and `ventsys-fdm-array-2`
 - **Sensor Template Development**: Create standardized sensor array template for consistent deployment across multiple zones
 
 **Code Requirements**:
-- Create ventsys_fdm_sensor.yaml using sensor template with FDM-specific MQTT topics (ventsys/fdm/temperature, humidity, voc, smoke, pressure)
-- Generate device certificate for IP 192.168.50.31 and update device registry with FDM sensor specifications
-- Develop sensor array template (ventsys_sensor_template.yaml) for consistent sensor deployment with zone-specific customization
+- Use `ventsys_fdm_array_1.yaml` at 192.168.50.31 and `ventsys_fdm_array_2.yaml` at 192.168.50.32
+- Both wrappers import `ventsys_air_sensor_base.yaml` and expose `ventsys_fdm_array_1_*` / `ventsys_fdm_array_2_*` entities
+- Keep the shared base in `ventsys_air_sensor_base.yaml` for consistent deployment with per-board substitutions
 
 **Interdependencies**:
 - Depends on SLA sensor implementation (6.1) and sensor template development
@@ -323,33 +323,33 @@ Each hardware component added includes standardized certificate provisioning, de
 - FDM sensor data quality and reliability match SLA sensor performance
 - Template supports standardized expansion for future zones
 
-### 6.3 Ambient Sensor Array Implementation
-**Objective**: Deploy ambient sensor array near spray booth to provide baseline environmental measurements for pressure differential calculation
+### 6.3 Pipe and Garage Air Sensor Implementation
+**Objective**: Deploy one garage air sensor and one pipe air sensor per enclosure, matching the VentSys dashboard architecture
 
 **Sub-tasks**:
-- **Strategic Placement**: Install ambient sensor array in optimal location near spray booth for accurate baseline environmental measurements
-- **ESP32 Configuration**: Configure ESP32 controller for ambient sensor array with focus on pressure and environmental baseline monitoring
-- **Certificate Provisioning**: Generate device certificate for ventsys-ambient-sensors and integrate with ambient sensor configuration
-- **Baseline Integration**: Integrate ambient sensor data with enclosure sensors for accurate pressure differential calculation and environmental comparison
+- **Strategic Placement**: Install garage reference, FDM pipe, and SLA pipe air sensors in their final measurement locations
+- **ESP32 Configuration**: Configure ESP32-C6 controllers using `ventsys_garage_air_sensor.yaml`, `ventsys_fdm_pipe_air_sensor.yaml`, and `ventsys_sla_pipe_air_sensor.yaml`
+- **Certificate Provisioning**: Generate device certificates for `ventsys-garage-air-sensor`, `ventsys-fdm-pipe-air-sensor`, and `ventsys-sla-pipe-air-sensor`
+- **Dashboard Integration**: Integrate the air sensor entities into the VentSys dashboard as the primary garage, FDM pipe, and SLA pipe sources
 
 **Code Requirements**:
-- Create ventsys_ambient_sensors.yaml with complete sensor suite focused on providing environmental baseline measurements
-- Generate device certificate for IP 192.168.50.33 and update device registry with ambient sensor specifications
-- Implement pressure differential calculation logic that compares enclosure pressure to ambient baseline for negative pressure monitoring
+- Use `ventsys_garage_air_sensor.yaml` at 192.168.50.35, `ventsys_fdm_pipe_air_sensor.yaml` at 192.168.50.36, and `ventsys_sla_pipe_air_sensor.yaml` at 192.168.50.37
+- Expose Home Assistant entities beginning with `ventsys_garage_air_`, `ventsys_fdm_pipe_air_`, and `ventsys_sla_pipe_air_`
+- Keep MQTT topic prefixes under `ventsys/garage/air`, `ventsys/fdm/pipe_air`, and `ventsys/sla/pipe_air`
 
 **Interdependencies**:
-- Depends on enclosure sensor arrays (6.1, 6.2) and pressure differential requirements
+- Depends on enclosure sensor arrays (6.1, 6.2) and dashboard entity mapping
 - Required before comprehensive environmental monitoring (6.4)
 - Foundation for negative pressure calculation and environmental comparison
 
 **Testing Procedures**:
-- Test ambient sensor placement for representative baseline measurements
-- Verify pressure differential calculation accuracy between enclosures and ambient
+- Test garage and pipe sensor placement for representative readings
+- Verify dashboard values resolve from the new `sensor.ventsys_*` entity names
 - Validate environmental comparison provides useful monitoring data
 
 **Success Criteria**:
-- Ambient sensor array provides accurate baseline environmental measurements
-- Pressure differential calculation works correctly for all enclosures
+- Garage air sensor provides accurate baseline environmental measurements
+- FDM and SLA pipe air sensors publish the dashboard's primary enclosure readings
 - Environmental comparison data supports comprehensive monitoring
 - Baseline integration enhances enclosure monitoring accuracy
 

@@ -3,8 +3,15 @@
 ## Project Shape
 
 - This repository root is an Obsidian wrapper.
+- In this Codex desktop environment, the active checkout is `E:\home-automation-project`; older `G:\home-automation-project` context is stale.
 - Active project work lives under `main/`.
 - The project also contains a separate LLM-maintained wiki under `wiki/`.
+
+## Live Home Assistant Access
+
+- Home Assistant Samba is reachable at `\\192.168.20.101`.
+- Use the `homeassistant` Samba account via Windows Credential Manager; do not write the password into tracked files.
+- Deploy dashboard files directly to `\\192.168.20.101\config\www\` after local edits and validation.
 
 ## Read First
 

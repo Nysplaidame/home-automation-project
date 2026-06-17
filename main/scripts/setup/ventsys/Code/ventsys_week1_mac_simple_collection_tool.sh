@@ -27,7 +27,13 @@ declare -A VENTSYS_DEVICES=(
     ["ventsys-main-fan"]="192.168.50.21:Main Fan Controller"  # A7-1 fix: was ventsys-fan-controller (stale name)
     ["ventsys-sla-print-valve"]="192.168.50.56:SLA Print Valve Controller"  # A7-1 fix: was ventsys-sla-valve (stale name)
     ["ventsys-fdm-print-valve"]="192.168.50.55:FDM Print Valve Controller"  # A7-1 fix: was ventsys-fdm-valve@.83 - device does not exist; canonical is ventsys-fdm-print-valve@.55
-    ["ventsys-booth-sensor"]="192.168.50.33:Booth Sensor Board"  # A7-1 fix: was ventsys-booth-valve@.84 - device does not exist; closest is ventsys-booth-sensor@.33
+    ["ventsys-fdm-array-1"]="192.168.50.31:FDM Sensor Array 1"
+    ["ventsys-fdm-array-2"]="192.168.50.32:FDM Sensor Array 2"
+    ["ventsys-sla-array-1"]="192.168.50.33:SLA Sensor Array 1"
+    ["ventsys-sla-array-2"]="192.168.50.34:SLA Sensor Array 2"
+    ["ventsys-garage-air-sensor"]="192.168.50.35:Garage Air Sensor"
+    ["ventsys-fdm-pipe-air-sensor"]="192.168.50.36:FDM Pipe Air Sensor"
+    ["ventsys-sla-pipe-air-sensor"]="192.168.50.37:SLA Pipe Air Sensor"
 )
 
 # Logging function

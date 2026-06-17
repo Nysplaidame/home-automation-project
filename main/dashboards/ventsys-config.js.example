@@ -10,7 +10,9 @@
  */
 
 window.VENTSYS_CONFIG = {
-  token: 'PASTE_YOUR_LONG_LIVED_TOKEN_HERE',
+  // Replace this with the full token from Home Assistant:
+  // Profile -> Security -> Long-Lived Access Tokens.
+  token: '__SET_HA_TOKEN__',
 
   // Optional overrides. Leave commented unless the dashboard is served from a
   // different HA address or the entity/topic map changes.

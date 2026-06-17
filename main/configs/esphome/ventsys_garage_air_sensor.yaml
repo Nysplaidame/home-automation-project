@@ -1,0 +1,12 @@
+# VentSys garage ambient air sensor
+# Device: ventsys-garage-air-sensor  IP: 192.168.50.35  VLAN 50
+
+substitutions:
+  device_name: ventsys-garage-air-sensor
+  friendly_name: "ventsys_garage_air"
+  entity_prefix: "ventsys_garage_air"
+  device_ip: "192.168.50.35"
+  mqtt_topic_prefix: "ventsys/garage/air"
+
+packages:
+  base: !include ventsys_air_sensor_base.yaml

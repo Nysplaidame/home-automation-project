@@ -330,7 +330,7 @@ uci set dhcp.@host[-1].mac='XX:XX:XX:XX:XX:04'
 uci set dhcp.@host[-1].ip='192.168.40.50'
 
 # VentSys Controllers (CRITICAL FOR VENTSYS)
-# F-D fix: Updated to match canonical dhcp-config.conf - full 17-device fleet.
+# F-D fix: Updated to match canonical dhcp-config.conf - full 20-device fleet.
 # Previous placeholder had wrong device names (ventsys-fdm-valve, ventsys-booth-valve)
 # and wrong IPs (.83, .84). Canonical allocations from dhcp-config.conf used below.
 
@@ -349,26 +349,45 @@ uci set dhcp.@host[-1].dns='1'
 
 # Sensor arrays
 uci add dhcp host
-uci set dhcp.@host[-1].name='ventsys-fdm-sensor'
+uci set dhcp.@host[-1].name='ventsys-fdm-array-1'
 uci set dhcp.@host[-1].ip='192.168.50.31'
 uci set dhcp.@host[-1].mac='XX:XX:XX:XX:XX:XX'
 uci set dhcp.@host[-1].dns='1'
 
 uci add dhcp host
-uci set dhcp.@host[-1].name='ventsys-sla-sensor'
+uci set dhcp.@host[-1].name='ventsys-fdm-array-2'
 uci set dhcp.@host[-1].ip='192.168.50.32'
 uci set dhcp.@host[-1].mac='XX:XX:XX:XX:XX:XX'
 uci set dhcp.@host[-1].dns='1'
 
 uci add dhcp host
-uci set dhcp.@host[-1].name='ventsys-booth-sensor'
+uci set dhcp.@host[-1].name='ventsys-sla-array-1'
 uci set dhcp.@host[-1].ip='192.168.50.33'
 uci set dhcp.@host[-1].mac='XX:XX:XX:XX:XX:XX'
 uci set dhcp.@host[-1].dns='1'
 
 uci add dhcp host
-uci set dhcp.@host[-1].name='ventsys-garage-sensor'
+uci set dhcp.@host[-1].name='ventsys-sla-array-2'
 uci set dhcp.@host[-1].ip='192.168.50.34'
+uci set dhcp.@host[-1].mac='XX:XX:XX:XX:XX:XX'
+uci set dhcp.@host[-1].dns='1'
+
+# Air sensors
+uci add dhcp host
+uci set dhcp.@host[-1].name='ventsys-garage-air-sensor'
+uci set dhcp.@host[-1].ip='192.168.50.35'
+uci set dhcp.@host[-1].mac='XX:XX:XX:XX:XX:XX'
+uci set dhcp.@host[-1].dns='1'
+
+uci add dhcp host
+uci set dhcp.@host[-1].name='ventsys-fdm-pipe-air-sensor'
+uci set dhcp.@host[-1].ip='192.168.50.36'
+uci set dhcp.@host[-1].mac='XX:XX:XX:XX:XX:XX'
+uci set dhcp.@host[-1].dns='1'
+
+uci add dhcp host
+uci set dhcp.@host[-1].name='ventsys-sla-pipe-air-sensor'
+uci set dhcp.@host[-1].ip='192.168.50.37'
 uci set dhcp.@host[-1].mac='XX:XX:XX:XX:XX:XX'
 uci set dhcp.@host[-1].dns='1'
 

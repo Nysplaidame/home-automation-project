@@ -66,7 +66,13 @@ echo "   - DHCP Range: 192.168.50.100-190" >> /tmp/phase8_ventsys_integration.tx
     echo "   - Main Fan (ventsys-main-fan):              192.168.50.21 (static reservation)" >> /tmp/phase8_ventsys_integration.txt
     echo "   - SLA Print Valve (ventsys-sla-print-valve): 192.168.50.56 (static reservation)" >> /tmp/phase8_ventsys_integration.txt
     echo "   - FDM Print Valve (ventsys-fdm-print-valve): 192.168.50.55 (static reservation)  # A6-1 fix: was ventsys-fdm-valve@.83 - stale pre-canonical name/IP" >> /tmp/phase8_ventsys_integration.txt
-    echo "   - Booth Sensor (ventsys-booth-sensor):       192.168.50.33 (static reservation)  # A6-1 fix: was ventsys-booth-valve@.84 - that device does not exist" >> /tmp/phase8_ventsys_integration.txt
+    echo "   - FDM Sensor Array 1 (ventsys-fdm-array-1):  192.168.50.31 (static reservation)" >> /tmp/phase8_ventsys_integration.txt
+    echo "   - FDM Sensor Array 2 (ventsys-fdm-array-2):  192.168.50.32 (static reservation)" >> /tmp/phase8_ventsys_integration.txt
+    echo "   - SLA Sensor Array 1 (ventsys-sla-array-1):  192.168.50.33 (static reservation)" >> /tmp/phase8_ventsys_integration.txt
+    echo "   - SLA Sensor Array 2 (ventsys-sla-array-2):  192.168.50.34 (static reservation)" >> /tmp/phase8_ventsys_integration.txt
+    echo "   - Garage Air Sensor:                         192.168.50.35 (static reservation)" >> /tmp/phase8_ventsys_integration.txt
+    echo "   - FDM Pipe Air Sensor:                       192.168.50.36 (static reservation)" >> /tmp/phase8_ventsys_integration.txt
+    echo "   - SLA Pipe Air Sensor:                       192.168.50.37 (static reservation)" >> /tmp/phase8_ventsys_integration.txt
 echo "" >> /tmp/phase8_ventsys_integration.txt
 
 # Document firewall rules critical for VentSys

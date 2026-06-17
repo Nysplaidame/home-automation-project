@@ -1,0 +1,12 @@
+# VentSys FDM enclosure sensor array 2
+# Device: ventsys-fdm-array-2  IP: 192.168.50.32  VLAN 50
+
+substitutions:
+  device_name: ventsys-fdm-array-2
+  friendly_name: "ventsys_fdm_array_2"
+  entity_prefix: "ventsys_fdm_array_2"
+  device_ip: "192.168.50.32"
+  mqtt_topic_prefix: "ventsys/fdm/array_2"
+
+packages:
+  base: !include ventsys_air_sensor_base.yaml
