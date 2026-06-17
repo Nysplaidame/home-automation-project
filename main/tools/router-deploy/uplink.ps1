@@ -58,6 +58,9 @@ function Load-UplinkConfig {
     if ($null -eq $cfg.PSObject.Properties["bssid"]) {
         $cfg | Add-Member -NotePropertyName bssid -NotePropertyValue "" -Force
     }
+    if ($null -eq $cfg.PSObject.Properties["channel"]) {
+        $cfg | Add-Member -NotePropertyName channel -NotePropertyValue "" -Force
+    }
     # Validate fields used inside shell double-quoted regex contexts where
     # Escape-ShSingle (single-quote escape) does not protect them. Restricting
     # to a simple identifier keeps grep-regex/sed contexts safe and avoids
@@ -71,6 +74,9 @@ function Load-UplinkConfig {
     if ($cfg.bssid -and $cfg.bssid -notmatch '^[0-9A-Fa-f:]+$') {
         Fail "uplink config 'bssid' must be a MAC literal (got: '$($cfg.bssid)')"
     }
+    if ($cfg.channel -and $cfg.channel -notmatch '^(auto|[0-9]{1,3})$') {
+        Fail "uplink config 'channel' must be 'auto' or a numeric channel (got: '$($cfg.channel)')"
+    }
     return $cfg
 }
 
@@ -81,9 +87,14 @@ function Enable-Uplink {
     $device = Escape-ShSingle $cfg.device
     $encryption = Escape-ShSingle $cfg.encryption
     $bssidCmd = ""
+    $channelCmd = ""
     if (-not [string]::IsNullOrWhiteSpace($cfg.bssid)) {
         $bssid = Escape-ShSingle $cfg.bssid
         $bssidCmd = "uci set wireless.router_uplink.bssid='$bssid' || return 1"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($cfg.channel)) {
+        $channel = Escape-ShSingle $cfg.channel
+        $channelCmd = "uci set wireless.$device.channel='$channel' || return 1"
     }
 
     $warnCmd = @"
@@ -95,6 +106,9 @@ fi
     $warn = Invoke-RouterScript -KeyPath $KeyPath -RouterIp $RouterIp -Script $warnCmd
     if ($warn.ExitCode -eq 0 -and $warn.Output -match "UPLINK_WARN_ACTIVE_AP_SAME_RADIO") {
         Write-Host "[WARN] Active AP interface(s) detected on $($cfg.device). Enabling STA uplink may force 5GHz channel alignment with upstream AP." -ForegroundColor Yellow
+        if (-not [string]::IsNullOrWhiteSpace($cfg.channel)) {
+            Write-Host "[INFO] Applying configured uplink channel '$($cfg.channel)' to $($cfg.device) before WiFi reload." -ForegroundColor Cyan
+        }
     }
 
     $cmd = @"
@@ -131,6 +145,7 @@ do_uplink() {
   uci set network.wwan_uplink='interface' || return 1
   uci set network.wwan_uplink.proto='dhcp' || return 1
   uci set network.wwan_uplink.metric='30' || return 1
+  $channelCmd
   uci set wireless.router_uplink='wifi-iface' || return 1
   uci set wireless.router_uplink.device='$device' || return 1
   uci set wireless.router_uplink.mode='sta' || return 1
@@ -158,7 +173,7 @@ do_uplink() {
 do_uplink || fail_rollback
 
 OK=0
-for TRY in 1 2 3 4 5 6; do
+for TRY in 1 2 3 4 5 6 7 8 9 10 11 12; do
   if ifstatus wwan_uplink 2>/dev/null | grep -q '"up": true'; then
     OK=1
     break

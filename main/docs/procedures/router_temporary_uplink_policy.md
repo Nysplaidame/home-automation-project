@@ -17,6 +17,9 @@ should remain enabled while the router is staged behind an existing home router.
 - GL-MT6000 management IP: `192.168.10.1`
 - Temporary uplink interface: `wwan_uplink`
 - Typical upstream SSID during staging: `ZyXEL_F1E9`
+- Current staging upstream channel: 2.4 GHz channel `5`; the GL-MT6000
+  2.4 GHz AP radio must align to this channel while `wwan_uplink` uses
+  `radio0`.
 - Current use: upstream internet for pre-flight services and package/image pulls
 
 ## Keep uplink enabled when

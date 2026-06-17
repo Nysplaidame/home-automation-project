@@ -273,6 +273,8 @@ Copy-Item .\keys\uplink_wifi.example.json .\keys\uplink_wifi.json
 ```
 
 2. Fill `ssid` / `psk` in `keys\uplink_wifi.json`.
+   If the uplink uses the same radio as active GL-MT6000 APs, set `channel`
+   to the upstream AP channel so the STA interface can associate.
 
 3. Enable temporary uplink:
 

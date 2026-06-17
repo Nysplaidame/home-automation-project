@@ -29,7 +29,7 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 | HA VM | ✅ Live | HAOS VM 100 at 192.168.20.101, VentSys packages staged |
 | Frigate VM | ⏳ Shell live / app unbuilt | VM 101 on VLAN 30 has Debian base and Docker staging; Frigate app is not live until cameras, RTSP credentials, HTTPS, and audio path are ready |
 | Docker host | ✅ Live | VM 103 on VLAN 20, central trusted Docker host; Bambuddy, Tier 1 apps, ntfy, and Watchtower monitor-only pre-flight live |
-| Local AI | ⏳ Planned | VM 104 `llm-host` on VLAN 20 for Ollama, Open WebUI, Wyoming STT/TTS, and HA Assist testing; first phase sized for current 32GB RAM with 7B/8B Q4 model |
+| Local AI | ⏳ VM + monitoring live / HA pending | VM 104 `llm-host` on VLAN 20 runs Ollama, Open WebUI, Wyoming STT/TTS; 4k LLM smoke test passed and Kuma/Influx monitoring is live; HA Assist integration still pending |
 | OMV NAS | ⏳ Planned | OpenMediaVault at 192.168.40.50 on VLAN 40; hardware/storage needed |
 | Remote access | ✅ Live | Tailscale daily access via docker-host host routes; WireGuard kept dormant as fallback |
 | VentSys dashboard | ✅ Written / staged | dashboards/ventsys-dashboard.html with full HA integration layer; entities remain hardware-dependent |
@@ -104,6 +104,9 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 - Monitoring VM 102 is live at 192.168.60.10 with Uptime Kuma, InfluxDB, Grafana, and Telegraf
 - Grafana dashboards cover home automation baseline, Proxmox/docker-host resources, service availability, DNS, and security posture
 - Docker-host Telegraf and lightweight Uptime Kuma/Fail2ban exporters feed InfluxDB buckets for architecture dashboards
+- VM 104 local AI checks are live in Uptime Kuma for Ollama, Open WebUI,
+  Wyoming Piper, and Wyoming Whisper; the Kuma-to-Influx export path includes
+  the new monitors.
 - Home Assistant monitoring uses direct Grafana/Kuma links for now; embedding remains parked until same-origin HTTPS/reverse proxy is deliberate
 
 ### Home Assistant (VLAN 20)
@@ -114,14 +117,18 @@ Home automation system focused on fire safety and ventilation for 3D printing op
   until explicitly revalidated.
 
 ### Local AI / voice (VLAN 20)
-- Planned VM 104 `llm-host` at 192.168.20.104 runs local inference only:
+- VM 104 `llm-host` at 192.168.20.104 runs local inference only:
   Ollama, Open WebUI, Wyoming Whisper STT, and Wyoming Piper TTS
 - First phase assumes the current 32GB Proxmox host and uses an 8GB VM with a
   7B/8B Q4 model alias `home-assistant-llm`
+- Initial live model: `llama3.1:8b-instruct-q4_K_M`; 4k prompt smoke test
+  completed in 18 seconds with no Proxmox host swap growth
 - Later 64GB host RAM upgrade can resize VM 104 and retarget the same model
   alias to a tested 14B Q4/Q5 model without changing HA integration endpoints
-- Home Assistant uses official Ollama and Wyoming integrations; HA Assist is
-  the first control path
+- Home Assistant should use the official Ollama integration at
+  `http://192.168.20.104:11434` with model `home-assistant-llm`, plus Wyoming
+  Piper on `192.168.20.104:10200` and Wyoming Whisper on
+  `192.168.20.104:10300`; HA UI/API setup remains pending.
 - Hermes Agent remains roadmap-only until the core local AI and voice path are
   stable, monitored, and safety-gated
 

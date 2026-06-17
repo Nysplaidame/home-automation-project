@@ -60,11 +60,11 @@ qm create 104 \
   --onboot 1 \
   --startup order=4
 
-qm set 104 --efidisk0 local-lvm:0,efitype=4m,pre-enrolled-keys=0
 qm importdisk 104 debian-13-genericcloud-amd64.qcow2 local-lvm
 qm set 104 --scsihw virtio-scsi-single
 qm set 104 --scsi0 local-lvm:vm-104-disk-0,discard=on,ssd=1,cache=writeback
 qm resize 104 scsi0 160G
+qm set 104 --efidisk0 local-lvm:0,efitype=4m,pre-enrolled-keys=0
 qm set 104 --boot order=scsi0
 qm set 104 --ide2 local-lvm:cloudinit
 qm set 104 --ciuser root
@@ -74,6 +74,11 @@ qm set 104 --nameserver 192.168.20.1
 qm set 104 --searchdomain home.local
 qm start 104
 ```
+
+Import the Debian cloud disk before creating `efidisk0`. Proxmox increments
+the `vm-104-disk-*` volume number as disks are created; creating EFI first can
+make the imported Debian disk become `vm-104-disk-1` instead of the expected
+`vm-104-disk-0`.
 
 After first boot:
 
@@ -192,7 +197,8 @@ choice in the live notes before treating TTS as validated.
 ## Phase 4 - Create The Stable Ollama Alias
 
 Pick a 7B/8B Q4-class model for the first 32 GB phase. Do not start with a 14B
-model on the current host.
+model on the current host. The initial live deployment used
+`llama3.1:8b-instruct-q4_K_M`.
 
 Run on: llm-host over SSH.
 
