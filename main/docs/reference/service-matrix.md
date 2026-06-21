@@ -38,6 +38,8 @@ remote exposure, backup expectations, monitoring, and runbook coverage.
 | Bambuddy | `/opt/stacks/bambuddy/` | 8000/tcp | `bambuddy.home.local` | Via docker-host Tailscale identity / MagicDNS if needed | app data/logs under stack path | HTTP + MQTT status | `scripts/setup/proxmox/bambuddy_vm_setup_guide.md` |
 | ntfy | `/opt/stacks/ntfy/` | 8085/tcp | `ntfy.home.local` | Via docker-host Tailscale identity / MagicDNS | config/auth DB under stack path; credentials in Bitwarden | Uptime Kuma HTTP check | `docs/install/services/ntfy.md` |
 | Mealie | `/opt/stacks/mealie/` | 9925/tcp | `mealie.home.local:9925` | Via docker-host Tailscale identity | SQLite data under stack path; OMV backup pending | Uptime Kuma HTTP check | `docs/install/services/mealie.md` |
+| Grocy | `/opt/stacks/grocy/` | 9283/tcp | `grocy.home.local:9283` | Via docker-host Tailscale identity | config/database under stack path; OMV backup pending | Uptime Kuma HTTP check | `docs/install/services/grocy.md` |
+| Obsidian LiveSync | `/opt/stacks/obsidian-livesync/` | 5984/tcp; Tailscale HTTPS 8443 | `obsidian-sync.home.local:5984` | `docker-host.tail7012a0.ts.net:8443` after Serve approval | CouchDB data under stack path; Git remains version history | Uptime Kuma HTTP auth check | `docs/install/services/obsidian-livesync.md` |
 
 ## Docker-host roadmap
 
@@ -70,6 +72,8 @@ remote exposure, backup expectations, monitoring, and runbook coverage.
 | `searxng.home.local` | `192.168.20.102` | Future SearXNG UI |
 | `whoogle.home.local` | `192.168.20.102` | Future Whoogle UI |
 | `mealie.home.local` | `192.168.20.102` | Mealie recipe and meal-planning UI |
+| `grocy.home.local` | `192.168.20.102` | Grocy food-stock UI |
+| `obsidian-sync.home.local` | `192.168.20.102` | CouchDB backend for Obsidian LiveSync |
 | `llm-host.home.local` | `192.168.20.104` | CT 114 local AI host |
 | `ollama.home.local` | `192.168.20.104` | Ollama API host |
 | `openwebui.home.local` | `192.168.20.104` | Open WebUI host |

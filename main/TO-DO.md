@@ -108,7 +108,9 @@ Planning baseline until explicitly revalidated:
 - [ ] Evaluate Paperless-ngx under `/opt/stacks/paperless-ngx/`
 - [x] Deploy Mealie under `/opt/stacks/mealie/` (live 2026-06-21)
 - [ ] Replace Mealie bootstrap administrator credentials and store them in Bitwarden
-- [ ] Decide whether Grocy should own pantry/fridge/freezer stock and expiry tracking
+- [x] Deploy Grocy for pantry/fridge/freezer stock and expiry tracking
+- [ ] Complete Grocy initial login, password change and household data model
+- [ ] Enable Tailscale Serve and roll Self-hosted LiveSync out to both Obsidian devices
 - [x] Deploy ntfy internal-only under `/opt/stacks/ntfy/`
 - [x] Configure Uptime Kuma ntfy notifications through a dedicated write-only topic
 - [ ] Evaluate Actual Budget under `/opt/stacks/actual-budget/`

@@ -212,6 +212,8 @@ influxdb_homeassistant_token: "your-token" # Bitwarden: influxdb-ha-token
 |---|---|---|
 | Docker host admin password | `docker-host-vm` | Debian admin/root credential for VM 103; SSH access |
 | Mealie administrator | `mealie-admin` | Replace the bootstrap login immediately; never store it in Compose or git |
+| Grocy administrator | `grocy-admin` | Replace `admin` / `admin` immediately |
+| Obsidian LiveSync | `obsidian-livesync` | CouchDB user/password, E2EE passphrase and setup-URI passphrase; live CouchDB credential is in `/opt/stacks/obsidian-livesync/.env` |
 | Tailscale auth material | `tailscale-docker-host` | Do not commit auth keys or node keys |
 | AdGuard Home admin password | `adguard-home` | Admin UI for DNS filtering |
 | Immich admin/user credentials | `immich` | Store before importing photos |

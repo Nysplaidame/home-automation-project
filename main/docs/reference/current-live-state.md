@@ -65,7 +65,8 @@ while its replacement LXC is running.
 ## Docker host
 
 Live workloads: Bambuddy, AdGuard Home, Immich pre-flight, Homepage, Dozzle,
-ntfy, SearXNG, Whoogle, Mealie, Watchtower monitor-only and Telegraf.
+ntfy, SearXNG, Whoogle, Mealie, Grocy, Obsidian LiveSync/CouchDB, Watchtower
+monitor-only and Telegraf. VM 103 has a 64 GiB virtual disk.
 
 Paperless-ngx, Actual Budget, Scrypted, Vaultwarden, Portainer, a local
 registry mirror and Node-RED remain decision-gated candidates.
@@ -85,8 +86,8 @@ registry mirror and Node-RED remain decision-gated candidates.
   acceptance testing.
 - P1S details and HA Bambuddy package deployment.
 - HA HTTPS/same-origin proxy for embedded monitoring views.
-- Overwatch-to-Mealie recipe ingestion and selection/deployment of a dedicated
-  food-stock system (Grocy is the current candidate).
+- Overwatch-to-Mealie recipe ingestion and Grocy workflow/integration.
+- Obsidian LiveSync client rollout and Tailscale Serve enablement for HTTPS.
 
 ## Rollback and backup warning
 

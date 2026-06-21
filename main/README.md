@@ -30,7 +30,7 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 | Proxmox | ✅ Live | MINISFORUM M1 Pro-125H on 192.168.10.10, Proxmox VE 9 |
 | HA VM | ✅ Live | HAOS VM 100 at 192.168.20.101, VentSys packages staged |
 | Frigate | ✅ LXC baseline live | CT 111 runs Frigate 0.17.1 with shared-iGPU OpenVINO; cameras and MQTT remain deliberately disabled |
-| Docker host | ✅ Live | VM 103 on VLAN 20, central trusted Docker host; Bambuddy, Tier 1 apps, ntfy, Mealie, and Watchtower monitor-only live |
+| Docker host | ✅ Live | VM 103 on VLAN 20 with a 64 GiB disk; Mealie, Grocy and Obsidian LiveSync join the existing internal services |
 | Local AI | ✅ LXC + HA Assist live | CT 114 runs GPU-backed Ollama, Open WebUI, Whisper, Piper and OpenWakeWord; Overwatch web search is live |
 | OMV NAS | ⏳ Planned | OpenMediaVault at 192.168.40.50 on VLAN 40; hardware/storage needed |
 | Remote access | ✅ Live | Tailscale daily access via docker-host host routes; WireGuard kept dormant as fallback |
@@ -126,9 +126,10 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 - Home and Overwatch Assist pipelines are live. Overwatch can call the bounded
   read-only SearXNG search API.
 - Mealie is live for recipes and meal planning; Overwatch recipe saving is not yet implemented.
-- Obsidian remains the durable project/household knowledge and runbook layer,
-  not the recipe or pantry database. Grocy is the unapproved leading candidate
-  for future food stocktaking.
+- Obsidian remains the durable project/household knowledge and runbook layer;
+  Self-hosted LiveSync provides central multi-device freshness while Git keeps
+  deliberate version history.
+- Grocy is live for pantry/fridge/freezer stock and expiry tracking.
 - Hermes Agent remains roadmap-only.
 
 ---

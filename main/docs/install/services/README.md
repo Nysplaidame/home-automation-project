@@ -3,7 +3,7 @@ title: Docker-host Service Manuals
 description: Install entrypoint for Tier 1, Tier 2, and Tier 3 docker-host services
 tags: [install, docker-host, services]
 created: 2026-05-24
-modified: 2026-05-27
+modified: 2026-06-21
 type: install-guide
 status: active
 ---
@@ -36,6 +36,8 @@ after its backup, auth, exposure, monitoring, and rollback notes are complete.
 - [scrypted.md](scrypted.md)
 - [searxng.md](searxng.md)
 - [whoogle.md](whoogle.md)
+- [grocy.md](grocy.md)
+- [obsidian-livesync.md](obsidian-livesync.md)
 
 ## Tier 3 / evaluate
 

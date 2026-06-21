@@ -74,7 +74,7 @@ Completed live:
 - `/etc/apt/apt.conf.d/01proxy` keeps HTTP apt traffic through apt-cacher-ng and
   sends HTTPS apt traffic direct because apt-cacher-ng rejects HTTPS CONNECT.
 - Router temporary internet rule removed after image pull.
-- VM 103 disk was expanded online to 32 GiB on 2026-05-27.
+- VM 103 disk was expanded online to 64 GiB on 2026-06-21.
 - Uptime Kuma notification `ntfy Monitoring` is live and mapped to all active
   monitors through ntfy topic `monitoring`.
 - UFW route rules allow only AdGuard's Docker bridge subnet `172.20.0.0/16`

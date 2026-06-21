@@ -166,6 +166,7 @@ status: active
 - [[docs/decisions/01-network-architecture.md]] — original 9-VLAN decision, superseded by the printer VLAN update
 - [[docs/decisions/02-printer-vlan-architecture.md]] — current printer VLAN 35 extension
 - [[docs/decisions/03-docker-host-service-policy.md]] — VM 103 service placement policy
+- [[docs/decisions/08-household-knowledge-recipes-and-inventory.md]] — boundaries between Obsidian, Mealie, Grocy, HA, and Overwatch
 - [[docs/decisions/04-dns-resolver-and-adblocking.md]] — non-Google DNS and network-wide filtering strategy
 - [[docs/decisions/05-self-hosted-services-remote-access.md]] — OMV, docker-host apps, Tailscale host routes, WireGuard fallback
 - [[docs/decisions/07-shared-igpu-lxc-infrastructure.md]] — deployed CT 111/114 shared-iGPU architecture and rollback boundary

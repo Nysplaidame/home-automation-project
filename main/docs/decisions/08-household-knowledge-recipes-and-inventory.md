@@ -18,10 +18,8 @@ status: accepted
   household procedures, maintenance notes, research and human-readable context.
   It may link to Mealie or inventory records, but must not duplicate their live
   transactional state.
-- A separate service will own pantry, fridge and freezer quantities, expiry
-  dates, purchases and consumption. **Grocy is the leading candidate, not yet
-  an approved or deployed component.** Its workflow and Mealie/HA integration
-  must be tested before acceptance.
+- **Grocy** owns pantry, fridge and freezer quantities, expiry dates, purchases
+  and consumption. Its optional Mealie/HA integrations remain future work.
 - **Home Assistant and Overwatch** are orchestration and conversational layers,
   not systems of record. Future tools should call scoped Mealie or inventory
   APIs and require confirmation before creating or changing household data.
@@ -33,7 +31,6 @@ future Overwatch recipe-saving action targets Mealie. Obsidian remains useful
 for cooking techniques, appliance notes, dietary policy and other prose that
 does not belong in a recipe database.
 
-Grocy is a sensible stocktaking candidate because it models products, locations,
-stock, best-before dates, shopping and consumption, but deployment remains a
-separate decision. This avoids forcing two overlapping shopping-list models into
-production before the household workflow is clear.
+Grocy and Mealie may both expose shopping-list features, but Grocy owns stock
+replenishment while Mealie owns recipe-derived planning. Integration should not
+silently merge or overwrite either list.
