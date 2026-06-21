@@ -80,7 +80,7 @@ Planning baseline until explicitly revalidated:
 42. [x] Configure HA Ollama/Wyoming integrations and validate Home and Overwatch Assist pipelines
 43. [x] Validate CT 114 Vulkan inference, 33/33 layer offload and concurrent Frigate OpenVINO use
 44. [x] Add Uptime Kuma/Grafana monitoring for CT 114 AI services; add OpenWakeWord monitor as follow-up
-45. [ ] Implement a deliberate recipe destination before promising recipe saving through Overwatch (Mealie or a protected Obsidian ingest service)
+45. [ ] Add a scoped, confirmation-gated Overwatch action for saving recipes to Mealie
 45. [ ] Keep Hermes Agent roadmap-only until local LLM, STT, TTS, monitoring, and safety gates are stable
 46. [ ] Keep future YouTube transcript/query app architecture undecided; VM 103 is only the expected target for future containerized query apps
 
@@ -106,7 +106,9 @@ Planning baseline until explicitly revalidated:
 ### Tier 2 - roadmap candidates
 
 - [ ] Evaluate Paperless-ngx under `/opt/stacks/paperless-ngx/`
-- [ ] Evaluate Mealie under `/opt/stacks/mealie/`
+- [x] Deploy Mealie under `/opt/stacks/mealie/` (live 2026-06-21)
+- [ ] Replace Mealie bootstrap administrator credentials and store them in Bitwarden
+- [ ] Decide whether Grocy should own pantry/fridge/freezer stock and expiry tracking
 - [x] Deploy ntfy internal-only under `/opt/stacks/ntfy/`
 - [x] Configure Uptime Kuma ntfy notifications through a dedicated write-only topic
 - [ ] Evaluate Actual Budget under `/opt/stacks/actual-budget/`

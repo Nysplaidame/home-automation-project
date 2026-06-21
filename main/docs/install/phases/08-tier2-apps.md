@@ -1,9 +1,9 @@
 ---
 title: Phase 08 - Tier 2 Apps
-description: Draft installable manuals for Paperless-ngx, Mealie, ntfy, Actual Budget, Scrypted, SearXNG, and Whoogle
+description: Tier 2 deployment manuals and remaining candidates
 tags: [install, docker-host, tier2]
 created: 2026-05-24
-modified: 2026-05-27
+modified: 2026-06-21
 type: install-guide
 status: active
 ---
@@ -12,8 +12,8 @@ status: active
 
 ## Purpose
 
-Provide full draft install paths for useful next services while keeping deployment
-approval separate from writing commands.
+Provide install paths for useful household services while keeping approval
+separate for candidates that are not already live.
 
 ## Runs on
 
@@ -56,8 +56,8 @@ Follow:
 
 ## Explanation
 
-Tier 2 services are plausible household services, but each still needs backup,
-auth, exposure, and resource review before becoming live.
+Mealie, ntfy, SearXNG and Whoogle are live. Remaining Tier 2 candidates still
+need backup, authentication, exposure and resource review before deployment.
 
 ## Expected result
 

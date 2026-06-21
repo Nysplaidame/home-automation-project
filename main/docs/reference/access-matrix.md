@@ -48,7 +48,7 @@ WireGuard fallback activation/deactivation governance is defined in
 | Source | Destination | Allowed | Notes |
 |---|---|---|---|
 | LAN | Home Assistant | 8123/tcp | HA UI |
-| LAN | docker-host app UIs | 8000, 2283, 3001, 8080, 8081, 8085, 8087, 8088/tcp | Bambuddy, Immich, Homepage, AdGuard admin, Dozzle, ntfy, SearXNG, Whoogle |
+| LAN | docker-host app UIs | 8000, 2283, 3001, 8080, 8081, 8085, 8087, 8088, 9925/tcp | Bambuddy, Immich, Homepage, AdGuard admin, Dozzle, ntfy, SearXNG, Whoogle, Mealie |
 | LAN | Printers | 8883, 21, 80, 8080/tcp | Slicer/local printer access |
 | HA | Frigate | 8971, 5000, 8554, 8555/tcp | HA integration |
 | HA | OMV | 22, 445, 2049/tcp | Backup/storage |

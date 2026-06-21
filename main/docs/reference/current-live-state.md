@@ -3,7 +3,7 @@ title: Current Live State
 description: Canonical inventory of deployed hosts, services, and deliberately deferred components
 tags: [reference, current-state, infrastructure]
 created: 2026-06-20
-modified: 2026-06-20
+modified: 2026-06-21
 type: reference
 status: active
 ---
@@ -13,7 +13,7 @@ status: active
 This is the canonical current-state inventory. Rebuild manuals describe how to
 build from blank and must link here rather than duplicating live-status claims.
 
-Last verified: **2026-06-20**.
+Last verified: **2026-06-21**.
 
 ## Compute
 
@@ -37,7 +37,7 @@ while its replacement LXC is running.
 - Mosquitto, File Editor, Terminal & SSH and ESPHome Device Builder are live.
 - Home and Overwatch Assist pipelines are functional.
 - Overwatch has a bounded read-only SearXNG search tool.
-- Recipe-to-Obsidian/Mealie saving is not implemented.
+- Mealie is live; Overwatch-to-Mealie recipe saving is not yet implemented.
 - VentSys dashboard is deployed; most physical VentSys entities remain gated on
   hardware installation.
 - Frigate integration is deferred until cameras and the production Frigate
@@ -65,9 +65,9 @@ while its replacement LXC is running.
 ## Docker host
 
 Live workloads: Bambuddy, AdGuard Home, Immich pre-flight, Homepage, Dozzle,
-ntfy, SearXNG, Whoogle, Watchtower monitor-only and Telegraf.
+ntfy, SearXNG, Whoogle, Mealie, Watchtower monitor-only and Telegraf.
 
-Paperless-ngx, Mealie, Actual Budget, Scrypted, Vaultwarden, Portainer, a local
+Paperless-ngx, Actual Budget, Scrypted, Vaultwarden, Portainer, a local
 registry mirror and Node-RED remain decision-gated candidates.
 
 ## Monitoring
@@ -85,7 +85,8 @@ registry mirror and Node-RED remain decision-gated candidates.
   acceptance testing.
 - P1S details and HA Bambuddy package deployment.
 - HA HTTPS/same-origin proxy for embedded monitoring views.
-- Obsidian recipe ingestion or Mealie deployment.
+- Overwatch-to-Mealie recipe ingestion and selection/deployment of a dedicated
+  food-stock system (Grocy is the current candidate).
 
 ## Rollback and backup warning
 

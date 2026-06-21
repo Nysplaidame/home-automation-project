@@ -3,7 +3,7 @@ title: Service Matrix
 description: Central service, port, DNS, backup, monitoring, and runbook reference
 tags: [reference, services, ports, dns, docker-host]
 created: 2026-05-23
-modified: 2026-06-20
+modified: 2026-06-21
 type: reference
 status: active
 ---
@@ -37,13 +37,13 @@ remote exposure, backup expectations, monitoring, and runbook coverage.
 | Dozzle | `/opt/stacks/dozzle/` | 8081/tcp | `dozzle.home.local` | Admin only via Tailscale/Mgmt/LAN policy | no critical data | HTTP check | `docs/install/services/dozzle.md` |
 | Bambuddy | `/opt/stacks/bambuddy/` | 8000/tcp | `bambuddy.home.local` | Via docker-host Tailscale identity / MagicDNS if needed | app data/logs under stack path | HTTP + MQTT status | `scripts/setup/proxmox/bambuddy_vm_setup_guide.md` |
 | ntfy | `/opt/stacks/ntfy/` | 8085/tcp | `ntfy.home.local` | Via docker-host Tailscale identity / MagicDNS | config/auth DB under stack path; credentials in Bitwarden | Uptime Kuma HTTP check | `docs/install/services/ntfy.md` |
+| Mealie | `/opt/stacks/mealie/` | 9925/tcp | `mealie.home.local:9925` | Via docker-host Tailscale identity | SQLite data under stack path; OMV backup pending | Uptime Kuma HTTP check | `docs/install/services/mealie.md` |
 
 ## Docker-host roadmap
 
 | Tier | Service | Suggested stack path | Default / planned port | Notes |
 |---|---|---|---|---|
 | Tier 2 | Paperless-ngx | `/opt/stacks/paperless-ngx/` | 8001 | `docs/install/services/paperless-ngx.md` |
-| Tier 2 | Mealie | `/opt/stacks/mealie/` | 9925 | `docs/install/services/mealie.md` |
 | Tier 2 | ntfy | `/opt/stacks/ntfy/` | 8085 | Pre-flight live internal-only; `docs/install/services/ntfy.md` |
 | Tier 2 | Actual Budget | `/opt/stacks/actual-budget/` | 5006 | `docs/install/services/actual-budget.md`; sensitive data gate |
 | Tier 2 | Scrypted | `/opt/stacks/scrypted/` | 10443 / 11080 | `docs/install/services/scrypted.md`; placement gate |
@@ -69,6 +69,7 @@ remote exposure, backup expectations, monitoring, and runbook coverage.
 | `ntfy.home.local` | `192.168.20.102` | ntfy UI/API |
 | `searxng.home.local` | `192.168.20.102` | Future SearXNG UI |
 | `whoogle.home.local` | `192.168.20.102` | Future Whoogle UI |
+| `mealie.home.local` | `192.168.20.102` | Mealie recipe and meal-planning UI |
 | `llm-host.home.local` | `192.168.20.104` | CT 114 local AI host |
 | `ollama.home.local` | `192.168.20.104` | Ollama API host |
 | `openwebui.home.local` | `192.168.20.104` | Open WebUI host |
