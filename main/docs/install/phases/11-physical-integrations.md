@@ -78,7 +78,7 @@ Run on: Home Assistant Terminal add-on.
 ha core check
 ```
 
-Run on: Frigate VM over SSH.
+Run on: Frigate CT over SSH.
 
 ```sh
 docker compose logs --tail=80 frigate

@@ -31,7 +31,7 @@ Node-RED flows (logic, PID, coordination)
         ↓ publish / service calls
 Home Assistant (monitoring, automations, alerts)
         ↓
-VentSys Dashboard (ventilation_v9k.html)
+VentSys Dashboard (ventsys-dashboard.html)
 ```
 
 ## Zones

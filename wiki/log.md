@@ -177,3 +177,7 @@
 - Grafana datasource validation showed high unlabeled VM percentages are Proxmox guest-memory values, not CPU or disk saturation; `Proxmox Resource Overview` was re-exported and relabelled live.
 - Pages updated: [[concepts/tailscale-remote-access]], [[entities/docker-host]], [[entities/monitoring-vm]], [[entities/proxmox]], [[sources/project-todo]]
 - Notes: Mobile clients may still need the new route approved in Tailscale admin before they can use it.
+## [2026-06-20] update | Shared-iGPU LXC migration
+- Canonical project state now uses CT 111 for Frigate and CT 114 for local AI.
+- Updated: [[entities/proxmox]], [[entities/frigate]], [[entities/home-assistant]], [[entities/llm-host]], [[index]]
+- Notes: VM 101 and VM 104 are rollback-only; Overwatch search is live but recipe saving is not implemented.

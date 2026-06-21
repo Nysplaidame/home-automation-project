@@ -47,7 +47,8 @@ status: active
 - [x] MINISFORUM M1 Pro-125H
 - [x] Proxmox VE installed
 
-**System Role:** Runs Proxmox virtualization with Home Assistant VM 100, Frigate VM 101, docker-host VM 103, and future VMs.
+**System Role:** Runs Proxmox with Home Assistant VM 100, monitoring VM 102,
+docker-host VM 103, Frigate CT 111 and local-AI CT 114.
 
 ---
 

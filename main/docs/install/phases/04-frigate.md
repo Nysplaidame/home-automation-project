@@ -1,9 +1,9 @@
 ---
 title: Phase 04 - Frigate
-description: Frigate Debian VM, Docker, placeholders, camera paths, and HA integration
+description: Frigate LXC, shared iGPU, migration-safe baseline, cameras, and HA integration
 tags: [install, frigate, nvr]
 created: 2026-05-24
-modified: 2026-05-25
+modified: 2026-06-20
 type: install-guide
 status: active
 ---
@@ -12,7 +12,7 @@ status: active
 
 ## Purpose
 
-Prepare VM 101 for Frigate NVR using Debian, Docker, a project Compose file,
+Prepare unprivileged CT 111 for Frigate NVR using Debian, Docker, a project Compose file,
 camera placeholders, MQTT integration, and later OMV-backed archive storage.
 Camera networks remain isolated: no direct internet access to raw camera feeds,
 Home Assistant reaches only the intended Frigate paths, and regular Frigate UI
@@ -20,12 +20,12 @@ use waits until HTTPS/SSL is configured.
 
 ## Runs on
 
-Frigate VM over SSH at `192.168.30.20`.
+Frigate CT 111 over SSH at `192.168.30.20`.
 
 ## Prerequisites
 
 - Phase 03 complete.
-- Debian VM 101 exists.
+- Debian CT 111 exists with the shared DRM devices mapped.
 - Camera models and RTSP URLs may still be placeholders.
 - `<FRIGATE_RTSP_PASSWORD>` and `<FRIGATE_MQTT_PASSWORD>` recorded when known.
 
@@ -37,7 +37,7 @@ Frigate VM over SSH at `192.168.30.20`.
 
 ## Commands
 
-Run on: Frigate VM over SSH.
+Run on: Frigate CT over SSH.
 
 ```sh
 apt-get update && apt-get upgrade -y
@@ -45,7 +45,7 @@ apt-get install -y ca-certificates curl gnupg nfs-common ufw
 docker --version || true
 ```
 
-Run on: Frigate VM over SSH after Docker is installed from the official Docker repo.
+Run on: Frigate CT over SSH after Docker is installed from the official Docker repo.
 
 ```sh
 mkdir -p /opt/frigate/config /opt/frigate/db
@@ -58,8 +58,12 @@ docker compose logs --tail=80 frigate
 ## Explanation
 
 Frigate needs Docker, local database storage, camera configuration, and MQTT
-access to Home Assistant. NAS storage is added later so the VM can be validated
+access to Home Assistant. NAS storage is added later so the LXC can be validated
 before depending on OMV.
+
+The current live baseline uses OpenVINO and VA-API but deliberately configures
+`mqtt.enabled: false` and `cameras: {}`. Do not mistake repository camera
+placeholders for deployed production streams.
 
 ## Expected result
 
@@ -71,7 +75,7 @@ before depending on OMV.
 
 ## Validation
 
-Run on: Frigate VM over SSH.
+Run on: Frigate CT over SSH.
 
 ```sh
 docker compose ps
@@ -92,9 +96,9 @@ mosquitto_sub -h localhost -p 8883 --cafile /ssl/ca.crt -u mqtt -P '<MQTT_PASSWO
 
 ## Completion checklist
 
-- [ ] Docker Compose validates.
-- [ ] Frigate starts or the placeholder blocker is documented.
-- [ ] HA can reach Frigate over the intended firewall path.
-- [ ] NAS archive storage remains disabled until OMV is validated.
+- [x] Docker Compose validates.
+- [x] Migration-safe Frigate baseline starts on CT 111.
+- [x] HA network path to Frigate is allowed.
+- [x] NAS archive storage remains disabled until OMV is validated.
 - [ ] HTTPS/SSL plan documented before regular UI use.
 - [ ] WebRTC/audio and Lumen/mobile-viewing needs are documented after camera models are selected.

@@ -66,7 +66,7 @@ Design a network architecture that:
 |--------|-----|------|
 | Proxmox Host | 192.168.10.10 | VLAN 10 — Management |
 | Home Assistant VM | 192.168.20.101 | VLAN 20 — Automation |
-| Frigate NVR VM | 192.168.30.20 | VLAN 30 — CCTV |
+| Frigate NVR CT 111 | 192.168.30.20 | VLAN 30 — NVR |
 | OMV NAS | 192.168.40.50 | VLAN 40 — Storage |
 | Smart Plugs (emergency) | 192.168.50.71–79 | VLAN 50 — IoT |
 
@@ -100,13 +100,16 @@ VLAN 99 has no physical port assignments. WiFi-only access prevents Layer 2 atta
 ## Related Documents
 
 - **Configs:** `configs/openwrt/` — complete OpenWrt configuration files
-- **Firewall Analysis:** [[docs/decisions/firewall_analysis_summary|Firewall Analysis Summary]] — Sept 24 analysis that drove the 4→9 VLAN revision
+- **Historical firewall analysis:** [[_archive/2026-06-20-pre-lxc-and-handoffs/firewall_analysis_summary|archived report]] — drove the 4→9 VLAN revision
 - **Implementation Guide:** `scripts/setup/router/` — phased 8-step deployment procedure
 - **Current Rebuild Path:** [[docs/install/phases/01-router-openwrt|Router/OpenWrt phase]]
 
 ## History
 
-This architecture began as a 4-VLAN design (VLANs 20/30/40/50) documented on 2025-09-09. On 2025-09-24, a detailed firewall analysis (`firewall_analysis_summary.md`) identified critical gaps: missing user network, missing management VLAN, Frigate misplaced on VLAN 20, Proxmox misplaced on VLAN 20, no DMZ or guest isolation. The architecture was revised to a 9-VLAN design on 2025-09-25 and all OpenWrt configs were rewritten accordingly. It was later superseded by the printer VLAN decision, which adds VLAN 35 and makes the active design a 10-segment architecture.
+This architecture began as a 4-VLAN design. The archived 2025-09-24 firewall
+analysis identified missing user/management networks and placement gaps. The
+architecture was revised and later superseded by the printer VLAN decision,
+which adds VLAN 35 and makes the active design a 10-segment architecture.
 
 ---
 **Implementation Priority:** Critical (foundation for all other systems)

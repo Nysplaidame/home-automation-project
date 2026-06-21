@@ -43,7 +43,7 @@ Run on: Admin laptop.
 Test-Connection 192.168.40.50 -Count 4
 ```
 
-Run on: Frigate VM over SSH after OMV NFS shares exist.
+Run on: Frigate CT over SSH after OMV NFS shares exist.
 
 ```sh
 apt-get install -y nfs-common

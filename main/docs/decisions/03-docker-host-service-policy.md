@@ -45,14 +45,14 @@ public/DMZ workloads.
 - internet-facing reverse proxies or public services by default
 - DMZ workloads
 - heavy GPU / transcoding / surveillance jobs
-- local LLM, STT, or TTS inference workloads; those belong on VM 104
+- local LLM, STT, TTS or wake-word inference workloads; those belong on CT 114
   `llm-host`
 
 ## Why this boundary exists
 
 - VLAN 20 is a trusted internal application network, not a public service segment.
 - `docker-host` should remain easy to understand, patch, and rebuild.
-- Frigate already has a better architectural home on VM 101 and VLAN 30.
+- Frigate has a dedicated architectural home on CT 111 and VLAN 30.
 - HAOS remains an appliance-style system and should not be collapsed into generic Docker hosting.
 
 ## Operational guidance

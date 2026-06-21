@@ -66,7 +66,7 @@ are intentionally not used.
 
 VM 103 is the expected target for future containerized AI-adjacent query apps
 after their own app-specific design is approved. It is not the host for local
-LLM, STT, or TTS inference; those workloads belong on VM 104 `llm-host` in
+LLM, STT, TTS or wake-word inference; those workloads belong on CT 114 `llm-host` in
 Phase 05A.
 
 Current non-secret rebuild templates for the live docker-host stacks and host

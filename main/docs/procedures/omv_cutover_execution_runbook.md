@@ -27,7 +27,7 @@ Use it when OMV hardware is online and reachable at `192.168.40.50`.
 
 Proceed only if all are true:
 
-1. OMV responds from required clients (`VM 100`, `VM 101`, `VM 103` paths).
+1. OMV responds from required clients (`VM 100`, `CT 111`, `VM 103` paths).
 2. Current Proxmox backups are healthy (`keep-last=2`, recent successful logs).
 3. Snapshots taken immediately before cutover for VMs `100`, `101`, `103`.
 4. No unrelated maintenance is in progress.

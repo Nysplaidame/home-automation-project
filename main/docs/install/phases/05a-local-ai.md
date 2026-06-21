@@ -1,8 +1,9 @@
 ---
 title: Phase 05A - Local AI Inference
-description: Optional llm-host VM for Ollama, Open WebUI, and local Home Assistant voice inference
+description: llm-host LXC for shared-iGPU Ollama, Open WebUI, and Home Assistant voice inference
 tags: [install, local-ai, llm, voice, home-assistant]
 created: 2026-06-15
+modified: 2026-06-20
 type: install-guide
 status: active
 ---
@@ -11,7 +12,7 @@ status: active
 
 ## Purpose
 
-Build VM 104 `llm-host` as the dedicated local AI inference host. This keeps
+Build CT 114 `llm-host` as the dedicated local AI inference host. This keeps
 model, STT, and TTS workloads away from VM 103 `docker-host` while preserving a
 clean upgrade path from the current 32 GB host to a later 64 GB / 14B model
 setup.
@@ -28,7 +29,7 @@ setup.
 - Phase 02 complete.
 - Phase 03 complete if testing Home Assistant Assist immediately.
 - Phase 05 complete if Tailscale/MagicDNS and docker-host remote access are in use.
-- Router firewall and DNS policy can be updated for VM 104.
+- Router firewall and DNS policy can be updated for CT 114.
 
 ## Inputs
 
@@ -56,13 +57,14 @@ Run on: Home Assistant UI.
 1. Add Ollama at `http://192.168.20.104:11434`.
 2. Add Wyoming Piper at `192.168.20.104:10200`.
 3. Add Wyoming Whisper at `192.168.20.104:10300`.
-4. Create a local Assist pipeline for non-critical testing.
+4. Add Wyoming OpenWakeWord at `192.168.20.104:10400`.
+5. Create a local Assist pipeline for non-critical testing.
 
 ## Explanation
 
 The first AI phase is sized for the current 32 GB MINISFORUM host:
 
-- VM 104 gets 8 GB RAM.
+- CT 114 currently has 10 GiB RAM.
 - The first model is a 7B/8B Q4-class model.
 - Context starts at 4k.
 - 8k context and 14B models are gated by performance tests.
@@ -77,8 +79,8 @@ contracts, or firewall rules.
 
 ## Expected result
 
-- VM 104 is reachable at `192.168.20.104`.
-- Ollama, Open WebUI, Wyoming Whisper, and Wyoming Piper containers run.
+- CT 114 is reachable at `192.168.20.104`.
+- Ollama, Open WebUI, Wyoming Whisper, Piper and OpenWakeWord containers run.
 - `home-assistant-llm` responds through Ollama.
 - Home Assistant can reach the Ollama and Wyoming integrations.
 - No host swap occurs during the initial AI performance tests.
@@ -110,21 +112,21 @@ Then run:
 
 - If host swap appears, reduce model size, context, or STT model before
   allocating more RAM on the 32 GB host.
-- If HA becomes slow, disable the local Assist pipeline and stop the VM 104
+- If HA becomes slow, disable the local Assist pipeline and stop the CT 114
   Compose stack.
-- If a port is reachable from the wrong VLAN, fix OpenWrt and VM 104 firewall
+- If a port is reachable from the wrong VLAN, fix OpenWrt and CT 114 firewall
   rules before treating the service as live.
 - If voice latency is poor, keep room satellites parked and test smaller STT
   models first.
 
 ## Completion checklist
 
-- [ ] VM 104 created and documented in Proxmox reference.
-- [ ] DNS aliases created for `llm-host`, `ollama`, and `openwebui`.
-- [ ] Ollama and Open WebUI running.
-- [ ] Wyoming Whisper and Piper running.
-- [ ] HA Ollama integration connects.
-- [ ] HA Wyoming integrations connect.
-- [ ] Non-critical Assist command validated.
-- [ ] Performance test passes with no host swap.
-- [ ] Monitoring checks added for VM 104 services.
+- [x] CT 114 created and documented in Proxmox reference.
+- [x] DNS aliases created for `llm-host`, `ollama`, and `openwebui`.
+- [x] Ollama and Open WebUI running.
+- [x] Wyoming Whisper, Piper and OpenWakeWord running.
+- [x] HA Ollama integration connects.
+- [x] HA Wyoming integrations connect.
+- [x] Home and Overwatch Assist commands validated.
+- [x] Vulkan GPU offload and concurrent Frigate use validated.
+- [x] Monitoring checks added for core CT 114 services.

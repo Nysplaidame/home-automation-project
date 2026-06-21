@@ -31,7 +31,7 @@ This document defines the chosen strategy:
 | VLAN 10 management | Full internet | Normal package updates |
 | HA VM `192.168.20.101` | Allowed | Normal add-on / integration updates |
 | Docker host `192.168.20.102` | No broad update rule; Tailscale requires limited WAN egress | Temporary WAN rule for Docker pulls; cache later |
-| Frigate VM `192.168.30.20` | Blocked except maintenance window | Temporary WAN rule now; offline image transfer or cache later |
+| Frigate CT `192.168.30.20` | Blocked except maintenance window | Temporary WAN rule, offline image transfer or cache |
 | Printers VLAN 35 | `443` only | Vendor OTA only |
 | Storage VLAN 40 | Blocked | Manual / local-only maintenance |
 | IoT VLAN 50 | Blocked | Local OTA only; no general internet updates |
@@ -127,7 +127,7 @@ uci commit firewall
 Typical use:
 
 - `docker compose pull`
-- security updates to the Debian base on VM 101
+- security updates to the Debian base on CT 111
 
 ### Printers
 

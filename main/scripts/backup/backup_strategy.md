@@ -7,10 +7,11 @@
 
 | Layer | What | Where stored | Schedule | Retention |
 |---|---|---|---|---|
-| Proxmox snapshot | Entire VM disks (100/101/102/103, and 104 after Phase 05A if deployed, while NAS is pending) | MINISFORUM local NVMe (`/var/lib/vz/dump`) | Daily 02:00 | 2 snapshots |
+| Proxmox VM backup | VM disks 100/102/103 | MINISFORUM local NVMe (`/var/lib/vz/dump`) | Daily 02:00 | 2 backups |
+| Proxmox LXC backup | CT 111/114 root filesystems | MINISFORUM local NVMe (`/var/lib/vz/dump`) | Daily 04:00 | 1 backup pending NAS |
 | HA native backup | HA config, add-ons, automations | HA local + NAS | Daily 03:00 | 14 days on NAS |
 | Frigate recordings | Camera footage | NAS `/mnt/nas/frigate` | Continuous | 7 days motion, 14 days events |
-| Frigate VM state | OS disk, DB, cache, compose/config | MINISFORUM NVMe on VM 101 | Continuous | Rebuildable + config-backed |
+| Frigate LXC state | OS disk, DB, cache, compose/config | MINISFORUM NVMe on CT 111 | Continuous | Rebuildable + config-backed |
 | Config file backup | Safety vault YAML/configs | NAS /mnt/nas/configs | Daily via rsync | 30 days |
 | GitHub | Safety vault docs + configs | GitHub repo | On push | Full history |
 
@@ -26,7 +27,7 @@
 |---|---|
 | Storage | `local` (stores backup on MINISFORUM NVMe) |
 | Schedule | `02:00` (daily) |
-| Selection | VMs 100, 101, 102, 103 |
+| Selection | VMs 100, 102, 103 |
 | Mode | Snapshot |
 | Compression | ZSTD |
 | Max backups | 2 while backups are local/pre-NAS |
@@ -45,6 +46,19 @@ Current pre-NAS check on 2026-05-27:
 - Latest 2026-05-27 logs for VMs `100`, `101`, `102`, and `103` all ended with
   `Finished Backup`.
 
+Current policy after the 2026-06-20 LXC migration:
+
+- 02:00 job: VMs `100,102,103`, `keep-last=2`.
+- 04:00 job: CTs `111,114`, `keep-last=1`.
+- VM 101 and VM 104 are stopped rollback artefacts with migration snapshots;
+  they are intentionally excluded from recurring backups.
+- One LXC generation is an interim local-capacity compromise. Move retention to
+  OMV and increase it after storage is live.
+- First CT 111 and CT 114 archives completed on 2026-06-20 and passed
+  `zstd -t` integrity checks.
+- Obsolete VM 101 recurring archives were removed on 2026-06-21 after CT backup
+  validation; the stopped VM disk and migration snapshot remain available.
+
 Restore-readiness drill on 2026-05-28:
 
 - Confirmed latest `2026-05-28` archives exist for VMs `100`, `101`, `102`,
@@ -57,12 +71,13 @@ Restore-readiness drill on 2026-05-28:
 ```bash
 # In Proxmox shell before any risky change
 vzdump 100 --mode snapshot --compress zstd --storage local
-vzdump 101 --mode snapshot --compress zstd --storage local
+vzdump 111 --mode snapshot --compress zstd --storage local
+vzdump 114 --mode snapshot --compress zstd --storage local
 vzdump 102 --mode snapshot --compress zstd --storage local
 vzdump 103 --mode snapshot --compress zstd --storage local
 ```
 
-### Restore a VM
+### Restore a VM or LXC
 
 `Datacenter → Storage → local → Backups → select backup → Restore`
 
@@ -73,6 +88,9 @@ ls /var/lib/vz/dump/
 
 # Restore VM 100 from backup
 qmrestore /var/lib/vz/dump/vzdump-qemu-100-*.vma.zst 100 --force
+
+# Restore an LXC to its original ID only after stopping/removing a conflicting guest
+pct restore 111 /var/lib/vz/dump/vzdump-lxc-111-*.tar.zst
 ```
 
 ---
@@ -114,8 +132,8 @@ Or if HA won't boot, use the recovery page at `http://192.168.20.101` (pre-login
 
 Use a hybrid layout:
 
-- Keep VM 101 itself on the MINISFORUM NVMe.
-- Keep Frigate's database, cache, and service state local to VM 101.
+- Keep CT 111 itself on the MINISFORUM NVMe.
+- Keep Frigate's database, cache, and service state local to CT 111.
 - Store recordings directly on the NAS once `/mnt/nas/frigate` is available.
 - Treat `/opt/frigate/storage` as a staging/fallback path, not the long-term
   archive target.

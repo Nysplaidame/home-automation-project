@@ -3,7 +3,7 @@ title: "Proxmox VE"
 category: entity
 tags: [software, proxmox, virtualisation, hypervisor]
 created: 2026-04-07
-updated: 2026-05-31
+updated: 2026-06-20
 sources: [project-readme, proxmox-setup-guide]
 status: stable
 ---
@@ -20,14 +20,17 @@ Proxmox VE runs bare-metal on the MINIX NEO Z350. It hosts the project VMs via a
 VLAN-aware bridge (`vmbr0`). The Proxmox host itself sits on VLAN 10
 (Management) at `192.168.10.10`.
 
-## VMs
+## Guests
 
 | VM ID | Name | VLAN | IP | Status |
 |---|---|---|---|---|
 | 100 | home-assistant | 20 | 192.168.20.101 | Running |
-| 101 | frigate-nvr | 30 | 192.168.30.20 | Running, Frigate staged |
+| 101 | frigate-nvr | - | - | Stopped rollback VM |
 | 102 | monitoring | 60 | 192.168.60.10 | Running, Grafana/Influx/Kuma/Telegraf live |
 | 103 | docker-host | 20 | 192.168.20.102 | Running, docker-host services and metrics live |
+| 104 | llm-host | - | - | Stopped rollback VM |
+| 111 | frigate-nvr (LXC) | 30 | 192.168.30.20 | Running, Frigate baseline live |
+| 114 | llm-host (LXC) | 20 | 192.168.20.104 | Running, local AI/voice live |
 
 ## Backup
 
@@ -50,11 +53,14 @@ VLAN-aware bridge (`vmbr0`). The Proxmox host itself sits on VLAN 10
 
 ## Open Questions
 
-- [ ] Enable/confirm IOMMU and iGPU passthrough on VM 101 for Frigate acceleration.
+- [x] Share render/card DRM devices with unprivileged CT 111 and CT 114.
 - [ ] Add OMV NAS as backup target once NAS hardware is purchased.
 - [ ] Decide whether Frigate VM local snapshots should remain excluded once camera/video storage is active.
 
 ## Change Log
+
+- 2026-06-20: Replaced production VM 101/104 identities with CT 111/114 and
+  validated concurrent shared-iGPU use.
 
 - 2026-05-30: Added backup drill status and Proxmox/Grafana metrics state.
 - 2026-05-31: Clarified Proxmox dashboard percent values, exported the dashboard source, and applied metric labels live.

@@ -187,11 +187,11 @@ influxdb_homeassistant_token: "your-token" # Bitwarden: influxdb-ha-token
 
 ## 9 — Frigate NVR VM (192.168.30.20, VLAN 30)
 
-> VM 101 runs Frigate only. Bambuddy runs on docker-host VM 103 — see Section 11.
+> CT 111 runs Frigate only. Bambuddy runs on docker-host VM 103 — see Section 11.
 
 | Secret | Bitwarden entry | Notes |
 |---|---|---|
-| Frigate VM admin password | `frigate-vm` | Debian install password for `admin` user; SSH access |
+| Frigate CT admin access | `frigate-ct` | Key-based root administration; no password in repo |
 | Frigate UI password (if enabled) | `frigate-ui` | Only if auth is enabled in config.yml |
 
 ---

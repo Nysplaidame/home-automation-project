@@ -9,7 +9,7 @@ status: active
 
 # Local AI Performance Testing
 
-Use this procedure before calling VM 104 `llm-host` live, before increasing
+Use this procedure to validate CT 114 `llm-host`, before increasing
 context size, and before switching from the first 7B/8B model to a 14B model
 after a RAM upgrade.
 
@@ -98,7 +98,7 @@ docker stats --no-stream
 free -h
 ```
 
-Pass condition: keep 8k only if VM 104 and the Proxmox host both retain healthy
+Pass condition: keep 8k only if CT 114 and the Proxmox host both retain healthy
 available memory. Otherwise keep the default alias at 4k.
 
 ## Phase 4 - Voice pipeline test
@@ -106,7 +106,7 @@ available memory. Otherwise keep the default alias at 4k.
 Run on: Home Assistant UI.
 
 1. Open Assist.
-2. Select the local pipeline using VM 104 Whisper, `home-assistant-llm`, and
+2. Select the local pipeline using CT 114 Whisper, `home-assistant-llm`, and
    Piper.
 3. Ask a non-critical state question.
 4. Ask one harmless control command against a test helper or non-critical
@@ -129,7 +129,7 @@ Run the same 4k LLM and voice tests while normal services are active:
 - HAOS VM 100
 - docker-host VM 103 and its live containers
 - monitoring VM 102
-- Frigate VM 101 base services
+- Frigate CT 111 baseline
 
 Repeat this phase after cameras and Frigate inference are live. If Frigate or
 HA performance degrades, reduce local AI model/context before reducing camera
@@ -139,7 +139,7 @@ or safety-system reliability.
 
 After the Proxmox host is upgraded to 64 GB:
 
-1. Resize VM 104 to 20-24 GB RAM.
+1. Resize CT 114 to 20-24 GB RAM.
 2. Keep the same IP, DNS names, ports, and HA integrations.
 3. Pull and test the selected 14B Q4/Q5 model.
 4. Recreate `home-assistant-llm` against the larger model.
@@ -156,9 +156,9 @@ Add Uptime Kuma checks for:
 
 Add Grafana panels or dashboard annotations for:
 
-- VM 104 CPU
-- VM 104 RAM
-- VM 104 disk
+- CT 114 CPU
+- CT 114 RAM
+- CT 114 disk
 - container status and memory
 - host available RAM and swap
 
@@ -167,14 +167,14 @@ Add Grafana panels or dashboard annotations for:
 ```text
 Date:
 Host RAM:
-VM 104 RAM:
+CT 114 RAM:
 Model alias:
 Underlying model:
 Context tested:
 Whisper model:
 Piper voice:
 Host swap before/after:
-VM 104 peak RAM:
+CT 114 peak RAM:
 Tokens/sec or response time:
 Voice round-trip result:
 Other services affected:

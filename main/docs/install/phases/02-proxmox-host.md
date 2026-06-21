@@ -43,28 +43,27 @@ ip -br link
 ip -br addr
 ```
 
-Run on: Proxmox host shell after copying the project VM script.
+Run on: Proxmox host shell after creating guests from the relevant per-service guide.
 
 ```sh
-chmod +x /root/vm-setup.sh
-/root/vm-setup.sh
 qm list
+pct list
 ```
 
 ## Explanation
 
-`ifupdown2` allows safer network reloads. The VM setup script creates the
-expected VM definitions from `configs/proxmox/vm-setup.sh`; manual VM creation
-is documented in the deep-dive guide.
+`ifupdown2` allows safer network reloads. The former all-in-one VM script is
+archived because it would recreate Frigate as VM 101. Use
+`configs/proxmox/guest-configs.md` and the individual VM/LXC guides.
 
-VM 104 `llm-host` is optional and documented separately in Phase 05A and
+CT 114 `llm-host` is documented separately in Phase 05A and
 `scripts/setup/proxmox/llm_host_setup_guide.md`.
 
 ## Expected result
 
 - Proxmox host is reachable on VLAN 10 at `192.168.10.10`.
 - `vmbr0` is VLAN-aware.
-- VM shells exist for the expected project VMs.
+- VM and LXC guests match `configs/proxmox/guest-configs.md`.
 
 ## Validation
 
@@ -73,6 +72,7 @@ Run on: Proxmox host shell.
 ```sh
 pveversion
 qm list
+pct list
 cat /etc/network/interfaces
 ```
 

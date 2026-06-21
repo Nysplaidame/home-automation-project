@@ -16,7 +16,7 @@ These files mirror the intended live layout on VM 103 (`docker-host`,
 VM 103 is also the expected target for future containerized AI-adjacent query
 apps. Do not add a future query app template until its app-specific API,
 storage, egress, monitoring, and firewall rules are approved. Local LLM, STT,
-and TTS inference belongs on VM 104 `llm-host`, not here.
+and TTS inference belongs on CT 114 `llm-host`, not here.
 
 Live stack paths:
 

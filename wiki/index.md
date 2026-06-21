@@ -4,7 +4,7 @@
 > Updated after every ingest, query (if filed), or lint pass.
 
 **Stats:** 25 sources - 22 entities - 7 concepts - 3 analyses
-**Last updated:** 2026-05-30
+**Last updated:** 2026-06-20
 
 ---
 
@@ -59,13 +59,14 @@
 - [[entities/raspberry-pi-nas]] - Deprecated historical NAS plan; superseded by OMV
 
 ### Infrastructure
-- [[entities/proxmox]] - Proxmox VE on MINIX; VMs 100/101/102/103 live
+- [[entities/proxmox]] - Proxmox VE on MINIX; VMs 100/102/103 and CTs 111/114 live
 - [[entities/docker-host]] - VM 103; Bambuddy, Tier 1 apps, ntfy/search pre-flight, Tailscale, Telegraf, Fail2ban
 - [[entities/monitoring-vm]] - VM 102; Uptime Kuma, InfluxDB, Grafana, Telegraf, architecture dashboards, exporters
 
 ### Software / integrations
 - [[entities/home-assistant]] - HAOS on VM 100; VentSys packages/dashboard staged and Frigate integration planned
-- [[entities/frigate]] - Frigate VM 101 shell/Docker staging and Fail2ban live; Frigate app not yet in regular use
+- [[entities/frigate]] - CT 111 Frigate baseline live with shared-iGPU OpenVINO; cameras/MQTT pending
+- [[entities/llm-host]] - CT 114 Ollama/Open WebUI/Wyoming host with shared-iGPU Vulkan
 - [[entities/bambuddy]] - Bambu P1S bridge on docker-host
 - [[entities/adguard-home]] - Live DNS filtering/adblocking service on docker-host
 - [[entities/immich]] - Live skeleton gallery/photos service; real imports blocked until OMV/backup readiness

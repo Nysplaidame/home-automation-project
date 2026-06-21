@@ -18,9 +18,9 @@ status: active
 | Proxmox host shell | MINISFORUM M1 Pro-125H Proxmox host | Shell as `root` on `192.168.10.10` or Proxmox web shell |
 | Home Assistant UI | HAOS VM 100 | Browser at `http://192.168.20.101:8123/` |
 | Home Assistant Terminal add-on | HAOS Terminal & SSH add-on | Shell prompt inside HA, usually `/config` available |
-| Frigate VM over SSH | Debian VM 101 | SSH prompt on `192.168.30.20` |
+| Frigate CT over SSH | Debian LXC 111 | SSH prompt on `192.168.30.20` |
 | docker-host over SSH | Debian VM 103 | SSH prompt on `192.168.20.102` |
-| llm-host over SSH | Debian VM 104 | SSH prompt on `192.168.20.104` |
+| llm-host over SSH | Debian LXC 114 | SSH prompt on `192.168.20.104` |
 | OMV web UI | OpenMediaVault NAS | Browser at `http://192.168.40.50/` or `http://omv.home.local/` |
 | OMV shell | OMV NAS shell | SSH prompt on `192.168.40.50` if enabled |
 | Tailscale admin console | Tailscale web admin | Browser session at Tailscale admin UI |

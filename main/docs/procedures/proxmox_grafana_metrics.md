@@ -109,7 +109,7 @@ live infrastructure only:
 - docker-host CPU, RAM, root filesystem use, Docker container counts, and image counts
 - docker-host host CPU/RAM history
 - docker-host per-container CPU, RAM, network throughput, and status table
-- VM 104 `llm-host` CPU, RAM, disk, and container memory after Phase 05A is
+- CT 114 `llm-host` CPU, RAM, disk, and container memory after Phase 05A is
   deployed and local AI performance testing passes
 
 The paired `NAS Resource Overview` dashboard is a planned shell only. It exists
@@ -147,7 +147,7 @@ This avoided opening broad docker-host registry access just to deploy the
 collector.
 
 Planning baseline remains unchanged: treat OMV, Frigate application state,
-VM 104 local AI runtime state, and VentSys entities as unbuilt until explicitly
+CT 114 local AI runtime state, and VentSys entities as unbuilt until explicitly
 revalidated.
 
 ## Memory interpretation

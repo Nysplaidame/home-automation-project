@@ -4,7 +4,7 @@ description: Implementation tasks by phase — updated May 2026
 tags: [tasks, implementation]
 aliases: [TODO, Tasks]
 created: 2025-09-15
-modified: 2026-06-11
+modified: 2026-06-20
 type: task-list
 status: active
 ---
@@ -26,12 +26,12 @@ status: active
 7. [ ] Continue expanding each install phase until every command has expected output examples and every failure mode has a tested recovery path
 8. [ ] Work through the comprehensive checklist in `docs/install/INSTALL-TO-DO.md`
 9. [ ] Run a full dry-read from `docs/install/START-HERE.md` after the next content expansion pass
-10. [x] Add local AI infrastructure docs for VM 104 `llm-host`, 32GB first-phase sizing, HA voice integration, performance testing, and 64GB upgrade path
+10. [x] Deploy and document shared-iGPU CT 111 Frigate and CT 114 local AI architecture
 
 Planning baseline until explicitly revalidated:
 
 - Treat OMV as unbuilt for implementation planning.
-- Treat Frigate as unbuilt for implementation planning.
+- Treat the Frigate software baseline as live, but cameras/MQTT/recording as unbuilt.
 - Treat VentSys entities as unbuilt for implementation planning.
 
 ## Operational next steps
@@ -46,7 +46,7 @@ Planning baseline until explicitly revalidated:
 8. [x] Explicitly park embedded Grafana-in-HA work behind direct-link-only access until HTTPS/reverse proxy same-origin path is in place
 9. [x] Add an external health signal for the monitoring VM so monitoring failure is visible even when Uptime Kuma itself is down
 10. [ ] Configure OMV-backed Home Assistant backups once NAS storage is live, while keeping fast local Proxmox recovery on the MINISFORUM host
-11. [ ] Start Frigate properly after `.env`, RTSP details, and MQTT credentials are ready; keep HTTPS/SSL and WebRTC audio as required prerequisites
+11. [x] Start the migration-safe Frigate baseline on CT 111 with cameras and MQTT disabled
 12. [ ] Expand VentSys beyond valve 1: finish the MQTT TLS migration path, then flash/adopt the remaining ESPHome devices
 13. [x] Deploy AdGuard Home on docker-host per `docs/decisions/04-dns-resolver-and-adblocking.md`
 14. [x] Re-run router-deploy validation after the router-local NTP/deploy-tooling update
@@ -77,9 +77,10 @@ Planning baseline until explicitly revalidated:
 39. [ ] When NAS is built, add NAS telemetry using existing monitoring patterns first (prefer Telegraf -> InfluxDB -> Grafana before adding new containers)
 40. [x] Build VM 104 `llm-host` only after confirming current Proxmox RAM pressure is healthy enough for an 8GB AI VM
 41. [x] Deploy Ollama, Open WebUI, Wyoming Whisper, and Wyoming Piper on VM 104 per `scripts/setup/proxmox/llm_host_setup_guide.md`
-42. [ ] Configure HA Ollama and Wyoming integrations against VM 104, then validate only non-critical HA Assist actions first; HA API access currently returns 401 without an admin token
-43. [ ] Finish `docs/procedures/local_ai_performance_testing.md` before calling local AI live or increasing context/model size; 4k LLM smoke test passed on VM 104 with `llama3.1:8b-instruct-q4_K_M`
-44. [x] Add Uptime Kuma/Grafana monitoring for VM 104 AI services after deployment; Kuma checks for Ollama, Open WebUI, Wyoming Piper, and Wyoming Whisper are green and exported to InfluxDB
+42. [x] Configure HA Ollama/Wyoming integrations and validate Home and Overwatch Assist pipelines
+43. [x] Validate CT 114 Vulkan inference, 33/33 layer offload and concurrent Frigate OpenVINO use
+44. [x] Add Uptime Kuma/Grafana monitoring for CT 114 AI services; add OpenWakeWord monitor as follow-up
+45. [ ] Implement a deliberate recipe destination before promising recipe saving through Overwatch (Mealie or a protected Obsidian ingest service)
 45. [ ] Keep Hermes Agent roadmap-only until local LLM, STT, TTS, monitoring, and safety gates are stable
 46. [ ] Keep future YouTube transcript/query app architecture undecided; VM 103 is only the expected target for future containerized query apps
 
@@ -217,12 +218,12 @@ must work without HACS.
 - [x] Install Proxmox VE on MINISFORUM M1 Pro-125H
 - [x] Configure vmbr0 VLAN-aware bridge, trunk on enp1s0
 - [x] Set static IP 192.168.10.10 on vmbr0.10
-- [ ] Enable IOMMU (intel_iommu=on) for iGPU passthrough
-- [ ] Run `configs/proxmox/vm-setup.sh`
-- [x] Configure temporary local Proxmox daily backup (02:00, VMs 100/101/102/103, keep 2)
-- [x] Create VM 104 `llm-host` on VLAN 20 at 192.168.20.104 with 8GB RAM, 4 cores, and 160GB thin-provisioned disk
-- [x] Add VM 104 DNS aliases: `llm-host.home.local`, `ollama.home.local`, and `openwebui.home.local`
-- [ ] After a future 64GB RAM upgrade, resize VM 104 to 20-24GB and retest before moving `home-assistant-llm` to a 14B model
+- [x] Retire PCI iGPU passthrough/IOMMU requirement in favour of shared LXC device mapping
+- [x] Retire the pre-LXC `vm-setup.sh`; `guest-configs.md` holds the current inventory
+- [x] Correct temporary local backup coverage: VMs 100/102/103 keep 2; CTs 111/114 keep 1 pending OMV
+- [x] Replace VM 104 with CT 114 `llm-host` at 192.168.20.104; retain stopped VM as rollback
+- [x] Keep `llm-host`, `ollama`, and `openwebui` DNS aliases on 192.168.20.104
+- [ ] After a future 64GB RAM upgrade, resize CT 114 and retest before moving `home-assistant-llm` to a 14B model
 
 ### Home Assistant VM (VM 100)
 - [x] Start VM 100, complete HAOS onboarding wizard
@@ -240,7 +241,7 @@ must work without HACS.
 - [ ] Configure NAS as backup target, set daily 03:00 schedule (14 keep)
 - [x] Validate router-local NTP for non-HA-managed restricted devices
 
-### Frigate VM (VM 101)
+### Frigate (CT 111; VM 101 retained only for rollback)
 - [x] Create VM 101 from Debian 13 cloud image (hostname: frigate-nvr, SSH only)
 - [x] Set static cloud-init IP 192.168.30.20
 - [x] Note MAC and add to dhcp-config.conf (`BC:24:11:9C:25:87`)
@@ -250,7 +251,7 @@ must work without HACS.
 - [ ] Set final `FRIGATE_RTSP_PASSWORD` in `/opt/frigate/.env` after camera model/credentials are selected
 - [x] Stage MQTT CA trust for Frigate at `/opt/frigate/certs/ca-cert.pem` and verify TLS (`Verify return code: 0`)
 - [x] Create host dirs: `mkdir -p /opt/frigate/db`
-- [ ] Start Frigate: `docker compose up -d`
+- [x] Start migration-safe Frigate 0.17.1 baseline on CT 111
 - [ ] Configure HTTPS/SSL for Frigate UI before regular use
 - [ ] Confirm Frigate UI over HTTPS/SSL, not plain HTTP
 - [ ] Configure WebRTC audio for camera streams
@@ -262,7 +263,7 @@ must work without HACS.
 - [ ] Copy `configs/home-assistant/bambuddy_p1s_package.yaml` to `/config/packages/` on HA
 - [ ] Replace `<P1S_SERIAL>` placeholder in bambuddy_p1s_package.yaml with real serial
 - [ ] Confirm `binary_sensor.p1s_printing` and print state entities appear in HA
-- [ ] Enable iGPU passthrough (Phase 6 of frigate_vm_setup_guide.md) — after confirming IOMMU
+- [x] Map shared Intel render/card devices into unprivileged CT 111 and CT 114; PCI passthrough/IOMMU is not required
 
 ---
 
@@ -390,6 +391,10 @@ must work without HACS.
 ---
 
 ## Ongoing / maintenance
+
+- [ ] Rotate infrastructure passwords, API credentials and SSH keys together;
+  update password-manager records and validate every dependent service before
+  revoking old credentials
 
 - [ ] Monthly: run backup health checklist (`backup_strategy.md`)
 - [ ] Monthly: check SMART status on NAS drives

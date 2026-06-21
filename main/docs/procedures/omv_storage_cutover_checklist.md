@@ -24,7 +24,7 @@ Automation (`VLAN 20`) and NVR (`VLAN 30`) paths.
   - Frigate recordings archive
 - Snapshot affected VMs before moving storage:
   - VM 100 (HAOS)
-  - VM 101 (frigate-nvr)
+  - CT 111 (frigate-nvr)
   - VM 103 (docker-host)
 
 ## 2) Home Assistant backup target cutover
@@ -49,7 +49,7 @@ Automation (`VLAN 20`) and NVR (`VLAN 30`) paths.
   - existing local placeholder path is not used for new media
 - Keep local rollback copy until at least one successful backup cycle.
 
-## 4) Frigate recording cutover (VM 101)
+## 4) Frigate recording cutover (CT 111)
 
 - Keep Frigate stopped until RTSP/MQTT/TLS prerequisites are complete.
 - Mount OMV NFS target at `/mnt/nas/frigate`.

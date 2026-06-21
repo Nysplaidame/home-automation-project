@@ -30,7 +30,7 @@ status: active
 | `docker-ce docker-ce-cli containerd.io docker-compose-plugin` | Docker Compose app runtime | Docker official apt repo install | `docker --version && docker compose version` |
 | `tailscale` | Daily remote access route host | Tailscale official install | `tailscale version` |
 
-## llm-host VM 104 containers
+## llm-host CT 114 containers
 
 | Image | Purpose | Pull / start path | Verify |
 |---|---|---|---|

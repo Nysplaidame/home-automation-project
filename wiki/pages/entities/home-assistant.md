@@ -3,7 +3,7 @@ title: "Home Assistant (HAOS)"
 category: entity
 tags: [software, home-assistant, automation, mqtt, esphome]
 created: 2026-04-07
-updated: 2026-05-30
+updated: 2026-06-20
 sources: [project-readme, ha-vm-setup-guide, ha-configuration-yaml]
 status: stable
 ---
@@ -11,7 +11,7 @@ status: stable
 # Home Assistant (HAOS)
 
 **Type:** integration — home automation platform
-**Status:** ✅ Live — HAOS core 2026.5.0, Supervisor 2026.04.2
+**Status:** ✅ Live — HAOS core 2026.6.3
 **Related:** [[entities/proxmox]], [[entities/mosquitto-mqtt]], [[entities/esphome]], [[entities/frigate]], [[entities/ventsys]], [[entities/bambuddy]], [[entities/monitoring-vm]]
 
 ## Overview
@@ -33,7 +33,7 @@ on TLS, and remaining Frigate/VentSys paths should use the TLS migration plan.
 - VM: Proxmox VM 100
 - VLAN: 20 (Automation)
 - Static IP: `192.168.20.101`
-- HA Core: `2026.5.0`
+- HA Core: `2026.6.3`
 - Supervisor: `2026.04.2`
 - Port: 8123 (HTTP; HTTPS still pending)
 - 2FA: enabled (TOTP)
@@ -46,6 +46,10 @@ on TLS, and remaining Frigate/VentSys paths should use the TLS migration plan.
 - **ESPHome** — compiles and manages ESP32 firmware.
 - **Terminal & SSH** — command line access.
 - **File Editor** — config file management.
+
+Home and Overwatch Assist pipelines are live through [[entities/llm-host]].
+Overwatch can perform bounded read-only SearXNG searches. It cannot currently
+save recipes to Obsidian or Mealie.
 
 ## Live Config on HA
 
@@ -91,6 +95,9 @@ present and tested.
 - See [[sources/troubleshooting-reference]] for full diagnostics.
 
 ## Change Log
+
+- 2026-06-20: Added live Ollama/Wyoming Assist and bounded SearXNG tool state;
+  verified HA 2026.6.3 configuration.
 
 - 2026-05-30: Corrected Frigate/VentSys/MQTT posture: Frigate integration remains planned, VentSys hardware entities are staged, and no valve-specific router `1883` exception should be treated as live.
 - 2026-05-18: Corrected MQTT status to mixed-mode with TLS live on 8883; added monitoring Influx export, external dashboard token config, card wrapper, and live valve-1 note.

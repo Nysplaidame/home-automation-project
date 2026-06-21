@@ -89,7 +89,7 @@ native API.
 - HAOS system time is sourced from router-local NTP, not arbitrary external
   internet NTP.
 - Local AI voice is optional and handled in Phase 05A. When deployed, HA uses
-  Ollama at `http://192.168.20.104:11434` and Wyoming voice services on VM 104.
+  Ollama at `http://192.168.20.104:11434` and Wyoming voice services on CT 114.
 
 ## Validation
 

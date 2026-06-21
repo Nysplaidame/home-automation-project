@@ -10,16 +10,20 @@ flowchart TB
 
     subgraph VMs["Proxmox VMs"]
         HA["VM 100 Home Assistant OS<br/>192.168.20.101<br/>Mosquitto, ESPHome, dashboards"]
-        Frigate["VM 101 Frigate NVR<br/>192.168.30.20<br/>Docker, camera recording"]
-        Monitoring["Monitoring VM<br/>192.168.60.x<br/>Kuma, InfluxDB, Grafana"]
+        Monitoring["VM 102 Monitoring<br/>192.168.60.10<br/>Kuma, InfluxDB, Grafana"]
         DockerHost["VM 103 docker-host<br/>192.168.20.102<br/>Compose stacks, Tailscale, AdGuard"]
-        LLMHost["VM 104 llm-host<br/>192.168.20.104<br/>Ollama, Open WebUI, Wyoming voice"]
+    end
+
+    subgraph LXCs["Unprivileged Proxmox LXCs"]
+        Frigate["CT 111 Frigate NVR<br/>192.168.30.20<br/>OpenVINO + VA-API"]
+        LLMHost["CT 114 llm-host<br/>192.168.20.104<br/>Ollama Vulkan + Wyoming voice"]
     end
 
     Proxmox --- HA
     Proxmox --- Frigate
     Proxmox --- Monitoring
     Proxmox --- DockerHost
+    Proxmox --- Frigate
     Proxmox --- LLMHost
 
     subgraph Storage["Storage"]
@@ -44,7 +48,8 @@ flowchart TB
     DockerHost --- Bambuddy
     DockerHost -.-> FutureQuery
 
-    HA -.->|"Ollama + Wyoming"| LLMHost
+    HA -.->|"Ollama + Wyoming + OpenWakeWord"| LLMHost
+    LLMHost -.->|"SearXNG search"| DockerHost
     LLMHost -.->|"future approved app queries only"| FutureQuery
 
     subgraph Physical["Physical integrations"]
@@ -70,5 +75,6 @@ flowchart TB
     Tailscale --> DockerHost
     DockerHost -.->|"192.168.20.101/32"| HA
     DockerHost -.->|"192.168.40.50/32"| OMV
+    DockerHost -.->|"192.168.60.10/32"| Monitoring
     Operator -.->|"fallback only"| WireGuard
     WireGuard -.->|"controlled router access"| Router

@@ -33,7 +33,7 @@ in the tailnet admin console.
 | Admin devices | tailnet admin group | `192.168.60.10/32` | 3000, 3001 | Grafana and Uptime Kuma only |
 | Household mobile devices | approved user/device tags | docker-host service UI ports | 2283, 3001, selected apps | No Management/NVR/IoT/Printers |
 | Household mobile devices | approved user/device tags | `192.168.60.10/32` | 3000, 3001 | Monitoring dashboards only if desired for daily mobile use |
-| Admin devices | tailnet admin group | `192.168.20.104/32` | 3002, 11434, 10200, 10300 | Local AI admin/testing only if explicitly approved |
+| Admin devices | tailnet admin group | `192.168.20.104/32` | 3002, 11434, 10200, 10300, 10400 | Local AI admin/testing only if explicitly approved |
 | Unknown devices | any | any routed subnet | none | Require explicit approval |
 
 Do not advertise or allow `192.168.10.0/24`, `192.168.30.0/24`,

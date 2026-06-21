@@ -4,7 +4,7 @@ description: Fire safety ventilation, NVR surveillance, secure network, and home
 tags: [home-automation, project-overview]
 aliases: [Project Overview]
 created: 2025-09-15
-modified: 2026-06-08
+modified: 2026-06-20
 type: project-overview
 status: active
 ---
@@ -18,7 +18,9 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 
 ---
 
-## Project status (May 2026)
+## Project status
+
+Canonical details: [[docs/reference/current-live-state|Current Live State]].
 
 | Layer | Status | Notes |
 |---|---|---|
@@ -27,9 +29,9 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 | Router deployment | ✅ Live | GL-MT6000 stable on management IP 192.168.10.1 |
 | Proxmox | ✅ Live | MINISFORUM M1 Pro-125H on 192.168.10.10, Proxmox VE 9 |
 | HA VM | ✅ Live | HAOS VM 100 at 192.168.20.101, VentSys packages staged |
-| Frigate VM | ⏳ Shell live / app unbuilt | VM 101 on VLAN 30 has Debian base and Docker staging; Frigate app is not live until cameras, RTSP credentials, HTTPS, and audio path are ready |
+| Frigate | ✅ LXC baseline live | CT 111 runs Frigate 0.17.1 with shared-iGPU OpenVINO; cameras and MQTT remain deliberately disabled |
 | Docker host | ✅ Live | VM 103 on VLAN 20, central trusted Docker host; Bambuddy, Tier 1 apps, ntfy, and Watchtower monitor-only pre-flight live |
-| Local AI | ⏳ VM + monitoring live / HA pending | VM 104 `llm-host` on VLAN 20 runs Ollama, Open WebUI, Wyoming STT/TTS; 4k LLM smoke test passed and Kuma/Influx monitoring is live; HA Assist integration still pending |
+| Local AI | ✅ LXC + HA Assist live | CT 114 runs GPU-backed Ollama, Open WebUI, Whisper, Piper and OpenWakeWord; Overwatch web search is live |
 | OMV NAS | ⏳ Planned | OpenMediaVault at 192.168.40.50 on VLAN 40; hardware/storage needed |
 | Remote access | ✅ Live | Tailscale daily access via docker-host host routes; WireGuard kept dormant as fallback |
 | VentSys dashboard | ✅ Written / staged | dashboards/ventsys-dashboard.html with full HA integration layer; entities remain hardware-dependent |
@@ -79,10 +81,10 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 | 99 | Guest | 192.168.99.0/24 | ✅ |
 
 ### NVR / Cameras (VLAN 30)
-- Frigate VM shell on Proxmox VM 101; Frigate app remains unbuilt for regular use
+- Frigate baseline runs on unprivileged CT 111 with shared Intel iGPU acceleration
 - 4 future cameras at 192.168.30.21–24
 - Future footage path to NAS via NFS after NAS and cameras are built
-- HA integration and Frigate card remain planned, not live
+- HA integration and Frigate card remain planned until cameras are live
 
 ### Docker host + Bambuddy / P1S printer (VLAN 20 → VLAN 35)
 - Docker host runs on VM 103 at 192.168.20.102; Bambuddy is live on port 8000
@@ -104,33 +106,27 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 - Monitoring VM 102 is live at 192.168.60.10 with Uptime Kuma, InfluxDB, Grafana, and Telegraf
 - Grafana dashboards cover home automation baseline, Proxmox/docker-host resources, service availability, DNS, and security posture
 - Docker-host Telegraf and lightweight Uptime Kuma/Fail2ban exporters feed InfluxDB buckets for architecture dashboards
-- VM 104 local AI checks are live in Uptime Kuma for Ollama, Open WebUI,
+- CT 114 local AI checks are live in Uptime Kuma for Ollama, Open WebUI,
   Wyoming Piper, and Wyoming Whisper; the Kuma-to-Influx export path includes
   the new monitors.
 - Home Assistant monitoring uses direct Grafana/Kuma links for now; embedding remains parked until same-origin HTTPS/reverse proxy is deliberate
 
 ### Home Assistant (VLAN 20)
 - HAOS on Proxmox VM 100 at 192.168.20.101
-- Mosquitto MQTT and ESPHome add-ons; Frigate integration remains planned
+- Mosquitto MQTT, ESPHome, Terminal & SSH and File Editor add-ons are live; Frigate integration remains planned
 - VentSys packages in `/config/packages/`
 - Treat Frigate app state, OMV storage, and VentSys hardware entities as unbuilt
   until explicitly revalidated.
 
 ### Local AI / voice (VLAN 20)
-- VM 104 `llm-host` at 192.168.20.104 runs local inference only:
-  Ollama, Open WebUI, Wyoming Whisper STT, and Wyoming Piper TTS
-- First phase assumes the current 32GB Proxmox host and uses an 8GB VM with a
-  7B/8B Q4 model alias `home-assistant-llm`
-- Initial live model: `llama3.1:8b-instruct-q4_K_M`; 4k prompt smoke test
-  completed in 18 seconds with no Proxmox host swap growth
-- Later 64GB host RAM upgrade can resize VM 104 and retarget the same model
-  alias to a tested 14B Q4/Q5 model without changing HA integration endpoints
-- Home Assistant should use the official Ollama integration at
-  `http://192.168.20.104:11434` with model `home-assistant-llm`, plus Wyoming
-  Piper on `192.168.20.104:10200` and Wyoming Whisper on
-  `192.168.20.104:10300`; HA UI/API setup remains pending.
-- Hermes Agent remains roadmap-only until the core local AI and voice path are
-  stable, monitored, and safety-gated
+- CT 114 `llm-host` at 192.168.20.104 runs Ollama, Open WebUI, Wyoming
+  Whisper, Piper and OpenWakeWord.
+- Ollama uses Vulkan on the shared Intel iGPU and has demonstrated full 33/33
+  model-layer offload while Frigate uses the same GPU.
+- Home and Overwatch Assist pipelines are live. Overwatch can call the bounded
+  read-only SearXNG search API.
+- Recipe saving to Obsidian or Mealie is not implemented.
+- Hermes Agent remains roadmap-only.
 
 ---
 
@@ -153,7 +149,7 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 | Install references | `docs/install/reference/` |
 | Diagram library | `docs/diagrams/README.md` |
 | Docker-host service manuals | `docs/install/services/` |
-| Local AI decision | `docs/decisions/06-local-ai-infrastructure.md` |
+| Shared iGPU/local AI decision | `docs/decisions/07-shared-igpu-lxc-infrastructure.md` |
 | LLM host setup guide | `scripts/setup/proxmox/llm_host_setup_guide.md` |
 | Local AI performance testing | `docs/procedures/local_ai_performance_testing.md` |
 | Bambuddy workload guide | `scripts/setup/proxmox/bambuddy_vm_setup_guide.md` |
@@ -161,7 +157,8 @@ Home automation system focused on fire safety and ventilation for 3D printing op
 | VentSys ESPHome | `ventsys/ventsys_bundle_updated/` |
 | VentSys dashboard | `dashboards/ventsys-dashboard.html` |
 | Router setup (phases 1–8) | `scripts/setup/router/` |
-| Proxmox + VM setup | `scripts/setup/proxmox/` |
+| Proxmox + VM/LXC setup | `scripts/setup/proxmox/` |
+| Canonical current state | `docs/reference/current-live-state.md` |
 | NAS setup | `scripts/setup/nas/omv_nas_setup_guide.md` |
 | ESPHome adoption | `scripts/setup/ventsys/esphome_adoption_guide.md` |
 | Wiring reference | `docs/diagrams/wiring-diagrams/ventsys_wiring_reference.md` |
@@ -190,9 +187,9 @@ The older setup guides remain deep-dive appendices for individual systems.
 2. **Router** — follow `docs/install/phases/01-router-openwrt.md`, then the router phase appendices in `scripts/setup/router/`
 3. **Proxmox** — follow `docs/install/phases/02-proxmox-host.md`, then `scripts/setup/proxmox/proxmox_setup_guide.md`
 4. **HA VM** — follow `docs/install/phases/03-home-assistant.md`
-5. **Frigate VM** — follow `docs/install/phases/04-frigate.md`
+5. **Frigate LXC** — follow `docs/install/phases/04-frigate.md`
 6. **Docker host / Tailscale** — follow `docs/install/phases/05-docker-host.md`
-6A. **Optional local AI inference** — follow `docs/install/phases/05a-local-ai.md`
+6A. **Local AI inference LXC** — follow `docs/install/phases/05a-local-ai.md`
 7. **NAS** — follow `docs/install/phases/06-omv-nas.md`
 8. **Tier 1 apps** — follow `docs/install/phases/07-tier1-apps.md`
 9. **Tier 2 drafts** — follow `docs/install/phases/08-tier2-apps.md`
@@ -203,4 +200,4 @@ The older setup guides remain deep-dive appendices for individual systems.
 
 ---
 
-**Updated:** May 2026
+**Updated:** 2026-06-20

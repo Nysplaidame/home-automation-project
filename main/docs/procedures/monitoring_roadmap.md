@@ -3,7 +3,7 @@ title: Monitoring and Logging Roadmap
 description: Deployment order for health checks, uptime monitoring, metrics, alerts, and syslog
 tags: [monitoring, logging, grafana, influxdb, telegraf, uptime-kuma]
 created: 2026-05-08
-modified: 2026-05-30
+modified: 2026-06-20
 type: procedure
 status: active
 ---
@@ -49,9 +49,11 @@ status: active
 - Uptime Kuma monitor snapshots are exported to InfluxDB bucket `uptimekuma` by `uptime-kuma-influx-export.timer`
 - docker-host Fail2ban counters are exported to InfluxDB bucket `dockerhost` by `fail2ban-influx-export.timer`
 - Grafana dashboard shell `NAS Resource Overview` is present but planned only; do not treat NAS metrics as live until the NAS is built
-- VM 104 `llm-host` monitoring is planned only. Do not treat Ollama, Open WebUI,
-  Wyoming Whisper, or Wyoming Piper as live until Phase 05A is deployed and
-  `docs/procedures/local_ai_performance_testing.md` passes.
+- CT 114 `llm-host` is live. Uptime Kuma checks cover Ollama, Open WebUI,
+  Wyoming Whisper and Piper and are exported to InfluxDB. Add a dedicated
+  OpenWakeWord `10400` monitor during the next monitoring maintenance pass.
+- CT 111 Frigate baseline is live and the API/UI are healthy. Camera-specific
+  checks remain deferred until cameras are installed.
 - Home Assistant has a storage-managed `Monitoring` dashboard at `/monitoring/overview` with direct links to Grafana and Uptime Kuma
 - Embedded Grafana and Uptime Kuma views in HA remain intentionally parked until a same-origin HTTPS/reverse-proxy path is implemented and validated
 - Uptime Kuma direct iframe embedding is blocked by its `SAMEORIGIN` frame header; integrate it later through a same-origin reverse proxy/HTTPS route or use API/notification integration instead
@@ -91,10 +93,10 @@ Initial monitors should cover:
 - docker-host APT cache
 - Bambuddy UI port
 - monitoring stack self-checks
-- Frigate VM when Frigate is started
+- Frigate CT 111 baseline now; camera streams later
 - NAS when built
-- llm-host VM 104 services when Phase 05A is deployed: Ollama `11434`, Open
-  WebUI `3002`, Piper `10200`, and Whisper `10300`
+- llm-host CT 114 services: Ollama `11434`, Open WebUI `3002`, Piper
+  `10200`, Whisper `10300`, and OpenWakeWord `10400`
 
 ### Phase 3 — add metrics with InfluxDB + Grafana
 
@@ -107,7 +109,7 @@ Primary targets:
 - smart plug energy data
 - Proxmox / VM resource usage
 - docker-host resource usage
-- llm-host resource usage and local AI container memory after Phase 05A
+- llm-host resource usage, GPU use and local AI container memory
 
 Live state:
 
@@ -145,7 +147,7 @@ Live collectors:
 
 - monitoring VM Telegraf: monitoring VM host/container metrics and OpenWrt syslog
 - docker-host Telegraf: VM 103 host metrics plus Docker engine/container metrics
-- llm-host Telegraf or equivalent Proxmox/container metrics after Phase 05A
+- llm-host CT metrics via Proxmox; add container-level collection if operationally useful
 - monitoring VM Uptime Kuma exporter: monitor status/latency into bucket `uptimekuma`
 - docker-host Fail2ban exporter: jail counters into bucket `dockerhost`
 
@@ -217,7 +219,8 @@ As of May 30, 2026:
 
 - true IDS: not deployed
 - true IPS: not deployed
-- host-based banning: docker-host `Fail2ban` SSH baseline is deployed; Frigate and other Linux service hosts remain planned
+- host-based banning: docker-host and CT 111 Frigate SSH baselines are deployed;
+  CT 114 should be reviewed for the same baseline
 - security foundations: segmentation, firewall rules, Tailscale daily access, dormant WireGuard fallback, selective logging, Grafana/Kuma visibility
 
 ## Success criteria

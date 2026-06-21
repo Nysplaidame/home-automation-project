@@ -3,7 +3,7 @@ title: Installation Manual Suite To-Do
 description: Companion checklist for completing and validating the fresh rebuild documentation suite
 tags: [install, tasks, rebuild, documentation]
 created: 2026-05-24
-modified: 2026-05-30
+modified: 2026-06-20
 type: task-list
 status: active
 ---
@@ -30,9 +30,9 @@ without live assistance.
 - [x] Phase 01 router/OpenWrt: add full fresh-flash path, first-flight deploy path, full deploy path, router-local NTP validation, and lan5 recovery drill.
 - [ ] Phase 02 Proxmox: add ISO verification, install checkpoints, storage layout choices, bridge/VLAN validation, and rollback notes.
 - [ ] Phase 03 Home Assistant: add HAOS install, onboarding, add-on installs, MQTT setup, Companion App setup, router-derived time config, HACS decision gate, and backup validation.
-- [ ] Phase 04 Frigate: add Debian base install, Docker install, Frigate compose, `.env` creation, camera placeholders, HTTPS requirement, and HA integration validation.
+- [ ] Phase 04 Frigate: expand CT 111 base/Docker/shared-iGPU guide with tested blank-to-live recovery examples.
 - [x] Phase 05 docker-host: add VM baseline, Docker official repository install, Compose policy, `/opt/stacks/<service>/` layout, Tailscale host-route setup, UFW rules, and rollback.
-- [ ] Phase 05A local AI inference: add current 32 GB VM sizing, Ollama/Open WebUI/Wyoming setup, HA Assist integration, performance gates, and 64 GB / 14B upgrade path.
+- [x] Phase 05A local AI inference: align CT 114 Compose, shared-iGPU mapping, HA Assist integration and performance gates.
 - [ ] Phase 06 OMV NAS: add OMV install, disk wipe warning, filesystems, users, NFS/SMB shares, SMART monitoring, and HA/Frigate/Immich storage mounts.
 - [x] Phase 07 Tier 1 apps: add full command-by-command deploy order for AdGuard Home, Immich, Homepage, and Dozzle.
 - [ ] Phase 08 Tier 2 apps: make every draft installable while keeping deployment approval gates explicit.
@@ -79,7 +79,7 @@ without live assistance.
 - [ ] Decision gates: add final approvals for public exposure, password managers, camera bridges, low-code automation, and automatic updates.
 - [ ] Service matrix: verify every planned app has host, port, URL, VLAN, Tailscale exposure, backup, monitoring, and runbook.
 - [ ] ACL/access matrix: verify no undocumented path reaches Management, NVR, IoT, Printers, or Storage.
-- [ ] Local AI references: verify VM 104 packages, firewall paths, monitoring checks, and performance test acceptance criteria remain aligned.
+- [x] Local AI references: align CT 114 packages, firewall paths, monitoring checks and performance evidence.
 
 ## Current-State Annotations
 
@@ -87,7 +87,7 @@ without live assistance.
 - [x] Add current-state callouts for Proxmox, HAOS, Frigate base, docker-host, and Bambuddy live state.
 - [ ] Add current-state callouts for pending OMV, cameras, Tier 1 apps, and VentSys hardware.
 - [ ] Add current-state callout for core HA tools: Mosquitto, ESPHome, Terminal & SSH, Studio Code Server/File Editor, and Companion App status.
-- [ ] Add current-state callout for VM 104 only after local AI is actually deployed; keep it planned until then.
+- [x] Add canonical current-state callout for CT 114 after deployment.
 - [ ] Ensure current-state callouts never replace the fresh rebuild path.
 
 ## Sanity Checks

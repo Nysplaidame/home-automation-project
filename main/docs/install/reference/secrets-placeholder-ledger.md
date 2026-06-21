@@ -47,6 +47,6 @@ Store real values in the password manager. Never commit real values.
 | `<PORTAINER_ADMIN_PASSWORD>` | Portainer first run | Portainer admin | Portainer UI |
 | `<WATCHTOWER_HTTP_API_TOKEN>` | Password manager | Watchtower token | Watchtower metrics/API |
 | `<NODE_RED_CREDENTIAL_SECRET>` | Password manager | Node-RED secret | Node-RED flows |
-| `<7B_OR_8B_Q4_MODEL>` | llm-host model selection | Not secret; record selected Ollama model/tag in local AI notes | VM 104 `home-assistant-llm` alias |
+| `<7B_OR_8B_Q4_MODEL>` | llm-host model selection | Not secret; record selected Ollama model/tag in local AI notes | CT 114 `home-assistant-llm` alias |
 
 If a guide introduces a new placeholder, add it here before using it elsewhere.
