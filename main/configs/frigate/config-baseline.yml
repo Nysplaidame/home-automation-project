@@ -1,0 +1,26 @@
+# Migration-safe Frigate baseline. Cameras and MQTT remain disabled until
+# credentials, camera URLs, and the MQTT CA are provisioned.
+mqtt:
+  enabled: false
+
+database:
+  path: /db/frigate.db
+
+detectors:
+  ov:
+    type: openvino
+    device: GPU
+
+model:
+  path: /openvino-model/ssdlite_mobilenet_v2.xml
+  labelmap_path: /openvino-model/coco_91cl_bkgr.txt
+  width: 300
+  height: 300
+  input_tensor: nhwc
+  input_pixel_format: bgr
+
+ffmpeg:
+  hwaccel_args: preset-vaapi
+
+cameras: {}
+version: 0.17-0

@@ -1,5 +1,5 @@
-# Frigate VM — Docker Compose
-# Host: frigate-nvr (192.168.30.20, VLAN 30 — NVR)
+# Frigate LXC — Docker Compose
+# Host: CT 111 / frigate-nvr (192.168.30.20, VLAN 30 — NVR)
 # Deploy to: /opt/frigate/docker-compose.yml
 #
 # Services:
@@ -32,9 +32,11 @@ services:
       # - /mnt/nas/frigate:/media/frigate/recordings
       - /etc/localtime:/etc/localtime:ro
       - /opt/frigate/certs:/config/certs:ro
-    # iGPU for VA-API hardware acceleration (enable after iGPU passthrough setup):
-    # devices:
-    #   - /dev/dri/renderD128:/dev/dri/renderD128
+    # Shared Intel iGPU: render node for VA-API/OpenVINO and card node for
+    # OpenVINO device discovery. Proxmox maps both into unprivileged CT 111.
+    devices:
+      - /dev/dri/renderD128:/dev/dri/renderD128
+      - /dev/dri/card1:/dev/dri/card1
     tmpfs:
       - /tmp/cache
 

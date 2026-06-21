@@ -183,7 +183,7 @@ mqtt:
     #  ->  Extended valve controls (branch, 360 intakes, main duct)  -> 
 
 
-    # These match the full 8-valve schema used by ventilation_v9k.html.
+    # These match the full 8-valve schema used by ventsys-dashboard.html.
 
 
     # Previously these lived in a second `number:` block which overwrote the
@@ -577,7 +577,7 @@ mqtt:
     # are used by automations.yaml for safety alarm triggers.
 
 
-    # SEPARATE from these are the ESPHome native API entities used by ventilation_v9k.html
+    # SEPARATE from these are the ESPHome native API entities used by ventsys-dashboard.html
 
 
     # for live dashboard display (sensor.fdm_enclosure_sensors_temperature etc.).
@@ -589,7 +589,7 @@ mqtt:
     # Operators: this is intentional - do not consolidate unless you also update automations.yaml
 
 
-    # and ventilation_v9k.html to use the same entity ID.
+    # and ventsys-dashboard.html to use the same entity ID.
 
 
     # ────────────────────────────────────────────────────────────
@@ -1193,5 +1193,4 @@ automation:
 
 
         target: { entity_id: script.ventsys_mode_fire_safe }
-
 

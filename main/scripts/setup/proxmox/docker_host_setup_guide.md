@@ -13,11 +13,11 @@ of Home Assistant OS. Docker runs inside this Debian VM so small internal app
 containers can share one managed host without changing the role of HAOS,
 Frigate, OMV/storage, or future DMZ services.
 
-Keep Frigate on VM 101 because it belongs on VLAN 30 and may need iGPU
+Keep Frigate on CT 111 because it belongs on VLAN 30 and uses shared-iGPU
 passthrough. Keep Home Assistant OS on VM 100 because HAOS Supervisor is its
 own appliance model.
 
-Keep local LLM, STT, and TTS inference on VM 104 `llm-host`. VM 103 is the
+Keep local LLM, STT, TTS and wake-word inference on CT 114 `llm-host`. VM 103 is the
 expected target for future containerized AI-adjacent query apps, but those apps
 must define their own API, egress, monitoring, and firewall rules before
 deployment.

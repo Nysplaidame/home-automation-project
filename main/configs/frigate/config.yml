@@ -1,6 +1,6 @@
 # Frigate NVR Configuration
 # Host: 192.168.30.20 — VLAN 30 (NVR)
-# Deployed via: /opt/frigate/config/config.yml on frigate-nvr VM
+# Deployed via: /opt/frigate/config/config.yml on CT 111 (frigate-nvr)
 # A6-11 fix: zone label corrected from "CCTV" to "NVR" (renamed across all
 # configs in docs/decisions/02-printer-vlan-architecture.md).
 # See: scripts/setup/proxmox/frigate_vm_setup_guide.md
@@ -29,34 +29,22 @@ database:
   path: /db/frigate.db
 
 detectors:
-  # M-6 fix: CPU-only detection is correct as default (no TPU attached).
-  # Two accelerated options are available for this hardware — use ONE:
-  #
-  # OPTION A — Coral USB TPU (best detection speed, ~30fps):
-  #   1. Plug in Coral USB TPU
-  #   2. Comment out cpu1 block below
-  #   3. Uncomment the coral block
-  #   4. docker compose restart frigate
-  #
-  # OPTION B — Intel iGPU via OpenVINO (no extra hardware, good speed):
-  #   1. Complete igpu_passthrough_guide.md first
-  #   2. Comment out cpu1 block below
-  #   3. Uncomment the ov block
-  #   4. docker compose restart frigate
-  #
-  cpu1:          # ACTIVE: remove when switching to Coral or OpenVINO
-    type: cpu
-    num_threads: 2   # VM 101 currently has 2 vCPU; switch to OpenVINO when acceleration is enabled
-  #
-  # OPTION A - Coral USB TPU:
-  # coral:
-  #   type: edgetpu
-  #   device: usb
-  #
-  # OPTION B - Intel iGPU OpenVINO (after igpu_passthrough_guide.md):
-  # ov:
-  #   type: openvino
-  #   device: GPU
+  ov:
+    type: openvino
+    device: GPU
+
+# Frigate 0.17 requires an explicit model path for OpenVINO. These files are
+# bundled in the stable image.
+model:
+  path: /openvino-model/ssdlite_mobilenet_v2.xml
+  labelmap_path: /openvino-model/coco_91cl_bkgr.txt
+  width: 300
+  height: 300
+  input_tensor: nhwc
+  input_pixel_format: bgr
+
+ffmpeg:
+  hwaccel_args: preset-vaapi
 record:
   enabled: true
   retain:

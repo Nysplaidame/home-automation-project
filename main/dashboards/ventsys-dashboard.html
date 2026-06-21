@@ -1345,7 +1345,15 @@
      This file is NOT in the repo by design — keeps the production token
      out of source-controlled HTML. Use ventsys-config.js.example as a template.
      If the file is missing, the dashboard falls back to demo mode. -->
-<script src="ventsys-config.js" onerror="console.warn('[HA] ventsys-config.js not found — running with HTML defaults only.')"></script>
+<script>
+  // Home Assistant serves /local assets with a 31-day cache. The deployment
+  // config contains the revocable HA token, so it must be revalidated on every
+  // dashboard load instead of being allowed to remain stale on remote clients.
+  document.write(
+    '<script src="ventsys-config.js?v=' + Date.now() + '" ' +
+    'onerror="console.warn(\'[HA] ventsys-config.js not found — running with HTML defaults only.\')"><\/script>'
+  );
+</script>
 
 <script>
   function tick() {

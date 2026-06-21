@@ -52,10 +52,14 @@
 </head>
 <body>
   <div class="fit" id="fit">
-    <iframe id="dash" src="ventsys-dashboard.html" title="VentSys Dashboard"></iframe>
+    <iframe id="dash" title="VentSys Dashboard"></iframe>
   </div>
 <script>
   // Dashboard's intrinsic design size. Keep in sync with ventsys-dashboard.html.
+  // HA caches /local assets for 31 days, so use a unique dashboard URL each
+  // time this wrapper loads. This prevents mobile/VPN clients retaining an old
+  // dashboard that in turn references an obsolete Home Assistant token.
+  document.getElementById('dash').src = `ventsys-dashboard.html?v=${Date.now()}`;
   const NATIVE_W = 1024;
   const NATIVE_H = 600;
 

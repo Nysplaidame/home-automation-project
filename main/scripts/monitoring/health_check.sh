@@ -170,7 +170,7 @@ run_checks() {
     [ "$JSON_MODE" -eq 0 ] && echo "Core Services:"
     r_ha_ping="skipped"
     check_http "Home Assistant UI" "http://${HA_IP}:${HA_PORT}"; r_ha_http="$CHECK_RESULT"
-    check_port "Frigate VM SSH" "$FRIGATE_IP" "22"; r_frigate_ping="$CHECK_RESULT"
+    check_port "Frigate CT SSH" "$FRIGATE_IP" "22"; r_frigate_ping="$CHECK_RESULT"
     r_frigate_http="skipped"
     check_port "Docker host VM SSH" "$DOCKER_HOST_IP" "22"; r_docker_host="$CHECK_RESULT"
     check_http "Bambuddy UI" "http://${BAMBUDDY_IP}:${BAMBUDDY_PORT}"; r_bambuddy="$CHECK_RESULT"

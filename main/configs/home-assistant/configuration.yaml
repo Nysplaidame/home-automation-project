@@ -112,6 +112,12 @@ recorder:
 frontend:
   themes: !include_dir_merge_named themes
 
+# Read-only web-search tool for local Ollama conversation agents.
+searxng_llm:
+  url: http://192.168.20.102:8087
+  result_count: 3
+  timeout: 15
+
 # ============================================================================
 # INCLUDES
 # ============================================================================
