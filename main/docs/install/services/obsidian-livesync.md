@@ -5,7 +5,7 @@ tags: [install, docker-host, obsidian, couchdb, tailscale]
 created: 2026-06-21
 modified: 2026-06-21
 type: install-guide
-status: live-server-client-setup-pending
+status: live-client-setup-pending
 ---
 
 # Obsidian Self-hosted LiveSync
@@ -19,8 +19,9 @@ removes the need to pull before reading or editing on another device.
 
 The backend is `obsidian-sync.home.local:5984` internally. Mobile clients must
 use the Tailscale HTTPS endpoint
-`https://docker-host.tail7012a0.ts.net:8443`; Tailscale Serve must first be
-enabled for the tailnet. The database is `home-automation-project`.
+`https://docker-host.tail7012a0.ts.net:8443`. Tailscale Serve is enabled and the
+authenticated endpoint has been validated. The database is
+`home-automation-project`.
 
 Credentials are stored only in `/opt/stacks/obsidian-livesync/.env` and must be
 copied to Bitwarden under `obsidian-livesync`. The future LiveSync E2EE
@@ -40,4 +41,3 @@ passphrase and setup-URI passphrase are separate secrets and also belong there.
 
 Back up `/opt/stacks/obsidian-livesync/data`. CouchDB synchronization is not a
 substitute for Git history or an offline backup.
-

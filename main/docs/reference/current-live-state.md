@@ -87,7 +87,7 @@ registry mirror and Node-RED remain decision-gated candidates.
 - P1S details and HA Bambuddy package deployment.
 - HA HTTPS/same-origin proxy for embedded monitoring views.
 - Overwatch-to-Mealie recipe ingestion and Grocy workflow/integration.
-- Obsidian LiveSync client rollout and Tailscale Serve enablement for HTTPS.
+- Obsidian LiveSync client rollout; its Tailscale Serve HTTPS endpoint is live.
 
 ## Rollback and backup warning
 

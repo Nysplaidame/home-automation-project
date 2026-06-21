@@ -110,7 +110,7 @@ Planning baseline until explicitly revalidated:
 - [ ] Replace Mealie bootstrap administrator credentials and store them in Bitwarden
 - [x] Deploy Grocy for pantry/fridge/freezer stock and expiry tracking
 - [ ] Complete Grocy initial login, password change and household data model
-- [ ] Enable Tailscale Serve and roll Self-hosted LiveSync out to both Obsidian devices
+- [ ] Roll Self-hosted LiveSync out to both Obsidian devices (Tailscale Serve is live)
 - [x] Deploy ntfy internal-only under `/opt/stacks/ntfy/`
 - [x] Configure Uptime Kuma ntfy notifications through a dedicated write-only topic
 - [ ] Evaluate Actual Budget under `/opt/stacks/actual-budget/`
