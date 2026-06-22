@@ -19,7 +19,7 @@ Last verified: **2026-06-22**.
 
 | ID | Kind | Name | Address | State | Role |
 |---:|---|---|---|---|---|
-| 100 | QEMU VM | home-assistant | `192.168.20.101` | Live | HAOS 2026.6.3, MQTT, ESPHome and Assist |
+| 100 | QEMU VM | home-assistant | `192.168.20.101` | Live | HAOS 2026.6.4, MQTT, ESPHome and Assist |
 | 101 | QEMU VM | frigate-nvr | offline | Rollback only | Pre-LXC snapshot; `onboot=0` |
 | 102 | QEMU VM | monitoring | `192.168.60.10` | Live | Uptime Kuma, InfluxDB, Grafana and Telegraf |
 | 103 | QEMU VM | docker-host | `192.168.20.102` | Live | Trusted Compose workloads and Tailscale routing |
@@ -33,7 +33,7 @@ while its replacement LXC is running.
 
 ## Home Assistant
 
-- Configuration check passes on HAOS 2026.6.3.
+- Configuration check passes on HAOS 2026.6.4.
 - Mosquitto, File Editor, Terminal & SSH and ESPHome Device Builder are live.
 - Home and Overwatch Assist pipelines are functional.
 - Overwatch has a bounded read-only SearXNG search tool.

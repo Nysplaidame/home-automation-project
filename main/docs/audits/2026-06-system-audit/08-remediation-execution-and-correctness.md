@@ -32,7 +32,7 @@ review work.
 | Restore | pass | VM 102 restored as 9102, NIC removed before boot, guest agent returned hostname `monitoring`, then guest was shut down and purged |
 | Local retention | pass | Existing local archives were not removed |
 | HA deployment | pass | Timestamped live backup created; canonical core files, VentSys packages/scripts and dashboard deployed |
-| HA validation | pass | `ha core check` passed before and after deployment; HA restarted and port 8123 recovered |
+| HA validation | pass | `ha core check` passed before/after deployment and again on HAOS 2026.6.4; HA restarted and port 8123 recovered |
 | Source/live parity | pass | SHA-256 matched for configuration, automations, scripts, scenes, two VentSys packages and dashboard |
 | VentSys command contract | pass | Mock executor checked 13 modes: valve helper emits one publish and each topic receives at most one direct `0` or `50` target |
 | Dashboard init safety | pass-static | Startup uses pure renderers; initialization/render functions contain no publish path |
