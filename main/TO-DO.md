@@ -4,7 +4,7 @@ description: Implementation tasks by phase — updated May 2026
 tags: [tasks, implementation]
 aliases: [TODO, Tasks]
 created: 2025-09-15
-modified: 2026-06-20
+modified: 2026-06-22
 type: task-list
 status: active
 ---
@@ -30,7 +30,9 @@ status: active
 
 Planning baseline until explicitly revalidated:
 
-- Treat OMV as unbuilt for implementation planning.
+- Treat OMV and encrypted Proxmox SMB backups as live. Seven-generation
+  projection passes; the backing filesystem's 87.34% usage remains an active
+  high-water warning.
 - Treat the Frigate software baseline as live, but cameras/MQTT/recording as unbuilt.
 - Treat VentSys entities as unbuilt for implementation planning.
 
@@ -52,7 +54,7 @@ Planning baseline until explicitly revalidated:
 14. [x] Re-run router-deploy validation after the router-local NTP/deploy-tooling update
 15. [x] Validate Uptime Kuma notification dispatch to ntfy (`ntfy Monitoring`): monitor #17 (Whoogle) failure was detected and ntfy `messages_published` increased (`14` -> `15`) during controlled outage on 2026-05-28
 16. [x] Add repo-side Frigate credential template at `configs/frigate/frigate.env.example`
-17. [x] Re-verify pre-NAS Proxmox backup policy/retention and run restore-readiness integrity drill (`zstd -t` + `Finished Backup` log checks on latest VM 100/101/102/103 archives)
+17. [x] Move active-guest Proxmox backups to encrypted OMV storage `smb-backup-new`, retain seven generations, run `zstd -t` on fresh 100/102/103/111/114 archives, and complete an isolated VM 102 restore/boot drill
 18. [x] Draft OMV storage cutover execution checklist at `docs/procedures/omv_storage_cutover_checklist.md`
 19. [x] Confirm HA-side monitoring health states from Home Assistant UI (all `on`): `binary_sensor.monitoring_stack_externally_healthy`, `binary_sensor.monitoring_vm_grafana_reachable`, `binary_sensor.monitoring_vm_influxdb_reachable`, `binary_sensor.uptime_kuma_reachable_from_ha`
 20. [ ] Parked: add Mullvad egress path for SearXNG/Whoogle on docker-host (privacy hardening), only after current Frigate + OMV pre-flight blockers are cleared
@@ -224,7 +226,7 @@ must work without HACS.
 - [x] Set static IP 192.168.10.10 on vmbr0.10
 - [x] Retire PCI iGPU passthrough/IOMMU requirement in favour of shared LXC device mapping
 - [x] Retire the pre-LXC `vm-setup.sh`; `guest-configs.md` holds the current inventory
-- [x] Correct temporary local backup coverage: VMs 100/102/103 keep 2; CTs 111/114 keep 1 pending OMV
+- [x] Move VMs 100/102/103 and CTs 111/114 to `smb-backup-new` with `keep-last=7`; retain local archives during transition and alert while OMV remains above 80% used
 - [x] Replace VM 104 with CT 114 `llm-host` at 192.168.20.104; retain stopped VM as rollback
 - [x] Keep `llm-host`, `ollama`, and `openwebui` DNS aliases on 192.168.20.104
 - [ ] After a future 64GB RAM upgrade, resize CT 114 and retest before moving `home-assistant-llm` to a 14B model
@@ -322,7 +324,7 @@ must work without HACS.
 - [ ] Confirm automations fire on test sensor triggers
 - [ ] Test emergency power cutoff sequence end-to-end
 - [ ] Evaluate `mode: restart` on the 12 VentSys HA mode scripts if rapid mode-click queueing causes oscillation in practice
-- [ ] Harden the dashboard page-init valve visual calls so a future script reorder cannot publish `0` to all valve topics on refresh
+- [x] Harden dashboard page-init to use command-free renderers; static/mock contract tests prove initialization cannot enter an MQTT publish path
 - [ ] Revisit `restore_value` behavior for valve position entities so device restarts do not assume `0%` after physical movement
 - [ ] Stand up the garage Pi 5 desktop/kiosk for the VentSys dashboard using `docs/install/garage-pi-desktop-setup-guide.md` once the display hardware is ready
 
@@ -330,7 +332,7 @@ must work without HACS.
 
 ## Phase 4 — Storage ⏳
 
-- [ ] Purchase or allocate OMV-capable NAS hardware and storage drive(s)
+- [x] Allocate live OMV hardware/storage at `192.168.10.147` (capacity remediation remains open because the backing filesystem is 87% used)
 - [ ] Follow `omv_nas_setup_guide.md` phases 1–7
 - [ ] Configure NFS exports (Frigate, HA, Immich, configs shares)
 - [ ] Keep Frigate "live" recordings on MINISFORUM local storage first; add NAS archiving after the NAS is online

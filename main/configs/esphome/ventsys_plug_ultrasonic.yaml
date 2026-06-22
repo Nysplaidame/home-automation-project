@@ -8,8 +8,6 @@ substitutions:
   device_name: ventsys-plug-ultrasonic
   friendly_name: "VentSys Ultrasonic Plug"
   device_ip: "192.168.50.76"
-  mqtt_command_topic: "ventsys/plug/ultrasonic/control"
-  mqtt_state_topic:   "ventsys/plug/ultrasonic/state"
 
 esphome:
   name: ${device_name}
@@ -31,6 +29,7 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_pass
+  min_auth_mode: WPA2
   manual_ip:
     static_ip: ${device_ip}
     gateway: 192.168.50.1
@@ -40,32 +39,6 @@ wifi:
     password: !secret ota_password
 
 captive_portal:
-
-mqtt:
-  broker: 192.168.20.101
-  port: 8883
-  username: !secret mqtt_user
-  password: !secret mqtt_pass
-  discovery: false
-  certificate_authority: !secret mqtt_ca_cert
-  on_message:
-    - topic: ${mqtt_command_topic}
-      qos: 0
-      then:
-        - lambda: |-
-            if (x == "on" || x == "ON" || x == "1")
-              id(relay).turn_on();
-            else
-              id(relay).turn_off();
-        - mqtt.publish:
-            topic: ${mqtt_state_topic}
-            payload: !lambda 'return id(relay).state ? "on" : "off";'
-            retain: true
-  on_connect:
-    - mqtt.publish:
-        topic: ${mqtt_state_topic}
-        payload: !lambda 'return id(relay).state ? "on" : "off";'
-        retain: true
 
 output:
   - platform: gpio
@@ -82,16 +55,8 @@ switch:
     restore_mode: RESTORE_DEFAULT_OFF
     on_turn_on:
       - output.turn_on: led
-      - mqtt.publish:
-          topic: ${mqtt_state_topic}
-          payload: "on"
-          retain: true
     on_turn_off:
       - output.turn_off: led
-      - mqtt.publish:
-          topic: ${mqtt_state_topic}
-          payload: "off"
-          retain: true
 
 binary_sensor:
   - platform: gpio

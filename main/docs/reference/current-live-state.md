@@ -3,7 +3,7 @@ title: Current Live State
 description: Canonical inventory of deployed hosts, services, and deliberately deferred components
 tags: [reference, current-state, infrastructure]
 created: 2026-06-20
-modified: 2026-06-21
+modified: 2026-06-22
 type: reference
 status: active
 ---
@@ -13,7 +13,7 @@ status: active
 This is the canonical current-state inventory. Rebuild manuals describe how to
 build from blank and must link here rather than duplicating live-status claims.
 
-Last verified: **2026-06-21**.
+Last verified: **2026-06-22**.
 
 ## Compute
 
@@ -40,6 +40,9 @@ while its replacement LXC is running.
 - Mealie is live; Overwatch-to-Mealie recipe saving is not yet implemented.
 - VentSys dashboard is deployed; most physical VentSys entities remain gated on
   hardware installation.
+- Repository and live HA core files, VentSys packages, mode scripts and dashboard
+  have matching SHA-256 hashes. The valve contract is direct `0`/`50`, HA
+  configuration validation passes, and HA restarted successfully on that source.
 - Frigate integration is deferred until cameras and the production Frigate
   MQTT/camera configuration are enabled.
 
@@ -51,6 +54,9 @@ while its replacement LXC is running.
 - Cameras and MQTT are intentionally disabled in the live baseline because RTSP
   credentials, camera models and final MQTT material are not yet available.
 - No production recordings exist; OMV archive storage remains future work.
+- Dormant NFS client/RPC units are disabled because this unprivileged LXC has no
+  NFS mount; this removes the failed `run-rpc_pipefs.mount` unit. Re-enable the
+  client only as part of an approved NAS-recordings cutover.
 
 ## Local AI
 
@@ -76,11 +82,25 @@ registry mirror and Node-RED remain decision-gated candidates.
 - Uptime Kuma, InfluxDB, Grafana and Telegraf are live on VM 102.
 - Proxmox, HA, docker-host, DNS, core apps and local-AI endpoints are monitored.
 - Alert routing through ntfy exists for configured Kuma monitors.
-- NAS monitoring remains a dashboard shell until OMV is built.
+- OMV TCP 445 and Proxmox storage pressure are checked every five minutes by
+  `home-automation-health-check.timer`. Seven backup generations project to
+  294.51 GiB and pass the 2.12 TB target gate; the check still alerts because
+  the larger shared filesystem is 87.34% used.
+
+## Backup storage
+
+- OMV is live at `192.168.10.147` and exports encrypted SMB share `New`.
+- Proxmox storage `smb-backup-new` uses SMB 3.1.1 with sealing, a dedicated
+  account and subdirectory `proxmox-backups`.
+- Daily jobs cover VMs 100/102/103 at 02:00 and CTs 111/114 at 04:00, snapshot
+  mode, ZSTD and `keep-last=7`.
+- Fresh VM 102 and CT 114 archives passed `zstd -t` on 2026-06-22. VM 102 also
+  passed an isolated no-NIC restore/boot/guest-agent drill under temporary ID
+  9102, which was purged after validation.
+- Existing local archives remain retained during the transition.
 
 ## Not built or not production-ready
 
-- OMV NAS and NAS-backed backups/storage.
 - Cameras, PoE switch and production Frigate camera/MQTT configuration.
 - Most VentSys physical hardware, remaining ESPHome adoption and full safety
   acceptance testing.
@@ -92,6 +112,7 @@ registry mirror and Node-RED remain decision-gated candidates.
 ## Rollback and backup warning
 
 Migration snapshots named `pre-lxc-migration-20260620` exist for retired VM 101
-and VM 104. Daily Proxmox jobs cover VMs 100/102/103 with two generations and
-CTs 111/114 with one interim local generation; consult
+and VM 104. Daily Proxmox jobs now retain seven generations on
+`smb-backup-new`; projected retention fits, while the backing filesystem's
+87.34% utilization remains a high-water warning. Consult
 `scripts/backup/backup_strategy.md`.

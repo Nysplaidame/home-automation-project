@@ -8,16 +8,14 @@
 # See esphome_adoption_guide.md — Avatar plugs require USB-serial adapter,
 # 3.3V only, GPIO0 pulled to GND during power-on to enter flash mode.
 #
-# PRE-TLS: Change mqtt.port to 1883 and remove ca_certificate before first flash.
-# SECRETS: wifi_ssid, wifi_pass, mqtt_user, mqtt_pass, mqtt_ca_cert,
-#          api_key, ota_password
+# ESP8266 cannot use ESPHome's MQTT CA validation. This plug therefore uses
+# the encrypted native ESPHome API only; HA initiates control over port 6053.
+# SECRETS: wifi_ssid, wifi_pass, api_key, ota_password
 
 substitutions:
   device_name: ventsys-plug-uv-1
   friendly_name: "VentSys UV Station 1 Plug"
   device_ip: "192.168.50.73"
-  mqtt_command_topic: "ventsys/plug/uv1/control"
-  mqtt_state_topic:   "ventsys/plug/uv1/state"
 
 esphome:
   name: ${device_name}
@@ -39,6 +37,7 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_pass
+  min_auth_mode: WPA2
   manual_ip:
     static_ip: ${device_ip}
     gateway: 192.168.50.1
@@ -48,32 +47,6 @@ wifi:
     password: !secret ota_password
 
 captive_portal:
-
-mqtt:
-  broker: 192.168.20.101
-  port: 8883
-  username: !secret mqtt_user
-  password: !secret mqtt_pass
-  discovery: false
-  certificate_authority: !secret mqtt_ca_cert
-  on_message:
-    - topic: ${mqtt_command_topic}
-      qos: 0
-      then:
-        - lambda: |-
-            if (x == "on" || x == "ON" || x == "1")
-              id(relay).turn_on();
-            else
-              id(relay).turn_off();
-        - mqtt.publish:
-            topic: ${mqtt_state_topic}
-            payload: !lambda 'return id(relay).state ? "on" : "off";'
-            retain: true
-  on_connect:
-    - mqtt.publish:
-        topic: ${mqtt_state_topic}
-        payload: !lambda 'return id(relay).state ? "on" : "off";'
-        retain: true
 
 output:
   - platform: gpio
@@ -90,16 +63,8 @@ switch:
     restore_mode: RESTORE_DEFAULT_OFF
     on_turn_on:
       - output.turn_on: led
-      - mqtt.publish:
-          topic: ${mqtt_state_topic}
-          payload: "on"
-          retain: true
     on_turn_off:
       - output.turn_off: led
-      - mqtt.publish:
-          topic: ${mqtt_state_topic}
-          payload: "off"
-          retain: true
 
 binary_sensor:
   - platform: gpio

@@ -7,8 +7,8 @@
 
 | Layer | What | Where stored | Schedule | Retention |
 |---|---|---|---|---|
-| Proxmox VM backup | VM disks 100/102/103 | MINISFORUM local NVMe (`/var/lib/vz/dump`) | Daily 02:00 | 2 backups |
-| Proxmox LXC backup | CT 111/114 root filesystems | MINISFORUM local NVMe (`/var/lib/vz/dump`) | Daily 04:00 | 1 backup pending NAS |
+| Proxmox VM backup | VM disks 100/102/103 | OMV `New/proxmox-backups` (`smb-backup-new`) | Daily 02:00 | 7 generations |
+| Proxmox LXC backup | CT 111/114 root filesystems | OMV `New/proxmox-backups` (`smb-backup-new`) | Daily 04:00 | 7 generations |
 | HA native backup | HA config, add-ons, automations | HA local + NAS | Daily 03:00 | 14 days on NAS |
 | Frigate recordings | Camera footage | NAS `/mnt/nas/frigate` | Continuous | 7 days motion, 14 days events |
 | Frigate LXC state | OS disk, DB, cache, compose/config | MINISFORUM NVMe on CT 111 | Continuous | Rebuildable + config-backed |
@@ -25,17 +25,17 @@
 
 | Field | Value |
 |---|---|
-| Storage | `local` (stores backup on MINISFORUM NVMe) |
+| Storage | `smb-backup-new` (SMB 3.1.1 with sealing required) |
 | Schedule | `02:00` (daily) |
 | Selection | VMs 100, 102, 103 |
 | Mode | Snapshot |
 | Compression | ZSTD |
-| Max backups | 2 while backups are local/pre-NAS |
+| Max backups | 7 generations |
 | Email | your@email.com (optional) |
 
-This is a temporary pre-NAS safety net. The MINISFORUM NVMe is being treated as
-compute/state storage, not as the long-retention home for large media workloads.
-Move long-term backup retention to the NAS once it is online.
+The storage maps OMV share `New`, subdirectory `proxmox-backups`. Proxmox keeps
+the credential in its protected storage configuration; it must never be copied
+into this repository or command examples.
 
 Current pre-NAS check on 2026-05-27:
 
@@ -46,16 +46,24 @@ Current pre-NAS check on 2026-05-27:
 - Latest 2026-05-27 logs for VMs `100`, `101`, `102`, and `103` all ended with
   `Finished Backup`.
 
-Current policy after the 2026-06-20 LXC migration:
+Current policy after the 2026-06-22 SMB remediation:
 
-- 02:00 job: VMs `100,102,103`, `keep-last=2`.
-- 04:00 job: CTs `111,114`, `keep-last=1`.
+- 02:00 job: VMs `100,102,103`, `keep-last=7`, storage `smb-backup-new`.
+- 04:00 job: CTs `111,114`, `keep-last=7`, storage `smb-backup-new`.
 - VM 101 and VM 104 are stopped rollback artefacts with migration snapshots;
   they are intentionally excluded from recurring backups.
-- One LXC generation is an interim local-capacity compromise. Move retention to
-  OMV and increase it after storage is live.
-- First CT 111 and CT 114 archives completed on 2026-06-20 and passed
-  `zstd -t` integrity checks.
+- The CIFS mount negotiates SMB 3.1.1 with `seal`; TCP 445 and storage pressure
+  are checked every five minutes by `home-automation-health-check.timer`.
+- Fresh VM 102 and CT 114 archives completed on 2026-06-22 and passed `zstd -t`.
+- VM 102 was restored under temporary ID 9102, had its NIC removed before boot,
+  answered through QEMU Guest Agent, then was shut down and purged.
+- Existing local archives remain until all fresh guest backups and retention
+  observation are complete.
+- The measured daily set is 45,175,709,568 bytes; seven generations project to
+  294.51 GiB and remain well below 80% of the 2.12 TB target. Residual risk: the
+  larger shared filesystem backing `New` was already 87.34% used on 2026-06-22,
+  so the conservative health high-water policy alerts until capacity is
+  reclaimed, expanded, or that policy is explicitly changed.
 - Obsolete VM 101 recurring archives were removed on 2026-06-21 after CT backup
   validation; the stopped VM disk and migration snapshot remain available.
 
@@ -70,27 +78,27 @@ Restore-readiness drill on 2026-05-28:
 
 ```bash
 # In Proxmox shell before any risky change
-vzdump 100 --mode snapshot --compress zstd --storage local
-vzdump 111 --mode snapshot --compress zstd --storage local
-vzdump 114 --mode snapshot --compress zstd --storage local
-vzdump 102 --mode snapshot --compress zstd --storage local
-vzdump 103 --mode snapshot --compress zstd --storage local
+vzdump 100 --mode snapshot --compress zstd --storage smb-backup-new
+vzdump 111 --mode snapshot --compress zstd --storage smb-backup-new
+vzdump 114 --mode snapshot --compress zstd --storage smb-backup-new
+vzdump 102 --mode snapshot --compress zstd --storage smb-backup-new
+vzdump 103 --mode snapshot --compress zstd --storage smb-backup-new
 ```
 
 ### Restore a VM or LXC
 
-`Datacenter → Storage → local → Backups → select backup → Restore`
+`Datacenter → Storage → smb-backup-new → Backups → select backup → Restore`
 
 Or from shell:
 ```bash
 # List available backups
-ls /var/lib/vz/dump/
+ls /mnt/pve/smb-backup-new/dump/
 
 # Restore VM 100 from backup
-qmrestore /var/lib/vz/dump/vzdump-qemu-100-*.vma.zst 100 --force
+qmrestore /mnt/pve/smb-backup-new/dump/vzdump-qemu-100-*.vma.zst 100 --force
 
 # Restore an LXC to its original ID only after stopping/removing a conflicting guest
-pct restore 111 /var/lib/vz/dump/vzdump-lxc-111-*.tar.zst
+pct restore 111 /mnt/pve/smb-backup-new/dump/vzdump-lxc-111-*.tar.zst
 ```
 
 ---

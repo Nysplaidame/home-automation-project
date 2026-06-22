@@ -36,7 +36,7 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 | Remote access | ✅ Live | Tailscale daily access via docker-host host routes; WireGuard kept dormant as fallback |
 | VentSys dashboard | ✅ Written / staged | dashboards/ventsys-dashboard.html with full HA integration layer; entities remain hardware-dependent |
 | VentSys HA packages | ✅ Written / staged | Package YAML, scripts, automations all written; do not treat VentSys entities as live until hardware is adopted |
-| ESPHome sensor config | ✅ Written | printairpipe-controller.yaml ready for hardware |
+| ESPHome sensor configs | ✅ Written / validation ongoing | Production VentSys files live under `configs/esphome/`; hardware adoption remains gated |
 | VentSys hardware | ⏳ Pending | ESP32 boards, sensors, PrintAirPipe parts not yet purchased |
 | Cameras | ⏳ Pending | Models not yet selected; RTSP URLs are placeholders |
 | MAC addresses | ⏳ Partial | Core VM MACs are recorded; many hardware/device placeholders remain |
@@ -157,7 +157,7 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 | LLM host setup guide | `scripts/setup/proxmox/llm_host_setup_guide.md` |
 | Local AI performance testing | `docs/procedures/local_ai_performance_testing.md` |
 | Bambuddy workload guide | `scripts/setup/proxmox/bambuddy_vm_setup_guide.md` |
-| ESPHome sensor config | `configs/esphome/printairpipe-controller.yaml` |
+| ESPHome production configs | `configs/esphome/` |
 | VentSys ESPHome | `ventsys/ventsys_bundle_updated/` |
 | VentSys dashboard | `dashboards/ventsys-dashboard.html` |
 | Router setup (phases 1–8) | `scripts/setup/router/` |

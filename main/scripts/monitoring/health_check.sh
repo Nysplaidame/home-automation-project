@@ -1,6 +1,7 @@
 #!/bin/bash
 # System Health Monitor
-# Run from: Proxmox host (192.168.10.10) or management laptop on VLAN 10
+# Run from: Proxmox host (192.168.10.10).
+# Windows management hosts use health_check.ps1 in this directory.
 # Purpose: Single-command check of all critical system components
 # Usage:
 #   ./health_check.sh           — staged core check, human-readable output
@@ -26,7 +27,8 @@ P1S_IP="192.168.35.200"   # VLAN 35 (Printers) — see docs/decisions/02-printer
 # Ping is a better liveness check here; if the printer is powered on and
 # network-connected, ping will succeed. MQTT connectivity is confirmed
 # indirectly via Bambuddy (which would show HTTP errors if the broker is down).
-NAS_IP="192.168.40.50"
+NAS_IP="192.168.10.147"
+NAS_SMB_PORT="445"
 MQTT_IP="192.168.20.101"
 # MQTT TLS listener is live on 8883. Port 1883 remains open only as a staged
 # bootstrap path until all clients are migrated.
@@ -174,7 +176,7 @@ run_checks() {
     r_frigate_http="skipped"
     check_port "Docker host VM SSH" "$DOCKER_HOST_IP" "22"; r_docker_host="$CHECK_RESULT"
     check_http "Bambuddy UI" "http://${BAMBUDDY_IP}:${BAMBUDDY_PORT}"; r_bambuddy="$CHECK_RESULT"
-    r_nas="skipped"
+    check_port "OMV backup SMB" "$NAS_IP" "$NAS_SMB_PORT"; r_nas="$CHECK_RESULT"
     # C9 fix: was check_port "$P1S_IP" "$P1S_PORT" (TCP connect to 8883).
     # The P1S printer's MQTT port 8883 is the Bambu Lab printer-side MQTT broker
     # which only accepts authenticated connections from Bambu cloud clients —
@@ -185,10 +187,9 @@ run_checks() {
 
     if [ "$FULL_MODE" -eq 1 ]; then
         check_http "Frigate UI" "http://${FRIGATE_IP}:${FRIGATE_PORT}"; r_frigate_http="$CHECK_RESULT"
-        check_ping "NAS" "$NAS_IP"; r_nas="$CHECK_RESULT"
         check_ping "P1S Printer" "$P1S_IP"; r_p1s="$CHECK_RESULT"
     elif [ "$JSON_MODE" -eq 0 ]; then
-        echo "  - Frigate UI, NAS, and P1S checks skipped until those services/devices are deployed"
+        echo "  - Frigate UI and P1S checks skipped until those services/devices are deployed"
     fi
 
     declare -A ventsys_results
@@ -219,7 +220,8 @@ run_checks() {
     if command -v qm >/dev/null 2>&1; then
         [ "$JSON_MODE" -eq 0 ] && echo ""
         [ "$JSON_MODE" -eq 0 ] && echo "Proxmox VMs:"
-        for vmid in 100 101 102 103; do
+        # VM 101 and VM 104 are intentionally stopped rollback artefacts.
+        for vmid in 100 102 103; do
             status=$(qm status "$vmid" 2>/dev/null | awk '{print $2}' || echo "unknown")
             name=$(qm config "$vmid" 2>/dev/null | grep "^name:" | awk '{print $2}' || echo "vm-$vmid")
             if [ "$status" = "running" ]; then
@@ -231,17 +233,39 @@ run_checks() {
             fi
         done
 
+        if command -v pct >/dev/null 2>&1; then
+            [ "$JSON_MODE" -eq 0 ] && echo ""
+            [ "$JSON_MODE" -eq 0 ] && echo "Proxmox LXCs:"
+            for ctid in 111 114; do
+                status=$(pct status "$ctid" 2>/dev/null | awk '{print $2}' || echo "unknown")
+                name=$(pct config "$ctid" 2>/dev/null | awk '/^hostname:/ {print $2}' || echo "ct-$ctid")
+                if [ "$status" = "running" ]; then
+                    [ "$JSON_MODE" -eq 0 ] && printf "  ${GREEN}✓${NC} CT %s (%s) — running\n" "$ctid" "$name"
+                    pass=$((pass+1))
+                else
+                    [ "$JSON_MODE" -eq 0 ] && printf "  ${RED}✗${NC} CT %s (%s) — %s\n" "$ctid" "$name" "$status"
+                    fail=$((fail+1))
+                fi
+            done
+        fi
+
         # Proxmox disk usage
         if [ "$JSON_MODE" -eq 0 ]; then
             echo ""
             echo "Proxmox Storage:"
-            pvesm status 2>/dev/null | awk 'NR>1 {
-                total=$4; used=$5
-                if (total > 0) {
-                    pct = int(used/total*100)
-                    printf "  %s  %-20s %d%%\n", (pct>85?"✗":"✓"), $1, pct
-                }
-            }' || true
+            while read -r storage total used; do
+                [ -z "$storage" ] && continue
+                pct=$((used * 100 / total))
+                threshold=85
+                [ "$storage" = "smb-backup-new" ] && threshold=80
+                if [ "$pct" -gt "$threshold" ]; then
+                    printf "  ${RED}✗${NC}  %-20s %d%% (limit %d%%)\n" "$storage" "$pct" "$threshold"
+                    fail=$((fail+1))
+                else
+                    printf "  ${GREEN}✓${NC}  %-20s %d%%\n" "$storage" "$pct"
+                    pass=$((pass+1))
+                fi
+            done < <(pvesm status 2>/dev/null | awk 'NR>1 && $4>0 {print $1, $4, $5}')
         fi
     fi
 
@@ -316,4 +340,5 @@ if [ "$WATCH_MODE" -eq 1 ]; then
     done
 else
     run_checks
+    [ "$fail" -eq 0 ]
 fi

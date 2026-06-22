@@ -137,7 +137,7 @@ sensor:
 
 switch:
   - platform: template
-    name: "Light On/Off"
+    name: "Light On-Off"
     id: light_on_off_switch
     optimistic: true
     restore_mode: RESTORE_DEFAULT_ON

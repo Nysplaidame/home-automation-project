@@ -34,7 +34,8 @@ Purpose: verify safety-critical dependencies before allowing unattended print jo
    - Garage air sensor: `main/configs/esphome/ventsys_garage_air_sensor.yaml`
    - FDM sensor arrays: `main/configs/esphome/ventsys_fdm_array_1.yaml`, `main/configs/esphome/ventsys_fdm_array_2.yaml`
    - SLA sensor arrays: `main/configs/esphome/ventsys_sla_array_1.yaml`, `main/configs/esphome/ventsys_sla_array_2.yaml`
-   - Main inline fan: `main/configs/esphome/ventsys_main_fan.yaml`
+   - Main inline fan firmware pointer: `main/configs/esphome/ventsys_main_fan.md`
+   - Authoritative firmware: `main/ventsys/ventsys_bundle_updated/ventsys_fan_controller.yaml`
 2. Confirm expected IP reservations match `main/configs/openwrt/dhcp-config.conf`.
 3. Do not flash from template/reference docs in `main/ventsys/integration-process/`.
 

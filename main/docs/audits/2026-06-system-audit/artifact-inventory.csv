@@ -62,14 +62,14 @@ path,scope,category,validation,result,notes
 .obsidian/workspace.json,wrapper,project,JSON parse,pass,No syntax/read failure
 AGENTS.md,wrapper,documentation,UTF-8 decode and local-link resolution,pass,0 local/remote link token(s) checked
 CLAUDE.md,wrapper,documentation,UTF-8 decode and local-link resolution,pass,0 local/remote link token(s) checked
-README.md,wrapper,documentation,UTF-8 decode and local-link resolution,fail,1 unresolved local link target(s)
+README.md,wrapper,documentation,UTF-8 decode and local-link resolution,pass,12 local/remote link token(s) checked
 main/.gitignore,active,project,existence,present,Binary or non-parseable project artefact
 main/.obsidian/app.json,active,project,JSON parse,pass,No syntax/read failure
 main/.obsidian/appearance.json,active,project,JSON parse,pass,No syntax/read failure
 main/.obsidian/core-plugins.json,active,project,JSON parse,pass,No syntax/read failure
 main/AGENTS.md,active,documentation,UTF-8 decode and local-link resolution,pass,0 local/remote link token(s) checked
 main/HANDOFF-2026-06-19-igpu-lxc-migration.md,active,documentation,UTF-8 decode and local-link resolution,pass,0 local/remote link token(s) checked
-main/PROJECT-INDEX.md,active,documentation,UTF-8 decode and local-link resolution,fail,1 unresolved local link target(s)
+main/PROJECT-INDEX.md,active,documentation,UTF-8 decode and local-link resolution,pass,104 local/remote link token(s) checked
 main/README.md,active,documentation,UTF-8 decode and local-link resolution,pass,4 local/remote link token(s) checked
 main/TO-DO.md,active,documentation,UTF-8 decode and local-link resolution,pass,2 local/remote link token(s) checked
 main/_archive/20-04-30/ventsys/integration-process/ventsys_complete_implementation_plan.md,historical,documentation,UTF-8 decode and local-link resolution,pass,0 local/remote link token(s) checked
@@ -168,7 +168,7 @@ main/configs/esphome/ventsys_fdm_branch_valve.yaml,active,configuration,YAML syn
 main/configs/esphome/ventsys_fdm_pipe_air_sensor.yaml,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
 main/configs/esphome/ventsys_fdm_print_valve.yaml,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
 main/configs/esphome/ventsys_garage_air_sensor.yaml,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
-main/configs/esphome/ventsys_main_fan.yaml,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_main_fan.yaml,active,configuration,YAML syntax parse (BaseLoader),fail,FileNotFoundError: [Errno 2] No such file or directory: 'E:\\home-automation-project\\main\\configs\\esphome\\ventsys_main_fan.yaml'
 main/configs/esphome/ventsys_main_valve1.yaml,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
 main/configs/esphome/ventsys_main_valve2.yaml,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
 main/configs/esphome/ventsys_plug_tapo_p110_notes.md,active,documentation,UTF-8 decode and local-link resolution,pass,0 local/remote link token(s) checked
@@ -216,6 +216,18 @@ main/dashboards/ventsys-card-wrapper.html,active,dashboard,UTF-8 decode/static r
 main/dashboards/ventsys-config.js.example,active,dashboard,UTF-8 decode/static review,pass,No syntax/read failure
 main/dashboards/ventsys-dashboard.html,active,dashboard,UTF-8 decode/static review,pass,No syntax/read failure
 main/dashboards/ventsys_solar_screensaver.html,active,dashboard,UTF-8 decode/static review,pass,No syntax/read failure
+main/docs/audits/2026-06-system-audit/01-scope-environment.md,active,documentation,UTF-8 decode and local-link resolution,pass,0 local/remote link token(s) checked
+main/docs/audits/2026-06-system-audit/02-claim-traceability.md,active,documentation,UTF-8 decode and local-link resolution,pass,0 local/remote link token(s) checked
+main/docs/audits/2026-06-system-audit/03-findings.md,active,documentation,UTF-8 decode and local-link resolution,pass,0 local/remote link token(s) checked
+main/docs/audits/2026-06-system-audit/04-live-tests.md,active,documentation,UTF-8 decode and local-link resolution,pass,0 local/remote link token(s) checked
+main/docs/audits/2026-06-system-audit/05-resilience-test-cards.md,active,documentation,UTF-8 decode and local-link resolution,pass,0 local/remote link token(s) checked
+main/docs/audits/2026-06-system-audit/06-remediation-backlog.md,active,documentation,UTF-8 decode and local-link resolution,pass,0 local/remote link token(s) checked
+main/docs/audits/2026-06-system-audit/07-final-correctness-report.md,active,documentation,UTF-8 decode and local-link resolution,pass,0 local/remote link token(s) checked
+main/docs/audits/2026-06-system-audit/README.md,active,documentation,UTF-8 decode and local-link resolution,pass,0 local/remote link token(s) checked
+main/docs/audits/2026-06-system-audit/artifact-inventory.csv,active,documentation,existence,present,Binary or non-parseable project artefact
+main/docs/audits/2026-06-system-audit/generate_inventory.py,active,documentation,Python AST parse,pass,No syntax/read failure
+main/docs/audits/2026-06-system-audit/roadmap-disposition.md,active,documentation,UTF-8 decode and local-link resolution,pass,0 local/remote link token(s) checked
+main/docs/audits/2026-06-system-audit/todo-disposition.md,active,documentation,UTF-8 decode and local-link resolution,fail,2 unresolved local link target(s)
 main/docs/decisions/01-network-architecture.md,active,documentation,UTF-8 decode and local-link resolution,pass,3 local/remote link token(s) checked
 main/docs/decisions/02-printer-vlan-architecture.md,active,documentation,UTF-8 decode and local-link resolution,pass,5 local/remote link token(s) checked
 main/docs/decisions/03-docker-host-service-policy.md,active,documentation,UTF-8 decode and local-link resolution,pass,0 local/remote link token(s) checked

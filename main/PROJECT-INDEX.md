@@ -80,7 +80,7 @@ status: active
 - [[scripts/setup/proxmox/bambuddy_vm_setup_guide.md]] — compatibility shim for Bambuddy-specific links
 
 ### ESPHome
-- [[configs/esphome/printairpipe-controller.yaml]] — enclosure sensor board (temperature, smoke, VOC, pressure)
+- [[configs/esphome/ventsys_air_sensor_base.yaml]] — shared enclosure sensor-board package (temperature, smoke, VOC, pressure)
 - [[configs/esphome/ventsys_fdm_360_valve_v2_nerdiy.yaml]] — 360 intake v2 candidate for ESP32-C6 Zero using GPIO0 servo PWM, GPIO1 LED data, Nerdiy one-sided servo mapping limited to `0-35`, and 1s endpoint PWM detach
 - [[configs/esphome/ventsys_sla_360_valve_v2_nerdiy.yaml]] — 360 intake v2 candidate for ESP32-C6 Zero using GPIO0 servo PWM, GPIO1 LED data, Nerdiy one-sided servo mapping limited to `0-35`, and 1s endpoint PWM detach
 - [[ventsys/ventsys_bundle_updated/ventsys_fan_controller.yaml]] — fan PWM control

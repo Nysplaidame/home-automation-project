@@ -1768,7 +1768,10 @@
     return `rgb(${r},${g},${b})`;
   }
 
-  function updateValveVisual(id, position) {
+  // Pure renderer: this function must never publish commands. Startup and
+  // HA state hydration call it directly so script reordering cannot actuate
+  // physical valves.
+  function renderValveVisual(id, position) {
     let ellipse, circle, displayElement;
     position = parseInt(position);
 
@@ -1852,7 +1855,12 @@
     scheduleWarningCheck();
   }
 
-  function updateIntakeVisual(enclosure, position) {
+  function updateValveVisual(id, position) {
+    renderValveVisual(id, position);
+  }
+
+  // Pure renderer for 360-degree intake valves; see renderValveVisual.
+  function renderIntakeVisual(enclosure, position) {
     const lineId = `intake${enclosure}-line`;
     const circleId = `intake${enclosure}-circle`;
     const bgCircleId = `circle-360-enc${enclosure}`;
@@ -1895,6 +1903,10 @@
       const p2 = document.getElementById('enc2-360-pct');
       if (p2) p2.textContent = position + '%';
     }
+  }
+
+  function updateIntakeVisual(enclosure, position) {
+    renderIntakeVisual(enclosure, position);
   }
 
   function updateFlowRates() {
@@ -2209,11 +2221,11 @@
 
   // Initialise all butterfly valve visuals to closed (red) state
   ['valve-main-1','valve-main-2','valve-enc1-vert','valve-enc2-vert','valve-enc1-print','valve-enc2-print'].forEach(id => {
-    updateValveVisual(id, 0);
+    renderValveVisual(id, 0);
   });
   // Initialise 360 intake valves to closed state
-  updateIntakeVisual(1, 0);
-  updateIntakeVisual(2, 0);
+  renderIntakeVisual(1, 0);
+  renderIntakeVisual(2, 0);
 
   // ── Flow sensor colour: 0=red → 0.5=green → 1.0=glowing white ──
   function flowColour(strength) {

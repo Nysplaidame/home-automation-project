@@ -1,0 +1,14 @@
+[Unit]
+Description=Home automation core and backup-target health check
+After=network-online.target pve-storage.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/home-automation-health-check
+User=root
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+

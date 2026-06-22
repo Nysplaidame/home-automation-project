@@ -23,9 +23,10 @@ status: active
 - `Grafana`
 - `Telegraf`
 
-### Planned but not yet deployed
+### Alert routing
 
-- centralized alert routing
+- Centralized ntfy routing is deployed for configured Uptime Kuma monitors.
+- Grafana threshold/trend alerts remain incremental follow-up work.
 
 ### Live monitoring VM notes
 

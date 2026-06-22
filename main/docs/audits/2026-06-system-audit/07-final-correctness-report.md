@@ -8,6 +8,10 @@ status: not-certified
 
 # Final Correctness Report
 
+> Superseded for current remediation status by
+> `08-remediation-execution-and-correctness.md`. This file preserves the
+> pre-remediation audit decision and evidence baseline.
+
 ## Decision
 
 **The home automation system is not certified correct.**
@@ -46,4 +50,3 @@ Critical credential exposure may allow unauthorized local REST API access until 
 ## Certification gate
 
 Do not declare the system correct, adopt remaining VentSys hardware, or rely on unattended safety automation until F-001 through F-004 are closed, HA source/live parity is proven, a fresh CT 114 backup is restored in isolation, and the applicable R/P test cards pass. Reissue this report after remediation rather than editing the decision in place.
-

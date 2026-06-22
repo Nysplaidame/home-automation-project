@@ -20,6 +20,8 @@ This directory is the discovery evidence pack. It does not remediate production 
 - `05-resilience-test-cards.md` — disruptive/physical tests awaiting scheduled windows.
 - `06-remediation-backlog.md` — risk-ranked corrective work and retest gates.
 - `07-final-correctness-report.md` — certification decision and residual risk.
+- `08-remediation-execution-and-correctness.md` — executed fixes, retest
+  evidence, replacement decision, and remaining certification blockers.
 - `artifact-inventory.csv` — all 448 tracked artefacts with a validation result.
 - `todo-disposition.md` — all 364 checklist entries from both canonical TODO files.
 - `roadmap-disposition.md` — feasibility classification of still-planned roadmap items.
@@ -34,5 +36,7 @@ This directory is the discovery evidence pack. It does not remediate production 
 
 ## Audit conclusion
 
-The live network and major compute/services baseline are functioning, but the system is **not certified correct**. A tracked private key/API credential, failed CT 114 backup with a stale lock, live/source VentSys safety drift, and invalid ESPHome device configurations are release blockers.
-
+The 2026-06-22 remediation pass recovered and restore-proved backups, reconciled
+HA/VentSys, repaired ESPHome and removed the Frigate failed unit. The system is
+still **not certified correct** because F-001 is explicitly deferred, OMV's
+shared filesystem is at its high-water alert, and browser/physical/container/vendor gates remain.
