@@ -60,6 +60,26 @@ cd /opt/stacks/mealie && docker compose ps
 curl -fsS -o /dev/null http://127.0.0.1:9925/
 ```
 
+## Home Assistant recipe tools
+
+The repo includes a Home Assistant custom component at
+`configs/home-assistant/custom_components/mealie_llm/`. It exposes narrow LLM
+tools for importing a chosen recipe URL, searching saved recipes, and reading a
+saved recipe back from Mealie.
+
+To activate it on HA, add a Mealie bearer token to `secrets.yaml`:
+
+```yaml
+mealie_api_token: <MEALIE_API_TOKEN>
+```
+
+Then add the `mealie_llm` block from `configs/home-assistant/configuration.yaml`
+to the live HA config, restart Home Assistant, and enable the `mealie_recipes`
+LLM API on the Ollama conversation agent.
+
+Use `http://192.168.20.102:9925` in Home Assistant config so the tool does not
+depend on HA resolving the internal `mealie.home.local` hostname.
+
 ## Backup
 
 Back up `/opt/stacks/mealie/data`.

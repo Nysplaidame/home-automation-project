@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -euo pipefail
+exec /opt/transferportal/venv/bin/python -m transferportal.root_helper
+

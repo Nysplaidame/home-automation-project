@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "transferportal"
+version = "0.1.0"
+description = "Native OMV transfer portal for guarded local rsync jobs"
+requires-python = ">=3.13"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "jinja2>=3.1",
+  "itsdangerous>=2.2",
+  "pydantic>=2.7",
+  "python-multipart>=0.0.9",
+  "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.2",
+  "httpx>=0.27",
+]
+
+[project.scripts]
+transferportal-root-helper = "transferportal.root_helper:main"
+
+[tool.setuptools.packages.find]
+include = ["transferportal*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

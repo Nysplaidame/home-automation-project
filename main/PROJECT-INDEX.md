@@ -126,6 +126,8 @@ status: active
 
 ### 3. Storage
 - [[scripts/setup/nas/omv_nas_setup_guide.md]] — OpenMediaVault NAS, NFS/SMB, HA/Frigate/Immich storage
+- [[docs/install/services/transferportal.md]] — native OMV Transfer Portal service for guarded local rsync jobs
+- [[apps/transferportal/README.md]] — FastAPI app, root helper, tests, and packaging source
 
 ### 4. VentSys
 - [[scripts/setup/ventsys/esphome_adoption_guide.md]] — first USB flash, HA adoption, MQTT verify

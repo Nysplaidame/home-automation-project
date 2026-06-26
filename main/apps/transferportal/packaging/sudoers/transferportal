@@ -1,0 +1,3 @@
+Defaults:transferportal !requiretty
+transferportal ALL=(root) NOPASSWD: /usr/local/lib/transferportal/root-helper
+

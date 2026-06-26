@@ -20,6 +20,13 @@ searxng_llm:
   result_count: 3
   timeout: 15
 
+# Recipe-saving and reading tools for local Ollama conversation agents.
+mealie_llm:
+  url: http://192.168.20.102:9925
+  token: !secret mealie_api_token
+  result_count: 5
+  timeout: 45
+
 # Export Home Assistant state history to the monitoring VM's InfluxDB bucket.
 influxdb:
   max_retries: 3

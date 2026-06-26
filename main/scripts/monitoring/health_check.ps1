@@ -24,13 +24,23 @@ function Test-Tcp([string]$Name, [string]$HostName, [int]$Port) {
 }
 
 function Test-Http([string]$Name, [string]$Uri) {
+    $oldCallback = [System.Net.ServicePointManager]::ServerCertificateValidationCallback
+    [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
     try {
-        $response = Invoke-WebRequest -Uri $Uri -Method Get -TimeoutSec 5 -SkipCertificateCheck -MaximumRedirection 0
-        $ok = [int]$response.StatusCode -in @(200, 302, 401)
-        Add-Result $Name $(if ($ok) { "PASS" } else { "FAIL" }) "HTTP $([int]$response.StatusCode)"
+        $request = [System.Net.HttpWebRequest]::Create($Uri)
+        $request.Method = "GET"
+        $request.Timeout = 5000
+        $request.AllowAutoRedirect = $false
+        $response = $request.GetResponse()
+        $status = [int]$response.StatusCode
+        $ok = $status -in @(200, 302, 401)
+        Add-Result $Name $(if ($ok) { "PASS" } else { "FAIL" }) "HTTP $status"
+        $response.Dispose()
     } catch {
-        $status = if ($_.Exception.Response) { [int]$_.Exception.Response.StatusCode } else { 0 }
+        $status = if ($_.Exception.PSObject.Properties.Name -contains "Response" -and $_.Exception.Response) { [int]$_.Exception.Response.StatusCode } else { 0 }
         Add-Result $Name $(if ($status -in @(200, 302, 401)) { "PASS" } else { "FAIL" }) "HTTP $status"
+    } finally {
+        [System.Net.ServicePointManager]::ServerCertificateValidationCallback = $oldCallback
     }
 }
 

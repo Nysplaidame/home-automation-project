@@ -53,4 +53,3 @@ Secrets were never copied into this evidence pack. Discovery was read-only excep
 - Browser rendering was blocked because both the in-app browser runtime and local Node/Playwright runtime were unavailable.
 - Current official vendor-document lookups were attempted twice and blocked by the browsing service with HTTP 403. Roadmap classifications therefore rely on installed-version validation and local/deployed evidence and must be vendor-rechecked during remediation.
 - No physical VentSys, camera, power-loss, restore, or outage test was performed.
-

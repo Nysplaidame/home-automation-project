@@ -164,6 +164,8 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 | Proxmox + VM/LXC setup | `scripts/setup/proxmox/` |
 | Canonical current state | `docs/reference/current-live-state.md` |
 | NAS setup | `scripts/setup/nas/omv_nas_setup_guide.md` |
+| OMV Transfer Portal app | `apps/transferportal/` |
+| OMV Transfer Portal runbook | `docs/install/services/transferportal.md` |
 | ESPHome adoption | `scripts/setup/ventsys/esphome_adoption_guide.md` |
 | Wiring reference | `docs/diagrams/wiring-diagrams/ventsys_wiring_reference.md` |
 | Troubleshooting | `docs/troubleshooting/troubleshooting_reference.md` |

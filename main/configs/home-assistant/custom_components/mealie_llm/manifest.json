@@ -1,0 +1,8 @@
+{
+  "domain": "mealie_llm",
+  "name": "Mealie LLM Recipe Tools",
+  "version": "1.0.0",
+  "documentation": "https://docs.mealie.io/",
+  "iot_class": "local_polling",
+  "codeowners": []
+}

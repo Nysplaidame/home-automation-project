@@ -227,6 +227,34 @@ git push
 
 ---
 
+## Local NAS transfer portal
+
+When you need to move data between two OMV-attached disks without using the
+network, use the transfer portal pattern documented in
+`scripts/setup/nas/omv_nas_setup_guide.md`.
+
+The native OMV service implementation is tracked in `apps/transferportal/`;
+its install and rollback runbook is `docs/install/services/transferportal.md`.
+Keep any existing manual rsync job running until it completes unless the
+operator explicitly asks to stop it.
+
+### Operating rule
+
+- Use bind-mounted portal paths such as `/srv/transferportal/source` and
+  `/srv/transferportal/destination`.
+- Run `rsync` on the OMV server itself so the data copy stays local.
+- Treat the portal as a copy workflow, not a logical link workflow.
+
+### Interruption behavior
+
+- Already copied files remain on the destination.
+- In-progress files are normally temporary until complete.
+- Re-running `rsync` is the normal recovery path.
+- For large files where preserving partial progress matters, use an explicit
+  partial-file policy such as `--partial-dir=.rsync-partial`.
+
+---
+
 ## Recovery runbook — MINISFORUM hardware failure
 
 If the MINISFORUM host dies completely:

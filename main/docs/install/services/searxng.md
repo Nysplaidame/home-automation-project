@@ -41,7 +41,9 @@ As of 2026-05-27:
 - `SEARXNG_SECRET` is stored live-only in `/opt/stacks/searxng/.env` and
   `/root/searxng-secret.txt`.
 - UFW and `docker-host-firewall.service` scope `8087/tcp` to management, LAN,
-  monitoring, and `tailscale0`.
+  monitoring, `tailscale0`, Home Assistant (`192.168.20.101`), and local AI
+  (`192.168.20.104`). Keep these automation exceptions before the terminal
+  `8087/tcp` drop in the `DOCKER-USER` chain.
 - Uptime Kuma monitor `SearXNG UI` is live and returned `200 OK`.
 - Temporary router WiFi uplink is currently required for upstream search while
   the GL-MT6000 is staged behind the existing home router.

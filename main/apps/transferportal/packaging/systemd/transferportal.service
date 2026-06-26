@@ -1,0 +1,23 @@
+[Unit]
+Description=OMV Transfer Portal
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=transferportal
+Group=transferportal
+EnvironmentFile=-/etc/transferportal/transferportal.env
+Environment=TRANSFERPORTAL_CONFIG=/etc/transferportal/config.yaml
+WorkingDirectory=/opt/transferportal
+ExecStart=/opt/transferportal/venv/bin/uvicorn transferportal.app:create_app --factory --host 192.168.10.147 --port 8088
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=false
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/transferportal /var/log/transferportal /etc/transferportal /srv/transferportal /etc/systemd/system
+
+[Install]
+WantedBy=multi-user.target

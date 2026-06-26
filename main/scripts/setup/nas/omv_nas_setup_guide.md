@@ -166,6 +166,78 @@ Minimum monitoring targets:
 
 ---
 
+## Transfer Portal Runbook
+
+Use this pattern when you need to move data between two local OMV-backed disks
+without going through the network.
+
+The native v1 web service source lives in `apps/transferportal/`, with the
+install and operation runbook in `docs/install/services/transferportal.md`.
+Do not deploy or restart that service while a manual rsync transfer is active
+unless the operator has explicitly approved the interruption risk.
+
+### Portal layout
+
+Create two bind-mounted portal paths:
+
+| Portal path | Backing volume | Purpose |
+|---|---|---|
+| `/srv/transferportal/source` | source filesystem | read-only mental model for the source disk |
+| `/srv/transferportal/destination` | destination filesystem | writable target for the copy |
+
+The portal directories themselves are just mount points. The real data lives on
+the underlying filesystems.
+
+### Copy command
+
+Run the copy on the OMV server itself:
+
+```bash
+rsync -aHAX --numeric-ids --info=progress2 /srv/transferportal/source/ /srv/transferportal/destination/
+```
+
+Recommended if you want a resumable session:
+
+```bash
+nohup rsync -aHAX --numeric-ids --info=progress2 /srv/transferportal/source/ /srv/transferportal/destination/ >/tmp/transferportal-rsync.log 2>&1 &
+```
+
+### What happens if it is interrupted
+
+- Files that already finished copying remain on the destination.
+- By default, `rsync` writes an in-progress file to a temporary name and only
+  renames it into place after the file completes.
+- If the transfer is interrupted, an in-progress file is normally discarded or
+  left as a temporary file, not trusted as a completed destination file.
+- Re-running the same `rsync` command is safe; it will compare source and
+  destination again and continue from the current state.
+- For large files where preserving partial progress matters, add an explicit
+  partial policy such as `--partial-dir=.rsync-partial`.
+
+### Monitoring
+
+Use these checks while the transfer runs:
+
+```bash
+pgrep -af 'rsync'
+tail -f /tmp/transferportal-rsync.log
+du -sh /srv/transferportal/source /srv/transferportal/destination
+```
+
+### Verification
+
+After the copy finishes:
+
+```bash
+find /srv/transferportal/source -type f | wc -l
+find /srv/transferportal/destination -type f | wc -l
+```
+
+If the destination count matches the source count and the copy completed
+without errors, the transfer is complete.
+
+---
+
 ## Completion Checklist
 
 - [ ] OMV installed and hostname set to `omv-nas`.

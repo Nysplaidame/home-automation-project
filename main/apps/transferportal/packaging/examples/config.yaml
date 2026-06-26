@@ -1,0 +1,22 @@
+bind_host: 192.168.10.147
+bind_port: 8088
+database_path: /var/lib/transferportal/jobs.sqlite
+log_dir: /var/log/transferportal
+helper_path: /usr/local/lib/transferportal/root-helper
+portal_base: /srv/transferportal
+allowed_mount_prefixes:
+  - /srv
+  - /mnt
+blocked_paths:
+  - /
+  - /boot
+  - /etc
+  - /var
+  - /usr
+  - /run
+  - /proc
+  - /sys
+max_active_jobs: 1
+session_secret_file: /etc/transferportal/session.secret
+portals: []
+
