@@ -14,13 +14,13 @@ scene: !include scenes.yaml
 homeassistant:
   packages: !include_dir_named packages
 
-# Read-only web-search tool for local Ollama conversation agents.
+# Read-only web-search tool for local LLM conversation agents.
 searxng_llm:
   url: http://192.168.20.102:8087
   result_count: 3
   timeout: 15
 
-# Recipe-saving and reading tools for local Ollama conversation agents.
+# Recipe-saving and reading tools for local LLM conversation agents.
 mealie_llm:
   url: http://192.168.20.102:9925
   token: !secret mealie_api_token

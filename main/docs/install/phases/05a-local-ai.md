@@ -133,6 +133,7 @@ Then run:
 - [x] Wyoming Whisper, Piper and OpenWakeWord running.
 - [ ] HA Assist migrated away from native Ollama dependency.
 - [x] HA Wyoming integrations connect.
-- [x] Home and Overwatch Assist commands validated.
+- [x] Home Assist commands validated.
+- [ ] Overwatch Assist migrated and revalidated without native Ollama.
 - [x] Vulkan GPU offload and concurrent Frigate use validated.
 - [x] Monitoring checks added for core CT 114 services.

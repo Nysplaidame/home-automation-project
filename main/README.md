@@ -123,8 +123,11 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
   Whisper, Piper and OpenWakeWord.
 - llama.cpp uses Vulkan on the shared Intel iGPU and serves
   `home-assistant-llm` on `192.168.20.104:8081/v1`.
-- Home and Overwatch Assist pipelines are live. Overwatch can call the bounded
-  read-only SearXNG search API.
+- The Home Assist pipeline is separated from Ollama and uses Home Assistant's
+  built-in conversation agent. The Overwatch pipeline still points at the
+  stopped Ollama rollback integration and must be migrated before it is
+  certified live again.
+- The bounded read-only SearXNG search API is installed for local LLM agents.
 - Mealie is live for recipes and meal planning; Overwatch recipe saving is not yet implemented.
 - Obsidian remains the durable project/household knowledge and runbook layer;
   Self-hosted LiveSync provides central multi-device freshness while Git keeps

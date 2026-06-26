@@ -35,8 +35,14 @@ while its replacement LXC is running.
 
 - Configuration check passes on HAOS 2026.6.4.
 - Mosquitto, File Editor, Terminal & SSH and ESPHome Device Builder are live.
-- Home and Overwatch Assist pipelines are functional.
-- Overwatch has a bounded read-only SearXNG search tool.
+- The Home Assist pipeline uses Home Assistant's built-in conversation agent and
+  remains separated from Ollama.
+- The Overwatch Assist pipeline still points at
+  `conversation.ollama_conversation`; with Ollama stopped it is not certified
+  until its conversation engine is migrated.
+- The bounded read-only SearXNG search tool is installed for local LLM
+  conversation agents, but Overwatch use of that tool depends on the pending
+  conversation-engine migration.
 - Mealie is live; Overwatch-to-Mealie recipe saving is not yet implemented.
 - VentSys dashboard is deployed; most physical VentSys entities remain gated on
   hardware installation.
