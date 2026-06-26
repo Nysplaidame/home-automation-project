@@ -7,12 +7,12 @@
 
 | Layer | What | Where stored | Schedule | Retention |
 |---|---|---|---|---|
-| Proxmox VM backup | VM disks 100/102/103 | OMV `New/proxmox-backups` (`smb-backup-new`) | Daily 02:00 | 7 generations |
-| Proxmox LXC backup | CT 111/114 root filesystems | OMV `New/proxmox-backups` (`smb-backup-new`) | Daily 04:00 | 7 generations |
-| HA native backup | HA config, add-ons, automations | HA local + NAS | Daily 03:00 | 14 days on NAS |
-| Frigate recordings | Camera footage | NAS `/mnt/nas/frigate` | Continuous | 7 days motion, 14 days events |
+| Proxmox VM backup | VM disks 100/102/103 | OMV md0 NFS `backups/proxmox` (`omv-backups`) | Daily 02:00 | 7 daily + 6 monthly |
+| Proxmox LXC backup | CT 111/114 root filesystems | OMV md0 NFS `backups/proxmox` (`omv-backups`) | Daily 04:00 | 7 daily + 6 monthly |
+| HA native backup | HA config, add-ons, automations | OMV md0 NFS `backups/home-assistant` | Daily 03:00 | 7 daily + 6 monthly |
+| Frigate recordings | Camera footage | OMV md0 NFS `CCTV` | Continuous | Set in Frigate before cameras go live |
 | Frigate LXC state | OS disk, DB, cache, compose/config | MINISFORUM NVMe on CT 111 | Continuous | Rebuildable + config-backed |
-| Config file backup | Safety vault YAML/configs | NAS /mnt/nas/configs | Daily via rsync | 30 days |
+| Config file backup | Safety vault YAML/configs | OMV md0 NFS `backups/configs` | Daily via rsync | 7 daily + 6 monthly |
 | GitHub | Safety vault docs + configs | GitHub repo | On push | Full history |
 
 ---
@@ -25,17 +25,17 @@
 
 | Field | Value |
 |---|---|
-| Storage | `smb-backup-new` (SMB 3.1.1 with sealing required) |
+| Storage | `omv-backups` (NFSv3 to OMV md0 `backups/proxmox`) |
 | Schedule | `02:00` (daily) |
 | Selection | VMs 100, 102, 103 |
 | Mode | Snapshot |
 | Compression | ZSTD |
-| Max backups | 7 generations |
+| Retention | `keep-daily=7,keep-monthly=6` |
 | Email | your@email.com (optional) |
 
-The storage maps OMV share `New`, subdirectory `proxmox-backups`. Proxmox keeps
-the credential in its protected storage configuration; it must never be copied
-into this repository or command examples.
+The storage maps OMV md0 path
+`/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/proxmox`
+over NFS. There is no Proxmox SMB credential in the final path.
 
 Current pre-NAS check on 2026-05-27:
 
@@ -46,24 +46,23 @@ Current pre-NAS check on 2026-05-27:
 - Latest 2026-05-27 logs for VMs `100`, `101`, `102`, and `103` all ended with
   `Finished Backup`.
 
-Current policy after the 2026-06-22 SMB remediation:
+Current policy after the 2026-06-26 NFS/md0 migration:
 
-- 02:00 job: VMs `100,102,103`, `keep-last=7`, storage `smb-backup-new`.
-- 04:00 job: CTs `111,114`, `keep-last=7`, storage `smb-backup-new`.
+- 02:00 job: VMs `100,102,103`, `keep-daily=7,keep-monthly=6`, storage `omv-backups`.
+- 04:00 job: CTs `111,114`, `keep-daily=7,keep-monthly=6`, storage `omv-backups`.
 - VM 101 and VM 104 are stopped rollback artefacts with migration snapshots;
   they are intentionally excluded from recurring backups.
-- The CIFS mount negotiates SMB 3.1.1 with `seal`; TCP 445 and storage pressure
-  are checked every five minutes by `home-automation-health-check.timer`.
+- NFS TCP 2049 and storage pressure are checked by
+  `home-automation-health-check.timer`.
 - Fresh VM 102 and CT 114 archives completed on 2026-06-22 and passed `zstd -t`.
 - VM 102 was restored under temporary ID 9102, had its NIC removed before boot,
   answered through QEMU Guest Agent, then was shut down and purged.
 - Existing local archives remain until all fresh guest backups and retention
   observation are complete.
-- The measured daily set is 45,175,709,568 bytes; seven generations project to
-  294.51 GiB and remain well below 80% of the 2.12 TB target. Residual risk: the
-  larger shared filesystem backing `New` was already 87.34% used on 2026-06-22,
-  so the conservative health high-water policy alerts until capacity is
-  reclaimed, expanded, or that policy is explicitly changed.
+- The measured daily set is roughly 45 GiB. The requested 7 daily + 6 monthly
+  policy needs about 585 GiB at today's sizes; reserve 2 TiB minimum and prefer
+  3 TiB after cleanup. md0 was still 86-87% used on 2026-06-26, so capacity
+  cleanup remains required before Frigate/CCTV recordings go live.
 - Obsolete VM 101 recurring archives were removed on 2026-06-21 after CT backup
   validation; the stopped VM disk and migration snapshot remain available.
 
@@ -78,27 +77,27 @@ Restore-readiness drill on 2026-05-28:
 
 ```bash
 # In Proxmox shell before any risky change
-vzdump 100 --mode snapshot --compress zstd --storage smb-backup-new
-vzdump 111 --mode snapshot --compress zstd --storage smb-backup-new
-vzdump 114 --mode snapshot --compress zstd --storage smb-backup-new
-vzdump 102 --mode snapshot --compress zstd --storage smb-backup-new
-vzdump 103 --mode snapshot --compress zstd --storage smb-backup-new
+vzdump 100 --mode snapshot --compress zstd --storage omv-backups
+vzdump 111 --mode snapshot --compress zstd --storage omv-backups
+vzdump 114 --mode snapshot --compress zstd --storage omv-backups
+vzdump 102 --mode snapshot --compress zstd --storage omv-backups
+vzdump 103 --mode snapshot --compress zstd --storage omv-backups
 ```
 
 ### Restore a VM or LXC
 
-`Datacenter → Storage → smb-backup-new → Backups → select backup → Restore`
+`Datacenter → Storage → omv-backups → Backups → select backup → Restore`
 
 Or from shell:
 ```bash
 # List available backups
-ls /mnt/pve/smb-backup-new/dump/
+ls /mnt/pve/omv-backups/dump/
 
 # Restore VM 100 from backup
-qmrestore /mnt/pve/smb-backup-new/dump/vzdump-qemu-100-*.vma.zst 100 --force
+qmrestore /mnt/pve/omv-backups/dump/vzdump-qemu-100-*.vma.zst 100 --force
 
 # Restore an LXC to its original ID only after stopping/removing a conflicting guest
-pct restore 111 /mnt/pve/smb-backup-new/dump/vzdump-lxc-111-*.tar.zst
+pct restore 111 /mnt/pve/omv-backups/dump/vzdump-lxc-111-*.tar.zst
 ```
 
 ---
@@ -109,7 +108,7 @@ pct restore 111 /mnt/pve/smb-backup-new/dump/vzdump-lxc-111-*.tar.zst
 
 Configure in HA:
 1. Add NAS as storage: `Settings → System → Storage → Add Network Storage`
-   - Server: `192.168.40.50`, Protocol: NFS, Path: `/mnt/nas/ha-backups`
+   - Server: `192.168.40.50`, Protocol: NFS, Path: `/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/home-assistant`
 2. Set schedule: `Settings → System → Backups → Automatic Backups`
    - Schedule: Daily, Time: 03:00, Keep: 14, Location: NAS Backups
 

@@ -36,7 +36,7 @@ def test_new_portal_form_has_back_cancel_and_field_help():
 def test_settings_view_is_human_readable_not_repr_dump():
     body = settings_view(
         AppConfig(
-            bind_host="192.168.10.147",
+            bind_host="192.168.40.50",
             bind_port=8088,
             database_path=Path("/var/lib/transferportal/jobs.sqlite"),
             log_dir=Path("/var/log/transferportal"),

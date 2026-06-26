@@ -27,8 +27,8 @@ P1S_IP="192.168.35.200"   # VLAN 35 (Printers) — see docs/decisions/02-printer
 # Ping is a better liveness check here; if the printer is powered on and
 # network-connected, ping will succeed. MQTT connectivity is confirmed
 # indirectly via Bambuddy (which would show HTTP errors if the broker is down).
-NAS_IP="192.168.10.147"
-NAS_SMB_PORT="445"
+NAS_IP="192.168.40.50"
+NAS_NFS_PORT="2049"
 MQTT_IP="192.168.20.101"
 # MQTT TLS listener is live on 8883. Port 1883 remains open only as a staged
 # bootstrap path until all clients are migrated.
@@ -176,7 +176,7 @@ run_checks() {
     r_frigate_http="skipped"
     check_port "Docker host VM SSH" "$DOCKER_HOST_IP" "22"; r_docker_host="$CHECK_RESULT"
     check_http "Bambuddy UI" "http://${BAMBUDDY_IP}:${BAMBUDDY_PORT}"; r_bambuddy="$CHECK_RESULT"
-    check_port "OMV backup SMB" "$NAS_IP" "$NAS_SMB_PORT"; r_nas="$CHECK_RESULT"
+    check_port "OMV backup NFS" "$NAS_IP" "$NAS_NFS_PORT"; r_nas="$CHECK_RESULT"
     # C9 fix: was check_port "$P1S_IP" "$P1S_PORT" (TCP connect to 8883).
     # The P1S printer's MQTT port 8883 is the Bambu Lab printer-side MQTT broker
     # which only accepts authenticated connections from Bambu cloud clients —
@@ -257,7 +257,7 @@ run_checks() {
                 [ -z "$storage" ] && continue
                 pct=$((used * 100 / total))
                 threshold=85
-                [ "$storage" = "smb-backup-new" ] && threshold=80
+                [ "$storage" = "omv-backups" ] && threshold=80
                 if [ "$pct" -gt "$threshold" ]; then
                     printf "  ${RED}✗${NC}  %-20s %d%% (limit %d%%)\n" "$storage" "$pct" "$threshold"
                     fail=$((fail+1))

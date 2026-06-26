@@ -3,7 +3,7 @@ title: OMV Transfer Portal Service
 description: Native OMV-hosted transfer portal for guarded local disk-to-disk rsync jobs
 tags: [omv, nas, rsync, transferportal]
 created: 2026-06-25
-modified: 2026-06-25
+modified: 2026-06-26
 type: service-runbook
 status: active
 ---
@@ -16,14 +16,16 @@ copy and move workflows. It is not Docker and not an OMV plugin yet.
 Source artifacts live in `apps/transferportal/`.
 
 Live status as of 2026-06-25: installed on `OMVNAS`, active on port `8088`,
-and smoke-tested with disposable source/destination folders.
+and smoke-tested with disposable source/destination folders. After the
+2026-06-26 VLAN 40 migration, the service bind address should be
+`192.168.40.50`.
 
 ## Placement
 
 | Item | Value |
 |---|---|
 | Host | `OMVNAS` |
-| IP | `192.168.10.147` |
+| IP | `192.168.40.50` |
 | Service user | `transferportal` |
 | App path | `/opt/transferportal` |
 | Config | `/etc/transferportal/config.yaml` |
@@ -66,7 +68,7 @@ systemctl status transferportal --no-pager -l
 ```bash
 systemctl status transferportal --no-pager -l
 sudo -u transferportal sudo -n /usr/local/lib/transferportal/root-helper <<<'{"action":"list-mounts","params":{}}'
-curl -I http://192.168.10.147:8088/
+curl -I http://192.168.40.50:8088/
 ```
 
 The live service unit must keep `NoNewPrivileges=false`, because the

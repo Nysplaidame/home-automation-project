@@ -8,7 +8,7 @@ services:
       - "${DOCKER_SOCK_GID:-989}"
     volumes:
       - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
-      - /:/hostfs:ro
+      - /:/hostfs:ro,rslave
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
       HOST_ETC: /hostfs/etc

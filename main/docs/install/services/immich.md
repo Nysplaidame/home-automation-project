@@ -3,7 +3,7 @@ title: Immich Install Manual
 description: Tier 1 docker-host photo and gallery service with OMV-backed media storage
 tags: [install, docker-host, immich, photos]
 created: 2026-05-24
-modified: 2026-05-27
+modified: 2026-06-26
 type: install-guide
 status: preflight-live
 ---
@@ -47,14 +47,15 @@ docker compose up -d
 docker compose ps
 ```
 
-## Current pre-flight live state
+## Current live state
 
-As of 2026-05-27, Immich is deployed as a skeleton only:
+As of 2026-06-26, Immich uses OMV-backed media storage:
 
 - Stack path: `/opt/stacks/immich`.
 - Version: `v2.7.5`.
 - URL: `http://192.168.20.102:2283/` / `http://immich.home.local:2283/`.
-- `UPLOAD_LOCATION=./library` as temporary placeholder storage.
+- `UPLOAD_LOCATION=/mnt/omv/immich`.
+- OMV mount: `192.168.40.50:/export/immich` at `/mnt/omv/immich`.
 - `DB_DATA_LOCATION=./postgres`.
 - Database password is stored on docker-host at `/root/immich-db-password.txt`.
 - `vm.overcommit_memory=1` is set through `/etc/sysctl.d/98-immich-valkey.conf`.
@@ -64,9 +65,11 @@ As of 2026-05-27, Immich is deployed as a skeleton only:
 - UFW and `docker-host-firewall.service` scope port `2283` to management, LAN,
   monitoring, and `tailscale0`.
 - Uptime Kuma monitor `Immich UI` is live and returned `200 OK`.
+- docker-host Telegraf bind-mounts `/` with `rslave` propagation so the NFS
+  mount is visible in disk telemetry.
 
-Do not import a real library into this placeholder storage. Move uploads to the
-OMV-backed path and document backup/restore before treating Immich as production.
+Do not import a real library until backup/restore expectations for the OMV media
+path and local PostgreSQL data are accepted.
 
 ## Explanation
 

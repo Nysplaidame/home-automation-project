@@ -47,14 +47,14 @@ Planning baseline until explicitly revalidated:
 7. [x] Deploy `dashboards/ventsys-card-wrapper.html` to HA and verify the VentSys dashboard works inside a Lovelace iframe card
 8. [x] Explicitly park embedded Grafana-in-HA work behind direct-link-only access until HTTPS/reverse proxy same-origin path is in place
 9. [x] Add an external health signal for the monitoring VM so monitoring failure is visible even when Uptime Kuma itself is down
-10. [ ] Configure OMV-backed Home Assistant backups once NAS storage is live, while keeping fast local Proxmox recovery on the MINISFORUM host
+10. [x] Configure OMV-backed Home Assistant backup mount and verify a manual backup write, while keeping fast local Proxmox recovery on the MINISFORUM host
 11. [x] Start the migration-safe Frigate baseline on CT 111 with cameras and MQTT disabled
 12. [ ] Expand VentSys beyond valve 1: finish the MQTT TLS migration path, then flash/adopt the remaining ESPHome devices
 13. [x] Deploy AdGuard Home on docker-host per `docs/decisions/04-dns-resolver-and-adblocking.md`
 14. [x] Re-run router-deploy validation after the router-local NTP/deploy-tooling update
 15. [x] Validate Uptime Kuma notification dispatch to ntfy (`ntfy Monitoring`): monitor #17 (Whoogle) failure was detected and ntfy `messages_published` increased (`14` -> `15`) during controlled outage on 2026-05-28
 16. [x] Add repo-side Frigate credential template at `configs/frigate/frigate.env.example`
-17. [x] Move active-guest Proxmox backups to encrypted OMV storage `smb-backup-new`, retain seven generations, run `zstd -t` on fresh 100/102/103/111/114 archives, and complete an isolated VM 102 restore/boot drill
+17. [x] Move active-guest Proxmox backups to OMV md0 NFS storage `omv-backups`, retain 7 daily and 6 monthly generations, run a fresh VM 102 write test, and keep the prior restore drill evidence
 18. [x] Draft OMV storage cutover execution checklist at `docs/procedures/omv_storage_cutover_checklist.md`
 19. [x] Confirm HA-side monitoring health states from Home Assistant UI (all `on`): `binary_sensor.monitoring_stack_externally_healthy`, `binary_sensor.monitoring_vm_grafana_reachable`, `binary_sensor.monitoring_vm_influxdb_reachable`, `binary_sensor.uptime_kuma_reachable_from_ha`
 20. [ ] Parked: add Mullvad egress path for SearXNG/Whoogle on docker-host (privacy hardening), only after current Frigate + OMV pre-flight blockers are cleared
@@ -76,7 +76,7 @@ Planning baseline until explicitly revalidated:
 36. [x] Approve and retest mobile Tailscale monitoring access: docker-host now advertises `192.168.60.10/32` and has routed UFW allowances for Grafana `3000` and Uptime Kuma `3001`; route approved in Tailscale admin and mobile access to HA/Grafana/Kuma confirmed working on 2026-05-31
 37. [x] Re-export `Proxmox Resource Overview` and apply explicit labels (`Guest RAM`, `RAM Pressure`, `Root Disk`) to live/source panels; 2026-05-31 datasource check found high HA/docker-host/monitoring percentages are guest-memory values, not CPU/disk saturation
 38. [ ] Schedule controlled docker-host patch window for Docker engine/component and kernel package candidates from `docs/procedures/update_review_log.md`
-39. [ ] When NAS is built, add NAS telemetry using existing monitoring patterns first (prefer Telegraf -> InfluxDB -> Grafana before adding new containers)
+39. [x] Add first NAS telemetry using existing docker-host Telegraf -> InfluxDB -> Grafana pattern by exposing the OMV-backed Immich mount to Telegraf
 40. [x] Build VM 104 `llm-host` only after confirming current Proxmox RAM pressure is healthy enough for an 8GB AI VM
 41. [x] Deploy Ollama, Open WebUI, Wyoming Whisper, and Wyoming Piper on VM 104 per `scripts/setup/proxmox/llm_host_setup_guide.md`
 42. [x] Configure HA Ollama/Wyoming integrations and validate Home and Overwatch Assist pipelines
@@ -94,7 +94,7 @@ Planning baseline until explicitly revalidated:
 
 - [x] Validate Tailscale from an off-LAN client after docker-host auth and route approval
 - [x] Deploy AdGuard Home under `/opt/stacks/adguard-home/`
-- [x] Deploy Immich skeleton under `/opt/stacks/immich/` with local placeholder storage; OMV-backed real imports still blocked
+- [x] Deploy Immich under `/opt/stacks/immich/` with OMV-backed upload/library storage at `/mnt/omv/immich`
 - [x] Deploy Homepage under `/opt/stacks/homepage/`
 - [x] Deploy Dozzle under `/opt/stacks/dozzle/`
 - [x] Add docker-host `DOCKER-USER` guard so Dozzle is management-only despite Docker published-port forwarding
@@ -226,7 +226,7 @@ must work without HACS.
 - [x] Set static IP 192.168.10.10 on vmbr0.10
 - [x] Retire PCI iGPU passthrough/IOMMU requirement in favour of shared LXC device mapping
 - [x] Retire the pre-LXC `vm-setup.sh`; `guest-configs.md` holds the current inventory
-- [x] Move VMs 100/102/103 and CTs 111/114 to `smb-backup-new` with `keep-last=7`; retain local archives during transition and alert while OMV remains above 80% used
+- [x] Move VMs 100/102/103 and CTs 111/114 to `omv-backups` with `keep-daily=7,keep-monthly=6`; retain local archives during transition and alert while OMV remains above 80% used
 - [x] Replace VM 104 with CT 114 `llm-host` at 192.168.20.104; retain stopped VM as rollback
 - [x] Keep `llm-host`, `ollama`, and `openwebui` DNS aliases on 192.168.20.104
 - [ ] After a future 64GB RAM upgrade, resize CT 114 and retest before moving `home-assistant-llm` to a 14B model
@@ -244,7 +244,8 @@ must work without HACS.
 - [x] Enable HA 2FA (TOTP)
 - [x] Copy `dashboards/ventsys-card-wrapper.html` to `/config/www/ventsys-card-wrapper.html`
 - [x] Add a Lovelace iframe/panel view that uses the VentSys card wrapper
-- [ ] Configure NAS as backup target, set daily 03:00 schedule (14 keep)
+- [x] Configure NAS as HA backup mount and verify manual backup write to OMV
+- [ ] Set HA automatic backup schedule in the UI: daily 03:00, keep 14, location `nas_backups`
 - [x] Validate router-local NTP for non-HA-managed restricted devices
 
 ### Frigate (CT 111; VM 101 retained only for rollback)
@@ -332,12 +333,12 @@ must work without HACS.
 
 ## Phase 4 — Storage ⏳
 
-- [x] Allocate live OMV hardware/storage at `192.168.10.147` (capacity remediation remains open because the backing filesystem is 87% used)
-- [ ] Follow `omv_nas_setup_guide.md` phases 1–7
-- [ ] Configure NFS exports (Frigate, HA, Immich, configs shares)
+- [x] Migrate live OMV hardware/storage to VLAN 40 at `192.168.40.50` on router `lan4` (capacity remediation remains open because the backing filesystem is 87% used)
+- [x] Follow `omv_nas_setup_guide.md` storage/user/share/export setup while preserving existing SMB shares
+- [x] Configure NFS exports (Frigate, HA, Immich, configs shares)
 - [ ] Keep Frigate "live" recordings on MINISFORUM local storage first; add NAS archiving after the NAS is online
 - [ ] Mount NAS in Frigate VM (`/mnt/nas/frigate`) and update docker-compose.yml volume
-- [ ] Add OMV as HA network storage → verify backup writes successfully
+- [x] Add OMV as HA network storage → verify backup writes successfully
 - [ ] Configure robocopy or rsync scheduled task for vault backup to NAS
 - [ ] Enable SMART monitoring on NAS drives
 

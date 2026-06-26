@@ -83,9 +83,12 @@ while its replacement LXC is running.
 
 ## Docker host
 
-Live workloads: Bambuddy, AdGuard Home, Immich pre-flight, Homepage, Dozzle,
+Live workloads: Bambuddy, AdGuard Home, Immich, Homepage, Dozzle,
 ntfy, SearXNG, Whoogle, Mealie, Grocy, Obsidian LiveSync/CouchDB, Watchtower
 monitor-only and Telegraf. VM 103 has a 64 GiB virtual disk.
+
+Immich now uses the OMV-backed NFS mount at `/mnt/omv/immich` for uploads and
+library storage. Its database remains local under `/opt/stacks/immich/postgres`.
 
 Paperless-ngx, Actual Budget, Scrypted, Vaultwarden, Portainer, a local
 registry mirror and Node-RED remain decision-gated candidates.
@@ -95,18 +98,28 @@ registry mirror and Node-RED remain decision-gated candidates.
 - Uptime Kuma, InfluxDB, Grafana and Telegraf are live on VM 102.
 - Proxmox, HA, docker-host, DNS, core apps and local-AI endpoints are monitored.
 - Alert routing through ntfy exists for configured Kuma monitors.
-- OMV TCP 445 and Proxmox storage pressure are checked every five minutes by
-  `home-automation-health-check.timer`. Seven backup generations project to
-  294.51 GiB and pass the 2.12 TB target gate; the check still alerts because
-  the larger shared filesystem is 87.34% used.
+- OMV NFS TCP 2049 and Proxmox storage pressure are checked by
+  `home-automation-health-check.timer`. Backup storage is intentionally on md0;
+  capacity remains tight until the planned cleanup frees roughly 4 TiB.
 
 ## Backup storage
 
-- OMV is live at `192.168.10.147` and exports encrypted SMB share `New`.
-- Proxmox storage `smb-backup-new` uses SMB 3.1.1 with sealing, a dedicated
-  account and subdirectory `proxmox-backups`.
+- OMV is live on Storage VLAN 40 at `192.168.40.50`.
+- Final backup storage lives on md0 at
+  `/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/`.
+- Frigate/CCTV recordings target md0 at
+  `/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/CCTV/`.
+- OMV exports NFS paths for Proxmox backups, HA backups, docker-host backups,
+  config backups, Immich DB backups, Immich media, and CCTV.
+- Home Assistant has an active Supervisor backup mount `nas_backups` pointing at
+  `192.168.40.50:/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/home-assistant`;
+  manual backup `manual-nfs-md0-test-20260626` (`8294da47.tar`, 69 MiB) wrote
+  successfully to OMV.
+- Proxmox storage `omv-backups` uses NFSv3 to
+  `/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/proxmox`.
 - Daily jobs cover VMs 100/102/103 at 02:00 and CTs 111/114 at 04:00, snapshot
-  mode, ZSTD and `keep-last=7`.
+  mode, ZSTD, `keep-daily=7`, and `keep-monthly=6`.
+- A manual VM 102 backup to `omv-backups` completed on 2026-06-26.
 - Fresh VM 102 and CT 114 archives passed `zstd -t` on 2026-06-22. VM 102 also
   passed an isolated no-NIC restore/boot/guest-agent drill under temporary ID
   9102, which was purged after validation.
@@ -126,7 +139,7 @@ registry mirror and Node-RED remain decision-gated candidates.
 ## Rollback and backup warning
 
 Migration snapshots named `pre-lxc-migration-20260620` exist for retired VM 101
-and VM 104. Daily Proxmox jobs now retain seven generations on
-`smb-backup-new`; projected retention fits, while the backing filesystem's
-87.34% utilization remains a high-water warning. Consult
+and VM 104. Daily Proxmox jobs now retain 7 daily and 6 monthly generations on
+`omv-backups`; projected retention fits after the planned md0 cleanup, while
+the current high utilization remains a warning. Consult
 `scripts/backup/backup_strategy.md`.

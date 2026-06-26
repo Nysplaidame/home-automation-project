@@ -10,7 +10,7 @@ Group=transferportal
 EnvironmentFile=-/etc/transferportal/transferportal.env
 Environment=TRANSFERPORTAL_CONFIG=/etc/transferportal/config.yaml
 WorkingDirectory=/opt/transferportal
-ExecStart=/opt/transferportal/venv/bin/uvicorn transferportal.app:create_app --factory --host 192.168.10.147 --port 8088
+ExecStart=/opt/transferportal/venv/bin/uvicorn transferportal.app:create_app --factory --host 192.168.40.50 --port 8088
 Restart=on-failure
 RestartSec=5
 NoNewPrivileges=false

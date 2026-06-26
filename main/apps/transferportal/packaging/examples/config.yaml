@@ -1,4 +1,4 @@
-bind_host: 192.168.10.147
+bind_host: 192.168.40.50
 bind_port: 8088
 database_path: /var/lib/transferportal/jobs.sqlite
 log_dir: /var/log/transferportal
@@ -19,4 +19,3 @@ blocked_paths:
 max_active_jobs: 1
 session_secret_file: /etc/transferportal/session.secret
 portals: []
-

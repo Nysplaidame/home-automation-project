@@ -53,7 +53,7 @@ Test-Tcp "MQTT TLS" "192.168.20.101" 8883
 Test-Http "Grafana" "http://192.168.60.10:3000/api/health"
 Test-Http "Uptime Kuma" "http://192.168.60.10:3001"
 Test-Http "llama.cpp" "http://192.168.20.104:8081/v1/models"
-Test-Tcp "OMV backup SMB" "192.168.10.147" 445
+Test-Tcp "OMV backup NFS" "192.168.40.50" 2049
 
 if ($Full) {
     Test-Http "Frigate UI" "http://192.168.30.20:8971"

@@ -21,7 +21,7 @@ DEFAULT_BLOCKED_PATHS = (
 
 @dataclass(frozen=True)
 class AppConfig:
-    bind_host: str = "192.168.10.147"
+    bind_host: str = "192.168.40.50"
     bind_port: int = 8088
     database_path: Path = Path("/var/lib/transferportal/jobs.sqlite")
     log_dir: Path = Path("/var/log/transferportal")
@@ -72,4 +72,3 @@ def load_config(path: str | Path = "/etc/transferportal/config.yaml") -> AppConf
     )
     values["blocked_paths"] = _paths(raw.get("blocked_paths"), AppConfig().blocked_paths)
     return AppConfig(**values)
-
