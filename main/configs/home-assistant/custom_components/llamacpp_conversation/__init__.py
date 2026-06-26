@@ -60,6 +60,14 @@ RECIPE_RE = re.compile(
     r"mealie|mealy|melee|lentil|soup|serving|servings)\b",
     re.IGNORECASE,
 )
+RECIPE_INGREDIENTS_RE = re.compile(
+    r"\b(ingredient|ingredients|shopping|need)\b",
+    re.IGNORECASE,
+)
+RECIPE_STEPS_RE = re.compile(
+    r"\b(step|steps|method|instruction|instructions|make|cook|prepare)\b",
+    re.IGNORECASE,
+)
 WEB_RE = re.compile(
     r"\b(search|web|internet|online|latest|news|current|look up|find me)\b",
     re.IGNORECASE,
@@ -158,7 +166,11 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
             return err.as_conversation_result()
 
         try:
-            await self._async_handle_chat_log(user_input.agent_id, chat_log)
+            await self._async_handle_chat_log(
+                user_input.agent_id,
+                chat_log,
+                user_input.text,
+            )
         except HomeAssistantError as err:
             _LOGGER.warning("llama.cpp conversation failed: %s", err)
             chat_log.async_add_assistant_content_without_tools(
@@ -177,6 +189,7 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
         self,
         agent_id: str,
         chat_log: conversation.ChatLog,
+        user_text: str,
     ) -> None:
         """Send the chat log to llama.cpp and execute requested HA tools."""
         session = async_get_clientsession(self.hass)
@@ -201,7 +214,19 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
                 async for _tool_result in chat_log.async_add_assistant_content(
                     assistant_content
                 ):
-                    pass
+                    direct_answer = _maybe_direct_recipe_answer(user_text, _tool_result)
+                    if direct_answer:
+                        chat_log.async_add_assistant_content_without_tools(
+                            conversation.AssistantContent(
+                                agent_id=agent_id,
+                                content=_normalize_assistant_text(direct_answer),
+                                native={
+                                    "source": "mealie_tool_direct",
+                                    "tool_name": _tool_result.tool_name,
+                                },
+                            )
+                        )
+                        return
                 continue
 
             if isinstance(content, str) and content.strip():
@@ -470,6 +495,65 @@ def _naturalize_tool_result_response(
         return "Done."
 
     return content
+
+
+def _maybe_direct_recipe_answer(user_text: str, tool_result_content: Any) -> str | None:
+    """Format Mealie recipe details directly instead of re-querying the LLM."""
+    if getattr(tool_result_content, "role", None) != "tool_result":
+        return None
+
+    tool_name = getattr(tool_result_content, "tool_name", None)
+    if not isinstance(tool_name, str) or "get_saved_recipe" not in tool_name:
+        return None
+
+    tool_result = getattr(tool_result_content, "tool_result", None)
+    if not isinstance(tool_result, dict) or not tool_result.get("success"):
+        return None
+
+    recipe = tool_result.get("recipe")
+    if not isinstance(recipe, dict):
+        return None
+
+    recipe_name = str(recipe.get("name") or "the recipe").strip() or "the recipe"
+    if RECIPE_STEPS_RE.search(user_text):
+        steps = _extract_recipe_steps(recipe)
+        if steps:
+            return f"The steps for {recipe_name} are:\n" + "\n".join(
+                f"{index}. {step}" for index, step in enumerate(steps, start=1)
+            )
+
+    if RECIPE_INGREDIENTS_RE.search(user_text):
+        ingredients = _extract_recipe_ingredients(recipe)
+        if ingredients:
+            return f"The ingredients for {recipe_name} are:\n" + "\n".join(
+                f"- {ingredient}" for ingredient in ingredients
+            )
+
+    return None
+
+
+def _extract_recipe_steps(recipe: dict[str, Any]) -> list[str]:
+    """Extract spoken recipe step text from a Mealie tool result."""
+    steps = []
+    for item in recipe.get("steps") or []:
+        if isinstance(item, dict):
+            candidate = item.get("text") or item.get("summary") or item.get("title")
+        else:
+            candidate = item
+        text = str(candidate or "").strip()
+        if text:
+            steps.append(text)
+    return steps
+
+
+def _extract_recipe_ingredients(recipe: dict[str, Any]) -> list[str]:
+    """Extract spoken ingredient text from a Mealie tool result."""
+    ingredients = []
+    for item in recipe.get("ingredients") or []:
+        text = str(item or "").strip()
+        if text:
+            ingredients.append(text)
+    return ingredients
 
 
 def _extract_tool_speech(tool_result: dict[str, Any]) -> str | None:
