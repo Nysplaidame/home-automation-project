@@ -31,7 +31,7 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 | HA VM | ✅ Live | HAOS VM 100 at 192.168.20.101, VentSys packages staged |
 | Frigate | ✅ LXC baseline live | CT 111 runs Frigate 0.17.1 with shared-iGPU OpenVINO; cameras and MQTT remain deliberately disabled |
 | Docker host | ✅ Live | VM 103 on VLAN 20 with a 64 GiB disk; Mealie, Grocy and Obsidian LiveSync join the existing internal services |
-| Local AI | ✅ LXC + HA Assist live | CT 114 runs GPU-backed Ollama, Open WebUI, Whisper, Piper and OpenWakeWord; Overwatch web search is live |
+| Local AI | ✅ LXC + local inference live | CT 114 runs GPU-backed llama.cpp, Open WebUI, Whisper, Piper and OpenWakeWord; Ollama is stopped as rollback while HA Assist migration is finalized |
 | OMV NAS | ⏳ Planned | OpenMediaVault at 192.168.40.50 on VLAN 40; hardware/storage needed |
 | Remote access | ✅ Live | Tailscale daily access via docker-host host routes; WireGuard kept dormant as fallback |
 | VentSys dashboard | ✅ Written / staged | dashboards/ventsys-dashboard.html with full HA integration layer; entities remain hardware-dependent |
@@ -106,7 +106,7 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 - Monitoring VM 102 is live at 192.168.60.10 with Uptime Kuma, InfluxDB, Grafana, and Telegraf
 - Grafana dashboards cover home automation baseline, Proxmox/docker-host resources, service availability, DNS, and security posture
 - Docker-host Telegraf and lightweight Uptime Kuma/Fail2ban exporters feed InfluxDB buckets for architecture dashboards
-- CT 114 local AI checks are live in Uptime Kuma for Ollama, Open WebUI,
+- CT 114 local AI checks are live in Uptime Kuma for llama.cpp, Open WebUI,
   Wyoming Piper, and Wyoming Whisper; the Kuma-to-Influx export path includes
   the new monitors.
 - Home Assistant monitoring uses direct Grafana/Kuma links for now; embedding remains parked until same-origin HTTPS/reverse proxy is deliberate
@@ -119,10 +119,10 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
   until explicitly revalidated.
 
 ### Local AI / voice (VLAN 20)
-- CT 114 `llm-host` at 192.168.20.104 runs Ollama, Open WebUI, Wyoming
+- CT 114 `llm-host` at 192.168.20.104 runs llama.cpp, Open WebUI, Wyoming
   Whisper, Piper and OpenWakeWord.
-- Ollama uses Vulkan on the shared Intel iGPU and has demonstrated full 33/33
-  model-layer offload while Frigate uses the same GPU.
+- llama.cpp uses Vulkan on the shared Intel iGPU and serves
+  `home-assistant-llm` on `192.168.20.104:8081/v1`.
 - Home and Overwatch Assist pipelines are live. Overwatch can call the bounded
   read-only SearXNG search API.
 - Mealie is live for recipes and meal planning; Overwatch recipe saving is not yet implemented.

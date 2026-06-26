@@ -3,7 +3,7 @@ title: Current Live State
 description: Canonical inventory of deployed hosts, services, and deliberately deferred components
 tags: [reference, current-state, infrastructure]
 created: 2026-06-20
-modified: 2026-06-22
+modified: 2026-06-26
 type: reference
 status: active
 ---
@@ -13,7 +13,7 @@ status: active
 This is the canonical current-state inventory. Rebuild manuals describe how to
 build from blank and must link here rather than duplicating live-status claims.
 
-Last verified: **2026-06-22**.
+Last verified: **2026-06-26**.
 
 ## Compute
 
@@ -25,7 +25,7 @@ Last verified: **2026-06-22**.
 | 103 | QEMU VM | docker-host | `192.168.20.102` | Live | Trusted Compose workloads and Tailscale routing |
 | 104 | QEMU VM | llm-host | offline | Rollback only | Pre-LXC snapshot; `onboot=0` |
 | 111 | unprivileged LXC | frigate-nvr | `192.168.30.20` | Live baseline | Frigate 0.17.1, OpenVINO and VA-API on shared iGPU |
-| 114 | unprivileged LXC | llm-host | `192.168.20.104` | Live | Ollama, Open WebUI and Wyoming voice services on shared iGPU |
+| 114 | unprivileged LXC | llm-host | `192.168.20.104` | Live | llama.cpp, Open WebUI and Wyoming voice services on shared iGPU; Ollama stopped as rollback |
 
 VM 101 and VM 104 are retained temporarily as rollback points. Production DNS
 and static addresses belong to CT 111 and CT 114. Never start either retired VM
@@ -60,12 +60,17 @@ while its replacement LXC is running.
 
 ## Local AI
 
-- CT 114 runs Ollama, Open WebUI, Wyoming Whisper, Piper and OpenWakeWord.
-- Ollama Vulkan identifies Intel Meteor Lake graphics and offloads 33/33 model
-  layers to the iGPU.
+- CT 114 runs llama.cpp `server-vulkan`, Open WebUI, Wyoming Whisper, Piper and
+  OpenWakeWord; Ollama remains installed but stopped as rollback.
+- llama.cpp serves `home-assistant-llm` from the reused local GGUF at
+  `192.168.20.104:8081/v1`; the container reports Vulkan on Intel Meteor Lake
+  graphics and responds to OpenAI-compatible chat completions.
+- Live llama.cpp image digest:
+  `ghcr.io/ggml-org/llama.cpp@sha256:4e784358f638549d95bd22fb814c1afeed1af71fbd4b70c25f23eae01caaa6af`.
 - Whisper starts offline from persistent model/tokenizer data.
-- HA can reach ports 11434, 10200, 10300 and 10400 through source-scoped host
-  and Docker firewall policy.
+- HA can reach ports 8081, 11434, 10200, 10300 and 10400 through source-scoped
+  host and Docker firewall policy, but native HA Assist still requires an
+  explicit migration away from the Ollama integration before Ollama is removed.
 - SearXNG web search is reachable at docker-host port 8087.
 
 ## Docker host

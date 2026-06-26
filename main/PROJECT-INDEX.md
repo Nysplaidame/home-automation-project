@@ -36,7 +36,7 @@ status: active
 | Wiring reference | ✅ Written |
 | Physical deployment | ✅ Router, Proxmox trunk, HAOS, and docker-host live |
 | Docker-host service templates | ✅ Written for live VM 103 stacks and host firewall |
-| Local AI / voice inference | ✅ CT 114 live with shared-iGPU Ollama and HA voice/search |
+| Local AI / voice inference | ✅ CT 114 live with shared-iGPU llama.cpp and HA voice/search migration pending |
 | Hardware procurement (sensors/cameras/NAS) | ⏳ Pending |
 
 ---
@@ -62,7 +62,7 @@ status: active
 - [[configs/frigate/system/frigate-nvr-fail2ban-sshd.local]] — CT 111 Fail2ban SSH jail baseline
 
 ### Local AI
-- [[configs/local-ai/docker-compose.yml]] — CT 114 Ollama, Open WebUI and Wyoming services
+- [[configs/local-ai/docker-compose.yml]] — CT 114 llama.cpp, Ollama rollback, Open WebUI and Wyoming services
 
 ### Docker Host
 - [[configs/docker-host/README.md]] — rebuildable source templates for VM 103 Compose stacks and host firewall

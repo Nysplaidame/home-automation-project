@@ -48,7 +48,40 @@ Record:
 - VM 100/101/102/103/104 memory allocation
 - whether HA, DNS, monitoring, and docker-host are responsive
 
-## Phase 2 - 4k LLM test
+## Phase 2 - 4k llama.cpp LLM test
+
+Run on: llm-host over SSH.
+
+```bash
+free -h
+docker stats --no-stream
+time curl -s http://127.0.0.1:8081/v1/chat/completions \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer sk-no-key-required' \
+  -d '{
+    "model": "home-assistant-llm",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Summarise the current local AI architecture in three short bullets."
+      }
+    ],
+    "max_tokens": 256,
+    "stream": false
+  }' >/tmp/llama-cpp-4k-test.json
+free -h
+```
+
+Run on: Proxmox host shell.
+
+```bash
+free -h
+swapon --show
+```
+
+Pass condition: no meaningful host swap growth and HA remains responsive.
+
+## Phase 3 - Ollama rollback comparison
 
 Run on: llm-host over SSH.
 
@@ -77,11 +110,32 @@ swapon --show
 
 Pass condition: no meaningful host swap growth and HA remains responsive.
 
-## Phase 3 - 8k context trial
+## Phase 4 - 8k context trial
 
 Only run this after the 4k test passes comfortably.
 
 Run on: llm-host over SSH.
+
+```bash
+time curl -s http://127.0.0.1:8081/v1/chat/completions \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer sk-no-key-required' \
+  -d '{
+    "model": "home-assistant-llm",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Write a concise operational checklist for testing Home Assistant voice commands safely."
+      }
+    ],
+    "max_tokens": 512,
+    "stream": false
+  }' >/tmp/llama-cpp-8k-test.json
+docker stats --no-stream
+free -h
+```
+
+Ollama comparison, if the rollback runtime is still present:
 
 ```bash
 time curl -s http://127.0.0.1:11434/api/generate \
@@ -101,7 +155,7 @@ free -h
 Pass condition: keep 8k only if CT 114 and the Proxmox host both retain healthy
 available memory. Otherwise keep the default alias at 4k.
 
-## Phase 4 - Voice pipeline test
+## Phase 5 - Voice pipeline test
 
 Run on: Home Assistant UI.
 
@@ -122,7 +176,7 @@ journalctl -u docker --since "10 minutes ago" --no-pager | tail -100
 Pass condition: voice completes without disrupting HA UI, MQTT, DNS, or
 monitoring.
 
-## Phase 5 - Normal workload concurrency
+## Phase 6 - Normal workload concurrency
 
 Run the same 4k LLM and voice tests while normal services are active:
 
@@ -135,7 +189,7 @@ Repeat this phase after cameras and Frigate inference are live. If Frigate or
 HA performance degrades, reduce local AI model/context before reducing camera
 or safety-system reliability.
 
-## Phase 6 - Upgrade test after 64 GB RAM
+## Phase 7 - Upgrade test after 64 GB RAM
 
 After the Proxmox host is upgraded to 64 GB:
 
@@ -149,6 +203,7 @@ After the Proxmox host is upgraded to 64 GB:
 
 Add Uptime Kuma checks for:
 
+- llama.cpp OpenAI-compatible API on `192.168.20.104:8081/v1/models`
 - Ollama API on `192.168.20.104:11434`
 - Open WebUI on `192.168.20.104:3002`
 - Piper on `192.168.20.104:10200`

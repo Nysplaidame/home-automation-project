@@ -3,6 +3,36 @@
 # Deploy to: /opt/stacks/local-ai/docker-compose.yml
 
 services:
+  llama-cpp:
+    image: ghcr.io/ggml-org/llama.cpp:server-vulkan
+    container_name: llama-cpp
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./models:/models:ro
+    devices:
+      - /dev/dri/renderD128:/dev/dri/renderD128
+      - /dev/dri/card1:/dev/dri/card1
+    command:
+      - --model
+      - /models/home-assistant-llm.gguf
+      - --alias
+      - home-assistant-llm
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --ctx-size
+      - "8192"
+      - --threads
+      - "4"
+      - --parallel
+      - "1"
+      - --n-gpu-layers
+      - "99"
+      - --jinja
+
   ollama:
     image: ollama/ollama:latest
     container_name: ollama
@@ -27,11 +57,13 @@ services:
     container_name: open-webui
     restart: unless-stopped
     depends_on:
-      - ollama
+      - llama-cpp
     ports:
       - "3002:8080"
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
+      - OPENAI_API_BASE_URL=http://llama-cpp:8080/v1
+      - OPENAI_API_KEY=sk-no-key-required
       - ENABLE_RAG_WEB_SEARCH=true
       - RAG_WEB_SEARCH_ENGINE=searxng
       - SEARXNG_QUERY_URL=http://192.168.20.102:8087/search?q=<query>&format=json

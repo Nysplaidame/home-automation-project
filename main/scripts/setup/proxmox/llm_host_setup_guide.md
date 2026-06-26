@@ -20,6 +20,7 @@ GPU mapping from `igpu_passthrough_guide.md`, then deploy
 
 Persistent directories:
 
+- `models/`
 - `ollama/`
 - `open-webui/`
 - `whisper/`
@@ -36,10 +37,32 @@ cd /opt/stacks/local-ai
 docker compose config -q
 docker compose up -d
 docker ps
-docker logs ollama 2>&1 | grep -E 'Vulkan|offloaded [0-9]+/[0-9]+ layers'
+curl -fsS http://127.0.0.1:8081/v1/models
+docker logs llama-cpp 2>&1 | grep -E 'Vulkan|model loaded|server is listening'
 docker logs wyoming-whisper 2>&1 | grep Ready
-curl -fsS http://127.0.0.1:11434/api/tags
 curl -fsS http://127.0.0.1:3002/ >/dev/null
+```
+
+## llama.cpp migration notes
+
+`llama-cpp` is the preferred unattended inference runtime for CT 114. It serves
+the local GGUF model on `8081/tcp` and exposes an OpenAI-compatible local API at
+`http://192.168.20.104:8081/v1`. This does not require an OpenAI subscription;
+the phrase only describes the HTTP API shape that Open WebUI understands.
+
+Open WebUI should keep Ollama configured only while Home Assistant Assist still
+depends on the native Ollama integration. Add the llama.cpp connection in Open
+WebUI as:
+
+- URL: `http://llama-cpp:8080/v1` from inside the Compose network, or
+  `http://192.168.20.104:8081/v1` from outside CT 114.
+- API key: `sk-no-key-required`.
+- Provider: `llama.cpp`, when the UI offers a provider selector.
+
+The production GGUF should be present as:
+
+```bash
+/opt/stacks/local-ai/models/home-assistant-llm.gguf
 ```
 
 Host UFW and `DOCKER-USER` policy must both restrict published ports. Include

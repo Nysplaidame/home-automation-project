@@ -1,9 +1,9 @@
 ---
 title: Phase 05A - Local AI Inference
-description: llm-host LXC for shared-iGPU Ollama, Open WebUI, and Home Assistant voice inference
+description: llm-host LXC for shared-iGPU llama.cpp, Open WebUI, and Home Assistant voice inference
 tags: [install, local-ai, llm, voice, home-assistant]
 created: 2026-06-15
-modified: 2026-06-20
+modified: 2026-06-26
 type: install-guide
 status: active
 ---
@@ -33,7 +33,7 @@ setup.
 
 ## Inputs
 
-- `<7B_OR_8B_Q4_MODEL>`
+- `<7B_OR_8B_Q4_GGUF_MODEL>`
 - chosen Piper voice
 - Home Assistant admin access
 
@@ -54,11 +54,14 @@ docker compose ps
 
 Run on: Home Assistant UI.
 
-1. Add Ollama at `http://192.168.20.104:11434`.
+1. Add the llama.cpp/OpenAI-compatible backend at `http://192.168.20.104:8081/v1`
+   where the client supports OpenAI-compatible local endpoints.
 2. Add Wyoming Piper at `192.168.20.104:10200`.
 3. Add Wyoming Whisper at `192.168.20.104:10300`.
 4. Add Wyoming OpenWakeWord at `192.168.20.104:10400`.
-5. Create a local Assist pipeline for non-critical testing.
+5. If Home Assistant still requires its native Ollama integration, keep Ollama
+   installed as rollback and treat Assist migration as a separate validation
+   gate.
 
 ## Explanation
 
@@ -69,9 +72,10 @@ The first AI phase is sized for the current 32 GB MINISFORUM host:
 - Context starts at 4k.
 - 8k context and 14B models are gated by performance tests.
 
-Keep the model alias `home-assistant-llm` stable. Home Assistant should point
-to that alias rather than a specific model name so the later 64 GB upgrade can
-retarget the alias without reworking HA configuration.
+Keep the model alias `home-assistant-llm` stable. Open WebUI and any
+OpenAI-compatible clients should point to that alias rather than a specific
+model filename so the later 64 GB upgrade can retarget the alias without
+reworking client configuration.
 
 VM 103 remains the expected host for future containerized query apps, but this
 phase does not define any future app-specific ports, APIs, schemas, MCP
@@ -80,9 +84,10 @@ contracts, or firewall rules.
 ## Expected result
 
 - CT 114 is reachable at `192.168.20.104`.
-- Ollama, Open WebUI, Wyoming Whisper, Piper and OpenWakeWord containers run.
-- `home-assistant-llm` responds through Ollama.
-- Home Assistant can reach the Ollama and Wyoming integrations.
+- llama.cpp, Open WebUI, Wyoming Whisper, Piper and OpenWakeWord containers run.
+- `home-assistant-llm` responds through llama.cpp on `8081`.
+- Home Assistant can reach the llama.cpp and Wyoming endpoints; any remaining
+  native Ollama dependency is explicitly recorded as a rollback/migration gap.
 - No host swap occurs during the initial AI performance tests.
 
 ## Validation
@@ -91,6 +96,7 @@ Run on: Admin laptop.
 
 ```powershell
 Test-NetConnection 192.168.20.104 -Port 11434
+Test-NetConnection 192.168.20.104 -Port 8081
 Test-NetConnection 192.168.20.104 -Port 3002
 Test-NetConnection 192.168.20.104 -Port 10200
 Test-NetConnection 192.168.20.104 -Port 10300
@@ -100,7 +106,7 @@ Run on: llm-host over SSH.
 
 ```sh
 docker compose -f /opt/stacks/local-ai/docker-compose.yml ps
-curl -s http://127.0.0.1:11434/api/tags
+curl -s http://127.0.0.1:8081/v1/models
 free -h
 ```
 
@@ -123,9 +129,9 @@ Then run:
 
 - [x] CT 114 created and documented in Proxmox reference.
 - [x] DNS aliases created for `llm-host`, `ollama`, and `openwebui`.
-- [x] Ollama and Open WebUI running.
+- [x] llama.cpp and Open WebUI running; Ollama retained stopped as rollback.
 - [x] Wyoming Whisper, Piper and OpenWakeWord running.
-- [x] HA Ollama integration connects.
+- [ ] HA Assist migrated away from native Ollama dependency.
 - [x] HA Wyoming integrations connect.
 - [x] Home and Overwatch Assist commands validated.
 - [x] Vulkan GPU offload and concurrent Frigate use validated.
