@@ -39,17 +39,35 @@ CONF_TEMPERATURE = "temperature"
 
 DEFAULT_NAME = "Llama.cpp Conversation"
 DEFAULT_TIMEOUT = 120
-DEFAULT_MAX_HISTORY = 20
-DEFAULT_MAX_TOKENS = 512
-DEFAULT_TEMPERATURE = 0.2
+DEFAULT_MAX_HISTORY = 8
+DEFAULT_MAX_TOKENS = 256
+DEFAULT_TEMPERATURE = 0.1
 MAX_TOOL_ITERATIONS = 10
 RAW_TOOL_EXPLANATION_RE = re.compile(
     r"\b(json object|speech field|response_type|action_done|data field)\b",
     re.IGNORECASE,
 )
-DIRECT_RESPONSE_RE = re.compile(
-    r"^\s*(reply|respond|say|repeat|read|tell me|answer)\s+"
-    r"(exactly|verbatim|with|the following|this)?\b",
+EXACT_RESPONSE_RE = re.compile(
+    r"^\s*(reply|respond|answer)\s+(exactly|verbatim)\b",
+    re.IGNORECASE,
+)
+SAY_RESPONSE_RE = re.compile(
+    r"^\s*(say|repeat|read)\b",
+    re.IGNORECASE,
+)
+RECIPE_RE = re.compile(
+    r"\b(recipe|recipes|ingredient|ingredients|step|steps|method|cook|cooking|"
+    r"mealie|mealy|melee|lentil|soup|serving|servings)\b",
+    re.IGNORECASE,
+)
+WEB_RE = re.compile(
+    r"\b(search|web|internet|online|latest|news|current|look up|find me)\b",
+    re.IGNORECASE,
+)
+ASSIST_RE = re.compile(
+    r"\b(turn|switch|set|open|close|lock|unlock|start|stop|cancel|pause|resume|"
+    r"increase|decrease|dim|brighten|fan|light|timer|scene|script|broadcast|"
+    r"add .+ list|remove .+ list)\b",
     re.IGNORECASE,
 )
 BULLET_RE = re.compile(r"^(\s*(?:[-*•]|\d+[.)])\s+)(\S.*?)(\s*)$")
@@ -123,9 +141,11 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
         chat_log: conversation.ChatLog,
     ) -> conversation.ConversationResult:
         """Process a conversation turn through llama.cpp."""
-        llm_hass_api = self._settings.get(CONF_LLM_HASS_API)
-        if _is_direct_response_request(user_input.text):
-            llm_hass_api = None
+        llm_hass_api = _select_llm_hass_api(
+            user_input.text,
+            self._settings.get(CONF_LLM_HASS_API),
+        )
+        _LOGGER.debug("Selected LLM API set for utterance: %s", llm_hass_api)
 
         try:
             await chat_log.async_provide_llm_data(
@@ -137,7 +157,20 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
         except conversation.ConverseError as err:
             return err.as_conversation_result()
 
-        await self._async_handle_chat_log(user_input.agent_id, chat_log)
+        try:
+            await self._async_handle_chat_log(user_input.agent_id, chat_log)
+        except HomeAssistantError as err:
+            _LOGGER.warning("llama.cpp conversation failed: %s", err)
+            chat_log.async_add_assistant_content_without_tools(
+                conversation.AssistantContent(
+                    agent_id=user_input.agent_id,
+                    content=(
+                        "I could not complete that request. The local assistant "
+                        "hit an error before it could respond."
+                    ),
+                )
+            )
+
         return conversation.async_get_result_from_chat_log(user_input, chat_log)
 
     async def _async_handle_chat_log(
@@ -352,9 +385,52 @@ def _trim_messages(
     return messages[-max_history:]
 
 
+def _select_llm_hass_api(
+    text: str,
+    configured_apis: str | list[str] | None,
+) -> str | list[str] | None:
+    """Select the smallest useful tool set for the user's utterance."""
+    configured = _configured_api_set(configured_apis)
+    if not configured:
+        return None
+
+    if RECIPE_RE.search(text):
+        return _selected_apis(configured, ["mealie_recipes"])
+
+    if WEB_RE.search(text):
+        return _selected_apis(configured, ["searxng_search"])
+
+    if ASSIST_RE.search(text):
+        return _selected_apis(configured, ["assist"])
+
+    if _is_direct_response_request(text):
+        return None
+
+    return None
+
+
+def _configured_api_set(configured_apis: str | list[str] | None) -> set[str]:
+    """Return configured API ids as a set."""
+    if configured_apis is None:
+        return set()
+    if isinstance(configured_apis, str):
+        return {configured_apis}
+    return set(configured_apis)
+
+
+def _selected_apis(configured: set[str], candidates: list[str]) -> str | list[str] | None:
+    """Return configured API ids from a candidate list."""
+    selected = [api for api in candidates if api in configured]
+    if not selected:
+        return None
+    if len(selected) == 1:
+        return selected[0]
+    return selected
+
+
 def _is_direct_response_request(text: str) -> bool:
-    """Return true when the user is asking for speech/text, not HA control."""
-    return bool(DIRECT_RESPONSE_RE.match(text))
+    """Return true when the user is asking for text, not tools."""
+    return bool(EXACT_RESPONSE_RE.match(text) or SAY_RESPONSE_RE.match(text))
 
 
 def _naturalize_tool_result_response(
@@ -439,11 +515,21 @@ def _extract_entity_names(value: Any) -> list[str]:
 
 def _normalize_assistant_text(content: str) -> str:
     """Normalize response text for speech readability."""
+    content = _strip_wrapping_quotes(content.strip())
     lines = content.splitlines()
     normalized = []
     for line in lines:
         normalized.append(_normalize_bullet_line(line))
     return "\n".join(normalized).strip()
+
+
+def _strip_wrapping_quotes(content: str) -> str:
+    """Remove one pair of whole-response wrapping quotes."""
+    if len(content) < 2:
+        return content
+    if content[0] == content[-1] and content[0] in {'"', "'"}:
+        return content[1:-1].strip()
+    return content
 
 
 def _normalize_bullet_line(line: str) -> str:
