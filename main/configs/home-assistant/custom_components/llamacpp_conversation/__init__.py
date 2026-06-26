@@ -68,6 +68,14 @@ RECIPE_STEPS_RE = re.compile(
     r"\b(step|steps|method|instruction|instructions|make|cook|prepare)\b",
     re.IGNORECASE,
 )
+RECIPE_REPEAT_STEPS_RE = re.compile(
+    r"\b(?:repeat|read|redo|re-?do|re-?dote)\b.*\b(?:all\s+)?steps?\b",
+    re.IGNORECASE,
+)
+RECIPE_STEP_NUMBER_RE = re.compile(
+    r"\bstep\s+(?P<number>one|two|three|four|five|six|seven|eight|nine|ten|\d+)\b",
+    re.IGNORECASE,
+)
 WEB_RE = re.compile(
     r"\b(search|web|internet|online|latest|news|current|look up|find me)\b",
     re.IGNORECASE,
@@ -192,6 +200,20 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
         user_text: str,
     ) -> None:
         """Send the chat log to llama.cpp and execute requested HA tools."""
+        direct_history_answer = _maybe_direct_recipe_history_answer(
+            user_text,
+            chat_log,
+        )
+        if direct_history_answer:
+            chat_log.async_add_assistant_content_without_tools(
+                conversation.AssistantContent(
+                    agent_id=agent_id,
+                    content=_normalize_assistant_text(direct_history_answer),
+                    native={"source": "mealie_history_direct"},
+                )
+            )
+            return
+
         session = async_get_clientsession(self.hass)
         for _ in range(MAX_TOOL_ITERATIONS):
             messages = _trim_messages(
@@ -532,6 +554,34 @@ def _maybe_direct_recipe_answer(user_text: str, tool_result_content: Any) -> str
     return None
 
 
+def _maybe_direct_recipe_history_answer(
+    user_text: str,
+    chat_log: conversation.ChatLog,
+) -> str | None:
+    """Answer recipe follow-ups from the latest Mealie result in chat history."""
+    recipe = _latest_recipe_from_history(chat_log)
+    if recipe is None:
+        return None
+
+    recipe_name = str(recipe.get("name") or "the recipe").strip() or "the recipe"
+    steps = _extract_recipe_steps(recipe)
+    if not steps:
+        return None
+
+    step_number = _requested_step_number(user_text)
+    if step_number is not None:
+        if 1 <= step_number <= len(steps):
+            return f"Step {step_number} for {recipe_name} is: {steps[step_number - 1]}"
+        return f"{recipe_name} only has {len(steps)} steps."
+
+    if RECIPE_REPEAT_STEPS_RE.search(user_text):
+        return f"The steps for {recipe_name} are:\n" + "\n".join(
+            f"{index}. {step}" for index, step in enumerate(steps, start=1)
+        )
+
+    return None
+
+
 def _extract_recipe_steps(recipe: dict[str, Any]) -> list[str]:
     """Extract spoken recipe step text from a Mealie tool result."""
     steps = []
@@ -554,6 +604,49 @@ def _extract_recipe_ingredients(recipe: dict[str, Any]) -> list[str]:
         if text:
             ingredients.append(text)
     return ingredients
+
+
+def _latest_recipe_from_history(
+    chat_log: conversation.ChatLog,
+) -> dict[str, Any] | None:
+    """Find the latest successful Mealie recipe result in the chat log."""
+    for item in reversed(chat_log.content):
+        if getattr(item, "role", None) != "tool_result":
+            continue
+        tool_name = getattr(item, "tool_name", None)
+        if not isinstance(tool_name, str) or "get_saved_recipe" not in tool_name:
+            continue
+        tool_result = getattr(item, "tool_result", None)
+        if not isinstance(tool_result, dict) or not tool_result.get("success"):
+            continue
+        recipe = tool_result.get("recipe")
+        if isinstance(recipe, dict):
+            return recipe
+    return None
+
+
+def _requested_step_number(user_text: str) -> int | None:
+    """Return requested recipe step number, if present."""
+    match = RECIPE_STEP_NUMBER_RE.search(user_text)
+    if match is None:
+        return None
+
+    value = match.group("number").lower()
+    words = {
+        "one": 1,
+        "two": 2,
+        "three": 3,
+        "four": 4,
+        "five": 5,
+        "six": 6,
+        "seven": 7,
+        "eight": 8,
+        "nine": 9,
+        "ten": 10,
+    }
+    if value in words:
+        return words[value]
+    return int(value)
 
 
 def _extract_tool_speech(tool_result: dict[str, Any]) -> str | None:
