@@ -76,6 +76,15 @@ RECIPE_STEP_NUMBER_RE = re.compile(
     r"\bstep\s+(?P<number>one|two|three|four|five|six|seven|eight|nine|ten|\d+)\b",
     re.IGNORECASE,
 )
+RECIPE_IMPORT_RE = re.compile(
+    r"(?:\b(send|save|add|import)\b.*\b(recipe|mealie|mealy|melee|merely)\b|"
+    r"\brecipe\b.*\b(mealie|mealy|melee|merely)\b)",
+    re.IGNORECASE,
+)
+ORDINAL_RE = re.compile(
+    r"\b(?P<ordinal>first|second|third|1st|2nd|3rd|one|two|three)\b",
+    re.IGNORECASE,
+)
 WEB_RE = re.compile(
     r"\b(search|web|internet|online|latest|news|current|look up|find me)\b",
     re.IGNORECASE,
@@ -212,6 +221,14 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
                     native={"source": "mealie_history_direct"},
                 )
             )
+            return
+
+        direct_import_done = await _async_maybe_direct_recipe_import(
+            agent_id,
+            user_text,
+            chat_log,
+        )
+        if direct_import_done:
             return
 
         session = async_get_clientsession(self.hass)
@@ -582,6 +599,75 @@ def _maybe_direct_recipe_history_answer(
     return None
 
 
+async def _async_maybe_direct_recipe_import(
+    agent_id: str,
+    user_text: str,
+    chat_log: conversation.ChatLog,
+) -> bool:
+    """Import a recipe URL selected from the latest web-search results."""
+    if not RECIPE_IMPORT_RE.search(user_text):
+        return False
+
+    result = _select_web_recipe_result(user_text, chat_log)
+    if result is None:
+        return False
+
+    url = result.get("url")
+    if not isinstance(url, str) or not url.startswith(("http://", "https://")):
+        return False
+
+    title = str(result.get("title") or "that recipe").strip() or "that recipe"
+    tool_input = llm.ToolInput(
+        tool_name="import_recipe_url",
+        tool_args={
+            "url": url,
+            "include_tags": True,
+            "include_categories": True,
+        },
+    )
+    assistant_content = conversation.AssistantContent(
+        agent_id=agent_id,
+        content=None,
+        tool_calls=[tool_input],
+        native={"source": "web_result_direct_import", "title": title, "url": url},
+    )
+
+    async for tool_result_content in chat_log.async_add_assistant_content(
+        assistant_content
+    ):
+        tool_result = getattr(tool_result_content, "tool_result", None)
+        if isinstance(tool_result, dict) and tool_result.get("success"):
+            recipe = tool_result.get("recipe")
+            imported_name = title
+            if isinstance(recipe, dict):
+                imported_name = str(recipe.get("name") or title)
+            chat_log.async_add_assistant_content_without_tools(
+                conversation.AssistantContent(
+                    agent_id=agent_id,
+                    content=f"Saved {imported_name} to Mealie.",
+                    native={
+                        "source": "web_result_direct_import",
+                        "tool_name": getattr(tool_result_content, "tool_name", None),
+                    },
+                )
+            )
+            return True
+
+        chat_log.async_add_assistant_content_without_tools(
+            conversation.AssistantContent(
+                agent_id=agent_id,
+                content=f"I tried to save {title} to Mealie, but the import failed.",
+                native={
+                    "source": "web_result_direct_import_failed",
+                    "tool_name": getattr(tool_result_content, "tool_name", None),
+                },
+            )
+        )
+        return True
+
+    return False
+
+
 def _extract_recipe_steps(recipe: dict[str, Any]) -> list[str]:
     """Extract spoken recipe step text from a Mealie tool result."""
     steps = []
@@ -622,6 +708,83 @@ def _latest_recipe_from_history(
         recipe = tool_result.get("recipe")
         if isinstance(recipe, dict):
             return recipe
+    return None
+
+
+def _select_web_recipe_result(
+    user_text: str,
+    chat_log: conversation.ChatLog,
+) -> dict[str, Any] | None:
+    """Select a recipe from the latest web search results."""
+    results = _latest_web_search_results(chat_log)
+    if not results:
+        return None
+
+    ordinal_index = _requested_ordinal_index(user_text)
+    if ordinal_index is not None and ordinal_index < len(results):
+        return results[ordinal_index]
+
+    lowered = user_text.lower()
+    if "bbc" in lowered:
+        return _first_result_matching(results, "bbc")
+    if "modern" in lowered:
+        return _first_result_matching(results, "modern")
+    if "pardon" in lowered or "french" in lowered:
+        return _first_result_matching(results, "pardon", "french")
+
+    if "this recipe" in lowered or "that recipe" in lowered:
+        return results[0]
+
+    return None
+
+
+def _latest_web_search_results(chat_log: conversation.ChatLog) -> list[dict[str, Any]]:
+    """Find the latest successful web-search result list in chat history."""
+    for item in reversed(chat_log.content):
+        if getattr(item, "role", None) != "tool_result":
+            continue
+        tool_name = getattr(item, "tool_name", None)
+        if not isinstance(tool_name, str) or "web_search" not in tool_name:
+            continue
+        tool_result = getattr(item, "tool_result", None)
+        if not isinstance(tool_result, dict) or not tool_result.get("success"):
+            continue
+        results = tool_result.get("results")
+        if isinstance(results, list):
+            return [result for result in results if isinstance(result, dict)]
+    return []
+
+
+def _requested_ordinal_index(user_text: str) -> int | None:
+    """Return requested zero-based ordinal index, if present."""
+    match = ORDINAL_RE.search(user_text)
+    if match is None:
+        return None
+
+    value = match.group("ordinal").lower()
+    ordinals = {
+        "first": 0,
+        "1st": 0,
+        "one": 0,
+        "second": 1,
+        "2nd": 1,
+        "two": 1,
+        "third": 2,
+        "3rd": 2,
+        "three": 2,
+    }
+    return ordinals[value]
+
+
+def _first_result_matching(
+    results: list[dict[str, Any]],
+    *needles: str,
+) -> dict[str, Any] | None:
+    """Return the first result whose title or URL contains any needle."""
+    for result in results:
+        haystack = f"{result.get('title', '')} {result.get('url', '')}".lower()
+        if any(needle in haystack for needle in needles):
+            return result
     return None
 
 
