@@ -54,14 +54,15 @@ docker compose ps
 
 Run on: Home Assistant UI.
 
-1. Add the llama.cpp/OpenAI-compatible backend at `http://192.168.20.104:8081/v1`
-   where the client supports OpenAI-compatible local endpoints.
+1. Deploy the repo `llamacpp_conversation` custom component and configure it
+   with the llama.cpp/OpenAI-compatible backend at
+   `http://192.168.20.104:8081/v1`.
 2. Add Wyoming Piper at `192.168.20.104:10200`.
 3. Add Wyoming Whisper at `192.168.20.104:10300`.
 4. Add Wyoming OpenWakeWord at `192.168.20.104:10400`.
-5. If Home Assistant still requires its native Ollama integration, keep Ollama
-   installed as rollback and treat Assist migration as a separate validation
-   gate.
+5. Point any local LLM Assist pipeline at `llamacpp_conversation`.
+6. Keep the native Ollama integration disabled and Ollama stopped unless
+   rollback is intentionally started.
 
 ## Explanation
 
@@ -86,8 +87,8 @@ contracts, or firewall rules.
 - CT 114 is reachable at `192.168.20.104`.
 - llama.cpp, Open WebUI, Wyoming Whisper, Piper and OpenWakeWord containers run.
 - `home-assistant-llm` responds through llama.cpp on `8081`.
-- Home Assistant can reach the llama.cpp and Wyoming endpoints; any remaining
-  native Ollama dependency is explicitly recorded as a rollback/migration gap.
+- Home Assistant can reach the llama.cpp and Wyoming endpoints; local LLM Assist
+  pipelines use `llamacpp_conversation` rather than the native Ollama integration.
 - No host swap occurs during the initial AI performance tests.
 
 ## Validation
@@ -131,7 +132,7 @@ Then run:
 - [x] DNS aliases created for `llm-host`, `ollama`, and `openwebui`.
 - [x] llama.cpp and Open WebUI running; Ollama retained stopped as rollback.
 - [x] Wyoming Whisper, Piper and OpenWakeWord running.
-- [ ] HA Assist migrated away from native Ollama dependency.
+- [x] HA Assist migrated away from native Ollama dependency.
 - [x] HA Wyoming integrations connect.
 - [x] Home Assist commands validated.
 - [ ] Overwatch Assist migrated and revalidated without native Ollama.

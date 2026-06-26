@@ -75,7 +75,7 @@ mealie_api_token: <MEALIE_API_TOKEN>
 
 Then add the `mealie_llm` block from `configs/home-assistant/configuration.yaml`
 to the live HA config, restart Home Assistant, and enable the `mealie_recipes`
-LLM API on the Ollama conversation agent.
+LLM API on the local llama.cpp conversation agent.
 
 Use `http://192.168.20.102:9925` in Home Assistant config so the tool does not
 depend on HA resolving the internal `mealie.home.local` hostname.

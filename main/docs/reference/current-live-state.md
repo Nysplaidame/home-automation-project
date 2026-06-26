@@ -37,12 +37,14 @@ while its replacement LXC is running.
 - Mosquitto, File Editor, Terminal & SSH and ESPHome Device Builder are live.
 - The Home Assist pipeline uses Home Assistant's built-in conversation agent and
   remains separated from Ollama.
-- The Overwatch Assist pipeline still points at
-  `conversation.ollama_conversation`; with Ollama stopped it is not certified
-  until its conversation engine is migrated.
-- The bounded read-only SearXNG search tool is installed for local LLM
-  conversation agents, but Overwatch use of that tool depends on the pending
-  conversation-engine migration.
+- The Overwatch Assist pipeline points at `llamacpp_conversation`, a local
+  Home Assistant custom conversation agent for llama.cpp's OpenAI-compatible API.
+  Ollama's HA config entry is disabled and the Ollama container remains stopped
+  as rollback.
+- The bounded read-only SearXNG search tool and Mealie recipe tools are enabled
+  for local LLM conversation agents through the `llamacpp_conversation` config.
+  A live Overwatch UI/voice prompt is still required before certifying the
+  conversational path end to end.
 - Mealie is live; Overwatch-to-Mealie recipe saving is not yet implemented.
 - VentSys dashboard is deployed; most physical VentSys entities remain gated on
   hardware installation.
@@ -75,8 +77,8 @@ while its replacement LXC is running.
   `ghcr.io/ggml-org/llama.cpp@sha256:4e784358f638549d95bd22fb814c1afeed1af71fbd4b70c25f23eae01caaa6af`.
 - Whisper starts offline from persistent model/tokenizer data.
 - HA can reach ports 8081, 11434, 10200, 10300 and 10400 through source-scoped
-  host and Docker firewall policy, but native HA Assist still requires an
-  explicit migration away from the Ollama integration before Ollama is removed.
+  host and Docker firewall policy. HA uses `192.168.20.104:8081/v1` for the
+  llama.cpp conversation agent; port 11434 is retained only for Ollama rollback.
 - SearXNG web search is reachable at docker-host port 8087.
 
 ## Docker host
@@ -117,7 +119,8 @@ registry mirror and Node-RED remain decision-gated candidates.
   acceptance testing.
 - P1S details and HA Bambuddy package deployment.
 - HA HTTPS/same-origin proxy for embedded monitoring views.
-- Overwatch-to-Mealie recipe ingestion and Grocy workflow/integration.
+- Overwatch-to-Mealie recipe ingestion live prompt validation and Grocy
+  workflow/integration.
 - Obsidian LiveSync client rollout; its Tailscale Serve HTTPS endpoint is live.
 
 ## Rollback and backup warning

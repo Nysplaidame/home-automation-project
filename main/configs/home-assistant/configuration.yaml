@@ -27,6 +27,28 @@ mealie_llm:
   result_count: 5
   timeout: 45
 
+# Local conversation agent backed by llama.cpp's OpenAI-compatible API.
+# This is local-network only; "OpenAI-compatible" describes the HTTP schema,
+# not a dependency on OpenAI cloud services or an OpenAI subscription.
+llamacpp_conversation:
+  url: http://192.168.20.104:8081/v1
+  model: home-assistant-llm
+  llm_hass_api:
+    - assist
+    - searxng_search
+    - mealie_recipes
+  max_history: 20
+  max_tokens: 512
+  temperature: 0.2
+  timeout: 120
+  prompt: |
+    You are the local Home Assistant voice assistant for this home.
+    Prefer concise, practical answers suitable for speech.
+    Use Home Assistant tools for home state or control instead of guessing.
+    Use web_search for current information and Mealie tools for saved recipes.
+    Ask a short clarification before taking ambiguous or potentially disruptive
+    control actions.
+
 # Export Home Assistant state history to the monitoring VM's InfluxDB bucket.
 influxdb:
   max_retries: 3

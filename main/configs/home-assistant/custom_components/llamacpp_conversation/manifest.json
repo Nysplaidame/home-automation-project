@@ -1,0 +1,10 @@
+{
+  "domain": "llamacpp_conversation",
+  "name": "llama.cpp Conversation",
+  "codeowners": [],
+  "dependencies": ["conversation"],
+  "documentation": "https://github.com/ggml-org/llama.cpp",
+  "integration_type": "service",
+  "iot_class": "local_push",
+  "version": "1.0.0"
+}
