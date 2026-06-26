@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from typing import Any, Literal
 
 import aiohttp
@@ -42,6 +43,17 @@ DEFAULT_MAX_HISTORY = 20
 DEFAULT_MAX_TOKENS = 512
 DEFAULT_TEMPERATURE = 0.2
 MAX_TOOL_ITERATIONS = 10
+RAW_TOOL_EXPLANATION_RE = re.compile(
+    r"\b(json object|speech field|response_type|action_done|data field)\b",
+    re.IGNORECASE,
+)
+DIRECT_RESPONSE_RE = re.compile(
+    r"^\s*(reply|respond|say|repeat|read|tell me|answer)\s+"
+    r"(exactly|verbatim|with|the following|this)?\b",
+    re.IGNORECASE,
+)
+BULLET_RE = re.compile(r"^(\s*(?:[-*•]|\d+[.)])\s+)(\S.*?)(\s*)$")
+TERMINAL_PUNCTUATION_RE = re.compile(r"[.!?][\"')\]]*$")
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -111,10 +123,14 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
         chat_log: conversation.ChatLog,
     ) -> conversation.ConversationResult:
         """Process a conversation turn through llama.cpp."""
+        llm_hass_api = self._settings.get(CONF_LLM_HASS_API)
+        if _is_direct_response_request(user_input.text):
+            llm_hass_api = None
+
         try:
             await chat_log.async_provide_llm_data(
                 user_input.as_llm_context(DOMAIN),
-                self._settings.get(CONF_LLM_HASS_API),
+                llm_hass_api,
                 self._settings.get(CONF_PROMPT),
                 user_input.extra_system_prompt,
             )
@@ -156,10 +172,13 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
                 continue
 
             if isinstance(content, str) and content.strip():
+                response_text = _normalize_assistant_text(
+                    _naturalize_tool_result_response(chat_log, content.strip())
+                )
                 chat_log.async_add_assistant_content_without_tools(
                     conversation.AssistantContent(
                         agent_id=agent_id,
-                        content=content.strip(),
+                        content=response_text,
                         native=message,
                     )
                 )
@@ -331,6 +350,115 @@ def _trim_messages(
         return [messages[0], *messages[-max_history:]]
 
     return messages[-max_history:]
+
+
+def _is_direct_response_request(text: str) -> bool:
+    """Return true when the user is asking for speech/text, not HA control."""
+    return bool(DIRECT_RESPONSE_RE.match(text))
+
+
+def _naturalize_tool_result_response(
+    chat_log: conversation.ChatLog,
+    content: str,
+) -> str:
+    """Replace raw tool-result explanations with a spoken action summary."""
+    if not RAW_TOOL_EXPLANATION_RE.search(content):
+        return content
+
+    tool_result = next(
+        (
+            item.tool_result
+            for item in reversed(chat_log.content)
+            if item.role == "tool_result"
+        ),
+        None,
+    )
+    if not isinstance(tool_result, dict):
+        return content
+
+    speech = _extract_tool_speech(tool_result)
+    if speech:
+        return speech
+
+    if tool_result.get("response_type") == "action_done":
+        data = tool_result.get("data")
+        if isinstance(data, dict):
+            failed = _extract_entity_names(data.get("failed"))
+            if failed:
+                return f"I tried, but {', '.join(failed)} failed."
+
+            successful = _extract_entity_names(data.get("success"))
+            if successful:
+                return f"Done. {', '.join(successful)} succeeded."
+
+        return "Done."
+
+    return content
+
+
+def _extract_tool_speech(tool_result: dict[str, Any]) -> str | None:
+    """Extract a normal speech string from a Home Assistant tool result."""
+    speech = tool_result.get("speech")
+    if isinstance(speech, str) and speech.strip():
+        return speech.strip()
+
+    if not isinstance(speech, dict):
+        return None
+
+    plain = speech.get("plain")
+    if isinstance(plain, dict):
+        plain_speech = plain.get("speech")
+        if isinstance(plain_speech, str) and plain_speech.strip():
+            return plain_speech.strip()
+
+    return None
+
+
+def _extract_entity_names(value: Any) -> list[str]:
+    """Extract friendly entity names from HA action result data."""
+    if value is None:
+        return []
+
+    items = value if isinstance(value, list) else [value]
+    names = []
+    for item in items:
+        if isinstance(item, str):
+            names.append(item)
+        elif isinstance(item, dict):
+            candidate = (
+                item.get("name")
+                or item.get("friendly_name")
+                or item.get("entity_name")
+                or item.get("entity_id")
+            )
+            if candidate:
+                names.append(str(candidate))
+
+    return names
+
+
+def _normalize_assistant_text(content: str) -> str:
+    """Normalize response text for speech readability."""
+    lines = content.splitlines()
+    normalized = []
+    for line in lines:
+        normalized.append(_normalize_bullet_line(line))
+    return "\n".join(normalized).strip()
+
+
+def _normalize_bullet_line(line: str) -> str:
+    """Ensure bullet list items end with a full stop for TTS pause cues."""
+    match = BULLET_RE.match(line)
+    if match is None:
+        return line
+
+    prefix, body, suffix = match.groups()
+    body = body.rstrip()
+    if TERMINAL_PUNCTUATION_RE.search(body):
+        return f"{prefix}{body}{suffix}"
+
+    body = body.rstrip(",;:")
+    return f"{prefix}{body}.{suffix}"
 
 
 def _json_dumps(value: Any) -> str:

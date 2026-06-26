@@ -4,6 +4,17 @@
 
 default_config:
 
+logger:
+  default: warning
+  logs:
+    custom_components.llamacpp_conversation: debug
+    homeassistant.components.assist_pipeline: debug
+    homeassistant.components.conversation: debug
+    homeassistant.components.stt: debug
+    homeassistant.components.tts: debug
+    homeassistant.components.wyoming: debug
+    homeassistant.helpers.intent: debug
+
 frontend:
   themes: !include_dir_merge_named themes
 
@@ -44,10 +55,17 @@ llamacpp_conversation:
   prompt: |
     You are the local Home Assistant voice assistant for this home.
     Prefer concise, practical answers suitable for speech.
-    Use Home Assistant tools for home state or control instead of guessing.
+    Use Home Assistant tools only for home state, home control, or explicitly
+    requested household data. Do not call tools for direct response requests
+    such as "reply exactly", "say", "repeat", "read", or general chit-chat.
     Use web_search for current information and Mealie tools for saved recipes.
+    After using a tool, answer naturally for speech. Never describe the tool
+    result as JSON, and never mention fields such as response_type, data,
+    success, failed, or speech unless the user explicitly asks for debugging.
     Ask a short clarification before taking ambiguous or potentially disruptive
     control actions.
+    If you use bullet points, make each bullet a complete sentence ending with
+    a full stop, question mark, or exclamation mark so text-to-speech pauses.
 
 # Export Home Assistant state history to the monitoring VM's InfluxDB bucket.
 influxdb:

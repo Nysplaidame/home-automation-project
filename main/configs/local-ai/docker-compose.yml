@@ -78,7 +78,7 @@ services:
     restart: unless-stopped
     ports:
       - "10300:10300"
-    command: ["--model", "base-int8", "--language", "en"]
+    command: ["--model", "base-int8", "--language", "en", "--debug"]
     environment:
       # VLAN 20 has no internet egress. Keep the tokenizer cache under /data
       # and force deterministic offline startup.
@@ -93,7 +93,14 @@ services:
     restart: unless-stopped
     ports:
       - "10200:10200"
-    command: ["--voice", "en_GB-alba-medium"]
+    command:
+      [
+        "--voice",
+        "en_GB-alba-medium",
+        "--auto-punctuation",
+        ".",
+        "--debug",
+      ]
     volumes:
       - ./piper:/data
 
@@ -103,5 +110,6 @@ services:
     restart: unless-stopped
     ports:
       - "10400:10400"
+    command: ["--debug"]
     volumes:
       - ./openwakeword:/custom
