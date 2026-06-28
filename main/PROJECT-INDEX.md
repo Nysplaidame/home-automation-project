@@ -152,6 +152,7 @@ status: active
 | [[docs/procedures/proxmox_grafana_metrics.md]] | Native Proxmox metrics into InfluxDB and Grafana dashboard state |
 | [[docs/procedures/grafana_architecture_dashboards.md]] | Architecture-level Grafana dashboards and lightweight Influx exporters |
 | [[docs/procedures/home_assistant_companion_app_guide.md]] | HA Companion App phone onboarding, push test, actionable notification test, and sensor policy |
+| [[docs/procedures/frigate_camera_preflight_checklist.md]] | Pre-arrival and bench checklist for PoE cameras, managed PoE switch, RTSP validation, and Frigate activation gates |
 | [[docs/procedures/update_maintenance_playbook.md]] | Update windows, caching/offline patterns, and update-monitoring posture |
 | [[docs/procedures/update_review_log.md]] | Weekly update-candidate review execution log and follow-up tracking |
 | [[docs/procedures/docker_host_patch_window_runbook.md]] | Command-by-command docker-host package/container patch window |

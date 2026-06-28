@@ -3,7 +3,7 @@ title: Phase 04 - Frigate
 description: Frigate LXC, shared iGPU, migration-safe baseline, cameras, and HA integration
 tags: [install, frigate, nvr]
 created: 2026-05-24
-modified: 2026-06-20
+modified: 2026-06-28
 type: install-guide
 status: active
 ---
@@ -101,4 +101,7 @@ mosquitto_sub -h localhost -p 8883 --cafile /ssl/ca.crt -u mqtt -P '<MQTT_PASSWO
 - [x] HA network path to Frigate is allowed.
 - [x] NAS archive storage remains disabled until OMV is validated.
 - [ ] HTTPS/SSL plan documented before regular UI use.
-- [ ] WebRTC/audio and Lumen/mobile-viewing needs are documented after camera models are selected.
+- [x] Apple/mobile viewing plan documented: Home Assistant Companion App and
+  Frigate PWA first; third-party Frigate clients only after live camera ingest
+  is stable and secure access requirements are known.
+- [ ] WebRTC/audio needs are documented after camera models are selected.

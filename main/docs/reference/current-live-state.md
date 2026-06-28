@@ -3,7 +3,7 @@ title: Current Live State
 description: Canonical inventory of deployed hosts, services, and deliberately deferred components
 tags: [reference, current-state, infrastructure]
 created: 2026-06-20
-modified: 2026-06-26
+modified: 2026-06-28
 type: reference
 status: active
 ---
@@ -111,6 +111,12 @@ registry mirror and Node-RED remain decision-gated candidates.
   `/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/CCTV/`.
 - OMV exports NFS paths for Proxmox backups, HA backups, docker-host backups,
   config backups, Immich DB backups, Immich media, and CCTV.
+- The Frigate export is discoverable from CT 111, but CT 111 is an unprivileged
+  LXC and cannot mount NFS directly. OMV now also allows Proxmox host
+  `192.168.10.10` to mount `/export/frigate`; a temporary Proxmox mount,
+  write/read/delete, and unmount test passed on 2026-06-28. Future recording
+  cutover should mount the OMV Frigate export on the Proxmox host and
+  bind-mount it into CT 111.
 - Home Assistant has an active Supervisor backup mount `nas_backups` pointing at
   `192.168.40.50:/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/home-assistant`;
   manual backup `manual-nfs-md0-test-20260626` (`8294da47.tar`, 69 MiB) wrote

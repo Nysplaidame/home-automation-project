@@ -137,22 +137,39 @@ docker compose up -d
 
 Only execute after cameras and RTSP are live.
 
-Run on: frigate-nvr (`192.168.30.20`).
+CT 111 is an unprivileged LXC. Do not mount NFS from inside the CT; direct NFS
+mounts fail with `Operation not permitted`. Mount the OMV export on the Proxmox
+host and bind-mount it into CT 111.
+
+Run on: Proxmox host (`192.168.10.10`).
 
 ```bash
 apt-get update && apt-get install -y nfs-common
-mkdir -p /mnt/nas/frigate
-mount -t nfs 192.168.40.50:/export/frigate /mnt/nas/frigate
-findmnt /mnt/nas/frigate
-df -h /mnt/nas/frigate
+mkdir -p /mnt/omv/frigate
+mount -t nfs 192.168.40.50:/export/frigate /mnt/omv/frigate
+findmnt /mnt/omv/frigate
+df -h /mnt/omv/frigate
 ```
 
-Persist mount:
+OMV already allows Proxmox host `192.168.10.10` to mount `/export/frigate`; a
+temporary mount/write/read/delete/unmount test passed on 2026-06-28. Do not use
+the broad parent `/export` mount for production recordings unless that wider
+access is deliberately accepted.
+
+Persist mount on the Proxmox host:
 
 ```bash
 cp /etc/fstab /etc/fstab.bak.$(date +%Y%m%d_%H%M%S)
-echo "192.168.40.50:/export/frigate /mnt/nas/frigate nfs defaults,_netdev 0 0" >> /etc/fstab
+echo "192.168.40.50:/export/frigate /mnt/omv/frigate nfs defaults,_netdev 0 0" >> /etc/fstab
 mount -a
+```
+
+Bind into CT 111:
+
+```bash
+pct set 111 -mp0 /mnt/omv/frigate,mp=/mnt/nas/frigate
+pct reboot 111
+pct exec 111 -- findmnt /mnt/nas/frigate
 ```
 
 Then update `/opt/frigate/docker-compose.yml` to use:
@@ -165,6 +182,8 @@ Validation:
 
 Rollback:
 - Revert compose volume mapping to local storage and restart Frigate.
+- Remove the CT mount point with `pct set 111 -delete mp0` only after Frigate
+  is stopped or back on local storage.
 
 ## Phase F - Post-cutover validation
 

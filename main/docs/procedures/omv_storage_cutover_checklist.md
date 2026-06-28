@@ -5,6 +5,7 @@ tags: [omv, nas, storage, cutover]
 created: 2026-05-28
 type: procedure
 status: active
+modified: 2026-06-28
 ---
 
 # OMV Storage Cutover Checklist
@@ -52,7 +53,13 @@ Automation (`VLAN 20`) and NVR (`VLAN 30`) paths.
 ## 4) Frigate recording cutover (CT 111)
 
 - Keep Frigate stopped until RTSP/MQTT/TLS prerequisites are complete.
-- Mount OMV NFS target at `/mnt/nas/frigate`.
+- Do not try to mount NFS from inside CT 111. It is an unprivileged LXC and
+  direct `mount -t nfs ...` fails with `Operation not permitted`.
+- Mount the OMV NFS target on the Proxmox host, then bind-mount it into CT 111
+  with a Proxmox `mp` entry.
+- OMV exports `/export/frigate` to both CT 111 (`192.168.30.20`) and Proxmox
+  host (`192.168.10.10`). A temporary Proxmox host mount/write/read/delete/
+  unmount test passed on 2026-06-28.
 - In `/opt/frigate/docker-compose.yml`, enable the NAS recordings volume:
   - `/mnt/nas/frigate:/media/frigate/recordings`
 - Start Frigate and verify:

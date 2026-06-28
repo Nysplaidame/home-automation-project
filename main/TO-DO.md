@@ -85,6 +85,7 @@ Planning baseline until explicitly revalidated:
 45. [ ] Add a scoped, confirmation-gated Overwatch action for saving recipes to Mealie
 45. [ ] Keep Hermes Agent roadmap-only until local LLM, STT, TTS, monitoring, and safety gates are stable
 46. [ ] Keep future YouTube transcript/query app architecture undecided; VM 103 is only the expected target for future containerized query apps
+47. [x] Add Frigate camera/PoE switch pre-flight checklist at `docs/procedures/frigate_camera_preflight_checklist.md`
 
 ---
 
@@ -261,8 +262,8 @@ must work without HACS.
 - [x] Start migration-safe Frigate 0.17.1 baseline on CT 111
 - [ ] Configure HTTPS/SSL for Frigate UI before regular use
 - [ ] Confirm Frigate UI over HTTPS/SSL, not plain HTTP
-- [ ] Configure WebRTC audio for camera streams
-- [ ] Set up Lumen on an Apple device for camera feeds (manual user step, alongside Android UI)
+- [ ] Configure WebRTC/audio behavior for camera streams after camera models and stream paths are verified
+- [x] Replace Lumen-first Apple viewing plan with HA Companion App + Frigate PWA first, with Lumen/Viewu/Kapal as optional later evaluations only
 - [x] Manage VM 103 as `docker-host` via `scripts/setup/proxmox/docker_host_setup_guide.md`
 - [x] Deploy Bambuddy as `/opt/stacks/bambuddy` on docker-host
 - [x] Confirm Bambuddy UI at http://192.168.20.102:8000
@@ -336,8 +337,9 @@ must work without HACS.
 - [x] Migrate live OMV hardware/storage to VLAN 40 at `192.168.40.50` on router `lan4` (capacity remediation remains open because the backing filesystem is 87% used)
 - [x] Follow `omv_nas_setup_guide.md` storage/user/share/export setup while preserving existing SMB shares
 - [x] Configure NFS exports (Frigate, HA, Immich, configs shares)
+- [x] Warm Frigate OMV export for future unprivileged CT cutover: allow Proxmox host `192.168.10.10` to mount `/export/frigate` and verify temporary write/read/delete/unmount
 - [ ] Keep Frigate "live" recordings on MINISFORUM local storage first; add NAS archiving after the NAS is online
-- [ ] Mount NAS in Frigate VM (`/mnt/nas/frigate`) and update docker-compose.yml volume
+- [ ] Mount OMV Frigate export on Proxmox, bind-mount it into CT 111 at `/mnt/nas/frigate`, and update docker-compose.yml volume after cameras are stable
 - [x] Add OMV as HA network storage → verify backup writes successfully
 - [ ] Configure robocopy or rsync scheduled task for vault backup to NAS
 - [ ] Enable SMART monitoring on NAS drives
@@ -348,6 +350,8 @@ must work without HACS.
 
 - [ ] Select PoE IP camera models (H.265, RTSP, compatible with Frigate)
 - [ ] Purchase 4× cameras and PoE switch
+- [ ] Record sourced camera and smart PoE switch model numbers, firmware lines, RTSP/substream paths, PoE budget, management VLAN behavior, and reset procedures in `docs/procedures/frigate_camera_preflight_checklist.md`
+- [ ] Bench-test one camera at a time using `docs/procedures/frigate_camera_preflight_checklist.md` before permanent mounting
 - [ ] Keep LAN3 reserved for the future managed PoE camera switch; Hive placement remains parked
 - [ ] Mount cameras, run CAT6 to PoE switch on VLAN 30
 - [ ] Assign static IPs: cameras at 192.168.30.21–24 (MAC reservations in dhcp-config.conf)

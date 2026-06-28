@@ -126,16 +126,25 @@ Then configure automatic backups:
 
 ## Phase 6 - Frigate Storage
 
-On `frigate-nvr`:
+CT 111 is an unprivileged LXC, so it cannot mount NFS directly. Prepare the OMV
+Frigate export, then mount it on the Proxmox host and bind-mount it into CT 111
+when the camera/recording cutover is approved.
+
+Current live note: OMV allows Proxmox host `192.168.10.10` to mount
+`/export/frigate`; a temporary mount/write/read/delete/unmount test from
+Proxmox passed on 2026-06-28.
+
+On `proxmox`:
 
 ```bash
-mkdir -p /mnt/nas/frigate
-mount -t nfs 192.168.40.50:/export/frigate /mnt/nas/frigate
-df -h /mnt/nas/frigate
+mkdir -p /mnt/omv/frigate
+mount -t nfs 192.168.40.50:/export/frigate /mnt/omv/frigate
+df -h /mnt/omv/frigate
 ```
 
-After testing, add the mount to `/etc/fstab` and update the Frigate Compose
-volume from local storage to `/mnt/nas/frigate`.
+After testing, add the host mount to `/etc/fstab`, bind it into CT 111 at
+`/mnt/nas/frigate` with `pct set 111 -mp0 /mnt/omv/frigate,mp=/mnt/nas/frigate`,
+and update the Frigate Compose volume from local storage to `/mnt/nas/frigate`.
 
 ---
 

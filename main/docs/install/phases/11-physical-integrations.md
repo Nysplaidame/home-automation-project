@@ -67,6 +67,9 @@ not replace Home Assistant, ESPHome, MQTT, or physical safety checks.
 - ESPHome devices appear in HA.
 - MQTT TLS migration path is followed.
 - Camera feeds are reachable by Frigate only over intended paths.
+- PoE camera and switch staging follows
+  `docs/procedures/frigate_camera_preflight_checklist.md` before permanent
+  mounting or production Frigate activation.
 - Fire/smoke/temperature/VOC test scenarios produce harmless test alerts before
   any real emergency automation is trusted.
 
