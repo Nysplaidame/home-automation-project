@@ -2,16 +2,16 @@
 # Cross-system quick-reference for the most common failure modes
 # See per-system guides for deeper diagnostics
 #
-# Updated 2026-05-07: VM 103 is docker-host (192.168.20.102, VLAN 20);
-# Bambuddy runs there as a Compose workload. P1S is 192.168.35.200 (VLAN 35).
+# Updated 2026-06-29: CT 111 runs Frigate, CT 114 runs local AI, and MQTT TLS
+# on 8883 is the normal path.
 
 ---
 
 ## MQTT / VentSys
 
-> **Port note (A10-1):** Commands in this section use port 1883 (pre-TLS only).
-> After MQTT TLS migration, use port 8883 --cafile /ssl/ca.crt instead.
-> See `docs/procedures/ssl_tls_guide.md` for the migration procedure.
+> **Port note:** MQTT TLS on port 8883 is the normal path. Plaintext 1883 is
+> only for deliberate bootstrap exceptions while flashing or recovering devices.
+> See `docs/procedures/ssl_tls_guide.md`.
 
 ### ESPHome device shows offline in HA
 
@@ -28,8 +28,8 @@
 
 ```bash
 # In HA Terminal
-mosquitto_pub -h localhost -p 1883 -u mqtt -P <password> -t test -m hello
-mosquitto_sub -h localhost -p 1883 -u mqtt -P <password> -t test
+mosquitto_pub -h localhost -p 8883 --cafile /ssl/ca.crt -u mqtt -P <password> -t test -m hello
+mosquitto_sub -h localhost -p 8883 --cafile /ssl/ca.crt -u mqtt -P <password> -t test
 ```
 - If both commands hang: Mosquitto add-on is not running → Settings → Add-ons → Mosquitto → Start
 - If auth fails: check MQTT username/password in Settings → Devices & Services → MQTT → Configure
@@ -38,7 +38,7 @@ mosquitto_sub -h localhost -p 1883 -u mqtt -P <password> -t test
 
 ```bash
 # Subscribe from HA Terminal, then power-cycle the ESP device
-mosquitto_sub -h localhost -p 1883 -u mqtt -P <password> -t 'ventsys/#' -v
+mosquitto_sub -h localhost -p 8883 --cafile /ssl/ca.crt -u mqtt -P <password> -t 'ventsys/#' -v
 ```
 - No output: check ESPHome device logs for "MQTT connected"
 - Check MQTT credentials in the ESPHome YAML match the Mosquitto add-on user
@@ -94,7 +94,7 @@ nc -zv 192.168.20.101 8123    # is port 8123 open?
 ### Camera shows grey / offline in Frigate UI
 
 ```bash
-# From frigate-nvr VM
+# From frigate-nvr CT
 ffprobe rtsp://admin:<password>@192.168.30.21:554/stream1
 ```
 - Connection refused: wrong RTSP path or camera credentials — check camera manufacturer docs
@@ -103,8 +103,8 @@ ffprobe rtsp://admin:<password>@192.168.30.21:554/stream1
 ### Frigate can't reach MQTT (HA)
 
 ```bash
-# From frigate-nvr VM (192.168.30.20)
-nc -zv 192.168.20.101 8883    # post-TLS; use 1883 pre-TLS
+# From frigate-nvr CT (192.168.30.20)
+nc -zv 192.168.20.101 8883
 ```
 - Fails: check the `Frigate MQTT to HA` rule in firewall-config.conf
   (src: nvr, src_ip: 192.168.30.20, dest: automation, dest_port: 8883)
@@ -118,7 +118,7 @@ nc -zv 192.168.20.101 8883    # post-TLS; use 1883 pre-TLS
 nc -zv 192.168.30.20 8971    # Frigate 0.14+ port; use 5000 for <0.14
 ```
 - Fails: check `HA to NVR Access` rule — verify src_ip is 192.168.20.101
-- Also check UFW on the frigate-nvr VM allows 192.168.20.0/24 → port 8971
+- Also check the CT firewall allows 192.168.20.0/24 → port 8971
 
 ### Frigate container not starting
 
@@ -437,7 +437,7 @@ mount -t nfs 192.168.40.50:/export/ha-backups /tmp/test-mount
 
 ### Frigate can't mount NAS
 
-Same approach from frigate-nvr VM. `Frigate to NAS Access` rule allows ports 2049 and 445.
+Same approach from frigate-nvr CT. `Frigate to NAS Access` rule allows ports 2049 and 445.
 
 ### Immich can't write media to OMV
 

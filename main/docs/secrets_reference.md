@@ -62,8 +62,8 @@
 | MQTT password | `mqtt-credentials` | Same Bitwarden entry — username + password together |
 
 > The MQTT username is `mqtt` (created in ha_vm_setup_guide.md Phase 2.1).
-> The password is IDENTICAL at ports 1883 (pre-TLS) and 8883 (post-TLS) —
-> only the port and ca_certificate setting change during TLS migration.
+> Production clients use TLS on port `8883`. Plaintext `1883` is reserved for
+> a documented temporary recovery/bootstrap exception only.
 
 ---
 
@@ -98,9 +98,9 @@ ota_password: "your-ota-password"          # any strong password
 | `api_key` | `esphome-api-key` | One per device ideally; shared across VentSys fleet is fine |
 | `ota_password` | `esphome-ota-password` | One shared password for all VentSys OTA updates is fine |
 
-> For pre-TLS stage-1 flashing, omit `mqtt_ca_cert` — the `_pretls.yaml`
-> configs don't reference it. Add it once TLS is live per
-> `docs/procedures/ssl_tls_guide.md`.
+> Production ESPHome configs require `mqtt_ca_cert`. Dedicated `_pretls.yaml`
+> recovery/bootstrap variants do not reference it and must not be left deployed
+> as the normal configuration.
 
 ---
 
@@ -185,7 +185,7 @@ influxdb_homeassistant_token: "your-token" # Bitwarden: influxdb-ha-token
 
 ---
 
-## 9 — Frigate NVR VM (192.168.30.20, VLAN 30)
+## 9 — Frigate NVR CT (192.168.30.20, VLAN 30)
 
 > CT 111 runs Frigate only. Bambuddy runs on docker-host VM 103 — see Section 11.
 

@@ -1,14 +1,11 @@
 # ESPHome Device Adoption Guide
-# FIX #23: A reference to update_ventsys_mac.sh was here. That script does not exist in the vault.
 
 > **L-9 audit note — Board identification safeguard:** Before flashing any board,
 > verify you have the correct YAML for the correct physical board using the table below.
 > Flashing the wrong firmware installs the wrong device name, wrong MQTT topics, and wrong
 > GPIO pin assignments. Recovery requires a full USB re-flash.
 >
-> # A5-2 fix: Entire IP column was wrong (13 of 16 entries). Previous table used
-> # a pre-canonical allocation scheme. All IPs now match dhcp-config.conf.
-> # Also: sensor boards now have per-device YAMLs (A4-4); UV plug names updated (A4-5).
+> The IP reservations below must match `configs/openwrt/dhcp-config.conf`.
 > | Board label | YAML file | Expected device_name | IP reservation |
 > |---|---|---|---|
 > | Main fan controller | ventsys_fan_controller.yaml | ventsys-main-fan | 192.168.50.21 |
@@ -89,8 +86,8 @@ Place `secrets.yaml` in both:
 
 ### 1.1 — Install ESPHome on your laptop
 
-> **FIX #33:** `pip install esphome` on Windows has known path-length and
-> venv issues that cause silent failures. Preferred options:
+> `pip install esphome` on Windows can hit path-length and venv issues.
+> Preferred options:
 
 **Option A — pipx (recommended)**
 ```powershell
@@ -116,14 +113,17 @@ pip install esphome
 
 Config files: `ventsys/ventsys_bundle_updated/`
 
-Use the pre-TLS variants for stage-1 (before TLS migration):
-- `ventsys_fan_controller_pretls.yaml`   → target IP 192.168.50.21
-- `../configs/esphome/ventsys_sla_print_valve.yaml` (canonical) → target IP 192.168.50.56
+Use the production TLS YAMLs by default:
+- `ventsys_fan_controller.yaml` → target IP 192.168.50.21
+- `../configs/esphome/ventsys_sla_print_valve.yaml` → target IP 192.168.50.56
+
+The `_pretls.yaml` files are retained only for deliberate recovery/bootstrap
+exceptions where the TLS CA material is not yet available.
 
 ```bash
 cd "\\VBoxSvr\home-automation-safety\ventsys\ventsys_bundle_updated"
 
-esphome run ventsys_fan_controller_pretls.yaml
+esphome run ventsys_fan_controller.yaml
 # swap USB to the valve board, then:
 esphome run ../../../configs/esphome/ventsys_sla_print_valve.yaml
 ```
@@ -131,9 +131,9 @@ esphome run ../../../configs/esphome/ventsys_sla_print_valve.yaml
 If the COM port isn't detected automatically:
 ```bash
 # Windows — check Device Manager for the COM port number
-esphome run ventsys_fan_controller_pretls.yaml --device COM3
+esphome run ventsys_fan_controller.yaml --device COM3
 # Linux/WSL
-esphome run ventsys_fan_controller_pretls.yaml --device /dev/ttyUSB0
+esphome run ventsys_fan_controller.yaml --device /dev/ttyUSB0
 ```
 
 Watch for in the serial output:
@@ -248,14 +248,13 @@ and accept. This creates entities for all declared components.
 
 From HA Terminal:
 ```bash
-mosquitto_sub -h localhost -p 1883 \
+mosquitto_sub -h localhost -p 8883 --cafile /ssl/ca.crt \
     -u mqtt -P your-mqtt-password \
     -t 'ventsys/#' -v
 ```
 
-> **TLS note (A9-2):** The command above uses port 1883 (Stage 1 pre-TLS, for initial device bring-up).
-> Phase 1.2 of this guide explains the two-stage approach. After TLS migration, switch to:
-> mosquitto_sub -h localhost -p 8883 --cafile /ssl/ca.crt -u mqtt -P <password> -t ventsys/# -v
+If you are intentionally using a `_pretls.yaml` recovery image, use port 1883
+only for that temporary test and return to 8883 before production use.
 
 Power-cycle a sensor board. You should see:
 ```
@@ -365,5 +364,3 @@ cat /tmp/dhcp.leases | grep "192.168.50"
 
 Note the MAC for the unexpected IP, update dhcp-config.conf, re-apply DHCP
 config (`scripts/setup/router/phase_3_dhcp_configuration.md`), then power-cycle the device.
-
-# FIX #23: A reference to update_ventsys_mac.sh was here. That script does not exist in the vault.

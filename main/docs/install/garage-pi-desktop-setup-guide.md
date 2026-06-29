@@ -60,7 +60,7 @@ needed later, prefer one of these paths:
 
 - Raspberry Pi AI Camera, because the accelerator is in the camera module
 - USB accelerator, if software support is confirmed
-- offload camera inference to Frigate or heavier LLM/voice inference to VM 104
+- offload camera inference to Frigate or heavier LLM/voice inference to CT 114
   `llm-host`
 
 ## Prerequisites

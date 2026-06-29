@@ -89,7 +89,7 @@ native API.
 - HAOS system time is sourced from router-local NTP, not arbitrary external
   internet NTP.
 - Local AI voice is optional and handled in Phase 05A. When deployed, HA uses
-  Ollama at `http://192.168.20.104:11434` and Wyoming voice services on CT 114.
+  llama.cpp at `http://192.168.20.104:8081/v1` and Wyoming voice services on CT 114.
 
 ## Validation
 
@@ -98,8 +98,8 @@ Run on: Home Assistant Terminal add-on.
 ```sh
 ha core info
 ha addons list
-mosquitto_pub -h localhost -p 1883 -u mqtt -P '<MQTT_PASSWORD>' -t test/install -m hello
-mosquitto_sub -h localhost -p 1883 -u mqtt -P '<MQTT_PASSWORD>' -t test/install -C 1
+mosquitto_pub -h localhost -p 8883 --cafile /ssl/ca.crt -u mqtt -P '<MQTT_PASSWORD>' -t test/install -m hello
+mosquitto_sub -h localhost -p 8883 --cafile /ssl/ca.crt -u mqtt -P '<MQTT_PASSWORD>' -t test/install -C 1
 ```
 
 Run on: Home Assistant Terminal add-on.

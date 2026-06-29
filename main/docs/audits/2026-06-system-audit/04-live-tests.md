@@ -47,7 +47,7 @@ ICMP failure for HA/docker/NVR/monitoring targets was not treated as outage beca
 | Docker host | Debian 13, UFW active/default deny, no failed units, documented workloads live |
 | Monitoring VM | Four expected containers live; no failed units; 21% root use |
 | Frigate CT | Container healthy, 24% root use; RPC mount unit failed |
-| llm-host CT | Five expected containers live; 29% root use; Ollama model 100% GPU |
+| llm-host CT | Five expected containers live; 29% root use; legacy local LLM runtime model 100% GPU |
 | HA | 2026.6.3, UI live, source/live hashes compared, registry and read-only state DB sampled |
 | HA monitoring entities | Grafana, InfluxDB, Kuma and aggregate health states all `on` in latest recorded state |
 

@@ -13,17 +13,17 @@ status: active
 ## Decision
 
 Keep the Intel Meteor Lake iGPU owned by the Proxmox host. Map
-`/dev/dri/renderD128` and `/dev/dri/card1` into unprivileged CT 111 and CT
+`/dev/dri/renderD128` and `/dev/dri/card0` into unprivileged CT 111 and CT
 114 using Proxmox device entries.
 
 CT 111 runs Frigate/OpenVINO/VA-API on VLAN 30. CT 114 runs
-Ollama/Vulkan/Open WebUI/Wyoming on VLAN 20.
+llama.cpp/Vulkan/Open WebUI/Wyoming on VLAN 20.
 
 ## Why
 
 - PCI passthrough grants the GPU to only one VM.
 - LXCs share the host kernel and can use the DRM devices concurrently.
-- Testing proved Frigate OpenVINO and Ollama Vulkan remain healthy together.
+- Testing proved Frigate OpenVINO and llama.cpp Vulkan remain healthy together.
 - It avoids a second accelerator and reduces CPU inference latency.
 
 ## Guardrails

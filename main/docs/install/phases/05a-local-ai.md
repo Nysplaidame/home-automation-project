@@ -61,8 +61,8 @@ Run on: Home Assistant UI.
 3. Add Wyoming Whisper at `192.168.20.104:10300`.
 4. Add Wyoming OpenWakeWord at `192.168.20.104:10400`.
 5. Point any local LLM Assist pipeline at `llamacpp_conversation`.
-6. Keep the native Ollama integration disabled and Ollama stopped unless
-   rollback is intentionally started.
+6. Do not install a second LLM runtime; llama.cpp is the supported CT 114
+   backend.
 
 ## Explanation
 
@@ -88,7 +88,7 @@ contracts, or firewall rules.
 - llama.cpp, Open WebUI, Wyoming Whisper, Piper and OpenWakeWord containers run.
 - `home-assistant-llm` responds through llama.cpp on `8081`.
 - Home Assistant can reach the llama.cpp and Wyoming endpoints; local LLM Assist
-  pipelines use `llamacpp_conversation` rather than the native Ollama integration.
+  pipelines use `llamacpp_conversation`.
 - No host swap occurs during the initial AI performance tests.
 
 ## Validation
@@ -96,7 +96,6 @@ contracts, or firewall rules.
 Run on: Admin laptop.
 
 ```powershell
-Test-NetConnection 192.168.20.104 -Port 11434
 Test-NetConnection 192.168.20.104 -Port 8081
 Test-NetConnection 192.168.20.104 -Port 3002
 Test-NetConnection 192.168.20.104 -Port 10200
@@ -129,12 +128,12 @@ Then run:
 ## Completion checklist
 
 - [x] CT 114 created and documented in Proxmox reference.
-- [x] DNS aliases created for `llm-host`, `ollama`, and `openwebui`.
-- [x] llama.cpp and Open WebUI running; Ollama retained stopped as rollback.
+- [x] DNS aliases created for `llm-host` and `openwebui`.
+- [x] llama.cpp and Open WebUI running.
 - [x] Wyoming Whisper, Piper and OpenWakeWord running.
-- [x] HA Assist migrated away from native Ollama dependency.
+- [x] HA Assist uses the supported local LLM path.
 - [x] HA Wyoming integrations connect.
 - [x] Home Assist commands validated.
-- [ ] Overwatch Assist migrated and revalidated without native Ollama.
+- [ ] Overwatch Assist revalidated through the supported local LLM path.
 - [x] Vulkan GPU offload and concurrent Frigate use validated.
 - [x] Monitoring checks added for core CT 114 services.

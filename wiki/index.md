@@ -4,7 +4,7 @@
 > Updated after every ingest, query (if filed), or lint pass.
 
 **Stats:** 25 sources - 22 entities - 7 concepts - 3 analyses
-**Last updated:** 2026-06-20
+**Last updated:** 2026-06-29
 
 ---
 
@@ -66,7 +66,7 @@
 ### Software / integrations
 - [[entities/home-assistant]] - HAOS on VM 100; VentSys packages/dashboard staged and Frigate integration planned
 - [[entities/frigate]] - CT 111 Frigate baseline live with shared-iGPU OpenVINO; cameras/MQTT pending
-- [[entities/llm-host]] - CT 114 Ollama/Open WebUI/Wyoming host with shared-iGPU Vulkan
+- [[entities/llm-host]] - CT 114 llama.cpp/Open WebUI/Wyoming host with shared-iGPU Vulkan
 - [[entities/bambuddy]] - Bambu P1S bridge on docker-host
 - [[entities/adguard-home]] - Live DNS filtering/adblocking service on docker-host
 - [[entities/immich]] - Live skeleton gallery/photos service; real imports blocked until OMV/backup readiness

@@ -21,7 +21,7 @@ status: complete
 | C-009 | VentSys dashboard is deployed from source | Local/live hashes match | `verified` | Browser and no-publish-on-init tests remain blocked |
 | C-010 | VentSys HA package/scripts are deployed from source | Package has small comment drift; script has functional 0–100 ramp versus source 0–50 direct-target behaviour | `contradicted` | Block adoption; reconcile then retest |
 | C-011 | Frigate CT 111 baseline is healthy | Container reports healthy and UI port responds; one failed RPC mount unit exists | `verified` | Explain/clear failed unit; cameras remain planned |
-| C-012 | Frigate and Ollama share the iGPU successfully | Ollama reports 100% GPU; devices exist in CT 114; Frigate config/container healthy | `unverifiable` | Capture simultaneous GPU/process telemetry under load |
+| C-012 | Frigate and legacy local LLM runtime share the iGPU successfully | legacy local LLM runtime reports 100% GPU; devices exist in CT 114; Frigate config/container healthy | `unverifiable` | Capture simultaneous GPU/process telemetry under load |
 | C-013 | Docker-host live workload list is accurate | Containers and documented HTTP endpoints observed | `verified` | Add health checks/version controls across stacks |
 | C-014 | Monitoring stack and HA external-health backstop are live | Four containers live; HA database shows all four health entities `on` | `verified` | Alert/recovery test requires window |
 | C-015 | ntfy alert dispatch is operational | Historical TODO evidence only; no outage/notification generated in this audit | `unverifiable` | Scheduled alert-path test |

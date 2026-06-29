@@ -23,10 +23,13 @@ Current baseline:
   disabled.
 - `configs/frigate/config.yml` is the future production template for four
   cameras at `192.168.30.21` through `192.168.30.24`.
-- Router `lan3` is reserved for the camera PoE switch as VLAN 30 untagged/PVID.
+- Router `lan3` is reserved for the managed switch as a tagged trunk carrying
+  VLANs 1, 10, 30 and 40 after the switch is present and configured.
 - The managed PoE switch is a Zyxel GS1900-8HP. Use stock firmware for initial
   camera rollout; treat OpenWrt-on-switch as a later evaluation only if stock
   firmware blocks the desired VLAN, PoE, monitoring or management posture.
+- The switch is no longer camera-only: it will also carry OMV NAS access on
+  VLAN 40 and the TL-WA801N extender on VLAN 1.
 - Do not route or advertise VLAN 30 through Tailscale.
 
 ## Pre-Arrival Actions
@@ -55,31 +58,37 @@ Current baseline:
   is enabled.
 - Keep `/opt/frigate/.env` absent or incomplete until final RTSP and MQTT
   credentials are ready.
-- Choose whether the PoE switch management IP belongs on VLAN 30 or VLAN 10.
-  Prefer VLAN 30 only if it can be managed safely from the router/management
-  path; prefer VLAN 10 if the switch supports a separate management VLAN.
+- Put the PoE switch management interface on VLAN 10. Use planned reservation
+  `192.168.10.12` after recording the switch management MAC address.
 - Plan a bench-test patch lead layout: router `lan3` to PoE switch uplink,
-  one camera at a time, labelled patch leads, no permanent mounting.
+  one camera at a time, labelled patch leads, no permanent mounting. Do not
+  recable OMV or the extender to the switch until the trunk and access-port
+  VLAN tests pass.
 - Do not update `configs/frigate/config.yml` RTSP paths until the real camera
   stream URLs have been verified with `ffprobe`.
 
 ## Network And Switch Pre-Flight
 
-Router source already assigns `lan3` to VLAN 30 untagged/PVID:
+Planned router source assigns `lan3` as a tagged trunk after the switch arrives:
 
 ```text
-router lan3 -> managed PoE switch uplink -> camera ports
-VLAN 30 subnet: 192.168.30.0/24
-Gateway/DNS:    192.168.30.1
-Frigate CT:     192.168.30.20
-Cameras:        192.168.30.21-24
+router lan3 -> Zyxel GS1900-8HP uplink
+Tagged VLANs:   1, 10, 30, 40
+Switch mgmt:    VLAN 10, 192.168.10.12
+Camera ports:   untagged VLAN 30, PVID 30
+OMV NAS port:   untagged VLAN 40, PVID 40
+Extender port:  untagged VLAN 1, PVID 1
 ```
 
 Expected switch posture:
 
 - Camera access ports are untagged VLAN 30.
-- Uplink to router `lan3` may be untagged VLAN 30 unless the switch management
-  VLAN requires tagging.
+- Uplink to router `lan3` is tagged for VLANs 1, 10, 30 and 40.
+- Switch management interface is VLAN 10 at `192.168.10.12`.
+- OMV NAS access port is untagged VLAN 40.
+- TL-WA801N extender access port is untagged VLAN 1.
+- If the switch requires a PVID/native VLAN on the uplink, use an unused
+  isolated VLAN for untagged ingress containment; do not make VLAN 30 native.
 - Disable unused switch ports.
 - Disable cloud/P2P features on cameras if the firmware exposes them.
 - Disable camera internet access; VLAN 30 has no WAN path by design.

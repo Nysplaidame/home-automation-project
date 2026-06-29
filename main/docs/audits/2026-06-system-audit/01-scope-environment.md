@@ -41,7 +41,7 @@ Secrets were never copied into this evidence pack. Discovery was read-only excep
 | Home Assistant | HAOS 2026.6.3, HTTP reachable, Samba readable |
 | Docker host | Debian 13; 15 listed containers; UFW active default-deny incoming/routed; Tailscale online |
 | Frigate | CT 111 container healthy; one failed `run-rpc_pipefs.mount` unit |
-| Local AI | CT 114 services reachable; Ollama reports model loaded 100% on GPU |
+| Local AI | CT 114 services reachable; legacy local LLM runtime reports model loaded 100% on GPU |
 | Monitoring | Grafana, InfluxDB, Uptime Kuma, Telegraf live; no failed host units |
 | OMV/cameras | Not built, consistent with planned status |
 

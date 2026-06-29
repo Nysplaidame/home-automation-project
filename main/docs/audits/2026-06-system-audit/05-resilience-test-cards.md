@@ -20,7 +20,7 @@ Every card requires an operator, start/end time, current backup evidence, rollba
 | R-06 | Tailscale route withdrawal | Local admin path confirmed | Off-LAN host routes fail; local services remain available | Loss of sole admin path; 10 min |
 | R-07 | WireGuard fallback drill | Governance checklist, client and local recovery | Only documented fallback targets work; prohibited VLANs fail | Unexpected broad access; immediate |
 | R-08 | Representative VLAN ACL matrix | Test client in each VLAN | Every allow and deny pair matches access matrix | Unexpected management/write access; immediate |
-| R-09 | Concurrent Frigate/Ollama GPU load | Temperature/resource telemetry visible | Both workloads remain stable within defined latency/thermal limits | GPU reset, OOM, camera loss; 15 min |
+| R-09 | Concurrent Frigate/legacy local LLM runtime GPU load | Temperature/resource telemetry visible | Both workloads remain stable within defined latency/thermal limits | GPU reset, OOM, camera loss; 15 min |
 | R-10 | HA restart with test MQTT namespace | F-003 reconciled; no real actuators attached | Startup publishes only approved fail-safe commands | Any production-topic write; immediate |
 | P-01 | Sensor disconnect/implausible values | Bench hardware, simulated load, fire-safe observer | Unavailable and invalid values cannot produce unsafe normal state | Any uncommanded power/fan/valve action |
 | P-02 | Valve feedback mismatch/stall | Calibrated bench fixture | Command stops/alarms according to accepted timeout | Mechanical stress/current limit |

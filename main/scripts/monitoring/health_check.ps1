@@ -56,7 +56,7 @@ Test-Http "llama.cpp" "http://192.168.20.104:8081/v1/models"
 Test-Tcp "OMV backup NFS" "192.168.40.50" 2049
 
 if ($Full) {
-    Test-Http "Frigate UI" "http://192.168.30.20:8971"
+    Test-Tcp "Frigate UI HTTPS" "192.168.30.20" 8971
 }
 
 $results | Format-Table -AutoSize

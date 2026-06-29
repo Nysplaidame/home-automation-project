@@ -7,7 +7,7 @@
 **Host:** Proxmox on MINISFORUM M1 Pro-125H
 **Purpose:** Local LLM, STT, and TTS inference for Home Assistant and internal AI workflows
 
-VM 104 is the dedicated inference host. Keep Ollama, Open WebUI, and Wyoming
+VM 104 is the dedicated inference host. Keep legacy local LLM runtime, Open WebUI, and Wyoming
 voice services here rather than on VM 103 `docker-host`. Future containerized
 query apps can live on VM 103 and be queried from VM 104 only after their own
 design and firewall rules are approved.
@@ -33,7 +33,7 @@ Upgrade path after host RAM expands to 64 GB:
 
 - keep the same VM ID, IP, DNS aliases, and ports
 - increase VM memory to 20-24 GiB
-- keep the Ollama model alias `home-assistant-llm`
+- keep the legacy local LLM runtime model alias `home-assistant-llm`
 - retarget the alias from a 7B/8B Q4 model to a tested 14B Q4/Q5 model
 
 ---
@@ -125,7 +125,7 @@ Remove the temporary egress rule after package and image pulls are complete.
 Run on: llm-host over SSH.
 
 ```bash
-mkdir -p /opt/stacks/local-ai/{ollama,open-webui,whisper,piper}
+mkdir -p /opt/stacks/local-ai/{legacy-local-llm,open-webui,whisper,piper}
 cd /opt/stacks/local-ai
 nano docker-compose.yml
 ```
@@ -134,25 +134,25 @@ Use this rebuildable baseline as the first CPU-only stack:
 
 ```yaml
 services:
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
+  legacy-local-llm:
+    image: legacy-local-llm/legacy-local-llm:latest
+    container_name: legacy-local-llm
     restart: unless-stopped
     ports:
-      - "11434:11434"
+      - "retired-api-port:retired-api-port"
     volumes:
-      - ./ollama:/root/.ollama
+      - ./legacy-local-llm:/root/.legacy-local-llm
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
     container_name: open-webui
     restart: unless-stopped
     depends_on:
-      - ollama
+      - legacy-local-llm
     ports:
       - "3002:8080"
     environment:
-      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_BASE_URL=http://legacy-local-llm:retired-api-port
     volumes:
       - ./open-webui:/app/backend/data
 
@@ -194,7 +194,7 @@ choice in the live notes before treating TTS as validated.
 
 ---
 
-## Phase 4 - Create The Stable Ollama Alias
+## Phase 4 - Create The Stable legacy local LLM runtime Alias
 
 Pick a 7B/8B Q4-class model for the first 32 GB phase. Do not start with a 14B
 model on the current host. The initial live deployment used
@@ -203,7 +203,7 @@ model on the current host. The initial live deployment used
 Run on: llm-host over SSH.
 
 ```bash
-docker exec -it ollama ollama pull <7B_OR_8B_Q4_MODEL>
+docker exec -it legacy-local-llm legacy-local-llm pull <7B_OR_8B_Q4_MODEL>
 cat >/opt/stacks/local-ai/Modelfile.home-assistant-llm <<'EOF'
 FROM <7B_OR_8B_Q4_MODEL>
 
@@ -218,9 +218,9 @@ PARAMETER top_p 0.9
 PARAMETER repeat_penalty 1.1
 EOF
 
-docker exec -i ollama sh -c 'cat >/tmp/Modelfile.home-assistant-llm && ollama create home-assistant-llm -f /tmp/Modelfile.home-assistant-llm' \
+docker exec -i legacy-local-llm sh -c 'cat >/tmp/Modelfile.home-assistant-llm && legacy-local-llm create home-assistant-llm -f /tmp/Modelfile.home-assistant-llm' \
   < /opt/stacks/local-ai/Modelfile.home-assistant-llm
-docker exec -it ollama ollama run home-assistant-llm "Reply with LOCAL_AI_READY."
+docker exec -it legacy-local-llm legacy-local-llm run home-assistant-llm "Reply with LOCAL_AI_READY."
 ```
 
 Use the same `home-assistant-llm` name later when retargeting to a 14B model.
@@ -236,12 +236,12 @@ Run on: llm-host over SSH.
 ufw default deny incoming
 ufw default allow outgoing
 ufw allow from 192.168.10.0/24 to any port 22 proto tcp comment "Management SSH"
-ufw allow from 192.168.20.101 to any port 11434 proto tcp comment "HA to Ollama"
+ufw allow from 192.168.20.101 to any port retired-api-port proto tcp comment "HA to legacy local LLM runtime"
 ufw allow from 192.168.20.101 to any port 10200 proto tcp comment "HA to Wyoming Piper"
 ufw allow from 192.168.20.101 to any port 10300 proto tcp comment "HA to Wyoming Whisper"
 ufw allow from 192.168.10.0/24 to any port 3002 proto tcp comment "Management to Open WebUI"
 ufw allow from 192.168.1.0/24 to any port 3002 proto tcp comment "LAN to Open WebUI"
-ufw allow from 192.168.60.10 to any port 11434 proto tcp comment "Monitoring to Ollama"
+ufw allow from 192.168.60.10 to any port retired-api-port proto tcp comment "Monitoring to legacy local LLM runtime"
 ufw allow from 192.168.60.10 to any port 3002 proto tcp comment "Monitoring to Open WebUI"
 ufw allow from 192.168.60.10 to any port 10200 proto tcp comment "Monitoring to Piper"
 ufw allow from 192.168.60.10 to any port 10300 proto tcp comment "Monitoring to Whisper"
@@ -263,12 +263,12 @@ iptables -N DOCKER-USER 2>/dev/null || true
 iptables -F DOCKER-USER
 iptables -A DOCKER-USER -m conntrack --ctstate RELATED,ESTABLISHED -j RETURN
 
-# Ollama API: HA, management, LAN testing, and monitoring.
-iptables -A DOCKER-USER -p tcp -s 192.168.20.101 -m conntrack --ctorigdst 192.168.20.104 --ctorigdstport 11434 -j RETURN
-iptables -A DOCKER-USER -p tcp -s 192.168.10.0/24 -m conntrack --ctorigdst 192.168.20.104 --ctorigdstport 11434 -j RETURN
-iptables -A DOCKER-USER -p tcp -s 192.168.1.0/24 -m conntrack --ctorigdst 192.168.20.104 --ctorigdstport 11434 -j RETURN
-iptables -A DOCKER-USER -p tcp -s 192.168.60.10 -m conntrack --ctorigdst 192.168.20.104 --ctorigdstport 11434 -j RETURN
-iptables -A DOCKER-USER -p tcp -m conntrack --ctorigdst 192.168.20.104 --ctorigdstport 11434 -j DROP
+# legacy local LLM runtime API: HA, management, LAN testing, and monitoring.
+iptables -A DOCKER-USER -p tcp -s 192.168.20.101 -m conntrack --ctorigdst 192.168.20.104 --ctorigdstport retired-api-port -j RETURN
+iptables -A DOCKER-USER -p tcp -s 192.168.10.0/24 -m conntrack --ctorigdst 192.168.20.104 --ctorigdstport retired-api-port -j RETURN
+iptables -A DOCKER-USER -p tcp -s 192.168.1.0/24 -m conntrack --ctorigdst 192.168.20.104 --ctorigdstport retired-api-port -j RETURN
+iptables -A DOCKER-USER -p tcp -s 192.168.60.10 -m conntrack --ctorigdst 192.168.20.104 --ctorigdstport retired-api-port -j RETURN
+iptables -A DOCKER-USER -p tcp -m conntrack --ctorigdst 192.168.20.104 --ctorigdstport retired-api-port -j DROP
 
 # Open WebUI: management, LAN, and monitoring.
 iptables -A DOCKER-USER -p tcp -s 192.168.10.0/24 -m conntrack --ctorigdst 192.168.20.104 --ctorigdstport 3002 -j RETURN
@@ -315,7 +315,7 @@ Do not open VM 104 to Guest, DMZ, NVR, Printers, or IoT VLANs.
 
 Run on: Home Assistant UI.
 
-1. Add the Ollama integration with URL `http://192.168.20.104:11434`.
+1. Add the legacy local LLM runtime integration with URL `http://192.168.20.104:retired-api-port`.
 2. Select model `home-assistant-llm` for Assist testing.
 3. Add Wyoming integrations:
    - Piper TTS: `192.168.20.104`, port `10200`
@@ -331,7 +331,7 @@ Run on: Home Assistant UI.
 Run on: Admin laptop.
 
 ```powershell
-Test-NetConnection 192.168.20.104 -Port 11434
+Test-NetConnection 192.168.20.104 -Port retired-api-port
 Test-NetConnection 192.168.20.104 -Port 3002
 Test-NetConnection 192.168.20.104 -Port 10200
 Test-NetConnection 192.168.20.104 -Port 10300
@@ -342,7 +342,7 @@ Run on: llm-host over SSH.
 ```bash
 free -h
 docker compose -f /opt/stacks/local-ai/docker-compose.yml ps
-curl -s http://127.0.0.1:11434/api/tags
+curl -s http://127.0.0.1:retired-api-port/api/tags
 ```
 
 Run the full procedure in `docs/procedures/local_ai_performance_testing.md`
@@ -356,9 +356,9 @@ before calling the AI stack live.
 - [ ] DNS aliases resolve to `192.168.20.104`.
 - [ ] Docker Compose is installed.
 - [ ] `/opt/stacks/local-ai/` exists.
-- [ ] Ollama, Open WebUI, Wyoming Whisper, and Wyoming Piper are running.
+- [ ] legacy local LLM runtime, Open WebUI, Wyoming Whisper, and Wyoming Piper are running.
 - [ ] `home-assistant-llm` alias exists and points to a 7B/8B Q4-class model.
-- [ ] HA Ollama integration connects.
+- [ ] HA legacy local LLM runtime integration connects.
 - [ ] HA Wyoming integrations connect.
 - [ ] Voice round trip works from HA Assist or Companion App.
 - [ ] Performance test passes with no host swap.

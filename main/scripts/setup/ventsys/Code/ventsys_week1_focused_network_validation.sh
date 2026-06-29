@@ -190,8 +190,8 @@ discover_devices() {
     # Expected devices from VentSys plan
     local -A ventsys_devices=(
         ["192.168.20.101"]="Home Assistant VM"
-    ["192.168.50.21"]="Main Fan (ventsys-main-fan)"  # A7-1 fix: was "Fan Controller"
-    ["192.168.50.56"]="SLA Print Valve (ventsys-sla-print-valve)"  # A7-1 fix: was "SLA Valve Controller"
+    ["192.168.50.21"]="Main Fan (ventsys-main-fan)"
+    ["192.168.50.56"]="SLA Print Valve (ventsys-sla-print-valve)"
     )
     
     for ip in "${!ventsys_devices[@]}"; do

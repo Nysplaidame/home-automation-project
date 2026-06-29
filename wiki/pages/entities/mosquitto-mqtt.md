@@ -3,7 +3,7 @@ title: "Mosquitto MQTT Broker"
 category: entity
 tags: [software, mqtt, mosquitto, broker, tls]
 created: 2026-04-07
-updated: 2026-05-30
+updated: 2026-06-29
 sources: [project-readme, ventsys-technical-specs, ventsys-implementation-roadmap, troubleshooting-reference]
 status: active
 ---
@@ -22,14 +22,15 @@ Assistant automations.
 
 TLS on port `8883` is live and verified. Plain MQTT `1883` is deprecated and
 should not be opened through router policy for VentSys. Bambuddy has migrated to
-`8883` with TLS; Frigate and remaining VentSys clients should follow the TLS
-path before they are treated as live integrations.
+`8883` with TLS. Frigate currently keeps MQTT disabled in its migration-safe
+baseline and should only enable MQTT on the TLS path when cameras and final
+integrations are ready.
 
 ## Ports
 
 | Port | Status | Purpose |
 |---|---|---|
-| 1883 | Deprecated bootstrap / legacy clients | Do not expose through router policy for VentSys |
+| 1883 | Deprecated bootstrap / legacy clients | Closed by default; only use as a documented temporary recovery exception |
 | 8883 | ✅ Live | MQTT over TLS with local CA |
 
 ## Live Validations
@@ -74,6 +75,7 @@ mosquitto_pub -h 192.168.20.101 -p 8883 --cafile /ssl/ca.crt -u mqtt -P <passwor
 
 ## Change Log
 
+- 2026-06-29: Clarified that Frigate MQTT is currently disabled and that plaintext `1883` is only a documented temporary recovery/bootstrap exception, not a live policy target.
 - 2026-05-30: Corrected plain-MQTT state; TLS is live, Bambuddy is on TLS, and no valve-specific router `1883` exception should be treated as current.
 - 2026-05-18: Updated from planned/pre-TLS to live mixed-mode state: 8883 TLS verified, 1883 still open temporarily, Bambuddy migrated to TLS, valve-1 still on plain MQTT.
 - 2026-04-07: Page created from project-wide ingest.

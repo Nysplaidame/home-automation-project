@@ -81,36 +81,7 @@ swapon --show
 
 Pass condition: no meaningful host swap growth and HA remains responsive.
 
-## Phase 3 - Ollama rollback comparison
-
-Run on: llm-host over SSH.
-
-```bash
-free -h
-docker stats --no-stream
-time curl -s http://127.0.0.1:11434/api/generate \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "model": "home-assistant-llm",
-    "prompt": "Summarise the current local AI architecture in three short bullets.",
-    "stream": false,
-    "options": {
-      "num_ctx": 4096
-    }
-  }' >/tmp/ollama-4k-test.json
-free -h
-```
-
-Run on: Proxmox host shell.
-
-```bash
-free -h
-swapon --show
-```
-
-Pass condition: no meaningful host swap growth and HA remains responsive.
-
-## Phase 4 - 8k context trial
+## Phase 3 - 8k context trial
 
 Only run this after the 4k test passes comfortably.
 
@@ -135,27 +106,10 @@ docker stats --no-stream
 free -h
 ```
 
-Ollama comparison, if the rollback runtime is still present:
-
-```bash
-time curl -s http://127.0.0.1:11434/api/generate \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "model": "home-assistant-llm",
-    "prompt": "Write a concise operational checklist for testing Home Assistant voice commands safely.",
-    "stream": false,
-    "options": {
-      "num_ctx": 8192
-    }
-  }' >/tmp/ollama-8k-test.json
-docker stats --no-stream
-free -h
-```
-
 Pass condition: keep 8k only if CT 114 and the Proxmox host both retain healthy
 available memory. Otherwise keep the default alias at 4k.
 
-## Phase 5 - Voice pipeline test
+## Phase 4 - Voice pipeline test
 
 Run on: Home Assistant UI.
 
@@ -176,7 +130,7 @@ journalctl -u docker --since "10 minutes ago" --no-pager | tail -100
 Pass condition: voice completes without disrupting HA UI, MQTT, DNS, or
 monitoring.
 
-## Phase 6 - Normal workload concurrency
+## Phase 5 - Normal workload concurrency
 
 Run the same 4k LLM and voice tests while normal services are active:
 
@@ -189,7 +143,7 @@ Repeat this phase after cameras and Frigate inference are live. If Frigate or
 HA performance degrades, reduce local AI model/context before reducing camera
 or safety-system reliability.
 
-## Phase 7 - Upgrade test after 64 GB RAM
+## Phase 6 - Upgrade test after 64 GB RAM
 
 After the Proxmox host is upgraded to 64 GB:
 
@@ -197,14 +151,13 @@ After the Proxmox host is upgraded to 64 GB:
 2. Keep the same IP, DNS names, ports, and HA integrations.
 3. Pull and test the selected 14B Q4/Q5 model.
 4. Recreate `home-assistant-llm` against the larger model.
-5. Repeat Phases 1-5 before calling the larger model live.
+5. Repeat Phases 1-4 before calling the larger model live.
 
 ## Monitoring targets
 
 Add Uptime Kuma checks for:
 
 - llama.cpp OpenAI-compatible API on `192.168.20.104:8081/v1/models`
-- Ollama API on `192.168.20.104:11434`
 - Open WebUI on `192.168.20.104:3002`
 - Piper on `192.168.20.104:10200`
 - Whisper on `192.168.20.104:10300`

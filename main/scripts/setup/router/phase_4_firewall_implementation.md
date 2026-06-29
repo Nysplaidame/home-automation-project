@@ -241,7 +241,7 @@ for rule in "Bambuddy to Printer MQTT" "Bambuddy to Printer FTPS" "Docker Host A
     fi
 done
 
-# Verify 'Block NVR to Automation' (renamed from 'Block CCTV to Automation' in v3.0)
+# Verify 'Block NVR to Automation'
 if uci show firewall | grep -q "Block NVR to Automation"; then
     echo "✓ Block NVR to Automation (catch-all) configured" >> /tmp/phase4_ventsys_test.txt
 else

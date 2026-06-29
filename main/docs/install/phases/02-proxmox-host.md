@@ -89,4 +89,4 @@ cat /etc/network/interfaces
 - [ ] VLAN-aware bridge is configured.
 - [ ] SSH key access works.
 - [ ] VM shells are created or manually documented.
-- [ ] Optional VM 104 local AI plan is either deferred or followed from Phase 05A.
+- [ ] Optional CT 114 local AI plan is either deferred or followed from Phase 05A.

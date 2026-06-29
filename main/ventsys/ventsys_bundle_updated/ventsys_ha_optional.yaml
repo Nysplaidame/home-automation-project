@@ -74,14 +74,9 @@ mqtt:
 
     - name: Garage Ambient Pressure
       unique_id: ventsys_garage_ambient_pressure
-      # A6-4 fix: renamed unique_id from ventsys_garage_baro_pressure to
-      # ventsys_garage_ambient_pressure. The main package (ventsys_ha_package.yaml)
-      # already defines unique_id: ventsys_garage_baro_pressure for the same topic.
-      # HA refuses to register the second entity when both packages are loaded,
-      # logging a configuration error and silently dropping this entity. The rename
-      # gives each a distinct unique_id. The entity_id this generates
-      # (sensor.garage_ambient_pressure) is what the template sensors below
-      # reference — this must remain consistent.
+      # Unique ID is intentionally distinct from the main package's
+      # ventsys_garage_baro_pressure entity for the same topic. The generated
+      # entity_id (sensor.garage_ambient_pressure) is referenced below.
       state_topic: "ventsys/garage/baro_pressure"
       unit_of_measurement: "hPa"
       device_class: pressure
@@ -178,8 +173,7 @@ template:
           {% endif %}
 
 # ── NUMBER ENTITIES — PID control setpoints ──────────────────────────────
-# FIX #20: state_topic added to all five entities so HA can restore
-# last-commanded values from the broker after a restart.
+# state_topic lets HA restore last-commanded values from the broker after restart.
 # T-inlet and T-downstream are throttle threshold parameters for the control
 # loop — sent to the ESP32 boards to adjust valve response sensitivity.
 # Firmware must subscribe to these command topics and publish retained

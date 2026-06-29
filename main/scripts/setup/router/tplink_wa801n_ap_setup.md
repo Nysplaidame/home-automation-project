@@ -2,29 +2,30 @@
 
 **Hardware:** TP-Link TL-WA801N (802.11b/g/n, 2.4GHz only, 300Mbps)  
 **Role:** Wired access point extending the HomeMain network (VLAN 1, 192.168.1.0/24)  
-**Connection:** GL-MT6000 lan5 (VLAN 1 untagged — no router config changes required)  
+**Connection:** planned managed-switch access port, untagged VLAN 1
 **When to do this:** After router setup is complete and stable
 
 ---
 
 ## Overview
 
-lan5 on the GL-MT6000 is configured as VLAN 1 untagged throughout the project. During
-router setup it serves as an out-of-band recovery port. Once setup is stable, the same
-port is used to connect the TL-WA801N in AP mode — no router configuration changes are
-needed at any point. Just unplug the recovery laptop and plug in the extender.
+In the planned managed-switch layout, router `lan5` remains a direct VLAN 1
+LAN/recovery port. The TL-WA801N moves to a managed-switch access port configured
+as untagged VLAN 1/PVID 1. Do not move the extender until the managed switch is
+installed and its VLAN access-port test passes.
 
 The TL-WA801N is 2.4GHz only and has no VLAN awareness. It receives untagged traffic
-from lan5 (VLAN 1) and broadcasts it as its own SSID. Clients connecting to the extender
-are transparently on the main LAN — they get 192.168.1.x IPs from the router's DHCP
-pool and fall under the existing `lan` firewall zone with full internet access.
+from the switch access port and broadcasts it as its own SSID. Clients connecting
+to the extender are transparently on the main LAN — they get 192.168.1.x IPs from
+the router's DHCP pool and fall under the existing `lan` firewall zone with full
+internet access.
 
 ---
 
 ## Physical Setup
 
 1. Place the TL-WA801N where coverage is needed
-2. Run an ethernet cable from **GL-MT6000 lan5** to the **TL-WA801N LAN port**
+2. Run an ethernet cable from the **managed switch VLAN 1 access port** to the **TL-WA801N LAN port**
    (use the LAN port, not the WAN port — the WAN port is only used in Repeater/Client mode)
 3. Power the TL-WA801N via its included adapter
 
@@ -92,7 +93,7 @@ Suggested IP: 192.168.1.203 (above the .201/.202 Raspberry Pi display reservatio
 
 | Item | Change needed? |
 |---|---|
-| vlan-config.conf | No — lan5 is already VLAN 1 untagged |
+| vlan-config.conf | Yes for the future managed-switch layout — router `lan3` trunk carries VLAN 1 tagged; the switch presents VLAN 1 untagged to the extender |
 | firewall-config.conf | No — extender clients fall under existing `lan` zone |
 | dhcp-config.conf | Only the optional static reservation above |
 | wireless-config.conf | No — router SSIDs unchanged |

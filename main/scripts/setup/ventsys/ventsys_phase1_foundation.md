@@ -280,11 +280,11 @@ Establish secure network infrastructure and certificate authority system that wi
 **Sub-tasks**:
 - **Initial Device Certificates**: Generate certificates for the first devices being deployed (e.g., main fan controller at .21, FDM sensor array at .31) using the CA certificate generation script from Week 2
 - **Device Configuration Updates**: Update ESPHome YAML files to use base TLS template while preserving existing MQTT topic structure (see `ventsys_fan_controller.yaml` and `ventsys_valve_controller.yaml` as starting points)
-- **Full Device Registry**: Once all 17 ESP32 boards and 8 smart plugs are assembled  # A7-3 fix: was 16 boards; canonical fleet is 17, generate certificates for all devices per the canonical IP allocation table in `dhcp-config.conf`
+- **Full Device Registry**: Once all 17 ESP32 boards and 8 smart plugs are assembled, generate certificates for all devices per the canonical IP allocation table in `dhcp-config.conf`
 - **Certificate Distribution**: Implement secure procedure for distributing CA certificate and device credentials to ESP32 devices during flashing
 
 **Code Requirements**:
-- Generate device certificates for ventsys-main-fan and ventsys-sla-print-valve  # A7-3 fix: was ventsys-fan-controller/ventsys-sla-valve (stale pre-canonical names) using CA certificate generation script
+- Generate device certificates for `ventsys-main-fan` and `ventsys-sla-print-valve` using the CA certificate generation script
 - Update ventsys_fan_controller.yaml and ventsys_valve_controller.yaml to use base TLS template while maintaining existing MQTT topic structure
 - Create device flashing procedure that securely integrates certificates and credentials into device firmware
 

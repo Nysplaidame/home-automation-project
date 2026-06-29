@@ -62,7 +62,7 @@ status: active
 - [[configs/frigate/system/frigate-nvr-fail2ban-sshd.local]] — CT 111 Fail2ban SSH jail baseline
 
 ### Local AI
-- [[configs/local-ai/docker-compose.yml]] — CT 114 llama.cpp, Ollama rollback, Open WebUI and Wyoming services
+- [[configs/local-ai/docker-compose.yml]] — CT 114 llama.cpp, Open WebUI and Wyoming services
 
 ### Docker Host
 - [[configs/docker-host/README.md]] — rebuildable source templates for VM 103 Compose stacks and host firewall
@@ -90,7 +90,6 @@ status: active
 
 ### Proxmox
 - [[configs/proxmox/guest-configs.md]] — canonical live VM/LXC inventory
-- [[configs/proxmox/guest-configs.md]] — verified current VM/LXC inventory
 - [[scripts/setup/proxmox/llm_host_setup_guide.md]] — CT 114 local AI compatibility entrypoint
 - [[docs/reference/current-live-state.md]] — canonical deployed-state inventory
 
@@ -199,4 +198,4 @@ status: active
 
 ---
 
-**Updated:** May 2026
+**Updated:** June 2026

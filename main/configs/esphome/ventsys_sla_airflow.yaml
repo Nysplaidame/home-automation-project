@@ -3,7 +3,8 @@
 # Adds MQTT publishing and VentSys identity. All original features retained.
 # See ventsys_fdm_airflow.yaml for full notes.
 #
-# PRE-TLS: Change mqtt.port to 1883 and remove ca_certificate before first flash.
+# TLS-first production config. Use a dedicated `_pretls.yaml` recovery/bootstrap
+# variant only for a documented temporary plaintext MQTT exception.
 #
 # SECRETS REQUIRED: wifi_ssid, wifi_pass, mqtt_user, mqtt_pass,
 #                   mqtt_ca_cert, api_key, ota_password

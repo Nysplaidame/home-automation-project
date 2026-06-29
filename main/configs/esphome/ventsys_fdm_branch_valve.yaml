@@ -4,15 +4,15 @@
 # original features: LED colour coding, temperature alerts, touch sensor toggle,
 # configurable open/close positions, PWM auto-shutdown.
 #
-# PRE-TLS DEPLOYMENT: Change mqtt.port to 1883 and remove mqtt.ca_certificate
-# before first flash. Swap back to 8883 + ca_certificate after TLS is live.
+# TLS-first production config. Use a dedicated `_pretls.yaml` recovery/bootstrap
+# variant only for a documented temporary plaintext MQTT exception.
 #
 # SECRETS REQUIRED (secrets.yaml):
 #   wifi_ssid, wifi_pass, mqtt_user, mqtt_pass, mqtt_ca_cert,
 #   api_key, ota_password
 
 substitutions:
-  device_name: ventsys-fdm-branch-valve  # N-5 fix: hyphens match ESPHome mDNS convention
+  device_name: ventsys-fdm-branch-valve
   friendly_name: "VentSys FDM Branch Valve"
   device_ip: "192.168.50.53"
   mqtt_command_topic: "ventsys/fdm/branch/control"

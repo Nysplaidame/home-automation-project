@@ -1,6 +1,6 @@
 ---
 title: Project Tasks
-description: Implementation tasks by phase — updated May 2026
+description: Implementation tasks by phase — updated June 2026
 tags: [tasks, implementation]
 aliases: [TODO, Tasks]
 created: 2025-09-15
@@ -77,15 +77,16 @@ Planning baseline until explicitly revalidated:
 37. [x] Re-export `Proxmox Resource Overview` and apply explicit labels (`Guest RAM`, `RAM Pressure`, `Root Disk`) to live/source panels; 2026-05-31 datasource check found high HA/docker-host/monitoring percentages are guest-memory values, not CPU/disk saturation
 38. [ ] Schedule controlled docker-host patch window for Docker engine/component and kernel package candidates from `docs/procedures/update_review_log.md`
 39. [x] Add first NAS telemetry using existing docker-host Telegraf -> InfluxDB -> Grafana pattern by exposing the OMV-backed Immich mount to Telegraf
-40. [x] Build VM 104 `llm-host` only after confirming current Proxmox RAM pressure is healthy enough for an 8GB AI VM
-41. [x] Deploy Ollama, Open WebUI, Wyoming Whisper, and Wyoming Piper on VM 104 per `scripts/setup/proxmox/llm_host_setup_guide.md`
-42. [x] Configure HA Ollama/Wyoming integrations and validate Home and Overwatch Assist pipelines
+40. [x] Build CT 114 `llm-host` after confirming Proxmox RAM pressure was healthy enough for the local-AI workload
+41. [x] Deploy llama.cpp, Open WebUI, Wyoming Whisper, Wyoming Piper, and OpenWakeWord on CT 114 per `scripts/setup/proxmox/llm_host_setup_guide.md`
+42. [x] Configure HA llama.cpp/Wyoming integrations and validate Home Assist pipeline
 43. [x] Validate CT 114 Vulkan inference, 33/33 layer offload and concurrent Frigate OpenVINO use
 44. [x] Add Uptime Kuma/Grafana monitoring for CT 114 AI services; add OpenWakeWord monitor as follow-up
 45. [ ] Add a scoped, confirmation-gated Overwatch action for saving recipes to Mealie
 45. [ ] Keep Hermes Agent roadmap-only until local LLM, STT, TTS, monitoring, and safety gates are stable
 46. [ ] Keep future YouTube transcript/query app architecture undecided; VM 103 is only the expected target for future containerized query apps
 47. [x] Add Frigate camera/PoE switch pre-flight checklist at `docs/procedures/frigate_camera_preflight_checklist.md`
+48. [ ] When the Zyxel GS1900-8HP arrives, configure it before recabling: router `lan3` tagged trunk for VLANs 1/10/30/40, switch management on VLAN 10 (`192.168.10.12`), cameras on untagged VLAN 30, OMV on untagged VLAN 40, and TL-WA801N on untagged VLAN 1
 
 ---
 
@@ -229,14 +230,14 @@ must work without HACS.
 - [x] Retire the pre-LXC `vm-setup.sh`; `guest-configs.md` holds the current inventory
 - [x] Move VMs 100/102/103 and CTs 111/114 to `omv-backups` with `keep-daily=7,keep-monthly=6`; retain local archives during transition and alert while OMV remains above 80% used
 - [x] Replace VM 104 with CT 114 `llm-host` at 192.168.20.104; retain stopped VM as rollback
-- [x] Keep `llm-host`, `ollama`, and `openwebui` DNS aliases on 192.168.20.104
+- [x] Keep `llm-host` and `openwebui` DNS aliases on 192.168.20.104
 - [ ] After a future 64GB RAM upgrade, resize CT 114 and retest before moving `home-assistant-llm` to a 14B model
 
 ### Home Assistant VM (VM 100)
 - [x] Start VM 100, complete HAOS onboarding wizard
 - [x] Set static IP 192.168.20.101 via nmcli
 - [x] Install add-ons: Mosquitto, File Editor, Terminal, ESPHome
-- [x] Configure MQTT integration (`localhost:1883` for Stage 1 pre-TLS; switch to `localhost:8883` after TLS migration)
+- [x] Configure MQTT integration on TLS (`localhost:8883`); keep plaintext `1883` only for explicit bootstrap exceptions
 - [x] Copy `ventsys_ha_package.yaml` and `ventsys_ha_scripts.yaml` to `/config/packages/`
 - [x] Do not copy `ventsys_ha_optional.yaml` yet (load only after its prerequisites are met)
 - [x] Copy `dashboards/ventsys-dashboard.html` to `/config/www/ventsys-dashboard.html`
@@ -312,7 +313,7 @@ must work without HACS.
 ### ESPHome flashing and adoption
 - [ ] Flash fan controller via USB (`ventsys_fan_controller.yaml`)
 - [ ] Flash valve controller via USB (`ventsys_valve_controller.yaml`)
-- [x] Create remaining controller YAMLs -- ALL exist in configs/esphome/ (A5-3 fix: Fix #12 is resolved):
+- [x] Create remaining controller YAMLs -- all exist in `configs/esphome/`:
   ventsys_main_valve1/2, fdm/sla_branch_valve, fdm/sla_print_valve, fdm/sla_360_valve (8 valves), ventsys_booth_fan.yaml (spray fan)
 - [ ] Flash FDM sensor board via USB (`ventsys_fdm_sensor.yaml`)  # A5-3: per-device YAML now exists (A4-4)
 - [ ] Flash SLA sensor board via USB (`ventsys_sla_sensor.yaml`)  # A5-3: per-device YAML now exists (A4-4)
@@ -321,7 +322,7 @@ must work without HACS.
 - [ ] Migrate `ventsys_main_valve1.yaml` from MQTT `1883` to `8883` with `certificate_authority: !secret mqtt_ca_cert`
 - [x] Remove valve-1 temporary plain-MQTT firewall follow-up task because no live/source `1883` exception is present
 - [ ] Bench-calibrate the 360 intake v2 Nerdiy candidates before deployment: current latest profile uses ESP32-C6, servo PWM on GPIO0, LED data on GPIO1, Nerdiy one-sided servo mapping limited to `0-35`, logical `open=35` / `closed=0`, forced servo writes for buttons/MQTT/direct number changes, and 1s PWM detach at fully open or fully closed; local touch toggle is parked until C6-compatible input wiring is confirmed
-- [ ] Adopt all devices in ESPHome add-on (17 ESP32 boards + plugs)  # A5-3: was 'all 4 devices' - pre-expansion count
+- [ ] Adopt all devices in ESPHome add-on (17 ESP32 boards + plugs)
 - [ ] Verify MQTT topics publishing: `mosquitto_sub -t 'ventsys/#' -v`
 - [ ] Confirm automations fire on test sensor triggers
 - [ ] Test emergency power cutoff sequence end-to-end
@@ -334,7 +335,7 @@ must work without HACS.
 
 ## Phase 4 — Storage ⏳
 
-- [x] Migrate live OMV hardware/storage to VLAN 40 at `192.168.40.50` on router `lan4` (capacity remediation remains open because the backing filesystem is 87% used)
+- [x] Migrate live OMV hardware/storage to VLAN 40 at `192.168.40.50` on router `lan4` (capacity remediation remains open because the backing filesystem is 87% used); future managed-switch recable is planned but not live
 - [x] Follow `omv_nas_setup_guide.md` storage/user/share/export setup while preserving existing SMB shares
 - [x] Configure NFS exports (Frigate, HA, Immich, configs shares)
 - [x] Warm Frigate OMV export for future unprivileged CT cutover: allow Proxmox host `192.168.10.10` to mount `/export/frigate` and verify temporary write/read/delete/unmount
@@ -352,8 +353,8 @@ must work without HACS.
 - [ ] Purchase 4× cameras and PoE switch
 - [ ] Record sourced camera and smart PoE switch model numbers, firmware lines, RTSP/substream paths, PoE budget, management VLAN behavior, and reset procedures in `docs/procedures/frigate_camera_preflight_checklist.md`
 - [ ] Bench-test one camera at a time using `docs/procedures/frigate_camera_preflight_checklist.md` before permanent mounting
-- [ ] Keep LAN3 reserved for the future managed PoE camera switch; Hive placement remains parked
-- [ ] Mount cameras, run CAT6 to PoE switch on VLAN 30
+- [ ] Keep LAN3 reserved for the future managed-switch trunk; do not deploy the trunk config until the switch is present and configured
+- [ ] Mount cameras, run CAT6 to PoE switch access ports on VLAN 30
 - [ ] Assign static IPs: cameras at 192.168.30.21–24 (MAC reservations in dhcp-config.conf)
 - [ ] Update RTSP paths in `configs/frigate/config.yml` (currently placeholder `/stream1`)
 - [ ] Restart Frigate, confirm all 4 camera streams visible in UI

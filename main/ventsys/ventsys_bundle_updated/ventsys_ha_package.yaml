@@ -61,19 +61,8 @@ input_boolean:
 #  ->  NUMBER ENTITIES  -> 
 
 
-# FIX #1: Previously this file had TWO separate top-level `number:` blocks.
-
-
-# YAML silently discards the first block when two identical top-level keys exist,
-
-
-# meaning the primary three valves (SLA, FDM, Booth) were erased at parse time
-
-
-# and never registered as HA entities. All nine valve number entities are now
-
-
-# merged into this single `number:` list so all are loaded correctly.
+# Keep all valve number entities in this single mqtt.number list. YAML cannot
+# safely represent repeated top-level keys.
 
 
 
@@ -138,10 +127,8 @@ mqtt:
 
 
 
-    # L-2 fix: Booth valve entity commented out  ->  no ESPHome firmware currently exists
-
-
-    # that subscribes to ventsys/booth/valve/control or publishes ventsys/booth/valve/state.
+    # Booth valve entity is commented out because no ESPHome firmware currently
+    # subscribes to ventsys/booth/valve/control or publishes ventsys/booth/valve/state.
 
 
     # Leaving this active shows a working-looking control in HA that silently drops all
@@ -354,13 +341,7 @@ mqtt:
   #  ->  FAN ENTITIES  -> 
 
 
-  # FIX #1 (continued): Same problem applied to `fan:`  ->  two separate blocks
-
-
-  # existed, with the second (spray fan only) overwriting the first (inline fan).
-
-
-  # Both fans are now merged into this single `fan:` list.
+  # Keep both fans in this single mqtt.fan list.
 
 
 
@@ -448,28 +429,8 @@ mqtt:
   #  ->  SENSOR ENTITIES  -> 
 
 
-  # FIX #7: automations.yaml referenced sensor.ventsys_enc1_smoke,
-
-
-  # sensor.ventsys_enc1_iaq, sensor.ventsys_enc1_temperature and
-
-
-  # sensor.ventsys_enc1_pressure_diff  ->  none of which existed in any package.
-
-
-  # MQTT sensor definitions are added here using the fdm_*/sla_* naming
-
-
-  # convention established by the risk sensors, with topics matching the
-
-
-  # ventsys/{enclosure}/{type} pattern used throughout. automations.yaml has
-
-
-  # been updated to use these entity IDs.
-
-
-  # G4 RESOLVED: topic names cross-verified against printairpipe-controller.yaml  ->  all match.
+  # MQTT sensor definitions use the fdm_*/sla_* naming convention and
+  # ventsys/{enclosure}/{type} topic pattern used throughout.
 
 
 
@@ -840,10 +801,8 @@ mqtt:
   #  ->  AIRFLOW SENSOR ENTITIES ────────────────────────────────────────────────
 
 
-  # L-1 fix: airflow sensor boards publish pulses/s and rounds/s via MQTT but
-
-
-  # no HA sensor entities were defined. Added to match topics in:
+  # Airflow sensor boards publish pulses/s and rounds/s via MQTT. These entities
+  # match topics in:
 
 
   #   ventsys_fdm_airflow.yaml, ventsys_sla_airflow.yaml, ventsys_booth_airflow.yaml
@@ -970,9 +929,7 @@ mqtt:
 
 
     #  ->  ADC Airflow Pressure Differential (Pa) ──────────────────────────────
-    # A6-3 fix (#12): ADC-based pressure differential sensors on GPIO35 of each
-    # sensor board publish to these topics but had no HA entity defined — data
-    # was being silently dropped by Mosquitto with no subscriber.
+    # ADC-based pressure differential sensors on GPIO35 publish to these topics.
     #
     # These are SEPARATE from the BME680 baro_pressure sensors in
     # ventsys_ha_optional.yaml. That file uses barometric hPa differentials for
@@ -1011,10 +968,7 @@ mqtt:
   #  ->  BINARY SENSOR ENTITIES ──────────────────────────────────────────────────
 
 
-  # FIX #7 (continued): binary_sensor.mqtt_broker was referenced in the MQTT
-
-
-  # watchdog automation but never defined anywhere. Mosquitto publishes a
+  # Mosquitto publishes a
 
 
   # heartbeat string to $SYS/broker/uptime every 60s by default. expire_after: 70
@@ -1153,13 +1107,7 @@ automation:
 
 
 
-  # D1 fix: was previously calling script.ventsys_mode_purge, which activated
-
-
-  # the spray booth fan  ->  unsafe during a fire event. Now calls the dedicated
-
-
-  # ventsys_mode_fire_safe script which opens all enclosure paths, closes the
+  # Dedicated fire-safe script opens all enclosure paths, closes the
 
 
   # spray booth path, runs the main fan only, and explicitly leaves the spray
@@ -1193,4 +1141,3 @@ automation:
 
 
         target: { entity_id: script.ventsys_mode_fire_safe }
-

@@ -47,7 +47,7 @@ echo "Prerequisites validated for VPN setup" >> /tmp/deployment_logs/phase6.log
 SERVER_PRIVATE_KEY=$(cat /etc/wireguard/keys/server_private.key)
 
 # Configure WireGuard interface (wg0)
-# B6/B7 fix: Only create the wg0 WireGuard interface. Do NOT create a separate
+# Only create the wg0 WireGuard interface. Do NOT create a separate
 # 'vpn' static interface pointing at wg0 — that is invalid OpenWrt UCI and causes
 # the vpn_clients firewall zone to silently have no interface attached (B7).
 # The firewall zone in firewall-config.conf now references 'wg0' directly.
@@ -115,9 +115,8 @@ fi
 # Generate client configuration files
 mkdir -p /etc/wireguard/client_configs
 SERVER_PUBLIC_KEY=$(cat /etc/wireguard/keys/server_public.key)
-# E3 fix: replaced wget http://ipecho.net/plain (unencrypted HTTP to a third-party
-# service) with a local lookup. On OpenWrt the WAN IP is available directly from
-# the network interface — no external request needed.
+# On OpenWrt the WAN IP is available directly from the network interface; no
+# external IP-echo service is needed.
 # grep -oP is not available in BusyBox — use awk for portability.
 WAN_IP=$(ip -4 addr show "$(uci get network.wan.device 2>/dev/null || echo wan)" \
          | awk '/inet /{split($2,a,"/"); print a[1]; exit}')

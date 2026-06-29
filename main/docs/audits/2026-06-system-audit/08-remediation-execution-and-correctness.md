@@ -38,7 +38,7 @@ review work.
 | Dashboard init safety | pass-static | Startup uses pure renderers; initialization/render functions contain no publish path |
 | ESPHome | pass | All 27 production YAML files validate; four ESP8266 native-API plug configurations compile |
 | Router source | pass-with-prerequisites | Lint passes and preview compilation succeeds; strict deployment compilation correctly blocks unresolved device placeholders |
-| Core reachability | pass | Router, HA, Frigate SSH, docker-host, Bambuddy, MQTT TLS, Grafana, Kuma, Ollama and OMV SMB checks pass |
+| Core reachability | pass | Router, HA, Frigate SSH, docker-host, Bambuddy, MQTT TLS, Grafana, Kuma, legacy local LLM runtime and OMV SMB checks pass |
 | Frigate failed unit | pass | Dormant NFS/RPC units disabled in CT 111; `systemctl --failed` reports zero units |
 | Monitoring | active-alert | Five-minute Proxmox timer checks core services, TCP 445 and storage; conservative shared-filesystem high-water policy currently alerts on OMV's 87.34% usage |
 

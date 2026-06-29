@@ -8,6 +8,22 @@
 
 ## 0. Latest verified state — Phase 2 and voice pipeline
 
+### Documentation/config cleanup — 2026-06-29
+
+- Cleaned active router/config/documentation comments so they describe the
+  current CT 111/CT 114, NVR, TLS-first MQTT and managed-switch planning state
+  rather than VM-era, CCTV-era or pre-TLS correction history.
+- Aligned `configs/frigate/config.yml` with the current migration-safe baseline:
+  `mqtt.enabled: false` and `cameras: {}` until real camera models, RTSP paths,
+  credentials and MQTT material are available.
+- Moved the obsolete repository bootstrapper from
+  `scripts/setup/GitHub.ps1` to
+  `_archive/2026-06-29-stale-bootstrap/GitHub.ps1`; it created the old
+  `home-automation-safety` / 4-VLAN / CCTV-era layout and should not be run.
+- Updated active MQTT examples to lead with TLS port `8883`; plaintext `1883`
+  remains documented only as a deliberate temporary bootstrap/recovery
+  exception.
+
 Phase 2 is complete. The apparent Phase 2b "Wyoming integrations not loading"
 blocker was a misdiagnosis and is now resolved.
 
@@ -37,7 +53,7 @@ TTS path.
   Piper 2.2.2, Faster Whisper 3.1.0 (`base-int8`), and OpenWakeWord 2.1.0.
 - Confirmed the cached Piper `en_GB-alba-medium` model exists.
 - Built-in HA conversation returned the correct current time.
-- Ollama conversation returned a correct response using
+- legacy local LLM runtime conversation returned a correct response using
   `llama3.1-8k:latest`.
 - HA-native Assist runs completed through `intent-start` -> `intent-end` ->
   `tts-start` (`tts.piper_2`) -> `tts-end` -> `run-end`.
@@ -47,7 +63,7 @@ TTS path.
 
 ### Measured CPU baseline
 
-The remaining limitation is latency, not correctness. A fresh Ollama voice
+The remaining limitation is latency, not correctness. A fresh legacy local LLM runtime voice
 conversation takes roughly 52–54 seconds even with the model resident. HA sends
 about 1,637 prompt/tool-schema tokens; CPU prompt evaluation is about 24 tokens/s,
 followed by a tool-call round trip. The model itself is loaded indefinitely at
@@ -67,8 +83,8 @@ hypothesis unless new evidence contradicts the successful pipeline traces.
 
 ### Overwatch web search — added 2026-06-20
 
-Open WebUI's SearXNG settings do not apply to HA's Ollama conversation agent;
-HA talks directly to Ollama. Added the local custom integration
+Open WebUI's SearXNG settings do not apply to HA's legacy local LLM runtime conversation agent;
+HA talks directly to legacy local LLM runtime. Added the local custom integration
 `searxng_llm` to expose a bounded, read-only `web_search` LLM tool through HA's
 native multi-API mechanism. Source is tracked under
 `configs/home-assistant/custom_components/searxng_llm/` and deployed to
@@ -76,11 +92,11 @@ native multi-API mechanism. Source is tracked under
 
 Configuration points to `http://192.168.20.102:8087`, returns at most three
 title/URL/snippet results, caps field lengths, and has a 15-second timeout. The
-Ollama conversation subentry now selects both `assist` and `searxng_search`.
+legacy local LLM runtime conversation subentry now selects both `assist` and `searxng_search`.
 Backups were created for live `configuration.yaml` and `core.config_entries`
 before deployment.
 
-End-to-end tests through `conversation.ollama_conversation` passed both with an
+End-to-end tests through `conversation.legacy-local-llm_conversation` passed both with an
 explicit web-search request and with the natural request "Give me two recipes
 for chicken with tarragon and cream." Overwatch called SearXNG and returned
 The Modern Proper and BBC Food recipes with direct source links. CPU latency was
@@ -91,13 +107,13 @@ this is expected to be a key GPU benchmark.
 
 ## 1. Decision locked: Option B
 
-Keep the Intel Meteor Lake iGPU on the Proxmox host (no PCI passthrough to a single VM). Share `/dev/dri/renderD128` into LXC containers so both Frigate and Ollama can use it concurrently. VMs cannot share a GPU this way; only LXCs can, because they share the host kernel.
+Keep the Intel Meteor Lake iGPU on the Proxmox host (no PCI passthrough to a single VM). Share `/dev/dri/renderD128` into LXC containers so both Frigate and legacy local LLM runtime can use it concurrently. VMs cannot share a GPU this way; only LXCs can, because they share the host kernel.
 
 **Migration shape:**
 - VM 101 (frigate-nvr) and VM 104 (llm-host) get **stood down**, not deleted — `qm stop`, `onboot 0`, disks kept as rollback.
 - New LXCs get fresh IDs (proposed **CT 111** = frigate, **CT 114** = llm-host) but reuse the same static IPs/DNS/VLAN tags (192.168.30.20 VLAN 30, 192.168.20.104 VLAN 20). Only one of each pair runs at a time, so no IP conflict.
 - Docker-inside-LXC, **unprivileged** containers (privileged only if render-node access genuinely fails).
-- GPU path is **benchmark-gated**: keep Vulkan/SYCL on Ollama only if it beats a tuned CPU baseline on both speed and output correctness (known Ollama-Vulkan gibberish bug on some Intel iGPUs). **IPEX-LLM is struck from the plan** — archived by Intel Jan 2026.
+- GPU path is **benchmark-gated**: keep Vulkan/SYCL on legacy local LLM runtime only if it beats a tuned CPU baseline on both speed and output correctness (known legacy local LLM runtime-Vulkan gibberish bug on some Intel iGPUs). **IPEX-LLM is struck from the plan** — archived by Intel Jan 2026.
 - Frigate's GPU benefit (VAAPI/OpenVINO) is real but can't be fully validated until cameras are live.
 - NPU (`/dev/accel/accel0`) is out of scope.
 
@@ -109,13 +125,13 @@ Keep the Intel Meteor Lake iGPU on the Proxmox host (no PCI passthrough to a sin
 |---|---|---|
 | 0 | Swap/memory baseline | ✅ Done |
 | 1 | SearXNG JSON fix + Open WebUI web search wiring | ✅ **Done** (this session) |
-| 2 | Tune Ollama (keep-alive, model consolidation, context/threads) | ✅ Done |
+| 2 | Tune legacy local LLM runtime (keep-alive, model consolidation, context/threads) | ✅ Done |
 | 2b | Voice pipeline validation and stale TTS repair | ✅ Done |
 | 3 | Stand down VM 101 + VM 104 | ✅ Done; stopped, autostart disabled, snapshots retained |
 | 4 | Build LXCs CT 111, CT 114 | ✅ Done |
 | 5 | Wire shared Intel iGPU into both | ✅ Done; render + card nodes mapped |
 | 6 | Rebuild in-guest firewall (UFW + DOCKER-USER) under unprivileged LXC | ✅ Done |
-| 7 | GPU acceleration (Frigate OpenVINO/VAAPI, Ollama Vulkan) | ✅ Done |
+| 7 | GPU acceleration (Frigate OpenVINO/VAAPI, legacy local LLM runtime Vulkan) | ✅ Done |
 | 8 | Benchmark GPU vs tuned-CPU baseline | ✅ Initial benchmark done; cold 3-token response 9s |
 | 9 | Commit (delete VMs) or roll back | ⏸ Burn-in period; VMs deliberately retained |
 
@@ -132,7 +148,7 @@ The production cutover is complete and rollback remains available.
   MQTT and cameras disabled until real credentials, CA material and stream URLs
   are provisioned; this avoids bringing placeholder cameras into production.
 - **CT 114 (`llm-host`)** now owns `192.168.20.104`, VLAN 20, with 4 vCPU,
-  10 GiB RAM and a 100 GiB root disk. Ollama detected the Meteor Lake iGPU via
+  10 GiB RAM and a 100 GiB root disk. legacy local LLM runtime detected the Meteor Lake iGPU via
   Vulkan only after adding `OLLAMA_IGPU_ENABLE=1`; a live model load then
   offloaded **33/33 layers**, the KV cache and compute buffers to Vulkan.
 - Both unprivileged LXCs receive `/dev/dri/renderD128` and `/dev/dri/card1`
@@ -150,16 +166,16 @@ The production cutover is complete and rollback remains available.
 
 - Frigate container healthy; `frigate.detector:ov` remains alive; UI and API
   return HTTP 200 after reboot.
-- Ollama logs identify `Vulkan0` as `Intel(R) Graphics (MTL)` and show all model
+- legacy local LLM runtime logs identify `Vulkan0` as `Intel(R) Graphics (MTL)` and show all model
   layers offloaded. A cold `llama3.1-8k` request returned `GPU OK` in 9 seconds;
   the prior HA voice CPU baseline was 52–54 seconds.
-- Open WebUI is healthy and retained its data. HA can reach Ollama, Piper,
+- Open WebUI is healthy and retained its data. HA can reach legacy local LLM runtime, Piper,
   Whisper, OpenWakeWord and SearXNG from `192.168.20.101`.
 - Current `wyoming-whisper:latest` needs the `openai/whisper-tiny` tokenizer even
   with `base-int8`. VLAN 20 has no internet egress, so the tokenizer is cached
   persistently under `whisper/huggingface`, with `HF_HOME=/data/huggingface` and
   `HF_HUB_OFFLINE=1`. This was verified through another CT 114 reboot.
-- CT 114's persistent DOCKER-USER policy gates ports 11434, 3002, 10200, 10300
+- CT 114's persistent DOCKER-USER policy gates ports retired-api-port, 3002, 10200, 10300
   and 10400 by source. This corrects the old VM's missing 10400 protection.
 
 Canonical deployed compose definitions now live at
@@ -226,11 +242,11 @@ The prior session's `curl localhost:8087` test never actually exercised the cros
 **End-to-end verified:** `curl http://192.168.20.102:8087/search?q=test&format=json` from VM 104 → **HTTP 200**, full real JSON result set returned. This is the first genuine proof the cross-host path works.
 
 ### 4.3 Search-model context window
-Two Ollama models exist on VM 104: `llama3.1:8b-instruct-q4_K_M` (general purpose, no custom `num_ctx`, defaults low) and `home-assistant-llm:latest` (custom Modelfile, `num_ctx 4096`, tuned system prompt for HA voice/Assist pipeline — **deliberately left untouched**, not a bug).
+Two legacy local LLM runtime models exist on VM 104: `llama3.1:8b-instruct-q4_K_M` (general purpose, no custom `num_ctx`, defaults low) and `home-assistant-llm:latest` (custom Modelfile, `num_ctx 4096`, tuned system prompt for HA voice/Assist pipeline — **deliberately left untouched**, not a bug).
 
 User confirmed: bump context on the **general-purpose model**, not the HA one.
 
-Created new tagged model **`llama3.1-search:latest`** (`FROM llama3.1:8b-instruct-q4_K_M` + `PARAMETER num_ctx 16384`) via `ollama create` inside the `ollama` container. Verified live: `ollama show llama3.1-search:latest --parameters` → `num_ctx 16384`. Base `llama3.1:8b-instruct-q4_K_M` tag left untouched as a clean baseline.
+Created new tagged model **`llama3.1-search:latest`** (`FROM llama3.1:8b-instruct-q4_K_M` + `PARAMETER num_ctx 16384`) via `legacy-local-llm create` inside the `legacy-local-llm` container. Verified live: `legacy-local-llm show llama3.1-search:latest --parameters` → `num_ctx 16384`. Base `llama3.1:8b-instruct-q4_K_M` tag left untouched as a clean baseline.
 
 ### 4.4 Manual step still required (UI-only, not scriptable blind)
 **User needs to open Open WebUI and select `llama3.1-search` as the active model** when they want web-search-augmented chat. Open WebUI has no single "default search model" env var — model choice is per-chat in the UI dropdown.
@@ -335,4 +351,4 @@ for Phase 8 GPU comparison.
 
 ## 9. Model guidance
 
-Sonnet for step-by-step execution work. Switch to Opus only if something gets genuinely stuck — e.g. unprivileged LXC refusing GPU access, Docker iptables misbehaving inside the LXC namespace (note: this session's DOCKER-USER debugging on a plain VM was already non-trivial; the same class of problem inside an LXC's network namespace in Phase 6 is flagged as a likely Opus-worthy snag), or the Ollama Vulkan gibberish-output bug showing up during Phase 7/8 benchmarking.
+Sonnet for step-by-step execution work. Switch to Opus only if something gets genuinely stuck — e.g. unprivileged LXC refusing GPU access, Docker iptables misbehaving inside the LXC namespace (note: this session's DOCKER-USER debugging on a plain VM was already non-trivial; the same class of problem inside an LXC's network namespace in Phase 6 is flagged as a likely Opus-worthy snag), or the legacy local LLM runtime Vulkan gibberish-output bug showing up during Phase 7/8 benchmarking.

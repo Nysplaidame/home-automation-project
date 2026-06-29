@@ -16,13 +16,12 @@ PROXMOX_IP="192.168.10.10"
 HA_IP="192.168.20.101"
 HA_PORT="8123"
 FRIGATE_IP="192.168.30.20"
-FRIGATE_PORT="8971"  # N-1 fix: Frigate 0.14+ UI/API moved from port 5000 to 8971
+FRIGATE_PORT="8971"
 DOCKER_HOST_IP="192.168.20.102"
 BAMBUDDY_IP="$DOCKER_HOST_IP"
 BAMBUDDY_PORT="8000"
 P1S_IP="192.168.35.200"   # VLAN 35 (Printers) — see docs/decisions/02-printer-vlan-architecture.md
-# C9 fix: P1S check changed from check_port (TCP to 8883) to check_ping.
-# The printer's MQTT port 8883 is a TLS-authenticated broker — it does not
+# The printer's MQTT port 8883 is a TLS-authenticated broker and does not
 # respond to unauthenticated TCP probes in a way that reliably confirms health.
 # Ping is a better liveness check here; if the printer is powered on and
 # network-connected, ping will succeed. MQTT connectivity is confirmed
@@ -34,11 +33,9 @@ MQTT_IP="192.168.20.101"
 # bootstrap path until all clients are migrated.
 MQTT_PORT="8883"
 
-FAN_CTRL_IP="192.168.50.21"   # legacy var — now superseded by VENTSYS_BOARDS loop; kept for reference
-VALVE_CTRL_IP="192.168.50.56" # legacy var — was .82 (old pre-canonical); now .56 (ventsys-sla-print-valve)
 ESPHOME_PORT="6053"
 
-# ── VENTSYS DEVICE REGISTRY (C8/F-30 fix) ───────────────────────────────────
+# ── VENTSYS DEVICE REGISTRY ──────────────────────────────────────────────────
 # All 20 ESPHome boards. Format: "IP:key:Label"
 # key is used as the JSON field name (lowercase, underscores).
 # Smart plugs are checked by ping (no ESPHome API port — commercial units).
@@ -68,8 +65,8 @@ VENTSYS_BOARDS=(
 VENTSYS_PLUGS=(
     "192.168.50.71:plug_fdm_printer:Plug FDM Printer"
     "192.168.50.72:plug_sla_printer:Plug SLA Printer"
-    "192.168.50.73:plug_uv_1:Plug UV-1 (ventsys-plug-uv-1)"  # A4-5 fix
-    "192.168.50.74:plug_uv_2:Plug UV-2 (ventsys-plug-uv-2)"  # A4-5 fix
+    "192.168.50.73:plug_uv_1:Plug UV-1 (ventsys-plug-uv-1)"
+    "192.168.50.74:plug_uv_2:Plug UV-2 (ventsys-plug-uv-2)"
     "192.168.50.75:plug_wash_cure:Plug Wash/Cure"
     "192.168.50.76:plug_ultrasonic:Plug Ultrasonic (ventsys-plug-ultrasonic)"
     "192.168.50.77:plug_ams_ht:Plug AMS-HT"
@@ -136,7 +133,7 @@ check_http() {
     local label="$1"
     local url="$2"
     local code
-    code=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" "$url" 2>/dev/null || echo "000")
+    code=$(curl -k -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" "$url" 2>/dev/null || echo "000")
     if [ "$code" = "200" ] || [ "$code" = "302" ] || [ "$code" = "401" ]; then
         [ "$JSON_MODE" -eq 0 ] && printf "  ${GREEN}✓${NC} %s — HTTP %s\n" "$label" "$code"
         pass=$((pass+1))
@@ -177,7 +174,6 @@ run_checks() {
     check_port "Docker host VM SSH" "$DOCKER_HOST_IP" "22"; r_docker_host="$CHECK_RESULT"
     check_http "Bambuddy UI" "http://${BAMBUDDY_IP}:${BAMBUDDY_PORT}"; r_bambuddy="$CHECK_RESULT"
     check_port "OMV backup NFS" "$NAS_IP" "$NAS_NFS_PORT"; r_nas="$CHECK_RESULT"
-    # C9 fix: was check_port "$P1S_IP" "$P1S_PORT" (TCP connect to 8883).
     # The P1S printer's MQTT port 8883 is the Bambu Lab printer-side MQTT broker
     # which only accepts authenticated connections from Bambu cloud clients —
     # a raw TCP connect returns a TLS handshake, not an open port, causing false
@@ -186,7 +182,7 @@ run_checks() {
     check_port "MQTT Broker" "$MQTT_IP" "$MQTT_PORT"; r_mqtt="$CHECK_RESULT"
 
     if [ "$FULL_MODE" -eq 1 ]; then
-        check_http "Frigate UI" "http://${FRIGATE_IP}:${FRIGATE_PORT}"; r_frigate_http="$CHECK_RESULT"
+        check_http "Frigate UI" "https://${FRIGATE_IP}:${FRIGATE_PORT}/api/version"; r_frigate_http="$CHECK_RESULT"
         check_ping "P1S Printer" "$P1S_IP"; r_p1s="$CHECK_RESULT"
     elif [ "$JSON_MODE" -eq 0 ]; then
         echo "  - Frigate UI and P1S checks skipped until those services/devices are deployed"
@@ -282,10 +278,7 @@ run_checks() {
         echo "═══════════════════════════════════════════════════"
         echo ""
     else
-        # JSON output
-        # FIX #18: r_bambuddy and r_p1s were computed and shown in human-readable
-        # mode but silently absent from JSON output. Both fields added here so
-        # automated consumers (dashboards, alerting scripts) see the full picture.
+        # JSON output for automated consumers such as dashboards and alerting scripts.
         # Build ventsys_boards JSON object
         ventsys_json="{"
         first_vs=1

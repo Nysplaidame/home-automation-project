@@ -6,9 +6,10 @@ flowchart TB
     subgraph Ports["Physical ports"]
         LAN1["LAN1 trunk<br/>Proxmox VLAN trunk"]
         LAN2["LAN2 management access"]
-        LAN3["LAN3 future camera switch"]
-        LAN4["LAN4 OMV NAS"]
-        LAN5["LAN5 recovery / AP"]
+        LAN3["LAN3 managed switch trunk<br/>VLANs 1,10,30,40 tagged"]
+        LAN4["LAN4 management/admin PC<br/>VLAN 10 untagged"]
+        LAN5["LAN5 LAN PC / recovery<br/>VLAN 1 untagged"]
+        EdgeSwitch["Zyxel GS1900-8HP<br/>switch mgmt VLAN 10<br/>camera/NAS/extender access ports"]
         WiFi["Router Wi-Fi SSIDs"]
     end
 
@@ -18,6 +19,7 @@ flowchart TB
     Router --- LAN4
     Router --- LAN5
     Router --- WiFi
+    LAN3 --- EdgeSwitch
 
     subgraph VLANs["Current VLAN and subnet plan"]
         V1["VLAN 1 LAN<br/>192.168.1.0/24<br/>trusted users"]
@@ -46,9 +48,9 @@ flowchart TB
     subgraph Core["Core hosts"]
         Proxmox["Proxmox host<br/>192.168.10.10"]
         HA["Home Assistant VM 100<br/>192.168.20.101"]
-        Frigate["Frigate VM 101<br/>192.168.30.20"]
+        Frigate["Frigate CT 111<br/>192.168.30.20"]
         DockerHost["docker-host VM 103<br/>192.168.20.102<br/>Compose apps + Tailscale subnet router"]
-        LLMHost["llm-host VM 104<br/>192.168.20.104<br/>local AI inference"]
+        LLMHost["llm-host CT 114<br/>192.168.20.104<br/>local AI inference"]
         OMV["OMV NAS<br/>192.168.40.50"]
     end
 

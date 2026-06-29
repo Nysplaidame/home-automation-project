@@ -17,8 +17,8 @@ Verified 2026-06-20. Use `qm config` for VMs and `pct config` for LXCs.
 Both CT 111 and CT 114:
 
 ```text
-dev0: path=/dev/dri/renderD128,gid=992,mode=0660
-dev1: path=/dev/dri/card1,gid=44,mode=0660
+dev0: path=/dev/dri/renderD128,gid=993,mode=0660
+dev1: path=/dev/dri/card0,gid=44,mode=0660
 features: nesting=1,keyctl=1
 unprivileged: 1
 swap: 0

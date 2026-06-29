@@ -47,13 +47,12 @@ ping -c 1 9.9.9.9              # Should fail (internet blocked)
 
 **Certificate Naming Strategy**:
 ```bash
-# A8-3 fix: stale pre-canonical device names corrected. Certificate CN MUST match
-# the ESPHome device_name (= mDNS hostname) or TLS validation will fail.
-# Canonical names from dhcp-config.conf and ESPHome YAMLs in configs/esphome/:
-ventsys-main-fan         (192.168.50.21)   # was ventsys-fan-controller
-ventsys-sla-print-valve  (192.168.50.56)   # was ventsys-sla-valve
-ventsys-fdm-print-valve  (192.168.50.55)   # was ventsys-fdm-valve@.83 (device/IP did not exist)
-ventsys-booth-sensor     (192.168.50.33)   # was ventsys-booth-valve@.84 (device/IP did not exist)
+# Certificate CN must match the ESPHome device_name (= mDNS hostname) or TLS
+# validation will fail. Canonical names from dhcp-config.conf and ESPHome YAMLs:
+ventsys-main-fan         (192.168.50.21)
+ventsys-sla-print-valve  (192.168.50.56)
+ventsys-fdm-print-valve  (192.168.50.55)
+ventsys-booth-sensor     (192.168.50.33)
 ventsys-fdm-sensor       (192.168.50.31)   # canonical sensor-board mDNS/DHCP name
 ventsys-sla-sensor       (192.168.50.32)   # canonical sensor-board mDNS/DHCP name
 ventsys-booth-sensor     (192.168.50.33)   # canonical sensor-board mDNS/DHCP name
@@ -198,10 +197,10 @@ mqtt:
 ```
 
 **Device-Specific Updates**:
-- **Main Fan** (ventsys-main-fan, 192.168.50.21): Update with TLS, keep existing MQTT topics  # A8-3
-- **SLA Print Valve** (ventsys-sla-print-valve, 192.168.50.56): Add TLS  # A8-3: was SLA Valve Controller
-- **FDM Print Valve** (ventsys-fdm-print-valve, 192.168.50.55): Deploy with TLS from start  # A8-3: was ventsys-fdm-valve@.83 (stale)
-- **Booth Sensor** (ventsys-booth-sensor, 192.168.50.33): Deploy with TLS from start  # A8-3: was ventsys-booth-valve@.84 (device does not exist)
+- **Main Fan** (ventsys-main-fan, 192.168.50.21): Update with TLS, keep existing MQTT topics
+- **SLA Print Valve** (ventsys-sla-print-valve, 192.168.50.56): Add TLS
+- **FDM Print Valve** (ventsys-fdm-print-valve, 192.168.50.55): Deploy with TLS from start
+- **Booth Sensor** (ventsys-booth-sensor, 192.168.50.33): Deploy with TLS from start
 
 ### Week 5: Hardware Expansion with TLS
 **New Hardware Deployment**:
@@ -303,7 +302,7 @@ mqtt:
 ```yaml
 # /config/ventsys_device_registry.yaml
 ventsys_devices:
-  - name: ventsys-main-fan  # A8-3 fix: was ventsys-fan-controller
+  - name: ventsys-main-fan
     mac: "XX:XX:XX:XX:XX:XX"
     ip: 192.168.50.21
     type: ESP32_Controller
@@ -315,7 +314,7 @@ ventsys_devices:
       - ventsys/fan/percent
       - ventsys/fan/state
     
-  - name: ventsys-sla-print-valve  # A8-3 fix: was ventsys-sla-valve
+  - name: ventsys-sla-print-valve
     mac: "XX:XX:XX:XX:XX:XX" 
     ip: 192.168.50.56
     type: ESP32_Valve

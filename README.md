@@ -52,4 +52,4 @@ The root of this repo is the Obsidian vault wrapper. The wiki lives separately u
 
 ---
 
-*Last updated: May 2026*
+*Last updated: June 2026*

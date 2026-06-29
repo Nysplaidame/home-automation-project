@@ -19,7 +19,7 @@ status: active
 | -------------------------- | --------------- | -------------- |
 | **Core Computing**         | 1 device        | ~£320          |
 | **Network Infrastructure** | 2 devices       | ~£120          |
-| **CCTV Surveillance**      | 4-6 devices     | ~£320          |
+| **NVR / Camera Surveillance** | 4-6 devices  | ~£320          |
 | **Storage & NAS**          | 2 devices       | ~£160          |
 | **Tools & Accessories**    | Various         | ~£120          |
 
@@ -27,7 +27,7 @@ status: active
 
 - [ ] Core Computing
 - [ ] Network Infrastructure
-- [ ] CCTV Surveillance
+- [ ] NVR / Camera Surveillance
 - [ ] Storage & NAS
 - [ ] Tools & Accessories
 
@@ -59,7 +59,7 @@ docker-host VM 103, Frigate CT 111 and local-AI CT 114.
 |Component|Model|Specifications|Purpose|
 |---|---|---|---|
 |**Main Router**|GL.iNet GL-MT6000|4x GbE ports, WiFi 6, OpenWrt compatible|10-segment OpenWrt network architecture|
-|**PoE Switch**|8-Port Gigabit PoE Switch|8x PoE+ ports (30W per port), managed|CCTV camera power & data|
+|**PoE Switch**|8-Port Gigabit PoE Switch|8x PoE+ ports (30W per port), managed|NVR camera power & data|
 
 ### Network Equipment Checklist:
 
@@ -81,28 +81,28 @@ docker-host VM 103, Frigate CT 111 and local-AI CT 114.
 
 ---
 
-## 📹 CCTV Surveillance System
+## 📹 NVR / Camera Surveillance System
 
 > **System Focus:** [[docs/install/phases/04-frigate|Frigate/NVR install phase]]
 
-### CCTV Hardware Components
+### NVR Hardware Components
 
 |Component|Model/Specification|Quantity|Purpose|Network Assignment|
 |---|---|---|---|---|
-|**PoE IP Cameras**|4MP PoE, H.265, IR night vision|4x|Perimeter monitoring|VLAN 30 (CCTV)|
+|**PoE IP Cameras**|4MP PoE, H.265, IR night vision|4x|Perimeter monitoring|VLAN 30 (NVR)|
 |**PoE Switch**|8-port Gigabit PoE+|1x|Camera power & data|VLAN 20 (Management)|
 |**NVR Storage**|See OMV NAS section below|-|Recording storage|VLAN 40 (Storage)|
 |**CAT6 Cable**|Outdoor rated, 305m roll|1x|Camera connections|Physical layer|
 |**RJ45 Connectors**|Waterproof outdoor connectors|8x|Weatherproof connections|Physical layer|
 
-### CCTV Hardware Checklist:
+### NVR Hardware Checklist:
 
 - [ ] 4MP PoE IP Cameras (H.265, IR night vision) - 4x
 - [ ] 8-port Gigabit PoE+ Switch - 1x
 - [ ] CAT6 Cable (outdoor rated, 305m roll) - 1x
 - [ ] RJ45 Waterproof outdoor connectors - 8x
 
-**Network Integration:** Frigate NVR on Proxmox VM, isolated VLAN 30, Home Assistant bridge only
+**Network Integration:** Frigate NVR on CT 111, isolated VLAN 30, Home Assistant bridge only
 
 ---
 
@@ -179,7 +179,7 @@ docker-host VM 103, Frigate CT 111 and local-AI CT 114.
 | ---------------------------- | ------------ | ------------- | -------- |
 | **PrintAirPipe Electronics** | £160         | £240          | CRITICAL |
 | **Network Equipment**        | £80          | £160          | HIGH     |
-| **CCTV System**              | £240         | £400          | MEDIUM   |
+| **NVR / Camera System**      | £240         | £400          | MEDIUM   |
 | **Storage & NAS**            | £120         | £200          | MEDIUM   |
 | **Tools & Consumables**      | £80          | £160          | LOW      |
 | **Contingency (15%)**        | £112         | £168          | BUFFER   |
@@ -235,7 +235,7 @@ docker-host VM 103, Frigate CT 111 and local-AI CT 114.
 
 - **Network Setup:** [[docs/install/phases/01-router-openwrt|Router/OpenWrt phase]]
 - **PrintAirPipe Build:** [[docs/install/phases/11-physical-integrations|Physical integrations phase]]
-- **CCTV Installation:** [[docs/install/phases/04-frigate|Frigate/NVR phase]]
+- **NVR Installation:** [[docs/install/phases/04-frigate|Frigate/NVR phase]]
 
 ### Configuration References
 

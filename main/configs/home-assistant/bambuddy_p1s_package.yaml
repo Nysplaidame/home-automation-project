@@ -4,9 +4,8 @@
 #   - Bambuddy running at 192.168.20.102:8000 on docker-host (VM 103, VLAN 20)
 #   - Bambuddy MQTT publishing configured to 192.168.20.101:8883
 #   - P1S printer at 192.168.35.200 (VLAN 35 — see docs/decisions/02-printer-vlan-architecture.md)
-#     (current baseline uses 8883 in this repo's post-TLS path. If you run
-#     pre-TLS staging, temporarily use 1883 and switch back to 8883 after
-#     completing docs/procedures/ssl_tls_guide.md.)
+#     (current baseline uses MQTT TLS on 8883. Plaintext 1883 is only for a
+#     documented temporary recovery/bootstrap exception.)
 #   - Replace all <P1S_SERIAL> with actual serial (e.g. 01P09C411500579)
 #
 # ⚠ DEPLOYMENT BLOCKER — F-14: Replace <P1S_SERIAL> before use ⚠
@@ -118,13 +117,8 @@ mqtt:
     - name: "P1S Printing"
       unique_id: p1s_printing
       state_topic: "bambuddy/printers/<P1S_SERIAL>/status"
-      # FIX #10: value_template previously passed value_json.state directly to
-      # payload_on/payload_off matching. Bambuddy publishes multiple states beyond
-      # PRINTING and IDLE: PAUSE, FAILED, FINISH, RUNNING, SLICING. Any of these
-      # left the sensor 'unavailable' rather than 'off', silently disabling the
-      # p1s_chamber_temp_high automation's condition (state: "on" never matched
-      # 'unavailable'). The template now collapses all non-PRINTING states to the
-      # literal string "IDLE" so the binary sensor is always either on or off.
+      # Collapse all non-PRINTING Bambuddy states to IDLE so the binary sensor
+      # is always either on or off.
       value_template: "{{ 'PRINTING' if value_json.state == 'PRINTING' else 'IDLE' }}"
       payload_on: "PRINTING"
       payload_off: "IDLE"
@@ -152,12 +146,8 @@ automation:
       - platform: mqtt
         topic: "bambuddy/printers/<P1S_SERIAL>/print/started"
     action:
-      # FIX #28: notify.notify with no target sends to ALL registered notification
-      # services simultaneously (mobile apps, email, Telegram, etc). Set a specific
-      # target here to avoid that. Options: notify.mobile_app_<device>, notify.telegram,
-      # notify.persistent_notification (always available, no setup needed).
-      # For now this uses persistent_notification as a safe default -- replace with
-      # your preferred service once HA notifications are configured.
+      # Use persistent_notification as a safe default. Replace with a targeted
+      # notify service once HA notifications are configured.
       - action: notify.persistent_notification
         data:
           title: "🖨️ P1S Print Started"
@@ -180,12 +170,8 @@ automation:
       - platform: mqtt
         topic: "bambuddy/printers/<P1S_SERIAL>/print/completed"
     action:
-      # FIX #28: notify.notify with no target sends to ALL registered notification
-      # services simultaneously (mobile apps, email, Telegram, etc). Set a specific
-      # target here to avoid that. Options: notify.mobile_app_<device>, notify.telegram,
-      # notify.persistent_notification (always available, no setup needed).
-      # For now this uses persistent_notification as a safe default -- replace with
-      # your preferred service once HA notifications are configured.
+      # Use persistent_notification as a safe default. Replace with a targeted
+      # notify service once HA notifications are configured.
       - action: notify.persistent_notification
         data:
           title: "✅ P1S Print Complete"
@@ -207,12 +193,8 @@ automation:
       - platform: mqtt
         topic: "bambuddy/printers/<P1S_SERIAL>/print/failed"
     action:
-      # FIX #28: notify.notify with no target sends to ALL registered notification
-      # services simultaneously (mobile apps, email, Telegram, etc). Set a specific
-      # target here to avoid that. Options: notify.mobile_app_<device>, notify.telegram,
-      # notify.persistent_notification (always available, no setup needed).
-      # For now this uses persistent_notification as a safe default -- replace with
-      # your preferred service once HA notifications are configured.
+      # Use persistent_notification as a safe default. Replace with a targeted
+      # notify service once HA notifications are configured.
       - action: notify.persistent_notification
         data:
           title: "❌ P1S Print Failed"
@@ -244,12 +226,8 @@ automation:
         for:
           minutes: 3
     action:
-      # FIX #28: notify.notify with no target sends to ALL registered notification
-      # services simultaneously (mobile apps, email, Telegram, etc). Set a specific
-      # target here to avoid that. Options: notify.mobile_app_<device>, notify.telegram,
-      # notify.persistent_notification (always available, no setup needed).
-      # For now this uses persistent_notification as a safe default -- replace with
-      # your preferred service once HA notifications are configured.
+      # Use persistent_notification as a safe default. Replace with a targeted
+      # notify service once HA notifications are configured.
       - action: notify.persistent_notification
         data:
           title: "⚠️ Bambuddy Offline"
@@ -272,12 +250,8 @@ automation:
         entity_id: binary_sensor.p1s_printing
         state: "on"
     action:
-      # FIX #28: notify.notify with no target sends to ALL registered notification
-      # services simultaneously (mobile apps, email, Telegram, etc). Set a specific
-      # target here to avoid that. Options: notify.mobile_app_<device>, notify.telegram,
-      # notify.persistent_notification (always available, no setup needed).
-      # For now this uses persistent_notification as a safe default -- replace with
-      # your preferred service once HA notifications are configured.
+      # Use persistent_notification as a safe default. Replace with a targeted
+      # notify service once HA notifications are configured.
       - action: notify.persistent_notification
         data:
           title: "⚠️ P1S Chamber Temp High"

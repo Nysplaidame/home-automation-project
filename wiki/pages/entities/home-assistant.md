@@ -96,7 +96,7 @@ present and tested.
 
 ## Change Log
 
-- 2026-06-20: Added live Ollama/Wyoming Assist and bounded SearXNG tool state;
+- 2026-06-20: Added live local LLM/Wyoming Assist and bounded SearXNG tool state;
   verified HA 2026.6.3 configuration.
 
 - 2026-05-30: Corrected Frigate/VentSys/MQTT posture: Frigate integration remains planned, VentSys hardware entities are staged, and no valve-specific router `1883` exception should be treated as live.

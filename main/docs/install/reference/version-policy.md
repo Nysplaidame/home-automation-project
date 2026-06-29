@@ -40,7 +40,7 @@ status: active
 | Immich stack files | Use official Immich release downloads, then record release used |
 | Tailscale | Use official install script/repo and record `tailscale version` |
 | AdGuard Home Docker image | Use supported Docker image and record image digest/tag |
-| llama.cpp / Ollama rollback / Open WebUI / Wyoming images | Use documented upstream images, verify current tags before deploy, and record image digests after first live use |
+| llama.cpp / Open WebUI / Wyoming images | Use documented upstream images, verify current tags before deploy, and record image digests after first live use |
 | Tier 2/3 app drafts | Use documented upstream images but record tag before first live use |
 
 ## Official references used by this suite
@@ -59,7 +59,6 @@ status: active
 - Portainer Docker standalone docs: <https://docs.portainer.io/start/install-ce/server/docker>
 - Docker registry mirror docs: <https://docs.docker.com/docker-hub/mirror/>
 - llama.cpp Docker images: <https://github.com/ggml-org/llama.cpp/blob/master/docs/docker.md>
-- Ollama Docker image: <https://hub.docker.com/r/ollama/ollama>
 - Open WebUI docs: <https://docs.openwebui.com/>
 - Wyoming Whisper image: <https://hub.docker.com/r/rhasspy/wyoming-whisper>
 - Wyoming Piper image: <https://hub.docker.com/r/rhasspy/wyoming-piper>

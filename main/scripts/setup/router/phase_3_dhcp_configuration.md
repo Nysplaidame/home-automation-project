@@ -150,7 +150,7 @@ echo "VENTSYS Automation DHCP scope configured: 192.168.20.110-149" >> /tmp/depl
 **Duration**: 15 minutes
 
 ```bash
-# Create NVR DHCP scope (renamed from cctv — isolated network)
+# Create NVR DHCP scope (isolated network)
 uci add dhcp dhcp
 uci set dhcp.@dhcp[-1].interface='nvr'
 uci set dhcp.@dhcp[-1].start='100'
@@ -301,7 +301,7 @@ uci set dhcp.@host[-1].dns='1'
 uci set dhcp.@host[-1].mac='BC:24:11:BC:B8:1A'
 uci set dhcp.@host[-1].ip='192.168.20.102'
 
-# Frigate NVR VM (NVR Network — renamed from CCTV)
+# Frigate NVR CT (NVR Network)
 uci add dhcp host
 uci set dhcp.@host[-1].name='frigate-nvr'
 uci set dhcp.@host[-1].dns='1'
@@ -330,9 +330,7 @@ uci set dhcp.@host[-1].mac='XX:XX:XX:XX:XX:04'
 uci set dhcp.@host[-1].ip='192.168.40.50'
 
 # VentSys Controllers (CRITICAL FOR VENTSYS)
-# F-D fix: Updated to match canonical dhcp-config.conf - full 20-device fleet.
-# Previous placeholder had wrong device names (ventsys-fdm-valve, ventsys-booth-valve)
-# and wrong IPs (.83, .84). Canonical allocations from dhcp-config.conf used below.
+# Canonical allocations from dhcp-config.conf are used below.
 
 # Fans
 uci add dhcp host
@@ -705,7 +703,7 @@ else
 fi
 
 # Verify VentSys static reservations exist
-if uci show dhcp | grep -q "ventsys-main-fan"; then  # A9-5 fix: was ventsys-fan-controller (stale name)
+if uci show dhcp | grep -q "ventsys-main-fan"; then
     echo "✓ VentSys static reservations configured" >> /tmp/phase3_validation.txt
 else
     echo "✗ VentSys static reservations missing" >> /tmp/phase3_validation.txt

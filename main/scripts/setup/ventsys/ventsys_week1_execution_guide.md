@@ -94,10 +94,10 @@ Based on discovery results, update known devices:
 /usr/local/bin/ventsys_week1_mac_collection.sh --update home-assistant AA:BB:CC:DD:EE:FF
 
 # Example: If existing fan controller found
-/usr/local/bin/ventsys_week1_mac_collection.sh --update ventsys-main-fan 11:22:33:44:55:66  # A7-4 fix: was ventsys-fan-controller (stale name)
+/usr/local/bin/ventsys_week1_mac_collection.sh --update ventsys-main-fan 11:22:33:44:55:66
 
 # Example: If existing SLA valve found  
-/usr/local/bin/ventsys_week1_mac_collection.sh --update ventsys-sla-print-valve 77:88:99:AA:BB:CC  # A7-4 fix: was ventsys-sla-valve (stale name)
+/usr/local/bin/ventsys_week1_mac_collection.sh --update ventsys-sla-print-valve 77:88:99:AA:BB:CC
 ```
 
 ### Step 2.3: Verify DHCP Reservations
@@ -107,7 +107,7 @@ Based on discovery results, update known devices:
 
 # Test connectivity to updated devices
 /usr/local/bin/ventsys_week1_mac_collection.sh --test home-assistant
-/usr/local/bin/ventsys_week1_mac_collection.sh --test ventsys-main-fan  # A7-4 fix: was ventsys-fan-controller
+/usr/local/bin/ventsys_week1_mac_collection.sh --test ventsys-main-fan
 ```
 
 ---
@@ -208,8 +208,8 @@ Create comprehensive documentation:
 
 ```bash
 # Generate device config templates
-/usr/local/bin/ventsys_week1_mac_collection.sh --config ventsys-main-fan  # A7-4 fix
-/usr/local/bin/ventsys_week1_mac_collection.sh --config ventsys-sla-print-valve  # A7-4 fix
+/usr/local/bin/ventsys_week1_mac_collection.sh --config ventsys-main-fan
+/usr/local/bin/ventsys_week1_mac_collection.sh --config ventsys-sla-print-valve
 
 # Document network topology
 ip route show table main | grep 192.168 > /tmp/ventsys_routing_table.txt

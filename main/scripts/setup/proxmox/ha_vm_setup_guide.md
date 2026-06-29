@@ -113,7 +113,7 @@ Then configure the MQTT integration:
 | Field | Value |
 |---|---|
 | Broker | `192.168.20.101` (localhost within HA) |
-| Port | `1883` (start unencrypted, switch to 8883+TLS later) |
+| Port | `8883` with the local CA |
 | Username | `mqtt` |
 | Password | password you just created |
 
@@ -232,7 +232,7 @@ The files live in `ventsys/ventsys_bundle_updated/` in the safety vault:
 | Vault file | Destination on HA |
 |---|---|
 | `ventsys_ha_package.yaml` | `/config/packages/ventsys_ha_package.yaml` |
-| `ventsys_ha_optional.yaml` | **DO NOT copy yet** — this file has a "DO NOT LOAD YET" header. Copy it only when all prerequisites in the file are met (sensor boards deployed, baro_pressure entities confirmed). A6-2 fix. |
+| `ventsys_ha_optional.yaml` | **DO NOT copy yet** — this file has a "DO NOT LOAD YET" header. Copy it only when all prerequisites in the file are met (sensor boards deployed, baro_pressure entities confirmed). |
 | `ventsys_ha_scripts.yaml` | `/config/packages/ventsys_ha_scripts.yaml` |
 
 Do not copy these yet:
@@ -303,19 +303,17 @@ Search for `ventsys` — you should see entities including:
 In Terminal:
 ```bash
 # Subscribe to a topic (leave this running in one terminal)
-mosquitto_sub -h localhost -p 1883 -u mqtt -P <password> -t 'ventsys/#' -v
+mosquitto_sub -h localhost -p 8883 --cafile /ssl/ca.crt -u mqtt -P <password> -t 'ventsys/#' -v
 
 # In another terminal, publish a test message
-mosquitto_pub -h localhost -p 1883 -u mqtt -P <password> \
+mosquitto_pub -h localhost -p 8883 --cafile /ssl/ca.crt -u mqtt -P <password> \
     -t 'ventsys/fan/control' -m 'on'
 ```
 
 You should see `ventsys/fan/control on` appear in the subscriber window.
 
-> **TLS note (A9-1):** Commands above use port 1883 (Stage 1 pre-TLS only).
-> After MQTT TLS migration (`docs/procedures/ssl_tls_guide.md`),
-> Mosquitto only listens on port 8883. Switch to:
-> mosquitto_sub -h localhost -p 8883 --cafile /ssl/ca.crt -u mqtt -P <password> -t ventsys/# -v
+Use port 1883 only for a deliberate temporary bootstrap exception; production
+VentSys MQTT uses TLS on 8883.
 
 ### 4.3 — Test the dashboard
 
@@ -328,7 +326,7 @@ Test a mode button — it should call the corresponding HA script.
 
 ## Phase 5 — Frigate integration
 
-This connects HA to the Frigate NVR VM once it's running on 192.168.30.20.
+This connects HA to the Frigate NVR CT once it is running on 192.168.30.20.
 
 ### 5.1 — Install the Frigate integration
 
@@ -337,7 +335,7 @@ Search for `Frigate` — if not found, add it via HACS first (see 5.2).
 
 | Field | Value |
 |---|---|
-| URL | `http://192.168.30.20:8971` |
+| URL | `https://192.168.30.20:8971` |
 
 > **F-36 — Port note:** Port 5000 was Frigate's web/API port up to v0.13.
 > From Frigate 0.14+ the UI and API moved to port **8971**; port 5000 became
@@ -367,7 +365,7 @@ This adds a camera card with event timeline to your dashboards.
 
 | Add-on | Purpose | Port | Status |
 |---|---|---|---|
-| Mosquitto | MQTT broker for all IoT devices | 1883 (8883 after TLS) | Required |
+| Mosquitto | MQTT broker for all IoT devices | 8883 TLS | Required |
 | File Editor | Edit YAML config in browser | — | Required |
 | Terminal & SSH | Shell access inside HA | 22 (optional) | Required |
 | ESPHome | Manage VentSys ESP32 devices | 6052 | Required |
@@ -479,7 +477,7 @@ Add a network storage location:
 - [ ] Admin account created, password saved
 - [ ] Static IP set inside HAOS (192.168.20.101/24, gw 192.168.20.1)
 - [ ] Mosquitto add-on installed and running
-- [ ] MQTT integration connected (localhost:1883 for Stage 1 pre-TLS; switch to 8883 after TLS migration)  # A10-2
+- [ ] MQTT integration connected on `localhost:8883` with the local CA
 - [ ] File Editor add-on installed
 - [ ] Terminal & SSH add-on installed
 - [ ] ESPHome add-on installed

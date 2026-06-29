@@ -1,7 +1,7 @@
 ---
 title: "Local AI Host"
 category: entity
-tags: [software, local-ai, ollama, wyoming, lxc, igpu]
+tags: [software, local-ai, llama-cpp, wyoming, lxc, igpu]
 created: 2026-06-20
 updated: 2026-06-20
 sources: [project-readme, project-todo]
@@ -16,14 +16,14 @@ status: active
 
 ## Overview
 
-Unprivileged Proxmox CT 114 at `192.168.20.104` runs Ollama, Open WebUI,
-Wyoming Whisper, Piper and OpenWakeWord. Ollama uses Vulkan and shares the Intel
-iGPU with Frigate CT 111.
+Unprivileged Proxmox CT 114 at `192.168.20.104` runs llama.cpp, Open WebUI,
+Wyoming Whisper, Piper and OpenWakeWord. llama.cpp uses Vulkan and shares the
+Intel iGPU with Frigate CT 111.
 
 ## Key Properties
 
 - 4 cores, 10 GiB RAM, 100 GiB root disk.
-- Ollama API 11434; Open WebUI 3002.
+- llama.cpp API 8081; Open WebUI 3002.
 - Piper 10200; Whisper 10300; OpenWakeWord 10400.
 - Host UFW and Docker `DOCKER-USER` both scope access.
 - Whisper model/tokenizer data is persistent and starts offline.

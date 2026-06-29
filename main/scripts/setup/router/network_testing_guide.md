@@ -2,11 +2,13 @@
 # Run these tests after router VLAN cutover to verify isolation and routing
 # Prerequisite: management laptop plugged into lan2 (VLAN 10 untagged)
 
-Current first-flight status, verified on 2026-05-07:
-- lan5 recovery: DHCP `192.168.1.x`, gateway/DNS `192.168.1.1`
+Current first-flight status, verified on 2026-05-07, uses the pre-switch direct
+port layout. The planned managed-switch layout below must not be deployed until
+the Zyxel GS1900-8HP is present and configured first:
+- lan5 LAN/recovery: DHCP `192.168.1.x`, gateway/DNS `192.168.1.1`
 - lan2 management: DHCP `192.168.10.x`, gateway/DNS `192.168.10.1`
-- lan3 NVR: DHCP `192.168.30.x`, DNS `192.168.30.1`
-- lan4 storage: DHCP `192.168.40.x`, DNS `192.168.40.1`
+- lan3 managed-switch trunk: tagged VLANs `1,10,30,40`
+- lan4 management/admin PC: DHCP `192.168.10.x`, gateway/DNS `192.168.10.1`
 - lan1 is tagged-only trunk to Proxmox; direct untagged laptop DHCP is not expected
 - first-flight WiFi interfaces are configured but disabled
 
@@ -62,18 +64,18 @@ done
 uci show network | grep -E "network\.@bridge-vlan\[[0-9]+\]\.(vlan|ports)"
 
 # Expected:
-# VLAN 1:  lan5:u*
-# VLAN 10: lan1:t lan2:u* lan3:t lan4:t
+# VLAN 1:  lan3:t lan5:u*
+# VLAN 10: lan1:t lan2:u* lan3:t lan4:u*
 # VLAN 20: lan1:t
-# VLAN 30: lan1:t lan3:u*
+# VLAN 30: lan1:t lan3:t
 # VLAN 35: lan1:t
-# VLAN 40: lan1:t lan4:u*
+# VLAN 40: lan1:t lan3:t
 # VLAN 50: lan1:t
 # VLAN 60: lan1:t
 # VLAN 70: lan1:t
 # VLAN 99: configured without a physical port in first-flight
 
-# Verify VLAN 1 has lan5 only as physical port (no other ports)
+# Verify VLAN 1 has lan3 tagged and lan5 untagged.
 uci show network.@bridge-vlan[0].ports
 ```
 
@@ -81,11 +83,20 @@ Physical client smoke tests:
 
 | Port | Expected client result |
 |---|---|
-| lan5 | DHCP `192.168.1.x`, DNS `192.168.1.1`, LuCI/browser reachable at `192.168.1.1` |
+| lan5 | Direct LAN/recovery DHCP `192.168.1.x`, DNS `192.168.1.1`, LuCI/browser reachable at `192.168.1.1` |
 | lan2 | DHCP `192.168.10.x`, DNS `192.168.10.1`, Proxmox/admin clients live here |
-| lan3 | DHCP `192.168.30.x`, DNS `192.168.30.1`; gateway browser/ping may be blocked by input policy |
-| lan4 | DHCP `192.168.40.x`, DNS `192.168.40.1`; gateway browser/ping may be blocked by input policy |
+| lan3 | Tagged trunk only; test with the managed switch, not plain laptop DHCP |
+| lan4 | Direct management/admin DHCP `192.168.10.x`, DNS `192.168.10.1` |
 | lan1 | Tagged trunk only; test with Proxmox or VLAN-aware client, not plain DHCP |
+
+Managed switch access-port smoke tests after the switch is installed:
+
+| Switch port role | Expected client result |
+|---|---|
+| Switch management interface | `192.168.10.12` on VLAN 10, reachable from management only |
+| Camera access port | DHCP/static `192.168.30.x`, DNS `192.168.30.1`; no WAN access |
+| OMV NAS access port | OMV reachable at `192.168.40.50`, DNS `192.168.40.1`; no WAN access |
+| TL-WA801N access port | Extender reservation `192.168.1.203`; clients get `192.168.1.x` |
 
 For restricted zones, DNS is the better client smoke test than gateway ping:
 
@@ -167,18 +178,17 @@ done
 Test from the management laptop (192.168.10.x), NOT the router:
 
 ```bash
-# HA -> Frigate (VLAN 20 -> VLAN 30, port 8971 for Frigate 0.14+; use 5000 for 0.13)  # A9-4 fix
+# HA -> Frigate (VLAN 20 -> VLAN 30, port 8971)
 # Run this from the HA VM terminal once HA and Frigate are up:
-nc -zv 192.168.30.20 8971 && echo "V HA -> Frigate API 0.14+" || echo "? HA -> Frigate blocked"  # A9-4: was port 5000
+nc -zv 192.168.30.20 8971 && echo "V HA -> Frigate API" || echo "? HA -> Frigate blocked"
 
 # IoT → HA MQTT (VLAN 50 → VLAN 20)
 # From any device on VLAN 50:
 nc -zv 192.168.20.101 8883 && echo "✓ IoT → MQTT 8883 (TLS)" || echo "✗ IoT → MQTT 8883 blocked"
 
-# Stage 1 only: if TLS has not been migrated yet and the temporary 1883 rule is
-# intentionally installed, this may also pass. Remove the temporary rule after
-# TLS migration is confirmed.
-nc -zv 192.168.20.101 1883 && echo "ⓘ IoT → MQTT 1883 open (temporary pre-TLS only)" || echo "✓ MQTT 1883 closed or not staged"
+# Plain MQTT should be closed unless a temporary recovery/bootstrap exception is
+# deliberately installed and documented.
+nc -zv 192.168.20.101 1883 && echo "✗ IoT → MQTT 1883 open; confirm this is a documented temporary exception" || echo "✓ MQTT 1883 closed"
 
 # HA → IoT ESPHome API (VLAN 20 → VLAN 50, port 6053)
 # From HA Terminal:
@@ -199,9 +209,17 @@ Connect a test device to each physical port and verify it gets the right IP rang
 | Port | Expected VLAN | Expected IP range |
 |---|---|---|
 | lan2 | 10 (Management) | 192.168.10.100–149 |
-| lan3 | 30 (NVR) | 192.168.30.100–149 |
-| lan4 | 40 (Storage) | 192.168.40.100–139 |
-| lan5 | 1 (LAN — recovery/AP) | 192.168.1.100–199 |
+| lan3 | tagged trunk only | no untagged DHCP expected |
+| lan4 | 10 (Management) | 192.168.10.100–149 |
+| lan5 | 1 (LAN/recovery) | 192.168.1.100–199 |
+
+Managed switch access ports:
+
+| Switch role | Expected VLAN | Expected IP range |
+|---|---|---|
+| Camera ports | 30 (NVR) | cameras 192.168.30.21–24, DHCP bench clients 192.168.30.100–149 |
+| NAS port | 40 (Storage) | OMV 192.168.40.50, DHCP bench clients 192.168.40.100–139 |
+| Extender port | 1 (LAN) | TL-WA801N 192.168.1.203, clients 192.168.1.100–199 |
 
 WiFi tests:
 
@@ -287,8 +305,10 @@ nft list ruleset | grep -Ei "reject|drop"
 All of these must be true before declaring the network ready:
 
 - [ ] All 10 VLAN interfaces up with correct IPs
-- [ ] VLAN 1 has only `lan5:u*` in `uci show network.@bridge-vlan[0].ports`
-- [ ] lan2/lan3/lan4/lan5 have correct PVIDs
+- [ ] VLAN 1 has `lan3:t` and `lan5:u*` in `uci show network.@bridge-vlan[0].ports`
+- [ ] lan3 is tagged-only for VLANs 1,10,30,40
+- [ ] lan2 and lan4 have VLAN 10 PVIDs; lan5 has VLAN 1 PVID
+- [ ] Managed switch access ports have correct PVIDs: cameras=30, NAS=40, extender=1, switch management=10
 - [ ] VLAN 1, 10, 99 can reach internet; 30, 35, 40, 50 cannot (ICMP blocked)
 - [ ] VLAN 35 (Printers) OTA: port 443 TCP reachable, all other internet blocked
 - [ ] Guest (99) cannot reach any internal VLAN
@@ -296,10 +316,10 @@ All of these must be true before declaring the network ready:
 - [ ] Printers (35) cannot reach automation (20) or LAN (1) directly
 - [ ] IoT (50) cannot reach management (10)
 - [ ] Management (10) can reach all VLANs
-- [ ] MQTT port 8883 reachable from VLAN 50 → VLAN 20 after TLS migration
-- [ ] Temporary MQTT port 1883 closed after TLS migration (or explicitly documented as Stage 1 only)
+- [ ] MQTT port 8883 reachable from VLAN 50 → VLAN 20
+- [ ] Plain MQTT port 1883 closed unless there is a documented temporary exception
 - [ ] ESPHome port 6053 reachable from VLAN 20 → VLAN 50
-- [ ] Frigate API reachable from VLAN 20 → VLAN 30 (port 8971 for 0.14+, port 5000 for 0.13)
+- [ ] Frigate API reachable from VLAN 20 → VLAN 30 (port 8971)
 - [ ] NAS NFS reachable from VLAN 30 and VLAN 20
 - [ ] Bambuddy (20.102) → P1S (35.200) reachable on ports 8883 and 21
 - [ ] DHCP assigning correct ranges per VLAN

@@ -3,7 +3,7 @@ title: "Frigate NVR"
 category: entity
 tags: [software, frigate, cctv, docker, nvr]
 created: 2026-04-07
-updated: 2026-06-20
+updated: 2026-06-29
 sources: [project-readme, frigate-vm-setup-guide, igpu-passthrough-guide]
 status: active
 ---
@@ -45,11 +45,12 @@ RTSP credentials and final production configuration exist.
 
 ## NAS Storage
 
-- Will mount [[entities/openmediavault-nas]] at `/mnt/nas/frigate` via NFS when NAS hardware is ready.
-- CT 111 requires explicit Proxmox backup coverage; recordings move to OMV later.
+- [[entities/openmediavault-nas]] is live on VLAN 40; production recording cutover will mount `/export/frigate` on Proxmox and bind-mount it into CT 111.
+- CT 111 requires explicit Proxmox backup coverage; there are no production camera recordings yet.
 
 ## Change Log
 
+- 2026-06-29: Source config was cleaned to the documented migration-safe baseline: `mqtt.enabled: false` and `cameras: {}` until camera hardware and final integrations are ready.
 - 2026-06-20: Migrated production identity from VM 101 to CT 111; OpenVINO and
   VA-API share the host iGPU with CT 114. VM 101 is rollback-only.
 

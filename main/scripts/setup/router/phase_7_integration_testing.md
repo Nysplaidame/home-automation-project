@@ -156,7 +156,7 @@ cat /tmp/phase7_dhcp_dns_test.txt
 echo "=== Wireless Network Testing ===" > /tmp/phase7_wireless_test.txt
 
 # Verify all expected SSIDs are configured and not disabled
-# B8 fix: iwlist is a client-side scan tool — it scans for external APs and
+# iwlist is a client-side scan tool — it scans for external APs and
 # is not a reliable way to verify your own router's SSIDs. On OpenWrt it may
 # report nothing or scan the wrong interface. The correct method is to check
 # the UCI wireless config (for configuration) and hostapd (for live broadcast).
@@ -276,7 +276,7 @@ else
 fi
 
 # 4. HomeIoT WiFi SSID
-# B8 fix: check UCI config rather than scanning as a client with iwlist
+# Check UCI config rather than scanning as a client with iwlist.
 homeiot_iface=$(uci show wireless | grep "\.ssid='HomeIoT'" | cut -d. -f1-2 2>/dev/null)
 if [ -n "$homeiot_iface" ]; then
     disabled=$(uci get ${homeiot_iface}.disabled 2>/dev/null)

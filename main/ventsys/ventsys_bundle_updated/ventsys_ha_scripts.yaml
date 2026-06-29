@@ -123,10 +123,9 @@ script:
               target: 0
 
   # ─── FIRE-SAFE VENTILATION: main fan + all enc paths, spray fan OFF ──
-  # D1 fix: replaces the previous behaviour of calling ventsys_mode_purge
-  # during a fire event. ventsys_mode_purge activated the SPRAY BOOTH FAN,
-  # which is physically mounted at the spray booth extraction point — running
-  # it across a fire accelerates combustion and spreads flames. This script:
+  # Dedicated fire event behavior. Do not call ventsys_mode_purge here: that
+  # mode activates the spray booth fan, which is physically mounted at the
+  # spray booth extraction point. During a fire event this script:
   #   ✓ Turns on the main inline fan (exhausts fumes away from the enclosures)
   #   ✓ Opens all FDM and SLA paths fully (maximum enclosure extraction)
   #   ✓ Closes the spray booth path (main-2=0) to contain the fire event

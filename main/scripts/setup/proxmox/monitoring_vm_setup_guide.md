@@ -589,7 +589,7 @@ Add monitors for every device in the system. Suggested list:
 | Grafana UI | HTTP(s) | http://grafana:3000 |
 | InfluxDB Health | HTTP(s) | http://influxdb:8086/health |
 | Uptime Kuma UI | HTTP(s) | http://127.0.0.1:3001 |
-| Frigate | HTTP(s) | http://192.168.30.20:8971, after Frigate is started |
+| Frigate | HTTPS | https://192.168.30.20:8971, after Frigate is started |
 | OMV NAS | Ping | 192.168.40.50, after NAS is built |
 
 **All 16 VentSys ESPHome boards (Ping)**

@@ -11,7 +11,7 @@
 #   api_key, ota_password
 
 substitutions:
-  device_name: ventsys-main-valve-2  # N-5 fix: hyphens match ESPHome mDNS convention
+  device_name: ventsys-main-valve-2
   friendly_name: "VentSys Main Duct Valve 2"
   device_ip: "192.168.50.52"
   mqtt_command_topic: "ventsys/main/valve2/control"
@@ -351,4 +351,3 @@ interval:
               id(status_led).turn_off().perform();
             }
           }
-

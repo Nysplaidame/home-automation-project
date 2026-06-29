@@ -2,26 +2,14 @@
 # Host: 192.168.20.101 — VLAN 20
 # Loaded via: configuration.yaml  automation: !include automations.yaml
 #
-# FIX #7: All sensor entity IDs updated to match MQTT sensor definitions now
-# present in ventsys_ha_package.yaml. Previous enc1/enc2 names had no matching
-# entity anywhere -- every Tier 1/2/3 safety automation silently never fired.
-# Renames: ventsys_enc1_smoke->fdm_smoke, ventsys_enc2_smoke->sla_smoke,
-# ventsys_enc1_temperature->fdm_temperature, ventsys_enc2_temperature->sla_temperature,
-# ventsys_enc1_iaq->fdm_iaq, ventsys_enc2_iaq->sla_iaq,
-# ventsys_enc1_pressure_diff->fdm_pressure_differential,
-# ventsys_enc2_pressure_diff->sla_pressure_differential,
-# binary_sensor.mqtt_broker->binary_sensor.mqtt_broker_online.
-#
-# NEW FIX (second audit): All notify.notify calls in this file changed to
-# notify.persistent_notification for the same reason as bambuddy_p1s_package.yaml
-# fix #28: notify.notify with no target fans out to every registered notification
-# service simultaneously. persistent_notification is the safe always-available
-# default. Replace with your preferred service (notify.mobile_app_<device>,
+# Sensor entity IDs match the MQTT definitions in ventsys_ha_package.yaml.
+# Notification actions use persistent_notification as the safe always-available
+# default. Replace with a targeted service (notify.mobile_app_<device>,
 # notify.telegram, etc.) once HA notifications are configured.
 
 # ============================================================================
 # SYSTEM STARTUP — VentSys initialisation to known safe state
-# D4 fix: when HA restarts, physical hardware stays in its last state.
+# When HA restarts, physical hardware stays in its last state.
 # This automation drives all actuators to a known sealed state on every start.
 # ============================================================================
 
@@ -275,10 +263,7 @@
     NOTE: These ADC sensors are separate from the BME680 barometric differential
     sensors in ventsys_ha_optional.yaml. Do not confuse them — the optional package
     sensors operate in hPa (~-0.05 hPa typical) and are NOT referenced here.
-    A6-3 fix: entity IDs updated to match new sensor definitions in ventsys_ha_package.yaml.
-    Previously referenced non-existent entities and had a misleading dependency note
-    pointing at ventsys_ha_optional.yaml, which caused this automation to silently
-    never fire even when the optional package was loaded (hPa values always < 5).
+    Entity IDs match the ADC pressure sensors in ventsys_ha_package.yaml.
   initial_state: false
   mode: single
   trigger:

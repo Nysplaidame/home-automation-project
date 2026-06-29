@@ -21,7 +21,6 @@ GPU mapping from `igpu_passthrough_guide.md`, then deploy
 Persistent directories:
 
 - `models/`
-- `ollama/`
 - `open-webui/`
 - `whisper/`
 - `piper/`
@@ -50,9 +49,7 @@ the local GGUF model on `8081/tcp` and exposes an OpenAI-compatible local API at
 `http://192.168.20.104:8081/v1`. This does not require an OpenAI subscription;
 the phrase only describes the HTTP API shape that Open WebUI understands.
 
-Open WebUI should keep Ollama configured only while Home Assistant Assist still
-depends on the native Ollama integration. Add the llama.cpp connection in Open
-WebUI as:
+Add the llama.cpp connection in Open WebUI as:
 
 - URL: `http://llama-cpp:8080/v1` from inside the Compose network, or
   `http://192.168.20.104:8081/v1` from outside CT 114.

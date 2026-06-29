@@ -10,7 +10,7 @@
 | Proxmox VM backup | VM disks 100/102/103 | OMV md0 NFS `backups/proxmox` (`omv-backups`) | Daily 02:00 | 7 daily + 6 monthly |
 | Proxmox LXC backup | CT 111/114 root filesystems | OMV md0 NFS `backups/proxmox` (`omv-backups`) | Daily 04:00 | 7 daily + 6 monthly |
 | HA native backup | HA config, add-ons, automations | OMV md0 NFS `backups/home-assistant` | Daily 03:00 | 7 daily + 6 monthly |
-| Frigate recordings | Camera footage | OMV md0 NFS `CCTV` | Continuous | Set in Frigate before cameras go live |
+| Frigate recordings | Camera footage | OMV md0 NFS `CCTV` share | Continuous | Set in Frigate before cameras go live |
 | Frigate LXC state | OS disk, DB, cache, compose/config | MINISFORUM NVMe on CT 111 | Continuous | Rebuildable + config-backed |
 | Config file backup | Safety vault YAML/configs | OMV md0 NFS `backups/configs` | Daily via rsync | 7 daily + 6 monthly |
 | GitHub | Safety vault docs + configs | GitHub repo | On push | Full history |
@@ -62,7 +62,7 @@ Current policy after the 2026-06-26 NFS/md0 migration:
 - The measured daily set is roughly 45 GiB. The requested 7 daily + 6 monthly
   policy needs about 585 GiB at today's sizes; reserve 2 TiB minimum and prefer
   3 TiB after cleanup. md0 was still 86-87% used on 2026-06-26, so capacity
-  cleanup remains required before Frigate/CCTV recordings go live.
+  cleanup remains required before Frigate/NVR recordings go live.
 - Obsolete VM 101 recurring archives were removed on 2026-06-21 after CT backup
   validation; the stopped VM disk and migration snapshot remain available.
 
@@ -162,7 +162,7 @@ Why this split:
 ### Check recording storage usage
 
 ```bash
-# On frigate-nvr VM
+# On frigate-nvr CT
 df -h /mnt/nas/frigate
 du -sh /mnt/nas/frigate/*
 ```
@@ -266,7 +266,7 @@ Follow `scripts/setup/proxmox/proxmox_setup_guide.md` phases A–C.
 ### Step 2 — Restore VM backups from NAS
 
 ```bash
-# FIX #16: Proxmox vzdump backups are stored on the MINISFORUM local NVMe
+# Proxmox vzdump backups are stored on the MINISFORUM local NVMe
 # (Storage: "local", path: /var/lib/vz/dump/) per the backup schedule above —
 # NOT on the NAS. The NAS path /mnt/nas/ha-backups holds HA native backups only
 # (the .tar files created by HA itself). If the MINISFORUM NVMe is recoverable, mount

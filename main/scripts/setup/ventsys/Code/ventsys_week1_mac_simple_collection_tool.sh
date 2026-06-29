@@ -24,9 +24,9 @@ LOG_FILE="/var/log/ventsys_mac_updates.log"
 # VentSys device definitions (from device registry)
 declare -A VENTSYS_DEVICES=(
     ["home-assistant"]="192.168.20.101:Home Assistant VM"
-    ["ventsys-main-fan"]="192.168.50.21:Main Fan Controller"  # A7-1 fix: was ventsys-fan-controller (stale name)
-    ["ventsys-sla-print-valve"]="192.168.50.56:SLA Print Valve Controller"  # A7-1 fix: was ventsys-sla-valve (stale name)
-    ["ventsys-fdm-print-valve"]="192.168.50.55:FDM Print Valve Controller"  # A7-1 fix: was ventsys-fdm-valve@.83 - device does not exist; canonical is ventsys-fdm-print-valve@.55
+    ["ventsys-main-fan"]="192.168.50.21:Main Fan Controller"
+    ["ventsys-sla-print-valve"]="192.168.50.56:SLA Print Valve Controller"
+    ["ventsys-fdm-print-valve"]="192.168.50.55:FDM Print Valve Controller"
     ["ventsys-fdm-array-1"]="192.168.50.31:FDM Sensor Array 1"
     ["ventsys-fdm-array-2"]="192.168.50.32:FDM Sensor Array 2"
     ["ventsys-sla-array-1"]="192.168.50.33:SLA Sensor Array 1"

@@ -48,7 +48,7 @@ mosquitto_sub -h 192.168.20.101 -p 8883 --cafile /ssl/ca.crt \
   -u mqtt -P '<password>' -t 'bambuddy/#' -v
 ```
 
-After Mosquitto TLS is enabled, switch the MQTT checks and Bambuddy `.env` from
-port `1883` to `8883` per `docs/procedures/ssl_tls_guide.md`, enable TLS in
-the Bambuddy application settings, and confirm retained `bambuddy/status`
-arrives.
+Bambuddy should use MQTT TLS on port `8883`. Plaintext `1883` is only for a
+documented temporary recovery/bootstrap exception; do not leave Bambuddy on it.
+Confirm retained `bambuddy/status` arrives over TLS before treating the workload
+as ready.

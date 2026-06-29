@@ -3,10 +3,12 @@ flowchart TB
     Internet["Internet"]
     Router["OpenWrt router<br/>DHCP, local DNS, firewall, NTP<br/>192.168.10.1"]
     Proxmox["Proxmox host<br/>MINISFORUM M1 Pro-125H<br/>192.168.10.10"]
+    EdgeSwitch["Planned managed switch<br/>Zyxel GS1900-8HP<br/>VLAN trunk from router lan3"]
 
     Internet --- Router
     Operator --> Router
     Router --- Proxmox
+    Router -.-> EdgeSwitch
 
     subgraph VMs["Proxmox VMs"]
         HA["VM 100 Home Assistant OS<br/>192.168.20.101<br/>Mosquitto, ESPHome, dashboards"]
@@ -16,7 +18,7 @@ flowchart TB
 
     subgraph LXCs["Unprivileged Proxmox LXCs"]
         Frigate["CT 111 Frigate NVR<br/>192.168.30.20<br/>OpenVINO + VA-API"]
-        LLMHost["CT 114 llm-host<br/>192.168.20.104<br/>Ollama Vulkan + Wyoming voice"]
+        LLMHost["CT 114 llm-host<br/>192.168.20.104<br/>llama.cpp Vulkan + Wyoming voice"]
     end
 
     Proxmox --- HA
@@ -30,7 +32,7 @@ flowchart TB
         OMV["OMV NAS<br/>192.168.40.50<br/>NFS/SMB, SMART, backups"]
     end
 
-    Router --- OMV
+    EdgeSwitch -.->|"future VLAN 40 access port"| OMV
 
     subgraph DockerApps["docker-host Tier 1 services"]
         AdGuard["AdGuard Home<br/>DNS filtering"]
@@ -48,17 +50,20 @@ flowchart TB
     DockerHost --- Bambuddy
     DockerHost -.-> FutureQuery
 
-    HA -.->|"Ollama + Wyoming + OpenWakeWord"| LLMHost
+    HA -.->|"llama.cpp + Wyoming + OpenWakeWord"| LLMHost
     LLMHost -.->|"SearXNG search"| DockerHost
     LLMHost -.->|"future approved app queries only"| FutureQuery
 
     subgraph Physical["Physical integrations"]
         Cameras["PoE cameras<br/>192.168.30.21-24"]
+        Extender["TL-WA801N extender<br/>VLAN 1 access port"]
         Printers["Bambu P1S / printers<br/>192.168.35.0/24"]
         VentSys["VentSys ESPHome devices<br/>192.168.50.0/24"]
     end
 
-    Cameras --> Frigate
+    Cameras -.-> EdgeSwitch
+    EdgeSwitch -.->|"future VLAN 30 camera access"| Frigate
+    Extender -.-> EdgeSwitch
     Printers --> Bambuddy
     VentSys --> HA
 

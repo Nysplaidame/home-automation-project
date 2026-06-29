@@ -20,12 +20,12 @@ Each hardware component added includes standardized certificate provisioning, de
 
 **Sub-tasks**:
 - **Hardware Setup**: Configure ESP32 DevKit with servo motor for FDM valve control and mount in appropriate location for duct integration
-- **Certificate Generation**: Generate device certificate for ventsys-fdm-print-valve  # A7-2 fix: was ventsys-fdm-valve (stale pre-canonical name) using established CA procedures and integrate with device configuration
-- **Configuration Development**: Use ventsys_fdm_print_valve.yaml (file exists in configs/esphome/)  # A7-2 fix: was ventsys_fdm_valve.yaml (stale name) using base TLS template with FDM-specific MQTT topics and valve control logic
-- **Device Registry Update**: Add FDM print valve controller to device registry with IP assignment (192.168.50.55)  # A7-2 fix: was .83; canonical is ventsys-fdm-print-valve@.55, certificate tracking, and deployment status
+- **Certificate Generation**: Generate device certificate for `ventsys-fdm-print-valve` using established CA procedures and integrate it with device configuration
+- **Configuration Development**: Use `ventsys_fdm_print_valve.yaml` from `configs/esphome/` with FDM-specific MQTT topics and valve control logic
+- **Device Registry Update**: Add FDM print valve controller to the device registry with IP assignment `192.168.50.55`, certificate tracking, and deployment status
 
 **Code Requirements**:
-- Use ventsys_fdm_print_valve.yaml (exists in configs/esphome/)  # A7-2 fix: was ventsys_fdm_valve.yaml with servo control on GPIO18, MQTT topics for ventsys/fdm/valve/, and valve position feedback
+- Use `ventsys_fdm_print_valve.yaml` from `configs/esphome/` with servo control, MQTT topics for `ventsys/fdm/valve/`, and valve position feedback
 - Generate device certificate and update device registry with FDM valve controller entry including MAC address, certificate expiry, and device specifications
 - Implement valve control logic with position feedback, safety limits, and emergency positioning capabilities
 
@@ -180,7 +180,7 @@ Each hardware component added includes standardized certificate provisioning, de
 
 **Code Requirements**:
 - Create ventsys_sla_entrance_valve.yaml and ventsys_sla_downstream_valve.yaml configurations with coordinated T-section control logic
-- Generate device certificates and update device registry with additional valve controllers  # A7-2 fix: IPs .85/.86 are not in canonical allocation (dhcp-config.conf); assign from available addresses when hardware is specified
+- Generate device certificates and update the device registry with additional valve controllers after their static addresses are assigned
 - Implement T-section coordination logic that balances entrance and downstream valve positions based on pressure feedback and airflow requirements
 
 **Interdependencies**:

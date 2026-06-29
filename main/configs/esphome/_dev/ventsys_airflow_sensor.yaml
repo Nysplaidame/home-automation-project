@@ -20,7 +20,7 @@ logger:
 # Enable Home Assistant API
 api:
   encryption:
-    key: !secret api_key   # M-2 fix: was hardcoded - generate with: openssl rand -base64 32
+    key: !secret api_key   # Generate with: openssl rand -base64 32
 
 ota:
   platform: esphome

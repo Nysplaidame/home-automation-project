@@ -181,3 +181,8 @@
 - Canonical project state now uses CT 111 for Frigate and CT 114 for local AI.
 - Updated: [[entities/proxmox]], [[entities/frigate]], [[entities/home-assistant]], [[entities/llm-host]], [[index]]
 - Notes: VM 101 and VM 104 are rollback-only; Overwatch search is live but recipe saving is not implemented.
+
+## [2026-06-29] update | Config and documentation cleanup sync
+- Canonical docs/configs were cleaned for stale router, MQTT, Frigate, VentSys, and local-AI references.
+- Pages updated: [[entities/gl-mt6000]], [[entities/frigate]], [[entities/mosquitto-mqtt]], [[index]]
+- Notes: Router wiki now matches the managed-switch port topology; Frigate wiki records the `mqtt.enabled: false` / `cameras: {}` baseline; MQTT wiki treats plaintext `1883` as a documented temporary recovery/bootstrap exception only.

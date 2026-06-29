@@ -108,7 +108,7 @@ This document outlines critical security vulnerabilities identified in the home 
 1. **Trusted**: Management network (admin devices only)
 2. **Internal**: Main user network (controlled access)
 3. **Restricted**: Automation services (limited internet)
-4. **Isolated**: CCTV, Storage, IoT (no internet)
+4. **Isolated**: NVR, Storage, IoT (no internet)
 5. **Untrusted**: Guest network (internet only)
 6. **DMZ**: Public services (controlled external access)
 

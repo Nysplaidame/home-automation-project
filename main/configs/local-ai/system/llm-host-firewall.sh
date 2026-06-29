@@ -7,13 +7,6 @@ iptables -A DOCKER-USER -m conntrack --ctstate RELATED,ESTABLISHED -j RETURN
 
 for source in 192.168.20.101/32 192.168.10.0/24 192.168.1.0/24 192.168.60.10/32; do
   iptables -A DOCKER-USER -s "$source" -p tcp -m conntrack \
-    --ctorigdst 192.168.20.104 --ctorigdstport 11434 -j RETURN
-done
-iptables -A DOCKER-USER -p tcp -m conntrack \
-  --ctorigdst 192.168.20.104 --ctorigdstport 11434 -j DROP
-
-for source in 192.168.20.101/32 192.168.10.0/24 192.168.1.0/24 192.168.60.10/32; do
-  iptables -A DOCKER-USER -s "$source" -p tcp -m conntrack \
     --ctorigdst 192.168.20.104 --ctorigdstport 8081 -j RETURN
 done
 iptables -A DOCKER-USER -p tcp -m conntrack \

@@ -53,13 +53,12 @@ mkdir -p /etc/wireguard/client_configs
 SERVER_PUBLIC_KEY=$(cat /etc/wireguard/keys/server_public.key)
 
 # Get your current public IP
-# E3 fix: use local WAN interface lookup (no external dependency)
+# Use local WAN interface lookup; no external IP service dependency.
 WAN_IP=$(ip -4 addr show "$(uci get network.wan.device 2>/dev/null || echo wan)" \
          | awk '/inet /{split($2,a,"/"); print a[1]; exit}')
 if [ -z "$WAN_IP" ]; then
     WAN_IP="YOUR_PUBLIC_IP_HERE"
 fi
-# R-5 fix: was wget https://ipecho.net/plain (external dependency - breaks if service is down)
 echo "WAN IP: $WAN_IP"
 
 for i in 1 2 3; do
@@ -68,20 +67,16 @@ for i in 1 2 3; do
 [Interface]
 PrivateKey = $(cat /etc/wireguard/keys/client${i}_private.key)
 Address = 10.0.0.${ip}/24
-# FIX #8: DNS was set to 192.168.20.1 (the VLAN 20 gateway/dnsmasq listener).
-# VPN AllowedIPs only includes 192.168.20.101/32 (a /32 for HA itself, not the
-# subnet), so 192.168.20.1 is unreachable from VPN clients -- DNS queries drop
-# silently, all home.local resolution fails while connected. Corrected to
-# 192.168.1.1 (main LAN gateway), which IS covered by 192.168.1.0/24 in
-# AllowedIPs and answers all home.local queries via dnsmasq on the router.
+# VPN AllowedIPs includes 192.168.20.101/32 for HA itself, not the full VLAN 20
+# subnet. Use the main LAN gateway for DNS because it is covered by
+# 192.168.1.0/24 and answers home.local queries via dnsmasq on the router.
 DNS = 192.168.1.1
 
 [Peer]
 PublicKey = $SERVER_PUBLIC_KEY
 Endpoint = ${WAN_IP}:51820
 AllowedIPs = 192.168.1.0/24, 192.168.20.101/32, 192.168.40.50/32, 192.168.70.0/24, 10.0.0.0/24
-# R-6 fix: added 192.168.70.0/24 (DMZ). Without it, the VPN-to-DMZ firewall rule
-# was dead code - traffic to .70.x never routed through the tunnel to reach the firewall.
+# Include the DMZ subnet so VPN-to-DMZ firewall rules can match routed traffic.
 PersistentKeepalive = 25
 EOF
     echo "Generated client${i}.conf (IP: 10.0.0.${ip})"
@@ -215,31 +210,26 @@ uci commit network
 
 # Generate client config
 SERVER_PUBLIC_KEY=$(cat /etc/wireguard/keys/server_public.key)
-# E3 fix: use local WAN interface lookup (no external dependency)
+# Use local WAN interface lookup; no external IP service dependency.
 WAN_IP=$(ip -4 addr show "$(uci get network.wan.device 2>/dev/null || echo wan)" \
          | awk '/inet /{split($2,a,"/"); print a[1]; exit}')
 if [ -z "$WAN_IP" ]; then
     WAN_IP="YOUR_PUBLIC_IP_HERE"
 fi
-# R-5 fix: was wget https://ipecho.net/plain (external dependency - breaks if service is down)
 cat > /etc/wireguard/client_configs/client4.conf << EOF
 [Interface]
 PrivateKey = $(cat /etc/wireguard/keys/client4_private.key)
 Address = 10.0.0.5/24
-# FIX #8: DNS was set to 192.168.20.1 (the VLAN 20 gateway/dnsmasq listener).
-# VPN AllowedIPs only includes 192.168.20.101/32 (a /32 for HA itself, not the
-# subnet), so 192.168.20.1 is unreachable from VPN clients -- DNS queries drop
-# silently, all home.local resolution fails while connected. Corrected to
-# 192.168.1.1 (main LAN gateway), which IS covered by 192.168.1.0/24 in
-# AllowedIPs and answers all home.local queries via dnsmasq on the router.
+# VPN AllowedIPs includes 192.168.20.101/32 for HA itself, not the full VLAN 20
+# subnet. Use the main LAN gateway for DNS because it is covered by
+# 192.168.1.0/24 and answers home.local queries via dnsmasq on the router.
 DNS = 192.168.1.1
 
 [Peer]
 PublicKey = $SERVER_PUBLIC_KEY
 Endpoint = ${WAN_IP}:51820
 AllowedIPs = 192.168.1.0/24, 192.168.20.101/32, 192.168.40.50/32, 192.168.70.0/24, 10.0.0.0/24
-# R-6 fix: added 192.168.70.0/24 (DMZ). Without it, the VPN-to-DMZ firewall rule
-# was dead code - traffic to .70.x never routed through the tunnel to reach the firewall.
+# Include the DMZ subnet so VPN-to-DMZ firewall rules can match routed traffic.
 PersistentKeepalive = 25
 EOF
 ```

@@ -21,12 +21,12 @@ reworking the network or integrations.
 
 | Host | Role | Notes |
 |---|---|---|
-| VM 104 `llm-host` | Local LLM, STT, and TTS inference | VLAN 20, `192.168.20.104`; owns Ollama, Open WebUI, Wyoming Whisper, and Wyoming Piper |
+| VM 104 `llm-host` | Local LLM, STT, and TTS inference | VLAN 20, `192.168.20.104`; owns legacy local LLM runtime, Open WebUI, Wyoming Whisper, and Wyoming Piper |
 | VM 103 `docker-host` | Internal Docker app and future query-tool host | Future AI-adjacent query apps belong here unless they need heavy model inference |
-| VM 100 `home-assistant` | Voice/control client | Uses Ollama and Wyoming integrations pointed at VM 104 |
+| VM 100 `home-assistant` | Voice/control client | Uses legacy local LLM runtime and Wyoming integrations pointed at VM 104 |
 | VM 101 `frigate-nvr` | Camera inference and NVR | Keeps priority for camera workloads and iGPU planning |
 
-Do not run model weights, Ollama, STT, or TTS inference on VM 103. Keep the
+Do not run model weights, legacy local LLM runtime, STT, or TTS inference on VM 103. Keep the
 Docker host easy to rebuild and reserve it for application services.
 
 ## VM 104 baseline
@@ -36,12 +36,12 @@ Current 32 GB host phase:
 - VM ID: `104`
 - Hostname: `llm-host`
 - VLAN/IP: VLAN 20, `192.168.20.104`
-- DNS aliases: `llm-host.home.local`, `ollama.home.local`, `openwebui.home.local`
+- DNS aliases: `llm-host.home.local`, `legacy-local-llm.home.local`, `openwebui.home.local`
 - RAM: 8 GB
 - CPU: 4 cores
 - Disk: 120-180 GB thin-provisioned local-lvm
 - First model class: 7B/8B Q4
-- Stable Ollama alias: `home-assistant-llm`
+- Stable legacy local LLM runtime alias: `home-assistant-llm`
 
 Later 64 GB host phase:
 
@@ -53,7 +53,7 @@ Later 64 GB host phase:
 
 Home Assistant uses VM 104 through official integrations:
 
-- Ollama API: `http://192.168.20.104:11434`
+- legacy local LLM runtime API: `http://192.168.20.104:retired-api-port`
 - Wyoming STT/TTS services on VM 104
 
 Use HA Assist first. Start with HA Assist UI and the Home Assistant Companion

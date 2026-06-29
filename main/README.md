@@ -31,7 +31,7 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 | HA VM | ✅ Live | HAOS VM 100 at 192.168.20.101, VentSys packages staged |
 | Frigate | ✅ LXC baseline live | CT 111 runs Frigate 0.17.1 with shared-iGPU OpenVINO; cameras and MQTT remain deliberately disabled |
 | Docker host | ✅ Live | VM 103 on VLAN 20 with a 64 GiB disk; Mealie, Grocy and Obsidian LiveSync join the existing internal services |
-| Local AI | ✅ LXC + local inference live | CT 114 runs GPU-backed llama.cpp, Open WebUI, Whisper, Piper and OpenWakeWord; Ollama is stopped as rollback while HA Assist migration is finalized |
+| Local AI | ✅ LXC + local inference live | CT 114 runs GPU-backed llama.cpp, Open WebUI, Whisper, Piper and OpenWakeWord |
 | OMV NAS | ⏳ Planned | OpenMediaVault at 192.168.40.50 on VLAN 40; hardware/storage needed |
 | Remote access | ✅ Live | Tailscale daily access via docker-host host routes; WireGuard kept dormant as fallback |
 | VentSys dashboard | ✅ Written / staged | dashboards/ventsys-dashboard.html with full HA integration layer; entities remain hardware-dependent |
@@ -123,10 +123,9 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
   Whisper, Piper and OpenWakeWord.
 - llama.cpp uses Vulkan on the shared Intel iGPU and serves
   `home-assistant-llm` on `192.168.20.104:8081/v1`.
-- The Home Assist pipeline is separated from Ollama and uses Home Assistant's
-  built-in conversation agent. The Overwatch pipeline still points at the
-  stopped Ollama rollback integration and must be migrated before it is
-  certified live again.
+- The Home Assist pipeline uses Home Assistant's built-in conversation agent.
+  The Overwatch pipeline points at the `llamacpp_conversation` integration and
+  still needs a live UI/voice validation before it is certified.
 - The bounded read-only SearXNG search API is installed for local LLM agents.
 - Mealie is live for recipes and meal planning; Overwatch recipe saving is not yet implemented.
 - Obsidian remains the durable project/household knowledge and runbook layer;

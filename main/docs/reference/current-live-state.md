@@ -25,7 +25,7 @@ Last verified: **2026-06-26**.
 | 103 | QEMU VM | docker-host | `192.168.20.102` | Live | Trusted Compose workloads and Tailscale routing |
 | 104 | QEMU VM | llm-host | offline | Rollback only | Pre-LXC snapshot; `onboot=0` |
 | 111 | unprivileged LXC | frigate-nvr | `192.168.30.20` | Live baseline | Frigate 0.17.1, OpenVINO and VA-API on shared iGPU |
-| 114 | unprivileged LXC | llm-host | `192.168.20.104` | Live | llama.cpp, Open WebUI and Wyoming voice services on shared iGPU; Ollama stopped as rollback |
+| 114 | unprivileged LXC | llm-host | `192.168.20.104` | Live | llama.cpp, Open WebUI and Wyoming voice services on shared iGPU |
 
 VM 101 and VM 104 are retained temporarily as rollback points. Production DNS
 and static addresses belong to CT 111 and CT 114. Never start either retired VM
@@ -35,12 +35,9 @@ while its replacement LXC is running.
 
 - Configuration check passes on HAOS 2026.6.4.
 - Mosquitto, File Editor, Terminal & SSH and ESPHome Device Builder are live.
-- The Home Assist pipeline uses Home Assistant's built-in conversation agent and
-  remains separated from Ollama.
+- The Home Assist pipeline uses Home Assistant's built-in conversation agent.
 - The Overwatch Assist pipeline points at `llamacpp_conversation`, a local
   Home Assistant custom conversation agent for llama.cpp's OpenAI-compatible API.
-  Ollama's HA config entry is disabled and the Ollama container remains stopped
-  as rollback.
 - The bounded read-only SearXNG search tool and Mealie recipe tools are enabled
   for local LLM conversation agents through the `llamacpp_conversation` config.
   A live Overwatch UI/voice prompt is still required before certifying the
@@ -69,16 +66,16 @@ while its replacement LXC is running.
 ## Local AI
 
 - CT 114 runs llama.cpp `server-vulkan`, Open WebUI, Wyoming Whisper, Piper and
-  OpenWakeWord; Ollama remains installed but stopped as rollback.
+  OpenWakeWord.
 - llama.cpp serves `home-assistant-llm` from the reused local GGUF at
   `192.168.20.104:8081/v1`; the container reports Vulkan on Intel Meteor Lake
   graphics and responds to OpenAI-compatible chat completions.
 - Live llama.cpp image digest:
   `ghcr.io/ggml-org/llama.cpp@sha256:4e784358f638549d95bd22fb814c1afeed1af71fbd4b70c25f23eae01caaa6af`.
 - Whisper starts offline from persistent model/tokenizer data.
-- HA can reach ports 8081, 11434, 10200, 10300 and 10400 through source-scoped
+- HA can reach ports 8081, 10200, 10300 and 10400 through source-scoped
   host and Docker firewall policy. HA uses `192.168.20.104:8081/v1` for the
-  llama.cpp conversation agent; port 11434 is retained only for Ollama rollback.
+  llama.cpp conversation agent.
 - SearXNG web search is reachable at docker-host port 8087.
 
 ## Docker host
@@ -107,10 +104,10 @@ registry mirror and Node-RED remain decision-gated candidates.
 - OMV is live on Storage VLAN 40 at `192.168.40.50`.
 - Final backup storage lives on md0 at
   `/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/`.
-- Frigate/CCTV recordings target md0 at
+- Frigate/NVR recordings target md0 at
   `/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/CCTV/`.
 - OMV exports NFS paths for Proxmox backups, HA backups, docker-host backups,
-  config backups, Immich DB backups, Immich media, and CCTV.
+  config backups, Immich DB backups, Immich media, and Frigate/NVR recordings.
 - The Frigate export is discoverable from CT 111, but CT 111 is an unprivileged
   LXC and cannot mount NFS directly. OMV now also allows Proxmox host
   `192.168.10.10` to mount `/export/frigate`; a temporary Proxmox mount,

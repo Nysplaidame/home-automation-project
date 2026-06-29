@@ -50,9 +50,8 @@ status: active
 - Uptime Kuma monitor snapshots are exported to InfluxDB bucket `uptimekuma` by `uptime-kuma-influx-export.timer`
 - docker-host Fail2ban counters are exported to InfluxDB bucket `dockerhost` by `fail2ban-influx-export.timer`
 - Grafana dashboard shell `NAS Resource Overview` is present but planned only; do not treat NAS metrics as live until the NAS is built
-- CT 114 `llm-host` is live. Uptime Kuma checks cover Ollama, Open WebUI,
-  Wyoming Whisper and Piper and are exported to InfluxDB. Add a dedicated
-  OpenWakeWord `10400` monitor during the next monitoring maintenance pass.
+- CT 114 `llm-host` is live. Uptime Kuma checks cover llama.cpp, Open WebUI,
+  Wyoming Whisper, Piper and OpenWakeWord and are exported to InfluxDB.
 - CT 111 Frigate baseline is live and the API/UI are healthy. Camera-specific
   checks remain deferred until cameras are installed.
 - Home Assistant has a storage-managed `Monitoring` dashboard at `/monitoring/overview` with direct links to Grafana and Uptime Kuma
@@ -96,7 +95,7 @@ Initial monitors should cover:
 - monitoring stack self-checks
 - Frigate CT 111 baseline now; camera streams later
 - NAS when built
-- llm-host CT 114 services: Ollama `11434`, Open WebUI `3002`, Piper
+- llm-host CT 114 services: llama.cpp `8081`, Open WebUI `3002`, Piper
   `10200`, Whisper `10300`, and OpenWakeWord `10400`
 
 ### Phase 3 — add metrics with InfluxDB + Grafana

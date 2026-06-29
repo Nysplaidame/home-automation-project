@@ -65,7 +65,7 @@ echo "   - Gateway: 192.168.50.1" >> /tmp/phase8_ventsys_integration.txt
 echo "   - DHCP Range: 192.168.50.100-190" >> /tmp/phase8_ventsys_integration.txt
     echo "   - Main Fan (ventsys-main-fan):              192.168.50.21 (static reservation)" >> /tmp/phase8_ventsys_integration.txt
     echo "   - SLA Print Valve (ventsys-sla-print-valve): 192.168.50.56 (static reservation)" >> /tmp/phase8_ventsys_integration.txt
-    echo "   - FDM Print Valve (ventsys-fdm-print-valve): 192.168.50.55 (static reservation)  # A6-1 fix: was ventsys-fdm-valve@.83 - stale pre-canonical name/IP" >> /tmp/phase8_ventsys_integration.txt
+    echo "   - FDM Print Valve (ventsys-fdm-print-valve): 192.168.50.55 (static reservation)" >> /tmp/phase8_ventsys_integration.txt
     echo "   - FDM Sensor Array 1 (ventsys-fdm-array-1):  192.168.50.31 (static reservation)" >> /tmp/phase8_ventsys_integration.txt
     echo "   - FDM Sensor Array 2 (ventsys-fdm-array-2):  192.168.50.32 (static reservation)" >> /tmp/phase8_ventsys_integration.txt
     echo "   - SLA Sensor Array 1 (ventsys-sla-array-1):  192.168.50.33 (static reservation)" >> /tmp/phase8_ventsys_integration.txt
@@ -126,7 +126,7 @@ check_interface() {
 
 check_wireless_ssid() {
     local ssid=$1
-    # B8 fix: iwlist scan is unreliable on the router's own radios — it is a
+    # iwlist scan is unreliable on the router's own radios — it is a
     # client-side scan tool and may report nothing or scan the wrong interface.
     # Check UCI config and hostapd instead: SSID must be configured and not disabled.
     local iface
@@ -211,7 +211,7 @@ MAC_ADDRESS=$2
 
 if [ -z "$DEVICE_NAME" ] || [ -z "$MAC_ADDRESS" ]; then
     echo "Usage: $0 <device_name> <mac_address>"
-echo "Available devices: proxmox-host, home-assistant, frigate-nvr, omv-nas, ventsys-main-fan, ventsys-sla-print-valve  # A6-1 fix: was ventsys-fan-controller, ventsys-valve-controller (stale names)"
+echo "Available devices: proxmox-host, home-assistant, frigate-nvr, omv-nas, ventsys-main-fan, ventsys-sla-print-valve"
     exit 1
 fi
 

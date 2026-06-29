@@ -23,6 +23,9 @@ in the tailnet admin console.
 | Management VLAN | all local admin targets | WAN-exposed admin | OpenWrt + service auth |
 | Guest VLAN | internet only through router DNS | all internal VLANs | OpenWrt |
 
+Planned managed-switch administration belongs on VLAN 10. The Zyxel GS1900-8HP
+management interface should use `192.168.10.12` once its MAC address is known.
+
 ## Tailscale ACL intent
 
 | User/group | Source | Destination | Ports | Notes |
@@ -33,7 +36,7 @@ in the tailnet admin console.
 | Admin devices | tailnet admin group | `192.168.60.10/32` | 3000, 3001 | Grafana and Uptime Kuma only |
 | Household mobile devices | approved user/device tags | docker-host service UI ports | 2283, 3001, selected apps | No Management/NVR/IoT/Printers |
 | Household mobile devices | approved user/device tags | `192.168.60.10/32` | 3000, 3001 | Monitoring dashboards only if desired for daily mobile use |
-| Admin devices | tailnet admin group | `192.168.20.104/32` | 3002, 8081, 11434, 10200, 10300, 10400 | Local AI admin/testing only if explicitly approved |
+| Admin devices | tailnet admin group | `192.168.20.104/32` | 3002, 8081, 10200, 10300, 10400 | Local AI admin/testing only if explicitly approved |
 | Unknown devices | any | any routed subnet | none | Require explicit approval |
 
 Do not advertise or allow `192.168.10.0/24`, `192.168.30.0/24`,
@@ -54,9 +57,9 @@ WireGuard fallback activation/deactivation governance is defined in
 | HA | OMV | 22, 445, 2049/tcp | Backup/storage |
 | HA | IoT | 6053, 3232/tcp | ESPHome API/OTA |
 | docker-host | P1S | 8883, 21/tcp | Bambuddy |
-| HA | llm-host | 8081, 11434, 10200, 10300/tcp | llama.cpp/OpenAI-compatible LLM endpoint, Ollama rollback, and Wyoming STT/TTS integrations |
-| LAN / Management | llm-host | 3002/tcp; 8081/tcp for local LLM testing; 11434/tcp only for rollback testing | Open WebUI and local LLM test access |
-| Monitoring | llm-host | 8081, 3002, 10200, 10300/tcp; 11434/tcp only while rollback monitor remains | Uptime Kuma checks and service health |
+| HA | llm-host | 8081, 10200, 10300/tcp | llama.cpp/OpenAI-compatible LLM endpoint and Wyoming STT/TTS integrations |
+| LAN / Management | llm-host | 3002/tcp; 8081/tcp for local LLM testing | Open WebUI and local LLM test access |
+| Monitoring | llm-host | 8081, 3002, 10200, 10300, 10400/tcp | Uptime Kuma checks and service health |
 | llm-host | docker-host | future approved query-app ports only | Pattern reserved for future containerized query apps; no app-specific rule exists yet |
 | docker-host | Monitoring VM | 8086/tcp | Telegraf metrics export to InfluxDB bucket `dockerhost` |
 | docker-host | Monitoring VM | 3000, 3001/tcp | Tailscale-routed mobile access to Grafana and Uptime Kuma only |
@@ -74,7 +77,7 @@ WireGuard fallback activation/deactivation governance is defined in
 | Host | Firewall intent |
 |---|---|
 | docker-host | default deny incoming; allow Management/LAN/Tailscale to approved service ports; allow Tailscale interface; avoid broad routed forwarding except approved host routes |
-| llm-host | default deny incoming; allow HA to llama.cpp/Ollama-rollback/Wyoming ports; allow Management/LAN to Open WebUI and approved LLM testing; allow Monitoring checks; block Guest, DMZ, NVR, Printers, and IoT |
+| llm-host | default deny incoming; allow HA to llama.cpp/Wyoming ports; allow Management/LAN to Open WebUI and approved LLM testing; allow Monitoring checks; block Guest, DMZ, NVR, Printers, and IoT |
 | OMV | allow Management, HA, Frigate, docker-host, and Tailscale-routed admin/device access only to required ports |
 | Frigate | allow HA and Management; no user/LAN direct path until cameras are configured |
 | Home Assistant | allow LAN, Management, Tailscale-routed admin/mobile, and required service integrations |

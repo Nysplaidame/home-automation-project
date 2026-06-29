@@ -85,7 +85,7 @@ wifi
 /usr/local/bin/ventsys_week1_mac_collection.sh --update home-assistant AA:BB:CC:DD:EE:FF
 
 # Example: If fan controller found
-/usr/local/bin/ventsys_week1_mac_collection.sh --update ventsys-main-fan 11:22:33:44:55:66  # A7-4 fix: was ventsys-fan-controller (stale name)
+/usr/local/bin/ventsys_week1_mac_collection.sh --update ventsys-main-fan 11:22:33:44:55:66
 
 # Verify reservations
 /usr/local/bin/ventsys_week1_mac_collection.sh --list
