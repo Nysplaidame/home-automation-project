@@ -38,6 +38,7 @@ after its backup, auth, exposure, monitoring, and rollback notes are complete.
 - [whoogle.md](whoogle.md)
 - [grocy.md](grocy.md)
 - [obsidian-livesync.md](obsidian-livesync.md)
+- [gardenkeeper.md](gardenkeeper.md)
 
 ## Tier 3 / evaluate
 

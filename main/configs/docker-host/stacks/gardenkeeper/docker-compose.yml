@@ -1,0 +1,71 @@
+name: gardenkeeper
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: gardenkeeper-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-gardenkeeper}
+      POSTGRES_USER: ${POSTGRES_USER:-gardenkeeper}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: gardenkeeper-redis
+    restart: unless-stopped
+    volumes:
+      - ./redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./source
+      dockerfile: apps/api/Dockerfile
+    container_name: gardenkeeper-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8090:8090"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ./source
+      dockerfile: apps/worker/Dockerfile
+    container_name: gardenkeeper-worker
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      api:
+        condition: service_started
+      redis:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./source
+      dockerfile: apps/web/Dockerfile
+    container_name: gardenkeeper-web
+    restart: unless-stopped
+    ports:
+      - "8091:80"
+    depends_on:
+      - api

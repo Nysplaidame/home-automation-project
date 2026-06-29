@@ -41,6 +41,7 @@ remote exposure, backup expectations, monitoring, and runbook coverage.
 | Mealie | `/opt/stacks/mealie/` | 9925/tcp | `mealie.home.local:9925` | Via docker-host Tailscale identity | SQLite data under stack path; OMV backup pending | Uptime Kuma HTTP check | `docs/install/services/mealie.md` |
 | Grocy | `/opt/stacks/grocy/` | 9283/tcp | `grocy.home.local:9283` | Via docker-host Tailscale identity | config/database under stack path; OMV backup pending | Uptime Kuma HTTP check | `docs/install/services/grocy.md` |
 | Obsidian LiveSync | `/opt/stacks/obsidian-livesync/` | 5984/tcp; Tailscale HTTPS 8443 | `obsidian-sync.home.local:5984` | `docker-host.tail7012a0.ts.net:8443` after Serve approval | CouchDB data under stack path; Git remains version history | Uptime Kuma HTTP auth check | `docs/install/services/obsidian-livesync.md` |
+| GardenKeeper | `/opt/stacks/gardenkeeper/` | 8091/tcp UI, 8090/tcp API | `gardenkeeper.home.local:8091` | Via docker-host Tailscale identity | Postgres data under stack path; OMV backup pending | Uptime Kuma HTTP checks for UI and `/health` | `docs/install/services/gardenkeeper.md` |
 
 ## Docker-host roadmap
 
@@ -75,6 +76,7 @@ remote exposure, backup expectations, monitoring, and runbook coverage.
 | `mealie.home.local` | `192.168.20.102` | Mealie recipe and meal-planning UI |
 | `grocy.home.local` | `192.168.20.102` | Grocy food-stock UI |
 | `obsidian-sync.home.local` | `192.168.20.102` | CouchDB backend for Obsidian LiveSync |
+| `gardenkeeper.home.local` | `192.168.20.102` | GardenKeeper garden care app |
 | `llm-host.home.local` | `192.168.20.104` | CT 114 local AI host |
 | `openwebui.home.local` | `192.168.20.104` | Open WebUI host |
 | `omv-nas.home.local` | `192.168.40.50` | OMV hostname |

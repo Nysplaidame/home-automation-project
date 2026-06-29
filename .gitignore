@@ -2,6 +2,10 @@
 **/.claude/worktrees/
 **/.git.disabled
 
+# Local secrets
+**/.env
+**/.env.*
+
 # Local repo-repair backups
 .git/worktrees-disabled-*/
 

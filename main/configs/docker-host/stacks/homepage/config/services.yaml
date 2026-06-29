@@ -33,3 +33,6 @@
     - Whoogle:
         href: http://192.168.20.102:8088/
         description: Google search proxy pre-flight
+    - GardenKeeper:
+        href: http://192.168.20.102:8091/
+        description: Garden care and task planner

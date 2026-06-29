@@ -51,13 +51,14 @@ WireGuard fallback activation/deactivation governance is defined in
 | Source | Destination | Allowed | Notes |
 |---|---|---|---|
 | LAN | Home Assistant | 8123/tcp | HA UI |
-| LAN | docker-host app UIs | 5984, 8000, 2283, 3001, 8080, 8081, 8085, 8087, 8088, 9283, 9925/tcp | Obsidian LiveSync, Bambuddy, Immich, Homepage, AdGuard admin, Dozzle, ntfy, SearXNG, Whoogle, Grocy, Mealie |
+| LAN | docker-host app UIs | 5984, 8000, 2283, 3001, 8080, 8081, 8085, 8087, 8088, 8091, 9283, 9925/tcp | Obsidian LiveSync, Bambuddy, Immich, Homepage, AdGuard admin, Dozzle, ntfy, SearXNG, Whoogle, GardenKeeper, Grocy, Mealie |
 | LAN | Printers | 8883, 21, 80, 8080/tcp | Slicer/local printer access |
 | HA | Frigate | 8971, 5000, 8554, 8555/tcp | HA integration |
 | HA | OMV | 22, 445, 2049/tcp | Backup/storage |
 | HA | IoT | 6053, 3232/tcp | ESPHome API/OTA |
 | docker-host | P1S | 8883, 21/tcp | Bambuddy |
 | HA | llm-host | 8081, 10200, 10300/tcp | llama.cpp/OpenAI-compatible LLM endpoint and Wyoming STT/TTS integrations |
+| HA | docker-host | 8090/tcp | GardenKeeper Assist/task API |
 | LAN / Management | llm-host | 3002/tcp; 8081/tcp for local LLM testing | Open WebUI and local LLM test access |
 | Monitoring | llm-host | 8081, 3002, 10200, 10300, 10400/tcp | Uptime Kuma checks and service health |
 | llm-host | docker-host | future approved query-app ports only | Pattern reserved for future containerized query apps; no app-specific rule exists yet |

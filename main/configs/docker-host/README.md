@@ -31,6 +31,7 @@ Live stack paths:
 | SearXNG | `/opt/stacks/searxng` | `stacks/searxng/` |
 | Whoogle | `/opt/stacks/whoogle` | `stacks/whoogle/` |
 | Docker-host Telegraf metrics | `/opt/stacks/telegraf` | `stacks/telegraf/` |
+| GardenKeeper | `/opt/stacks/gardenkeeper` | `stacks/gardenkeeper/` |
 | Docker host firewall | `/usr/local/sbin/docker-host-firewall.sh` | `system/docker-host-firewall.sh` |
 | Docker host UFW routed DNS rules | `/usr/local/sbin/docker-host-ufw-route-dns.sh` | `system/docker-host-ufw-route-dns.sh` |
 | Docker host UFW routed monitoring rules | `/usr/local/sbin/docker-host-ufw-route-monitoring-tailscale.sh` | `system/docker-host-ufw-route-monitoring-tailscale.sh` |
