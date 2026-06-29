@@ -1,0 +1,8 @@
+[Unit]
+Description=GardenKeeper PostgreSQL backup
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/stacks/gardenkeeper/backup-gardenkeeper.sh

@@ -37,6 +37,9 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    networks:
+      - default
+      - alerting
     ports:
       - "8090:8090"
     depends_on:
@@ -69,3 +72,8 @@ services:
       - "8091:80"
     depends_on:
       - api
+
+networks:
+  alerting:
+    external: true
+    name: local-alerting

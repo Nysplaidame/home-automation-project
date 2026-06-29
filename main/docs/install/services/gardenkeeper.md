@@ -121,6 +121,22 @@ Back up:
 - `/opt/stacks/gardenkeeper/docker-compose.yml`
 - `/opt/stacks/gardenkeeper/postgres-data`
 
+The docker-host template also includes a lightweight local PostgreSQL dump
+timer:
+
+```sh
+install -m 0755 backup-gardenkeeper.sh /opt/stacks/gardenkeeper/backup-gardenkeeper.sh
+install -m 0644 gardenkeeper-backup.service /etc/systemd/system/gardenkeeper-backup.service
+install -m 0644 gardenkeeper-backup.timer /etc/systemd/system/gardenkeeper-backup.timer
+systemctl daemon-reload
+systemctl enable --now gardenkeeper-backup.timer
+systemctl start gardenkeeper-backup.service
+```
+
+It writes compressed dumps to `/opt/stacks/gardenkeeper/backups/` and keeps
+14 days by default. Treat this as a local safety net until the docker-host app
+backup path is mounted to OMV/NAS storage.
+
 Redis data is rebuildable task/worker state unless future behavior makes it
 authoritative.
 

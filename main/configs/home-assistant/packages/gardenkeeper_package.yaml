@@ -1,0 +1,88 @@
+# Home Assistant Package - GardenKeeper
+# Deploy to: /config/packages/gardenkeeper_package.yaml on HA VM.
+# Requires this secret in /config/secrets.yaml:
+#   gardenkeeper_webhook_secret: <value from /opt/stacks/gardenkeeper/.env>
+
+command_line:
+  - binary_sensor:
+      name: "GardenKeeper API Reachable"
+      unique_id: gardenkeeper_api_reachable
+      command: "curl -fsS --connect-timeout 5 --max-time 8 http://gardenkeeper.home.local:8090/health >/dev/null && echo ON || echo OFF"
+      scan_interval: 60
+      device_class: connectivity
+      payload_on: "ON"
+      payload_off: "OFF"
+
+  - binary_sensor:
+      name: "GardenKeeper UI Reachable"
+      unique_id: gardenkeeper_ui_reachable
+      command: "curl -fsS --connect-timeout 5 --max-time 8 http://gardenkeeper.home.local:8091/ >/dev/null && echo ON || echo OFF"
+      scan_interval: 60
+      device_class: connectivity
+      payload_on: "ON"
+      payload_off: "OFF"
+
+template:
+  - binary_sensor:
+      - name: "GardenKeeper Healthy"
+        unique_id: gardenkeeper_healthy
+        device_class: connectivity
+        state: >
+          {{
+            is_state('binary_sensor.gardenkeeper_api_reachable', 'on')
+            and is_state('binary_sensor.gardenkeeper_ui_reachable', 'on')
+          }}
+
+rest_command:
+  gardenkeeper_voice_command:
+    url: "http://gardenkeeper.home.local:8090/api/assistant/voice-command"
+    method: POST
+    content_type: "application/json"
+    headers:
+      X-GardenKeeper-Secret: !secret gardenkeeper_webhook_secret
+    payload: >
+      {
+        "transcript": {{ transcript | to_json }},
+        "source": "home-assistant",
+        "actor": {{ actor | default("home-assistant") | to_json }}
+      }
+
+script:
+  gardenkeeper_voice_command:
+    alias: "GardenKeeper voice command"
+    mode: parallel
+    fields:
+      transcript:
+        name: Transcript
+        required: true
+        selector:
+          text:
+      actor:
+        name: Actor
+        required: false
+        selector:
+          text:
+    sequence:
+      - service: rest_command.gardenkeeper_voice_command
+        data:
+          transcript: "{{ transcript }}"
+          actor: "{{ actor | default('home-assistant') }}"
+
+automation:
+  - id: gardenkeeper_health_lost
+    alias: "GardenKeeper Health Lost"
+    mode: single
+    initial_state: true
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.gardenkeeper_healthy
+        to: "off"
+        for: "00:03:00"
+    action:
+      - service: persistent_notification.create
+        data:
+          title: "GardenKeeper unreachable"
+          message: >
+            Home Assistant cannot reach the GardenKeeper UI or API on
+            docker-host. Check VM 103, the GardenKeeper Compose stack, and
+            docker-host firewall policy for ports 8090 and 8091.
