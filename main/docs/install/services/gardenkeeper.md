@@ -3,9 +3,9 @@ title: GardenKeeper Install Manual
 description: Internal garden care, task, calendar, and map app on docker-host
 tags: [install, docker-host, gardenkeeper]
 created: 2026-06-29
-modified: 2026-06-29
+modified: 2026-06-30
 type: install-guide
-status: draft-installable
+status: live
 ---
 
 # GardenKeeper Install Manual
@@ -49,16 +49,30 @@ Optional integration secrets:
 
 ## Current live state
 
-Not yet live. Template path:
+GardenKeeper is live on docker-host at:
+
+```text
+/opt/stacks/gardenkeeper/
+```
+
+Source templates remain under:
 
 ```text
 configs/docker-host/stacks/gardenkeeper/
 ```
 
-Planned URLs:
+Live URLs:
 
 - Web UI: `http://gardenkeeper.home.local:8091/`
 - API health: `http://gardenkeeper.home.local:8090/health`
+
+Current live integrations:
+
+- Home Assistant package installed at `/config/packages/gardenkeeper_package.yaml`.
+- HA Monitoring dashboard includes a GardenKeeper health card and app link.
+- Uptime Kuma monitors cover the API health endpoint and web UI.
+- ntfy broker integration is configured through the central notification stack.
+- Local Postgres dump timer is enabled on docker-host.
 
 ## Commands
 
@@ -137,6 +151,12 @@ It writes compressed dumps to `/opt/stacks/gardenkeeper/backups/` and keeps
 14 days by default. Treat this as a local safety net until the docker-host app
 backup path is mounted to OMV/NAS storage.
 
+As of 2026-06-30, off-host GardenKeeper backups are still blocked: OMV host
+`192.168.40.50` was reachable only as a host route from docker-host, while NFS
+`2049/tcp`, RPC `111/tcp`, SMB `445/tcp`, SSH `22/tcp`, and HTTP `80/tcp` were
+refusing connections. Do not claim GardenKeeper has OMV-backed backups until an
+export path is reachable and a restoreable dump is verified there.
+
 Redis data is rebuildable task/worker state unless future behavior makes it
 authoritative.
 
@@ -151,10 +171,11 @@ authoritative.
 
 ## Completion checklist
 
-- [ ] Stack starts cleanly.
-- [ ] Web UI loads.
-- [ ] API health and status pass.
-- [ ] Docker-host firewall and router DNS include GardenKeeper.
+- [x] Stack starts cleanly.
+- [x] Web UI loads.
+- [x] API health and status pass.
+- [x] Docker-host firewall and router DNS include GardenKeeper.
 - [ ] Homepage link added.
-- [ ] Uptime Kuma monitors added for web and API health.
-- [ ] Secrets stored outside Git.
+- [x] Uptime Kuma monitors added for web and API health.
+- [x] Secrets stored outside Git.
+- [ ] OMV-backed off-host Postgres dump path is mounted and verified.
