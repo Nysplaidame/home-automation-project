@@ -3,7 +3,7 @@ title: Service Matrix
 description: Central service, port, DNS, backup, monitoring, and runbook reference
 tags: [reference, services, ports, dns, docker-host]
 created: 2026-05-23
-modified: 2026-06-26
+modified: 2026-06-30
 type: reference
 status: active
 ---
@@ -23,7 +23,7 @@ remote exposure, backup expectations, monitoring, and runbook coverage.
 | Frigate | CT 111 (unprivileged LXC) | `192.168.30.20` / VLAN 30 | 8971, 5000, 8554, 8555 | `frigate.home.local` | Not advertised | local baseline; OMV archive later | container/API baseline; camera monitors after hardware | `scripts/setup/proxmox/frigate_vm_setup_guide.md` |
 | Monitoring stack | VM 102 | `192.168.60.10` / VLAN 60 | 3000, 3001, 8086 | monitoring dashboard links in HA | Host route `192.168.60.10/32` advertised via docker-host for Grafana/Kuma only; do not expose InfluxDB | stack config + Influx backups | Uptime Kuma self-monitor plus HA-side external health sensors | `scripts/setup/proxmox/monitoring_vm_setup_guide.md` |
 | Docker host | VM 103 | `192.168.20.102` / VLAN 20 | 22 plus service ports | `docker-host.home.local` | Tailscale node identity / MagicDNS | `/opt/stacks/<service>/` | Uptime Kuma, Dozzle | `scripts/setup/proxmox/docker_host_setup_guide.md` |
-| Local AI inference | CT 114 (unprivileged LXC) | `192.168.20.104` / VLAN 20 | 8081, 3002, 10200, 10300, 10400 | `llm-host.home.local`, `openwebui.home.local` | Not advertised by default; source-scoped host and Docker firewall rules | `/opt/stacks/local-ai/`; model/voice data local to CT 114 | Uptime Kuma should check llama.cpp, Open WebUI, Piper, Whisper and OpenWakeWord | `scripts/setup/proxmox/llm_host_setup_guide.md`, `docs/procedures/local_ai_performance_testing.md` |
+| Local AI inference | CT 114 (unprivileged LXC) | `192.168.20.104` / VLAN 20 | 8081, 8082, 3002, 10200, 10300, 10400 | `llm-host.home.local`, `openwebui.home.local` | Not advertised by default; source-scoped host and Docker firewall rules | `/opt/stacks/local-ai/`; `home-assistant-llm.gguf`, `bge-small-en-v1.5-q8_0.gguf`, and voice data local to CT 114 | Uptime Kuma should check llama.cpp chat, Open WebUI, Piper, Whisper and OpenWakeWord; embedding endpoint is currently source-scoped to docker-host | `scripts/setup/proxmox/llm_host_setup_guide.md`, `docs/procedures/local_ai_performance_testing.md` |
 | OMV NAS | NAS hardware | `192.168.40.50` / VLAN 40 storage | 80, 22, 445, 2049, NFS helper ports 111/20048/32765-32767 | `OMVNAS`; web UI at `http://192.168.40.50/`, `omv.home.local`, `nas.home.local` | not advertised as a broad storage route | md0 `backups/` hierarchy, md0 `CCTV/` Frigate recording share, Immich media NFS, SMART, OMV config backup | ping, web UI, SMART, NFS checks; docker-host Telegraf sees `/mnt/omv/immich` | `scripts/setup/nas/omv_nas_setup_guide.md` |
 | OMV Transfer Portal | OMVNAS native service | `192.168.40.50` / VLAN 40 storage | 8088 | `http://192.168.40.50:8088/` | none in v1 | `/var/lib/transferportal/jobs.sqlite`, `/etc/transferportal/config.yaml`, `/var/log/transferportal/` | systemd status, audit log, job log tail | `docs/install/services/transferportal.md` |
 

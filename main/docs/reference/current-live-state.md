@@ -3,7 +3,7 @@ title: Current Live State
 description: Canonical inventory of deployed hosts, services, and deliberately deferred components
 tags: [reference, current-state, infrastructure]
 created: 2026-06-20
-modified: 2026-06-28
+modified: 2026-06-30
 type: reference
 status: active
 ---
@@ -13,7 +13,7 @@ status: active
 This is the canonical current-state inventory. Rebuild manuals describe how to
 build from blank and must link here rather than duplicating live-status claims.
 
-Last verified: **2026-06-26**.
+Last verified: **2026-06-30**.
 
 ## Compute
 
@@ -65,17 +65,24 @@ while its replacement LXC is running.
 
 ## Local AI
 
-- CT 114 runs llama.cpp `server-vulkan`, Open WebUI, Wyoming Whisper, Piper and
-  OpenWakeWord.
+- CT 114 runs llama.cpp `server-vulkan`, a dedicated llama.cpp embedding
+  service, Open WebUI, Wyoming Whisper, Piper and OpenWakeWord.
 - llama.cpp serves `home-assistant-llm` from the reused local GGUF at
   `192.168.20.104:8081/v1`; the container reports Vulkan on Intel Meteor Lake
   graphics and responds to OpenAI-compatible chat completions.
+- A dedicated llama.cpp embeddings service serves `home-assistant-embedding`
+  from `bge-small-en-v1.5-q8_0.gguf` at `192.168.20.104:8082/v1`; it returns
+  384-dimensional embeddings and is source-scoped to docker-host for Household
+  Hub.
 - Live llama.cpp image digest:
   `ghcr.io/ggml-org/llama.cpp@sha256:4e784358f638549d95bd22fb814c1afeed1af71fbd4b70c25f23eae01caaa6af`.
 - Whisper starts offline from persistent model/tokenizer data.
 - HA can reach ports 8081, 10200, 10300 and 10400 through source-scoped
   host and Docker firewall policy. HA uses `192.168.20.104:8081/v1` for the
   llama.cpp conversation agent.
+- Docker-host can reach CT 114 ports 8081, 8082 and 3002 for Household Hub
+  assistant integration. Household Hub production RAG uses CT 114 chat on 8081,
+  embeddings on 8082, and local Qdrant on VM 103.
 - SearXNG web search is reachable at docker-host port 8087.
 
 ## Docker host

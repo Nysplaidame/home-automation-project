@@ -33,6 +33,44 @@ services:
       - "99"
       - --jinja
 
+  llama-cpp-embeddings:
+    image: ghcr.io/ggml-org/llama.cpp:server-vulkan
+    container_name: llama-cpp-embeddings
+    restart: unless-stopped
+    ports:
+      - "8082:8080"
+    volumes:
+      - ./models:/models:ro
+    devices:
+      - /dev/dri/renderD128:/dev/dri/renderD128
+      - /dev/dri/card0:/dev/dri/card0
+    command:
+      - --model
+      - /models/bge-small-en-v1.5-q8_0.gguf
+      - --alias
+      - home-assistant-embedding
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --ctx-size
+      - "512"
+      - --threads
+      - "2"
+      - --threads-http
+      - "2"
+      - --parallel
+      - "1"
+      - --batch-size
+      - "128"
+      - --ubatch-size
+      - "128"
+      - --n-gpu-layers
+      - "0"
+      - --embedding
+      - --pooling
+      - mean
+
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
     container_name: open-webui

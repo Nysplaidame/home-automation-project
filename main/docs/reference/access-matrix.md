@@ -3,7 +3,7 @@ title: ACL And Access Matrix
 description: Canonical OpenWrt, Tailscale, host firewall, and service-auth access intent
 tags: [reference, acl, firewall, tailscale, access-control]
 created: 2026-05-23
-modified: 2026-05-31
+modified: 2026-06-30
 type: reference
 status: active
 ---
@@ -36,7 +36,7 @@ management interface should use `192.168.10.12` once its MAC address is known.
 | Admin devices | tailnet admin group | `192.168.60.10/32` | 3000, 3001 | Grafana and Uptime Kuma only |
 | Household mobile devices | approved user/device tags | docker-host service UI ports | 2283, 3001, selected apps | No Management/NVR/IoT/Printers |
 | Household mobile devices | approved user/device tags | `192.168.60.10/32` | 3000, 3001 | Monitoring dashboards only if desired for daily mobile use |
-| Admin devices | tailnet admin group | `192.168.20.104/32` | 3002, 8081, 10200, 10300, 10400 | Local AI admin/testing only if explicitly approved |
+| Admin devices | tailnet admin group | `192.168.20.104/32` | 3002, 8081, 10200, 10300, 10400 | Local AI admin/testing only if explicitly approved; embedding port 8082 is source-scoped to docker-host |
 | Unknown devices | any | any routed subnet | none | Require explicit approval |
 
 Do not advertise or allow `192.168.10.0/24`, `192.168.30.0/24`,
@@ -59,6 +59,7 @@ WireGuard fallback activation/deactivation governance is defined in
 | docker-host | P1S | 8883, 21/tcp | Bambuddy |
 | HA | llm-host | 8081, 10200, 10300/tcp | llama.cpp/OpenAI-compatible LLM endpoint and Wyoming STT/TTS integrations |
 | HA | docker-host | 8090/tcp | GardenKeeper Assist/task API |
+| docker-host | llm-host | 8081, 8082, 3002/tcp | Household Hub assistant/API integration path and dedicated embedding endpoint |
 | LAN / Management | llm-host | 3002/tcp; 8081/tcp for local LLM testing | Open WebUI and local LLM test access |
 | Monitoring | llm-host | 8081, 3002, 10200, 10300, 10400/tcp | Uptime Kuma checks and service health |
 | llm-host | docker-host | future approved query-app ports only | Pattern reserved for future containerized query apps; no app-specific rule exists yet |
