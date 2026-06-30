@@ -26,6 +26,25 @@ cards:
       - [Uptime Kuma](http://192.168.60.10:3001/)
 
   - type: entities
+    title: GardenKeeper
+    show_header_toggle: false
+    entities:
+      - binary_sensor.gardenkeeper_healthy
+      - binary_sensor.gardenkeeper_api_reachable
+      - binary_sensor.gardenkeeper_ui_reachable
+      - automation.gardenkeeper_health_lost
+      - script.gardenkeeper_voice_command
+    footer:
+      type: buttons
+      entities:
+        - entity: binary_sensor.gardenkeeper_healthy
+          name: Open GardenKeeper
+          icon: mdi:sprout
+          tap_action:
+            action: url
+            url_path: http://gardenkeeper.home.local:8091/
+
+  - type: entities
     title: Monitoring Health From HA
     entities:
       - binary_sensor.monitoring_stack_externally_healthy
