@@ -87,6 +87,7 @@ Planning baseline until explicitly revalidated:
 46. [ ] Keep future YouTube transcript/query app architecture undecided; VM 103 is only the expected target for future containerized query apps
 47. [x] Add Frigate camera/PoE switch pre-flight checklist at `docs/procedures/frigate_camera_preflight_checklist.md`
 48. [ ] When the Zyxel GS1900-8HP arrives, configure it before recabling: router `lan3` tagged trunk for VLANs 1/10/30/40, switch management on VLAN 10 (`192.168.10.12`), cameras on untagged VLAN 30, OMV on untagged VLAN 40, and TL-WA801N on untagged VLAN 1
+49. [ ] Enable operator workstation access to the home network while its VPN is connected; document the required split-tunnel/routes/DNS behavior after validation
 
 ---
 
