@@ -53,8 +53,8 @@ done
 iptables -A DOCKER-USER -i tailscale0 -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 9283 -j RETURN
 iptables -A DOCKER-USER -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 9283 -j DROP
 
-# GardenKeeper UI: management, LAN, monitoring, and Tailscale.
-for source in 192.168.10.0/24 192.168.1.0/24 192.168.60.10; do
+# GardenKeeper UI: management, LAN, HA, monitoring, and Tailscale.
+for source in 192.168.10.0/24 192.168.1.0/24 192.168.20.101 192.168.60.10; do
     iptables -A DOCKER-USER -p tcp -s "$source" -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8091 -j RETURN
 done
 iptables -A DOCKER-USER -i tailscale0 -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8091 -j RETURN
