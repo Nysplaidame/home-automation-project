@@ -431,6 +431,14 @@ phone no longer needs to trust this project CA for MQTT/HA/local services.
   Core restart. Validation showed camera HTTP `200`, HA HTTPS `200`, Frigate
   `0.17.1-416a9b7`, Frigate config IPs `192.168.30.20 192.168.30.21`, and
   `cam_01_annke_c500` back at about `10 fps`.
+- Fresh HA backup mount proof completed on 2026-07-03 after the first-camera IP
+  cutover. `ha mounts info` showed `nas_backups` active, writable, and default.
+  Backup `post-cutover-nas-backups-proof2-20260703-db-excluded`, slug
+  `db7946c4`, wrote to `nas_backups` with
+  `homeassistant_exclude_database: true` and size `81.51 MiB`. A previous
+  proof attempt, slug `f9fb0ea6`, also wrote to `nas_backups` but did not
+  exclude the database because the HA CLI boolean flag needed the explicit
+  `--homeassistant-exclude-database=true` form.
 
 ## Likely follow-up docs/source work
 

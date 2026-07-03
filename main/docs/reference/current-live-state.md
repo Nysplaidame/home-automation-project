@@ -164,6 +164,11 @@ registry mirror and Node-RED remain decision-gated candidates.
   backup mount. Manual backup
   `post-switch-trunk-nas-backups-20260703-db-excluded`, slug `3e3b1ecb`,
   wrote successfully to `nas_backups` (102.01 MiB).
+- Fresh post-cutover proof on 2026-07-03 confirmed `nas_backups` still active,
+  writable, and default. Manual backup
+  `post-cutover-nas-backups-proof2-20260703-db-excluded`, slug `db7946c4`,
+  wrote to `nas_backups` with `homeassistant_exclude_database: true`
+  (81.51 MiB).
 - HA automatic backups are configured for daily `03:00`, retained by count
   with `14` copies, and targeted only at `nas_backups`
   (`hassio.nas_backups`). The backup manager storage file was copied to
