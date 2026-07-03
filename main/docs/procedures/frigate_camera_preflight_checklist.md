@@ -166,7 +166,9 @@ Preferred order:
 
 1. Home Assistant Companion App with Frigate integration, camera entities,
    alerts and dashboards.
-2. Frigate web UI/PWA in Safari for direct Frigate viewing when needed.
+2. Frigate web UI/PWA in Safari for direct Frigate viewing when needed; use
+   `docs/procedures/frigate_apple_pwa_guide.md` for the Apple-device setup,
+   including certificate trust.
 3. Frigate Card after Frigate and camera ingest are stable.
 4. Third-party native iOS clients only if they add clear value and can use the
    same secure Frigate endpoint without direct camera RTSP credentials.
