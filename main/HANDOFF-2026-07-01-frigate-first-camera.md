@@ -439,6 +439,12 @@ phone no longer needs to trust this project CA for MQTT/HA/local services.
   proof attempt, slug `f9fb0ea6`, also wrote to `nas_backups` but did not
   exclude the database because the HA CLI boolean flag needed the explicit
   `--homeassistant-exclude-database=true` form.
+- Frigate HTTPS UI `admin` password was reset on 2026-07-03 using the supported
+  `auth.reset_admin_password: true` recovery flag. The generated password was
+  shown to the operator in chat and must not be recorded in git. The reset flag
+  was removed afterward, Frigate was restarted again, HTTPS UI returned `401`
+  as expected, the internal API returned `0.17.1-416a9b7`, and
+  `cam_01_annke_c500` recovered to `10 fps`.
 
 ## Likely follow-up docs/source work
 
