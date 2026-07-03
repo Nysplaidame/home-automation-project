@@ -64,9 +64,8 @@ while its replacement LXC is running.
 - OpenVINO detector process uses the shared Intel iGPU.
 - VA-API is configured and active for camera decoding.
 - One bench camera is now identified and reachable on VLAN 30: ANNKE C500
-  (`I51HJ`, firmware `v5.8.10 build 250917`) at temporary DHCP address
-  `192.168.30.108`, with verified RTSP main/substream paths and a planned
-  reservation at `192.168.30.21`.
+  (`I51HJ`, firmware `v5.8.10 build 250917`) at reserved address
+  `192.168.30.21`, with verified RTSP main/substream paths.
 - Camera RTSP auth required switching the camera from RTSP `Digest` to
   `Digest/Basic`; after that change, Frigate confirmed live ingest at roughly
   `10 fps` on the first bench camera using substream detect and mainstream

@@ -386,10 +386,10 @@ must work without HACS.
 - [ ] Purchase 4× cameras and PoE switch
 - [ ] Record sourced camera and smart PoE switch model numbers, firmware lines, RTSP/substream paths, PoE budget, management VLAN behavior, and reset procedures in `docs/procedures/frigate_camera_preflight_checklist.md`
 - [ ] Bench-test one camera at a time using `docs/procedures/frigate_camera_preflight_checklist.md` before permanent mounting
-- [x] Bench-test first camera on the Zyxel switch: ANNKE C500 (`I51HJ`, firmware `v5.8.10 build 250917`) on temporary `192.168.30.108`, with verified RTSP `/Streaming/Channels/101` and `/Streaming/Channels/102`, router-local NTP, and cloud access disabled
+- [x] Bench-test first camera on the Zyxel switch: ANNKE C500 (`I51HJ`, firmware `v5.8.10 build 250917`) now reserved at `192.168.30.21`, with verified RTSP `/Streaming/Channels/101` and `/Streaming/Channels/102`, router-local NTP, and cloud access disabled
 - [x] Deploy router `lan3` as the managed-switch trunk after the GS1900 baseline was configured; keep future switch access-port changes gated and labelled
 - [ ] Mount cameras, run CAT6 to PoE switch access ports on VLAN 30
-- [ ] Assign static IPs: cameras at 192.168.30.21–24 (MAC reservations in dhcp-config.conf)
+- [ ] Assign static IPs: camera 1 is reserved at `192.168.30.21`; future cameras remain planned at `192.168.30.22-24`
 - [ ] Update RTSP paths in `configs/frigate/config.yml` (currently placeholder `/stream1`)
 - [ ] Restart Frigate, confirm all 4 camera streams visible in UI
 - [ ] Test person detection notifications in HA

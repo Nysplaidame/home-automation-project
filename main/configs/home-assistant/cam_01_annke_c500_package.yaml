@@ -7,7 +7,7 @@ sensor:
   - platform: rest
     name: "Cam 01 Annke C500 IR-cut mode"
     unique_id: cam_01_annke_c500_ircut_mode
-    resource: "http://192.168.30.108/ISAPI/Image/channels/1/IrcutFilter"
+    resource: "http://192.168.30.21/ISAPI/Image/channels/1/IrcutFilter"
     authentication: digest
     username: "admin"
     password: !secret cam_01_annke_c500_password
@@ -24,7 +24,7 @@ sensor:
   - platform: rest
     name: "Cam 01 Annke C500 supplemental light mode"
     unique_id: cam_01_annke_c500_supplemental_light_mode
-    resource: "http://192.168.30.108/ISAPI/Image/channels/1/SupplementLight"
+    resource: "http://192.168.30.21/ISAPI/Image/channels/1/SupplementLight"
     authentication: digest
     username: "admin"
     password: !secret cam_01_annke_c500_password
@@ -41,7 +41,7 @@ sensor:
   - platform: rest
     name: "Cam 01 Annke C500 two-way audio enabled"
     unique_id: cam_01_annke_c500_two_way_audio_enabled
-    resource: "http://192.168.30.108/ISAPI/System/TwoWayAudio/channels/1"
+    resource: "http://192.168.30.21/ISAPI/System/TwoWayAudio/channels/1"
     authentication: digest
     username: "admin"
     password: !secret cam_01_annke_c500_password
@@ -114,7 +114,7 @@ input_boolean:
 
 rest_command:
   cam_01_annke_c500_set_ircut:
-    url: "http://192.168.30.108/ISAPI/Image/channels/1/IrcutFilter"
+    url: "http://192.168.30.21/ISAPI/Image/channels/1/IrcutFilter"
     method: PUT
     authentication: digest
     username: "admin"
@@ -129,7 +129,7 @@ rest_command:
       </IrcutFilter>
 
   cam_01_annke_c500_set_supplemental_light:
-    url: "http://192.168.30.108/ISAPI/Image/channels/1/SupplementLight"
+    url: "http://192.168.30.21/ISAPI/Image/channels/1/SupplementLight"
     method: PUT
     authentication: digest
     username: "admin"
@@ -152,7 +152,7 @@ rest_command:
       </SupplementLight>
 
   cam_01_annke_c500_set_two_way_audio:
-    url: "http://192.168.30.108/ISAPI/System/TwoWayAudio/channels/1"
+    url: "http://192.168.30.21/ISAPI/System/TwoWayAudio/channels/1"
     method: PUT
     authentication: digest
     username: "admin"

@@ -40,12 +40,11 @@ Bench notes from the first live camera test on 2026-07-01:
 - First bench camera is an ANNKE C500 identified in the UI as model `I51HJ`.
 - Firmware observed: `v5.8.10 build 250917`.
 - Camera MAC: `D0:3B:F4:07:71:45`.
-- Current DHCP lease during bench work: `192.168.30.108`.
-- Planned static reservation after bench testing: `192.168.30.21`.
+- Current DHCP reservation after bench cutover: `192.168.30.21`.
 - Verified RTSP main stream:
-  `rtsp://admin:<url-encoded-password>@192.168.30.108:554/Streaming/Channels/101`
+  `rtsp://admin:<url-encoded-password>@192.168.30.21:554/Streaming/Channels/101`
 - Verified RTSP sub-stream:
-  `rtsp://admin:<url-encoded-password>@192.168.30.108:554/Streaming/Channels/102`
+  `rtsp://admin:<url-encoded-password>@192.168.30.21:554/Streaming/Channels/102`
 - Verified stream sizes from CT 111:
   main `3072x1728`, sub `1280x720`.
 - Camera-side hardening already applied in the UI:

@@ -6,8 +6,7 @@ Project root: `E:\home-automation-project`
 
 - Bench camera: ANNKE C500, model `I51HJ`, firmware `v5.8.10 build 250917`
 - Camera MAC confirmed: `D0:3B:F4:07:71:45`
-- Temporary bench IP remains `192.168.30.108`
-- Planned reserved IP remains `192.168.30.21`
+- Camera IP is now the reserved address `192.168.30.21`
 - Verified RTSP paths:
   - main: `/Streaming/Channels/101`
   - sub: `/Streaming/Channels/102`
@@ -216,7 +215,7 @@ Pre-cutover state captured before the 2026-07-02 HTTPS migration:
   - llama.cpp: `http://192.168.20.104:8081/v1`
   These are HA server-side calls and do not block the HA UI HTTPS migration.
 - Camera ISAPI package uses direct camera HTTP URLs at
-  `http://192.168.30.108/...`. These are HA server-side REST calls and do not
+  `http://192.168.30.21/...`. These are HA server-side REST calls and do not
   block the HA UI HTTPS migration.
 - Monitoring HA package uses server-side `curl` checks to Grafana, InfluxDB and
   Uptime Kuma over HTTP. These are not browser mixed-content dependencies.
@@ -425,9 +424,13 @@ phone no longer needs to trust this project CA for MQTT/HA/local services.
   `/media/frigate/recordings` on ext4, backed by the Compose bind mount
   `/opt/frigate/storage:/media/frigate`. OMV recording storage remains a
   future cutover.
-- First-camera IP cutover is not yet done. Source has the intended
-  `192.168.30.21` DHCP reservation, but live camera/Frigate/HA control paths
-  still use the temporary lease `192.168.30.108`.
+- First-camera IP cutover completed on 2026-07-03. The live router DHCP
+  reservation for `D0:3B:F4:07:71:45` is `192.168.30.21`; the camera was
+  rebooted through ISAPI, Frigate config was saved/restarted through the
+  internal API, and the HA camera-control package was updated/reloaded via HA
+  Core restart. Validation showed camera HTTP `200`, HA HTTPS `200`, Frigate
+  `0.17.1-416a9b7`, Frigate config IPs `192.168.30.20 192.168.30.21`, and
+  `cam_01_annke_c500` back at about `10 fps`.
 
 ## Likely follow-up docs/source work
 
