@@ -418,6 +418,16 @@ phone no longer needs to trust this project CA for MQTT/HA/local services.
   ["hassio.nas_backups"]`, retention `copies: 14`, recurrence `daily`, time
   `03:00:00`. HA HTTPS returned `200` after restart and `ha mounts info`
   still showed `nas_backups` active/default.
+- Frigate UI HTTPS was revalidated: `https://192.168.30.20:8971/api/version`
+  returns `401` with auth enabled, and plain HTTP to port `8971` is rejected.
+  HA still uses Frigate's internal `http://192.168.30.20:5000` API.
+- Current recordings are local on CT 111: Frigate reports
+  `/media/frigate/recordings` on ext4, backed by the Compose bind mount
+  `/opt/frigate/storage:/media/frigate`. OMV recording storage remains a
+  future cutover.
+- First-camera IP cutover is not yet done. Source has the intended
+  `192.168.30.21` DHCP reservation, but live camera/Frigate/HA control paths
+  still use the temporary lease `192.168.30.108`.
 
 ## Likely follow-up docs/source work
 

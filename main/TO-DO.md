@@ -279,8 +279,8 @@ must work without HACS.
 - [x] Start migration-safe Frigate 0.17.1 baseline on CT 111
 - [x] Update source-controlled `configs/frigate/config.yml` from the accepted
   first-camera live config without embedding RTSP or MQTT secrets
-- [ ] Configure HTTPS/SSL for Frigate UI before regular use
-- [ ] Confirm Frigate UI over HTTPS/SSL, not plain HTTP
+- [x] Configure HTTPS/SSL for Frigate UI before regular use
+- [x] Confirm Frigate UI over HTTPS/SSL: `https://192.168.30.20:8971/api/version` requires auth and plain HTTP to port `8971` is rejected
 - [x] Configure initial go2rtc/WebRTC/audio behavior for the first camera:
   named main/sub restreams are live, Advanced Camera Card uses the Frigate
   go2rtc provider, and the browser negotiates WebRTC with video plus PCMU audio
@@ -372,7 +372,7 @@ must work without HACS.
 - [x] Follow `omv_nas_setup_guide.md` storage/user/share/export setup while preserving existing SMB shares
 - [x] Configure NFS exports (Frigate, HA, Immich, configs shares)
 - [x] Warm Frigate OMV export for future unprivileged CT cutover: allow Proxmox host `192.168.10.10` to mount `/export/frigate` and verify temporary write/read/delete/unmount
-- [ ] Keep Frigate "live" recordings on MINISFORUM local storage first; add NAS archiving after the NAS is online
+- [x] Keep Frigate "live" recordings on MINISFORUM local storage first; Frigate currently writes `/media/frigate/recordings` to CT-local `/opt/frigate/storage`
 - [ ] Mount OMV Frigate export on Proxmox, bind-mount it into CT 111 at `/mnt/nas/frigate`, and update docker-compose.yml volume after cameras are stable
 - [x] Add OMV as HA network storage → verify backup writes successfully
 - [ ] Configure robocopy or rsync scheduled task for vault backup to NAS

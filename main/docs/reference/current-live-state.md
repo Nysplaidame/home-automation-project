@@ -78,7 +78,13 @@ while its replacement LXC is running.
   fallback.
 - HA validates Frigate API version/stats and sees the first camera through the
   Frigate integration.
-- No production recordings exist; OMV archive storage remains future work.
+- Frigate HTTPS UI is live on `https://192.168.30.20:8971`; auth is enabled.
+  Plain HTTP to port `8971` is rejected, while HA continues to use the internal
+  unauthenticated API on `http://192.168.30.20:5000`.
+- Recordings are local for now: container path `/media/frigate/recordings`
+  lives under CT-local `/opt/frigate/storage` through the Compose
+  `/opt/frigate/storage:/media/frigate` bind mount. OMV recording/archive
+  storage remains a later, deliberate cutover.
 - Dormant NFS client/RPC units are disabled because this unprivileged LXC has no
   NFS mount; this removes the failed `run-rpc_pipefs.mount` unit. Re-enable the
   client only as part of an approved NAS-recordings cutover.
