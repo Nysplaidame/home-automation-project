@@ -14,7 +14,76 @@ Two separate TLS concerns:
 | MQTT TLS | Mosquitto port 8883 | Local CA (covered in this guide) |
 | Remote access HTTPS | WireGuard tunnel + HA | Not needed - VPN is already encrypted |
 
-> For a home network accessed only via WireGuard, a self-signed certificate is sufficient. The browser warning is an inconvenience but not a security risk over an encrypted VPN. If you want a real cert (no warning), you need a domain name and use Let's Encrypt via the DuckDNS or NGINX Proxy Manager add-on.
+> For a home network accessed only through a VPN, a self-signed certificate can
+> be acceptable, but this project now uses a local CA so browsers and the
+> Companion App can trust Home Assistant without exposing HA publicly.
+
+## Current HA Native HTTPS State
+
+Live as of 2026-07-02:
+
+- Home Assistant native HTTPS is enabled at
+  `https://192.168.20.101:8123`.
+- HTTP on `192.168.20.101:8123` is no longer the active HA UI.
+- HA uses `/ssl/fullchain.pem` and `/ssl/privkey.pem`.
+- `/ssl/fullchain.pem` chains to `/ssl/ca.crt`, the local `Home Local CA`.
+- The certificate SANs include `192.168.20.101`, `homeassistant.home.local`,
+  `homeassistant`, and `core-mosquitto.local.hass.io`.
+- `/ssl/ha_https_preflight_fullchain.pem` and
+  `/ssl/ha_https_preflight_privkey.pem` still exist but are legacy pre-flight
+  self-signed material and are not the active HA HTTPS cert/key.
+- `homeassistant.internal_url` is set in YAML to
+  `https://192.168.20.101:8123`; no `external_url` is currently set.
+- The local CA was trusted on the Windows operator profile and on the operator
+  Android Companion App device during cutover.
+
+Live HA source pattern:
+
+```yaml
+homeassistant:
+  internal_url: https://192.168.20.101:8123
+  packages: !include_dir_named packages
+
+http:
+  ssl_certificate: /ssl/fullchain.pem
+  ssl_key: /ssl/privkey.pem
+  server_host: 0.0.0.0
+  server_port: 8123
+```
+
+Cutover evidence and rollback:
+
+- Restricted local pre-change snapshot:
+  `C:\Users\Administrator\ha-live-snapshots\pre-ha-native-tls-20260702-102124`
+- HA backup created before cutover:
+  `pre-ha-native-tls-20260702-db-excluded`, slug `04da1c7d`, local location,
+  database excluded.
+- Live config backup before cutover:
+  `/config/configuration.yaml.pre-native-tls-20260702-104713`.
+- Rollback command path: restore that backup over `/config/configuration.yaml`,
+  run `ha core check`, then restart HA Core. Restore the Companion App URL to
+  `http://192.168.20.101:8123` only if HTTPS rollback is actually performed.
+
+Post-cutover validations completed:
+
+- Browser access to `https://192.168.20.101:8123` returned HTTP 200 and used a
+  trusted chain on the Windows operator profile.
+- Companion App on Android connected after the local CA was trusted.
+- CCTV `Mobile Balanced` and `Mobile Full Control` views worked on mobile.
+- Advanced Camera Card main and substream views were validated through the
+  mobile views.
+- Frigate HA integration remained reachable; Frigate API version/stats returned
+  the live first camera.
+- VentSys dashboard assets served over HA HTTPS and still use relative
+  same-origin behavior.
+- Grafana and Uptime Kuma remain direct HTTP links from HA, not embedded mixed
+  content.
+
+Remote/mobile note: at home, use trusted WiFi direct access to
+`https://192.168.20.101:8123` with Tailscale off. Off-WiFi remote access should
+use Tailscale. DERP relay was observed on the operator Android phone and can
+cause HA Companion App websocket drops; see
+`docs/procedures/tailscale_remote_access_guide.md`.
 
 ## MQTT Transition Strategy
 
@@ -91,19 +160,19 @@ Validation evidence from the broker log:
 
 ## Option A - Self-signed certificate (simplest)
 
-### Current HA HTTPS pre-flight state
+### Legacy HA HTTPS pre-flight state
 
-As of 2026-05-27, HA has separate HTTPS pre-flight files:
+As of 2026-07-02, HA has separate HTTPS pre-flight files:
 
 ```text
 /ssl/ha_https_preflight_fullchain.pem
 /ssl/ha_https_preflight_privkey.pem
 ```
 
-These files are not enabled in `/config/configuration.yaml`. The active HA web
-UI remains HTTP on `http://192.168.20.101:8123`. Do not switch to HTTPS without
-a maintenance window, because the cutover affects browser trust, Companion App
-URLs, dashboard URLs, and token-using clients.
+These files are not enabled in `/config/configuration.yaml`. The 2026-07-02
+cutover deliberately used the local CA-backed `/ssl/fullchain.pem` and
+`/ssl/privkey.pem` instead because the pre-flight pair was self-signed and did
+not chain to `/ssl/ca.crt`.
 
 ### Generate cert on the HA VM
 
@@ -320,7 +389,7 @@ This allows the HA mobile app to connect using the domain when on VPN.
 
 ## Updating HA configuration.yaml for HTTPS
 
-After enabling any cert, the `http:` block should look like:
+After enabling any cert, the live `http:` block should look like:
 
 ```yaml
 http:
@@ -330,12 +399,13 @@ http:
   server_port: 8123
 ```
 
-And `internal_url` / `external_url` in the `homeassistant:` block should use `https://`:
+And `internal_url` in the `homeassistant:` block should use `https://`.
+Set `external_url` only after the remote URL is known and tested:
 
 ```yaml
 homeassistant:
   internal_url: https://192.168.20.101:8123
-  external_url: https://yourname.duckdns.org:8123   # or your VPN IP
+  # external_url: https://yourname.duckdns.org:8123
 ```
 
 ---

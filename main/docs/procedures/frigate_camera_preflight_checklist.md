@@ -3,7 +3,7 @@ title: Frigate Camera Pre-Flight Checklist
 description: Pre-arrival, bench, and first-deployment checklist for PoE cameras and the managed PoE switch
 tags: [frigate, cameras, poe, preflight, nvr]
 created: 2026-06-28
-modified: 2026-06-28
+modified: 2026-07-01
 type: procedure
 status: active
 ---
@@ -31,6 +31,31 @@ Current baseline:
 - The switch is no longer camera-only: it will also carry OMV NAS access on
   VLAN 40 and the TL-WA801N extender on VLAN 1.
 - Do not route or advertise VLAN 30 through Tailscale.
+
+Bench notes from the first live camera test on 2026-07-01:
+
+- Managed switch arrived as a Zyxel GS1900-8HP on stock firmware and is
+  temporarily reachable on VLAN 30 while router `lan3` remains in its old
+  untagged VLAN 30 posture.
+- First bench camera is an ANNKE C500 identified in the UI as model `I51HJ`.
+- Firmware observed: `v5.8.10 build 250917`.
+- Camera MAC: `D0:3B:F4:07:71:45`.
+- Current DHCP lease during bench work: `192.168.30.108`.
+- Planned static reservation after bench testing: `192.168.30.21`.
+- Verified RTSP main stream:
+  `rtsp://admin:<url-encoded-password>@192.168.30.108:554/Streaming/Channels/101`
+- Verified RTSP sub-stream:
+  `rtsp://admin:<url-encoded-password>@192.168.30.108:554/Streaming/Channels/102`
+- Verified stream sizes from CT 111:
+  main `3072x1728`, sub `1280x720`.
+- Camera-side hardening already applied in the UI:
+  `Annke Vision` disabled, router-local NTP at `192.168.30.1`, RTSP digest auth,
+  and ONVIF enabled.
+- Frigate/ffmpeg rejected RTSP while the camera was on `Digest` only, even
+  though VLC from the workstation could play the stream. Switching the camera
+  RTSP auth mode to `Digest/Basic` and rebooting fixed live Frigate ingest.
+- First live Frigate ingest now uses the substream for detect, the mainstream
+  for record, and sustains roughly `10 fps` on CT 111.
 
 ## Pre-Arrival Actions
 
@@ -66,6 +91,9 @@ Current baseline:
   VLAN tests pass.
 - Do not update `configs/frigate/config.yml` RTSP paths until the real camera
   stream URLs have been verified with `ffprobe`.
+- When testing RTSP URLs with credentials that contain reserved URL
+  characters such as `/`, percent-encode the password inside the RTSP URL
+  before probing or using it in Frigate or HA.
 
 ## Network And Switch Pre-Flight
 

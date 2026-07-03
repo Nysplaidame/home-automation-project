@@ -3,7 +3,7 @@ title: Current Live State
 description: Canonical inventory of deployed hosts, services, and deliberately deferred components
 tags: [reference, current-state, infrastructure]
 created: 2026-06-20
-modified: 2026-06-30
+modified: 2026-07-03
 type: reference
 status: active
 ---
@@ -13,18 +13,18 @@ status: active
 This is the canonical current-state inventory. Rebuild manuals describe how to
 build from blank and must link here rather than duplicating live-status claims.
 
-Last verified: **2026-06-30**.
+Last verified: **2026-07-03**.
 
 ## Compute
 
 | ID | Kind | Name | Address | State | Role |
 |---:|---|---|---|---|---|
-| 100 | QEMU VM | home-assistant | `192.168.20.101` | Live | HAOS 2026.6.4, MQTT, ESPHome and Assist |
+| 100 | QEMU VM | home-assistant | `192.168.20.101` | Live | HAOS 2026.7.0, native HTTPS, MQTT, ESPHome and Assist |
 | 101 | QEMU VM | frigate-nvr | offline | Rollback only | Pre-LXC snapshot; `onboot=0` |
 | 102 | QEMU VM | monitoring | `192.168.60.10` | Live | Uptime Kuma, InfluxDB, Grafana and Telegraf |
 | 103 | QEMU VM | docker-host | `192.168.20.102` | Live | Trusted Compose workloads and Tailscale routing |
 | 104 | QEMU VM | llm-host | offline | Rollback only | Pre-LXC snapshot; `onboot=0` |
-| 111 | unprivileged LXC | frigate-nvr | `192.168.30.20` | Live baseline | Frigate 0.17.1, OpenVINO and VA-API on shared iGPU |
+| 111 | unprivileged LXC | frigate-nvr | `192.168.30.20` | Live | Frigate 0.17.1, OpenVINO and VA-API on shared iGPU |
 | 114 | unprivileged LXC | llm-host | `192.168.20.104` | Live | llama.cpp, Open WebUI and Wyoming voice services on shared iGPU |
 
 VM 101 and VM 104 are retained temporarily as rollback points. Production DNS
@@ -33,7 +33,13 @@ while its replacement LXC is running.
 
 ## Home Assistant
 
-- Configuration check passes on HAOS 2026.6.4.
+- Configuration check passes on HAOS 2026.7.0.
+- Native HA HTTPS is live at `https://192.168.20.101:8123` using
+  `/ssl/fullchain.pem` and `/ssl/privkey.pem`, signed by local
+  `/ssl/ca.crt` (`Home Local CA`). HTTP on port `8123` is no longer the active
+  HA UI.
+- `homeassistant.internal_url` is set to `https://192.168.20.101:8123`;
+  `external_url` is intentionally unset.
 - Mosquitto, File Editor, Terminal & SSH and ESPHome Device Builder are live.
 - The Home Assist pipeline uses Home Assistant's built-in conversation agent.
 - The Overwatch Assist pipeline points at `llamacpp_conversation`, a local
@@ -48,16 +54,29 @@ while its replacement LXC is running.
 - Repository and live HA core files, VentSys packages, mode scripts and dashboard
   have matching SHA-256 hashes. The valve contract is direct `0`/`50`, HA
   configuration validation passes, and HA restarted successfully on that source.
-- Frigate integration is deferred until cameras and the production Frigate
-  MQTT/camera configuration are enabled.
+- Frigate integration in Home Assistant is live using Frigate API URL
+  `http://192.168.30.20:5000`; the first camera's Frigate entities and
+  Advanced Camera Card CCTV views are available in HA.
 
 ## Frigate
 
-- CT 111 runs a healthy migration-safe Frigate baseline.
+- CT 111 runs Frigate 0.17.1 live on the shared Intel iGPU.
 - OpenVINO detector process uses the shared Intel iGPU.
-- VA-API is configured for future camera decoding.
-- Cameras and MQTT are intentionally disabled in the live baseline because RTSP
-  credentials, camera models and final MQTT material are not yet available.
+- VA-API is configured and active for camera decoding.
+- One bench camera is now identified and reachable on VLAN 30: ANNKE C500
+  (`I51HJ`, firmware `v5.8.10 build 250917`) at temporary DHCP address
+  `192.168.30.108`, with verified RTSP main/substream paths and a planned
+  reservation at `192.168.30.21`.
+- Camera RTSP auth required switching the camera from RTSP `Digest` to
+  `Digest/Basic`; after that change, Frigate confirmed live ingest at roughly
+  `10 fps` on the first bench camera using substream detect and mainstream
+  record roles.
+- Live CT 111 currently carries a temporary one-camera test config and live
+  `/opt/frigate/.env`; repository source still keeps the safer migration
+  baseline until the first camera rollout is documented without tracking
+  secrets.
+- HA validates Frigate API version/stats and sees the first camera through the
+  Frigate integration.
 - No production recordings exist; OMV archive storage remains future work.
 - Dormant NFS client/RPC units are disabled because this unprivileged LXC has no
   NFS mount; this removes the failed `run-rpc_pipefs.mount` unit. Re-enable the
@@ -121,12 +140,27 @@ registry mirror and Node-RED remain decision-gated candidates.
   write/read/delete, and unmount test passed on 2026-06-28. Future recording
   cutover should mount the OMV Frigate export on the Proxmox host and
   bind-mount it into CT 111.
-- Home Assistant has an active Supervisor backup mount `nas_backups` pointing at
-  `192.168.40.50:/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/home-assistant`;
+- Home Assistant previously had Supervisor backup mount `nas_backups` pointing
+  at `192.168.40.50:/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/home-assistant`;
   manual backup `manual-nfs-md0-test-20260626` (`8294da47.tar`, 69 MiB) wrote
-  successfully to OMV.
+  successfully to OMV. During the 2026-07-02 HA native HTTPS cutover,
+  `ha mounts info` reported no active mounts, so the OMV HA backup mount needs
+  revalidation/restoration before depending on it. The pre-TLS HA backup was
+  created locally as `pre-ha-native-tls-20260702-db-excluded`, slug `04da1c7d`.
+- On 2026-07-03, the Zyxel GS1900-8HP was moved from the temporary VLAN 30
+  bench posture to the intended managed-switch layout: router `lan3` is a
+  tagged trunk for VLANs 1/10/30/40, switch management is on VLAN 10 at
+  `192.168.10.12`, the first camera is on untagged VLAN 30 port 2, and OMV is
+  on untagged VLAN 40 port 8. Router ARP confirmed OMV at
+  `a8:b8:e0:0a:93:7d` on VLAN 40.
+- HA Supervisor mount `nas_backups` is active again and set as the default
+  backup mount. Manual backup
+  `post-switch-trunk-nas-backups-20260703-db-excluded`, slug `3e3b1ecb`,
+  wrote successfully to `nas_backups` (102.01 MiB).
 - Proxmox storage `omv-backups` uses NFSv3 to
   `/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/proxmox`.
+  It was active after the switch trunk cutover, with md0 still high at 86.64%
+  used.
 - Daily jobs cover VMs 100/102/103 at 02:00 and CTs 111/114 at 04:00, snapshot
   mode, ZSTD, `keep-daily=7`, and `keep-monthly=6`.
 - A manual VM 102 backup to `omv-backups` completed on 2026-06-26.
@@ -137,11 +171,13 @@ registry mirror and Node-RED remain decision-gated candidates.
 
 ## Not built or not production-ready
 
-- Cameras, PoE switch and production Frigate camera/MQTT configuration.
+- Source-controlled Frigate first-camera config and broader camera rollout.
 - Most VentSys physical hardware, remaining ESPHome adoption and full safety
   acceptance testing.
 - P1S details and HA Bambuddy package deployment.
-- HA HTTPS/same-origin proxy for embedded monitoring views.
+- Same-origin HTTPS/reverse proxy for embedded monitoring views. HA native
+  HTTPS is live, but Grafana/Kuma remain direct HTTP links rather than embedded
+  iframes.
 - Overwatch-to-Mealie recipe ingestion live prompt validation and Grocy
   workflow/integration.
 - Obsidian LiveSync client rollout; its Tailscale Serve HTTPS endpoint is live.

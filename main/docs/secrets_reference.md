@@ -127,6 +127,7 @@ influxdb_homeassistant_token: "your-token" # Bitwarden: influxdb-ha-token
 | `external_url` | `ha-external-url` | Tailscale, WireGuard fallback, or Nabu Casa URL |
 | `mqtt_password` | `mqtt-credentials` | Same as Section 3 |
 | `influxdb_homeassistant_token` | `influxdb-ha-token` | Scoped InfluxDB token for HA writes to the `homeassistant` bucket |
+| `cam_01_annke_c500_password` | `annke-c500-cam-01` | Current admin password for first bench camera ISAPI controls |
 
 ---
 
@@ -193,6 +194,7 @@ influxdb_homeassistant_token: "your-token" # Bitwarden: influxdb-ha-token
 |---|---|---|
 | Frigate CT admin access | `frigate-ct` | Key-based root administration; no password in repo |
 | Frigate UI password (if enabled) | `frigate-ui` | Only if auth is enabled in config.yml |
+| Camera admin / RTSP credential | `cameras-annke-c500` | Bench camera `D0:3B:F4:07:71:45`; used for camera UI, RTSP and ONVIF until a dedicated viewer user exists |
 
 ---
 

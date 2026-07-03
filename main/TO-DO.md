@@ -4,7 +4,7 @@ description: Implementation tasks by phase — updated June 2026
 tags: [tasks, implementation]
 aliases: [TODO, Tasks]
 created: 2025-09-15
-modified: 2026-06-22
+modified: 2026-07-03
 type: task-list
 status: active
 ---
@@ -33,14 +33,19 @@ Planning baseline until explicitly revalidated:
 - Treat OMV and encrypted Proxmox SMB backups as live. Seven-generation
   projection passes; the backing filesystem's 87.34% usage remains an active
   high-water warning.
-- Treat the Frigate software baseline as live, but cameras/MQTT/recording as unbuilt.
+- Treat Frigate as live with one bench camera ingest on CT 111; keep HA
+  integration, source cleanup, and broader camera rollout as the remaining
+  work.
+- Treat Home Assistant native HTTPS as live at
+  `https://192.168.20.101:8123` with the local `Home Local CA`. HTTP on
+  port `8123` is no longer the active HA UI.
 - Treat VentSys entities as unbuilt for implementation planning.
 
 ## Operational next steps
 
 1. [x] Confirm live/source parity for valve-1 MQTT firewall state: no temporary plain-MQTT `1883` exception exists live, and source remains TLS `8883`-only for VentSys MQTT
 2. [x] Close stale valve-1 plain-MQTT follow-up tasks to avoid reintroducing insecure `1883` access while VentSys migration proceeds on TLS
-3. [x] Deploy Tailscale on docker-host and advertise only `192.168.20.101/32` and `192.168.40.50/32`
+3. [x] Deploy Tailscale on docker-host and advertise only `192.168.20.101/32`, `192.168.40.50/32`, and `192.168.60.10/32`; stale `192.168.20.0/24` advertised-route preference removed on 2026-07-02
 4. [x] Keep WireGuard configured as a dormant fallback (confirmed `wg0` disabled/down on 2026-05-28); do not roll out fallback clients unless Tailscale daily-access posture changes
 5. [x] Clean up duplicate docker-host UFW routed DNS forward rules and keep canonical subnet-based rules for `172.20.0.0/16` (`53/udp`, `53/tcp`, `853/tcp`)
 6. [x] Document temporary router WiFi uplink (`wwan_uplink`) operating policy in `docs/procedures/router_temporary_uplink_policy.md`
@@ -86,8 +91,11 @@ Planning baseline until explicitly revalidated:
 45. [ ] Keep Hermes Agent roadmap-only until local LLM, STT, TTS, monitoring, and safety gates are stable
 46. [ ] Keep future YouTube transcript/query app architecture undecided; VM 103 is only the expected target for future containerized query apps
 47. [x] Add Frigate camera/PoE switch pre-flight checklist at `docs/procedures/frigate_camera_preflight_checklist.md`
-48. [ ] When the Zyxel GS1900-8HP arrives, configure it before recabling: router `lan3` tagged trunk for VLANs 1/10/30/40, switch management on VLAN 10 (`192.168.10.12`), cameras on untagged VLAN 30, OMV on untagged VLAN 40, and TL-WA801N on untagged VLAN 1
-49. [ ] Enable operator workstation access to the home network while its VPN is connected; document the required split-tunnel/routes/DNS behavior after validation
+48. [x] Configure Zyxel GS1900-8HP managed switch baseline: router `lan3` tagged trunk for VLANs 1/10/30/40, switch management on VLAN 10 (`192.168.10.12`), first camera on untagged VLAN 30, and OMV on switch port 8 untagged VLAN 40; TL-WA801N VLAN 1 access port remains future work
+49. [x] Enable Home Assistant native HTTPS with the local CA on 2026-07-02; validate browser, Companion App, CCTV mobile views, Frigate integration, VentSys static assets, Grafana/Kuma direct links, and rollback path
+50. [ ] Optional: improve Tailscale direct connectivity for off-WiFi mobile access by adding explicit UDP `41641` forwarding through the upstream router and GL-MT6000 to docker-host; keep at-home mobile access direct over HomeMain/HomeAdmin with Tailscale off
+51. [x] Restore OMV/VLAN 40 reachability, recreate the HA Supervisor backup mount `nas_backups`, and confirm Proxmox storage `omv-backups` is active again; fixed by moving OMV to GS1900 port 8 untagged VLAN 40 and converting router `lan3` to the planned trunk on 2026-07-03
+52. [ ] Enable operator workstation access to the home network while its VPN is connected; document the required split-tunnel/routes/DNS behavior after validation
 
 ---
 
@@ -142,6 +150,7 @@ must work without HACS.
 
 - [x] Install Home Assistant Companion App on operator phones using `docs/procedures/home_assistant_companion_app_guide.md`
 - [x] Test push notifications and actionable notification acknowledgements
+- [x] Trust the local Home Assistant CA on the operator Android phone and confirm the app connects to `https://192.168.20.101:8123`
 - [ ] Review Companion App sensors and enable only useful presence, battery, network, and notification sensors
 - [x] Keep Mosquitto as the required MQTT broker add-on
 - [x] Keep ESPHome as the required VentSys firmware/adoption add-on
@@ -150,8 +159,12 @@ must work without HACS.
 
 ### High-value candidates
 
-- [ ] Install HACS only after a current HA backup exists
-- [ ] Evaluate Frigate Card when Frigate and cameras are live
+- [x] Install HACS only after a current HA backup exists
+- [x] Evaluate Advanced Camera Card / former Frigate Card with the first live
+  Frigate camera; manual HACS-layout asset install is live under
+  `/config/www/community/advanced-camera-card`. The CCTV dashboard now uses it
+  as the primary first-camera card, with the HA image provider plus Frigate
+  status/toggle entities exposed beside it.
 - [ ] Evaluate Mushroom Cards for general dashboards, room views, service status, printer state, and VentSys summaries
 - [ ] Evaluate apexcharts-card for temperature, VOC, airflow, pressure, power, and IAQ history
 - [ ] Evaluate auto-entities for dynamic maintenance views such as unavailable ESPHome devices or low batteries
@@ -250,6 +263,9 @@ must work without HACS.
 - [x] Configure NAS as HA backup mount and verify manual backup write to OMV
 - [ ] Set HA automatic backup schedule in the UI: daily 03:00, keep 14, location `nas_backups`
 - [x] Validate router-local NTP for non-HA-managed restricted devices
+- [x] Stage HACS custom integration `2.0.5` manually at `/config/custom_components/hacs`
+- [x] Restart Home Assistant after staging HACS and verify the HACS setup flow opens
+- [x] Complete HACS setup in HA and finish GitHub device authentication
 
 ### Frigate (CT 111; VM 101 retained only for rollback)
 - [x] Create VM 101 from Debian 13 cloud image (hostname: frigate-nvr, SSH only)
@@ -258,18 +274,33 @@ must work without HACS.
 - [x] Install Docker (official repo)
 - [x] Deploy `configs/frigate/config.yml` to `/opt/frigate/config/`
 - [x] Stage `/opt/frigate/.env` from template with `FRIGATE_MQTT_PASSWORD` set and secure permissions (`600`)
-- [ ] Set final `FRIGATE_RTSP_PASSWORD` in `/opt/frigate/.env` after camera model/credentials are selected
+- [x] Set current bench-camera `FRIGATE_RTSP_PASSWORD` in `/opt/frigate/.env`; replace later if camera credentials are rotated
 - [x] Stage MQTT CA trust for Frigate at `/opt/frigate/certs/ca-cert.pem` and verify TLS (`Verify return code: 0`)
 - [x] Create host dirs: `mkdir -p /opt/frigate/db`
 - [x] Start migration-safe Frigate 0.17.1 baseline on CT 111
 - [ ] Configure HTTPS/SSL for Frigate UI before regular use
 - [ ] Confirm Frigate UI over HTTPS/SSL, not plain HTTP
-- [ ] Configure WebRTC/audio behavior for camera streams after camera models and stream paths are verified
+- [x] Configure initial go2rtc/WebRTC/audio behavior for the first camera:
+  named main/sub restreams are live, Advanced Camera Card uses the Frigate
+  go2rtc provider, and the browser negotiates WebRTC with video plus PCMU audio
 - [x] Replace Lumen-first Apple viewing plan with HA Companion App + Frigate PWA first, with Lumen/Viewu/Kapal as optional later evaluations only
+- [x] Stage Frigate HA custom integration `v5.15.4` manually at `/config/custom_components/frigate`
+- [x] Restart Home Assistant after staging Frigate and verify the Frigate setup flow opens
+- [x] Complete Frigate setup in HA at API URL `http://192.168.30.20:5000`
+- [x] Enable Frigate MQTT over TLS to HA Mosquitto so Frigate HA entities are live
+- [x] Add first-camera IR-cut mode controls in HA using ANNKE/Hikvision ISAPI
+  digest auth, with `day`, `night`, `auto`, and `schedule` options exposed on
+  the CCTV dashboard
+- [x] Add first-camera supplemental light and guarded two-way audio settings to
+  the CCTV dashboard. Supplemental light exposes mode plus white/IR brightness;
+  two-way audio exposes enable plus speaker/microphone volume, but actual
+  browser talkback still requires HTTPS/secure-context testing.
 - [x] Manage VM 103 as `docker-host` via `scripts/setup/proxmox/docker_host_setup_guide.md`
 - [x] Deploy Bambuddy as `/opt/stacks/bambuddy` on docker-host
 - [x] Confirm Bambuddy UI at http://192.168.20.102:8000
-- [ ] Add Frigate integration in HA
+- [x] Add Frigate integration in HA
+- [x] Remove stale ONVIF integration entry for the first camera from HA; use
+  the Frigate entity path for the CCTV dashboard
 - [ ] Copy `configs/home-assistant/bambuddy_p1s_package.yaml` to `/config/packages/` on HA
 - [ ] Replace `<P1S_SERIAL>` placeholder in bambuddy_p1s_package.yaml with real serial
 - [ ] Confirm `binary_sensor.p1s_printing` and print state entities appear in HA
@@ -354,7 +385,8 @@ must work without HACS.
 - [ ] Purchase 4× cameras and PoE switch
 - [ ] Record sourced camera and smart PoE switch model numbers, firmware lines, RTSP/substream paths, PoE budget, management VLAN behavior, and reset procedures in `docs/procedures/frigate_camera_preflight_checklist.md`
 - [ ] Bench-test one camera at a time using `docs/procedures/frigate_camera_preflight_checklist.md` before permanent mounting
-- [ ] Keep LAN3 reserved for the future managed-switch trunk; do not deploy the trunk config until the switch is present and configured
+- [x] Bench-test first camera on the Zyxel switch: ANNKE C500 (`I51HJ`, firmware `v5.8.10 build 250917`) on temporary `192.168.30.108`, with verified RTSP `/Streaming/Channels/101` and `/Streaming/Channels/102`, router-local NTP, and cloud access disabled
+- [x] Deploy router `lan3` as the managed-switch trunk after the GS1900 baseline was configured; keep future switch access-port changes gated and labelled
 - [ ] Mount cameras, run CAT6 to PoE switch access ports on VLAN 30
 - [ ] Assign static IPs: cameras at 192.168.30.21–24 (MAC reservations in dhcp-config.conf)
 - [ ] Update RTSP paths in `configs/frigate/config.yml` (currently placeholder `/stream1`)

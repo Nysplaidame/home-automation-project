@@ -3,7 +3,7 @@ title: Tailscale Remote Access Guide
 description: Daily remote access through docker-host host routes, with WireGuard as fallback
 tags: [tailscale, remote-access, docker-host, vpn]
 created: 2026-05-23
-modified: 2026-05-31
+modified: 2026-07-02
 type: procedure
 status: active
 ---
@@ -26,20 +26,22 @@ them.
 
 Do not advertise broad VLAN or RFC1918 ranges.
 
-Live state, 2026-05-28:
+Live state, 2026-07-02:
 
 - Tailscale `1.98.3` is installed on docker-host.
 - `tailscaled` is active.
 - docker-host is authenticated into the tailnet as `100.94.122.18`.
 - `tailscale up` is configured with `--accept-dns=false` and only
-  `192.168.20.101/32,192.168.40.50/32`.
+  `192.168.20.101/32,192.168.40.50/32,192.168.60.10/32`.
 - The advertised routes have been approved in the Tailscale admin console.
 - Local forwarding to Home Assistant has been validated from docker-host
-  (`http://192.168.20.101:8123` returned `200`).
+  (`https://192.168.20.101:8123` returned `200` after HA native HTTPS cutover).
 - Off-LAN client validation passed on 2026-05-28 for docker-host and routed
   Home Assistant and OMV host paths.
 - docker-host keeps HTTP apt traffic through apt-cacher-ng, but HTTPS apt traffic
   is direct because apt-cacher-ng rejects HTTPS CONNECT.
+- Stale broad route preference `192.168.20.0/24` was removed from docker-host
+  Tailscale prefs on 2026-07-02. Do not reintroduce broad VLAN routes.
 
 Validation note, 2026-05-31:
 
@@ -54,6 +56,26 @@ Validation note, 2026-05-31:
 - During validation, the GL-MT6000 temporary `wwan_uplink` was found missing;
   restoring it and restarting `tailscaled` on docker-host restored Tailscale
   control/DERP sync.
+
+Validation note, 2026-07-02:
+
+- Home Assistant native HTTPS now uses the same routed HA path:
+  `https://192.168.20.101:8123`.
+- Operator Android Companion App worked over Tailscale after the local HA CA
+  was trusted, but Tailscale connection state showed DERP relay rather than
+  direct UDP.
+- HA logs showed intermittent Companion App websocket drops from the
+  docker-host route address (`192.168.20.102`) with `No PONG received after
+  27.5 seconds` while the phone was using the relay path.
+- A five-minute mobile-data watch after removing the stale broad route was
+  clean, but a later WiFi-with-Tailscale-on test produced another websocket
+  drop. Direct HomeAdmin WiFi with Tailscale off was clean.
+- At home, use direct HomeMain/HomeAdmin WiFi with Tailscale off. Use Tailscale
+  for off-WiFi remote access.
+- Optional future direct-connect improvement: forward UDP `41641` from the
+  upstream internet router to the GL-MT6000 uplink address, then forward UDP
+  `41641` on the GL-MT6000 to docker-host `192.168.20.102`. Do this only as a
+  deliberate network-change window.
 
 ## Target access
 
@@ -109,7 +131,7 @@ From a Tailscale client off the home LAN:
 ```bash
 tailscale status
 ping 192.168.20.101
-curl -I http://192.168.20.101:8123
+curl -k -I https://192.168.20.101:8123
 ping 192.168.40.50
 curl -I http://192.168.40.50/
 ping 192.168.60.10

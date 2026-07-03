@@ -1,0 +1,315 @@
+# Home Assistant Package - Cam 01 Annke C500
+# Deploy to: /config/packages/cam_01_annke_c500_package.yaml on HA.
+# Requires this secret in /config/secrets.yaml:
+#   cam_01_annke_c500_password: <current camera admin password>
+
+sensor:
+  - platform: rest
+    name: "Cam 01 Annke C500 IR-cut mode"
+    unique_id: cam_01_annke_c500_ircut_mode
+    resource: "http://192.168.30.108/ISAPI/Image/channels/1/IrcutFilter"
+    authentication: digest
+    username: "admin"
+    password: !secret cam_01_annke_c500_password
+    scan_interval: 60
+    timeout: 10
+    value_template: >
+      {% if value_json is defined and value_json.IrcutFilter is defined %}
+        {{ value_json.IrcutFilter.IrcutFilterType }}
+      {% else %}
+        {{ value | regex_findall('<IrcutFilterType>([^<]+)</IrcutFilterType>') | first | default('unknown') }}
+      {% endif %}
+    icon: mdi:theme-light-dark
+
+  - platform: rest
+    name: "Cam 01 Annke C500 supplemental light mode"
+    unique_id: cam_01_annke_c500_supplemental_light_mode
+    resource: "http://192.168.30.108/ISAPI/Image/channels/1/SupplementLight"
+    authentication: digest
+    username: "admin"
+    password: !secret cam_01_annke_c500_password
+    scan_interval: 60
+    timeout: 10
+    value_template: >
+      {% if value_json is defined and value_json.SupplementLight is defined %}
+        {{ value_json.SupplementLight.supplementLightMode }}
+      {% else %}
+        {{ value | regex_findall('<supplementLightMode>([^<]+)</supplementLightMode>') | first | default('unknown') }}
+      {% endif %}
+    icon: mdi:spotlight-beam
+
+  - platform: rest
+    name: "Cam 01 Annke C500 two-way audio enabled"
+    unique_id: cam_01_annke_c500_two_way_audio_enabled
+    resource: "http://192.168.30.108/ISAPI/System/TwoWayAudio/channels/1"
+    authentication: digest
+    username: "admin"
+    password: !secret cam_01_annke_c500_password
+    scan_interval: 60
+    timeout: 10
+    value_template: >
+      {% if value_json is defined and value_json.TwoWayAudioChannel is defined %}
+        {{ value_json.TwoWayAudioChannel.enabled }}
+      {% else %}
+        {{ value | regex_findall('<enabled>([^<]+)</enabled>') | first | default('unknown') }}
+      {% endif %}
+    icon: mdi:microphone-message
+
+input_select:
+  cam_01_annke_c500_ircut_mode:
+    name: "Cam 01 Annke C500 IR-cut mode"
+    icon: mdi:theme-light-dark
+    options:
+      - day
+      - night
+      - auto
+      - schedule
+
+  cam_01_annke_c500_supplemental_light_mode:
+    name: "Cam 01 Annke C500 supplemental light mode"
+    icon: mdi:spotlight-beam
+    options:
+      - eventIntelligence
+      - colorVuWhiteLight
+      - irLight
+      - close
+
+input_number:
+  cam_01_annke_c500_white_light_brightness:
+    name: "Cam 01 Annke C500 white light brightness"
+    icon: mdi:lightbulb-on
+    min: 0
+    max: 100
+    step: 5
+    mode: slider
+
+  cam_01_annke_c500_ir_light_brightness:
+    name: "Cam 01 Annke C500 IR light brightness"
+    icon: mdi:brightness-6
+    min: 0
+    max: 100
+    step: 5
+    mode: slider
+
+  cam_01_annke_c500_speaker_volume:
+    name: "Cam 01 Annke C500 speaker volume"
+    icon: mdi:volume-high
+    min: 0
+    max: 100
+    step: 5
+    mode: slider
+
+  cam_01_annke_c500_microphone_volume:
+    name: "Cam 01 Annke C500 microphone volume"
+    icon: mdi:microphone
+    min: 0
+    max: 100
+    step: 5
+    mode: slider
+
+input_boolean:
+  cam_01_annke_c500_two_way_audio:
+    name: "Cam 01 Annke C500 two-way audio"
+    icon: mdi:microphone-message
+
+rest_command:
+  cam_01_annke_c500_set_ircut:
+    url: "http://192.168.30.108/ISAPI/Image/channels/1/IrcutFilter"
+    method: PUT
+    authentication: digest
+    username: "admin"
+    password: !secret cam_01_annke_c500_password
+    content_type: "application/xml"
+    payload: >
+      <?xml version="1.0" encoding="UTF-8"?>
+      <IrcutFilter version="2.0" xmlns="http://www.std-cgi.com/ver20/XMLSchema">
+        <IrcutFilterType>{{ mode }}</IrcutFilterType>
+        <nightToDayFilterLevel>4</nightToDayFilterLevel>
+        <nightToDayFilterTime>5</nightToDayFilterTime>
+      </IrcutFilter>
+
+  cam_01_annke_c500_set_supplemental_light:
+    url: "http://192.168.30.108/ISAPI/Image/channels/1/SupplementLight"
+    method: PUT
+    authentication: digest
+    username: "admin"
+    password: !secret cam_01_annke_c500_password
+    content_type: "application/xml"
+    payload: >
+      <?xml version="1.0" encoding="UTF-8"?>
+      <SupplementLight version="2.0" xmlns="http://www.std-cgi.com/ver20/XMLSchema">
+        <supplementLightMode>{{ mode }}</supplementLightMode>
+        <mixedLightBrightnessRegulatMode>manual</mixedLightBrightnessRegulatMode>
+        <whiteLightBrightness>{{ white_brightness | int }}</whiteLightBrightness>
+        <irLightBrightness>{{ ir_brightness | int }}</irLightBrightness>
+        <EventIntelligenceModeCfg>
+          <brightnessRegulatMode>manual</brightnessRegulatMode>
+          <whiteLightBrightness>{{ white_brightness | int }}</whiteLightBrightness>
+          <irLightBrightness>{{ ir_brightness | int }}</irLightBrightness>
+          <whiteLightTime>60</whiteLightTime>
+          <associatedVMDHuman>true</associatedVMDHuman>
+        </EventIntelligenceModeCfg>
+      </SupplementLight>
+
+  cam_01_annke_c500_set_two_way_audio:
+    url: "http://192.168.30.108/ISAPI/System/TwoWayAudio/channels/1"
+    method: PUT
+    authentication: digest
+    username: "admin"
+    password: !secret cam_01_annke_c500_password
+    content_type: "application/xml"
+    payload: >
+      <?xml version="1.0" encoding="UTF-8"?>
+      <TwoWayAudioChannel version="2.0" xmlns="http://www.std-cgi.com/ver20/XMLSchema">
+        <id>1</id>
+        <enabled>{{ enabled }}</enabled>
+        <audioCompressionType>G.711ulaw</audioCompressionType>
+        <speakerVolume>{{ speaker_volume | int }}</speakerVolume>
+        <microphoneVolume>{{ microphone_volume | int }}</microphoneVolume>
+        <noisereduce>true</noisereduce>
+        <audioInputType>MicIn</audioInputType>
+      </TwoWayAudioChannel>
+
+script:
+  cam_01_annke_c500_set_ircut_mode:
+    alias: "Cam 01 Annke C500 set IR-cut mode"
+    mode: queued
+    fields:
+      mode:
+        name: Mode
+        required: true
+        selector:
+          select:
+            options:
+              - day
+              - night
+              - auto
+              - schedule
+    sequence:
+      - service: rest_command.cam_01_annke_c500_set_ircut
+        data:
+          mode: "{{ mode }}"
+      - delay: "00:00:02"
+      - service: homeassistant.update_entity
+        target:
+          entity_id: sensor.cam_01_annke_c500_ir_cut_mode
+
+  cam_01_annke_c500_set_supplemental_light:
+    alias: "Cam 01 Annke C500 set supplemental light"
+    mode: queued
+    fields:
+      mode:
+        name: Mode
+        required: true
+        selector:
+          select:
+            options:
+              - eventIntelligence
+              - colorVuWhiteLight
+              - irLight
+              - close
+      white_brightness:
+        name: White brightness
+        required: true
+        selector:
+          number:
+            min: 0
+            max: 100
+      ir_brightness:
+        name: IR brightness
+        required: true
+        selector:
+          number:
+            min: 0
+            max: 100
+    sequence:
+      - service: rest_command.cam_01_annke_c500_set_supplemental_light
+        data:
+          mode: "{{ mode }}"
+          white_brightness: "{{ white_brightness }}"
+          ir_brightness: "{{ ir_brightness }}"
+      - delay: "00:00:02"
+      - service: homeassistant.update_entity
+        target:
+          entity_id: sensor.cam_01_annke_c500_supplemental_light_mode
+
+  cam_01_annke_c500_set_two_way_audio:
+    alias: "Cam 01 Annke C500 set two-way audio"
+    mode: queued
+    fields:
+      enabled:
+        name: Enabled
+        required: true
+        selector:
+          boolean:
+      speaker_volume:
+        name: Speaker volume
+        required: true
+        selector:
+          number:
+            min: 0
+            max: 100
+      microphone_volume:
+        name: Microphone volume
+        required: true
+        selector:
+          number:
+            min: 0
+            max: 100
+    sequence:
+      - service: rest_command.cam_01_annke_c500_set_two_way_audio
+        data:
+          enabled: "{{ enabled | lower }}"
+          speaker_volume: "{{ speaker_volume }}"
+          microphone_volume: "{{ microphone_volume }}"
+      - delay: "00:00:02"
+      - service: homeassistant.update_entity
+        target:
+          entity_id: sensor.cam_01_annke_c500_two_way_audio_enabled
+
+automation:
+  - id: cam_01_annke_c500_ircut_select_changed
+    alias: "Cam 01 Annke C500 IR-cut select changed"
+    mode: restart
+    trigger:
+      - platform: state
+        entity_id: input_select.cam_01_annke_c500_ircut_mode
+    condition:
+      - condition: template
+        value_template: "{{ trigger.to_state.state in ['day', 'night', 'auto', 'schedule'] }}"
+    action:
+      - service: script.cam_01_annke_c500_set_ircut_mode
+        data:
+          mode: "{{ trigger.to_state.state }}"
+
+  - id: cam_01_annke_c500_supplemental_light_changed
+    alias: "Cam 01 Annke C500 supplemental light changed"
+    mode: restart
+    trigger:
+      - platform: state
+        entity_id:
+          - input_select.cam_01_annke_c500_supplemental_light_mode
+          - input_number.cam_01_annke_c500_white_light_brightness
+          - input_number.cam_01_annke_c500_ir_light_brightness
+    action:
+      - service: script.cam_01_annke_c500_set_supplemental_light
+        data:
+          mode: "{{ states('input_select.cam_01_annke_c500_supplemental_light_mode') }}"
+          white_brightness: "{{ states('input_number.cam_01_annke_c500_white_light_brightness') | int(100) }}"
+          ir_brightness: "{{ states('input_number.cam_01_annke_c500_ir_light_brightness') | int(100) }}"
+
+  - id: cam_01_annke_c500_two_way_audio_changed
+    alias: "Cam 01 Annke C500 two-way audio changed"
+    mode: restart
+    trigger:
+      - platform: state
+        entity_id:
+          - input_boolean.cam_01_annke_c500_two_way_audio
+          - input_number.cam_01_annke_c500_speaker_volume
+          - input_number.cam_01_annke_c500_microphone_volume
+    action:
+      - service: script.cam_01_annke_c500_set_two_way_audio
+        data:
+          enabled: "{{ is_state('input_boolean.cam_01_annke_c500_two_way_audio', 'on') }}"
+          speaker_volume: "{{ states('input_number.cam_01_annke_c500_speaker_volume') | int(80) }}"
+          microphone_volume: "{{ states('input_number.cam_01_annke_c500_microphone_volume') | int(80) }}"

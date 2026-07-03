@@ -69,8 +69,9 @@ Completed live:
 - `docker-host-firewall.service` applies `DOCKER-USER` rules so Docker-published
   admin/DNS ports stay scoped despite Docker DNAT bypassing normal UFW input.
 - Tailscale installed and `tailscaled` active; docker-host is authenticated as
-  `100.94.122.18` and advertises only `192.168.20.101/32` and
-  `192.168.40.50/32`.
+  `100.94.122.18` and advertises only `192.168.20.101/32`,
+  `192.168.40.50/32`, and `192.168.60.10/32`. Stale broad route preference
+  `192.168.20.0/24` was removed on 2026-07-02.
 - `/etc/apt/apt.conf.d/01proxy` keeps HTTP apt traffic through apt-cacher-ng and
   sends HTTPS apt traffic direct because apt-cacher-ng rejects HTTPS CONNECT.
 - Router temporary internet rule removed after image pull.
@@ -428,7 +429,7 @@ Use the Bambuddy web UI as the canonical place to add:
 - P1S printer IP: `192.168.35.200`
 - P1S access code: from the printer screen
 - P1S serial: from the printer or Bambu app
-- Home Assistant URL: `http://192.168.20.101:8123`
+- Home Assistant URL: `https://192.168.20.101:8123`
 - Home Assistant long-lived token: create in HA profile security settings
 
 Open the UI from an allowed management or LAN client:

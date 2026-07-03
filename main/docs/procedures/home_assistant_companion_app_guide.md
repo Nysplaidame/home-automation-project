@@ -3,7 +3,7 @@ title: Home Assistant Companion App Guide
 description: Operator phone onboarding, push notification test, actionable acknowledgement test, and sensor policy
 tags: [home-assistant, companion-app, notifications, mobile]
 created: 2026-05-27
-modified: 2026-05-27
+modified: 2026-07-02
 type: procedure
 status: active
 ---
@@ -27,24 +27,47 @@ References:
 - HA admin 2FA is recorded as complete in `TO-DO.md`.
 - Companion App phone install is confirmed for device notify service
   `notify.mobile_app_mai_foenn`.
-- HA is currently local HTTP at `http://192.168.20.101:8123`.
-- HA HTTPS pre-flight certificates exist but HTTPS is not enabled yet.
-- Tailscale remote access to HA is live through docker-host route
-  `192.168.20.101/32`.
+- HA native HTTPS is live at `https://192.168.20.101:8123`.
+- The HA certificate chains to the local `Home Local CA`; operator phones must
+  trust that CA before the app can use the HTTPS URL cleanly.
+- Tailscale remote access to HA is live through docker-host host route
+  `192.168.20.101/32`; at-home access should use trusted WiFi direct with
+  Tailscale off.
+- The operator Android phone `LE2123` was validated on 2026-07-02 after the
+  local CA was trusted.
+- Tailscale DERP relay was observed to cause intermittent Companion App
+  websocket `No PONG received` drops. Prefer direct HomeMain/HomeAdmin WiFi
+  while at home; use Tailscale when away.
 
 ## Install Path
 
 Run on: operator phone.
 
 1. Install the official Home Assistant Companion App.
-2. Connect the phone to the trusted home LAN or Tailscale.
-3. Add server URL `http://192.168.20.101:8123`.
+2. Install and trust the local `Home Local CA` on the phone.
+3. Connect the phone to trusted home WiFi, preferably HomeMain or HomeAdmin.
+4. Add server URL `https://192.168.20.101:8123`.
 4. Sign in with the operator HA account and complete 2FA.
 5. Allow notifications.
 6. Give the phone a stable app/device name, such as `operator_pixel` or
    `operator_iphone`.
 
-Avoid using the future public/HTTPS URL until the HA HTTPS cutover is complete.
+For off-WiFi use, enable Tailscale on the phone and keep the same
+`https://192.168.20.101:8123` server URL. Do not expose Home Assistant directly
+to the public internet just to make the app work remotely.
+
+## Local CA Trust
+
+Run on: operator phone.
+
+1. Copy the local CA certificate, not the private key, to the phone.
+2. Install it as a trusted CA certificate in Android or iOS settings.
+3. Confirm the browser can open `https://192.168.20.101:8123` without an
+   untrusted-certificate warning.
+4. Open the Companion App and confirm it reconnects to the same HTTPS URL.
+
+Never copy `/ssl/ca.key`, `/ssl/privkey.pem`, access tokens, or WiFi passwords
+into git or project docs.
 
 ## Find The Notify Service
 
@@ -145,7 +168,8 @@ VentSys or Bambuddy until:
 ## Completion Checklist
 
 - [x] Companion App installed on operator phone.
-- [x] Phone can reach HA locally or through Tailscale.
+- [x] Local CA trusted on the operator Android phone.
+- [x] Phone can reach HA at `https://192.168.20.101:8123` locally or through Tailscale.
 - [x] `notify.mobile_app_mai_foenn` action appears in HA.
 - [x] Basic push test succeeds.
 - [x] Actionable notification event test succeeds.

@@ -45,7 +45,7 @@ function Test-Http([string]$Name, [string]$Uri) {
 }
 
 Test-Tcp "Router SSH" "192.168.10.1" 22
-Test-Http "Home Assistant" "http://192.168.20.101:8123"
+Test-Http "Home Assistant" "https://192.168.20.101:8123"
 Test-Tcp "Frigate CT SSH" "192.168.30.20" 22
 Test-Tcp "Docker host SSH" "192.168.20.102" 22
 Test-Http "Bambuddy" "http://192.168.20.102:8000"

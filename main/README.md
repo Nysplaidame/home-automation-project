@@ -4,7 +4,7 @@ description: Fire safety ventilation, NVR surveillance, secure network, and home
 tags: [home-automation, project-overview]
 aliases: [Project Overview]
 created: 2025-09-15
-modified: 2026-06-21
+modified: 2026-07-02
 type: project-overview
 status: active
 ---
@@ -28,7 +28,7 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 | Router configs | ✅ Live | vlan/firewall/dhcp/wireless deployed through router-deploy first-flight |
 | Router deployment | ✅ Live | GL-MT6000 stable on management IP 192.168.10.1 |
 | Proxmox | ✅ Live | MINISFORUM M1 Pro-125H on 192.168.10.10, Proxmox VE 9 |
-| HA VM | ✅ Live | HAOS VM 100 at 192.168.20.101, VentSys packages staged |
+| HA VM | ✅ Live | HAOS VM 100 at 192.168.20.101, native HTTPS with local CA, VentSys packages staged |
 | Frigate | ✅ LXC baseline live | CT 111 runs Frigate 0.17.1 with shared-iGPU OpenVINO; cameras and MQTT remain deliberately disabled |
 | Docker host | ✅ Live | VM 103 on VLAN 20 with a 64 GiB disk; Mealie, Grocy and Obsidian LiveSync join the existing internal services |
 | Local AI | ✅ LXC + local inference live | CT 114 runs GPU-backed llama.cpp, Open WebUI, Whisper, Piper and OpenWakeWord |
@@ -84,7 +84,7 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 - Frigate baseline runs on unprivileged CT 111 with shared Intel iGPU acceleration
 - 4 future cameras at 192.168.30.21–24
 - Future footage path to NAS via NFS after NAS and cameras are built
-- HA integration and Frigate card remain planned until cameras are live
+- HA Frigate integration and Advanced Camera Card are live for the first bench camera
 
 ### Docker host + Bambuddy / P1S printer (VLAN 20 → VLAN 35)
 - Docker host runs on VM 103 at 192.168.20.102; Bambuddy is live on port 8000
@@ -99,7 +99,8 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 - Tier 1 docker-host services are pre-flight live: AdGuard Home, Immich, Homepage, Dozzle, plus Bambuddy
 - Tier 2/Tier 3 pre-flight services are live: ntfy internal alerts and Watchtower monitor-only
 - Rebuildable docker-host templates live in `configs/docker-host/`; live secrets and app databases stay on VM 103, not in git
-- Tailscale is daily remote access through docker-host with host routes only: `192.168.20.101/32` and `192.168.40.50/32`
+- Tailscale is daily remote access through docker-host with host routes only:
+  `192.168.20.101/32`, `192.168.40.50/32`, and `192.168.60.10/32`
 - WireGuard remains configured as a dormant split-tunnel fallback
 
 ### Monitoring and dashboards (VLAN 60)
@@ -113,7 +114,8 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 
 ### Home Assistant (VLAN 20)
 - HAOS on Proxmox VM 100 at 192.168.20.101
-- Mosquitto MQTT, ESPHome, Terminal & SSH and File Editor add-ons are live; Frigate integration remains planned
+- Mosquitto MQTT, ESPHome, Terminal & SSH and File Editor add-ons are live; native HTTPS uses the local CA at `https://192.168.20.101:8123`
+- Frigate integration and the CCTV dashboard are live for the first bench camera
 - VentSys packages in `/config/packages/`
 - Treat Frigate app state, OMV storage, and VentSys hardware entities as unbuilt
   until explicitly revalidated.
@@ -208,4 +210,4 @@ The older setup guides remain deep-dive appendices for individual systems.
 
 ---
 
-**Updated:** 2026-06-21
+**Updated:** 2026-07-02

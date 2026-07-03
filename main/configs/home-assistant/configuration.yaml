@@ -4,6 +4,8 @@
 
 default_config:
 
+ffmpeg:
+
 logger:
   default: warning
   logs:
@@ -23,7 +25,14 @@ script: !include scripts.yaml
 scene: !include scenes.yaml
 
 homeassistant:
+  internal_url: https://192.168.20.101:8123
   packages: !include_dir_named packages
+
+http:
+  ssl_certificate: /ssl/fullchain.pem
+  ssl_key: /ssl/privkey.pem
+  server_host: 0.0.0.0
+  server_port: 8123
 
 # Read-only web-search tool for local LLM conversation agents.
 searxng_llm:

@@ -317,7 +317,7 @@ VentSys MQTT uses TLS on 8883.
 
 ### 4.3 — Test the dashboard
 
-Open `http://192.168.20.101:8123/local/ventsys-dashboard.html`
+Open `https://192.168.20.101:8123/local/ventsys-dashboard.html`
 
 The header should show `◉ HA LIVE` once the token is set correctly.
 Test a mode button — it should call the corresponding HA script.
@@ -393,7 +393,32 @@ Create tokens only when needed and document what each token is used for.
 Current tokens needed:
 - VentSys dashboard (`HA_CONFIG.token` in `dashboards/ventsys-dashboard.html`)
 
-### 7.4 — Trusted networks (optional)
+### 7.4 — Native HTTPS with the local CA
+
+Current live HA uses native HTTPS with the project local CA:
+
+```yaml
+homeassistant:
+  internal_url: https://192.168.20.101:8123
+  packages: !include_dir_named packages
+
+http:
+  ssl_certificate: /ssl/fullchain.pem
+  ssl_key: /ssl/privkey.pem
+  server_host: 0.0.0.0
+  server_port: 8123
+```
+
+Before enabling this on a rebuild, create an HA backup, copy
+`/config/configuration.yaml`, `/config/.storage/core.config`,
+`/config/.storage/http`, and the `/ssl` cert/key material to a restricted local
+snapshot, then trust `/ssl/ca.crt` on operator browsers and phones. Run
+`ha core check` before restarting.
+
+The legacy `/ssl/ha_https_preflight_*` files are not the active cert/key; the
+active certificate is `/ssl/fullchain.pem`, signed by `/ssl/ca.crt`.
+
+### 7.5 — Trusted networks (optional)
 
 If you want to skip login when on the VLAN 20 network:
 `configuration.yaml`:
@@ -473,7 +498,8 @@ Add a network storage location:
 
 ## Completion checklist
 
-- [ ] HA reachable at `http://192.168.20.101:8123`
+- [ ] HA initially reachable at `http://192.168.20.101:8123`
+- [ ] HA native HTTPS enabled at `https://192.168.20.101:8123` after local CA trust and backup
 - [ ] Admin account created, password saved
 - [ ] Static IP set inside HAOS (192.168.20.101/24, gw 192.168.20.1)
 - [ ] Mosquitto add-on installed and running
