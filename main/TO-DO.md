@@ -93,9 +93,8 @@ Planning baseline until explicitly revalidated:
 47. [x] Add Frigate camera/PoE switch pre-flight checklist at `docs/procedures/frigate_camera_preflight_checklist.md`
 48. [x] Configure Zyxel GS1900-8HP managed switch baseline: router `lan3` tagged trunk for VLANs 1/10/30/40, switch management on VLAN 10 (`192.168.10.12`), first camera on untagged VLAN 30, and OMV on switch port 8 untagged VLAN 40; TL-WA801N VLAN 1 access port remains future work
 49. [x] Enable Home Assistant native HTTPS with the local CA on 2026-07-02; validate browser, Companion App, CCTV mobile views, Frigate integration, VentSys static assets, Grafana/Kuma direct links, and rollback path
-50. [ ] Optional: improve Tailscale direct connectivity for off-WiFi mobile access by adding explicit UDP `41641` forwarding through the upstream router and GL-MT6000 to docker-host; keep at-home mobile access direct over HomeMain/HomeAdmin with Tailscale off
+50. [ ] Optional only if mobile access becomes flaky: improve Tailscale direct connectivity for off-WiFi mobile access by adding explicit UDP `41641` forwarding through the upstream router and GL-MT6000 to docker-host; current user validation on 2026-07-03 found CCTV feeds working on both home WiFi and mobile data with Tailscale
 51. [x] Restore OMV/VLAN 40 reachability, recreate the HA Supervisor backup mount `nas_backups`, and confirm Proxmox storage `omv-backups` is active again; fixed by moving OMV to GS1900 port 8 untagged VLAN 40 and converting router `lan3` to the planned trunk on 2026-07-03
-52. [ ] Enable operator workstation access to the home network while its VPN is connected; document the required split-tunnel/routes/DNS behavior after validation
 
 ---
 
@@ -261,7 +260,7 @@ must work without HACS.
 - [x] Copy `dashboards/ventsys-card-wrapper.html` to `/config/www/ventsys-card-wrapper.html`
 - [x] Add a Lovelace iframe/panel view that uses the VentSys card wrapper
 - [x] Configure NAS as HA backup mount and verify manual backup write to OMV
-- [ ] Set HA automatic backup schedule in the UI: daily 03:00, keep 14, location `nas_backups`
+- [x] Set HA automatic backup schedule: daily 03:00, keep 14, location `nas_backups`
 - [x] Validate router-local NTP for non-HA-managed restricted devices
 - [x] Stage HACS custom integration `2.0.5` manually at `/config/custom_components/hacs`
 - [x] Restart Home Assistant after staging HACS and verify the HACS setup flow opens
@@ -278,6 +277,8 @@ must work without HACS.
 - [x] Stage MQTT CA trust for Frigate at `/opt/frigate/certs/ca-cert.pem` and verify TLS (`Verify return code: 0`)
 - [x] Create host dirs: `mkdir -p /opt/frigate/db`
 - [x] Start migration-safe Frigate 0.17.1 baseline on CT 111
+- [x] Update source-controlled `configs/frigate/config.yml` from the accepted
+  first-camera live config without embedding RTSP or MQTT secrets
 - [ ] Configure HTTPS/SSL for Frigate UI before regular use
 - [ ] Confirm Frigate UI over HTTPS/SSL, not plain HTTP
 - [x] Configure initial go2rtc/WebRTC/audio behavior for the first camera:

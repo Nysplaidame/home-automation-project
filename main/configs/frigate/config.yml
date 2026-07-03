@@ -1,15 +1,36 @@
 # Frigate NVR Configuration
-# Host: 192.168.30.20 — VLAN 30 (NVR)
+# Host: 192.168.30.20 - VLAN 30 (NVR)
 # Deployed via: /opt/frigate/config/config.yml on CT 111 (frigate-nvr)
 # See: scripts/setup/proxmox/frigate_vm_setup_guide.md
 #
-# Migration-safe baseline:
-# - MQTT is disabled until final HA broker credentials and CA material are ready.
-# - Cameras are empty until camera models, credentials and RTSP paths are real.
-# - OpenVINO/VA-API remain configured so CT 111 hardware acceleration is ready.
+# Live first-camera config:
+# - MQTT is enabled over TLS to Home Assistant Mosquitto.
+# - RTSP and MQTT secrets are supplied from /opt/frigate/.env.
+# - The first ANNKE C500 uses go2rtc restreams for HA/Frigate viewing.
+# - Keep config-baseline.yml as the no-camera migration-safe fallback.
 
 mqtt:
-  enabled: false
+  enabled: true
+  host: 192.168.20.101
+  port: 8883
+  user: mqtt
+  password: "{FRIGATE_MQTT_PASSWORD}"
+  tls_ca_certs: /config/certs/ca-cert.pem
+  tls_client_cert: null
+  tls_client_key: null
+  tls_insecure: false
+
+go2rtc:
+  streams:
+    cam_01_annke_c500:
+      - rtsp://admin:{FRIGATE_RTSP_PASSWORD}@192.168.30.108:554/Streaming/Channels/101
+      - "ffmpeg:cam_01_annke_c500#audio=aac"
+    cam_01_annke_c500_sub:
+      - rtsp://admin:{FRIGATE_RTSP_PASSWORD}@192.168.30.108:554/Streaming/Channels/102
+  webrtc:
+    candidates:
+      - 192.168.30.20:8555
+      - stun:8555
 
 database:
   path: /db/frigate.db
@@ -19,8 +40,6 @@ detectors:
     type: openvino
     device: GPU
 
-# Frigate 0.17 requires an explicit model path for OpenVINO. These files are
-# bundled in the stable image.
 model:
   path: /openvino-model/ssdlite_mobilenet_v2.xml
   labelmap_path: /openvino-model/coco_91cl_bkgr.txt
@@ -34,17 +53,43 @@ ffmpeg:
 
 record:
   enabled: true
-  retain:
-    days: 7
-    mode: motion
-  events:
+  alerts:
     retain:
-      default: 14
-      mode: active_objects
+      days: 14
+  detections:
+    retain:
+      days: 14
+  continuous:
+    days: 0
+  motion:
+    days: 7
 
 snapshots:
   enabled: true
   retain:
     default: 14
 
-cameras: {}
+cameras:
+  cam_01_annke_c500:
+    detect:
+      width: 1280
+      height: 720
+      fps: 10
+    ffmpeg:
+      output_args:
+        record: preset-record-generic-audio-aac
+      inputs:
+        - path: rtsp://127.0.0.1:8554/cam_01_annke_c500
+          input_args: preset-rtsp-restream
+          roles:
+            - record
+        - path: rtsp://127.0.0.1:8554/cam_01_annke_c500_sub
+          input_args: preset-rtsp-restream
+          roles:
+            - detect
+    live:
+      streams:
+        Main Stream: cam_01_annke_c500
+        Sub Stream: cam_01_annke_c500_sub
+
+version: 0.17-0

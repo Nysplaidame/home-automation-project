@@ -71,10 +71,11 @@ while its replacement LXC is running.
   `Digest/Basic`; after that change, Frigate confirmed live ingest at roughly
   `10 fps` on the first bench camera using substream detect and mainstream
   record roles.
-- Live CT 111 currently carries a temporary one-camera test config and live
-  `/opt/frigate/.env`; repository source still keeps the safer migration
-  baseline until the first camera rollout is documented without tracking
-  secrets.
+- Live CT 111 carries the accepted one-camera config and live
+  `/opt/frigate/.env`; repository source now mirrors the first-camera layout
+  with RTSP and MQTT secrets represented only as environment placeholders.
+  `configs/frigate/config-baseline.yml` remains the no-camera migration-safe
+  fallback.
 - HA validates Frigate API version/stats and sees the first camera through the
   Frigate integration.
 - No production recordings exist; OMV archive storage remains future work.
@@ -152,11 +153,17 @@ registry mirror and Node-RED remain decision-gated candidates.
   tagged trunk for VLANs 1/10/30/40, switch management is on VLAN 10 at
   `192.168.10.12`, the first camera is on untagged VLAN 30 port 2, and OMV is
   on untagged VLAN 40 port 8. Router ARP confirmed OMV at
-  `a8:b8:e0:0a:93:7d` on VLAN 40.
+  `a8:b8:e0:0a:93:7d` on VLAN 40. The GS1900 Save action was invoked after
+  the cutover and the switch remained reachable at `192.168.10.12`.
 - HA Supervisor mount `nas_backups` is active again and set as the default
   backup mount. Manual backup
   `post-switch-trunk-nas-backups-20260703-db-excluded`, slug `3e3b1ecb`,
   wrote successfully to `nas_backups` (102.01 MiB).
+- HA automatic backups are configured for daily `03:00`, retained by count
+  with `14` copies, and targeted only at `nas_backups`
+  (`hassio.nas_backups`). The backup manager storage file was copied to
+  `/config/.storage/backup.pre-auto-schedule-20260703-145639` before the
+  direct storage edit and HA Core restart.
 - Proxmox storage `omv-backups` uses NFSv3 to
   `/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/proxmox`.
   It was active after the switch trunk cutover, with md0 still high at 86.64%

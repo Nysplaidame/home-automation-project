@@ -403,12 +403,27 @@ phone no longer needs to trust this project CA for MQTT/HA/local services.
   - HA `nas_backups` was recreated, set as default, and manual backup
     `post-switch-trunk-nas-backups-20260703-db-excluded` wrote to
     `nas_backups` with slug `3e3b1ecb`
+- User later confirmed CCTV feeds work both on home WiFi and on mobile data
+  with Tailscale enabled.
+- The GS1900 top-level Save action was invoked after the VLAN/trunk changes.
+  The switch remained reachable afterward at `http://192.168.10.12/` with HTTP
+  `200`; no reboot was performed.
+- HA automatic backups were configured after the `nas_backups` mount was
+  restored. Because HA's custom backup-settings controls could not be driven
+  reliably through browser automation and the Supervisor token was not accepted
+  by HA Core, user approved a direct `/config/.storage/backup` edit plus HA
+  Core restart. Safety copy:
+  `/config/.storage/backup.pre-auto-schedule-20260703-145639`. Final stored
+  config: `automatic_backups_configured: true`, `agent_ids:
+  ["hassio.nas_backups"]`, retention `copies: 14`, recurrence `daily`, time
+  `03:00:00`. HA HTTPS returned `200` after restart and `ha mounts info`
+  still showed `nas_backups` active/default.
 
 ## Likely follow-up docs/source work
 
-- Update `main/configs/frigate/config.yml` once the first live camera layout is
-  accepted in source form without embedding secrets
-- Decide how to represent live-only secrets for Frigate in repo docs/templates
+- `main/configs/frigate/config.yml` now mirrors the accepted first-camera live
+  layout using environment placeholders for RTSP and MQTT secrets; keep
+  `main/configs/frigate/config-baseline.yml` as the no-camera fallback.
 - Decide whether to keep the manual Advanced Camera Card asset install or
   replace it with a HACS-managed install once HACS catalog/repository lookup is
   behaving normally
