@@ -44,6 +44,8 @@ Only Home Assistant and trusted internal services should use the internal API.
 Do not use port `5000` for Apple-device access.
 
 - Frigate UI auth is enabled on port `8971`.
+- Frigate serves a `Home Local CA` signed certificate on port `8971`; the
+  certificate includes the IP SAN `192.168.30.20`.
 - Home Assistant CCTV views remain available through the HA Companion App.
 - At-home access should use trusted WiFi direct.
 - Off-WiFi access should use Tailscale.

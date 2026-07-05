@@ -80,6 +80,11 @@ while its replacement LXC is running.
 - Frigate HTTPS UI is live on `https://192.168.30.20:8971`; auth is enabled.
   Plain HTTP to port `8971` is rejected, while HA continues to use the internal
   unauthenticated API on `http://192.168.30.20:5000`.
+- Frigate HTTPS now uses a `Home Local CA` signed certificate mounted from
+  `/opt/frigate/tls` into `/etc/letsencrypt/live/frigate`. The certificate SANs
+  include `192.168.30.20`, `frigate.home.local`, `frigate-nvr`, and `frigate`.
+  This replaced Frigate's generated `FRIGATE DEFAULT CERT` so trusted Android
+  and Apple browsers should not show the local certificate as untrusted.
 - Direct Frigate PWA access off-WiFi is staged through docker-host Tailscale as
   a narrow `192.168.30.20/32` route with firewall access only to authenticated
   HTTPS port `8971`. The route still needs Tailscale admin-console approval and

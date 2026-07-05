@@ -420,6 +420,16 @@ phone no longer needs to trust this project CA for MQTT/HA/local services.
 - Frigate UI HTTPS was revalidated: `https://192.168.30.20:8971/api/version`
   returns `401` with auth enabled, and plain HTTP to port `8971` is rejected.
   HA still uses Frigate's internal `http://192.168.30.20:5000` API.
+- Frigate HTTPS certificate was replaced on 2026-07-05. The prior served cert
+  was Frigate's generated `FRIGATE DEFAULT CERT` with no SAN, which caused
+  Android Chrome/PWA to show a not-secure warning even after the project CA was
+  trusted. CT 111 now stores Frigate HTTPS material under `/opt/frigate/tls`,
+  mounted read-only into the container at `/etc/letsencrypt/live/frigate`;
+  `fullchain.pem` is signed by `Home Local CA` and includes SANs for
+  `192.168.30.20`, `frigate.home.local`, `frigate-nvr`, and `frigate`. The
+  temporary CA private key used for signing was removed from CT 111 after
+  certificate generation, and the container was recreated with
+  `docker compose up -d frigate`.
 - Current recordings are local on CT 111: Frigate reports
   `/media/frigate/recordings` on ext4, backed by the Compose bind mount
   `/opt/frigate/storage:/media/frigate`. OMV recording storage remains a

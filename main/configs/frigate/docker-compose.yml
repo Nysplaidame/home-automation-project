@@ -32,6 +32,7 @@ services:
       # - /mnt/nas/frigate:/media/frigate/recordings
       - /etc/localtime:/etc/localtime:ro
       - /opt/frigate/certs:/config/certs:ro
+      - /opt/frigate/tls:/etc/letsencrypt/live/frigate:ro
     # Shared Intel iGPU: render node for VA-API/OpenVINO and card node for
     # OpenVINO device discovery. Proxmox maps both into unprivileged CT 111.
     devices:
@@ -47,6 +48,7 @@ services:
 # BEFORE FIRST START:
 #   mkdir -p /opt/frigate/db
 #   mkdir -p /opt/frigate/certs
+#   mkdir -p /opt/frigate/tls
 #   Set the following in /opt/frigate/.env:
 #     FRIGATE_RTSP_PASSWORD=<camera password>
 #     FRIGATE_MQTT_PASSWORD=<mosquitto mqtt user password>
@@ -62,6 +64,8 @@ services:
 #   /opt/frigate/db/          Frigate SQLite database (event history, snapshots)
 #   /opt/frigate/storage/     Local recording storage (pre-NAS)
 #   /opt/frigate/certs/       CA cert for MQTT TLS validation
+#   /opt/frigate/tls/         Frigate HTTPS cert/key mounted at
+#                             /etc/letsencrypt/live/frigate
 #
 # NAS RECORDING MOUNT:
 #   /mnt/nas/frigate is an NFS mount from the OMV NAS (192.168.40.50).
