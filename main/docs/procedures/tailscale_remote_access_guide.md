@@ -18,7 +18,7 @@ dormant fallback.
 docker-host joins the tailnet and advertises host routes only:
 
 ```bash
-tailscale up --advertise-routes=192.168.20.101/32,192.168.40.50/32,192.168.60.10/32
+tailscale up --accept-dns=false --hostname=docker-host --advertise-routes=192.168.20.101/32,192.168.30.20/32,192.168.40.50/32,192.168.60.10/32
 ```
 
 Routes must be approved in the Tailscale admin console before clients can use
@@ -31,9 +31,12 @@ Live state, 2026-07-02:
 - Tailscale `1.98.3` is installed on docker-host.
 - `tailscaled` is active.
 - docker-host is authenticated into the tailnet as `100.94.122.18`.
-- `tailscale up` is configured with `--accept-dns=false` and only
-  `192.168.20.101/32,192.168.40.50/32,192.168.60.10/32`.
-- The advertised routes have been approved in the Tailscale admin console.
+- `tailscale up` is configured with `--accept-dns=false`,
+  `--hostname=docker-host`, and only host routes:
+  `192.168.20.101/32,192.168.30.20/32,192.168.40.50/32,192.168.60.10/32`.
+- The HA, OMV and monitoring routes have been approved in the Tailscale admin
+  console. The Frigate `192.168.30.20/32` route was added on 2026-07-05 and
+  needs admin-console approval before clients can use it.
 - Local forwarding to Home Assistant has been validated from docker-host
   (`https://192.168.20.101:8123` returned `200` after HA native HTTPS cutover).
 - Off-LAN client validation passed on 2026-05-28 for docker-host and routed
@@ -77,12 +80,26 @@ Validation note, 2026-07-02:
   `41641` on the GL-MT6000 to docker-host `192.168.20.102`. Do this only as a
   deliberate network-change window.
 
+Validation note, 2026-07-05:
+
+- Direct Frigate PWA off-WiFi access is being added as a narrow host route.
+  docker-host now advertises `192.168.30.20/32`, has a UFW route allowance from
+  `tailscale0` to `192.168.30.20:8971`, and OpenWrt allows only docker-host
+  `192.168.20.102` to Frigate `192.168.30.20:8971`.
+- Frigate's internal unauthenticated API on `192.168.30.20:5000` remains
+  unadvertised and is not part of the mobile route.
+- Live docker-host validation reached `https://192.168.30.20:8971/api/version`
+  and received HTTP `401`, which is the expected auth challenge.
+- Tailscale admin console approval is still required before clients can use the
+  new `192.168.30.20/32` route.
+
 ## Target access
 
 | Target | Route |
 |---|---|
 | docker-host services | docker-host Tailscale node / MagicDNS name |
 | Home Assistant | `192.168.20.101/32` routed through docker-host |
+| Frigate PWA | `192.168.30.20/32` routed through docker-host; expose only authenticated HTTPS port `8971` |
 | OMV | `192.168.40.50/32` routed through docker-host |
 | Grafana and Uptime Kuma | `192.168.60.10/32` routed through docker-host; expose only ports `3000` and `3001` |
 
@@ -109,6 +126,7 @@ ufw route allow in on tailscale0 out on eth0 to 192.168.20.101 port 8123 proto t
 ufw route allow in on tailscale0 out on eth0 to 192.168.40.50 port 22 proto tcp comment "Tailscale routed OMV SSH"
 ufw route allow in on tailscale0 out on eth0 to 192.168.40.50 port 80 proto tcp comment "Tailscale routed OMV HTTP"
 ufw route allow in on tailscale0 out on eth0 to 192.168.40.50 port 443 proto tcp comment "Tailscale routed OMV HTTPS"
+ufw route allow in on tailscale0 out on eth0 to 192.168.30.20 port 8971 proto tcp comment "Tailscale routed Frigate HTTPS"
 ufw route allow in on tailscale0 out on eth0 to 192.168.60.10 port 3000 proto tcp comment "Tailscale routed Grafana"
 ufw route allow in on tailscale0 out on eth0 to 192.168.60.10 port 3001 proto tcp comment "Tailscale routed Uptime Kuma"
 ```
@@ -124,6 +142,13 @@ the monitoring VM:
 192.168.20.102 -> 192.168.60.10 tcp/3000,3001
 ```
 
+OpenWrt must also allow the narrow routed Frigate PWA path from docker-host to
+the Frigate host:
+
+```text
+192.168.20.102 -> 192.168.30.20 tcp/8971
+```
+
 ## Validation
 
 From a Tailscale client off the home LAN:
@@ -137,13 +162,14 @@ curl -I http://192.168.40.50/
 ping 192.168.60.10
 curl -I http://192.168.60.10:3000/
 curl -I http://192.168.60.10:3001/
+curl -k -I https://192.168.30.20:8971/
 ```
 
 Confirm blocked paths:
 
 ```bash
 ping 192.168.10.10
-ping 192.168.30.20
+curl -I http://192.168.30.20:5000/
 ping 192.168.35.200
 ping 192.168.50.1
 ```
