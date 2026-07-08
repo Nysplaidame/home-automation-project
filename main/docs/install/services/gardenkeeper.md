@@ -3,7 +3,7 @@ title: GardenKeeper Install Manual
 description: Internal garden care, task, calendar, and map app on docker-host
 tags: [install, docker-host, gardenkeeper]
 created: 2026-06-29
-modified: 2026-06-30
+modified: 2026-07-06
 type: install-guide
 status: live
 ---
@@ -148,14 +148,21 @@ systemctl start gardenkeeper-backup.service
 ```
 
 It writes compressed dumps to `/opt/stacks/gardenkeeper/backups/` and keeps
-14 days by default. Treat this as a local safety net until the docker-host app
-backup path is mounted to OMV/NAS storage.
+14 days by default.
 
-As of 2026-06-30, off-host GardenKeeper backups are still blocked: OMV host
-`192.168.40.50` was reachable only as a host route from docker-host, while NFS
-`2049/tcp`, RPC `111/tcp`, SMB `445/tcp`, SSH `22/tcp`, and HTTP `80/tcp` were
-refusing connections. Do not claim GardenKeeper has OMV-backed backups until an
-export path is reachable and a restoreable dump is verified there.
+Read-only check on 2026-07-06:
+
+- `/opt/stacks/gardenkeeper/backups` exists and is `36K`.
+- Recent daily dumps exist through
+  `gardenkeeper-postgres-20260706T022024Z.sql.gz`.
+- `/opt/stacks/gardenkeeper/postgres-data` exists and is `47M`.
+- OMV exports `backups/docker-host` to docker-host; the docker-host
+  `/mnt/omv/docker-host-backups` mount and daily `03:45` app-data backup timer
+  are live and restore-smoked as of 2026-07-07.
+
+The repo-side docker-host app-data backup templates now include
+`/opt/stacks/gardenkeeper/backups`. Treat the local dump timer as the database
+consistency layer and the docker-host app-data backup as the off-host copy.
 
 Redis data is rebuildable task/worker state unless future behavior makes it
 authoritative.
@@ -178,4 +185,5 @@ authoritative.
 - [ ] Homepage link added.
 - [x] Uptime Kuma monitors added for web and API health.
 - [x] Secrets stored outside Git.
-- [ ] OMV-backed off-host Postgres dump path is mounted and verified.
+- [x] Local Postgres dump timer is enabled and producing dumps.
+- [ ] OMV-backed off-host dump copy is mounted, verified, and restore-smoked.

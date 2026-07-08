@@ -23,11 +23,14 @@ Deploy:
 - `configs/frigate/docker-compose.yml` to
   `/opt/frigate/docker-compose.yml`
 - a deliberate production config to `/opt/frigate/config/config.yml`
+- `configs/frigate/frigate.env.example` as the source template for
+  `/opt/frigate/.env`
 - `configs/frigate/system/frigate-nvr-fail2ban-sshd.local`
 
-The current live baseline intentionally has `mqtt.enabled: false` and
-`cameras: {}`. Do not deploy placeholder cameras from the repository until
-camera models, RTSP URLs and credentials are real.
+The current live baseline has MQTT over TLS, HTTPS UI access, HA integration,
+and one ANNKE C500 bench camera. Keep `configs/frigate/config-baseline.yml` as
+the no-camera fallback for recovery or rebuild staging; do not add additional
+camera entries until each camera's model, RTSP URLs and credentials are real.
 
 ## Required validation
 
@@ -40,6 +43,10 @@ docker exec frigate ps aux | grep '[d]etector:ov'
 curl -kfsS https://127.0.0.1:8971/ >/dev/null
 curl -fsS http://127.0.0.1:5000/api/version
 ```
+
+For the later OMV recording cutover, mount the OMV Frigate export on the
+Proxmox host and bind-mount it into CT 111. Do not mount NFS directly inside
+the unprivileged container.
 
 VM 101 is a stopped rollback artifact only. Never start it while CT 111 owns
 `192.168.30.20`.

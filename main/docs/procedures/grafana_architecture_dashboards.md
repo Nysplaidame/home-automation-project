@@ -142,8 +142,11 @@ and auth/cookie behavior are intentionally tested.
 
 ## Scope guardrails
 
-- OMV/NAS metrics remain planned only until OMV exists.
-- Frigate app telemetry remains planned only until cameras, RTSP, HTTPS, and
-  audio requirements are ready.
+- OMV/NAS metrics have a first live signal through docker-host Telegraf exposing
+  the OMV-backed Immich mount, and Proxmox now reports `omv-backups` capacity.
+  Full NAS host SMART/resource panels remain follow-up work.
+- Frigate app telemetry is partially live through HA/Kuma/API checks for the
+  first bench camera. Broader camera telemetry remains near-term follow-up when
+  the new cameras arrive and the full camera set is validated.
 - VentSys entity dashboards remain hardware-dependent until the devices are
   built, adopted, and explicitly revalidated.

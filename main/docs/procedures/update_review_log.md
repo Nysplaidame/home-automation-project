@@ -3,7 +3,7 @@ title: Weekly Update Review Log
 description: Execution log for weekly update-candidate review and post-check outcomes
 tags: [operations, updates, maintenance, watchtower, docker-host]
 created: 2026-05-28
-modified: 2026-05-28
+modified: 2026-07-06
 type: procedure
 status: active
 ---
@@ -14,12 +14,17 @@ Use this log for recurring update-candidate review runs.
 
 Current planning baseline:
 
-- Treat OMV as unbuilt.
-- Treat Frigate as unbuilt.
+- Treat OMV as live on VLAN 40 with Proxmox/HA/Immich storage paths active;
+  the old md0 high-water warning is cleared by the 2026-07-05 Proxmox check
+  showing `omv-backups` active at 54.21% used.
+- Treat Frigate as live on CT 111 with one bench camera and HA integration;
+  broader camera rollout, OMV recording cutover, and new-camera validation remain
+  near-term follow-up when hardware arrives.
 - Treat VentSys entities as unbuilt.
 
-Do not log tasks here that assume those systems are live unless baseline is
-explicitly updated first.
+Do not log tasks here that assume full camera rollout, OMV recording cutover, or
+VentSys hardware acceptance is complete unless baseline is explicitly updated
+first.
 
 ## Entry template
 
@@ -233,3 +238,254 @@ Follow-up window:
 
 - run docker-host patch window from `docs/procedures/docker_host_patch_window_runbook.md`
 - investigate the staged-uplink/cache behavior before relying on `apt-cacher-ng` for future restricted-host installs
+
+## 2026-07-06 — OMV backup proof and household app review
+
+Date:
+
+- 2026-07-06
+
+Operator:
+
+- Codex session
+
+Scope:
+
+- Proxmox `omv-backups`
+- CT 111/114 LXC backup behavior
+- docker-host household app health
+- Frigate/OMV planning-baseline cleanup
+
+Maintenance window:
+
+- read-only checks plus one manual CT 114 backup proof; no package or container
+  updates applied
+
+Host package candidates:
+
+- not checked in this review
+
+Container image candidates:
+
+- not checked in this review
+
+Security-relevant items:
+
+- no credentials were read, changed, or written to repo files
+- Mealie/Grocy credential rotation remains an operator action in Bitwarden
+- Obsidian LiveSync credentials and E2EE/setup passphrases remain Bitwarden-only
+
+Actions taken:
+
+- updated canonical docs so Frigate is first-camera baseline live with near-term
+  camera rollout pending, not fully parked
+- updated OMV/storage docs after Proxmox reported `omv-backups` active at
+  54.21% used
+- fixed Proxmox LXC backup job
+  `a8c84d38-2a73-4d9d-bf34-111114000001` with `tmpdir=/var/tmp`
+- proved CT 111 backup manually on 2026-07-05:
+  `vzdump-lxc-111-2026_07_05-23_11_08.tar.zst` (`23G`)
+- proved CT 114 backup manually on 2026-07-06:
+  `vzdump-lxc-114-2026_07_06-00_13_59.tar.zst`, `15.30GB`,
+  `00:23:30`, snapshot removed successfully
+- documented Proxmox thin-pool warnings from the CT 114 proof as a monitoring
+  note
+- confirmed docker-host app health through Proxmox guest agent:
+  Mealie `200`, Grocy `302`, Obsidian LiveSync/CouchDB `401`, root disk `62%`,
+  Immich OMV mount present
+- confirmed docker-host household app data source paths exist:
+  Mealie `/opt/stacks/mealie/data` (`15M`), Grocy
+  `/opt/stacks/grocy/config` (`4.2M`), and Obsidian LiveSync
+  `/opt/stacks/obsidian-livesync/data` (`152K`); GardenKeeper local dumps also
+  exist at `/opt/stacks/gardenkeeper/backups` (`36K`) with daily dumps through
+  2026-07-06; no mounted `backups/docker-host` target was proven
+- confirmed from Proxmox that OMV exports
+  `/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/docker-host`
+  to `192.168.20.102`
+- added repo-side docker-host app-data backup script/service/timer templates
+
+Actions deferred:
+
+- Mealie admin credential replacement and Bitwarden storage
+- Grocy admin credential replacement and household model setup
+- Obsidian LiveSync client rollout to both devices
+- docker-host `backups/docker-host` mount/job live installation and restore
+  smoke for Mealie, Grocy, Obsidian LiveSync, and GardenKeeper dump copies
+- docker-host package patch window from the existing runbook
+- full NAS SMART/resource dashboard panels
+- Frigate multi-camera rollout and OMV recording cutover until the new cameras
+  arrive and are stable
+
+Post-check:
+
+- `git diff --check`: passed
+- stale baseline search found no remaining active-doc claims that OMV/Frigate
+  are unbuilt or that CT 114 backup still needs proof
+
+Follow-up window:
+
+- run the next docker-host patch window from
+  `docs/procedures/docker_host_patch_window_runbook.md`
+- after the next scheduled 04:00 LXC job, confirm the automatic CT 111/114 run
+  also succeeds with `tmpdir=/var/tmp`
+
+## 2026-07-07 — docker-host app-data backup install
+
+Date:
+
+- 2026-07-07
+
+Operator:
+
+- Codex session
+
+Scope:
+
+- OpenWrt docker-host-to-OMV NFS rule
+- docker-host OMV backup mount
+- docker-host app-data backup systemd timer
+- Mealie, Grocy, Obsidian LiveSync, and GardenKeeper backup/restore smoke
+
+Maintenance window:
+
+- narrow storage-backup enablement; no package, container image, or app
+  credential changes applied
+
+Actions taken:
+
+- added the live OpenWrt `Docker Host to OMV NFS` rule matching source intent:
+  docker-host `192.168.20.102` to OMV `192.168.40.50` on NFS/RPC ports
+  `111`, `2049`, `20048`, and `32765-32767`
+- verified docker-host could reach OMV NFS after the rule was applied
+- added docker-host fstab mount for
+  `/mnt/omv/docker-host-backups` using NFSv3 with `_netdev`, `nofail`,
+  `timeo=50`, and `retrans=2`
+- mounted the OMV `backups/docker-host` export and wrote a test file
+- installed `/usr/local/sbin/docker-host-app-data-backup.sh` plus
+  `docker-host-app-data-backup.service` and `.timer`
+- ran a dry-run and first real backup; real run `20260706T231304Z` wrote `20M`
+  under `runs/` and updated `latest/`
+- restore-smoked `latest/` into `/tmp`, verifying Mealie `mealie.db`, Grocy
+  `grocy.db`, LiveSync shards, and a GardenKeeper compressed SQL dump
+- enabled `docker-host-app-data-backup.timer`; next run scheduled daily at
+  `03:45` local time
+
+Post-check:
+
+- `findmnt /mnt/omv/docker-host-backups`: mounted from OMV over NFSv3
+- `systemctl is-enabled docker-host-app-data-backup.timer`: `enabled`
+- `systemctl is-active docker-host-app-data-backup.timer`: `active`
+- backup sizes: `latest` `20M`, run `20260706T231304Z` `20M`
+
+Actions deferred:
+
+- Mealie credential rotation is carried by the broader hardening roadmap, not a
+  near-term app setup task
+- Grocy pilot product workflow
+- Obsidian LiveSync rollout to both client devices
+
+## 2026-07-07 — Grocy seed and LiveSync client prep
+
+Date:
+
+- 2026-07-07
+
+Operator:
+
+- Codex session
+
+Scope:
+
+- Grocy household model seed
+- Obsidian LiveSync backend/client-readiness checks
+- Local Obsidian vault plugin install
+
+Maintenance window:
+
+- low-risk app setup; no package updates, container image updates, or service
+  credential changes applied
+
+Actions taken:
+
+- removed Mealie credential rotation from the near-term docker-host app roadmap;
+  it remains covered by the broader hardening roadmap
+- created Grocy database checkpoint
+  `/opt/stacks/grocy/config/data/grocy.db.pre-household-seed-20260707T125250Z`
+- seeded Grocy locations: `Pantry`, `Fridge`, `Freezer`, `Cleaning`, and
+  `Garage/Workshop`
+- seeded Grocy quantity units: existing `Piece`/`Pack`, plus `each`, `box`,
+  `bottle`, `jar`, `g`, `kg`, `ml`, and `L`
+- seeded Grocy product groups: `Dry goods`, `Chilled`, `Frozen`, `Cleaning`,
+  `Household consumables`, and `Printer/workshop consumables`
+- verified Grocy still returns `HTTP/1.1 302 Found`
+- verified LiveSync CouchDB `3.5.0`, database `home-automation-project`, and
+  CORS preflight from `app://obsidian.md`
+- installed and enabled Self-hosted LiveSync plugin `0.25.80` in the local root
+  Obsidian vault without writing CouchDB credentials or plugin sync settings
+- ran docker-host app-data backup again; run `20260707T125454Z` captured the
+  seeded Grocy database
+
+Post-check:
+
+- Grocy model rows present in live SQLite database
+- LiveSync database exists and is empty before first authoritative upload
+- `OPTIONS` preflight to CouchDB returned `204 No Content`
+- local admin laptop did not resolve `docker-host.tail7012a0.ts.net`; validate
+  the Tailscale Serve HTTPS endpoint from a Tailscale-connected client
+
+Actions deferred:
+
+- Grocy pilot product purchase/consume/correction and expiry workflow
+- LiveSync plugin wizard on the authoritative device
+- LiveSync setup URI generation and second-device connection
+
+## 2026-07-07 — Grocy voice shopping-list integration
+
+Date:
+
+- 2026-07-07
+
+Operator:
+
+- Codex session
+
+Scope:
+
+- Grocy API key for Home Assistant
+- HA custom LLM tools for Grocy shopping-list add/list actions
+- docker-host firewall persistence for HA-to-Grocy access
+
+Maintenance window:
+
+- low-risk app integration; HA config check and restart completed, no package or
+  container image updates applied
+
+Actions taken:
+
+- created a dedicated Grocy API key named `home-assistant-voice`
+- stored the live key in HA `/config/secrets.yaml` as `grocy_api_key` and on
+  docker-host at `/root/grocy-home-assistant-voice-api-key.txt`
+- deployed the repo `grocy_llm` Home Assistant custom integration and added
+  `grocy_household` to the local LLM exposed API list
+- limited voice tools to add/list Grocy shopping-list items only; purchase,
+  consume, stock correction, completion, deletion, and inventory actions remain
+  blocked pending a confirmation-gated design
+- updated and installed `/usr/local/sbin/docker-host-firewall.sh` so HA
+  `192.168.20.101` and HA Supervisor `172.30.32.0/23` can reach Grocy on
+  `9283/tcp` before the docker-host `DOCKER-USER` drop
+- verified HA could call the Grocy API, create a temporary product, add it to
+  the shopping list, delete the product, and return the shopping list to empty
+- ran docker-host app-data backup `20260707T132647Z`; latest backup size was
+  `22M`
+
+Post-check:
+
+- `ha core check`: passed before and after restart
+- HA logs showed no Grocy custom component errors
+- docker-host `DOCKER-USER` rule order includes HA and HA Supervisor returns
+  for `9283/tcp` before the Grocy drop
+
+Actions deferred:
+
+- manual spoken Assist validation from the user's normal voice device
+- Grocy pilot product purchase/consume/correction and expiry workflow

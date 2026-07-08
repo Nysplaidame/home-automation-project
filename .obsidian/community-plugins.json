@@ -12,5 +12,6 @@
   "regex-mark",
   "obsidian-tasks-plugin",
   "templater-obsidian",
-  "obsidian-trash-explorer"
+  "obsidian-trash-explorer",
+  "obsidian-livesync"
 ]

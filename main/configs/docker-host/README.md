@@ -1,9 +1,9 @@
 ---
 title: Docker Host Config Templates
-description: Rebuildable source templates for VM 103 docker-host stacks and host firewall
-tags: [docker-host, compose, firewall, templates]
+description: Rebuildable source templates for VM 103 docker-host stacks, host firewall, and app-data backup
+tags: [docker-host, compose, firewall, backup, templates]
 created: 2026-05-27
-modified: 2026-05-31
+modified: 2026-07-06
 type: config-reference
 status: active
 ---
@@ -36,6 +36,14 @@ Live stack paths:
 | Docker host UFW routed DNS rules | `/usr/local/sbin/docker-host-ufw-route-dns.sh` | `system/docker-host-ufw-route-dns.sh` |
 | Docker host UFW routed monitoring rules | `/usr/local/sbin/docker-host-ufw-route-monitoring-tailscale.sh` | `system/docker-host-ufw-route-monitoring-tailscale.sh` |
 | Docker host Fail2ban SSH jail | `/etc/fail2ban/jail.d/docker-host-sshd.local` | `system/docker-host-fail2ban-sshd.local` |
+| Docker host app-data backup script | `/usr/local/sbin/docker-host-app-data-backup.sh` | `system/docker-host-app-data-backup.sh` |
+| Docker host app-data backup service | `/etc/systemd/system/docker-host-app-data-backup.service` | `system/docker-host-app-data-backup.service` |
+| Docker host app-data backup timer | `/etc/systemd/system/docker-host-app-data-backup.timer` | `system/docker-host-app-data-backup.timer` |
+
+The app-data backup templates target OMV `backups/docker-host` after the live
+NFS mount `/mnt/omv/docker-host-backups` is installed. They are not live
+evidence by themselves; prove the mount, dry-run, first backup, and restore
+smoke before marking household app backups complete.
 
 Do not commit live `.env` files, app databases, generated auth databases,
 AdGuard password hashes, SearXNG secrets, or Immich database credentials.

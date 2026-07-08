@@ -28,8 +28,8 @@ services:
       - /opt/frigate/config:/config
       - /opt/frigate/storage:/media/frigate
       - /opt/frigate/db:/db
-      # NAS recording mount — uncomment after Phase 4 NAS setup:
-      # - /mnt/nas/frigate:/media/frigate/recordings
+      # NAS recording mount from OMV via Proxmox host bind mount.
+      - /mnt/nas/frigate:/media/frigate/recordings
       - /etc/localtime:/etc/localtime:ro
       - /opt/frigate/certs:/config/certs:ro
       - /opt/frigate/tls:/etc/letsencrypt/live/frigate:ro
@@ -62,15 +62,15 @@ services:
 #
 # VOLUMES:
 #   /opt/frigate/db/          Frigate SQLite database (event history, snapshots)
-#   /opt/frigate/storage/     Local recording storage (pre-NAS)
+#   /opt/frigate/storage/     Local Frigate media root for non-recording data
 #   /opt/frigate/certs/       CA cert for MQTT TLS validation
 #   /opt/frigate/tls/         Frigate HTTPS cert/key mounted at
 #                             /etc/letsencrypt/live/frigate
 #
 # NAS RECORDING MOUNT:
-#   /mnt/nas/frigate is an NFS mount from the OMV NAS (192.168.40.50).
-#   Uncomment the NAS volume line once the NAS is set up (Phase 4).
-#   The fstab entry is in omv_nas_setup_guide.md.
+#   /mnt/nas/frigate is a bind mount into unprivileged CT 111 from a
+#   Proxmox-host OMV NFS mount. Do not mount NFS directly inside CT 111.
+#   The OMV export must allow the CT root-mapped host UID 100000 to write.
 #
 # PORTS (host networking):
 #   8971  — Frigate UI/API (0.14+)

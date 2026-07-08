@@ -4,7 +4,7 @@ description: Implementation tasks by phase — updated June 2026
 tags: [tasks, implementation]
 aliases: [TODO, Tasks]
 created: 2025-09-15
-modified: 2026-07-03
+modified: 2026-07-07
 type: task-list
 status: active
 ---
@@ -30,9 +30,9 @@ status: active
 
 Planning baseline until explicitly revalidated:
 
-- Treat OMV and encrypted Proxmox SMB backups as live. Seven-generation
-  projection passes; the backing filesystem's 87.34% usage remains an active
-  high-water warning.
+- Treat OMV and Proxmox NFS backups as live. On 2026-07-05, Proxmox reported
+  `omv-backups` active at 54.21% used, so the old 86-87% md0 high-water warning
+  is cleared; keep normal monthly backup and SMART checks.
 - Treat Frigate as live with one bench camera ingest on CT 111; keep HA
   integration, source cleanup, and broader camera rollout as the remaining
   work.
@@ -40,6 +40,17 @@ Planning baseline until explicitly revalidated:
   `https://192.168.20.101:8123` with the local `Home Local CA`. HTTP on
   port `8123` is no longer the active HA UI.
 - Treat VentSys entities as unbuilt for implementation planning.
+
+## Hardening and resilience roadmap
+
+1. [ ] Plan the whole-system hardening run before changing credentials or access paths: inventory all admin surfaces, service accounts, API tokens, SSH keys, certificates, Tailscale/WireGuard paths, OpenWrt rules, host firewalls, and password-manager records.
+2. [ ] Plan the whole-system resilience run before live drills: define recovery goals, access routes, trusted backups, restore order, and stop/ask gates for Mini PC, OMV, router, Home Assistant, docker-host, Frigate, llm-host, monitoring, Tailscale, local CA, and credential-loss scenarios.
+3. [ ] Prove backup and restore readiness before broad credential rotation: Proxmox VM/LXC restore evidence, HA backup restore path, OMV export/config recovery path, and repo/config backup coverage. Docker-host app-data backup/restore smoke passed on 2026-07-07.
+4. [ ] Execute hardening run in a controlled window: rotate infrastructure passwords, API tokens, long-lived HA tokens, app bootstrap credentials, SSH keys, and service secrets; validate each dependent service before revoking old credentials.
+5. [ ] Execute resilience tabletop scenarios before disruptive tests: document what still works, what fails, first diagnostic commands, recovery route, rollback path, and "do not touch" boundaries for each major failure scenario.
+6. [ ] Execute only low-risk live resilience drills first: stop non-critical services or simulate dependency loss where rollback is immediate; defer Mini PC, router, OMV, and broad network failure drills until a dedicated maintenance window.
+7. [ ] Update canonical docs after each pass: `docs/reference/current-live-state.md`, `docs/reference/access-matrix.md`, `docs/reference/service-matrix.md`, `scripts/backup/backup_strategy.md`, and relevant procedures/handoffs.
+8. [ ] Define log retention and analysis policy for the whole assistant stack: set 48-hour retention defaults for structured assistant state, compact conversation traces, tool summaries, and performance timings; explicitly exclude raw audio, full prompt/tool dumps, secrets, and unbounded verbose logs unless temporarily enabled for debugging with rotation and review gates.
 
 ## Operational next steps
 
@@ -53,7 +64,7 @@ Planning baseline until explicitly revalidated:
 8. [x] Explicitly park embedded Grafana-in-HA work behind direct-link-only access until HTTPS/reverse proxy same-origin path is in place
 9. [x] Add an external health signal for the monitoring VM so monitoring failure is visible even when Uptime Kuma itself is down
 10. [x] Configure OMV-backed Home Assistant backup mount and verify a manual backup write, while keeping fast local Proxmox recovery on the MINISFORUM host
-11. [x] Start the migration-safe Frigate baseline on CT 111 with cameras and MQTT disabled
+11. [x] Start the migration-safe Frigate baseline on CT 111; later superseded by the first-camera live baseline with MQTT/HA integration
 12. [ ] Expand VentSys beyond valve 1: finish the MQTT TLS migration path, then flash/adopt the remaining ESPHome devices
 13. [x] Deploy AdGuard Home on docker-host per `docs/decisions/04-dns-resolver-and-adblocking.md`
 14. [x] Re-run router-deploy validation after the router-local NTP/deploy-tooling update
@@ -120,10 +131,11 @@ Planning baseline until explicitly revalidated:
 
 - [ ] Evaluate Paperless-ngx under `/opt/stacks/paperless-ngx/`
 - [x] Deploy Mealie under `/opt/stacks/mealie/` (live 2026-06-21)
-- [ ] Replace Mealie bootstrap administrator credentials and store them in Bitwarden
 - [x] Deploy Grocy for pantry/fridge/freezer stock and expiry tracking
-- [ ] Complete Grocy initial login, password change and household data model
-- [ ] Roll Self-hosted LiveSync out to both Obsidian devices (Tailscale Serve is live)
+- [x] Seed Grocy household data model with core locations, quantity units, and product groups; service health reconfirmed on 2026-07-07 (`HTTP/1.1 302 Found` login redirect), database checkpoint created, and OMV app-data backup run `20260707T125454Z` captured the change
+- [x] Add Grocy voice shopping-list support to Home Assistant Assist with add/list-only LLM tools, dedicated Grocy API key, HA/dockerd firewall allowances, direct HA-to-Grocy API proof, and OMV app-data backup run `20260707T132647Z`
+- [ ] Parked: Self-hosted LiveSync client rollout; backend/client prep exists, but Obsidian is no longer part of the near-term path
+- [x] Install and prove docker-host app-data backup to OMV `backups/docker-host` covers Mealie, Grocy, Obsidian LiveSync, and GardenKeeper dumps; completed on 2026-07-07 after deploying the live OpenWrt `Docker Host to OMV NFS` rule, mounting `/mnt/omv/docker-host-backups`, running backup `20260706T231304Z`, restore-smoking to `/tmp`, and enabling the daily `03:45` systemd timer
 - [x] Deploy ntfy internal-only under `/opt/stacks/ntfy/`
 - [x] Configure Uptime Kuma ntfy notifications through a dedicated write-only topic
 - [ ] Evaluate Actual Budget under `/opt/stacks/actual-budget/`
@@ -242,10 +254,11 @@ must work without HACS.
 - [x] Set static IP 192.168.10.10 on vmbr0.10
 - [x] Retire PCI iGPU passthrough/IOMMU requirement in favour of shared LXC device mapping
 - [x] Retire the pre-LXC `vm-setup.sh`; `guest-configs.md` holds the current inventory
-- [x] Move VMs 100/102/103 and CTs 111/114 to `omv-backups` with `keep-daily=7,keep-monthly=6`; retain local archives during transition and alert while OMV remains above 80% used
+- [x] Move VMs 100/102/103 and CTs 111/114 to `omv-backups` with `keep-daily=7,keep-monthly=6`; 2026-07-05 check shows VM backups current, `omv-backups` at 54.21% used, and the LXC backup job fixed with `tmpdir=/var/tmp` after NFS temp-dir permission failures; manual CT 111 and CT 114 proofs passed on 2026-07-05/06
 - [x] Replace VM 104 with CT 114 `llm-host` at 192.168.20.104; retain stopped VM as rollback
 - [x] Keep `llm-host` and `openwebui` DNS aliases on 192.168.20.104
-- [ ] After a future 64GB RAM upgrade, resize CT 114 and retest before moving `home-assistant-llm` to a 14B model
+- [x] After the 64GB RAM upgrade, resize CT 114 and move `home-assistant-llm` to Qwen3-14B-128K Q4_K_M with a 64k context; API smoke test passed on 2026-07-07
+- [ ] Run full CT 114 post-upgrade validation for the Qwen3-14B 64k profile: Home Assistant Assist text/voice, SearXNG search, Mealie recipe save/display/readout workflow, Open WebUI, host swap, and Frigate concurrency
 
 ### Home Assistant VM (VM 100)
 - [x] Start VM 100, complete HAOS onboarding wizard
@@ -277,7 +290,7 @@ must work without HACS.
 - [x] Set current bench-camera `FRIGATE_RTSP_PASSWORD` in `/opt/frigate/.env`; replace later if camera credentials are rotated
 - [x] Stage MQTT CA trust for Frigate at `/opt/frigate/certs/ca-cert.pem` and verify TLS (`Verify return code: 0`)
 - [x] Create host dirs: `mkdir -p /opt/frigate/db`
-- [x] Start migration-safe Frigate 0.17.1 baseline on CT 111
+- [x] Start Frigate 0.17.1 on CT 111; first-camera live baseline now supersedes the original no-camera migration-safe baseline
 - [x] Update source-controlled `configs/frigate/config.yml` from the accepted
   first-camera live config without embedding RTSP or MQTT secrets
 - [x] Configure HTTPS/SSL for Frigate UI before regular use
@@ -303,6 +316,54 @@ must work without HACS.
 - [x] Add Frigate integration in HA
 - [x] Remove stale ONVIF integration entry for the first camera from HA; use
   the Frigate entity path for the CCTV dashboard
+- [x] Read-only inspect current Frigate review/event/motion history for
+  `cam_01_annke_c500` before tuning. On 2026-07-07, Codex confirmed the
+  `proxmox` SSH profile reaches CT 111 and Frigate API `0.17.1`; object
+  detection is currently disabled, the event table has no object events,
+  review history contains only three historical alert segments, and all current
+  recording segments are motion-marked with zero object segments. CT-local
+  Frigate storage was near full; the OMV recording cutover is now complete, so
+  broader tuning can proceed with detection/zone re-enable tests.
+- [ ] Define the exterior CCTV camera/zone standard for the eventual six-camera
+  rollout: driveway, front door/garden, back door/patio/back garden, side
+  garden, plus a possible second front door/garden view. Keep the garage
+  interior camera as test-only and do not plan internal production cameras.
+- [ ] Draft Frigate zone and object rules with driveway treated as the most
+  complex view: separate road, sidewalk, driveway, property-boundary and
+  approach zones; use zone-required alerts/detections, object filters,
+  inertia, loitering and masks to avoid vegetation, shadow, pet, bird and road
+  traffic false positives.
+- [ ] Set CCTV object-detection scope for exterior security and convenience:
+  `person` as the primary alert class, `car` with LPR/known-plate handling,
+  `package` for parcel notifications, and `dog`/`cat` for neighbour-pet
+  notifications. Keep birds and other small objects out of alert paths unless
+  later testing proves they add value.
+- [ ] Design alert severity rules before automation: daytime person outdoors is
+  an alert; 21:00-07:00 person events are high severity; nobody-home state
+  raises severity; driveway/front-door camera audio/flashing alarms are allowed
+  only night/away; back-door and side-garden alarms may run at any time if the
+  event threshold is met; camera offline is an alert.
+- [ ] Define special security behaviors for fence/hedge crossing, under-hedge
+  movement, flashlight-at-night events, sidewalk loitering, and vehicles
+  slowing/stopping near the property. Use a 60-second sidewalk loitering
+  threshold before alerting unless the person enters a property zone.
+- [ ] Implement final event-only recording policy on OMV-backed Frigate
+  storage. The OMV recording mount is live as of 2026-07-07; next tune main
+  streams for recordings, substreams for detect/mobile viewing, audio in
+  recordings, no steady-state CT-local recording, and an initial two-week
+  retention cap for alert, detection, and motion recordings while false
+  positives are being tuned. Extend retention only after OMV capacity and
+  Frigate cleanup behavior are verified against real five-camera usage.
+- [ ] Define face-recognition authorization policy: household and visiting
+  family only. Suppress alerts only when an authorized person is confidently
+  recognized; keep recordings for 14 days if only authorized people are
+  present, and retain the full detection period if any unrecognized person is
+  present or recognition confidence is insufficient.
+- [ ] Design Home Assistant CCTV policy dashboard controls for retention
+  targets, event-only recording status, motion/detection clip counts, camera
+  health, stricter/relaxed profile, home/away profile, alarm enablement, known
+  person and known vehicle handling, while keeping auditable rules in source
+  config rather than only in UI state.
 - [ ] Copy `configs/home-assistant/bambuddy_p1s_package.yaml` to `/config/packages/` on HA
 - [ ] Replace `<P1S_SERIAL>` placeholder in bambuddy_p1s_package.yaml with real serial
 - [ ] Confirm `binary_sensor.p1s_printing` and print state entities appear in HA
@@ -369,12 +430,12 @@ must work without HACS.
 
 ## Phase 4 — Storage ⏳
 
-- [x] Migrate live OMV hardware/storage to VLAN 40 at `192.168.40.50` on router `lan4` (capacity remediation remains open because the backing filesystem is 87% used); future managed-switch recable is planned but not live
+- [x] Migrate live OMV hardware/storage to VLAN 40 at `192.168.40.50`; capacity warning cleared by the 2026-07-05 `omv-backups` check at 54.21% used, and the managed-switch recable/trunk path is live
 - [x] Follow `omv_nas_setup_guide.md` storage/user/share/export setup while preserving existing SMB shares
 - [x] Configure NFS exports (Frigate, HA, Immich, configs shares)
 - [x] Warm Frigate OMV export for future unprivileged CT cutover: allow Proxmox host `192.168.10.10` to mount `/export/frigate` and verify temporary write/read/delete/unmount
-- [x] Keep Frigate "live" recordings on MINISFORUM local storage first; Frigate currently writes `/media/frigate/recordings` to CT-local `/opt/frigate/storage`
-- [ ] Mount OMV Frigate export on Proxmox, bind-mount it into CT 111 at `/mnt/nas/frigate`, and update docker-compose.yml volume after cameras are stable
+- [x] Keep Frigate "live" recordings on MINISFORUM local storage first during first-camera proving; superseded by the 2026-07-07 OMV recording cutover
+- [x] Mount OMV Frigate export on Proxmox, bind-mount it into CT 111 at `/mnt/nas/frigate`, update docker-compose.yml volume, add the required UID `100000` ACL for the unprivileged CT root mapping, recreate Frigate, and verify fresh recordings write to OMV
 - [x] Add OMV as HA network storage → verify backup writes successfully
 - [ ] Configure robocopy or rsync scheduled task for vault backup to NAS
 - [ ] Enable SMART monitoring on NAS drives
@@ -427,7 +488,7 @@ must work without HACS.
 - [x] Deploy AdGuard Home on docker-host as selected DNS filtering engine
 - [x] Add/validate router DNS enforcement rules for filtering coverage and public fallback
 - [x] Add monitoring for the DNS filtering service before making it the only resolver path
-- [x] Verify pre-NAS Proxmox local backup job and latest backups for VMs 100/101/102/103
+- [x] Verify historical pre-NAS Proxmox local backup job for VMs 100/101/102/103; current recurring guest backups now use OMV `omv-backups`
 - [ ] Extend `Fail2ban` from docker-host baseline to Frigate and other applicable Linux service hosts
 - [ ] Execute IDS/IPS progression Phase A (`docs/procedures/ids_ips_progression_plan.md`): monitor Fail2ban jails/bans and tune policy after live observation
 - [ ] After at least 30 days of baseline security-event data, decide CrowdSec pilot vs defer and document the decision
@@ -445,6 +506,18 @@ must work without HACS.
 
 - [ ] Monthly: run backup health checklist (`backup_strategy.md`)
 - [ ] Monthly: check SMART status on NAS drives
+- [ ] After any failed CT backup or Proxmox `CT is locked` event: run
+  `scripts/backup/proxmox-lxc-backup-guard.sh` in read-only mode, clear stale
+  backup locks only if no active backup/snapshot task exists, then rerun the
+  affected CT backup proof
+- [ ] Add a long-session continuity workflow for Codex/LLM work: find a way for
+  the agent to measure or report its current context-window usage, define the
+  command pattern for intentionally resetting into a new chat, and write a
+  reusable handoff-document procedure so active tasks, evidence, and next
+  commands can be carried into the new chat without relying on chat memory alone
+- [x] Verify CT 111/114 backup behavior after adding `tmpdir=/var/tmp` to the
+  Proxmox LXC backup job; CT 111 manual proof passed on 2026-07-05 and CT 114
+  manual proof passed on 2026-07-06
 - [ ] Weekly: append an entry to `docs/procedures/update_review_log.md` (Watchtower monitor-only signals + host package candidates + planned patch window)
 - [ ] Next patch window: update docker-host packages from the current candidate list, reboot if kernel package changes, and rerun router/health/Grafana checks
 - [ ] After any config change: `git add -A && git commit && git push`

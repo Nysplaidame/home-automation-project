@@ -3,7 +3,7 @@ title: Current Live State
 description: Canonical inventory of deployed hosts, services, and deliberately deferred components
 tags: [reference, current-state, infrastructure]
 created: 2026-06-20
-modified: 2026-07-03
+modified: 2026-07-07
 type: reference
 status: active
 ---
@@ -13,7 +13,7 @@ status: active
 This is the canonical current-state inventory. Rebuild manuals describe how to
 build from blank and must link here rather than duplicating live-status claims.
 
-Last verified: **2026-07-03**.
+Last verified: **2026-07-07**.
 
 ## Compute
 
@@ -44,10 +44,15 @@ while its replacement LXC is running.
 - The Home Assist pipeline uses Home Assistant's built-in conversation agent.
 - The Overwatch Assist pipeline points at `llamacpp_conversation`, a local
   Home Assistant custom conversation agent for llama.cpp's OpenAI-compatible API.
-- The bounded read-only SearXNG search tool and Mealie recipe tools are enabled
-  for local LLM conversation agents through the `llamacpp_conversation` config.
-  A live Overwatch UI/voice prompt is still required before certifying the
-  conversational path end to end.
+- The bounded read-only SearXNG search tool, Mealie recipe tools, and Grocy
+  add/list shopping-list tools are enabled for local LLM conversation agents
+  through the `llamacpp_conversation` config.
+  On 2026-07-07, docker-host firewall scope was updated so HA's Supervisor
+  network `172.30.32.0/23` can reach SearXNG `8087/tcp`, Grocy `9283/tcp`, and
+  Mealie `9925/tcp`; HA-side API proofs returned success for those backend
+  paths. The Grocy voice path is intentionally limited to adding/listing
+  shopping-list items, and a live Assist spoken prompt is still required before
+  certifying the conversational path end to end.
 - Mealie is live; Overwatch-to-Mealie recipe saving is not yet implemented.
 - VentSys dashboard is deployed; most physical VentSys entities remain gated on
   hardware installation.
@@ -89,21 +94,29 @@ while its replacement LXC is running.
   a narrow `192.168.30.20/32` route with firewall access only to authenticated
   HTTPS port `8971`. The route still needs Tailscale admin-console approval and
   mobile-data validation before it is treated as complete.
-- Recordings are local for now: container path `/media/frigate/recordings`
-  lives under CT-local `/opt/frigate/storage` through the Compose
-  `/opt/frigate/storage:/media/frigate` bind mount. OMV recording/archive
-  storage remains a later, deliberate cutover.
-- Dormant NFS client/RPC units are disabled because this unprivileged LXC has no
-  NFS mount; this removes the failed `run-rpc_pipefs.mount` unit. Re-enable the
-  client only as part of an approved NAS-recordings cutover.
+- Recordings now write to OMV NFS storage. Proxmox mounts
+  `192.168.40.50:/export/frigate` at `/mnt/omv/frigate`, CT 111 has
+  `mp0: /mnt/omv/frigate,mp=/mnt/nas/frigate`, and Frigate maps
+  `/mnt/nas/frigate:/media/frigate/recordings`. The cutover was validated on
+  2026-07-07 with fresh MP4 segments under
+  `/mnt/nas/frigate/2026-07-07/13/cam_01_annke_c500/`.
+- CT-local `/opt/frigate/storage` remains the local media root/fallback for
+  non-recording data. The OMV export has an ACL for host UID `100000`, which is
+  CT 111's unprivileged root mapping; without that ACL Frigate could mount the
+  export but could not create dated recording folders.
+- Dormant NFS client/RPC units remain disabled inside CT 111 because the CT
+  does not mount NFS directly.
 
 ## Local AI
 
 - CT 114 runs llama.cpp `server-vulkan`, a dedicated llama.cpp embedding
   service, Open WebUI, Wyoming Whisper, Piper and OpenWakeWord.
-- llama.cpp serves `home-assistant-llm` from the reused local GGUF at
-  `192.168.20.104:8081/v1`; the container reports Vulkan on Intel Meteor Lake
-  graphics and responds to OpenAI-compatible chat completions.
+- llama.cpp serves `home-assistant-llm` from
+  `Qwen3-14B-128K-Q4_K_M.gguf` at `192.168.20.104:8081/v1`; it runs with a
+  `65536` token context, Q8 KV cache, reasoning disabled for normal assistant
+  output, and Vulkan on Intel Meteor Lake graphics.
+- The Qwen3 model file SHA-256 is
+  `e6ad1ba102ef53dbc88aa59bd1bf1b10aaff298fea8f1a91f99e4312f1194c81`.
 - A dedicated llama.cpp embeddings service serves `home-assistant-embedding`
   from `bge-small-en-v1.5-q8_0.gguf` at `192.168.20.104:8082/v1`; it returns
   384-dimensional embeddings and is source-scoped to docker-host for Household
@@ -117,7 +130,9 @@ while its replacement LXC is running.
 - Docker-host can reach CT 114 ports 8081, 8082 and 3002 for Household Hub
   assistant integration. Household Hub production RAG uses CT 114 chat on 8081,
   embeddings on 8082, and local Qdrant on VM 103.
-- SearXNG web search is reachable at docker-host port 8087.
+- SearXNG web search is reachable at docker-host port 8087, including from Home
+  Assistant after the 2026-07-07 HA Supervisor-network docker-host firewall
+  update.
 
 ## Docker host
 
@@ -125,8 +140,35 @@ Live workloads: Bambuddy, AdGuard Home, Immich, Homepage, Dozzle,
 ntfy, SearXNG, Whoogle, Mealie, Grocy, Obsidian LiveSync/CouchDB, Watchtower
 monitor-only and Telegraf. VM 103 has a 64 GiB virtual disk.
 
+2026-07-05 docker-host guest-agent check:
+
+- Root filesystem: `63G` total, `37G` used, `24G` available (`62%`).
+- Immich OMV mount is present at `/mnt/omv/immich`
+  (`192.168.40.50:/export/immich`, NFSv3).
+- Mealie returned `HTTP/1.1 200 OK` on `127.0.0.1:9925`.
+- Grocy returned `HTTP/1.1 302 Found` on `127.0.0.1:9283`; its local API
+  returned HTTP `200` with the dedicated HA voice key on 2026-07-07.
+- Obsidian LiveSync/CouchDB returned `HTTP/1.1 401 Unauthorized` on
+  `127.0.0.1:5984`.
+
 Immich now uses the OMV-backed NFS mount at `/mnt/omv/immich` for uploads and
 library storage. Its database remains local under `/opt/stacks/immich/postgres`.
+Mealie, Grocy, Obsidian LiveSync, and GardenKeeper now have documented
+app-data or dump backup source paths targeting OMV `backups/docker-host`. A
+read-only docker-host check on 2026-07-06 confirmed the source directories
+exist: Mealie `15M`, Grocy `4.2M`, LiveSync `152K`, and GardenKeeper local
+dumps `36K`. Proxmox confirmed OMV exports `backups/docker-host` to
+`192.168.20.102`.
+
+On 2026-07-07, the live OpenWrt `Docker Host to OMV NFS` rule was deployed,
+docker-host mounted the OMV export at `/mnt/omv/docker-host-backups` using
+NFSv3, and the first real app-data backup run `20260706T231304Z` wrote `20M`
+under `runs/` while updating `latest/`. Restore smoke copied `latest/` to a
+temporary directory, verified Mealie `mealie.db`, Grocy `grocy.db`, LiveSync
+shards, and a GardenKeeper compressed SQL dump, then removed the temp copy.
+`docker-host-app-data-backup.timer` is enabled and active for daily `03:45`
+local runs. After the Grocy voice API key was added, backup run
+`20260707T132647Z` completed and updated `latest/` to `22M`.
 
 Paperless-ngx, Actual Budget, Scrypted, Vaultwarden, Portainer, a local
 registry mirror and Node-RED remain decision-gated candidates.
@@ -138,7 +180,8 @@ registry mirror and Node-RED remain decision-gated candidates.
 - Alert routing through ntfy exists for configured Kuma monitors.
 - OMV NFS TCP 2049 and Proxmox storage pressure are checked by
   `home-automation-health-check.timer`. Backup storage is intentionally on md0;
-  capacity remains tight until the planned cleanup frees roughly 4 TiB.
+  the old 86-87% high-water warning was cleared by the 2026-07-05 Proxmox
+  check showing `omv-backups` active at 54.21% used.
 
 ## Backup storage
 
@@ -149,18 +192,15 @@ registry mirror and Node-RED remain decision-gated candidates.
   `/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/CCTV/`.
 - OMV exports NFS paths for Proxmox backups, HA backups, docker-host backups,
   config backups, Immich DB backups, Immich media, and Frigate/NVR recordings.
-- The Frigate export is discoverable from CT 111, but CT 111 is an unprivileged
-  LXC and cannot mount NFS directly. OMV now also allows Proxmox host
-  `192.168.10.10` to mount `/export/frigate`; a temporary Proxmox mount,
-  write/read/delete, and unmount test passed on 2026-06-28. Future recording
-  cutover should mount the OMV Frigate export on the Proxmox host and
-  bind-mount it into CT 111.
+- The Frigate export is mounted on the Proxmox host and bind-mounted into CT
+  111 for recordings. CT 111 remains unprivileged and must not mount NFS
+  directly.
 - Home Assistant previously had Supervisor backup mount `nas_backups` pointing
   at `192.168.40.50:/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/home-assistant`;
   manual backup `manual-nfs-md0-test-20260626` (`8294da47.tar`, 69 MiB) wrote
   successfully to OMV. During the 2026-07-02 HA native HTTPS cutover,
-  `ha mounts info` reported no active mounts, so the OMV HA backup mount needs
-  revalidation/restoration before depending on it. The pre-TLS HA backup was
+  `ha mounts info` reported no active mounts; this was resolved on 2026-07-03
+  by restoring `nas_backups` and proving fresh writes. The pre-TLS HA backup was
   created locally as `pre-ha-native-tls-20260702-db-excluded`, slug `04da1c7d`.
 - On 2026-07-03, the Zyxel GS1900-8HP was moved from the temporary VLAN 30
   bench posture to the intended managed-switch layout: router `lan3` is a
@@ -185,11 +225,26 @@ registry mirror and Node-RED remain decision-gated candidates.
   direct storage edit and HA Core restart.
 - Proxmox storage `omv-backups` uses NFSv3 to
   `/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/proxmox`.
-  It was active after the switch trunk cutover, with md0 still high at 86.64%
-  used.
+  It was active on 2026-07-05: `pvesm status` reported total
+  `15501464576 KiB`, used `8403021824 KiB`, available `7098426368 KiB`
+  (`54.21%`), and `df -h /mnt/pve/omv-backups` showed about `15T` total,
+  `7.9T` used and `6.7T` available.
 - Daily jobs cover VMs 100/102/103 at 02:00 and CTs 111/114 at 04:00, snapshot
   mode, ZSTD, `keep-daily=7`, and `keep-monthly=6`.
-- A manual VM 102 backup to `omv-backups` completed on 2026-06-26.
+- A manual VM 102 backup to `omv-backups` completed on 2026-06-26. Scheduled
+  VM backups for 100, 102 and 103 completed again on 2026-07-05.
+- The 2026-07-05 scheduled CT 111/114 backups initially failed because the
+  unprivileged LXC backup process could not enter the NFS-backed temporary dump
+  directory. The CT backup job
+  `a8c84d38-2a73-4d9d-bf34-111114000001` now has `tmpdir: /var/tmp`; a manual
+  CT 111 backup using that setting produced
+  `vzdump-lxc-111-2026_07_05-23_11_08.tar.zst` (`23G`) on `omv-backups`.
+  A manual CT 114 backup using the same setting then completed on 2026-07-06:
+  `vzdump-lxc-114-2026_07_06-00_13_59.tar.zst`, archive size `15.30GB`,
+  finished in `00:23:30`, with the temporary snapshot removed successfully.
+  Proxmox warned that thin-pool autoextend protection is not enabled and that
+  summed thin volume sizes exceed pool capacity; keep watching `local-lvm`
+  pressure before large guest growth.
 - Fresh VM 102 and CT 114 archives passed `zstd -t` on 2026-06-22. VM 102 also
   passed an isolated no-NIC restore/boot/guest-agent drill under temporary ID
   9102, which was purged after validation.
@@ -197,21 +252,26 @@ registry mirror and Node-RED remain decision-gated candidates.
 
 ## Not built or not production-ready
 
-- Source-controlled Frigate first-camera config and broader camera rollout.
+- Broader Frigate camera rollout beyond the first ANNKE bench camera, including
+  new-camera validation, source updates, motion/zone tuning, and AI rules.
 - Most VentSys physical hardware, remaining ESPHome adoption and full safety
   acceptance testing.
 - P1S details and HA Bambuddy package deployment.
 - Same-origin HTTPS/reverse proxy for embedded monitoring views. HA native
   HTTPS is live, but Grafana/Kuma remain direct HTTP links rather than embedded
   iframes.
-- Overwatch-to-Mealie recipe ingestion live prompt validation and Grocy
-  workflow/integration.
-- Obsidian LiveSync client rollout; its Tailscale Serve HTTPS endpoint is live.
+- Overwatch-to-Mealie recipe ingestion live prompt validation and remaining
+  Grocy pilot product workflow testing.
+- Obsidian LiveSync client wizard and second-device rollout; backend database,
+  CORS preflight, local plugin install, backup proof, and Tailscale Serve
+  mapping are live, but the admin laptop did not resolve the tailnet hostname
+  during the 2026-07-07 check.
 
 ## Rollback and backup warning
 
 Migration snapshots named `pre-lxc-migration-20260620` exist for retired VM 101
 and VM 104. Daily Proxmox jobs now retain 7 daily and 6 monthly generations on
-`omv-backups`; projected retention fits after the planned md0 cleanup, while
-the current high utilization remains a warning. Consult
+`omv-backups`; projected retention fits the current md0-backed storage after
+the 2026-07-05 capacity check, and both CT 111 and CT 114 have manual successful
+proof after the `tmpdir=/var/tmp` change. Consult
 `scripts/backup/backup_strategy.md`.

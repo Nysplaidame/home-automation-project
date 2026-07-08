@@ -16,7 +16,7 @@ services:
       - /dev/dri/card0:/dev/dri/card0
     command:
       - --model
-      - /models/home-assistant-llm.gguf
+      - /models/Qwen3-14B-128K-Q4_K_M.gguf
       - --alias
       - home-assistant-llm
       - --host
@@ -24,13 +24,19 @@ services:
       - --port
       - "8080"
       - --ctx-size
-      - "8192"
+      - "65536"
       - --threads
       - "4"
       - --parallel
       - "1"
+      - --cache-type-k
+      - q8_0
+      - --cache-type-v
+      - q8_0
       - --n-gpu-layers
       - "99"
+      - --reasoning
+      - "off"
       - --jinja
 
   llama-cpp-embeddings:

@@ -3,7 +3,7 @@ flowchart TB
     Stacks["/opt/stacks/<service>/"]
     Network["Docker networks<br/>service-specific where practical"]
     Volumes["Named volumes and bind mounts<br/>document per service"]
-    Backups["Backups<br/>OMV-backed where appropriate"]
+    Backups["Backups<br/>OMV app-data templates<br/>live mount/job pending"]
     Logs["Logs<br/>Dozzle + host journal"]
 
     DockerHost --> Stacks
@@ -21,10 +21,17 @@ flowchart TB
         Tailscale["tailscale<br/>subnet router"]
     end
 
-    subgraph Tier2["Tier 2 candidates"]
+    subgraph Tier2Live["Tier 2 live / setup pending"]
+        Mealie["mealie<br/>recipes; admin rotation pending"]
+        Grocy["grocy<br/>stock; household model pending"]
+        LiveSync["obsidian-livesync<br/>CouchDB; client rollout pending"]
+        Ntfy["ntfy<br/>internal alerts"]
+        SearXNG["searxng<br/>search pre-flight"]
+        Whoogle["whoogle<br/>search pre-flight"]
+    end
+
+    subgraph Tier2Candidates["Tier 2 candidates"]
         Paperless["paperless-ngx"]
-        Mealie["mealie"]
-        Ntfy["ntfy"]
         Actual["actual-budget"]
         Scrypted["scrypted"]
     end
@@ -42,10 +49,12 @@ flowchart TB
     end
 
     Stacks --> Tier1
-    Stacks --> Tier2
+    Stacks --> Tier2Live
+    Stacks --> Tier2Candidates
     Stacks --> Tier3
     Stacks -.-> Future
     Tier1 --> Backups
-    Tier2 --> Backups
+    Tier2Live --> Backups
+    Tier2Candidates --> Backups
     Tier3 --> Backups
     Future -.-> Backups

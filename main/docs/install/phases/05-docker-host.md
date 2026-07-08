@@ -3,7 +3,7 @@ title: Phase 05 - docker-host
 description: Docker app host baseline, Compose policy, UFW, and Tailscale host routes
 tags: [install, docker-host, tailscale]
 created: 2026-05-24
-modified: 2026-05-27
+modified: 2026-07-06
 type: install-guide
 status: active
 ---
@@ -72,7 +72,10 @@ Phase 05A.
 Current non-secret rebuild templates for the live docker-host stacks and host
 firewall are stored under `configs/docker-host/`. They are source templates,
 not backups of live secrets, app databases, ntfy auth DBs, or AdGuard password
-hashes.
+hashes. App-data backup templates for Mealie, Grocy, Obsidian LiveSync and
+GardenKeeper dumps also live there, but require the OMV `backups/docker-host`
+mount and systemd timer to be installed and proved before they count as live
+backups.
 
 ## Expected result
 
@@ -105,5 +108,6 @@ ufw status verbose
 - [x] Docker Compose installed.
 - [x] `/opt/stacks/` created.
 - [x] Tailscale installed and authenticated.
-- [x] Only HA and OMV host routes are advertised.
+- [x] Only approved host routes are advertised.
 - [x] No containers are deployed outside `/opt/stacks/<service>/`.
+- [ ] docker-host app-data backup mount/timer installed and restore-smoked.

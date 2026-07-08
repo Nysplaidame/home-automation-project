@@ -4,7 +4,7 @@ description: Master navigation hub for all project documentation
 tags: [index, navigation, home-automation]
 aliases: [Project Index, Documentation Hub]
 created: 2025-09-15
-modified: 2026-06-20
+modified: 2026-07-06
 type: index
 status: active
 ---
@@ -35,7 +35,7 @@ status: active
 | WireGuard fallback guide | ✅ Written |
 | Wiring reference | ✅ Written |
 | Physical deployment | ✅ Router, Proxmox trunk, HAOS, and docker-host live |
-| Docker-host service templates | ✅ Written for live VM 103 stacks and host firewall |
+| Docker-host service templates | ✅ Written for live VM 103 stacks, host firewall, and app-data backup templates |
 | Local AI / voice inference | ✅ CT 114 live with shared-iGPU llama.cpp and HA voice/search migration pending |
 | Hardware procurement (sensors/cameras/NAS) | ⏳ Pending |
 
@@ -67,6 +67,9 @@ status: active
 ### Docker Host
 - [[configs/docker-host/README.md]] — rebuildable source templates for VM 103 Compose stacks and host firewall
 - [[configs/docker-host/system/docker-host-firewall.sh]] — canonical `DOCKER-USER` source for docker-host published-port scoping
+- [[configs/docker-host/system/docker-host-app-data-backup.sh]] — planned rsync copy for Mealie, Grocy, LiveSync, and GardenKeeper data/dumps to OMV `backups/docker-host`
+- [[configs/docker-host/system/docker-host-app-data-backup.service]] — systemd service template for the docker-host app-data backup job
+- [[configs/docker-host/system/docker-host-app-data-backup.timer]] — daily timer template for the docker-host app-data backup job
 - [[configs/docker-host/stacks/]] — non-secret Compose/config templates for live docker-host services
 
 ### Monitoring / Grafana
@@ -139,6 +142,7 @@ status: active
 | Document | Purpose |
 |---|---|
 | [[scripts/backup/backup_strategy.md]] | All backup layers, restore procedures, monthly checklist |
+| [[scripts/backup/proxmox-lxc-backup-guard.sh]] | Proxmox-host audit/apply guard for stale CT backup locks and leftover `vzdump` snapshots |
 | [[docs/troubleshooting/troubleshooting_reference.md]] | Per-system quick diagnosis for common failures |
 | [[docs/procedures/ssl_tls_guide.md]] | HTTPS for HA, local CA, Let's Encrypt via DuckDNS |
 | [[docs/procedures/router_temporary_uplink_policy.md]] | Operating policy for temporary GL-MT6000 `wwan_uplink` staging mode |
@@ -199,4 +203,4 @@ status: active
 
 ---
 
-**Updated:** June 2026
+**Updated:** July 2026

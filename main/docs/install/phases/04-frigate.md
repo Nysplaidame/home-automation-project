@@ -3,7 +3,7 @@ title: Phase 04 - Frigate
 description: Frigate LXC, shared iGPU, migration-safe baseline, cameras, and HA integration
 tags: [install, frigate, nvr]
 created: 2026-05-24
-modified: 2026-06-28
+modified: 2026-07-06
 type: install-guide
 status: active
 ---
@@ -12,8 +12,9 @@ status: active
 
 ## Purpose
 
-Prepare unprivileged CT 111 for Frigate NVR using Debian, Docker, a project Compose file,
-camera placeholders, MQTT integration, and later OMV-backed archive storage.
+Prepare unprivileged CT 111 for Frigate NVR using Debian, Docker, a project
+Compose file, the first-camera baseline, MQTT integration, and later
+OMV-backed archive storage.
 Camera networks remain isolated: no direct internet access to raw camera feeds,
 Home Assistant reaches only the intended Frigate paths, and regular Frigate UI
 use waits until HTTPS/SSL is configured.
@@ -26,7 +27,8 @@ Frigate CT 111 over SSH at `192.168.30.20`.
 
 - Phase 03 complete.
 - Debian CT 111 exists with the shared DRM devices mapped.
-- Camera models and RTSP URLs may still be placeholders.
+- The first ANNKE C500 bench camera is live; additional camera models and RTSP
+  URLs may still be placeholders until hardware arrives.
 - `<FRIGATE_RTSP_PASSWORD>` and `<FRIGATE_MQTT_PASSWORD>` recorded when known.
 
 ## Inputs
@@ -58,19 +60,18 @@ docker compose logs --tail=80 frigate
 ## Explanation
 
 Frigate needs Docker, local database storage, camera configuration, and MQTT
-access to Home Assistant. NAS storage is added later so the LXC can be validated
-before depending on OMV.
-
-The current live baseline uses OpenVINO and VA-API but deliberately configures
-`mqtt.enabled: false` and `cameras: {}`. Do not mistake repository camera
-placeholders for deployed production streams.
+access to Home Assistant. The current live baseline uses OpenVINO and VA-API,
+MQTT over TLS, HTTPS UI access, HA integration, and one ANNKE C500 bench camera.
+Additional camera entries should be added one at a time after bench validation.
+OMV recording storage is added later so the first-camera LXC can stay stable
+before depending on a bind-mounted NAS path.
 
 ## Expected result
 
 - Docker and Compose work.
 - Frigate container starts.
 - UI is reachable on the documented Frigate port.
-- MQTT events can be observed after camera config is real.
+- MQTT/HA integration works for the first camera after credentials are staged.
 - Raw camera streams stay private to the NVR network and Frigate path.
 
 ## Validation
@@ -97,10 +98,10 @@ mosquitto_sub -h localhost -p 8883 --cafile /ssl/ca.crt -u mqtt -P '<MQTT_PASSWO
 ## Completion checklist
 
 - [x] Docker Compose validates.
-- [x] Migration-safe Frigate baseline starts on CT 111.
+- [x] First-camera Frigate baseline starts on CT 111.
 - [x] HA network path to Frigate is allowed.
-- [x] NAS archive storage remains disabled until OMV is validated.
-- [ ] HTTPS/SSL plan documented before regular UI use.
+- [x] NAS archive storage remains disabled until the full camera set is stable.
+- [x] HTTPS/SSL plan documented before regular UI use.
 - [x] Apple/mobile viewing plan documented: Home Assistant Companion App and
   Frigate PWA first; third-party Frigate clients only after live camera ingest
   is stable and secure access requirements are known.

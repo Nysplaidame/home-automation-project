@@ -146,9 +146,15 @@ ssh root@192.168.60.10 'docker save telegraf:latest' | \
 This avoided opening broad docker-host registry access just to deploy the
 collector.
 
-Planning baseline remains unchanged: treat OMV, Frigate application state,
-CT 114 local AI runtime state, and VentSys entities as unbuilt until explicitly
-revalidated.
+Current baseline as of 2026-07-06:
+
+- OMV is live on VLAN 40, `omv-backups` is active, and the old 86-87% capacity
+  warning has been cleared by the 2026-07-05 Proxmox check.
+- Frigate is live on CT 111 with one ANNKE bench camera, HA integration and
+  HTTPS UI; broader camera rollout remains near-term hardware follow-up.
+- CT 114 local AI runtime is live and monitored.
+- VentSys physical entities remain unbuilt until hardware is adopted and
+  explicitly revalidated.
 
 ## Memory interpretation
 

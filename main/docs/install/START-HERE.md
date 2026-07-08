@@ -4,7 +4,7 @@ description: Fresh-rebuild-first manual for replicating the home automation syst
 tags: [install, rebuild, runbook, beginner]
 aliases: [Install Start Here, Rebuild Manual]
 created: 2026-05-24
-modified: 2026-06-10
+modified: 2026-07-06
 type: install-guide
 status: active
 ---
@@ -65,7 +65,7 @@ Use the location names in [command-location-legend.md](reference/command-locatio
 | 5A | Optional local AI inference | [05a-local-ai.md](phases/05a-local-ai.md) | `scripts/setup/proxmox/llm_host_setup_guide.md`, `docs/procedures/local_ai_performance_testing.md` |
 | 6 | OMV NAS storage | [06-omv-nas.md](phases/06-omv-nas.md) | `scripts/setup/nas/omv_nas_setup_guide.md` |
 | 7 | Tier 1 docker-host apps | [07-tier1-apps.md](phases/07-tier1-apps.md) | [services/README.md](services/README.md) |
-| 8 | Tier 2 app drafts | [08-tier2-apps.md](phases/08-tier2-apps.md) | [services/README.md](services/README.md) |
+| 8 | Tier 2 apps | [08-tier2-apps.md](phases/08-tier2-apps.md) | [services/README.md](services/README.md) |
 | 9 | Tier 3/evaluate app drafts | [09-tier3-evaluate.md](phases/09-tier3-evaluate.md) | [decision-gates.md](reference/decision-gates.md) |
 | 10 | Backups, monitoring, maintenance, restore drills | [10-backups-monitoring-maintenance.md](phases/10-backups-monitoring-maintenance.md) | `scripts/backup/`, `docs/procedures/` |
 | 11 | VentSys, printers, cameras, and physical integration | [11-physical-integrations.md](phases/11-physical-integrations.md) | `scripts/setup/ventsys/`, [diagram library](../diagrams/README.md) |
@@ -73,11 +73,16 @@ Use the location names in [command-location-legend.md](reference/command-locatio
 
 ## Current project state callout
 
-The existing live project is not blank. Router, Proxmox, Home Assistant, docker-host,
-and Bambuddy have live state. OMV, Tier 1 services, most cameras, and much VentSys
-hardware remain pending or planned. Use `TO-DO.md`, `PROJECT-INDEX.md`, the service
-matrix, and handoff files to understand live state, but do not skip fresh rebuild
-steps unless you have validated the equivalent state manually.
+The existing live project is not blank. Router, Proxmox, Home Assistant,
+docker-host, OMV, Tier 1 services, local AI, and the first Frigate camera have
+live state. Frigate remains active near-term for the incoming cameras; only the
+broader camera rollout and OMV recording cutover are still pending. Mealie,
+Grocy, Obsidian LiveSync, and GardenKeeper are live or backend-live but still
+need operator setup, app-data backup proof, or client rollout before they are
+household-complete. Much VentSys hardware remains pending or planned. Use
+`TO-DO.md`, `PROJECT-INDEX.md`, the service matrix, and handoff files to
+understand live state, but do not skip fresh rebuild steps unless you have
+validated the equivalent state manually.
 
 ## Completion definition
 

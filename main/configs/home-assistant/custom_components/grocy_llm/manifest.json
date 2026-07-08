@@ -1,0 +1,8 @@
+{
+  "domain": "grocy_llm",
+  "name": "Grocy LLM Household Tools",
+  "version": "1.0.0",
+  "documentation": "https://grocy.info/api",
+  "iot_class": "local_polling",
+  "codeowners": []
+}

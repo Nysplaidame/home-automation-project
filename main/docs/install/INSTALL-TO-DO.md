@@ -3,7 +3,7 @@ title: Installation Manual Suite To-Do
 description: Companion checklist for completing and validating the fresh rebuild documentation suite
 tags: [install, tasks, rebuild, documentation]
 created: 2026-05-24
-modified: 2026-06-20
+modified: 2026-07-06
 type: task-list
 status: active
 ---
@@ -56,7 +56,9 @@ without live assistance.
 - [x] Homepage: install, service widgets, secrets handling, backup, rollback.
 - [x] Dozzle: install, read-only Docker socket decision, auth/exposure decision, backup, rollback.
 - [ ] Paperless-ngx: install, scanner/import path, OCR dependencies, backup, retention, rollback.
-- [ ] Mealie: install, users, backups, import/export, rollback.
+- [ ] Mealie: live install documented; finish users, import/export, rollback.
+- [ ] Grocy: live install documented; base household model and backup proof complete; finish pilot product workflow and rollback drill.
+- [ ] Obsidian LiveSync: live backend, CORS, local plugin install, and backup proof documented; finish Bitwarden secrets, client wizard, second-device rollout, and rollback drill.
 - [x] ntfy: install, topic policy, public/private exposure decision, backup, rollback.
 - [ ] Actual Budget: install, auth, backup/export, rollback.
 - [ ] Scrypted: hardware/camera decision gate, install, storage, HA/Frigate overlap, rollback.

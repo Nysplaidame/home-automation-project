@@ -1,9 +1,9 @@
 ---
 title: Household Knowledge, Recipes and Food Inventory
 description: Defines the system-of-record boundary between Obsidian, Mealie and a future stocktaking service
-tags: [architecture-decision, obsidian, mealie, food-inventory]
+tags: [architecture-decision, obsidian, mealie, food-inventory, grocy]
 created: 2026-06-21
-modified: 2026-06-21
+modified: 2026-07-07
 type: decision
 status: accepted
 ---
@@ -21,8 +21,10 @@ status: accepted
 - **Grocy** owns pantry, fridge and freezer quantities, expiry dates, purchases
   and consumption. Its optional Mealie/HA integrations remain future work.
 - **Home Assistant and Overwatch** are orchestration and conversational layers,
-  not systems of record. Future tools should call scoped Mealie or inventory
-  APIs and require confirmation before creating or changing household data.
+  not systems of record. Tools should call scoped Mealie or inventory APIs.
+  Voice access may add/list Grocy shopping-list items, but stock purchase,
+  consumption, correction, inventory counts, deletion, and completion actions
+  require a future confirmation-gated workflow.
 
 ## Consequences
 

@@ -3,7 +3,7 @@ title: Secrets Placeholder Ledger
 description: Central placeholder list for the installation manual suite
 tags: [install, secrets, placeholders]
 created: 2026-05-24
-modified: 2026-05-27
+modified: 2026-07-06
 type: reference
 status: active
 ---
@@ -39,7 +39,14 @@ Store real values in the password manager. Never commit real values.
 | `<PAPERLESS_ADMIN_PASSWORD>` | Paperless first run | Paperless admin | Paperless UI |
 | `<MEALIE_ADMIN_EMAIL>` | Mealie first run | Mealie admin | Mealie UI |
 | `<MEALIE_ADMIN_PASSWORD>` | Mealie first run | Mealie admin | Mealie UI |
+| `<MEALIE_API_TOKEN>` | Mealie admin UI | Mealie API token | Home Assistant Mealie recipe tools |
+| `<GROCY_ADMIN_PASSWORD>` | Grocy first run | Grocy admin | Grocy UI |
+| `<OBSIDIAN_LIVESYNC_ADMIN_USER>` | Obsidian LiveSync setup | CouchDB admin user | CouchDB / Self-hosted LiveSync |
+| `<OBSIDIAN_LIVESYNC_ADMIN_PASSWORD>` | Obsidian LiveSync setup | CouchDB admin password | CouchDB / Self-hosted LiveSync |
 | `<NTFY_ADMIN_PASSWORD>` | ntfy auth setup | ntfy admin | ntfy server |
+| `<NTFY_MONITORING_PASSWORD>` | ntfy auth setup | ntfy monitoring write user | Uptime Kuma notifications |
+| `<NTFY_WATCHTOWER_PASSWORD>` | ntfy auth setup | ntfy Watchtower write user | Watchtower monitor-only notifications |
+| `<WATCHTOWER_NTFY_PASSWORD>` | ntfy auth setup | ntfy Watchtower write user | Watchtower monitor-only notifications |
 | `<ACTUAL_PASSWORD>` | Actual first run | Actual password | Actual Budget |
 | `<SCRYPTED_ADMIN_PASSWORD>` | Scrypted first run | Scrypted admin | Scrypted UI |
 | `<SEARXNG_SECRET_KEY>` | SearXNG config | SearXNG instance secret | SearXNG |

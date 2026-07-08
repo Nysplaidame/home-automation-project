@@ -4,7 +4,7 @@ description: Fire safety ventilation, NVR surveillance, secure network, and home
 tags: [home-automation, project-overview]
 aliases: [Project Overview]
 created: 2025-09-15
-modified: 2026-07-02
+modified: 2026-07-06
 type: project-overview
 status: active
 ---
@@ -29,16 +29,16 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 | Router deployment | ✅ Live | GL-MT6000 stable on management IP 192.168.10.1 |
 | Proxmox | ✅ Live | MINISFORUM M1 Pro-125H on 192.168.10.10, Proxmox VE 9 |
 | HA VM | ✅ Live | HAOS VM 100 at 192.168.20.101, native HTTPS with local CA, VentSys packages staged |
-| Frigate | ✅ LXC baseline live | CT 111 runs Frigate 0.17.1 with shared-iGPU OpenVINO; cameras and MQTT remain deliberately disabled |
+| Frigate | ✅ First-camera baseline live | CT 111 runs Frigate 0.17.1 with shared-iGPU OpenVINO, MQTT/HA integration, HTTPS UI and one ANNKE bench camera; broader camera rollout resumes when the new cameras arrive |
 | Docker host | ✅ Live | VM 103 on VLAN 20 with a 64 GiB disk; Mealie, Grocy and Obsidian LiveSync join the existing internal services |
 | Local AI | ✅ LXC + local inference live | CT 114 runs GPU-backed llama.cpp, Open WebUI, Whisper, Piper and OpenWakeWord |
-| OMV NAS | ⏳ Planned | OpenMediaVault at 192.168.40.50 on VLAN 40; hardware/storage needed |
+| OMV NAS | ✅ Live | OpenMediaVault at 192.168.40.50 on VLAN 40; Proxmox/HA/Immich storage paths are live, and the old md0 high-water warning was cleared by the 2026-07-05 `omv-backups` check |
 | Remote access | ✅ Live | Tailscale daily access via docker-host host routes; WireGuard kept dormant as fallback |
 | VentSys dashboard | ✅ Written / staged | dashboards/ventsys-dashboard.html with full HA integration layer; entities remain hardware-dependent |
 | VentSys HA packages | ✅ Written / staged | Package YAML, scripts, automations all written; do not treat VentSys entities as live until hardware is adopted |
 | ESPHome sensor configs | ✅ Written / validation ongoing | Production VentSys files live under `configs/esphome/`; hardware adoption remains gated |
 | VentSys hardware | ⏳ Pending | ESP32 boards, sensors, PrintAirPipe parts not yet purchased |
-| Cameras | ⏳ Pending | Models not yet selected; RTSP URLs are placeholders |
+| Cameras | ⏳ Partial | First ANNKE C500 bench camera is live; remaining camera models/RTSP URLs are still pending |
 | MAC addresses | ⏳ Partial | Core VM MACs are recorded; many hardware/device placeholders remain |
 
 ---
@@ -49,9 +49,9 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 |---|---|---|
 | Compute | MINISFORUM M1 Pro-125H (Intel Core Ultra 5 125H, 32GB RAM, 1TB NVMe) | ✅ Owned |
 | Router | GL.iNet GL-MT6000 (OpenWrt, WiFi 6) | ✅ Owned and deployed |
-| NAS | OMV-capable storage host | ⏳ Needed |
+| NAS | OMV-capable storage host | ✅ Owned and deployed as OMV at 192.168.40.50 |
 | PoE switch | 8-port Gigabit PoE+ | ⏳ Needed |
-| IP cameras | 4× PoE (model TBD) | ⏳ Needed |
+| IP cameras | PoE cameras | ⏳ More arriving soon; first ANNKE C500 bench camera is live |
 | ESP32 boards | 4× (2× sensor, 1× fan ctrl, 1× valve ctrl) | ⏳ Needed |
 
 ---
@@ -81,10 +81,10 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 | 99 | Guest | 192.168.99.0/24 | ✅ |
 
 ### NVR / Cameras (VLAN 30)
-- Frigate baseline runs on unprivileged CT 111 with shared Intel iGPU acceleration
-- 4 future cameras at 192.168.30.21–24
-- Future footage path to NAS via NFS after NAS and cameras are built
-- HA Frigate integration and Advanced Camera Card are live for the first bench camera
+- Frigate runs on unprivileged CT 111 with shared Intel iGPU acceleration, OpenVINO detection, VA-API decode and HTTPS UI access
+- First ANNKE C500 bench camera is live at 192.168.30.21; future cameras remain planned at 192.168.30.22-24 as hardware arrives
+- Current recordings write to OMV NFS storage through a Proxmox-host mount and CT 111 bind mount; CT-local storage remains fallback/non-recording media only
+- HA Frigate integration and Advanced Camera Card are live for the first bench camera; keep this path active for the near-term camera rollout instead of parking it
 
 ### Docker host + Bambuddy / P1S printer (VLAN 20 → VLAN 35)
 - Docker host runs on VM 103 at 192.168.20.102; Bambuddy is live on port 8000
@@ -96,11 +96,11 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 - OpenMediaVault is the NAS OS at 192.168.40.50; OMV is storage-focused, not the Docker app platform
 - docker-host runs internal Compose stacks under `/opt/stacks/<service>/`
 - docker-host is the expected target for future containerized AI-adjacent query apps; no YouTube transcript app architecture, ports, APIs, MCP contract, or firewall rules are defined yet
-- Tier 1 docker-host services are pre-flight live: AdGuard Home, Immich, Homepage, Dozzle, plus Bambuddy
-- Tier 2/Tier 3 pre-flight services are live: ntfy internal alerts and Watchtower monitor-only
+- Tier 1 docker-host services are live: AdGuard Home, Immich, Homepage, Dozzle, plus Bambuddy
+- Tier 2/Tier 3 services with live baselines include Mealie, Grocy, Obsidian LiveSync/CouchDB, ntfy internal alerts, Watchtower monitor-only, SearXNG and Whoogle
 - Rebuildable docker-host templates live in `configs/docker-host/`; live secrets and app databases stay on VM 103, not in git
 - Tailscale is daily remote access through docker-host with host routes only:
-  `192.168.20.101/32`, `192.168.40.50/32`, and `192.168.60.10/32`
+  `192.168.20.101/32`, `192.168.30.20/32`, `192.168.40.50/32`, and `192.168.60.10/32`
 - WireGuard remains configured as a dormant split-tunnel fallback
 
 ### Monitoring and dashboards (VLAN 60)
@@ -115,10 +115,10 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 ### Home Assistant (VLAN 20)
 - HAOS on Proxmox VM 100 at 192.168.20.101
 - Mosquitto MQTT, ESPHome, Terminal & SSH and File Editor add-ons are live; native HTTPS uses the local CA at `https://192.168.20.101:8123`
-- Frigate integration and the CCTV dashboard are live for the first bench camera
+- Frigate integration and the CCTV dashboard are live for the first bench camera; broader camera work is active near-term hardware follow-up, not a fully parked branch
 - VentSys packages in `/config/packages/`
-- Treat Frigate app state, OMV storage, and VentSys hardware entities as unbuilt
-  until explicitly revalidated.
+- Treat the broader Frigate camera rollout, OMV recording cutover, and VentSys
+  hardware entities as unbuilt until explicitly revalidated.
 
 ### Local AI / voice (VLAN 20)
 - CT 114 `llm-host` at 192.168.20.104 runs llama.cpp, Open WebUI, Wyoming
@@ -202,7 +202,7 @@ The older setup guides remain deep-dive appendices for individual systems.
 6A. **Local AI inference LXC** — follow `docs/install/phases/05a-local-ai.md`
 7. **NAS** — follow `docs/install/phases/06-omv-nas.md`
 8. **Tier 1 apps** — follow `docs/install/phases/07-tier1-apps.md`
-9. **Tier 2 drafts** — follow `docs/install/phases/08-tier2-apps.md`
+9. **Tier 2 apps** — follow `docs/install/phases/08-tier2-apps.md`
 10. **Tier 3/evaluate drafts** — follow `docs/install/phases/09-tier3-evaluate.md`
 11. **Backups and maintenance** — follow `docs/install/phases/10-backups-monitoring-maintenance.md`
 12. **Physical integrations** — follow `docs/install/phases/11-physical-integrations.md`
@@ -210,4 +210,4 @@ The older setup guides remain deep-dive appendices for individual systems.
 
 ---
 
-**Updated:** 2026-07-02
+**Updated:** 2026-07-06

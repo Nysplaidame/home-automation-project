@@ -1,0 +1,9 @@
+[Unit]
+Description=Docker-host household app-data backup to OMV
+RequiresMountsFor=/mnt/omv/docker-host-backups
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/docker-host-app-data-backup.sh

@@ -3,7 +3,7 @@ title: ACL And Access Matrix
 description: Canonical OpenWrt, Tailscale, host firewall, and service-auth access intent
 tags: [reference, acl, firewall, tailscale, access-control]
 created: 2026-05-23
-modified: 2026-06-30
+modified: 2026-07-07
 type: reference
 status: active
 ---
@@ -58,7 +58,8 @@ WireGuard fallback activation/deactivation governance is defined in
 | HA | IoT | 6053, 3232/tcp | ESPHome API/OTA |
 | docker-host | P1S | 8883, 21/tcp | Bambuddy |
 | HA | llm-host | 8081, 10200, 10300/tcp | llama.cpp/OpenAI-compatible LLM endpoint and Wyoming STT/TTS integrations |
-| HA | docker-host | 8090/tcp | GardenKeeper Assist/task API |
+| HA | docker-host | 8090, 9283/tcp | GardenKeeper Assist/task API and Grocy voice shopping-list API |
+| HA Supervisor network `172.30.32.0/23` | docker-host | 8087, 9283, 9925/tcp | SearXNG, Grocy, and Mealie LLM/API tools used by Overwatch/Assist; added to docker-host `DOCKER-USER` on 2026-07-07 |
 | docker-host | llm-host | 8081, 8082, 3002/tcp | Household Hub assistant/API integration path and dedicated embedding endpoint |
 | LAN / Management | llm-host | 3002/tcp; 8081/tcp for local LLM testing | Open WebUI and local LLM test access |
 | Monitoring | llm-host | 8081, 3002, 10200, 10300, 10400/tcp | Uptime Kuma checks and service health |

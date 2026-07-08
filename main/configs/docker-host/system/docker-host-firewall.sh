@@ -19,6 +19,7 @@ iptables -A DOCKER-USER -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigd
 iptables -A DOCKER-USER -p tcp -s 192.168.10.0/24 -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8087 -j RETURN
 iptables -A DOCKER-USER -p tcp -s 192.168.1.0/24 -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8087 -j RETURN
 iptables -A DOCKER-USER -p tcp -s 192.168.20.101 -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8087 -j RETURN
+iptables -A DOCKER-USER -p tcp -s 172.30.32.0/23 -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8087 -j RETURN
 iptables -A DOCKER-USER -p tcp -s 192.168.20.104 -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8087 -j RETURN
 iptables -A DOCKER-USER -p tcp -s 192.168.60.10 -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8087 -j RETURN
 iptables -A DOCKER-USER -i tailscale0 -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8087 -j RETURN
@@ -42,12 +43,13 @@ iptables -A DOCKER-USER -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigd
 iptables -A DOCKER-USER -p tcp -s 192.168.10.0/24 -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 9925 -j RETURN
 iptables -A DOCKER-USER -p tcp -s 192.168.1.0/24 -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 9925 -j RETURN
 iptables -A DOCKER-USER -p tcp -s 192.168.20.101 -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 9925 -j RETURN
+iptables -A DOCKER-USER -p tcp -s 172.30.32.0/23 -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 9925 -j RETURN
 iptables -A DOCKER-USER -p tcp -s 192.168.60.10 -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 9925 -j RETURN
 iptables -A DOCKER-USER -i tailscale0 -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 9925 -j RETURN
 iptables -A DOCKER-USER -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 9925 -j DROP
 
-# Grocy food-stock UI: management, LAN, monitoring, and Tailscale.
-for source in 192.168.10.0/24 192.168.1.0/24 192.168.60.10; do
+# Grocy food-stock UI/API: management, LAN, HA, monitoring, and Tailscale.
+for source in 192.168.10.0/24 192.168.1.0/24 192.168.20.101 172.30.32.0/23 192.168.60.10; do
     iptables -A DOCKER-USER -p tcp -s "$source" -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 9283 -j RETURN
 done
 iptables -A DOCKER-USER -i tailscale0 -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 9283 -j RETURN

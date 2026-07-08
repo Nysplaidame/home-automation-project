@@ -280,6 +280,8 @@ Before update:
 - confirm you are in a scheduled maintenance window
 - take a manual backup/snapshot if the change is meaningful
 - enable only the host-specific temporary rule you need
+- if a previous CT backup failed, run the Proxmox LXC backup lock audit before
+  restarting CT 111/114 or starting new snapshot work
 
 During update:
 
@@ -291,7 +293,33 @@ After update:
 
 - remove the temporary rule immediately
 - confirm internet is blocked again from that host
+- confirm no stale Proxmox LXC backup lock or `vzdump` snapshot marker remains
+  for CT 111/114 if LXC backups ran or failed during the window
 - note the change in handoff / TODO if it affected architecture or operations
+
+## Failed LXC backup guardrail
+
+If an LXC backup fails or is interrupted, treat stale backup cleanup as a
+separate recovery step before starting the container or making more guest
+changes.
+
+Run from the Proxmox host:
+
+```sh
+sh scripts/backup/proxmox-lxc-backup-guard.sh
+```
+
+Only if the audit shows no active backup/snapshot process, clear the affected
+guest explicitly:
+
+```sh
+sh scripts/backup/proxmox-lxc-backup-guard.sh --apply 111
+```
+
+This guard exists to prevent a failed snapshot cleanup from surfacing later as
+`CT is locked (snapshot-delete)` during a Frigate restart. It is intentionally
+not fully automatic; a real Proxmox lock should win over convenience until the
+operator has proved the task is stale.
 
 ## Decision summary
 

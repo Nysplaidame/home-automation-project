@@ -60,6 +60,10 @@ Automation (`VLAN 20`) and NVR (`VLAN 30`) paths.
 - OMV exports `/export/frigate` to both CT 111 (`192.168.30.20`) and Proxmox
   host (`192.168.10.10`). A temporary Proxmox host mount/write/read/delete/
   unmount test passed on 2026-06-28.
+- For unprivileged CT 111, ensure the mounted export grants write access to the
+  CT root-mapped host UID `100000`, for example with
+  `setfacl -m u:100000:rwx,d:u:100000:rwx /mnt/omv/frigate` on the Proxmox
+  host after mounting the export.
 - In `/opt/frigate/docker-compose.yml`, enable the NAS recordings volume:
   - `/mnt/nas/frigate:/media/frigate/recordings`
 - Start Frigate and verify:

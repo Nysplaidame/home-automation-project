@@ -13,7 +13,7 @@
 # BITWARDEN ORGANISATION: Create a collection named "Home Automation"
 # with folders matching the sections below.
 #
-# Updated 2026-05-30:
+# Updated 2026-07-07:
 #   - Section 1: HomePrinters WiFi added (VLAN 35)
 #   - Section 7: P1S IP updated to 192.168.35.200; Docker host reference updated
 #   - Section 9: Frigate-only note added (Bambuddy removed from VM 101)
@@ -128,6 +128,7 @@ influxdb_homeassistant_token: "your-token" # Bitwarden: influxdb-ha-token
 | `mqtt_password` | `mqtt-credentials` | Same as Section 3 |
 | `influxdb_homeassistant_token` | `influxdb-ha-token` | Scoped InfluxDB token for HA writes to the `homeassistant` bucket |
 | `cam_01_annke_c500_password` | `annke-c500-cam-01` | Current admin password for first bench camera ISAPI controls |
+| `grocy_api_key` | `grocy-home-assistant-voice` | Dedicated Grocy API key for HA Assist add/list shopping-list tools only |
 
 ---
 
@@ -215,6 +216,7 @@ influxdb_homeassistant_token: "your-token" # Bitwarden: influxdb-ha-token
 | Docker host admin password | `docker-host-vm` | Debian admin/root credential for VM 103; SSH access |
 | Mealie administrator | `mealie-admin` | Replace the bootstrap login immediately; never store it in Compose or git |
 | Grocy administrator | `grocy-admin` | Replace `admin` / `admin` immediately |
+| Grocy Home Assistant voice API key | `grocy-home-assistant-voice` | Dedicated Grocy API key named `home-assistant-voice`; live copy is root-only at `/root/grocy-home-assistant-voice-api-key.txt` on docker-host and referenced by HA as `grocy_api_key` |
 | Obsidian LiveSync | `obsidian-livesync` | CouchDB user/password, E2EE passphrase and setup-URI passphrase; live CouchDB credential is in `/opt/stacks/obsidian-livesync/.env` |
 | Tailscale auth material | `tailscale-docker-host` | Do not commit auth keys or node keys |
 | AdGuard Home admin password | `adguard-home` | Admin UI for DNS filtering |

@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 import logging
 import re
+import time
+from difflib import SequenceMatcher
 from typing import Any, Literal
 
 import aiohttp
@@ -43,6 +45,8 @@ DEFAULT_MAX_HISTORY = 8
 DEFAULT_MAX_TOKENS = 256
 DEFAULT_TEMPERATURE = 0.1
 MAX_TOOL_ITERATIONS = 10
+ASSISTANT_STATE_RETENTION_SECONDS = 48 * 60 * 60
+MAX_COMPACT_TRACE_ITEMS = 30
 RAW_TOOL_EXPLANATION_RE = re.compile(
     r"\b(json object|speech field|response_type|action_done|data field)\b",
     re.IGNORECASE,
@@ -55,13 +59,21 @@ SAY_RESPONSE_RE = re.compile(
     r"^\s*(say|repeat|read)\b",
     re.IGNORECASE,
 )
+AFFIRMATIVE_RE = re.compile(
+    r"^\s*(yes|yeah|yep|please|do that|go ahead|ok|okay|sure)\s*[.!?]?\s*$",
+    re.IGNORECASE,
+)
+RAW_TOOL_CALL_RE = re.compile(
+    r"(</tool_call>|\btool_call\b|^\s*\{\s*\"name\"\s*:\s*\"[^\"]+\")",
+    re.IGNORECASE | re.DOTALL,
+)
 RECIPE_RE = re.compile(
     r"\b(recipe|recipes|ingredient|ingredients|step|steps|method|cook|cooking|"
     r"mealie|mealy|melee|lentil|soup|serving|servings)\b",
     re.IGNORECASE,
 )
 RECIPE_INGREDIENTS_RE = re.compile(
-    r"\b(ingredient|ingredients|shopping|need)\b",
+    r"\b(ingredient|ingredients|shopping|need|how much|how many|quantity|amount)\b",
     re.IGNORECASE,
 )
 RECIPE_STEPS_RE = re.compile(
@@ -76,6 +88,31 @@ RECIPE_STEP_NUMBER_RE = re.compile(
     r"\bstep\s+(?P<number>one|two|three|four|five|six|seven|eight|nine|ten|\d+)\b",
     re.IGNORECASE,
 )
+ACTIVE_RECIPE_REF_RE = re.compile(
+    r"\b(this|that|the|current|saved|active)\s+recipe\b|\bit\b",
+    re.IGNORECASE,
+)
+QUANTITY_STOPWORDS = {
+    "how",
+    "much",
+    "many",
+    "do",
+    "i",
+    "we",
+    "you",
+    "need",
+    "for",
+    "the",
+    "this",
+    "that",
+    "recipe",
+    "chicken",
+    "and",
+    "of",
+    "a",
+    "an",
+    "is",
+}
 RECIPE_IMPORT_RE = re.compile(
     r"(?:\b(send|save|add|import)\b.*\b(recipe|mealie|mealy|melee|merely)\b|"
     r"\brecipe\b.*\b(mealie|mealy|melee|merely)\b)",
@@ -150,6 +187,11 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
         self._model = settings[CONF_MODEL]
         self._attr_name = settings[CONF_NAME]
         self._attr_unique_id = DOMAIN
+        self._assistant_state: dict[str, Any] = {
+            "created_at": time.time(),
+            "updated_at": time.time(),
+            "trace": [],
+        }
         if settings.get(CONF_LLM_HASS_API):
             self._attr_supported_features = (
                 conversation.ConversationEntityFeature.CONTROL
@@ -169,6 +211,7 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
         llm_hass_api = _select_llm_hass_api(
             user_input.text,
             self._settings.get(CONF_LLM_HASS_API),
+            chat_log,
         )
         _LOGGER.debug("Selected LLM API set for utterance: %s", llm_hass_api)
 
@@ -209,6 +252,8 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
         user_text: str,
     ) -> None:
         """Send the chat log to llama.cpp and execute requested HA tools."""
+        self._prune_assistant_state()
+
         direct_history_answer = _maybe_direct_recipe_history_answer(
             user_text,
             chat_log,
@@ -221,9 +266,10 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
                     native={"source": "mealie_history_direct"},
                 )
             )
+            self._remember_trace("direct_recipe_history", user_text)
             return
 
-        direct_import_done = await _async_maybe_direct_recipe_import(
+        direct_import_done = await self._async_maybe_direct_recipe_import(
             agent_id,
             user_text,
             chat_log,
@@ -231,14 +277,35 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
         if direct_import_done:
             return
 
+        direct_web_answer = _maybe_direct_web_recipe_followup_answer(
+            user_text,
+            chat_log,
+        )
+        if direct_web_answer:
+            chat_log.async_add_assistant_content_without_tools(
+                conversation.AssistantContent(
+                    agent_id=agent_id,
+                    content=_normalize_assistant_text(direct_web_answer),
+                    native={"source": "web_search_history_direct"},
+                )
+            )
+            self._remember_trace("direct_web_history", user_text)
+            return
+
         session = async_get_clientsession(self.hass)
         for _ in range(MAX_TOOL_ITERATIONS):
             messages = _trim_messages(
                 [_content_to_openai_message(content) for content in chat_log.content],
                 self._settings[CONF_MAX_HISTORY],
+                self._assistant_state,
             )
             tools = _format_tools(chat_log.llm_api)
-            response = await self._async_chat_completion(session, messages, tools)
+            response = await self._async_chat_completion(
+                session,
+                messages,
+                tools,
+                _max_tokens_for_turn(user_text, tools, self._settings[CONF_MAX_TOKENS]),
+            )
             message = _extract_message(response)
             tool_inputs = _extract_tool_inputs(message)
             content = message.get("content")
@@ -253,8 +320,38 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
                 async for _tool_result in chat_log.async_add_assistant_content(
                     assistant_content
                 ):
+                    tool_error = _tool_error_response(_tool_result)
+                    if tool_error:
+                        chat_log.async_add_assistant_content_without_tools(
+                            conversation.AssistantContent(
+                                agent_id=agent_id,
+                                content=tool_error,
+                                native={
+                                    "source": "tool_error_direct",
+                                    "tool_name": getattr(_tool_result, "tool_name", None),
+                                },
+                            )
+                        )
+                        return
+
+                    web_answer = _maybe_direct_web_search_answer(_tool_result)
+                    if web_answer:
+                        self._remember_web_search(_tool_result)
+                        chat_log.async_add_assistant_content_without_tools(
+                            conversation.AssistantContent(
+                                agent_id=agent_id,
+                                content=_normalize_assistant_text(web_answer),
+                                native={
+                                    "source": "web_search_tool_direct",
+                                    "tool_name": getattr(_tool_result, "tool_name", None),
+                                },
+                            )
+                        )
+                        return
+
                     direct_answer = _maybe_direct_recipe_answer(user_text, _tool_result)
                     if direct_answer:
+                        self._remember_recipe_tool_result(_tool_result)
                         chat_log.async_add_assistant_content_without_tools(
                             conversation.AssistantContent(
                                 agent_id=agent_id,
@@ -266,9 +363,41 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
                             )
                         )
                         return
+
+                    action_answer = _maybe_direct_action_done(_tool_result)
+                    if action_answer:
+                        chat_log.async_add_assistant_content_without_tools(
+                            conversation.AssistantContent(
+                                agent_id=agent_id,
+                                content=_normalize_assistant_text(action_answer),
+                                native={
+                                    "source": "action_tool_direct",
+                                    "tool_name": getattr(_tool_result, "tool_name", None),
+                                },
+                            )
+                        )
+                        self._remember_trace("direct_action_done", user_text)
+                        return
                 continue
 
             if isinstance(content, str) and content.strip():
+                if _looks_like_raw_tool_call(content):
+                    _LOGGER.warning(
+                        "llama.cpp returned a raw tool call as assistant text; "
+                        "suppressing it from speech"
+                    )
+                    chat_log.async_add_assistant_content_without_tools(
+                        conversation.AssistantContent(
+                            agent_id=agent_id,
+                            content=(
+                                "I tried to use a tool that was not available for "
+                                "that turn. Please repeat the action you want me to take."
+                            ),
+                            native={"source": "raw_tool_call_suppressed", **message},
+                        )
+                    )
+                    return
+
                 response_text = _normalize_assistant_text(
                     _naturalize_tool_result_response(chat_log, content.strip())
                 )
@@ -279,6 +408,7 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
                         native=message,
                     )
                 )
+                self._remember_trace("llm_response", user_text)
                 return
 
             raise HomeAssistantError("llama.cpp returned no response content")
@@ -290,6 +420,7 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
         session: aiohttp.ClientSession,
         messages: list[dict[str, Any]],
         tools: list[dict[str, Any]],
+        max_tokens: int,
     ) -> dict[str, Any]:
         """Call the local OpenAI-compatible llama.cpp chat completion endpoint."""
         payload: dict[str, Any] = {
@@ -297,7 +428,7 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
             "messages": messages,
             "stream": False,
             "temperature": self._settings[CONF_TEMPERATURE],
-            "max_tokens": self._settings[CONF_MAX_TOKENS],
+            "max_tokens": max_tokens,
         }
         if tools:
             payload["tools"] = tools
@@ -317,6 +448,213 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
             ) from err
         except (aiohttp.ClientError, TimeoutError, ValueError) as err:
             raise HomeAssistantError(f"llama.cpp request failed: {err!r}") from err
+
+    async def _async_maybe_direct_recipe_import(
+        self,
+        agent_id: str,
+        user_text: str,
+        chat_log: conversation.ChatLog,
+    ) -> bool:
+        """Import a selected web recipe and optionally read details immediately."""
+        if not RECIPE_IMPORT_RE.search(user_text):
+            return False
+
+        result = _select_web_recipe_result(user_text, chat_log)
+        if result is None:
+            return False
+
+        url = result.get("url")
+        if not isinstance(url, str) or not url.startswith(("http://", "https://")):
+            return False
+
+        title = str(result.get("title") or "that recipe").strip() or "that recipe"
+        tool_input = llm.ToolInput(
+            tool_name="import_recipe_url",
+            tool_args={
+                "url": url,
+                "include_tags": True,
+                "include_categories": True,
+            },
+        )
+        assistant_content = conversation.AssistantContent(
+            agent_id=agent_id,
+            content=None,
+            tool_calls=[tool_input],
+            native={"source": "web_result_direct_import", "title": title, "url": url},
+        )
+
+        async for tool_result_content in chat_log.async_add_assistant_content(
+            assistant_content
+        ):
+            tool_result = getattr(tool_result_content, "tool_result", None)
+            if isinstance(tool_result, dict) and tool_result.get("success"):
+                recipe = tool_result.get("recipe")
+                imported_name = title
+                slug = None
+                if isinstance(recipe, dict):
+                    imported_name = str(recipe.get("name") or title)
+                    slug = recipe.get("slug")
+                    self._remember_recipe_summary(recipe, source="import_recipe_url")
+
+                detail_answer = await self._async_maybe_read_imported_recipe(
+                    agent_id,
+                    user_text,
+                    chat_log,
+                    slug,
+                )
+                if detail_answer:
+                    chat_log.async_add_assistant_content_without_tools(
+                        conversation.AssistantContent(
+                            agent_id=agent_id,
+                            content=_normalize_assistant_text(
+                                f"Saved {imported_name} to Mealie. {detail_answer}"
+                            ),
+                            native={
+                                "source": "web_result_direct_import_then_read",
+                                "tool_name": getattr(tool_result_content, "tool_name", None),
+                            },
+                        )
+                    )
+                    self._remember_trace("direct_import_then_read", user_text)
+                    return True
+
+                chat_log.async_add_assistant_content_without_tools(
+                    conversation.AssistantContent(
+                        agent_id=agent_id,
+                        content=f"Saved {imported_name} to Mealie.",
+                        native={
+                            "source": "web_result_direct_import",
+                            "tool_name": getattr(tool_result_content, "tool_name", None),
+                        },
+                    )
+                )
+                self._remember_trace("direct_import", user_text)
+                return True
+
+            chat_log.async_add_assistant_content_without_tools(
+                conversation.AssistantContent(
+                    agent_id=agent_id,
+                    content=(
+                        f"I tried to save {title} to Mealie, but the import failed. "
+                        "Mealie could not import that page automatically."
+                    ),
+                    native={
+                        "source": "web_result_direct_import_failed",
+                        "tool_name": getattr(tool_result_content, "tool_name", None),
+                    },
+                )
+            )
+            self._remember_trace("direct_import_failed", user_text)
+            return True
+
+        return False
+
+    async def _async_maybe_read_imported_recipe(
+        self,
+        agent_id: str,
+        user_text: str,
+        chat_log: conversation.ChatLog,
+        slug: Any,
+    ) -> str | None:
+        """Fetch the imported recipe when the same utterance asks to read it."""
+        if not isinstance(slug, str) or not slug:
+            return None
+        if not (RECIPE_INGREDIENTS_RE.search(user_text) or RECIPE_STEPS_RE.search(user_text)):
+            return None
+
+        tool_input = llm.ToolInput(
+            tool_name="get_saved_recipe",
+            tool_args={"slug": slug},
+        )
+        assistant_content = conversation.AssistantContent(
+            agent_id=agent_id,
+            content=None,
+            tool_calls=[tool_input],
+            native={"source": "imported_recipe_direct_read", "slug": slug},
+        )
+        async for tool_result_content in chat_log.async_add_assistant_content(
+            assistant_content
+        ):
+            self._remember_recipe_tool_result(tool_result_content)
+            return _maybe_direct_recipe_answer(user_text, tool_result_content)
+        return None
+
+    def _remember_web_search(self, tool_result_content: Any) -> None:
+        """Remember compact web results for short-lived follow-up routing."""
+        tool_result = getattr(tool_result_content, "tool_result", None)
+        if not isinstance(tool_result, dict):
+            return
+        results = tool_result.get("results")
+        if not isinstance(results, list):
+            return
+        self._assistant_state["last_web_results"] = [
+            _compact_web_result(result)
+            for result in results
+            if isinstance(result, dict)
+        ][:5]
+        self._touch_assistant_state()
+
+    def _remember_recipe_tool_result(self, tool_result_content: Any) -> None:
+        """Remember the latest full recipe returned by Mealie."""
+        tool_result = getattr(tool_result_content, "tool_result", None)
+        if not isinstance(tool_result, dict):
+            return
+        recipe = tool_result.get("recipe")
+        if isinstance(recipe, dict):
+            self._remember_recipe_summary(recipe, source="get_saved_recipe")
+            self._assistant_state["active_recipe_details"] = _compact_recipe_details(recipe)
+            self._touch_assistant_state()
+
+    def _remember_recipe_summary(self, recipe: dict[str, Any], source: str) -> None:
+        """Remember the active recipe identity without storing large blobs."""
+        self._assistant_state["active_recipe"] = {
+            "name": str(recipe.get("name") or "").strip(),
+            "slug": str(recipe.get("slug") or "").strip(),
+            "source": source,
+            "updated_at": time.time(),
+        }
+        self._touch_assistant_state()
+
+    def _remember_trace(self, event: str, user_text: str) -> None:
+        """Keep a compact 48-hour trace for routing and debugging."""
+        trace = self._assistant_state.setdefault("trace", [])
+        if not isinstance(trace, list):
+            trace = []
+            self._assistant_state["trace"] = trace
+        trace.append(
+            {
+                "ts": time.time(),
+                "event": event,
+                "user": str(user_text or "")[:220],
+            }
+        )
+        self._assistant_state["trace"] = trace[-MAX_COMPACT_TRACE_ITEMS:]
+        self._touch_assistant_state()
+
+    def _touch_assistant_state(self) -> None:
+        """Update assistant state timestamp."""
+        self._assistant_state["updated_at"] = time.time()
+
+    def _prune_assistant_state(self) -> None:
+        """Expire retained state after the configured 48-hour window."""
+        now = time.time()
+        updated_at = float(self._assistant_state.get("updated_at") or 0)
+        if now - updated_at > ASSISTANT_STATE_RETENTION_SECONDS:
+            self._assistant_state = {
+                "created_at": now,
+                "updated_at": now,
+                "trace": [],
+            }
+            return
+
+        trace = self._assistant_state.get("trace")
+        if isinstance(trace, list):
+            self._assistant_state["trace"] = [
+                item
+                for item in trace
+                if isinstance(item, dict)
+                and now - float(item.get("ts") or 0) <= ASSISTANT_STATE_RETENTION_SECONDS
+            ][-MAX_COMPACT_TRACE_ITEMS:]
 
 
 def _content_to_openai_message(
@@ -355,7 +693,9 @@ def _content_to_openai_message(
             "role": "tool",
             "tool_call_id": content.tool_call_id,
             "name": content.tool_name,
-            "content": _json_dumps(content.tool_result),
+            "content": _json_dumps(
+                _compact_tool_result_for_prompt(content.tool_name, content.tool_result)
+            ),
         }
 
     raise HomeAssistantError(f"Unsupported chat content role: {content.role}")
@@ -438,30 +778,160 @@ def _extract_tool_inputs(message: dict[str, Any]) -> list[llm.ToolInput]:
 def _trim_messages(
     messages: list[dict[str, Any]],
     max_history: int,
+    assistant_state: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     """Keep the system prompt and the most recent chat history."""
+    messages = _inject_assistant_state_context(messages, assistant_state)
     if len(messages) <= max_history + 1:
         return messages
 
     if messages and messages[0].get("role") == "system":
+        if len(messages) > 1 and messages[1].get("role") == "system":
+            return [messages[0], messages[1], *messages[-max_history:]]
         return [messages[0], *messages[-max_history:]]
 
     return messages[-max_history:]
 
 
+def _inject_assistant_state_context(
+    messages: list[dict[str, Any]],
+    assistant_state: dict[str, Any] | None,
+) -> list[dict[str, Any]]:
+    """Add a compact structured state hint without consuming large context."""
+    if not assistant_state:
+        return messages
+
+    context = _assistant_state_prompt(assistant_state)
+    if not context:
+        return messages
+
+    state_message = {
+        "role": "system",
+        "content": context,
+    }
+    if messages and messages[0].get("role") == "system":
+        return [messages[0], state_message, *messages[1:]]
+    return [state_message, *messages]
+
+
+def _assistant_state_prompt(assistant_state: dict[str, Any]) -> str:
+    """Return a short state summary for the model."""
+    lines = [
+        "Short-lived assistant state is available for resolving follow-ups. "
+        "Use it only when relevant; do not mention it."
+    ]
+    active_recipe = assistant_state.get("active_recipe")
+    if isinstance(active_recipe, dict):
+        name = str(active_recipe.get("name") or "").strip()
+        slug = str(active_recipe.get("slug") or "").strip()
+        if name or slug:
+            lines.append(f"Active recipe: {name or slug}.")
+            if slug:
+                lines.append(f"Active recipe slug: {slug}.")
+
+    details = assistant_state.get("active_recipe_details")
+    if isinstance(details, dict):
+        ingredients = details.get("ingredients")
+        if isinstance(ingredients, list) and ingredients:
+            lines.append(
+                "Active recipe ingredients: "
+                + "; ".join(str(item) for item in ingredients[:12])
+                + "."
+            )
+        steps = details.get("steps")
+        if isinstance(steps, list) and steps:
+            lines.append(f"Active recipe has {len(steps)} steps.")
+
+    web_results = assistant_state.get("last_web_results")
+    if isinstance(web_results, list) and web_results:
+        result_lines = []
+        for index, result in enumerate(web_results[:3], start=1):
+            if not isinstance(result, dict):
+                continue
+            title = str(result.get("title") or "").strip()
+            url = str(result.get("url") or "").strip()
+            if title or url:
+                result_lines.append(f"{index}. {title or url}")
+        if result_lines:
+            lines.append("Recent web results: " + " | ".join(result_lines) + ".")
+
+    return "\n".join(lines)
+
+
+def _compact_tool_result_for_prompt(tool_name: Any, tool_result: Any) -> Any:
+    """Keep LLM prompt tool history small while preserving useful semantics."""
+    if not isinstance(tool_result, dict):
+        return tool_result
+
+    name = str(tool_name or "")
+    if "web_search" in name:
+        compact = {
+            "success": tool_result.get("success"),
+            "query": tool_result.get("query"),
+        }
+        results = tool_result.get("results")
+        if isinstance(results, list):
+            compact["results"] = [
+                _compact_web_result(result)
+                for result in results
+                if isinstance(result, dict)
+            ][:3]
+        return compact
+
+    if "get_saved_recipe" in name:
+        compact = {"success": tool_result.get("success")}
+        recipe = tool_result.get("recipe")
+        if isinstance(recipe, dict):
+            compact["recipe"] = _compact_recipe_details(recipe)
+        return compact
+
+    if "import_recipe_url" in name:
+        compact = {"success": tool_result.get("success")}
+        recipe = tool_result.get("recipe")
+        if isinstance(recipe, dict):
+            compact["recipe"] = {
+                "name": recipe.get("name"),
+                "slug": recipe.get("slug"),
+            }
+        return compact
+
+    if "grocy" in name or "shopping" in name.lower():
+        return _compact_shopping_result(tool_result)
+
+    response_type = tool_result.get("response_type")
+    if response_type == "action_done":
+        return {
+            "success": True,
+            "response_type": response_type,
+            "speech": _extract_tool_speech(tool_result),
+        }
+
+    return tool_result
+
+
 def _select_llm_hass_api(
     text: str,
     configured_apis: str | list[str] | None,
+    chat_log: conversation.ChatLog | None = None,
 ) -> str | list[str] | None:
     """Select the smallest useful tool set for the user's utterance."""
     configured = _configured_api_set(configured_apis)
     if not configured:
         return None
 
-    if RECIPE_RE.search(text):
+    if _is_web_search_affirmation(text, chat_log):
+        return _selected_apis(configured, ["searxng_search"])
+
+    wants_recipe = bool(RECIPE_RE.search(text))
+    wants_web = bool(WEB_RE.search(text))
+
+    if wants_recipe and wants_web:
+        return _selected_apis(configured, ["searxng_search", "mealie_recipes"])
+
+    if wants_recipe:
         return _selected_apis(configured, ["mealie_recipes"])
 
-    if WEB_RE.search(text):
+    if wants_web:
         return _selected_apis(configured, ["searxng_search"])
 
     if ASSIST_RE.search(text):
@@ -495,6 +965,62 @@ def _selected_apis(configured: set[str], candidates: list[str]) -> str | list[st
 def _is_direct_response_request(text: str) -> bool:
     """Return true when the user is asking for text, not tools."""
     return bool(EXACT_RESPONSE_RE.match(text) or SAY_RESPONSE_RE.match(text))
+
+
+def _is_web_search_affirmation(
+    text: str,
+    chat_log: conversation.ChatLog | None,
+) -> bool:
+    """Return true when the user accepts the assistant's web-search offer."""
+    if chat_log is None or not AFFIRMATIVE_RE.match(text):
+        return False
+
+    for item in reversed(chat_log.content):
+        if getattr(item, "role", None) != "assistant":
+            continue
+        content = getattr(item, "content", None)
+        if not isinstance(content, str):
+            return False
+        return bool(re.search(r"\bsearch (?:the )?web\b", content, re.IGNORECASE))
+
+    return False
+
+
+def _looks_like_raw_tool_call(content: str) -> bool:
+    """Return true when a model emitted tool-call markup as plain speech."""
+    return bool(RAW_TOOL_CALL_RE.search(content))
+
+
+def _tool_error_response(tool_result_content: Any) -> str | None:
+    """Return a spoken-safe response for tool failures."""
+    if getattr(tool_result_content, "role", None) != "tool_result":
+        return None
+
+    tool_result = getattr(tool_result_content, "tool_result", None)
+    if not isinstance(tool_result, dict) or not tool_result.get("error"):
+        return None
+
+    tool_name = str(getattr(tool_result_content, "tool_name", "") or "")
+    error_text = str(tool_result.get("error_text") or tool_result.get("error") or "")
+    is_timeout = "TimeoutError" in error_text or "timed out" in error_text.lower()
+
+    if "find_saved_recipes" in tool_name:
+        if is_timeout:
+            return (
+                "Mealie timed out while searching saved recipes. "
+                "I can search the web instead."
+            )
+        return "Mealie could not search saved recipes right now."
+
+    if "web_search" in tool_name:
+        if is_timeout:
+            return "Web search timed out. Please try again in a moment."
+        return "Web search failed before I could use the results."
+
+    if is_timeout:
+        return "That tool timed out before I could finish."
+
+    return None
 
 
 def _naturalize_tool_result_response(
@@ -536,6 +1062,59 @@ def _naturalize_tool_result_response(
     return content
 
 
+def _maybe_direct_action_done(tool_result_content: Any) -> str | None:
+    """Return fast spoken responses for simple successful actions."""
+    if getattr(tool_result_content, "role", None) != "tool_result":
+        return None
+
+    tool_name = str(getattr(tool_result_content, "tool_name", "") or "")
+    tool_result = getattr(tool_result_content, "tool_result", None)
+    if not isinstance(tool_result, dict) or not tool_result.get("success"):
+        if isinstance(tool_result, dict) and tool_result.get("response_type") == "action_done":
+            speech = _extract_tool_speech(tool_result)
+            return speech or "Done."
+        return None
+
+    if "add_grocy_shopping_item" in tool_name:
+        item = str(tool_result.get("item") or "that item").strip()
+        amount = tool_result.get("amount")
+        if amount in (None, "", 1, 1.0):
+            return f"Done, added {item} to the shopping list."
+        return f"Done, added {_format_amount(amount)} {item} to the shopping list."
+
+    if "list_grocy_shopping_list" in tool_name:
+        items = tool_result.get("items")
+        if not isinstance(items, list) or not items:
+            return "The shopping list is empty."
+        names = []
+        for item in items[:12]:
+            if isinstance(item, dict):
+                name = str(item.get("item") or "").strip()
+                if name:
+                    names.append(name)
+        if names:
+            return "The shopping list has: " + ", ".join(names) + "."
+
+    if tool_result.get("response_type") == "action_done":
+        speech = _extract_tool_speech(tool_result)
+        if speech:
+            return speech
+
+        data = tool_result.get("data")
+        if isinstance(data, dict):
+            failed = _extract_entity_names(data.get("failed"))
+            if failed:
+                return f"I tried, but {', '.join(failed)} failed."
+
+            successful = _extract_entity_names(data.get("success"))
+            if successful:
+                return f"Done. {', '.join(successful)} succeeded."
+
+        return "Done."
+
+    return None
+
+
 def _maybe_direct_recipe_answer(user_text: str, tool_result_content: Any) -> str | None:
     """Format Mealie recipe details directly instead of re-querying the LLM."""
     if getattr(tool_result_content, "role", None) != "tool_result":
@@ -554,6 +1133,10 @@ def _maybe_direct_recipe_answer(user_text: str, tool_result_content: Any) -> str
         return None
 
     recipe_name = str(recipe.get("name") or "the recipe").strip() or "the recipe"
+    ingredient_answer = _maybe_direct_ingredient_quantity_answer(user_text, recipe)
+    if ingredient_answer:
+        return ingredient_answer
+
     if RECIPE_STEPS_RE.search(user_text):
         steps = _extract_recipe_steps(recipe)
         if steps:
@@ -581,6 +1164,17 @@ def _maybe_direct_recipe_history_answer(
         return None
 
     recipe_name = str(recipe.get("name") or "the recipe").strip() or "the recipe"
+    ingredient_answer = _maybe_direct_ingredient_quantity_answer(user_text, recipe)
+    if ingredient_answer:
+        return ingredient_answer
+
+    if RECIPE_INGREDIENTS_RE.search(user_text):
+        ingredients = _extract_recipe_ingredients(recipe)
+        if ingredients:
+            return f"The ingredients for {recipe_name} are:\n" + "\n".join(
+                f"- {ingredient}" for ingredient in ingredients
+            )
+
     steps = _extract_recipe_steps(recipe)
     if not steps:
         return None
@@ -599,73 +1193,136 @@ def _maybe_direct_recipe_history_answer(
     return None
 
 
-async def _async_maybe_direct_recipe_import(
-    agent_id: str,
+def _maybe_direct_ingredient_quantity_answer(
+    user_text: str,
+    recipe: dict[str, Any],
+) -> str | None:
+    """Answer quantity follow-ups from active recipe ingredients."""
+    if not RECIPE_INGREDIENTS_RE.search(user_text):
+        return None
+
+    ingredients = _extract_recipe_ingredients(recipe)
+    if not ingredients:
+        return None
+
+    if re.search(r"\b(all|list|read|what(?:'s| is)? in)\b", user_text, re.IGNORECASE):
+        return None
+
+    requested = _ingredient_query_terms(user_text)
+    if not requested:
+        return None
+
+    match = _best_ingredient_match(requested, ingredients)
+    if match is None:
+        return None
+
+    recipe_name = str(recipe.get("name") or "the recipe").strip() or "the recipe"
+    return f"For {recipe_name}, {match}."
+
+
+def _ingredient_query_terms(user_text: str) -> list[str]:
+    """Extract likely ingredient words from a quantity question."""
+    words = re.findall(r"[a-zA-Z][a-zA-Z'-]+", user_text.lower())
+    return [
+        word.strip("'-")
+        for word in words
+        if word not in QUANTITY_STOPWORDS and len(word.strip("'-")) >= 3
+    ]
+
+
+def _best_ingredient_match(
+    requested_terms: list[str],
+    ingredients: list[str],
+) -> str | None:
+    """Fuzzily match STT-noisy ingredient terms to recipe ingredient text."""
+    best_score = 0.0
+    best_ingredient = None
+    for ingredient in ingredients:
+        ingredient_words = [
+            word
+            for word in re.findall(r"[a-zA-Z][a-zA-Z'-]+", ingredient.lower())
+            if len(word) >= 3
+        ]
+        if not ingredient_words:
+            continue
+        score = 0.0
+        for requested in requested_terms:
+            for candidate in ingredient_words:
+                if requested == candidate:
+                    score = max(score, 1.0)
+                elif requested in candidate or candidate in requested:
+                    score = max(score, 0.88)
+                else:
+                    score = max(score, SequenceMatcher(None, requested, candidate).ratio())
+        if score > best_score:
+            best_score = score
+            best_ingredient = ingredient
+
+    if best_score >= 0.72:
+        return best_ingredient
+    return None
+
+
+def _maybe_direct_web_search_answer(tool_result_content: Any) -> str | None:
+    """Format web-search results directly for fast voice playback."""
+    if getattr(tool_result_content, "role", None) != "tool_result":
+        return None
+
+    tool_name = getattr(tool_result_content, "tool_name", None)
+    if not isinstance(tool_name, str) or "web_search" not in tool_name:
+        return None
+
+    tool_result = getattr(tool_result_content, "tool_result", None)
+    if not isinstance(tool_result, dict) or not tool_result.get("success"):
+        return None
+
+    results = tool_result.get("results")
+    if not isinstance(results, list) or not results:
+        return None
+
+    lines = ["I found these options:"]
+    for index, result in enumerate(results[:3], start=1):
+        if not isinstance(result, dict):
+            continue
+        title = _clean_spoken_title(result.get("title"))
+        snippet = _clean_spoken_snippet(result.get("snippet"))
+        if title and snippet:
+            lines.append(f"{index}. {title}. {snippet}")
+        elif title:
+            lines.append(f"{index}. {title}.")
+
+    if len(lines) == 1:
+        return None
+
+    lines.append("Say which one you want to save or inspect.")
+    return "\n".join(lines)
+
+
+def _maybe_direct_web_recipe_followup_answer(
     user_text: str,
     chat_log: conversation.ChatLog,
-) -> bool:
-    """Import a recipe URL selected from the latest web-search results."""
-    if not RECIPE_IMPORT_RE.search(user_text):
-        return False
+) -> str | None:
+    """Answer web-result detail follow-ups without drifting into saved recipes."""
+    if not (RECIPE_INGREDIENTS_RE.search(user_text) or RECIPE_STEPS_RE.search(user_text)):
+        return None
 
     result = _select_web_recipe_result(user_text, chat_log)
     if result is None:
-        return False
+        return None
 
-    url = result.get("url")
-    if not isinstance(url, str) or not url.startswith(("http://", "https://")):
-        return False
-
-    title = str(result.get("title") or "that recipe").strip() or "that recipe"
-    tool_input = llm.ToolInput(
-        tool_name="import_recipe_url",
-        tool_args={
-            "url": url,
-            "include_tags": True,
-            "include_categories": True,
-        },
-    )
-    assistant_content = conversation.AssistantContent(
-        agent_id=agent_id,
-        content=None,
-        tool_calls=[tool_input],
-        native={"source": "web_result_direct_import", "title": title, "url": url},
-    )
-
-    async for tool_result_content in chat_log.async_add_assistant_content(
-        assistant_content
-    ):
-        tool_result = getattr(tool_result_content, "tool_result", None)
-        if isinstance(tool_result, dict) and tool_result.get("success"):
-            recipe = tool_result.get("recipe")
-            imported_name = title
-            if isinstance(recipe, dict):
-                imported_name = str(recipe.get("name") or title)
-            chat_log.async_add_assistant_content_without_tools(
-                conversation.AssistantContent(
-                    agent_id=agent_id,
-                    content=f"Saved {imported_name} to Mealie.",
-                    native={
-                        "source": "web_result_direct_import",
-                        "tool_name": getattr(tool_result_content, "tool_name", None),
-                    },
-                )
-            )
-            return True
-
-        chat_log.async_add_assistant_content_without_tools(
-            conversation.AssistantContent(
-                agent_id=agent_id,
-                content=f"I tried to save {title} to Mealie, but the import failed.",
-                native={
-                    "source": "web_result_direct_import_failed",
-                    "tool_name": getattr(tool_result_content, "tool_name", None),
-                },
-            )
+    title = _clean_spoken_title(result.get("title")) or "that web recipe"
+    snippet = _clean_spoken_snippet(result.get("snippet"))
+    if RECIPE_INGREDIENTS_RE.search(user_text):
+        return (
+            f"I only have the web-search summary for {title}, not the full "
+            "ingredient list. Save it to Mealie first, or ask me to open the "
+            f"recipe page. The summary says: {snippet}"
         )
-        return True
 
-    return False
+    return (
+        f"I only have the web-search summary for {title}, not the full method. "
+        "Save it to Mealie first, or ask me to open the recipe page."
+    )
 
 
 def _extract_recipe_steps(recipe: dict[str, Any]) -> list[str]:
@@ -788,6 +1445,25 @@ def _first_result_matching(
     return None
 
 
+def _clean_spoken_title(value: Any) -> str:
+    """Return a concise title for spoken search results."""
+    title = str(value or "").strip()
+    title = re.sub(r"\s+", " ", title)
+    return title[:120]
+
+
+def _clean_spoken_snippet(value: Any) -> str:
+    """Return the first useful sentence from a web-search snippet."""
+    snippet = str(value or "").strip()
+    snippet = re.sub(r"\s+", " ", snippet)
+    snippet = re.sub(r"\s*\d+(?:\.\d+)?\s*[\u200b ]*\([^)]+\).*$", "", snippet)
+    for separator in (". ", "! ", "? "):
+        if separator in snippet:
+            snippet = snippet.split(separator, 1)[0] + separator.strip()
+            break
+    return snippet[:220]
+
+
 def _requested_step_number(user_text: str) -> int | None:
     """Return requested recipe step number, if present."""
     match = RECIPE_STEP_NUMBER_RE.search(user_text)
@@ -851,6 +1527,68 @@ def _extract_entity_names(value: Any) -> list[str]:
                 names.append(str(candidate))
 
     return names
+
+
+def _max_tokens_for_turn(
+    user_text: str,
+    tools: list[dict[str, Any]],
+    configured_max_tokens: int,
+) -> int:
+    """Use smaller voice budgets unless the turn clearly needs more text."""
+    if RECIPE_REPEAT_STEPS_RE.search(user_text):
+        return min(configured_max_tokens, 256)
+    if RECIPE_STEPS_RE.search(user_text) or RECIPE_INGREDIENTS_RE.search(user_text):
+        return min(configured_max_tokens, 192)
+    if tools:
+        return min(configured_max_tokens, 128)
+    if ASSIST_RE.search(user_text):
+        return min(configured_max_tokens, 96)
+    return min(configured_max_tokens, 160)
+
+
+def _compact_web_result(result: dict[str, Any]) -> dict[str, Any]:
+    """Return compact web result state safe for short-lived retention."""
+    return {
+        "title": _clean_spoken_title(result.get("title")),
+        "url": str(result.get("url") or "")[:500],
+        "snippet": _clean_spoken_snippet(result.get("snippet")),
+    }
+
+
+def _compact_recipe_details(recipe: dict[str, Any]) -> dict[str, Any]:
+    """Return compact active recipe details for state and prompt context."""
+    return {
+        "name": str(recipe.get("name") or "").strip(),
+        "slug": str(recipe.get("slug") or "").strip(),
+        "ingredients": _extract_recipe_ingredients(recipe)[:40],
+        "steps": _extract_recipe_steps(recipe)[:30],
+    }
+
+
+def _compact_shopping_result(tool_result: dict[str, Any]) -> dict[str, Any]:
+    """Return compact shopping-list tool result for prompt history."""
+    compact = {"success": tool_result.get("success")}
+    if "item" in tool_result:
+        compact["item"] = tool_result.get("item")
+    if "amount" in tool_result:
+        compact["amount"] = tool_result.get("amount")
+    items = tool_result.get("items")
+    if isinstance(items, list):
+        compact["items"] = [
+            item
+            for item in items[:12]
+            if isinstance(item, dict)
+        ]
+    return compact
+
+
+def _format_amount(value: Any) -> str:
+    """Return a compact spoken amount."""
+    if isinstance(value, int):
+        return str(value)
+    if isinstance(value, float):
+        return f"{value:g}"
+    return str(value)
 
 
 def _normalize_assistant_text(content: str) -> str:

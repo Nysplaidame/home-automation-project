@@ -3,7 +3,7 @@ title: Package Dependency Matrix
 description: Packages and tools required by host during rebuild
 tags: [install, packages, dependencies]
 created: 2026-05-24
-modified: 2026-06-10
+modified: 2026-07-06
 type: reference
 status: active
 ---
@@ -27,6 +27,7 @@ status: active
 | `ca-certificates curl gnupg` | Secure apt repositories | `apt-get install -y ca-certificates curl gnupg` | `curl --version` |
 | `ufw` | Host firewall | `apt-get install -y ufw` | `ufw status` |
 | `nfs-common` | Mount OMV NFS shares | `apt-get install -y nfs-common` | `showmount --version` |
+| `rsync` | Docker-host app-data backup copies to OMV and manual config copies | `apt-get install -y rsync` | `rsync --version` |
 | `docker-ce docker-ce-cli containerd.io docker-compose-plugin` | Docker Compose app runtime | Docker official apt repo install | `docker --version && docker compose version` |
 | `tailscale` | Daily remote access route host | Tailscale official install | `tailscale version` |
 

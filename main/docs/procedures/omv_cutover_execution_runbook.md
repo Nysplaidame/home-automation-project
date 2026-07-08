@@ -172,6 +172,14 @@ pct reboot 111
 pct exec 111 -- findmnt /mnt/nas/frigate
 ```
 
+For unprivileged CT 111, container root maps to host UID `100000`. If Frigate
+can see the NFS mount but logs `Permission denied` while creating dated
+recording folders, add a narrow ACL on the Proxmox-mounted export:
+
+```bash
+setfacl -m u:100000:rwx,d:u:100000:rwx /mnt/omv/frigate
+```
+
 Then update `/opt/frigate/docker-compose.yml` to use:
 
 `/mnt/nas/frigate:/media/frigate/recordings`

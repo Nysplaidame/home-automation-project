@@ -1,23 +1,25 @@
 flowchart LR
     HA["Home Assistant<br/>VM 100"]
-    Frigate["Frigate<br/>VM 101"]
+    Frigate["Frigate<br/>CT 111"]
     DockerHost["docker-host<br/>VM 103"]
     Immich["Immich<br/>on docker-host"]
+    Apps["Mealie / Grocy / LiveSync / GardenKeeper<br/>on docker-host"]
     OMV["OMV NAS<br/>192.168.40.50<br/>NFS/SMB shares"]
-    Proxmox["Proxmox host<br/>local fast recovery"]
+    Proxmox["Proxmox host<br/>omv-backups NFS storage"]
     Vault["Project vault<br/>Obsidian repo"]
     Offsite["Future offsite copy<br/>manual or automated"]
 
-    HA -->|"daily HA backups"| OMV
-    Frigate -->|"recording archive / media share"| OMV
+    HA -->|"daily HA backups<br/>nas_backups"| OMV
+    Frigate -.->|"future recording archive<br/>after camera rollout stabilizes"| OMV
     Immich -->|"library and upload storage"| OMV
-    DockerHost -->|"Compose configs and selected app data"| OMV
-    Proxmox -->|"local VM backups, short retention"| Proxmox
+    Apps -.->|"planned app-data/dump copy<br/>backups/docker-host"| OMV
+    DockerHost -->|"templates and stack configs<br/>Git + app-data plan"| Apps
+    Proxmox -->|"VM/CT vzdump backups<br/>7 daily + 6 monthly"| OMV
     Vault -->|"rsync/robocopy backup"| OMV
     OMV -.->|"periodic copy after restore plan exists"| Offsite
 
     SMART["OMV SMART monitoring<br/>disk health alerts"]
-    Restore["Restore drills<br/>HA, Frigate, Immich, router configs"]
+    Restore["Restore drills<br/>HA, Proxmox guests, app data, router configs"]
 
     OMV --> SMART
     OMV --> Restore

@@ -255,8 +255,8 @@ Pre-change snapshots/backups:
 - HA backup created before cutover:
   `pre-ha-native-tls-20260702-db-excluded`, slug `04da1c7d`, local location,
   database excluded.
-- `ha mounts info` reported no active Supervisor mounts, so the prior
-  `nas_backups` HA mount needs revalidation/restoration before relying on it.
+- `ha mounts info` reported no active Supervisor mounts. This was resolved on
+  2026-07-03 by restoring `nas_backups` and proving fresh backup writes.
 - Live config backup before cutover:
   `/config/configuration.yaml.pre-native-tls-20260702-104713`.
 
@@ -430,10 +430,11 @@ phone no longer needs to trust this project CA for MQTT/HA/local services.
   temporary CA private key used for signing was removed from CT 111 after
   certificate generation, and the container was recreated with
   `docker compose up -d frigate`.
-- Current recordings are local on CT 111: Frigate reports
+- Historical note from 2026-07-03, superseded by the 2026-07-07 OMV cutover:
+  recordings were local on CT 111 at this point. Frigate reported
   `/media/frigate/recordings` on ext4, backed by the Compose bind mount
   `/opt/frigate/storage:/media/frigate`. OMV recording storage remains a
-  future cutover.
+  future cutover in this older section.
 - First-camera IP cutover completed on 2026-07-03. The live router DHCP
   reservation for `D0:3B:F4:07:71:45` is `192.168.30.21`; the camera was
   rebooted through ISAPI, Frigate config was saved/restarted through the
@@ -466,3 +467,70 @@ phone no longer needs to trust this project CA for MQTT/HA/local services.
   behaving normally
 - Consider a later pass on deterrence features (light/sound alarm) and any
   feasible talkback path, but only after HA + Frigate viewing is settled
+
+## 2026-07-06 documentation, storage, and household-app cleanup
+
+- Frigate should not be treated as discarded or fully parked. Baseline as of
+  2026-07-06 before the OMV recording cutover:
+  CT 111 is live with one ANNKE C500 bench camera, HA integration, MQTT over TLS,
+  HTTPS UI, Advanced Camera Card, and local CT recording storage. This storage
+  note was superseded by the 2026-07-07 OMV recording cutover; broader camera
+  rollout remains near-term follow-up when the new cameras arrive.
+- OMV is live on VLAN 40. Proxmox reported `omv-backups` active at `54.21%`
+  used on 2026-07-05, clearing the old 86-87% md0 high-water warning.
+- The Proxmox LXC backup job for CT 111/114 now has `tmpdir=/var/tmp` because
+  unprivileged LXC backup could not enter the NFS-backed dump temp directory.
+  Manual proofs after the fix:
+  - CT 111: `vzdump-lxc-111-2026_07_05-23_11_08.tar.zst` (`23G`)
+  - CT 114: `vzdump-lxc-114-2026_07_06-00_13_59.tar.zst`, `15.30GB`,
+    completed in `00:23:30`, snapshot removed successfully
+- CT 114 backup proof emitted Proxmox thin-pool warnings about autoextend
+  protection and summed thin volume size. This did not block backup completion,
+  but `local-lvm` pressure should stay on the backup/maintenance checklist.
+- Docker-host household app health was checked through the Proxmox guest agent:
+  root filesystem `62%`, Immich OMV mount present, Mealie returned `200`, Grocy
+  returned `302`, and Obsidian LiveSync/CouchDB returned `401`.
+- Docs now define the missing docker-host app-data backup layer for Mealie
+  `/opt/stacks/mealie/data`, Grocy `/opt/stacks/grocy/config`, and Obsidian
+  LiveSync `/opt/stacks/obsidian-livesync/data`, plus GardenKeeper local dumps
+  at `/opt/stacks/gardenkeeper/backups`, targeting OMV `backups/docker-host`.
+  A read-only docker-host check confirmed the source paths exist at `15M`,
+  `4.2M`, `152K`, and `36K`, and `findmnt` showed only the existing Immich OMV
+  mount. Proxmox `showmount` confirmed OMV exports the docker-host backup path
+  to `192.168.20.102`; repo templates now exist for the rsync script and
+  systemd timer. The live `backups/docker-host` mount/job and restore smoke
+  remain verification tasks, not completed backup proof.
+- Remaining household-app work is operator/UI work, not repo automation:
+  replace and store Mealie admin credentials, replace Grocy admin credentials
+  and define the household data model, then roll Self-hosted LiveSync to both
+  Obsidian devices.
+
+## 2026-07-07 Frigate OMV recording cutover
+
+- Frigate recordings are no longer CT-local. Proxmox mounts
+  `192.168.40.50:/export/frigate` at `/mnt/omv/frigate` and persists it in
+  `/etc/fstab`.
+- CT 111 now has Proxmox mount point
+  `mp0: /mnt/omv/frigate,mp=/mnt/nas/frigate`.
+- Live `/opt/frigate/docker-compose.yml` now maps
+  `/mnt/nas/frigate:/media/frigate/recordings` while keeping
+  `/opt/frigate/storage:/media/frigate` for the broader Frigate media root and
+  fallback.
+- Because CT 111 is unprivileged, Frigate's container-root writes arrive at the
+  NFS export as host UID `100000`. The first cutover attempt mounted correctly
+  but Frigate logged `Permission denied` creating
+  `/media/frigate/recordings/2026-07-07`. Installing `acl` on Proxmox and
+  applying `setfacl -m u:100000:rwx,d:u:100000:rwx /mnt/omv/frigate` fixed CT
+  and container write tests.
+- Validation after the fix:
+  - Frigate container health: `healthy`
+  - Frigate API version: `0.17.1-416a9b7`
+  - `/media/frigate/recordings` reports NFS storage, about `15T` total and
+    `6.5T` free at validation time
+  - fresh MP4 segments appeared under
+    `/mnt/nas/frigate/2026-07-07/13/cam_01_annke_c500/`
+  - logs from the final two-minute check had no `Permission denied`, ffmpeg
+    frame-read, or recording-cache errors
+- Object detection remains disabled after the cutover; the next CCTV
+  fine-tuning step should re-enable detection in a controlled observation
+  window and start motion/zone calibration.
