@@ -106,6 +106,7 @@ status: active
 - [[docs/install/garage-pi-desktop-setup-guide.md]] — garage Raspberry Pi 5 desktop, NVMe, OLED, project access, and optional AI readiness
 - [[docs/install/oled-screen-setup-guide.md]] — 52Pi/GeeekPi case OLED setup and `minitower_oled.service`
 - [[docs/diagrams/README.md]] — canonical install and architecture diagram library
+- [[docs/install/services/mermaid-viewer.md]] — draft internal Mermaid diagram browser for canonical `.mermaid` sources
 - [[docs/install/reference/command-location-legend.md]] — where every command runs
 - [[docs/install/reference/secrets-placeholder-ledger.md]] — central placeholder and secret ledger
 - [[docs/install/reference/package-dependency-matrix.md]] — packages, hosts, install commands, verification commands

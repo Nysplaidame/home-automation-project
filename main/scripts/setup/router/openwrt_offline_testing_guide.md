@@ -202,7 +202,7 @@ netstat -ulnp | grep :67
 ```bash
 # Should show DHCP server configs for:
 dhcp.lan, dhcp.management, dhcp.automation,
-dhcp.nvr, dhcp.printers, dhcp.storage, dhcp.iot_sensors,
+dhcp.nvr, dhcp.printers, dhcp.storage, dhcp.HomeIoT,
 dhcp.monitoring, dhcp.dmz, dhcp.guest
 ```
 
@@ -436,7 +436,7 @@ iptables -L -n -v
 ```
 
 **Expected Zones:**
-- wan, lan, management, automation, nvr, printers, storage, iot_sensors
+- wan, lan, management, automation, nvr, printers, storage, HomeIoT
 - monitoring, dmz, guest, vpn_clients
 
 **✅ SUCCESS CRITERIA:**

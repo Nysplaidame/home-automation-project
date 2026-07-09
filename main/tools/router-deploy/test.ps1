@@ -77,7 +77,7 @@ foreach ($vlan in @(1,10,20,30,35,40,50,60,70,99)) {
 }
 
 # DHCP scopes present
-foreach ($iface in @("lan","management","automation","nvr","printers","storage","iot_sensors","monitoring","dmz","guest")) {
+foreach ($iface in @("lan","management","automation","nvr","printers","storage","HomeIoT","monitoring","dmz","guest")) {
     Run-Check -Name "DHCP scope $iface" -Command "uci show dhcp.$iface 2>/dev/null || true" -MatchRegex "dhcp\.$iface="
 }
 
@@ -119,7 +119,7 @@ Run-Check -Name "DNS upstream first is AdGuard" -Command "uci -q get dhcp.@dnsma
 Run-Check -Name "DNS fallback includes Quad9" -Command "uci -q get dhcp.@dnsmasq[0].server | tr ' ' '\n' | grep -Fx '9.9.9.9' || true" -MatchRegex "^9\.9\.9\.9$"
 Run-Check -Name "DNS fallback excludes Google" -Command "uci -q get dhcp.@dnsmasq[0].server | tr ' ' '\n' | grep -E '^(8\.8\.8\.8|8\.8\.4\.4)$' || echo NO_GOOGLE" -MatchRegex "^NO_GOOGLE$"
 Run-Check -Name "DNS strict order enabled" -Command "uci -q get dhcp.@dnsmasq[0].strictorder || true" -MatchRegex "^1$"
-Run-Check -Name "IoT DHCP option 42 absent" -Command "uci -q get dhcp.iot_sensors.dhcp_option | tr ' ' '\n' | grep -E '^42(,|$)' || echo NO_OPTION_42" -MatchRegex "^NO_OPTION_42$"
+Run-Check -Name "IoT DHCP option 42 absent" -Command "uci -q get dhcp.HomeIoT.dhcp_option | tr ' ' '\n' | grep -E '^42(,|$)' || echo NO_OPTION_42" -MatchRegex "^NO_OPTION_42$"
 
 # Router-local NTP
 Run-Check -Name "Router NTP server enabled" -Command "e=`$(uci -q get system.ntp.enabled || true); s=`$(uci -q get system.ntp.enable_server || true); [ `"`$e`" = `"1`" ] && [ `"`$s`" = `"1`" ] && echo NTP_ENABLED || true" -MatchRegex "NTP_ENABLED"
@@ -139,8 +139,8 @@ $criticalRules = @(
     "Allow DNS input printers",
     "Allow DHCP input storage",
     "Allow DNS input storage",
-    "Allow DHCP input iot_sensors",
-    "Allow DNS input iot_sensors",
+    "Allow DHCP input HomeIoT",
+    "Allow DNS input HomeIoT",
     "Allow DHCP input monitoring",
     "Allow DNS input monitoring",
     "Allow DHCP input dmz",

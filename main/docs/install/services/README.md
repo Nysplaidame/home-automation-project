@@ -29,6 +29,7 @@ only candidates.
 - [immich.md](immich.md) — preflight-live with OMV media mount, real-library import still gated
 - [homepage.md](homepage.md) — preflight-live service dashboard
 - [dozzle.md](dozzle.md) — preflight-live log viewer with host-firewall scoping
+- [mermaid-viewer.md](mermaid-viewer.md) — draft internal Mermaid diagram browser
 
 ## Tier 2
 

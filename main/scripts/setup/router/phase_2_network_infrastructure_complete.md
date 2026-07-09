@@ -24,7 +24,7 @@ Implements DSA-based VLAN infrastructure creating 10 isolated network segments. 
 - **Phase 3**: DHCP requires network interfaces to exist
 - **Phase 4**: Firewall zones reference these network names
 - **Phase 5**: Wireless SSIDs map to these VLANs
-- **VentSys**: VLANs 20 (automation) and 50 (iot_sensors) critical
+- **VentSys**: VLANs 20 (automation) and 50 (HomeIoT) critical
 
 ## Critical Configuration Notes
 
@@ -284,11 +284,11 @@ uci set network.storage.ipaddr='192.168.40.1'
 uci set network.storage.netmask='255.255.255.0'
 
 # IoT Sensors VLAN 50
-uci set network.iot_sensors=interface
-uci set network.iot_sensors.proto='static'
-uci set network.iot_sensors.device='br-lan.50'
-uci set network.iot_sensors.ipaddr='192.168.50.1'
-uci set network.iot_sensors.netmask='255.255.255.0'
+uci set network.HomeIoT=interface
+uci set network.HomeIoT.proto='static'
+uci set network.HomeIoT.device='br-lan.50'
+uci set network.HomeIoT.ipaddr='192.168.50.1'
+uci set network.HomeIoT.netmask='255.255.255.0'
 
 # Monitoring VLAN 60
 uci set network.monitoring=interface
@@ -504,7 +504,7 @@ cat /tmp/phase2_validation.txt
 - **Bridge configuration functional**: DSA bridge with STP enabled, IGMP snooping active
 - **Physical port assignments correct**: Proxmox trunk, managed-switch trunk, management, and LAN/recovery ports configured
 - **WAN connectivity preserved**: Internet access maintained through configuration changes
-- **VentSys readiness**: VLANs 20 (automation) and 50 (iot_sensors) ready for HA and IoT integration
+- **VentSys readiness**: VLANs 20 (automation) and 50 (HomeIoT) ready for HA and IoT integration
 - **Network routing operational**: All VLANs can reach their respective gateways
 
 ## Failure Recovery Procedures
