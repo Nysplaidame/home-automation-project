@@ -72,6 +72,9 @@ snapshots:
 cameras:
   cam_01_annke_c500:
     detect:
+      # First-camera baseline: ingest and recording are live, but object
+      # detection stays intentionally disabled until the camera/GPU window.
+      enabled: false
       width: 1280
       height: 720
       fps: 10

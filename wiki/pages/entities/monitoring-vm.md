@@ -3,7 +3,7 @@ title: "Monitoring VM"
 category: entity
 tags: [software, monitoring, grafana, proxmox, influxdb, uptime-kuma, telegraf]
 created: 2026-04-07
-updated: 2026-05-31
+updated: 2026-07-10
 sources: [proxmox-setup-guide, project-readme, project-todo]
 status: stable
 ---
@@ -54,6 +54,9 @@ same-origin HTTPS/reverse-proxy path is designed and tested.
 - docker-host now advertises mobile Tailscale access for Grafana/Kuma through
   `192.168.60.10/32` and allows only routed ports `3000` and `3001`; route
   approval and mobile-data retest may still be required.
+- `monitoring-docker-firewall.service` now enforces Docker-published Grafana,
+  Uptime Kuma, InfluxDB, and syslog ports with source-specific `DOCKER-USER`
+  rules; it is enabled for reboot persistence.
 - A 2026-05-31 datasource check found the high unlabeled VM percentages on the
   Proxmox dashboard are Proxmox guest-memory values, not CPU or disk saturation.
   Current samples were about `98%` for Home Assistant, `91%` for docker-host,
@@ -71,6 +74,8 @@ same-origin HTTPS/reverse-proxy path is designed and tested.
 
 ## Change Log
 
+- 2026-07-10: Added persistent Docker published-port enforcement and proved
+  representative allow/deny paths for Grafana, Uptime Kuma, and InfluxDB.
 - 2026-05-30: Added Proxmox/docker-host metrics, architecture dashboards, Uptime Kuma/Fail2ban exporters, external HA health state, and direct-link monitoring posture.
 - 2026-05-31: Applied docker-host route/firewall side for mobile Grafana/Kuma access, re-exported `Proxmox Resource Overview`, and clarified that high Proxmox VM percentages are guest-memory values.
 - 2026-05-18: Corrected stale planned-state page. VM 102 is live with Grafana, InfluxDB, Telegraf, and Uptime Kuma.

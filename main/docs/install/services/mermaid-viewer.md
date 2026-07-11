@@ -28,6 +28,18 @@ sources under `docs/diagrams/`.
 /opt/stacks/mermaid-viewer/
 ```
 
+## Rebuildable template
+
+```text
+configs/docker-host/stacks/mermaid-viewer/
+```
+
+Live layout:
+
+```text
+/opt/stacks/mermaid-viewer/
+```
+
 ## Minimal architecture
 
 - Static HTML/CSS/JS frontend.
@@ -40,11 +52,37 @@ sources under `docs/diagrams/`.
 - `main/apps/mermaid-viewer/index.html`
 - `main/apps/mermaid-viewer/styles.css`
 - `main/apps/mermaid-viewer/app.js`
-- `main/apps/mermaid-viewer/diagram-index.json`
+- `main/apps/mermaid-viewer/diagram-data.js`
+- `main/apps/mermaid-viewer/package.json`
+- `main/apps/mermaid-viewer/scripts/build.mjs`
+- `main/apps/mermaid-viewer/Dockerfile`
+- `main/apps/mermaid-viewer/nginx.conf`
+- `main/apps/mermaid-viewer/packaging/docker-compose.yml`
+- `main/configs/docker-host/stacks/mermaid-viewer/docker-compose.yml`
+- `main/configs/docker-host/stacks/mermaid-viewer/nginx.conf`
+- `main/configs/docker-host/stacks/mermaid-viewer/README.md`
+
+## Build steps
+
+```sh
+cd main/apps/mermaid-viewer
+npm install
+npm run build
+```
+
+The build copies Mermaid into `vendor/` so the viewer does not need a CDN or
+runtime internet access.
+
+## Deployment
+
+1. Build the app in `main/apps/mermaid-viewer`.
+2. Copy `dist/` into `/opt/stacks/mermaid-viewer/`.
+3. Start the container with `docker compose up -d` from the stack directory.
 
 ## Notes
 
-- The viewer should serve the source files from `docs/diagrams/`.
+- The viewer uses bundled diagram data for browser compatibility under `file://`
+  and uses a local Mermaid bundle when deployed.
 - No editing or file write-back is planned.
 - The viewer should stay behind the same internal trust boundary as other
   docker-host apps.

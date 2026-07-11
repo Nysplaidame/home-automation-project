@@ -186,3 +186,13 @@
 - Canonical docs/configs were cleaned for stale router, MQTT, Frigate, VentSys, and local-AI references.
 - Pages updated: [[entities/gl-mt6000]], [[entities/frigate]], [[entities/mosquitto-mqtt]], [[index]]
 - Notes: Router wiki now matches the managed-switch port topology; Frigate wiki records the `mqtt.enabled: false` / `cameras: {}` baseline; MQTT wiki treats plaintext `1883` as a documented temporary recovery/bootstrap exception only.
+
+## [2026-07-10] update | VLAN 50 router source/live reconciliation
+- Canonical router source now uses the live internal `iot_sensors` identifier for VLAN 50 while preserving the public `HomeIoT` SSID.
+- Pages updated: [[entities/gl-mt6000]]
+- Notes: Full-profile read-only router validation passed; no router deployment occurred.
+
+## [2026-07-10] update | Docker published-port enforcement
+- Docker-host and monitoring Docker-published ports now use persistent, source-scoped `DOCKER-USER` policies with rollback snapshots and representative allow/deny proofs.
+- Pages updated: [[entities/docker-host]], [[entities/monitoring-vm]]
+- Notes: Tailscale identity/ACL proof remains owner-supervised; no broad port exposure was introduced.

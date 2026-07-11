@@ -1,0 +1,76 @@
+flowchart LR
+    Internet["Upstream internet router / modem<br/>physical upstream device; model not recorded"]
+
+    subgraph RouterPorts["router: GL.iNet GL-MT6000"]
+        direction TB
+        WAN["wan<br/>Live: upstream DHCP"]
+        LAN1["lan1<br/>Live: tagged trunk 10,20,30,35,40,50,60,70"]
+        LAN2["lan2<br/>Unconnected: reserved VLAN 10 management"]
+        LAN3["lan3<br/>Live: tagged trunk 1,10,30,40"]
+        LAN4["lan4<br/>Unconnected: reserved VLAN 10 admin PC"]
+        LAN5["lan5<br/>Unconnected: reserved VLAN 1 recovery"]
+    end
+
+    MiniPC["proxmox<br/>MINISFORUM M1 Pro-125H mini PC<br/>192.168.10.10<br/>hosts production VMs and CTs"]
+
+    subgraph SwitchPorts["gs1900-switch: Zyxel GS1900-8HP | 192.168.10.12"]
+        direction TB
+        SW1["port 1<br/>Live: router trunk VLANs 1,10,30,40"]
+        SW2["port 2<br/>Live: PoE VLAN 30 camera"]
+        SW3["port 3<br/>Reserved: PoE VLAN 30 camera"]
+        SW4["port 4<br/>Reserved: PoE VLAN 30 camera"]
+        SW5["port 5<br/>Reserved: PoE VLAN 30 camera"]
+        SW6["port 6<br/>Reserved: PoE VLAN 30 camera"]
+        SW7["port 7<br/>Reserved: PoE VLAN 30 camera"]
+        SW8["port 8<br/>Live: untagged VLAN 40 OMV"]
+    end
+
+    NAS["omvnas<br/>OpenMediaVault NAS hardware<br/>192.168.40.50"]
+    RouterRadio["router Wi-Fi radios<br/>2.4 GHz and 5 GHz"]
+    Camera1["cam-01-annke-c500<br/>ANNKE C500 / I51HJ<br/>192.168.30.21"]
+    CameraFuture["cam-02 through cam-06<br/>future PoE cameras"]
+    Admin["Admin workstation / laptop<br/>wired only when needed"]
+    Recovery["Recovery laptop<br/>wired only when needed"]
+
+    Internet -->|"Ethernet"| WAN
+    LAN1 -->|"CAT6"| MiniPC
+    LAN3 -->|"CAT6"| SW1
+    SW8 -->|"CAT6"| NAS
+    SW2 -->|"CAT6 + PoE"| Camera1
+    SW3 -.-> CameraFuture
+    SW4 -.-> CameraFuture
+    SW5 -.-> CameraFuture
+    SW6 -.-> CameraFuture
+    SW7 -.-> CameraFuture
+    LAN2 -.-> Admin
+    LAN4 -.-> Admin
+    LAN5 -.-> Recovery
+
+    subgraph WiFiDevices["Wireless physical devices"]
+        Mobile["operator-mobile<br/>Android phone<br/>HomeMain/HomeAdmin Wi-Fi or Tailscale"]
+        P1S["p1s<br/>Bambu Lab P1S<br/>192.168.35.200; HomePrinters Wi-Fi"]
+        IoT["Future VentSys ESPHome, smart plugs, sensors<br/>HomeIoT Wi-Fi; hardware pending"]
+        Guest["Guest devices<br/>HomeGuest Wi-Fi"]
+    end
+    RouterRadio -.-> WAN
+    RouterRadio -.->|"Wi-Fi"| Mobile
+    RouterRadio -.->|"HomePrinters Wi-Fi"| P1S
+    RouterRadio -.->|"HomeIoT Wi-Fi"| IoT
+    RouterRadio -.->|"HomeGuest Wi-Fi"| Guest
+
+    Note["Switch capacity: port 1 uplink + port 8 NAS + ports 2-7 six cameras.<br/>No switch port remains for the TL-WA801N extender; add a second/larger switch if needed."]
+    SW1 -.-> Note
+
+    classDef core fill:#e8a349,stroke:#6e4315,color:#1c1c1c,stroke-width:2px
+    classDef compute fill:#81b29a,stroke:#2f6654,color:#102c24,stroke-width:2px
+    classDef storage fill:#c9b1d1,stroke:#664873,color:#281630,stroke-width:2px
+    classDef endpoint fill:#9ec1cf,stroke:#376a7a,color:#102a32
+    classDef future fill:#ececec,stroke:#777777,color:#444444,stroke-dasharray: 5 5
+    class WAN,LAN1,LAN3,SW1,SW2,SW8,RouterRadio core
+    class MiniPC compute
+    class NAS storage
+    class Camera1,Mobile,P1S,Guest endpoint
+    class LAN2,LAN4,LAN5,SW3,SW4,SW5,SW6,SW7,CameraFuture,IoT,Admin,Recovery,Note future
+    style RouterPorts fill:#fff4dd,stroke:#a67020,stroke-width:2px
+    style SwitchPorts fill:#fff4dd,stroke:#a67020,stroke-width:2px
+    style WiFiDevices fill:#f3f8ff,stroke:#7a9db8,stroke-width:1px

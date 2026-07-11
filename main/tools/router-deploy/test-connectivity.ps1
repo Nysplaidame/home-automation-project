@@ -67,7 +67,7 @@ $VlanDefs = @(
     @{ VID = 30; UCI = "nvr";         Label = "NVR"         },
     @{ VID = 35; UCI = "printers";    Label = "Printers"    },
     @{ VID = 40; UCI = "storage";     Label = "Storage"     },
-    @{ VID = 50; UCI = "HomeIoT"; Label = "IoT Sensors" },
+    @{ VID = 50; UCI = "iot_sensors"; Label = "IoT Sensors" },
     @{ VID = 60; UCI = "monitoring";  Label = "Monitoring"  },
     @{ VID = 70; UCI = "dmz";         Label = "DMZ"         },
     @{ VID = 99; UCI = "guest";       Label = "Guest"       }
@@ -211,7 +211,7 @@ Run-Check `
 
 # Each zone must have at least an input or forward chain in the active ruleset.
 foreach ($zone in @("lan", "management", "automation", "nvr", "printers",
-                    "storage", "HomeIoT", "monitoring", "dmz", "guest", "wan")) {
+                    "storage", "iot_sensors", "monitoring", "dmz", "guest", "wan")) {
     Run-Check `
         -Name "nft chains present for zone '$zone'" `
         -Command "nft list ruleset 2>/dev/null | grep -cE '^[[:space:]]*chain (input|forward)_$zone' || echo 0" `
@@ -227,7 +227,7 @@ Run-Check `
 
 # Restricted client zones still need router-originated replies for DHCP, DNS,
 # NTP, and local services allowed by explicit input rules.
-foreach ($zone in @("automation", "nvr", "printers", "storage", "HomeIoT",
+foreach ($zone in @("automation", "nvr", "printers", "storage", "iot_sensors",
                     "monitoring", "dmz", "guest", "vpn_clients")) {
     $outputCmd = @"
 IDX=`$(uci show firewall | sed -n "s/^firewall\.@zone\[\([0-9]\+\)\]\.name='$zone'$/\1/p" | head -n 1)
@@ -312,7 +312,7 @@ function Test-IotAutomationPolicy {
     # IoT sensors have one deliberate exception to Home Assistant MQTT/TLS,
     # followed by broad rejects to the automation zone.
     $cmd = @"
-CHAIN=`$(nft list chain inet fw4 forward_HomeIoT 2>/dev/null)
+CHAIN=`$(nft list chain inet fw4 forward_iot_sensors 2>/dev/null)
 MQTT=`$(printf '%s\n' "`$CHAIN" | grep -c 'ip daddr 192\.168\.20\.101 tcp dport 8883.*accept_to_automation')
 REJECT_TCP=`$(printf '%s\n' "`$CHAIN" | grep -c 'meta l4proto tcp.*reject_to_automation')
 REJECT_UDP=`$(printf '%s\n' "`$CHAIN" | grep -c 'meta l4proto udp.*reject_to_automation')
@@ -323,7 +323,7 @@ else
 fi
 "@
     Run-Check `
-        -Name "nft HomeIoT -> automation : constrained HA MQTT only" `
+        -Name "nft iot_sensors -> automation : constrained HA MQTT only" `
         -Command $cmd `
         -MatchRegex "^CONSTRAINED_IOT_TO_HA_ONLY"
 }
@@ -334,11 +334,11 @@ Test-ZoneForward -SrcZone "management" -DstZone "wan"        -Expected "ACCEPT"
 Test-ZoneForward -SrcZone "automation" -DstZone "wan"        -Expected "ACCEPT" -WarnOnly
 
 # Isolated pairs — verify NO accept_to_<dst> jump (traffic falls through to default reject)
-Test-ZoneForward -SrcZone "HomeIoT"     -DstZone "lan"        -Expected "BLOCK"
+Test-ZoneForward -SrcZone "iot_sensors" -DstZone "lan"        -Expected "BLOCK"
 Test-IotAutomationPolicy
 Test-ZoneForward -SrcZone "guest"       -DstZone "lan"        -Expected "BLOCK"
 Test-ZoneForward -SrcZone "guest"       -DstZone "management" -Expected "BLOCK"
-Test-ZoneForward -SrcZone "guest"       -DstZone "HomeIoT"     -Expected "BLOCK"
+Test-ZoneForward -SrcZone "guest"       -DstZone "iot_sensors" -Expected "BLOCK"
 Test-ZoneForward -SrcZone "dmz"         -DstZone "lan"        -Expected "BLOCK"
 Test-ZoneForward -SrcZone "dmz"         -DstZone "automation" -Expected "BLOCK"
 

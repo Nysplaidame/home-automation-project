@@ -4,7 +4,7 @@
 > Updated after every ingest, query (if filed), or lint pass.
 
 **Stats:** 25 sources - 22 entities - 7 concepts - 3 analyses
-**Last updated:** 2026-06-29
+**Last updated:** 2026-07-10
 
 ---
 

@@ -1,0 +1,45 @@
+flowchart TD
+  WAN["Upstream router / Internet"] --> OW["OpenWrt routing, DNS, NTP and ACLs"]
+  OW --> SW["Managed switch VLANs, trunks and PoE"]
+  SW --> PVE["Proxmox host"]
+  SW --> OMV["OMV RAID1 / NFS / SMB"]
+  SW --> CAM["Camera VLAN"]
+  SW --> CLIENTS["Local clients"]
+
+  PVE --> HA["VM 100: Home Assistant"]
+  PVE --> MON["VM 102: Monitoring"]
+  PVE --> DOCKER["VM 103: Docker host"]
+  PVE --> FRIGATE["CT 111: Frigate"]
+  PVE --> AI["CT 114: Local AI and voice"]
+
+  CAM -->|"RTSP / ISAPI"| FRIGATE
+  HA -->|"MQTT TLS"| IOT["ESPHome / HomeIoT"]
+  FRIGATE -->|"MQTT TLS and API"| HA
+  FRIGATE -->|"Recordings NFS"| OMV
+  HA -->|"Native backups NFS"| OMV
+  DOCKER -->|"App-data and Immich NFS"| OMV
+  PVE -->|"vzdump NFS"| OMV
+
+  HA -->|"Conversation and Wyoming"| AI
+  AI --> GPU["Shared iGPU / memory domain"]
+  FRIGATE --> GPU
+  MON -->|"Kuma / Grafana / Influx / ntfy"| HA
+  MON --> DOCKER
+  MON --> FRIGATE
+  MON --> AI
+
+  TS["Tailscale control plane"] -->|"Approved /32 routes and grants"| DOCKER
+  REMOTE["Remote clients"] --> TS
+  DOCKER --> OW
+
+  POWER["Power / UPS - unproved"] -.-> OW
+  POWER -.-> SW
+  POWER -.-> PVE
+  POWER -.-> OMV
+
+  classDef failed fill:#5f1111,color:#fff,stroke:#ff6b6b;
+  classDef blocked fill:#5a4300,color:#fff,stroke:#ffd166;
+  classDef risk fill:#3b315c,color:#fff,stroke:#c9b8ff;
+  class DOCKER,OMV failed;
+  class SW,TS,POWER blocked;
+  class FRIGATE,AI,MON risk;

@@ -3,7 +3,7 @@ title: Current Live State
 description: Canonical inventory of deployed hosts, services, and deliberately deferred components
 tags: [reference, current-state, infrastructure]
 created: 2026-06-20
-modified: 2026-07-07
+modified: 2026-07-10
 type: reference
 status: active
 ---
@@ -13,7 +13,7 @@ status: active
 This is the canonical current-state inventory. Rebuild manuals describe how to
 build from blank and must link here rather than duplicating live-status claims.
 
-Last verified: **2026-07-07**.
+Last verified: **2026-07-10**.
 
 ## Compute
 
@@ -30,6 +30,16 @@ Last verified: **2026-07-07**.
 VM 101 and VM 104 are retained temporarily as rollback points. Production DNS
 and static addresses belong to CT 111 and CT 114. Never start either retired VM
 while its replacement LXC is running.
+
+## Network and router
+
+- The live OpenWrt VLAN 50 internal identifier is `iot_sensors` for its UCI
+  interface, DHCP scope, firewall zone, Wi-Fi attachment, and nft chains; the
+  public 2.4 GHz SSID remains `HomeIoT`.
+- On 2026-07-10, repository router source/tooling was reconciled to this live
+  identifier without a router deployment. Read-only full-profile validation
+  passed: `test.ps1` `PASS=87 WARN=0 FAIL=0` and `test-connectivity.ps1`
+  `PASS=85 WARN=0 FAIL=0` against `192.168.10.1`.
 
 ## Home Assistant
 
@@ -80,6 +90,10 @@ while its replacement LXC is running.
   with RTSP and MQTT secrets represented only as environment placeholders.
   `configs/frigate/config-baseline.yml` remains the no-camera migration-safe
   fallback.
+- The first-camera baseline deliberately has object detection disabled while
+  ingest, motion, snapshots and OMV-backed recording remain live. The OpenVINO
+  detector container process is therefore present but camera detection FPS is
+  expected to be zero until a separately approved camera/GPU test window.
 - HA validates Frigate API version/stats and sees the first camera through the
   Frigate integration.
 - Frigate HTTPS UI is live on `https://192.168.30.20:8971`; auth is enabled.
@@ -92,8 +106,9 @@ while its replacement LXC is running.
   and Apple browsers should not show the local certificate as untrusted.
 - Direct Frigate PWA access off-WiFi is staged through docker-host Tailscale as
   a narrow `192.168.30.20/32` route with firewall access only to authenticated
-  HTTPS port `8971`. The route still needs Tailscale admin-console approval and
-  mobile-data validation before it is treated as complete.
+  HTTPS port `8971`. Tailscale policy now permits only `oneplus-9-pro`
+  (`100.105.216.6`) to reach that route and the three other explicitly approved
+  home routes; the approved-route mobile-data test passed on 2026-07-11.
 - Recordings now write to OMV NFS storage. Proxmox mounts
   `192.168.40.50:/export/frigate` at `/mnt/omv/frigate`, CT 111 has
   `mp0: /mnt/omv/frigate,mp=/mnt/nas/frigate`, and Frigate maps
@@ -104,6 +119,11 @@ while its replacement LXC is running.
   non-recording data. The OMV export has an ACL for host UID `100000`, which is
   CT 111's unprivileged root mapping; without that ACL Frigate could mount the
   export but could not create dated recording folders.
+- On 2026-07-10, the disposable pre-OMV footage under
+  `/opt/frigate/storage/recordings` was removed only after confirming active
+  OMV recording writes. CT 111 root use fell from 93% to 26% (`23G` free).
+  The LXC's thin LV still reports 99.81% allocation because in-container trim
+  is not permitted, so host-side thin-allocation monitoring remains required.
 - Dormant NFS client/RPC units remain disabled inside CT 111 because the CT
   does not mount NFS directly.
 
@@ -151,8 +171,12 @@ monitor-only and Telegraf. VM 103 has a 64 GiB virtual disk.
 - Obsidian LiveSync/CouchDB returned `HTTP/1.1 401 Unauthorized` on
   `127.0.0.1:5984`.
 
-Immich now uses the OMV-backed NFS mount at `/mnt/omv/immich` for uploads and
+Immich uses the OMV-backed NFS mount at `/mnt/omv/immich` for uploads and
 library storage. Its database remains local under `/opt/stacks/immich/postgres`.
+After the failed boot-time mount was recovered on 2026-07-10, the live fstab
+uses a bounded NFSv3 systemd automount; the intended media tree mounted and
+Immich returned healthy with local API HTTP 200. A fresh compressed PostgreSQL
+dump was placed on OMV `backups/docker-host` before recovery.
 Mealie, Grocy, Obsidian LiveSync, and GardenKeeper now have documented
 app-data or dump backup source paths targeting OMV `backups/docker-host`. A
 read-only docker-host check on 2026-07-06 confirmed the source directories
@@ -176,6 +200,10 @@ registry mirror and Node-RED remain decision-gated candidates.
 ## Monitoring
 
 - Uptime Kuma, InfluxDB, Grafana and Telegraf are live on VM 102.
+- Docker-published ports on VM 102 are enforced by the enabled
+  `monitoring-docker-firewall.service`: Grafana/Kuma allow only Management,
+  HA health checks, and Tailscale clients; InfluxDB allows Management, HA, and
+  docker-host Telegraf; router syslog UDP/514 remains router-only.
 - Proxmox, HA, docker-host, DNS, core apps and local-AI endpoints are monitored.
 - Alert routing through ntfy exists for configured Kuma monitors.
 - OMV NFS TCP 2049 and Proxmox storage pressure are checked by
@@ -188,10 +216,15 @@ registry mirror and Node-RED remain decision-gated candidates.
 - OMV is live on Storage VLAN 40 at `192.168.40.50`.
 - Final backup storage lives on md0 at
   `/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/`.
-- Frigate/NVR recordings target md0 at
-  `/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/CCTV/`.
+- Frigate/NVR recordings target the md0-backed `/export/frigate` NFS export.
 - OMV exports NFS paths for Proxmox backups, HA backups, docker-host backups,
   config backups, Immich DB backups, Immich media, and Frigate/NVR recordings.
+- OMV's native Transfer Portal was repaired on 2026-07-10. Its systemd service
+  binds to `192.168.40.50:8088`, is stable after the prior obsolete-address
+  restart loop, and has least-scope destination ACL access for its
+  `transferportal` service account. The source and destination mounts remain
+  active; an authenticated browse/preview and approved test transfer remain
+  outstanding.
 - The Frigate export is mounted on the Proxmox host and bind-mounted into CT
   111 for recordings. CT 111 remains unprivileged and must not mount NFS
   directly.

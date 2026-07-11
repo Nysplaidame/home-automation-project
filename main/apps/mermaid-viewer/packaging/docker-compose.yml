@@ -1,0 +1,10 @@
+services:
+  mermaid-viewer:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: mermaid-viewer
+    restart: unless-stopped
+    ports:
+      - "8092:80"
+

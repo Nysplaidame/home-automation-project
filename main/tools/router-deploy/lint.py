@@ -82,7 +82,7 @@ def required_sections_check(files: dict[str, list]) -> None:
     domains = get_domains(dhcp)
     wifi_ifaces = get_wifi_ifaces(wifi)
 
-    required_interfaces = {"lan", "management", "automation", "nvr", "printers", "storage", "HomeIoT", "monitoring", "dmz", "guest"}
+    required_interfaces = {"lan", "management", "automation", "nvr", "printers", "storage", "iot_sensors", "monitoring", "dmz", "guest"}
     missing_ifaces = required_interfaces - set(interfaces)
     if missing_ifaces:
         err("vlan-config.conf", f"missing required interfaces: {sorted(missing_ifaces)}")
@@ -90,7 +90,7 @@ def required_sections_check(files: dict[str, list]) -> None:
     if len(bridge_vlans) < 10:
         err("vlan-config.conf", f"expected at least 10 bridge-vlan sections, found {len(bridge_vlans)}")
 
-    required_zones = {"wan", "lan", "management", "automation", "nvr", "printers", "storage", "HomeIoT", "monitoring", "dmz", "guest", "vpn_clients"}
+    required_zones = {"wan", "lan", "management", "automation", "nvr", "printers", "storage", "iot_sensors", "monitoring", "dmz", "guest", "vpn_clients"}
     missing_zones = required_zones - set(zones)
     if missing_zones:
         err("firewall-config.conf", f"missing required zones: {sorted(missing_zones)}")
@@ -291,11 +291,11 @@ def architecture_policy_check(files: dict[str, list]) -> None:
         err("dhcp-config.conf", "dnsmasq strictorder must stay enabled for AdGuard-first fallback behavior")
 
     scopes = get_dhcp_scopes(dhcp)
-    iot = scopes.get("HomeIoT")
+    iot = scopes.get("iot_sensors")
     if iot:
         ntp_options = [opt for opt in iot.get_list("dhcp_option") if opt.startswith("42,") or opt == "42"]
         if ntp_options:
-            err("dhcp-config.conf", "HomeIoT must not receive DHCP option 42; ESPHome time comes from HA")
+            err("dhcp-config.conf", "iot_sensors must not receive DHCP option 42; ESPHome time comes from HA")
 
     domains = {d.get("name"): d.get("ip") for d in get_domains(dhcp)}
     required_domains = {

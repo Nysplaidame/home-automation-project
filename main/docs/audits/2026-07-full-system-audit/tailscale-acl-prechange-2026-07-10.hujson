@@ -1,0 +1,21 @@
+// Rollback baseline captured from the active Tailscale policy before F-010 remediation.
+// Restoring this re-enables unrestricted Tailnet connectivity; use only for an emergency rollback.
+{
+  "grants": [
+    { "src": ["*"], "dst": ["*"], "ip": ["*"] },
+  ],
+  "ssh": [
+    {
+      "action": "check",
+      "src": ["autogroup:member"],
+      "dst": ["autogroup:self"],
+      "users": ["autogroup:nonroot", "root"],
+    },
+  ],
+  "nodeAttrs": [
+    {
+      "target": ["autogroup:member"],
+      "attr": ["funnel"],
+    },
+  ],
+}

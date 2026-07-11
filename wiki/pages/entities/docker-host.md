@@ -3,7 +3,7 @@ title: "Docker Host (VM 103)"
 category: entity
 tags: [software, docker, proxmox, bambuddy, apt-cache, tailscale, monitoring, fail2ban]
 created: 2026-05-08
-updated: 2026-05-31
+updated: 2026-07-10
 sources: [project-readme, project-todo]
 status: stable
 ---
@@ -81,6 +81,9 @@ Grafana and Uptime Kuma should use routed access to the monitoring VM on ports
   `main/configs/docker-host/system/docker-host-fail2ban-sshd.local`.
 - Rebuildable routed UFW allowances for monitoring mobile access live at
   `main/configs/docker-host/system/docker-host-ufw-route-monitoring-tailscale.sh`.
+- `docker-host-firewall.service` enforces source-scoped `DOCKER-USER` rules
+  for every currently published Docker port. IPv6-published services are
+  Tailscale-only; TCP/53 and UDP/53 remain IPv4-only.
 - Watchtower remains monitor-only; update notifications are candidates for a
   planned patch window, not automatic approval.
 
@@ -92,6 +95,9 @@ Grafana and Uptime Kuma should use routed access to the monitoring VM on ports
 
 ## Change Log
 
+- 2026-07-10: Reconciled Docker published-port enforcement with declared UFW
+  policy; unapproved HA access to Homepage, Mermaid Viewer, and Household Hub
+  UI is now denied while approved APIs remain reachable.
 - 2026-05-30: Synced live service state: Tier 1 apps, ntfy, Watchtower monitor-only, Telegraf metrics, Tailscale routes, and Fail2ban baseline are live.
 - 2026-05-31: Applied monitoring VM Tailscale host route on docker-host and added routed UFW source artifact for Grafana/Kuma mobile access; route may still need Tailscale admin approval before mobile clients can use it.
 - 2026-05-23: Added Tailscale host-route role and Tier 1 service roadmap.

@@ -3,7 +3,7 @@ title: Grafana Source Dashboards
 description: Rebuildable source exports for Grafana dashboards
 tags: [grafana, dashboards, monitoring]
 created: 2026-05-29
-modified: 2026-05-31
+modified: 2026-07-10
 type: config-reference
 status: active
 ---
@@ -39,3 +39,6 @@ Operational notes:
 - `Security Posture` depends on the docker-host Fail2ban-to-Influx exporter.
 - `Network DNS` currently uses OpenWrt syslog plus AdGuard container metrics;
   AdGuard query-level analytics are not exported yet.
+- `system/monitoring-docker-firewall.sh` and its systemd unit are the
+  rebuildable VM 102 policy for Docker-published Grafana, Uptime Kuma,
+  InfluxDB, and Telegraf syslog ports.

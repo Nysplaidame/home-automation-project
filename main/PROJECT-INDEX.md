@@ -186,6 +186,10 @@ status: active
 - [[docs/diagrams/network/remote-access-flow.mermaid]] — Tailscale daily access and WireGuard fallback flow
 - [[docs/diagrams/network/dns-ntp-flow.mermaid]] — router DNS/NTP, AdGuard, and public fallback flow
 - [[docs/diagrams/network/security-access-flow.mermaid]] — firewall, ACL, host firewall, and service-auth intent
+- [[docs/diagrams/network/physical-port-and-cabling.mermaid]] — router and GS1900 port/cabling map for Proxmox, OMV, and CCTV
+- [[docs/diagrams/infrastructure/proxmox-guests-and-backups.mermaid]] — Proxmox guest inventory, shared iGPU, and backup relationships
+- [[docs/reference/physical-port-and-cabling.md]] — physical port table, cable labels, and CCTV rollout capacity constraint
+- [[docs/reference/canonical-names.md]] — canonical identifiers for physical devices, guests, and live services
 - [[docs/diagrams/infrastructure/docker-host-service-placement.mermaid]] — docker-host stack layout and app tiers
 - [[docs/diagrams/storage/storage-and-backup-flow.mermaid]] — OMV storage, backups, and restore flow
 - [[docs/diagrams/install/install-sequence.mermaid]] — fresh rebuild phase sequence and gates

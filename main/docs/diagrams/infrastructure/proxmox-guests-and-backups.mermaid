@@ -1,0 +1,52 @@
+flowchart TB
+    Proxmox["proxmox<br/>MINISFORUM M1 Pro-125H mini PC<br/>192.168.10.10; Proxmox VE 9<br/>proxmox.home.local:8006"]
+
+    subgraph Production["Production guests"]
+        direction LR
+        HA["VM 100: home-assistant<br/>VLAN 20 | 192.168.20.101<br/>2c / 6 GiB / 32 GiB<br/>onboot order 1"]
+        Frigate["CT 111: frigate-nvr<br/>VLAN 30 | 192.168.30.20<br/>2c / 6 GiB / 32 GiB<br/>onboot order 2"]
+        Monitoring["VM 102: monitoring<br/>VLAN 60 | 192.168.60.10<br/>2c / 3 GiB / 32 GiB<br/>onboot order 3"]
+        Docker["VM 103: docker-host<br/>VLAN 20 | 192.168.20.102<br/>2c / 6 GiB / 64 GiB<br/>onboot"]
+        LLM["CT 114: llm-host<br/>VLAN 20 | 192.168.20.104<br/>4c / 20 GiB / 100 GiB<br/>onboot order 4"]
+    end
+
+    subgraph Rollback["Powered-off rollback guests: do not start alongside replacements"]
+        VM101["VM 101: frigate-nvr-rollback<br/>no production network identity<br/>2c / 4 GiB / 64 GiB"]
+        VM104["VM 104: llm-host-rollback<br/>no production network identity<br/>4c / 10 GiB / 160 GiB"]
+    end
+
+    Proxmox --> HA
+    Proxmox --> Frigate
+    Proxmox --> Monitoring
+    Proxmox --> Docker
+    Proxmox --> LLM
+    Proxmox -.-> VM101
+    Proxmox -.-> VM104
+
+    GPU["Shared Intel iGPU mapping<br/>/dev/dri/renderD128 and /dev/dri/card0<br/>unprivileged + nesting/keyctl"]
+    GPU --> Frigate
+    GPU --> LLM
+
+    OMV["omvnas / OMV md0 NFS<br/>192.168.40.50<br/>storage: omv-backups"]
+    BackupVM["VM backup job<br/>02:00 daily: 100,102,103<br/>snapshot + ZSTD<br/>keep daily 7 / monthly 6"]
+    BackupCT["CT backup job<br/>04:00 daily: 111,114<br/>snapshot + ZSTD; tmpdir /var/tmp<br/>keep daily 7 / monthly 6"]
+    BackupVM --> OMV
+    BackupCT --> OMV
+    HA --> BackupVM
+    Monitoring --> BackupVM
+    Docker --> BackupVM
+    Frigate --> BackupCT
+    LLM --> BackupCT
+
+    classDef host fill:#e8a349,stroke:#6e4315,color:#1c1c1c,stroke-width:2px
+    classDef guest fill:#81b29a,stroke:#2f6654,color:#102c24,stroke-width:2px
+    classDef storage fill:#c9b1d1,stroke:#664873,color:#281630,stroke-width:2px
+    classDef backup fill:#9ec1cf,stroke:#376a7a,color:#102a32
+    classDef rollback fill:#ececec,stroke:#777777,color:#444444,stroke-dasharray: 5 5
+    class Proxmox host
+    class HA,Frigate,Monitoring,Docker,LLM guest
+    class OMV storage
+    class GPU,BackupVM,BackupCT backup
+    class VM101,VM104 rollback
+    style Production fill:#eef9f1,stroke:#6e9e7e,stroke-width:1px
+    style Rollback fill:#f4f4f4,stroke:#888888,stroke-width:1px

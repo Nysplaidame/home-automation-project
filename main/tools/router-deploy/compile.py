@@ -106,7 +106,7 @@ def _validate_architecture_invariants(dhcp_sections: list, fw_sections: list, sy
     ntp = timeservers[0] if timeservers else None
 
     no_google_dns = not any(server in {"8.8.8.8", "8.8.4.4"} for server in dns_servers)
-    iot_dhcp_options = dhcp_scopes.get("HomeIoT").get_list("dhcp_option") if dhcp_scopes.get("HomeIoT") else []
+    iot_dhcp_options = dhcp_scopes.get("iot_sensors").get_list("dhcp_option") if dhcp_scopes.get("iot_sensors") else []
     no_iot_ntp_option = not any(opt.startswith("42,") or opt == "42" for opt in iot_dhcp_options)
     required_domains = {
         "adguard.home.local": "192.168.20.102",
