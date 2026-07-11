@@ -75,6 +75,10 @@ status: active
 ### Monitoring / Grafana
 - [[configs/grafana/README.md]] — rebuildable source exports for Grafana dashboards
 - [[configs/grafana/dashboards/]] — architecture dashboard JSON exports
+
+### OpenMediaVault
+- [[configs/omv/README]] — sanitized NFS contract and root-only OMV config backup automation
+- [[configs/omv/nfs-exports.json]] — current dataset/client/root-mapping contract
 - [[configs/home-assistant/lovelace/monitoring-grafana-links.yaml]] — HA Lovelace direct-link snippet for Grafana/Kuma
 
 ### Bambuddy / P1S

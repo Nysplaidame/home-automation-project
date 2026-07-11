@@ -1,0 +1,12 @@
+[Unit]
+Description=Daily OMV configuration and export evidence backup
+
+[Timer]
+OnCalendar=*-*-* 01:30:00
+RandomizedDelaySec=10m
+Persistent=true
+Unit=omv-config-backup.service
+
+[Install]
+WantedBy=timers.target
+

@@ -10,11 +10,12 @@
 | Proxmox VM backup | VM disks 100/102/103 | OMV md0 NFS `backups/proxmox` (`omv-backups`) | Daily 02:00 | 7 daily + 6 monthly |
 | Proxmox LXC backup | CT 111/114 root filesystems | OMV md0 NFS `backups/proxmox` (`omv-backups`) | Daily 04:00 | 7 daily + 6 monthly |
 | HA native backup | HA config, add-ons, automations | OMV md0 NFS `backups/home-assistant` | Daily 03:00 | 7 daily + 6 monthly |
-| Frigate recordings | Camera footage | OMV md0 NFS `CCTV` share | Continuous | Set in Frigate before cameras go live |
+| Frigate recordings | Camera footage | OMV md0 NFS `/export/frigate` through the Proxmox-host bind mount | Continuous | Frigate retention policy |
 | Frigate LXC state | OS disk, DB, cache, compose/config | MINISFORUM NVMe on CT 111 | Continuous | Rebuildable + config-backed |
 | Docker-host app data | Mealie, Grocy, LiveSync, GardenKeeper stack data/dumps | OMV md0 NFS `backups/docker-host` | Daily 03:45 | 14 days of timestamped runs plus `latest` |
-| Config file backup | Safety vault YAML/configs | OMV md0 NFS `backups/configs` | Daily via rsync | 7 daily + 6 monthly |
+| Config file backup | Safety vault YAML/configs | GitHub is current; preserved OMV `backups/configs` directory is not exported | Not implemented | Define a narrow producer/export before enabling |
 | GitHub | Safety vault docs + configs | GitHub repo | On push | Full history |
+| OMV host configuration | Sensitive OMV XML plus export/mount/share evidence | Root-only md0 `backups/configs/omv-config` | Daily 01:30 | Timestamped runs; local same-array protection only |
 
 ---
 

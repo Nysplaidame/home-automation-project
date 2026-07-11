@@ -51,8 +51,10 @@ project record asserts completion until independently corroborated.
 - `11-vendor-compatibility.md`: point-in-time primary-source review.
 - `12-owner-decisions.md`: accepted recovery/power constraints and deferred
   physical testing recorded after discovery.
-- `13-nfs-identity-review.md`: post-freeze read-only F-011 export, caller and
-  numeric-identity mapping plus the approval-gated remediation order.
+- `13-nfs-identity-review.md`: F-011 export/caller identity mapping, executed
+  first remediation pass, validation, residual risks and future gates.
+- `14-omv-config-backup.md`: deployed root-only local OMV configuration/export
+  backup automation and first self-verifying run evidence.
 - `HANDOFF.md`: safe restart point for an approved remediation session.
 
 The discovery decision is frozen. Later remediation must issue a new dated

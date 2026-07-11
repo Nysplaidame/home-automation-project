@@ -1,0 +1,16 @@
+[Unit]
+Description=Back up OMV configuration and export evidence to md0
+After=local-fs.target nfs-server.service
+RequiresMountsFor=/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/configs
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/omv-config-backup
+User=root
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/configs/omv-config
+

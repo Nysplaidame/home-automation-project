@@ -218,9 +218,19 @@ registry mirror and Node-RED remain decision-gated candidates.
 - OMV is live on Storage VLAN 40 at `192.168.40.50`.
 - Final backup storage lives on md0 at
   `/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/`.
+- OMV configuration/export evidence is backed up daily at `01:30` by the
+  active root-only `omv-config-backup.timer` to
+  `backups/configs/omv-config`. Run `20260711T224614Z` passed its complete
+  SHA-256 ledger. The full XML remains unexported and out of Git; sanitized
+  rebuild sources live under `configs/omv/`.
 - Frigate/NVR recordings target the md0-backed `/export/frigate` NFS export.
-- OMV exports NFS paths for Proxmox backups, HA backups, docker-host backups,
-  config backups, Immich DB backups, Immich media, and Frigate/NVR recordings.
+- OMV currently exports only the five intended writable datasets: Proxmox
+  backups, HA backups, docker-host backups, Immich media, and Frigate/NVR
+  recordings. The old direct `CCTV`, `immich-db`, HA alias, configs, and direct
+  CT 111 Frigate exposures were retired on 2026-07-11 without deleting data.
+  Frigate is root-squashed and limited to the Proxmox host; its UID 100000
+  writer passed create/delete validation. The remaining root-dependent exports
+  need later dedicated service-identity migrations.
 - OMV's native Transfer Portal was repaired on 2026-07-10. Its systemd service
   binds to `192.168.40.50:8088`, is stable after the prior obsolete-address
   restart loop, and has least-scope destination ACL access for its

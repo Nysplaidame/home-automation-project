@@ -1,0 +1,52 @@
+{
+  "observed_at": "2026-07-11T23:42:00+01:00",
+  "server": "192.168.40.50",
+  "protocol": "NFSv3/sec=sys",
+  "pseudo_root": {
+    "path": "/export",
+    "clients": ["192.168.10.10", "192.168.20.102"],
+    "mode": "ro,root_squash",
+    "purpose": "OMV-generated pseudo-root for managed child exports"
+  },
+  "writable_exports": [
+    {
+      "path": "/export/frigate",
+      "clients": ["192.168.10.10"],
+      "options": "rw,sync,no_subtree_check,root_squash,sec=sys",
+      "writer_contract": "Unprivileged CT 111 writes through Proxmox as UID 100000; OMV ACL must retain UID 100000 rwx"
+    },
+    {
+      "path": "/export/immich",
+      "clients": ["192.168.20.102"],
+      "options": "rw,sync,no_subtree_check,no_root_squash,sec=sys",
+      "writer_contract": "Immich currently writes root-owned media; dedicated service-identity migration remains open"
+    },
+    {
+      "path": "/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/proxmox",
+      "clients": ["192.168.10.10"],
+      "options": "rw,sync,no_subtree_check,no_root_squash,sec=sys",
+      "writer_contract": "Proxmox vzdump archives are root:users; dedicated backup identity remains open"
+    },
+    {
+      "path": "/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/home-assistant",
+      "clients": ["192.168.20.101"],
+      "options": "rw,sync,no_subtree_check,no_root_squash,sec=sys",
+      "writer_contract": "HA Supervisor nas_backups is active/default; numeric service identity remains to be proved"
+    },
+    {
+      "path": "/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/docker-host",
+      "clients": ["192.168.20.102"],
+      "options": "rw,sync,no_subtree_check,no_root_squash,sec=sys",
+      "writer_contract": "Root-run rsync preserves mixed UID/GID ownership; identity/restore redesign remains open"
+    }
+  ],
+  "retired_exports": [
+    "/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/CCTV",
+    "/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/immich-db",
+    "/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/configs",
+    "/export/ha-backups",
+    "/export/configs",
+    "/export/frigate for client 192.168.30.20"
+  ]
+}
+

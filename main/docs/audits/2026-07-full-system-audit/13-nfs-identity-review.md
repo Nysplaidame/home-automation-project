@@ -3,15 +3,50 @@ title: July 2026 NFS Identity and Export Review
 created: 2026-07-11
 modified: 2026-07-11
 type: audit-remediation-evidence
-status: read-only-review-change-gated
+status: first-remediation-pass-complete
 ---
 
 # NFS Identity and Export Review
 
-This record refines F-011 using read-only evidence gathered after the discovery
-freeze. It does not authorize an OMV export, ACL, mount, or service change.
+This record refines F-011 using evidence gathered after the discovery freeze
+and records the approved first remediation pass completed on 2026-07-11.
 
-## Current advertised surface
+## Executed outcome
+
+- Rollback evidence and hashes are retained on OMV at
+  `/root/omv-nfs-f011-20260711T223802Z`. It contains pre/post OMV `config.xml`,
+  generated and manual exports, shared-folder/NFS objects, bind mounts, ACLs,
+  mountd state, and SHA-256 ledgers.
+- The manual export of the nonexistent md0 `CCTV` path was removed. Current
+  Frigate recording storage remains `/export/frigate` through Proxmox.
+- The unused direct md0 `backups/immich-db` export was removed after docker-host
+  fstab, mounts, systemd and stack files showed no consumer. The directory and
+  existing data were not deleted.
+- The stale OMV-managed `/export/ha-backups` alias was removed. HA remains
+  active and default on the direct md0 `backups/home-assistant` export.
+- Both unused `/export/configs` client entries and the manual direct md0
+  `backups/configs` export were removed. No active client mounted them and the
+  planned vault/config backup producer has not been implemented. The underlying
+  directory was preserved.
+- CT 111's direct Frigate export was removed because the unprivileged CT cannot
+  mount NFS. `/export/frigate` is now exported only to Proxmox
+  `192.168.10.10`, with ordinary `root_squash` and the existing UID 100000 ACL.
+- The root-denial probe failed with `Permission denied` as required. UID 100000
+  created and removed a file successfully with resulting owner/group
+  `100000:100`; CT 111 and Frigate stayed healthy.
+- The remaining `/export` entries are OMV's read-only, root-squashed NFS
+  pseudo-root for `/export/immich` and `/export/frigate`, not a writable broad
+  dataset export.
+- Final cross-client validation passed: estate health `26/26`, HA `nas_backups`
+  active, Proxmox backup and Frigate mounts active, docker-host Immich and app
+  backup mounts active, Immich HTTP 200/healthy, and the app-data timer active.
+
+Remaining `no_root_squash` exports are narrowly client-restricted but not yet
+least-privilege complete: Proxmox backups, HA backups, docker-host app backups,
+and Immich media. Each has a proved root-owned or mixed-owner write contract
+and requires a dedicated identity migration rather than an option-only change.
+
+## Pre-change advertised surface
 
 `showmount -e 192.168.40.50` from Proxmox advertised eleven paths on
 2026-07-11:
@@ -24,7 +59,7 @@ freeze. It does not authorize an OMV export, ACL, mount, or service change.
 | md0 `backups/docker-host` | docker-host | `/mnt/omv/docker-host-backups` | Keep |
 | md0 `backups/home-assistant` | HA | HA mount `nas_backups`, active and default | Keep |
 | md0 `backups/proxmox` | Proxmox | Proxmox storage `omv-backups` | Keep |
-| `/export` | Management subnet, docker-host, CT 111 and HA | No consumer should require the export root | Broad legacy candidate; retire only after OMV-side open-client and config review |
+| `/export` | Management subnet, docker-host, CT 111 and HA | OMV-generated read-only NFS pseudo-root | Narrow automatically as child exports are removed; retain only for current managed children |
 | `/export/configs` | Management subnet and HA | No current writer proved | Duplicate/alias candidate; reconcile with md0 `backups/configs` |
 | `/export/immich` | docker-host | `/mnt/omv/immich`, bound into `immich_server` as `/data` | Keep |
 | `/export/frigate` | Proxmox and CT 111 | Proxmox `/mnt/omv/frigate`, bind-mounted into unprivileged CT 111 | Keep; first root-squash candidate |
@@ -46,30 +81,28 @@ captured together before deleting an entry.
 | Docker-host app backups | `/mnt/omv/docker-host-backups` | Backup root is `0:100`; preserved content includes `5984:5984`, `1000:1000`, and `0:0` | The root-run rsync job preserves heterogeneous ownership. Root squash requires a script/identity redesign and restore-semantics review first. |
 | Config backups | No live scheduled mount/writer proved | Unknown | Define the producer and numeric identity before keeping or enabling this export. |
 
-## Staged remediation order
+## Staged remediation order and disposition
 
-1. Capture OMV rollback evidence: `/etc/openmediavault/config.xml`, generated
+1. **Completed.** Capture OMV rollback evidence: `/etc/openmediavault/config.xml`, generated
    exports, `exportfs -v`, relevant shared-folder UUIDs, bind mounts, filesystem
    ACLs, and the exact command/UI rollback owner.
-2. Recheck live mounts from Proxmox, HA, docker-host and CT 111. Treat mountd
+2. **Completed.** Recheck live mounts from Proxmox, HA, docker-host and CT 111. Treat mountd
    registrations as hints, not proof of a currently mounted filesystem.
-3. Retire only the clearly unused aliases, one at a time: direct `CCTV`, direct
-   `immich-db`, `/export/ha-backups`, and the broad `/export` root. Re-run
-   positive application checks and negative unauthorized-client checks after
-   each change.
-4. Pilot ordinary `root_squash` on `/export/frigate` while retaining the UID
+3. **Completed with correction.** Retire the clearly unused `CCTV`,
+   `immich-db`, `/export/ha-backups`, and config exports one at a time. The
+   read-only OMV pseudo-root remains only for active managed child exports.
+4. **Completed.** Pilot ordinary `root_squash` on `/export/frigate` while retaining the UID
    100000 ACL. Confirm new MP4 creation, Frigate health, retention deletion,
    playback, and lack of root-created files. Roll back immediately if any write
    path changes identity or fails.
-5. Design dedicated identities for Proxmox, HA, Immich and docker-host backups.
+5. **Open.** Design dedicated identities for Proxmox, HA, Immich and docker-host backups.
    These are migrations, not flag flips, because current writes are root-owned
    or preserve multiple numeric owners.
-6. Reconcile the two configs exports only after the vault/config backup producer
-   is implemented or explicitly retired.
+6. **Closed for now.** The unused configs exports are retired. Recreate one
+   narrow export only if a concrete vault/config backup producer is implemented.
 
 ## Approval boundary
 
-The next live action is an OMV configuration/export change and can interrupt
-recording or backup writes. It requires an approved window, OMV administrative
-access, saved rollback evidence, and a completed F-011 resilience test card.
-
+Any further root-mapping work can interrupt production media or backups. Each
+remaining dataset requires a dedicated service-identity design, application
+backup proof, an approved window, and a dataset-specific rollback/test card.

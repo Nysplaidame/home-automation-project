@@ -137,20 +137,21 @@ The operator approved the CT 111 footage cleanup and bounded Immich recovery.
   No service was restarted and detection was not enabled. Any move to object
   detection remains a separate camera/GPU and privacy approval.
 
-- **F-011 — OMV NFS identity review (read-only, 2026-07-11):** The OMV web
-  console's six configured shared-folder exports do not describe the whole
-  advertised surface. Fresh `showmount -e` from Proxmox returned eleven paths,
-  including the broad `/export` root and five legacy/direct aliases. Current
-  consumers were proved as Proxmox on direct md0 `backups/proxmox`, HA on
-  direct md0 `backups/home-assistant`, docker-host on direct md0
-  `backups/docker-host` and `/export/immich`, and Frigate through the Proxmox
-  `/export/frigate` mount and CT bind. Numeric-owner sampling shows Frigate
-  writes as UID/GID `100000:100000`, making it the first plausible ordinary
-  `root_squash` pilot while its UID 100000 ACL is retained. Proxmox, HA,
-  Immich and docker-host backup paths remain root-dependent or preserve mixed
-  numeric ownership and need identity migrations rather than a flag flip.
-  No export, ACL, mount or service was changed. Full mapping and staged gates
-  are in `13-nfs-identity-review.md`.
+- **F-011 — OMV NFS first remediation pass (2026-07-11):** Pre/post rollback
+  evidence is retained at `/root/omv-nfs-f011-20260711T223802Z`. Advertised
+  paths were reduced from eleven to six: the nonexistent direct `CCTV` export,
+  unused direct `immich-db`, stale `/export/ha-backups`, both unused configs
+  paths, and CT 111's unusable direct Frigate client entry were removed without
+  deleting their underlying data. `/export/frigate` is now exposed only to
+  Proxmox `192.168.10.10` with `root_squash`; the UID 100000 ACL remains.
+  Proxmox root write was denied, UID 100000 create/delete passed, and CT 111,
+  Frigate, HA backups, Immich, docker-host backups, Proxmox backups, NFS, and
+  the expanded estate check all remained healthy. The advertised `/export`
+  path is OMV's read-only, root-squashed pseudo-root for the two live managed
+  children. Proxmox backup, HA backup, docker-host backup and Immich exports
+  still use client-restricted `no_root_squash`; their root/mixed-owner write
+  contracts require separate service-identity migrations. Full evidence and
+  future gates are in `13-nfs-identity-review.md`.
 
 - **F-014 — Health-check remediation (2026-07-11):** The canonical
   `scripts/monitoring/health_check.sh` now checks the live Frigate UI, Immich,
@@ -170,6 +171,18 @@ The operator approved the CT 111 footage cleanup and bounded Immich recovery.
   `ExecMainStatus=0`; its timer remains active. Rollback is
   `/usr/local/sbin/home-automation-health-check.pre-f014-20260711T223121Z` and
   all temporary candidates were removed.
+
+- **F-009 — OMV configuration backup (2026-07-11):** A root-only daily backup
+  is deployed through `/usr/local/sbin/omv-config-backup` and
+  `omv-config-backup.timer`, scheduled for `01:30` with bounded random delay.
+  It captures full OMV XML/export/mount/shared-folder evidence under unexported
+  md0 `backups/configs/omv-config`. The first valid run
+  `20260711T224614Z` passed every entry in its relative SHA-256 ledger; the
+  timer is active and the systemd service result is success. The full XML stays
+  root-only because it may contain sensitive state. Sanitized rebuild source
+  and the current NFS contract are in `configs/omv/`; detailed proof is in
+  `14-omv-config-backup.md`. This is a local same-array recovery aid, not an
+  independent/off-site copy.
 
 ## Required operator inputs
 
