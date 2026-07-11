@@ -137,16 +137,39 @@ The operator approved the CT 111 footage cleanup and bounded Immich recovery.
   No service was restarted and detection was not enabled. Any move to object
   detection remains a separate camera/GPU and privacy approval.
 
-- **F-011 — OMV NFS export inventory (read-only, 2026-07-11):** The OMV web
-  console reports six active, client-restricted NFS exports: `configs` for
-  Management and HA, `frigate` for CT 111 and the Proxmox host, `ha-backups`,
-  and `immich`. Every export currently uses `rw`, `sync`, `sec=sys`,
-  `no_subtree_check`, and `no_root_squash`. The Frigate paths are functional,
-  but this means root on each allowed client can act as root on the share.
-  No export or ACL was changed. Before changing root mapping, preserve OMV
-  configuration/export evidence and prove the required caller identity for
-  each client; Frigate specifically relies on the existing ACL for UID
-  `100000` through the Proxmox-host bind mount.
+- **F-011 — OMV NFS identity review (read-only, 2026-07-11):** The OMV web
+  console's six configured shared-folder exports do not describe the whole
+  advertised surface. Fresh `showmount -e` from Proxmox returned eleven paths,
+  including the broad `/export` root and five legacy/direct aliases. Current
+  consumers were proved as Proxmox on direct md0 `backups/proxmox`, HA on
+  direct md0 `backups/home-assistant`, docker-host on direct md0
+  `backups/docker-host` and `/export/immich`, and Frigate through the Proxmox
+  `/export/frigate` mount and CT bind. Numeric-owner sampling shows Frigate
+  writes as UID/GID `100000:100000`, making it the first plausible ordinary
+  `root_squash` pilot while its UID 100000 ACL is retained. Proxmox, HA,
+  Immich and docker-host backup paths remain root-dependent or preserve mixed
+  numeric ownership and need identity migrations rather than a flag flip.
+  No export, ACL, mount or service was changed. Full mapping and staged gates
+  are in `13-nfs-identity-review.md`.
+
+- **F-014 — Health-check remediation (2026-07-11):** The canonical
+  `scripts/monitoring/health_check.sh` now checks the live Frigate UI, Immich,
+  Transfer Portal, llama.cpp and Open WebUI endpoints in the normal profile.
+  On Proxmox it also checks CT 111/114 root usage, proves CT 111's recording
+  mount source is `192.168.40.50:/export/frigate`, and enforces a 36-hour
+  freshness ceiling for archives of VMs 100/102/103 and CTs 111/114. A
+  sandbox-equivalent candidate passed shell parsing and a live read-only JSON
+  run with `PASS=26 FAIL=0`. The first implementation used `pct exec` and then
+  mount-namespace entry; both were correctly rejected by the hardened systemd
+  sandbox and the original installed script was restored. The final version
+  reads CT disk counters through the Proxmox API and validates the host-side
+  bind source without namespace entry. It is deployed at
+  `/usr/local/sbin/home-automation-health-check`; source and live SHA-256 both
+  equal `aec4c5bf6c635157c68e9f0af2de12c2fdd2d4374b4eef717823f24ebead2962`.
+  The real systemd unit completed with `PASS=28 FAIL=0`, `Result=success` and
+  `ExecMainStatus=0`; its timer remains active. Rollback is
+  `/usr/local/sbin/home-automation-health-check.pre-f014-20260711T223121Z` and
+  all temporary candidates were removed.
 
 ## Required operator inputs
 

@@ -495,7 +495,7 @@ must work without HACS.
 - [ ] After at least 30 days of baseline security-event data, decide CrowdSec pilot vs defer and document the decision
 - [ ] Add a scoped internal penetration-testing pass after hardening + update governance stabilize; record findings and remediation evidence
 - [ ] Set up WireGuard DDNS if ISP IP changes frequently
-- [x] Run staged core health baseline and confirm required live services are green (`health_check.sh --json`: PASS=11/FAIL=0; hardware-dependent checks skipped/unknown until devices exist)
+- [x] Run staged core health baseline and deploy the expanded canonical check; the 2026-07-11 hardened systemd run passed `28/28` and JSON passed `26/26`, covering active core apps, CT root capacity, the Frigate recording mount, and five guest archive-age checks while hardware-dependent VentSys/P1S checks remain skipped
 
 ---
 

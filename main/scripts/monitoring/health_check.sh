@@ -20,6 +20,11 @@ FRIGATE_PORT="8971"
 DOCKER_HOST_IP="192.168.20.102"
 BAMBUDDY_IP="$DOCKER_HOST_IP"
 BAMBUDDY_PORT="8000"
+IMMICH_URL="http://${DOCKER_HOST_IP}:2283/api/server/ping"
+TRANSFER_PORTAL_URL="http://192.168.40.50:8088/"
+LLM_HOST_IP="192.168.20.104"
+LLAMACPP_URL="http://${LLM_HOST_IP}:8081/health"
+OPENWEBUI_URL="http://${LLM_HOST_IP}:3002/health"
 P1S_IP="192.168.35.200"   # VLAN 35 (Printers) — see docs/decisions/02-printer-vlan-architecture.md
 # The printer's MQTT port 8883 is a TLS-authenticated broker and does not
 # respond to unauthenticated TCP probes in a way that reliably confirms health.
@@ -134,7 +139,7 @@ check_http() {
     local url="$2"
     local code
     code=$(curl -k -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" "$url" 2>/dev/null || echo "000")
-    if [ "$code" = "200" ] || [ "$code" = "302" ] || [ "$code" = "401" ]; then
+    if [ "$code" = "200" ] || [ "$code" = "302" ] || [ "$code" = "303" ] || [ "$code" = "401" ]; then
         [ "$JSON_MODE" -eq 0 ] && printf "  ${GREEN}✓${NC} %s — HTTP %s\n" "$label" "$code"
         pass=$((pass+1))
         CHECK_RESULT="pass"
@@ -142,6 +147,71 @@ check_http() {
         [ "$JSON_MODE" -eq 0 ] && printf "  ${RED}✗${NC} %s — HTTP %s\n" "$label" "$code"
         fail=$((fail+1))
         CHECK_RESULT="fail"
+    fi
+}
+
+check_ct_root_usage() {
+    local ctid="$1"
+    local label="$2"
+    local threshold="$3"
+    local status disk maxdisk used node
+    node=$(hostname -s)
+    status=$(pvesh get "/nodes/${node}/lxc/${ctid}/status/current" --output-format json 2>/dev/null || true)
+    disk=$(printf '%s' "$status" | sed -n 's/.*"disk":\([0-9][0-9]*\).*/\1/p')
+    maxdisk=$(printf '%s' "$status" | sed -n 's/.*"maxdisk":\([0-9][0-9]*\).*/\1/p')
+    if [[ "$disk" =~ ^[0-9]+$ ]] && [[ "$maxdisk" =~ ^[1-9][0-9]*$ ]]; then
+        used=$((disk * 100 / maxdisk))
+    else
+        used=""
+    fi
+    if [[ "$used" =~ ^[0-9]+$ ]] && [ "$used" -le "$threshold" ]; then
+        [ "$JSON_MODE" -eq 0 ] && printf "  ${GREEN}✓${NC} %s root — %s%%\n" "$label" "$used"
+        pass=$((pass+1)); CHECK_RESULT="pass"
+    elif [[ "$used" =~ ^[0-9]+$ ]]; then
+        [ "$JSON_MODE" -eq 0 ] && printf "  ${RED}✗${NC} %s root — %s%% (limit %s%%)\n" "$label" "$used" "$threshold"
+        fail=$((fail+1)); CHECK_RESULT="fail"
+    else
+        [ "$JSON_MODE" -eq 0 ] && printf "  ${RED}✗${NC} %s root — usage unavailable\n" "$label"
+        fail=$((fail+1)); CHECK_RESULT="fail"
+    fi
+}
+
+check_ct_mount_source() {
+    local ctid="$1"
+    local label="$2"
+    local target="$3"
+    local expected="$4"
+    local mount_record host_target source
+    mount_record=$(pct config "$ctid" 2>/dev/null | awk -v target="$target" '$0 ~ /^mp[0-9]+:/ && $0 ~ "mp=" target "([,]|$)" {sub(/^[^:]+: /, ""); print; exit}')
+    host_target=${mount_record%%,*}
+    source=$(findmnt -rn -o SOURCE "$host_target" 2>/dev/null || true)
+    if [ "$source" = "$expected" ]; then
+        [ "$JSON_MODE" -eq 0 ] && printf "  ${GREEN}✓${NC} %s — %s\n" "$label" "$source"
+        pass=$((pass+1)); CHECK_RESULT="pass"
+    else
+        [ "$JSON_MODE" -eq 0 ] && printf "  ${RED}✗${NC} %s — expected %s, got %s\n" "$label" "$expected" "${source:-unmounted}"
+        fail=$((fail+1)); CHECK_RESULT="fail"
+    fi
+}
+
+check_backup_age() {
+    local label="$1"
+    local pattern="$2"
+    local max_hours="$3"
+    local newest now age_hours
+    newest=$(find /mnt/pve/omv-backups/dump -maxdepth 1 -type f -name "$pattern" -printf '%T@\n' 2>/dev/null | sort -nr | head -1)
+    now=$(date +%s)
+    if [ -n "$newest" ]; then
+        age_hours=$(awk -v now="$now" -v newest="$newest" 'BEGIN {printf "%d", (now-newest)/3600}')
+    else
+        age_hours=""
+    fi
+    if [[ "$age_hours" =~ ^[0-9]+$ ]] && [ "$age_hours" -le "$max_hours" ]; then
+        [ "$JSON_MODE" -eq 0 ] && printf "  ${GREEN}✓${NC} %s — %sh old\n" "$label" "$age_hours"
+        pass=$((pass+1)); CHECK_RESULT="pass"
+    else
+        [ "$JSON_MODE" -eq 0 ] && printf "  ${RED}✗${NC} %s — newest archive %s\n" "$label" "${age_hours:+${age_hours}h old}${age_hours:-missing}"
+        fail=$((fail+1)); CHECK_RESULT="fail"
     fi
 }
 
@@ -170,9 +240,13 @@ run_checks() {
     r_ha_ping="skipped"
     check_http "Home Assistant UI" "https://${HA_IP}:${HA_PORT}"; r_ha_http="$CHECK_RESULT"
     check_port "Frigate CT SSH" "$FRIGATE_IP" "22"; r_frigate_ping="$CHECK_RESULT"
-    r_frigate_http="skipped"
+    check_http "Frigate UI" "https://${FRIGATE_IP}:${FRIGATE_PORT}/api/version"; r_frigate_http="$CHECK_RESULT"
     check_port "Docker host VM SSH" "$DOCKER_HOST_IP" "22"; r_docker_host="$CHECK_RESULT"
     check_http "Bambuddy UI" "http://${BAMBUDDY_IP}:${BAMBUDDY_PORT}"; r_bambuddy="$CHECK_RESULT"
+    check_http "Immich API" "$IMMICH_URL"; r_immich="$CHECK_RESULT"
+    check_http "OMV Transfer Portal" "$TRANSFER_PORTAL_URL"; r_transfer_portal="$CHECK_RESULT"
+    check_http "llama.cpp health" "$LLAMACPP_URL"; r_llamacpp="$CHECK_RESULT"
+    check_http "Open WebUI health" "$OPENWEBUI_URL"; r_openwebui="$CHECK_RESULT"
     check_port "OMV backup NFS" "$NAS_IP" "$NAS_NFS_PORT"; r_nas="$CHECK_RESULT"
     # The P1S printer's MQTT port 8883 is the Bambu Lab printer-side MQTT broker
     # which only accepts authenticated connections from Bambu cloud clients —
@@ -182,10 +256,9 @@ run_checks() {
     check_port "MQTT Broker" "$MQTT_IP" "$MQTT_PORT"; r_mqtt="$CHECK_RESULT"
 
     if [ "$FULL_MODE" -eq 1 ]; then
-        check_http "Frigate UI" "https://${FRIGATE_IP}:${FRIGATE_PORT}/api/version"; r_frigate_http="$CHECK_RESULT"
         check_ping "P1S Printer" "$P1S_IP"; r_p1s="$CHECK_RESULT"
     elif [ "$JSON_MODE" -eq 0 ]; then
-        echo "  - Frigate UI and P1S checks skipped until those services/devices are deployed"
+        echo "  - P1S check skipped until the printer is physically available"
     fi
 
     declare -A ventsys_results
@@ -243,6 +316,20 @@ run_checks() {
                     fail=$((fail+1))
                 fi
             done
+
+            [ "$JSON_MODE" -eq 0 ] && echo ""
+            [ "$JSON_MODE" -eq 0 ] && echo "Guest capacity and required mounts:"
+            check_ct_root_usage 111 "CT 111 Frigate" 80; r_ct111_root="$CHECK_RESULT"
+            check_ct_root_usage 114 "CT 114 local AI" 80; r_ct114_root="$CHECK_RESULT"
+            check_ct_mount_source 111 "CT 111 recording mount" "/mnt/nas/frigate" "192.168.40.50:/export/frigate"; r_frigate_mount="$CHECK_RESULT"
+
+            [ "$JSON_MODE" -eq 0 ] && echo ""
+            [ "$JSON_MODE" -eq 0 ] && echo "Backup freshness (maximum 36h):"
+            check_backup_age "VM 100 archive" "vzdump-qemu-100-*.vma.zst" 36; r_backup_vm100="$CHECK_RESULT"
+            check_backup_age "VM 102 archive" "vzdump-qemu-102-*.vma.zst" 36; r_backup_vm102="$CHECK_RESULT"
+            check_backup_age "VM 103 archive" "vzdump-qemu-103-*.vma.zst" 36; r_backup_vm103="$CHECK_RESULT"
+            check_backup_age "CT 111 archive" "vzdump-lxc-111-*.tar.zst" 36; r_backup_ct111="$CHECK_RESULT"
+            check_backup_age "CT 114 archive" "vzdump-lxc-114-*.tar.zst" 36; r_backup_ct114="$CHECK_RESULT"
         fi
 
         # Proxmox disk usage
@@ -314,9 +401,21 @@ run_checks() {
     "frigate_http": "$r_frigate_http",
     "docker_host": "$r_docker_host",
     "bambuddy": "$r_bambuddy",
+    "immich": "$r_immich",
+    "transfer_portal": "$r_transfer_portal",
+    "llamacpp": "$r_llamacpp",
+    "openwebui": "$r_openwebui",
     "p1s": "$r_p1s",
     "nas": "$r_nas",
     "mqtt": "$r_mqtt",
+    "ct111_root": "${r_ct111_root:-skipped}",
+    "ct114_root": "${r_ct114_root:-skipped}",
+    "frigate_mount": "${r_frigate_mount:-skipped}",
+    "backup_vm100": "${r_backup_vm100:-skipped}",
+    "backup_vm102": "${r_backup_vm102:-skipped}",
+    "backup_vm103": "${r_backup_vm103:-skipped}",
+    "backup_ct111": "${r_backup_ct111:-skipped}",
+    "backup_ct114": "${r_backup_ct114:-skipped}",
     "ventsys_boards": $ventsys_json,
     "ventsys_plugs": $plugs_json
   }

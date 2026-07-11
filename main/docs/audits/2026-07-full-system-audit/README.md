@@ -2,7 +2,7 @@
 title: July 2026 Full Home-Automation Estate Audit
 description: Evidence pack for repository, live infrastructure, security, recovery, documentation, and physical-system review
 created: 2026-07-09
-modified: 2026-07-10
+modified: 2026-07-11
 type: audit
 status: discovery-frozen-not-certified
 ---
@@ -51,6 +51,8 @@ project record asserts completion until independently corroborated.
 - `11-vendor-compatibility.md`: point-in-time primary-source review.
 - `12-owner-decisions.md`: accepted recovery/power constraints and deferred
   physical testing recorded after discovery.
+- `13-nfs-identity-review.md`: post-freeze read-only F-011 export, caller and
+  numeric-identity mapping plus the approval-gated remediation order.
 - `HANDOFF.md`: safe restart point for an approved remediation session.
 
 The discovery decision is frozen. Later remediation must issue a new dated

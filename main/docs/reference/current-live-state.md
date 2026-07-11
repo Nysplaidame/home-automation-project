@@ -206,10 +206,12 @@ registry mirror and Node-RED remain decision-gated candidates.
   docker-host Telegraf; router syslog UDP/514 remains router-only.
 - Proxmox, HA, docker-host, DNS, core apps and local-AI endpoints are monitored.
 - Alert routing through ntfy exists for configured Kuma monitors.
-- OMV NFS TCP 2049 and Proxmox storage pressure are checked by
-  `home-automation-health-check.timer`. Backup storage is intentionally on md0;
-  the old 86-87% high-water warning was cleared by the 2026-07-05 Proxmox
-  check showing `omv-backups` active at 54.21% used.
+- `home-automation-health-check.timer` checks OMV NFS, Proxmox storage,
+  Frigate, Immich, Transfer Portal, llama.cpp, Open WebUI, CT 111/114 root
+  usage, the CT 111 recording bind source, and 36-hour archive freshness for
+  VMs 100/102/103 and CTs 111/114. The deployed 2026-07-11 systemd run passed
+  `28/28`; its JSON profile passed `26/26`. Backup storage is intentionally on
+  md0; the old 86-87% high-water warning remains cleared.
 
 ## Backup storage
 

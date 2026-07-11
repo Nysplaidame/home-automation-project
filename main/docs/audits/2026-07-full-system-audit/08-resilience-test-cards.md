@@ -1,7 +1,7 @@
 ---
 title: July 2026 Resilience and Negative Test Cards
 created: 2026-07-10
-modified: 2026-07-10
+modified: 2026-07-11
 type: audit-test-plan
 status: approval-gated
 ---
@@ -246,3 +246,29 @@ formal physical acceptance.
   temperature/current limit, loss of isolation or inability to override.
 - **Restoration evidence:** De-energized/normal state verified physically,
   retained test commands purged, calibration and signed acceptance attached.
+
+## RC-17 — NFS export identity and legacy-path removal
+
+- **Approval / maximum outage:** Fresh OMV export/ACL approval; five minutes
+  per path, one dataset at a time. Do not overlap an automatic backup, active
+  transfer, or planned Frigate retention task.
+- **Preconditions:** Timestamped copies/hashes of OMV `config.xml`, generated
+  exports and `exportfs -v`; current `showmount -e/-a`; relevant filesystem
+  ownership/default ACLs; positive application baseline; exact OMV UI/CLI
+  rollback owner; the identity mapping in `13-nfs-identity-review.md` reviewed.
+- **Actions / expected:** First remove one proved-unused legacy alias and verify
+  its intended replacement remains mounted. Separately pilot ordinary
+  `root_squash` on `/export/frigate` while preserving UID 100000 access. Create
+  no generic root write; require a fresh Frigate segment, playback/read, normal
+  retention access, and an unauthorized root-write denial from an allowed
+  client. Do not apply the Frigate result to another dataset.
+- **Operator / rollback owner:** OMV administrator / Proxmox and Frigate
+  operator with local management access.
+- **Stop / rollback:** Restore the saved export definition immediately on a
+  stale mount, Frigate error, missing segment, ownership change, client hang,
+  unrelated export reload, or inability to complete rollback within two
+  minutes. Do not force-unmount a production client.
+- **Restoration evidence:** `exportfs -v`, `showmount -e`, client `findmnt`,
+  numeric owner/mode sample, Frigate health/API and new-segment timestamp all
+  match the accepted post-change state; legacy path is absent; no temporary
+  probe file or export remains.
