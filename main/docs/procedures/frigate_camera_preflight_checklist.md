@@ -69,9 +69,9 @@ Bench notes from the first live camera test on 2026-07-01:
 
 | Frigate name | Planned IP | Physical label | Initial role |
 |---|---:|---|---|
-| `cam_01` | `192.168.30.21` | `<label>` | detect + record |
-| `cam_02` | `192.168.30.22` | `<label>` | detect + record |
-| `cam_03` | `192.168.30.23` | `<label>` | detect + record |
+| `cam_01_annke_c500` | `192.168.30.21` | bench camera, temporarily disconnected | detect + record |
+| `cam_02_gate` | `192.168.30.22` | Gate; GS1900 port 2 | detect + record |
+| `cam_03_patio` | `192.168.30.23` | Patio; GS1900 port 3 | detect + record |
 | `cam_04` | `192.168.30.24` | `<label>` | detect + record |
 
 - Prepare one unique camera admin password and one RTSP/viewer credential in
@@ -103,7 +103,8 @@ router lan3 -> Zyxel GS1900-8HP uplink
 Tagged VLANs:   1, 10, 30, 40
 Switch mgmt:    VLAN 10, 192.168.10.12
 Camera ports:   untagged VLAN 30, PVID 30
-OMV NAS port:   untagged VLAN 40, PVID 40
+OMV NAS:        router lan4, untagged VLAN 40, PVID 40
+Switch port 8:  spare untagged VLAN 40, PVID 40
 Extender port:  untagged VLAN 1, PVID 1
 ```
 
@@ -112,7 +113,8 @@ Expected switch posture:
 - Camera access ports are untagged VLAN 30.
 - Uplink to router `lan3` is tagged for VLANs 1, 10, 30 and 40.
 - Switch management interface is VLAN 10 at `192.168.10.12`.
-- OMV NAS access port is untagged VLAN 40.
+- OMV NAS connects directly to router `lan4` as untagged VLAN 40; switch port
+  8 remains a spare VLAN 40 access port.
 - TL-WA801N extender access port is untagged VLAN 1.
 - If the switch requires a PVID/native VLAN on the uplink, use an unused
   isolated VLAN for untagged ingress containment; do not make VLAN 30 native.

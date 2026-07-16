@@ -21,10 +21,10 @@ router or switch changes. Canonical device names are in
 
 | Canonical name | Physical device | Connectivity |
 |---|---|---|
-| `router` | GL.iNet GL-MT6000 | WAN upstream; CAT6 to `proxmox` and `gs1900-switch`; Wi-Fi AP |
+| `router` | GL.iNet GL-MT6000 | WAN upstream; CAT6 to `proxmox`, `gs1900-switch`, and `omvnas`; Wi-Fi AP |
 | `proxmox` | MINISFORUM M1 Pro-125H mini PC | Router `lan1` tagged trunk; hosts VMs/CTs |
-| `gs1900-switch` | Zyxel GS1900-8HP | Router `lan3` tagged trunk; PoE cameras and OMV NAS |
-| `omvnas` | OMV NAS hardware | GS1900 port 8 / VLAN 40 |
+| `gs1900-switch` | Zyxel GS1900-8HP | Router `lan3` tagged trunk; PoE cameras and a spare VLAN 40 access port |
+| `omvnas` | OMV NAS hardware | Router `lan4` / VLAN 40 |
 | `cam-01-annke-c500` | ANNKE C500 | GS1900 port 2 / VLAN 30 / PoE |
 | `p1s` | Bambu Lab P1S | HomePrinters Wi-Fi / VLAN 35 |
 | `operator-mobile` | Android phone | Wi-Fi locally; Tailscale off-site |
@@ -37,16 +37,16 @@ router or switch changes. Canonical device names are in
 | `lan1` | MINISFORUM Proxmox host | Tagged trunk: 10, 20, 30, 35, 40, 50, 60, 70 | Live |
 | `lan2` | None connected | Untagged VLAN 10; reserved for a temporary management device | Available, assigned |
 | `lan3` | GS1900-8HP port 1 | Tagged trunk: 1, 10, 30, 40 | Live |
-| `lan4` | None connected | Untagged VLAN 10; reserved for an admin PC | Available, assigned |
+| `lan4` | OMV NAS | Untagged VLAN 40; `192.168.40.50` | Live |
 | `lan5` | None connected | Untagged VLAN 1; reserved for a LAN or recovery laptop | Available, assigned |
 
 Every LAN port has an assignment. There are no unassigned router LAN ports in
-the current design. `lan2`, `lan4`, and `lan5` are intentionally unplugged
-until temporary management or recovery access is needed.
+the current design. `lan2` and `lan5` are intentionally unplugged until
+temporary management or recovery access is needed.
 
 Use `lan5` for a normal LAN device or recovery laptop only. Do not put a
-switch, camera, or NAS there: those devices belong on the GS1900 or the
-appropriate router trunk.
+switch, camera, or NAS there: those devices belong on their assigned router
+access port or the GS1900.
 
 ## Switch: Zyxel GS1900-8HP
 
@@ -64,7 +64,7 @@ camera bench/mounting change.
 | `5` | Camera 4 | Reserve: untagged VLAN 30, PVID 30, PoE; `192.168.30.24` | Future |
 | `6` | Camera 5 | Reserve: untagged VLAN 30, PVID 30, PoE; IP to allocate | Future |
 | `7` | Camera 6 | Reserve: untagged VLAN 30, PVID 30, PoE; IP to allocate | Future |
-| `8` | OMV NAS | Untagged VLAN 40, PVID 40; `192.168.40.50` | Live |
+| `8` | None connected | Untagged VLAN 40, PVID 40; reserved for a future storage device | Available, assigned |
 
 ## CCTV Connectivity
 
@@ -84,9 +84,10 @@ MAC, field location, and tested RTSP paths are known.
 
 ## Capacity Decision
 
-The eight-port switch is fully consumed by one router uplink, OMV, and six
-cameras. It cannot also provide the planned TL-WA801N extender port. Do not
-repurpose a camera or OMV port for that extender without first choosing one of:
+The eight-port switch has one free VLAN 40 access port now OMV is directly on
+router `lan4`, but it cannot provide the planned TL-WA801N extender port
+without a VLAN/access-port change. Do not repurpose a camera or the reserved
+storage port for that extender without first choosing one of:
 
 1. Keep the extender disconnected or use a separate suitable access path.
 2. Add a second managed switch for the extender and future non-camera devices.
@@ -99,7 +100,7 @@ Label both ends of every cable using the exact port pair, for example:
 ```text
 RTR-lan3 <-> SW-p1
 SW-p2 <-> CCTV-01-ANNKE
-SW-p8 <-> OMVNAS
+RTR-lan4 <-> OMVNAS
 RTR-lan1 <-> PROXMOX
 ```
 

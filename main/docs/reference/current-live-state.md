@@ -250,10 +250,15 @@ registry mirror and Node-RED remain decision-gated candidates.
 - On 2026-07-03, the Zyxel GS1900-8HP was moved from the temporary VLAN 30
   bench posture to the intended managed-switch layout: router `lan3` is a
   tagged trunk for VLANs 1/10/30/40, switch management is on VLAN 10 at
-  `192.168.10.12`, the first camera is on untagged VLAN 30 port 2, and OMV is
-  on untagged VLAN 40 port 8. Router ARP confirmed OMV at
-  `a8:b8:e0:0a:93:7d` on VLAN 40. The GS1900 Save action was invoked after
-  the cutover and the switch remained reachable at `192.168.10.12`.
+  `192.168.10.12`, and the first camera is on untagged VLAN 30 port 2. OMV
+  was originally on untagged VLAN 40 port 8, but on 2026-07-15 router `lan4`
+  was reconfigured as the direct untagged VLAN 40 OMV port, leaving `lan2` as
+  the sole direct VLAN 10 management port. The NAS cable move completed on
+  2026-07-16: router `lan4` has carrier, OMV is reachable at `192.168.40.50`,
+  and router ARP confirms OMV MAC `a8:b8:e0:0a:93:7d` on VLAN 40. The GS1900
+  port 8 VLAN 40 access configuration remains available for a future storage
+  device. The GS1900 Save action was invoked after the original switch cutover
+  and the switch remained reachable at `192.168.10.12`.
 - HA Supervisor mount `nas_backups` is active again and set as the default
   backup mount. Manual backup
   `post-switch-trunk-nas-backups-20260703-db-excluded`, slug `3e3b1ecb`,

@@ -23,6 +23,8 @@ services:
     shm_size: "256mb"
     environment:
       - FRIGATE_RTSP_PASSWORD=${FRIGATE_RTSP_PASSWORD}
+      - FRIGATE_GATE_RTSP_PASSWORD_URLENCODED=${FRIGATE_GATE_RTSP_PASSWORD_URLENCODED}
+      - FRIGATE_PATIO_RTSP_PASSWORD_URLENCODED=${FRIGATE_PATIO_RTSP_PASSWORD_URLENCODED}
       - FRIGATE_MQTT_PASSWORD=${FRIGATE_MQTT_PASSWORD}
     volumes:
       - /opt/frigate/config:/config
@@ -51,6 +53,8 @@ services:
 #   mkdir -p /opt/frigate/tls
 #   Set the following in /opt/frigate/.env:
 #     FRIGATE_RTSP_PASSWORD=<camera password>
+#     FRIGATE_GATE_RTSP_PASSWORD_URLENCODED=<URL-encoded Gate camera password>
+#     FRIGATE_PATIO_RTSP_PASSWORD_URLENCODED=<URL-encoded Patio camera password>
 #     FRIGATE_MQTT_PASSWORD=<mosquitto mqtt user password>
 #
 # STARTING:

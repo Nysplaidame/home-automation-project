@@ -27,6 +27,14 @@ go2rtc:
       - "ffmpeg:cam_01_annke_c500#audio=aac"
     cam_01_annke_c500_sub:
       - rtsp://admin:{FRIGATE_RTSP_PASSWORD}@192.168.30.21:554/Streaming/Channels/102
+    cam_02_gate:
+      - rtsp://admin:{FRIGATE_GATE_RTSP_PASSWORD_URLENCODED}@192.168.30.22:554/Streaming/Channels/101
+    cam_02_gate_sub:
+      - rtsp://admin:{FRIGATE_GATE_RTSP_PASSWORD_URLENCODED}@192.168.30.22:554/Streaming/Channels/102
+    cam_03_patio:
+      - rtsp://admin:{FRIGATE_PATIO_RTSP_PASSWORD_URLENCODED}@192.168.30.23:554/Streaming/Channels/101
+    cam_03_patio_sub:
+      - rtsp://admin:{FRIGATE_PATIO_RTSP_PASSWORD_URLENCODED}@192.168.30.23:554/Streaming/Channels/102
   webrtc:
     candidates:
       - 192.168.30.20:8555
@@ -72,9 +80,6 @@ snapshots:
 cameras:
   cam_01_annke_c500:
     detect:
-      # First-camera baseline: ingest and recording are live, but object
-      # detection stays intentionally disabled until the camera/GPU window.
-      enabled: false
       width: 1280
       height: 720
       fps: 10
@@ -96,5 +101,51 @@ cameras:
       streams:
         Main Stream: cam_01_annke_c500
         Sub Stream: cam_01_annke_c500_sub
+  cam_02_gate:
+    detect:
+      width: 1280
+      height: 720
+      fps: 10
+    motion:
+      contour_area: 25
+    ffmpeg:
+      output_args:
+        record: preset-record-generic-audio-aac
+      inputs:
+        - path: rtsp://127.0.0.1:8554/cam_02_gate
+          input_args: preset-rtsp-restream
+          roles:
+            - record
+        - path: rtsp://127.0.0.1:8554/cam_02_gate_sub
+          input_args: preset-rtsp-restream
+          roles:
+            - detect
+    live:
+      streams:
+        Main Stream: cam_02_gate
+        Sub Stream: cam_02_gate_sub
+  cam_03_patio:
+    detect:
+      width: 1280
+      height: 720
+      fps: 10
+    motion:
+      contour_area: 25
+    ffmpeg:
+      output_args:
+        record: preset-record-generic-audio-aac
+      inputs:
+        - path: rtsp://127.0.0.1:8554/cam_03_patio
+          input_args: preset-rtsp-restream
+          roles:
+            - record
+        - path: rtsp://127.0.0.1:8554/cam_03_patio_sub
+          input_args: preset-rtsp-restream
+          roles:
+            - detect
+    live:
+      streams:
+        Main Stream: cam_03_patio
+        Sub Stream: cam_03_patio_sub
 
 version: 0.17-0

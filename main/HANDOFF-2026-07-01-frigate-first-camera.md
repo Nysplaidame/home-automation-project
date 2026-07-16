@@ -534,3 +534,78 @@ phone no longer needs to trust this project CA for MQTT/HA/local services.
 - Object detection remains disabled after the cutover; the next CCTV
   fine-tuning step should re-enable detection in a controlled observation
   window and start motion/zone calibration.
+
+## 2026-07-13 Gate and Patio camera commissioning
+
+- Two new ANNKE-family cameras were discovered on the GS1900-8HP:
+  - Gate on port 2: `D0:3B:F4:07:71:A0`
+  - Patio on port 3: `D0:3B:F4:07:72:BE`
+- Live router DHCP reservations are now in place for `192.168.30.22` (Gate)
+  and `192.168.30.23` (Patio). `dnsmasq` was restarted and healthy after the
+  narrow DHCP-only change; the previous router DHCP config was saved under
+  `/tmp/dhcp.pre-gate-patio-<timestamp>`.
+- Gate is already on VLAN 30, but remains on its old dynamic lease until it
+  reconnects. Patio was discovered on VLAN 40 (`192.168.40.118`), proving that
+  GS1900 port 3 must be changed to untagged VLAN 30 with PVID 30 before any
+  camera-side setup.
+- The switch's web UI cannot be controlled from this Codex environment because
+  its Chrome connector is unavailable. In the GS1900 UI, change only port 3:
+  remove untagged VLAN 40 membership, set untagged VLAN 30 membership and PVID
+  30, apply the change, and use the switch's top-level Save action. Then
+  reconnect/power-cycle both camera ports so their reservations take effect.
+- After the addresses are confirmed, continue with model/firmware discovery,
+  camera hardening (cloud/P2P disabled, router-local NTP, Digest/Basic RTSP),
+  main/substream proof from CT 111, Frigate go2rtc/config deployment, and HA
+  CCTV dashboard updates. Do not add the cameras to Frigate before that gate.
+
+## 2026-07-16 OMV direct router-port cutover
+
+- OMV now connects directly to GL.iNet GL-MT6000 `lan4`, untagged on VLAN 40;
+  `lan2` remains the only direct VLAN 10 management port.
+- Router validation confirmed `lan4` carrier, OMV ARP MAC
+  `a8:b8:e0:0a:93:7d` on `br-lan.40`, and successful reachability to
+  `192.168.40.50`. The link negotiated at 1 Gbit/s full duplex.
+- GS1900 port 8 remains configured as an untagged VLAN 40/PVID 40 spare
+  storage access port. It is no longer the OMV connection.
+
+## 2026-07-14 Gate and Patio commissioning completed
+
+- Switch configuration is now persisted: Gate is on GS1900 port 2 and Patio is
+  on port 3, both untagged on VLAN 30 with PVID 30. Port 3 was the fault: its
+  VLAN 30 membership was correct but its PVID was still `1` until corrected.
+- Both cameras are ANNKE `I51HJ`, firmware `V5.8.10`. Their device names are
+  now `Gate` and `Patio`; their NTP server is the local router
+  `192.168.30.1`, with clocks confirmed against the router at British Summer
+  Time (`+01:00`).
+- Vendor cloud/P2P state was checked through ISAPI on both cameras and is
+  disabled/unregistered. Both cameras provide H.264 main `101`
+  (`3072x1728`) and sub `102` (`1280x720`) RTSP streams; Digest-authenticated
+  RTSP DESCRIBE probes succeeded for both main streams.
+- Source and live Frigate configuration now include `cam_02_gate` and
+  `cam_03_patio`, each using its main stream for recording and substream for
+  detection. Their URL-encoded RTSP password values exist only in live
+  `/opt/frigate/.env`; source uses the corresponding environment placeholders
+  and must never contain their values.
+- Live Frigate was recreated after deployment and is healthy. API stats proved
+  Gate and Patio at about `10.1` camera/process fps, with both main/sub
+  go2rtc streams registered. The bench camera at `.21` is temporarily
+  disconnected, so its expected RTSP errors are the only remaining camera
+  stream failures.
+- Home Assistant Core was restarted once because the Frigate integration did
+  not dynamically discover the two new cameras. It now has
+  `camera.cam_02_gate` and `camera.cam_03_patio`, plus their standard Frigate
+  motion and person-occupancy entities.
+- The HA CCTV dashboard's `Mobile Balanced` view now contains Gate and Patio
+  Advanced Camera Card live views. Both use `live_provider: go2rtc`, their
+  respective Frigate camera names, and motion/person-occupancy reset triggers.
+- Recovery note: the initial Frigate recreation force-stopped a hung old
+  container, leaving a partial CT 111 runtime start. A clean stop/start of
+  the dedicated Frigate LXC restored its VLAN 30 interface and normal Docker
+  operation before final stream validation.
+
+### Remaining CCTV work
+
+- Reconnect the `.21` bench camera when needed, then confirm it recovers in
+  Frigate.
+- Tune Gate and Patio detection zones, object policy, and notifications after
+  permanent mounting.

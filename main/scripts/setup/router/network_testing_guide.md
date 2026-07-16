@@ -8,7 +8,7 @@ the Zyxel GS1900-8HP is present and configured first:
 - lan5 LAN/recovery: DHCP `192.168.1.x`, gateway/DNS `192.168.1.1`
 - lan2 management: DHCP `192.168.10.x`, gateway/DNS `192.168.10.1`
 - lan3 managed-switch trunk: tagged VLANs `1,10,30,40`
-- lan4 management/admin PC: DHCP `192.168.10.x`, gateway/DNS `192.168.10.1`
+- lan4 OMV NAS: reservation `192.168.40.50`, gateway/DNS `192.168.40.1`
 - lan1 is tagged-only trunk to Proxmox; direct untagged laptop DHCP is not expected
 - first-flight WiFi interfaces are configured but disabled
 
@@ -65,11 +65,11 @@ uci show network | grep -E "network\.@bridge-vlan\[[0-9]+\]\.(vlan|ports)"
 
 # Expected:
 # VLAN 1:  lan3:t lan5:u*
-# VLAN 10: lan1:t lan2:u* lan3:t lan4:u*
+# VLAN 10: lan1:t lan2:u* lan3:t
 # VLAN 20: lan1:t
 # VLAN 30: lan1:t lan3:t
 # VLAN 35: lan1:t
-# VLAN 40: lan1:t lan3:t
+# VLAN 40: lan1:t lan3:t lan4:u*
 # VLAN 50: lan1:t
 # VLAN 60: lan1:t
 # VLAN 70: lan1:t
@@ -86,7 +86,7 @@ Physical client smoke tests:
 | lan5 | Direct LAN/recovery DHCP `192.168.1.x`, DNS `192.168.1.1`, LuCI/browser reachable at `192.168.1.1` |
 | lan2 | DHCP `192.168.10.x`, DNS `192.168.10.1`, Proxmox/admin clients live here |
 | lan3 | Tagged trunk only; test with the managed switch, not plain laptop DHCP |
-| lan4 | Direct management/admin DHCP `192.168.10.x`, DNS `192.168.10.1` |
+| lan4 | Direct OMV NAS port on VLAN 40; `192.168.40.50` after OMV is connected |
 | lan1 | Tagged trunk only; test with Proxmox or VLAN-aware client, not plain DHCP |
 
 Managed switch access-port smoke tests after the switch is installed:
@@ -210,7 +210,7 @@ Connect a test device to each physical port and verify it gets the right IP rang
 |---|---|---|
 | lan2 | 10 (Management) | 192.168.10.100–149 |
 | lan3 | tagged trunk only | no untagged DHCP expected |
-| lan4 | 10 (Management) | 192.168.10.100–149 |
+| lan4 | 40 (Storage) | OMV reservation `192.168.40.50` |
 | lan5 | 1 (LAN/recovery) | 192.168.1.100–199 |
 
 Managed switch access ports:
@@ -307,7 +307,7 @@ All of these must be true before declaring the network ready:
 - [ ] All 10 VLAN interfaces up with correct IPs
 - [ ] VLAN 1 has `lan3:t` and `lan5:u*` in `uci show network.@bridge-vlan[0].ports`
 - [ ] lan3 is tagged-only for VLANs 1,10,30,40
-- [ ] lan2 and lan4 have VLAN 10 PVIDs; lan5 has VLAN 1 PVID
+- [ ] lan2 has the VLAN 10 PVID, lan4 has the VLAN 40 PVID, and lan5 has the VLAN 1 PVID
 - [ ] Managed switch access ports have correct PVIDs: cameras=30, NAS=40, extender=1, switch management=10
 - [ ] VLAN 1, 10, 99 can reach internet; 30, 35, 40, 50 cannot (ICMP blocked)
 - [ ] VLAN 35 (Printers) OTA: port 443 TCP reachable, all other internet blocked

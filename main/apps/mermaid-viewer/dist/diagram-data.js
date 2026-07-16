@@ -168,7 +168,7 @@ export const diagrams = [
       LAN1["lan1: live tagged trunk"]
       LAN2["lan2: unconnected VLAN 10"]
       LAN3["lan3: live tagged trunk"]
-      LAN4["lan4: unconnected VLAN 10"]
+      LAN4["lan4: live OMV NAS VLAN 40"]
       LAN5["lan5: unconnected VLAN 1"]
     end
     LAN1 --> Proxmox["proxmox / MINISFORUM mini PC\n192.168.10.10"]
@@ -178,13 +178,12 @@ export const diagrams = [
       SW1["1: router trunk"]
       SW2["2: live PoE camera"]
       SW3["3-7: future PoE cameras"]
-      SW8["8: live VLAN 40 OMV"]
+      SW8["8: spare VLAN 40 storage"]
     end
     SW2 --> Camera1["cam-01-annke-c500\n192.168.30.21"]
     SW3 -.-> Cameras["cam-02 through cam-06"]
-    SW8 --> OMV["omvnas\n192.168.40.50"]
+    LAN4 --> OMV["omvnas\n192.168.40.50"]
     LAN2 -.-> Admin["Admin workstation"]
-    LAN4 -.-> Admin
     LAN5 -.-> Recovery["Recovery laptop"]`
   },
   {

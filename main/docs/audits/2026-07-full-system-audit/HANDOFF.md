@@ -184,6 +184,19 @@ The operator approved the CT 111 footage cleanup and bounded Immich recovery.
   `14-omv-config-backup.md`. This is a local same-array recovery aid, not an
   independent/off-site copy.
 
+## 2026-07-15 Mermaid Viewer management-access repair
+
+- The operator reported that the internal Mermaid Viewer timed out from the
+  management Wi-Fi client `192.168.10.105`. VM 103 and the viewer remained
+  reachable, but the deployed `DOCKER-USER` policy for port `8092` allowed
+  only `192.168.1.0/24` and `tailscale0`. The approved remediation added the
+  narrow `192.168.10.0/24` allow rule to the canonical
+  `configs/docker-host/system/docker-host-firewall.sh` source and live
+  `/usr/local/sbin/docker-host-firewall.sh`, then restarted the oneshot policy
+  service. It is active; an HTTP request from the management client returned
+  `200` for `http://192.168.20.102:8092/`. Live rollback copy:
+  `/usr/local/sbin/docker-host-firewall.sh.pre-mermaid-mgmt-20260715T205608Z`.
+
 ## Required operator inputs
 
 - Switch read-only credentials/session and tailnet owner session.

@@ -102,10 +102,10 @@ Planning baseline until explicitly revalidated:
 45. [ ] Keep Hermes Agent roadmap-only until local LLM, STT, TTS, monitoring, and safety gates are stable
 46. [ ] Keep future YouTube transcript/query app architecture undecided; VM 103 is only the expected target for future containerized query apps
 47. [x] Add Frigate camera/PoE switch pre-flight checklist at `docs/procedures/frigate_camera_preflight_checklist.md`
-48. [x] Configure Zyxel GS1900-8HP managed switch baseline: router `lan3` tagged trunk for VLANs 1/10/30/40, switch management on VLAN 10 (`192.168.10.12`), first camera on untagged VLAN 30, and OMV on switch port 8 untagged VLAN 40; TL-WA801N VLAN 1 access port remains future work
+48. [x] Configure Zyxel GS1900-8HP managed switch baseline: router `lan3` tagged trunk for VLANs 1/10/30/40, switch management on VLAN 10 (`192.168.10.12`), camera ports untagged VLAN 30, and switch port 8 retained as spare untagged VLAN 40; OMV now connects directly to router `lan4` on VLAN 40. TL-WA801N VLAN 1 access port remains future work
 49. [x] Enable Home Assistant native HTTPS with the local CA on 2026-07-02; validate browser, Companion App, CCTV mobile views, Frigate integration, VentSys static assets, Grafana/Kuma direct links, and rollback path
 50. [ ] Optional only if mobile access becomes flaky: improve Tailscale direct connectivity for off-WiFi mobile access by adding explicit UDP `41641` forwarding through the upstream router and GL-MT6000 to docker-host; current user validation on 2026-07-03 found CCTV feeds working on both home WiFi and mobile data with Tailscale
-51. [x] Restore OMV/VLAN 40 reachability, recreate the HA Supervisor backup mount `nas_backups`, and confirm Proxmox storage `omv-backups` is active again; fixed by moving OMV to GS1900 port 8 untagged VLAN 40 and converting router `lan3` to the planned trunk on 2026-07-03
+51. [x] Restore OMV/VLAN 40 reachability, recreate the HA Supervisor backup mount `nas_backups`, and confirm Proxmox storage `omv-backups` is active again; the 2026-07-03 switch port 8 cutover restored service, then OMV moved to direct router `lan4` untagged VLAN 40 on 2026-07-16 and was revalidated
 52. [ ] Approve and validate the new Tailscale `192.168.30.20/32` Frigate host route for off-WiFi Frigate PWA access; docker-host route advertisement, docker-host UFW routed allow, and OpenWrt docker-host-to-Frigate HTTPS rule were staged on 2026-07-05
 53. [x] Add an internal web-based Mermaid diagram viewer for `docs/diagrams/` so the canonical `.mermaid` sources can be browsed without opening the Obsidian desktop vault; keep it read-only and internal-only
 
@@ -452,9 +452,10 @@ must work without HACS.
 - [x] Bench-test first camera on the Zyxel switch: ANNKE C500 (`I51HJ`, firmware `v5.8.10 build 250917`) now reserved at `192.168.30.21`, with verified RTSP `/Streaming/Channels/101` and `/Streaming/Channels/102`, router-local NTP, and cloud access disabled
 - [x] Deploy router `lan3` as the managed-switch trunk after the GS1900 baseline was configured; keep future switch access-port changes gated and labelled
 - [ ] Mount cameras, run CAT6 to PoE switch access ports on VLAN 30
-- [ ] Assign static IPs: camera 1 is reserved at `192.168.30.21`; future cameras remain planned at `192.168.30.22-24`
-- [ ] Update RTSP paths in `configs/frigate/config.yml` (currently placeholder `/stream1`)
-- [ ] Restart Frigate, confirm all 4 camera streams visible in UI
+- [x] Assign camera DHCP reservations: bench camera at `192.168.30.21`, Gate at `192.168.30.22`, Patio at `192.168.30.23`; reserve `.24` for a future camera
+- [x] Configure verified ANNKE RTSP main/sub paths in `configs/frigate/config.yml` for Gate and Patio
+- [x] Restart Frigate and confirm Gate and Patio main/sub streams ingest at about `10 fps` (2026-07-14); the bench camera is temporarily disconnected from port 2
+- [x] Add Gate and Patio as go2rtc-backed Frigate live cards to the HA CCTV dashboard's `Mobile Balanced` view
 - [ ] Test person detection notifications in HA
 
 ---
@@ -523,5 +524,5 @@ must work without HACS.
 - [ ] Next patch window: update docker-host packages from the current candidate list, reboot if kernel package changes, and rerun router/health/Grafana checks
 - [ ] After any config change: `git add -A && git commit && git push`
 - [ ] When hardware arrives: update MAC addresses in `dhcp-config.conf`
-- [ ] When cameras confirmed: update RTSP URLs in `configs/frigate/config.yml`
+- [x] Update RTSP URLs in `configs/frigate/config.yml` for the confirmed Gate and Patio cameras
 - [ ] When sensors connected: update DS18B20 addresses in ESPHome YAML
