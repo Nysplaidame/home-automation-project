@@ -62,12 +62,47 @@ done
 iptables -A DOCKER-USER -i tailscale0 -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8091 -j RETURN
 iptables -A DOCKER-USER -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8091 -j DROP
 
-# GardenKeeper API: Home Assistant, management, monitoring, and Tailscale.
-for source in 192.168.20.101 192.168.10.0/24 192.168.60.10; do
+# GardenKeeper API: Home Assistant, Supervisor containers, management,
+# monitoring, and Tailscale.
+for source in 192.168.20.101 172.30.32.0/23 192.168.10.0/24 192.168.60.10; do
     iptables -A DOCKER-USER -p tcp -s "$source" -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8090 -j RETURN
 done
 iptables -A DOCKER-USER -i tailscale0 -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8090 -j RETURN
 iptables -A DOCKER-USER -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8090 -j DROP
+
+# Homepage UI: management, LAN, monitoring, and Tailscale.
+for source in 192.168.10.0/24 192.168.1.0/24 192.168.60.10; do
+    iptables -A DOCKER-USER -p tcp -s "$source" -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 3001 -j RETURN
+done
+iptables -A DOCKER-USER -i tailscale0 -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 3001 -j RETURN
+iptables -A DOCKER-USER -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 3001 -j DROP
+
+# Mermaid Viewer: management, LAN, and Tailscale.
+iptables -A DOCKER-USER -p tcp -s 192.168.10.0/24 -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8092 -j RETURN
+iptables -A DOCKER-USER -p tcp -s 192.168.1.0/24 -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8092 -j RETURN
+iptables -A DOCKER-USER -i tailscale0 -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8092 -j RETURN
+iptables -A DOCKER-USER -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8092 -j DROP
+
+# Gridfinity Layout Tool: management, LAN, and Tailscale.
+iptables -A DOCKER-USER -p tcp -s 192.168.10.0/24 -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8093 -j RETURN
+iptables -A DOCKER-USER -p tcp -s 192.168.1.0/24 -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8093 -j RETURN
+iptables -A DOCKER-USER -i tailscale0 -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8093 -j RETURN
+iptables -A DOCKER-USER -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8093 -j DROP
+
+# Household Hub UI and read-only assistant API: management, LAN, Home
+# Assistant, Supervisor containers, monitoring, and Tailscale.
+for source in 192.168.10.0/24 192.168.1.0/24 192.168.20.101 172.30.32.0/23 192.168.60.10; do
+    iptables -A DOCKER-USER -p tcp -s "$source" -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8100 -j RETURN
+done
+iptables -A DOCKER-USER -i tailscale0 -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8100 -j RETURN
+iptables -A DOCKER-USER -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8100 -j DROP
+
+# Household Hub API: Home Assistant, management, LAN, monitoring, and Tailscale.
+for source in 192.168.20.101 192.168.10.0/24 192.168.1.0/24 192.168.60.10; do
+    iptables -A DOCKER-USER -p tcp -s "$source" -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8101 -j RETURN
+done
+iptables -A DOCKER-USER -i tailscale0 -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8101 -j RETURN
+iptables -A DOCKER-USER -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8101 -j DROP
 
 # Obsidian LiveSync CouchDB: management, LAN, monitoring, and Tailscale.
 for source in 192.168.10.0/24 192.168.1.0/24 192.168.60.10; do
@@ -97,3 +132,20 @@ iptables -A DOCKER-USER -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigd
 iptables -A DOCKER-USER -p udp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 53 -j DROP
 
 iptables -A DOCKER-USER -j RETURN
+
+# Docker also publishes several services on IPv6. The host has no LAN IPv6
+# service policy; retain only the Tailscale path and let tailnet ACLs provide
+# identity-level authorization. Match each published TCP port explicitly.
+ip6tables -N DOCKER-USER 2>/dev/null || true
+ip6tables -F DOCKER-USER
+ip6tables -A DOCKER-USER -m conntrack --ctstate RELATED,ESTABLISHED -j RETURN
+for port in 2283 3001 5984 8080 8081 8085 8087 8088 8090 8091 8092 8093 8100 8101 9283 9925; do
+    ip6tables -A DOCKER-USER -i tailscale0 -p tcp -m conntrack --ctorigdstport "$port" -j RETURN
+    ip6tables -A DOCKER-USER -p tcp -m conntrack --ctorigdstport "$port" -j DROP
+done
+
+# AdGuard DNS is deliberately IPv4-only from the router and monitoring host.
+for proto in tcp udp; do
+    ip6tables -A DOCKER-USER -p "$proto" -m conntrack --ctorigdstport 53 -j DROP
+done
+ip6tables -A DOCKER-USER -j RETURN

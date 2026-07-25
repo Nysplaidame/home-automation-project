@@ -1,85 +1,110 @@
 flowchart TB
-    Operator["Admin laptop / phone"]
+    Operator["Trusted operator<br/>Management VLAN / mobile Tailscale"]
     Internet["Internet"]
-    Router["OpenWrt router<br/>DHCP, local DNS, firewall, NTP<br/>192.168.10.1"]
-    Proxmox["Proxmox host<br/>MINISFORUM M1 Pro-125H<br/>192.168.10.10"]
-    EdgeSwitch["Planned managed switch<br/>Zyxel GS1900-8HP<br/>VLAN trunk from router lan3"]
+    Router["GL-MT6000 OpenWrt<br/>192.168.10.1<br/>VLAN gateway, firewall, DHCP, DNS, NTP"]
+    Switch["Zyxel GS1900-8HP<br/>192.168.10.12<br/>802.1Q trunk + PoE access ports"]
+    Proxmox["Proxmox VE 9<br/>MINISFORUM M1 Pro-125H<br/>192.168.10.10"]
 
     Internet --- Router
     Operator --> Router
-    Router --- Proxmox
-    Router -.-> EdgeSwitch
+    Router ---|"lan1 VLAN trunk"| Proxmox
+    Router ---|"lan3 VLANs 1/10/30/40"| Switch
 
-    subgraph VMs["Proxmox VMs"]
-        HA["VM 100 Home Assistant OS<br/>192.168.20.101<br/>Mosquitto, ESPHome, dashboards"]
-        Monitoring["VM 102 Monitoring<br/>192.168.60.10<br/>Kuma, InfluxDB, Grafana"]
-        DockerHost["VM 103 docker-host<br/>192.168.20.102<br/>Compose stacks, Tailscale, AdGuard"]
-    end
-
-    subgraph LXCs["Unprivileged Proxmox LXCs"]
-        Frigate["CT 111 Frigate NVR<br/>192.168.30.20<br/>OpenVINO + VA-API"]
-        LLMHost["CT 114 llm-host<br/>192.168.20.104<br/>llama.cpp Vulkan + Wyoming voice"]
+    subgraph Compute["Production compute"]
+        HA["VM 100 · Home Assistant OS<br/>192.168.20.101<br/>HTTPS 8123 · MQTT TLS 8883"]
+        Monitoring["VM 102 · Monitoring<br/>192.168.60.10<br/>Grafana · Kuma · InfluxDB"]
+        DockerHost["VM 103 · docker-host<br/>192.168.20.102<br/>Compose · Tailscale routing"]
+        Frigate["CT 111 · Frigate NVR<br/>192.168.30.20<br/>OpenVINO · VA-API · HTTPS 8971"]
+        LLMHost["CT 114 · local AI<br/>192.168.20.104<br/>llama.cpp · Open WebUI · Wyoming"]
+        Rollback["VM 101 / VM 104<br/>powered-off rollback only"]
     end
 
     Proxmox --- HA
-    Proxmox --- Frigate
     Proxmox --- Monitoring
     Proxmox --- DockerHost
     Proxmox --- Frigate
     Proxmox --- LLMHost
+    Proxmox -.-> Rollback
 
-    subgraph Storage["Storage"]
-        OMV["OMV NAS<br/>192.168.40.50<br/>NFS/SMB, SMART, backups"]
+    subgraph HouseholdApps["docker-host household applications"]
+        Immich["Immich<br/>photos and videos"]
+        Mealie["Mealie<br/>recipes and meal plans"]
+        Grocy["Grocy<br/>stock and shopping"]
+        Garden["GardenKeeper<br/>garden state and tasks"]
+        Hub["Household Hub<br/>knowledge and research"]
+        Bambuddy["Bambuddy<br/>Bambu P1S integration"]
     end
 
-    EdgeSwitch -.->|"future VLAN 40 access port"| OMV
-
-    subgraph DockerApps["docker-host Tier 1 services"]
-        AdGuard["AdGuard Home<br/>DNS filtering"]
-        Immich["Immich<br/>photo gallery"]
-        Homepage["Homepage<br/>service dashboard"]
-        Dozzle["Dozzle<br/>container logs"]
-        Bambuddy["Bambuddy<br/>P1S bridge"]
-        FutureQuery["Future query apps<br/>containerized tools, TBD design"]
+    subgraph PlatformApps["docker-host platform and tools"]
+        Homepage["Home Operations portal"]
+        AdGuard["AdGuard Home"]
+        Dozzle["Dozzle logs"]
+        Search["SearXNG + Whoogle"]
+        Ntfy["ntfy notifications"]
+        LiveSync["Obsidian LiveSync"]
+        Tools["Mermaid Viewer<br/>Gridfinity Layout Tool"]
+        Watch["Watchtower monitor-only<br/>Telegraf metrics"]
     end
 
-    DockerHost --- AdGuard
-    DockerHost --- Immich
-    DockerHost --- Homepage
-    DockerHost --- Dozzle
-    DockerHost --- Bambuddy
-    DockerHost -.-> FutureQuery
+    DockerHost --- HouseholdApps
+    DockerHost --- PlatformApps
 
-    HA -.->|"llama.cpp + Wyoming + OpenWakeWord"| LLMHost
-    LLMHost -.->|"SearXNG search"| DockerHost
-    LLMHost -.->|"future approved app queries only"| FutureQuery
+    subgraph Storage["Storage VLAN 40"]
+        OMV["OpenMediaVault NAS<br/>192.168.40.50<br/>NFS · SMB · backups · CCTV · Immich"]
+    end
+
+    Switch ---|"port 8 · VLAN 40 access"| OMV
+    OMV -->|"HA backups"| HA
+    OMV -->|"recordings"| Frigate
+    OMV -->|"media + app backups"| DockerHost
+    OMV -->|"VM/CT backups"| Proxmox
 
     subgraph Physical["Physical integrations"]
-        Cameras["PoE cameras<br/>192.168.30.21-24"]
-        Extender["TL-WA801N extender<br/>VLAN 1 access port"]
-        Printers["Bambu P1S / printers<br/>192.168.35.0/24"]
-        VentSys["VentSys ESPHome devices<br/>192.168.50.0/24"]
+        Camera["ANNKE C500<br/>192.168.30.21"]
+        FutureCameras["Future exterior cameras<br/>192.168.30.22-24+"]
+        Printer["Bambu P1S<br/>192.168.35.200"]
+        VentSys["VentSys ESPHome fleet<br/>VLAN 50 · hardware adoption pending"]
     end
 
-    Cameras -.-> EdgeSwitch
-    EdgeSwitch -.->|"future VLAN 30 camera access"| Frigate
-    Extender -.-> EdgeSwitch
-    Printers --> Bambuddy
-    VentSys --> HA
+    Switch -->|"port 2 · VLAN 30 PoE"| Camera
+    Switch -.-> FutureCameras
+    Camera -->|"RTSP main/sub streams"| Frigate
+    FutureCameras -.-> Frigate
+    Printer --> Bambuddy
+    VentSys -->|"MQTT / ESPHome"| HA
 
-    OMV -.->|"HA backups"| HA
-    OMV -.->|"Frigate archive"| Frigate
-    OMV -.->|"Immich library/storage"| Immich
+    HA -->|"Frigate integration"| Frigate
+    HA -->|"conversation + voice"| LLMHost
+    DockerHost -->|"chat + embeddings"| LLMHost
+    Monitoring -.->|"health + metrics"| HA
+    Monitoring -.-> DockerHost
+    Monitoring -.-> Frigate
+    Monitoring -.-> LLMHost
+    Monitoring -.-> OMV
 
     subgraph Remote["Remote access"]
-        Tailscale["Tailscale daily access<br/>docker-host identity + host routes"]
-        WireGuard["WireGuard dormant fallback<br/>router split tunnel"]
+        Tailnet["Tailscale tailnet<br/>daily access"]
+        TailRouter["docker-host tailscale0<br/>100.94.122.18"]
+        HostRoutes["Approved narrow routes<br/>HA .101 · Frigate .20 · OMV .50 · Monitoring .10"]
+        WireGuard["WireGuard<br/>dormant split-tunnel fallback"]
     end
 
-    Operator --> Tailscale
-    Tailscale --> DockerHost
-    DockerHost -.->|"192.168.20.101/32"| HA
-    DockerHost -.->|"192.168.40.50/32"| OMV
-    DockerHost -.->|"192.168.60.10/32"| Monitoring
-    Operator -.->|"fallback only"| WireGuard
-    WireGuard -.->|"controlled router access"| Router
+    Operator --> Tailnet --> TailRouter
+    TailRouter --> DockerHost
+    TailRouter --> HostRoutes
+    HostRoutes --> HA
+    HostRoutes --> Frigate
+    HostRoutes --> OMV
+    HostRoutes --> Monitoring
+    Operator -.-> WireGuard -.-> Router
+
+    classDef edge fill:#f4b860,stroke:#8a5a12,color:#241704
+    classDef compute fill:#78c6a3,stroke:#276749,color:#08251a
+    classDef app fill:#78b7d0,stroke:#245b70,color:#071e27
+    classDef storage fill:#b8a1e3,stroke:#5b4391,color:#1b1230
+    classDef remote fill:#ef9a9a,stroke:#963f3f,color:#350b0b
+    class Router,Switch edge
+    class Proxmox,HA,Monitoring,DockerHost,Frigate,LLMHost compute
+    class Immich,Mealie,Grocy,Garden,Hub,Bambuddy,Homepage,AdGuard,Dozzle,Search,Ntfy,LiveSync,Tools,Watch app
+    class OMV storage
+    class Tailnet,TailRouter,HostRoutes,WireGuard remote

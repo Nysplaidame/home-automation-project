@@ -3,7 +3,7 @@ title: Docker Host Config Templates
 description: Rebuildable source templates for VM 103 docker-host stacks, host firewall, and app-data backup
 tags: [docker-host, compose, firewall, backup, templates]
 created: 2026-05-27
-modified: 2026-07-06
+modified: 2026-07-24
 type: config-reference
 status: active
 ---
@@ -30,6 +30,12 @@ Live stack paths:
 | Watchtower monitor-only | `/opt/stacks/watchtower` | `stacks/watchtower/` |
 | SearXNG | `/opt/stacks/searxng` | `stacks/searxng/` |
 | Whoogle | `/opt/stacks/whoogle` | `stacks/whoogle/` |
+| Mealie | `/opt/stacks/mealie` | `stacks/mealie/` |
+| Grocy | `/opt/stacks/grocy` | `stacks/grocy/` |
+| Obsidian LiveSync | `/opt/stacks/obsidian-livesync` | `stacks/obsidian-livesync/` |
+| Household Hub | `/opt/stacks/household-hub` | app repository deployment source |
+| Mermaid Viewer | `/opt/stacks/mermaid-viewer` | `../../apps/mermaid-viewer/` |
+| Gridfinity Layout Tool | `/opt/stacks/gridfinity-layout-tool` | `stacks/gridfinity-layout-tool/` |
 | Docker-host Telegraf metrics | `/opt/stacks/telegraf` | `stacks/telegraf/` |
 | GardenKeeper | `/opt/stacks/gardenkeeper` | `stacks/gardenkeeper/` |
 | Docker host firewall | `/usr/local/sbin/docker-host-firewall.sh` | `system/docker-host-firewall.sh` |

@@ -1,0 +1,41 @@
+flowchart LR
+    Upstream["Upstream modem/router<br/>internet handoff"] --> WAN
+
+    subgraph Router["GL-MT6000 OpenWrt · 192.168.10.1"]
+        WAN["WAN<br/>upstream DHCP"]
+        LAN1["lan1<br/>tagged Proxmox trunk"]
+        LAN2["lan2<br/>management/recovery"]
+        LAN3["lan3<br/>tagged switch trunk<br/>VLANs 1/10/30/40"]
+        LAN4["lan4<br/>management/admin access"]
+        LAN5["lan5<br/>LAN/recovery access"]
+        WiFi["Wi-Fi<br/>HomeMain · HomeAdmin · HomePrinters<br/>HomeIoT · HomeGuest"]
+    end
+
+    LAN1 --> Proxmox["MINISFORUM Proxmox host<br/>192.168.10.10<br/>VLAN-aware guest bridge"]
+    LAN3 --> SW1
+
+    subgraph Switch["Zyxel GS1900-8HP · 192.168.10.12"]
+        SW1["Port 1<br/>router trunk"]
+        SW2["Port 2<br/>PoE · VLAN 30 access"]
+        SW3["Ports 3-7<br/>future PoE cameras"]
+        SW8["Port 8<br/>VLAN 40 access"]
+    end
+
+    SW2 --> Camera["ANNKE C500 cam-01<br/>192.168.30.21"]
+    SW3 -.-> FutureCameras["Future exterior cameras<br/>VLAN 30"]
+    SW8 --> OMV["OpenMediaVault NAS<br/>192.168.40.50"]
+    WiFi --> Admin["Admin workstation<br/>HomeAdmin · VLAN 10"]
+    WiFi --> Users["Household devices<br/>HomeMain · VLAN 1"]
+    WiFi --> Printer["Bambu P1S<br/>HomePrinters · VLAN 35"]
+    WiFi -.-> VentSys["Future VentSys devices<br/>HomeIoT · VLAN 50"]
+
+    Proxmox --> HA["VM 100 HA · VLAN 20"]
+    Proxmox --> Monitor["VM 102 monitoring · VLAN 60"]
+    Proxmox --> Docker["VM 103 docker-host · VLAN 20"]
+    Proxmox --> Frigate["CT 111 Frigate · VLAN 30"]
+    Proxmox --> LLM["CT 114 local AI · VLAN 20"]
+
+    classDef live fill:#78c6a3,stroke:#276749,color:#08251a
+    classDef future fill:#334155,stroke:#94a3b8,color:#e2e8f0,stroke-dasharray: 5 5
+    class WAN,LAN1,LAN3,WiFi,Proxmox,SW1,SW2,SW8,Camera,OMV,Admin,Users,Printer,HA,Monitor,Docker,Frigate,LLM live
+    class SW3,FutureCameras,VentSys future

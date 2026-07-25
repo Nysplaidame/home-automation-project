@@ -2,6 +2,8 @@
 # Deploy to: /config/packages/gardenkeeper_package.yaml on HA VM.
 # Requires this secret in /config/secrets.yaml:
 #   gardenkeeper_webhook_secret: <value from /opt/stacks/gardenkeeper/.env>
+# The rest_command below is the manual/automation bridge. Conversational tool
+# calls and spoken responses are owned by custom_components/gardenkeeper_llm.
 
 command_line:
   - binary_sensor:

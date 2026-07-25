@@ -118,6 +118,8 @@ external_url: "https://your-vpn-or-domain"
 mqtt_username: "mqtt"
 mqtt_password: "your-mqtt-password"        # Bitwarden: mqtt-credentials
 influxdb_homeassistant_token: "your-token" # Bitwarden: influxdb-ha-token
+gardenkeeper_webhook_secret: "your-random-secret" # Bitwarden: gardenkeeper-ha-voice
+household_hub_home_assistant_secret: "your-random-secret" # Bitwarden: household-hub-ha-voice
 ```
 
 | Secret key | Bitwarden entry | Notes |
@@ -129,6 +131,8 @@ influxdb_homeassistant_token: "your-token" # Bitwarden: influxdb-ha-token
 | `influxdb_homeassistant_token` | `influxdb-ha-token` | Scoped InfluxDB token for HA writes to the `homeassistant` bucket |
 | `cam_01_annke_c500_password` | `annke-c500-cam-01` | Current admin password for first bench camera ISAPI controls |
 | `grocy_api_key` | `grocy-home-assistant-voice` | Dedicated Grocy API key for HA Assist add/list shopping-list tools only |
+| `gardenkeeper_webhook_secret` | `gardenkeeper-ha-voice` | Dedicated shared secret for deterministic GardenKeeper voice operations |
+| `household_hub_home_assistant_secret` | `household-hub-ha-voice` | Dedicated shared secret for Household Hub read-only knowledge and recipe research |
 
 ---
 

@@ -1,0 +1,44 @@
+flowchart TB
+    Proxmox["Proxmox VE 9<br/>MINISFORUM M1 Pro-125H<br/>192.168.10.10"]
+
+    subgraph Production["Production guests"]
+        HA["VM 100 · home-assistant<br/>VLAN 20 · .101<br/>2 vCPU · 6 GiB · 32 GiB"]
+        Monitor["VM 102 · monitoring<br/>VLAN 60 · .10<br/>2 vCPU · 3 GiB · 32 GiB"]
+        Docker["VM 103 · docker-host<br/>VLAN 20 · .102<br/>2 vCPU · 6 GiB · 64 GiB"]
+        Frigate["CT 111 · frigate-nvr<br/>VLAN 30 · .20<br/>2 vCPU · 6 GiB · 32 GiB"]
+        LLM["CT 114 · llm-host<br/>VLAN 20 · .104<br/>4 vCPU · 20 GiB · 100 GiB"]
+    end
+
+    subgraph Rollback["Powered-off rollback guests"]
+        OldFrigate["VM 101 · old Frigate"]
+        OldLLM["VM 104 · old llm-host"]
+    end
+
+    Proxmox --> Production
+    Proxmox -.-> Rollback
+
+    GPU["Shared Intel iGPU<br/>renderD128 + card0<br/>no PCI passthrough"]
+    GPU --> Frigate
+    GPU --> LLM
+
+    VMBackup["VM backup job<br/>100 · 102 · 103<br/>daily 02:00 · snapshot · ZSTD"]
+    CTBackup["LXC backup job<br/>111 · 114<br/>daily 04:00 · snapshot · ZSTD<br/>tmpdir /var/tmp"]
+    Retention["Retention<br/>7 daily + 6 monthly"]
+    OMV["OMV omv-backups NFS<br/>192.168.40.50"]
+    Restore["Restore evidence<br/>guest jobs verified after tmpdir fix"]
+
+    HA --> VMBackup
+    Monitor --> VMBackup
+    Docker --> VMBackup
+    Frigate --> CTBackup
+    LLM --> CTBackup
+    VMBackup --> Retention --> OMV
+    CTBackup --> Retention
+    OMV --> Restore
+
+    classDef guest fill:#78c6a3,stroke:#276749,color:#08251a
+    classDef rollback fill:#334155,stroke:#94a3b8,color:#e2e8f0,stroke-dasharray: 5 5
+    classDef backup fill:#b8a1e3,stroke:#5b4391,color:#1b1230
+    class HA,Monitor,Docker,Frigate,LLM guest
+    class OldFrigate,OldLLM rollback
+    class VMBackup,CTBackup,Retention,OMV,Restore backup

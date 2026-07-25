@@ -4,7 +4,7 @@ description: Implementation tasks by phase — updated June 2026
 tags: [tasks, implementation]
 aliases: [TODO, Tasks]
 created: 2025-09-15
-modified: 2026-07-07
+modified: 2026-07-13
 type: task-list
 status: active
 ---
@@ -23,10 +23,11 @@ status: active
 4. [x] Add draft docker-host service manuals for Tier 1, Tier 2, and Tier 3/evaluate services
 5. [x] Add the companion setup-documentation checklist at `docs/install/INSTALL-TO-DO.md`
 6. [x] Replace stale static diagrams with canonical Mermaid sources for architecture, install sequence, DNS/NTP, access, storage, docker-host services, and VentSys safety flow
-7. [ ] Continue expanding each install phase until every command has expected output examples and every failure mode has a tested recovery path
-8. [ ] Work through the comprehensive checklist in `docs/install/INSTALL-TO-DO.md`
-9. [ ] Run a full dry-read from `docs/install/START-HERE.md` after the next content expansion pass
-10. [x] Deploy and document shared-iGPU CT 111 Frigate and CT 114 local AI architecture
+7. [ ] Deploy the reconciled 47-entry `home.local` domain inventory from `configs/openwrt/dhcp-config.conf` to live OpenWrt, restart dnsmasq, remove the temporary workstation hosts entry for Home Assistant, and pass `scripts/validation/validate-home-local-dns.ps1` against `192.168.10.1`
+8. [ ] Continue expanding each install phase until every command has expected output examples and every failure mode has a tested recovery path
+9. [ ] Work through the comprehensive checklist in `docs/install/INSTALL-TO-DO.md`
+10. [ ] Run a full dry-read from `docs/install/START-HERE.md` after the next content expansion pass
+11. [x] Deploy and document shared-iGPU CT 111 Frigate and CT 114 local AI architecture
 
 Planning baseline until explicitly revalidated:
 
@@ -118,6 +119,55 @@ Planning baseline until explicitly revalidated:
 - [x] Deploy AdGuard Home under `/opt/stacks/adguard-home/`
 - [x] Deploy Immich under `/opt/stacks/immich/` with OMV-backed upload/library storage at `/mnt/omv/immich`
 - [x] Deploy Homepage under `/opt/stacks/homepage/`
+- [x] Upgrade Homepage into the `Home Operations` portal with Home, Tools,
+  Infrastructure, Monitoring, Storage, Media and Operations tabs; all
+  user-facing services, live Docker workload status, reference links, quick
+  search, header resource status, responsive layout, local visual assets and
+  explicit host validation are deployed and desktop/mobile verified on
+  2026-07-24
+- [x] Add visible portal-card preview controls and an inline embedded workspace
+  below the active tab's portal cards, with a contained split/work area and an
+  `Open tab` fallback; deployed and refined 2026-07-25
+- [x] Replace Mermaid Viewer placeholders with all 11 canonical sources and add
+  search, deep links, pan, zoom, fit, 100% view and fullscreen; deployed and
+  render-verified 2026-07-24
+- [x] Apply subject-specific, code-native backgrounds to the custom portal,
+  Mermaid Viewer, GardenKeeper and Household Hub; portal motion respects
+  reduced-motion preferences, deployed 2026-07-24
+- [ ] Deploy the prepared Transfer Portal transfer-grid canvas through the OMV
+  native-service deployment route once OMV management access is available
+- [ ] Decide and deploy a password manager only with native HTTPS, a documented
+  backup/restore path and an owner-controlled emergency-access policy; do not
+  expose a vault over the current HTTP-only portal links
+- [ ] Audit every portal for both direct navigation and embedded-preview
+  behaviour. Record service health, HTTPS/mixed-content, authentication and
+  `X-Frame-Options`/CSP framing results; fix reachability or use the normal
+  link rather than weakening a service's frame protections.
+- [ ] Design the Jellyfin media library using the existing OMV-backed Immich
+  storage. Do not claim that Jellyfin can consume Immich albums directly:
+  decide whether a scheduled, read-only Immich API/export job should curate
+  approved album assets into a separate Jellyfin library path, including
+  ownership, duplicate handling, video format/transcode policy and backup.
+- [ ] Design the OMV download/media stack before deployment. Prefer
+  qBittorrent plus an isolated VPN/kill-switch path for authorised torrent
+  downloads; make NZBGet conditional on an approved Usenet provider; keep
+  aria2 as an optional direct-download utility rather than a primary library
+  manager. All need approved storage paths, user/group ownership, backup scope
+  and OMV Docker management access.
+- [ ] Evaluate Autobrr only as a complement to an approved qBittorrent/NZBGet
+  workflow: it listens to authorised indexer IRC/RSS announcements and dispatches
+  matching releases; it is not a replacement downloader. Require tracker policy,
+  credentials outside version control, categories/save paths and notification
+  rules before deployment.
+- [ ] Deploy Calibre-Web and Atsumeru only after book/comic source directories,
+  write policy, library metadata backup and OMV Docker management access are
+  approved; then add their Homepage widgets and Media-tab cards.
+- [ ] Add Homepage service widgets where an approved, least-privilege credential
+  path exists. Prioritise already deployed Home Assistant, Frigate, Immich,
+  Mealie, Grocy, AdGuard Home, Grafana, Uptime Kuma, Proxmox, OpenWrt and
+  Tailscale; evaluate complementary Beszel/Netdata, APC UPS, Scrutiny,
+  Speedtest Tracker, Authentik and Backrest only if their supporting services
+  are deliberately adopted.
 - [x] Deploy Dozzle under `/opt/stacks/dozzle/`
 - [x] Add docker-host `DOCKER-USER` guard so Dozzle is management-only despite Docker published-port forwarding
 - [x] Add Uptime Kuma checks for Homepage and Dozzle

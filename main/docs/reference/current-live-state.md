@@ -3,7 +3,7 @@ title: Current Live State
 description: Canonical inventory of deployed hosts, services, and deliberately deferred components
 tags: [reference, current-state, infrastructure]
 created: 2026-06-20
-modified: 2026-07-07
+modified: 2026-07-24
 type: reference
 status: active
 ---
@@ -13,7 +13,22 @@ status: active
 This is the canonical current-state inventory. Rebuild manuals describe how to
 build from blank and must link here rather than duplicating live-status claims.
 
-Last verified: **2026-07-07**.
+Last verified: **2026-07-19**.
+
+The Household admin workstation joined Tailscale on 2026-07-13 as
+`household-admin-workstation` (`100.95.209.14`). Tailnet peer discovery and
+WireGuard connectivity to docker-host pass, but the current tailnet ACL denies
+service and SSH connections from the new device. Management-VLAN access remains
+available through the explicit `192.168.20.0/24` route while ACL approval is
+completed in the Tailscale admin console.
+
+The canonical OpenWrt and service-matrix inventories contain 47 authoritative
+`home.local` aliases as of 2026-07-13. Live OpenWrt returned NXDOMAIN and
+AdGuard correctly had no local rewrites during verification, showing that the
+router's canonical domain records still need deployment. A workstation-only
+hosts entry temporarily restores `homeassistant.home.local`; it is not the
+network-wide fix. Validate source and live DNS with
+`scripts/validation/validate-home-local-dns.ps1` after router deployment.
 
 ## Compute
 
@@ -33,7 +48,7 @@ while its replacement LXC is running.
 
 ## Home Assistant
 
-- Configuration check passes on HAOS 2026.7.0.
+- Configuration check passes on HAOS 2026.7.1.
 - Native HA HTTPS is live at `https://192.168.20.101:8123` using
   `/ssl/fullchain.pem` and `/ssl/privkey.pem`, signed by local
   `/ssl/ca.crt` (`Home Local CA`). HTTP on port `8123` is no longer the active
@@ -53,6 +68,12 @@ while its replacement LXC is running.
   paths. The Grocy voice path is intentionally limited to adding/listing
   shopping-list items, and a live Assist spoken prompt is still required before
   certifying the conversational path end to end.
+- GardenKeeper and Household Hub LLM tool integrations are live. GardenKeeper
+  owns deterministic garden-state and task operations with confirmation tokens;
+  Household Hub exposes authenticated read-only knowledge and recipe research.
+  Both use separate HA credentials, and authenticated backend probes passed on
+  2026-07-13. A spoken Assist prompt is still required to certify model tool
+  selection and speech output end to end.
 - Mealie is live; Overwatch-to-Mealie recipe saving is not yet implemented.
 - VentSys dashboard is deployed; most physical VentSys entities remain gated on
   hardware installation.
@@ -138,7 +159,47 @@ while its replacement LXC is running.
 
 Live workloads: Bambuddy, AdGuard Home, Immich, Homepage, Dozzle,
 ntfy, SearXNG, Whoogle, Mealie, Grocy, Obsidian LiveSync/CouchDB, Watchtower
-monitor-only and Telegraf. VM 103 has a 64 GiB virtual disk.
+monitor-only, GardenKeeper, Household Hub, Gridfinity Layout Tool and Telegraf.
+Homepage is the central `Home Operations` navigation portal at
+`http://192.168.20.102:3001/`. Its Home, Tools, Infrastructure, Monitoring,
+Storage, Media and Operations tabs cover every user-facing portal and every
+live docker-host container; Docker-backed cards expose container health and
+expandable resource statistics. The header aligns the Home Operations title,
+search, Portal runtime resources (the Homepage container, not host-wide CPU or
+memory) and date/time, while Home starts with the reference links. Portal cards
+use 50% translucent, elevated glass surfaces.
+Each card also exposes a visible Preview action that opens an inline embedded
+workspace below the active tab's portal cards, with reload, close and `Open tab`
+fallback controls for services that disallow iframe embedding. The workspace is
+margin-bounded and acts as a splitter/work area rather than a popup. Header and
+card surfaces use a 50% translucent dark-teal/light-teal visual system with
+restrained outline shadows; the header's adaptive search fills remaining space
+between the title, runtime resource widget and date/time.
+Its local network SVG now has a slow background and ambient-glow drift; both
+animations are disabled for `prefers-reduced-motion`.
+Mermaid Viewer is live at `http://192.168.20.102:8092/` and is generated from
+the 11 canonical project diagrams. It supports search, deep links, pan, zoom,
+fit, 100% view, fullscreen, source inspection and an adaptive full-width
+layout in both direct and embedded views. Its dark canvas, controls and panels
+use elevated glass surfaces over a subtle technical grid and network glow.
+GardenKeeper and Household Hub have matching subject-specific backgrounds and
+the same raised-glass card/button treatment; their reusable source layers are
+in `apps/custom-site-themes/`. The Transfer Portal source has the matching
+style prepared but is not deployed until OMV management access is restored.
+The portal uses only non-secret configuration and remains an internal/Tailscale
+surface rather than an authentication boundary.
+Gridfinity Layout Tool (`gridfinity-layout-tool-v4.253.0`) is live at
+`http://192.168.20.102:8093`; its
+`gridfinity.home.local` DNS source is staged but not yet router-deployed. It
+serves a pinned externally built static release through Nginx on the fixed
+`172.32.0.0/24` Docker subnet, avoiding the prior overlapping automatic bridge
+allocation. A Windows per-user 09:00 daily autodeploy checks the locally
+recorded release, builds a newer upstream tag externally, and uses the atomic
+health-checked deployment/rollback workflow in
+`docs/install/services/gridfinity-layout-tool.md`.
+VM 103 has a 64 GiB virtual disk and 6 GiB RAM. On 2026-07-13 both app stacks were rebuilt from verified source,
+their scoped HA credentials were rotated, the Hub database was baselined at
+Alembic revision `20260617_0001`, and authenticated assistant probes passed.
 
 2026-07-05 docker-host guest-agent check:
 

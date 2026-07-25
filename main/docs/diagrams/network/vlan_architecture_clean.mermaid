@@ -67,8 +67,10 @@ flowchart TB
     end
 
     Tailnet --> DockerHost
-    DockerHost -.->|"host routes only: HA and OMV"| HA
-    DockerHost -.->|"host route only"| OMV
+    DockerHost -.->|"host route"| HA
+    DockerHost -.->|"host route"| Frigate
+    DockerHost -.->|"host route"| OMV
+    DockerHost -.->|"host route"| V60
     WireGuard -.->|"fallback only; no broad storage subnet"| Router
 
     classDef router fill:#f8f3d4,stroke:#8a6d00,stroke-width:2px

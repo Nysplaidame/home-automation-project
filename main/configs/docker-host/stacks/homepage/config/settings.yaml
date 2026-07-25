@@ -1,2 +1,83 @@
-title: Home Automation
-language: en-GB
+title: Home Operations
+description: Household apps, infrastructure and service operations
+language: en
+theme: dark
+color: slate
+headerStyle: boxedWidgets
+statusStyle: dot
+iconStyle: theme
+target: _blank
+fullWidth: true
+hideVersion: true
+disableIndexing: true
+searchDescriptions: true
+showSearchSuggestions: false
+background:
+  image: /images/portal-background.svg
+  opacity: 38
+cardBlur: sm
+layout:
+  Reference Links:
+    tab: Home
+    style: row
+    columns: 4
+  Home & Security:
+    tab: Home
+    style: row
+    columns: 4
+  Household:
+    tab: Home
+    style: row
+    columns: 4
+  Workshop & Knowledge:
+    tab: Tools
+    style: row
+    columns: 4
+  Search:
+    tab: Tools
+    style: row
+    columns: 4
+  Core Infrastructure:
+    tab: Infrastructure
+    style: row
+    columns: 4
+  Monitoring:
+    tab: Monitoring
+    style: row
+    columns: 4
+  Storage & Transfer:
+    tab: Storage
+    style: row
+    columns: 4
+  Media:
+    tab: Media
+    style: row
+    columns: 4
+  Docker Infrastructure:
+    tab: Infrastructure
+    style: row
+    columns: 4
+  Application Services:
+    tab: Operations
+    style: row
+    columns: 4
+  Data Services:
+    tab: Operations
+    style: row
+    columns: 4
+pwa:
+  shortcuts:
+    - name: Home
+      url: "/#home"
+    - name: Tools
+      url: "/#tools"
+    - name: Infrastructure
+      url: "/#infrastructure"
+    - name: Monitoring
+      url: "/#monitoring"
+    - name: Storage
+      url: "/#storage"
+    - name: Media
+      url: "/#media"
+    - name: Operations
+      url: "/#operations"

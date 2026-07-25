@@ -43,6 +43,8 @@ only candidates.
 - [searxng.md](searxng.md) — preflight-live internal metasearch
 - [whoogle.md](whoogle.md) — preflight-live internal search proxy
 
+- [gridfinity-layout-tool.md](gridfinity-layout-tool.md) — live local Gridfinity planner
+
 ## Tier 3 / evaluate
 
 - [vaultwarden.md](vaultwarden.md)

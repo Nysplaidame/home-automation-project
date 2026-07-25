@@ -4,7 +4,7 @@ description: Master navigation hub for all project documentation
 tags: [index, navigation, home-automation]
 aliases: [Project Index, Documentation Hub]
 created: 2025-09-15
-modified: 2026-07-06
+modified: 2026-07-13
 type: index
 status: active
 ---
@@ -47,6 +47,8 @@ status: active
 - [[configs/openwrt/vlan-config.conf]] — VLAN bridge, logical interfaces, WireGuard
 - [[configs/openwrt/firewall-config.conf]] — zones, inter-VLAN rules, VentSys ports
 - [[configs/openwrt/dhcp-config.conf]] — DHCP scopes, static reservations, DNS
+- [[scripts/validation/validate-home-local-dns.ps1]] — canonical/live
+  `home.local` alias validation against the service matrix
 - [[configs/openwrt/wireless-config.conf]] — SSIDs, channels, WPA3/WPA2
 - [[configs/openwrt/system-config.conf]] — router hostname, timezone, and router-local NTP server intent
 
@@ -71,6 +73,8 @@ status: active
 - [[configs/docker-host/system/docker-host-app-data-backup.service]] — systemd service template for the docker-host app-data backup job
 - [[configs/docker-host/system/docker-host-app-data-backup.timer]] — daily timer template for the docker-host app-data backup job
 - [[configs/docker-host/stacks/]] — non-secret Compose/config templates for live docker-host services
+
+- [[docs/install/services/gridfinity-layout-tool.md]] — live local Gridfinity Layout Tool portal
 
 ### Monitoring / Grafana
 - [[configs/grafana/README.md]] — rebuildable source exports for Grafana dashboards
@@ -182,10 +186,13 @@ status: active
 - [[docs/diagrams/README.md]] — canonical diagram library
 - [[docs/diagrams/network/current-master-architecture.mermaid]] — whole-system architecture and service placement
 - [[docs/diagrams/network/vlan_architecture_clean.mermaid]] — active 10-segment VLAN topology
+- [[docs/diagrams/network/physical-port-and-cabling.mermaid]] — live router, trunks, switch ports, camera, NAS, and Wi-Fi cabling
 - [[docs/diagrams/network/remote-access-flow.mermaid]] — Tailscale daily access and WireGuard fallback flow
 - [[docs/diagrams/network/dns-ntp-flow.mermaid]] — router DNS/NTP, AdGuard, and public fallback flow
 - [[docs/diagrams/network/security-access-flow.mermaid]] — firewall, ACL, host firewall, and service-auth intent
 - [[docs/diagrams/infrastructure/docker-host-service-placement.mermaid]] — docker-host stack layout and app tiers
+- [[docs/diagrams/infrastructure/proxmox-guests-and-backups.mermaid]] — production and rollback guests, shared iGPU paths, and backup schedules
+- [[apps/mermaid-viewer/README.md]] — generated live viewer for all canonical Mermaid sources
 - [[docs/diagrams/storage/storage-and-backup-flow.mermaid]] — OMV storage, backups, and restore flow
 - [[docs/diagrams/install/install-sequence.mermaid]] — fresh rebuild phase sequence and gates
 - [[docs/diagrams/ventsys/ventsys-control-and-safety-flow.mermaid]] — VentSys control, airflow, and safety flow

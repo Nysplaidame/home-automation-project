@@ -10,12 +10,12 @@ flowchart LR
     Offsite["Future offsite copy<br/>manual or automated"]
 
     HA -->|"daily HA backups<br/>nas_backups"| OMV
-    Frigate -.->|"future recording archive<br/>after camera rollout stabilizes"| OMV
+    Frigate -->|"live NFS recordings<br/>Proxmox host mount + CT bind mount"| OMV
     Immich -->|"library and upload storage"| OMV
-    Apps -.->|"planned app-data/dump copy<br/>backups/docker-host"| OMV
+    Apps -->|"daily 03:45 data/dump copy<br/>backups/docker-host"| OMV
     DockerHost -->|"templates and stack configs<br/>Git + app-data plan"| Apps
     Proxmox -->|"VM/CT vzdump backups<br/>7 daily + 6 monthly"| OMV
-    Vault -->|"rsync/robocopy backup"| OMV
+    Vault -.->|"planned rsync/robocopy backup"| OMV
     OMV -.->|"periodic copy after restore plan exists"| Offsite
 
     SMART["OMV SMART monitoring<br/>disk health alerts"]

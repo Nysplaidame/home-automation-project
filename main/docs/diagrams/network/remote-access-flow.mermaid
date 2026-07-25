@@ -3,7 +3,9 @@ flowchart LR
     Tailnet["Tailscale tailnet<br/>daily remote layer"]
     DockerHost["docker-host VM 103<br/>Tailscale node<br/>192.168.20.102"]
     HA["Home Assistant<br/>192.168.20.101/32"]
+    Frigate["Frigate HTTPS<br/>192.168.30.20/32"]
     OMV["OMV NAS<br/>192.168.40.50/32"]
+    Monitoring["Grafana + Kuma<br/>192.168.60.10/32"]
     DockerServices["docker-host services<br/>MagicDNS / Tailscale identity"]
     Router["OpenWrt router<br/>WireGuard server"]
     WGClient["WireGuard client<br/>dormant fallback"]
@@ -12,7 +14,9 @@ flowchart LR
     Tailnet --> DockerHost
     DockerHost --> DockerServices
     DockerHost -.->|"advertised host route"| HA
+    DockerHost -.->|"HTTPS 8971 host route"| Frigate
     DockerHost -.->|"advertised host route"| OMV
+    DockerHost -.->|"ports 3000/3001 host route"| Monitoring
 
     RemoteUser -.->|"only if Tailscale unavailable"| WGClient
     WGClient -.->|"split tunnel fallback"| Router
@@ -31,6 +35,6 @@ flowchart LR
     classDef fallback fill:#fff7e6,stroke:#b7791f,stroke-width:1px
     classDef blocked fill:#ffe8e8,stroke:#c53030,stroke-width:1px
 
-    class RemoteUser,Tailnet,DockerHost,HA,OMV,DockerServices allowed
+    class RemoteUser,Tailnet,DockerHost,HA,Frigate,OMV,Monitoring,DockerServices allowed
     class Router,WGClient fallback
     class Blocked1,Blocked2,Blocked3 blocked
