@@ -3,7 +3,7 @@ title: Current Live State
 description: Canonical inventory of deployed hosts, services, and deliberately deferred components
 tags: [reference, current-state, infrastructure]
 created: 2026-06-20
-modified: 2026-07-24
+modified: 2026-07-26
 type: reference
 status: active
 ---
@@ -169,17 +169,21 @@ search, Portal runtime resources (the Homepage container, not host-wide CPU or
 memory) and date/time, while Home starts with the reference links. Portal cards
 use 50% translucent, elevated glass surfaces.
 Each card also exposes a visible Preview action that opens an inline embedded
-workspace below the active tab's portal cards, with reload, close and `Open tab`
-fallback controls for services that disallow iframe embedding. The workspace is
-margin-bounded and acts as a splitter/work area rather than a popup. Header and
+workspace below the active tab's portal cards, with working Reload, Close and
+normal-link `Open tab` controls. Home Assistant and GardenKeeper advertise
+frame protections, so their Preview actions render an explicit protected-service
+fallback instead of a blank iframe; those protections remain intact. The
+workspace is margin-bounded and acts as a splitter/work area rather than a popup. Header and
 card surfaces use a 50% translucent dark-teal/light-teal visual system with
 restrained outline shadows; the header's adaptive search fills remaining space
 between the title, runtime resource widget and date/time.
-The preview loading veil is pointer-transparent and clears after a short
-cross-origin-safe timeout, so it cannot trap the embedded UI when a service
+The preview loading veil is pointer-transparent and becomes a delayed-preview
+notice after six seconds, so it cannot trap the embedded UI when a service
 blocks or delays iframe loading. Desktop service groups consume a single row
-where space permits, and their centred Preview controls remain comfortably
-touch-sized.
+where space permits. Cards at 250 px or narrower grow vertically and reserve a
+bottom action row; wider cards keep Preview equally inset from the top and
+bottom. Hover no longer moves the action over the status indicator. Navigation
+tabs now have visually distinct raised default, hover/focus and selected states.
 Its local network SVG now has a slow background and ambient-glow drift; both
 animations are disabled for `prefers-reduced-motion`.
 Mermaid Viewer is live at `http://192.168.20.102:8092/` and is generated from

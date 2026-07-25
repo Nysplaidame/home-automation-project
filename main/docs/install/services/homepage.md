@@ -3,7 +3,7 @@ title: Homepage Install Manual
 description: Tier 1 internal dashboard for service links
 tags: [install, docker-host, homepage]
 created: 2026-05-24
-modified: 2026-07-24
+modified: 2026-07-26
 type: install-guide
 status: live
 ---
@@ -45,12 +45,16 @@ No required secrets. Do not place tokens or passwords in visible Homepage config
   that opens the service in an inline workspace below the active tab's portal
   cards. The workspace remains within a margin-bounded split/work area rather
   than becoming a popup or touching the viewport edges.
-- The preview toolbar always retains an `Open tab` fallback because individual
-  services may prohibit framing with their own browser security headers.
+- The preview toolbar provides working Reload, Open tab and Close controls.
+  `Open tab` is a normal browser link rather than a scripted popup, for reliable
+  desktop and mobile behaviour.
+- Home Assistant and GardenKeeper currently prohibit cross-origin framing with
+  `X-Frame-Options`/CSP. Their Preview action therefore shows an explicit
+  protected-service explanation instead of an empty iframe, while preserving
+  the Open tab link. Their protections have not been weakened.
 - Preview loading is deliberately fail-safe: cross-origin frame failures do not
-  emit a dependable browser error, so the loading veil clears after a short
-  interval and never captures pointer input. A blocked service can therefore
-  still be closed or opened normally.
+  emit a dependable browser error, so a delayed-preview notice replaces the
+  loading veil after six seconds and never captures pointer input.
 - The header is a responsive full-width control bar: title, adaptive search,
   portal-runtime resources and date/time use the same raised translucent teal
   surface treatment. Service cards are 50% translucent dark teal with light
@@ -58,6 +62,11 @@ No required secrets. Do not place tokens or passwords in visible Homepage config
   unchanged apart from its gentle reduced-motion-aware drift.
 - At desktop widths, a service group's cards use the available row before
   wrapping, so small groups such as two to five applications remain together.
+  Cards at 250 px or narrower grow vertically and give Preview its own bottom
+  action row; wider cards keep the action inset by equal top and bottom margins.
+  Preview hover/focus no longer shifts the control or exposes the status dot.
+- Navigation tabs use distinct raised teal-glass default, hover/focus and
+  selected states.
 
 ## Commands
 
@@ -116,9 +125,10 @@ Invoke-WebRequest http://192.168.20.102:3001/images/portal-background.svg -UseBa
 ```
 
 Also check one desktop and one mobile viewport, each tab, browser console
-errors, normal card navigation, the Mermaid Viewer embedded preview, its
-`Open tab` fallback, and that the number of mapped Docker workloads matches
-`docker ps`.
+errors, normal card navigation, the Mermaid Viewer and Household Hub embedded
+previews, the explicit Home Assistant protected-preview fallback, all three
+workspace toolbar controls, and that the number of mapped Docker workloads
+matches `docker ps`.
 
 ## Backup
 

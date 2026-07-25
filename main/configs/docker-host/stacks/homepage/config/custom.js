@@ -4,6 +4,24 @@
   let observerQueued = false;
   let previousFocus = null;
   let previewLoadTimer = null;
+  const KNOWN_FRAME_BLOCKS = [
+    { host: '192.168.20.101', port: '8123', label: 'Home Assistant' },
+    { host: '192.168.20.102', port: '8091', label: 'GardenKeeper' },
+  ];
+
+  function getKnownFrameBlock(href) {
+    try {
+      const url = new URL(href);
+      return KNOWN_FRAME_BLOCKS.find(({ host, port }) => url.hostname === host && url.port === port) || null;
+    } catch {
+      return null;
+    }
+  }
+
+  function setPreviewMessage(dock, title, detail) {
+    dock.querySelector('.portal-preview-loading strong').textContent = title;
+    dock.querySelector('.portal-preview-loading span').textContent = detail;
+  }
 
   function setPreviewLoading(dock, loading) {
     window.clearTimeout(previewLoadTimer);
@@ -15,7 +33,7 @@
     previewLoadTimer = window.setTimeout(() => {
       dock.classList.remove('is-loading');
       dock.classList.add('preview-load-slow');
-    }, 2500);
+    }, 6000);
   }
 
   function getServiceName(card) {
@@ -45,15 +63,18 @@
             <span class="portal-preview-kicker">Embedded workspace</span>
             <strong id="portal-preview-title">Service</strong>
           </div>
-          <span class="portal-preview-hint">If a service blocks embedding, use Open tab.</span>
+          <span class="portal-preview-hint">Some services block embedding; Open tab always remains available.</span>
           <div class="portal-preview-actions">
             <button type="button" data-preview-action="reload">Reload</button>
-            <a data-preview-action="external" href="#" target="_blank" rel="noreferrer">Open tab</a>
+            <a data-preview-action="external" href="#" target="_blank" rel="noopener noreferrer">Open tab</a>
             <button type="button" data-preview-action="close">Close</button>
           </div>
         </header>
         <div class="portal-preview-frame-wrap">
-          <div class="portal-preview-loading">Loading preview…</div>
+          <div class="portal-preview-loading" role="status" aria-live="polite">
+            <strong>Loading preview&hellip;</strong>
+            <span>If this remains blank, the service is refusing to be embedded. Use Open tab.</span>
+          </div>
           <iframe
             class="portal-preview-frame"
             title="Embedded portal preview"
@@ -65,16 +86,9 @@
       </div>
     `;
 
-    dock.querySelector('[data-preview-action="close"]').addEventListener('click', closePreview);
-    dock.querySelector('[data-preview-action="reload"]').addEventListener('click', () => {
-      const frame = dock.querySelector('.portal-preview-frame');
-      const current = frame.dataset.src;
-      if (!current) return;
-      setPreviewLoading(dock, true);
-      frame.src = 'about:blank';
-      requestAnimationFrame(() => { frame.src = current; });
-    });
-    dock.querySelector('.portal-preview-frame').addEventListener('load', () => {
+    dock.querySelector('.portal-preview-frame').addEventListener('load', (event) => {
+      const frame = event.currentTarget;
+      if (!frame.dataset.src || frame.src === 'about:blank') return;
       setPreviewLoading(dock, false);
       dock.classList.remove('preview-load-slow');
     });
@@ -104,12 +118,32 @@
     previousFocus = document.activeElement;
     placePreviewDock(dock);
     dock.querySelector('#portal-preview-title').textContent = name;
+    dock.dataset.href = href;
     dock.querySelector('[data-preview-action="external"]').href = href;
-    frame.dataset.src = href;
     dock.hidden = false;
-    dock.classList.remove('preview-load-slow');
-    setPreviewLoading(dock, true);
-    frame.src = href;
+    dock.classList.remove('preview-load-slow', 'preview-blocked');
+
+    const frameBlock = getKnownFrameBlock(href);
+    if (frameBlock) {
+      frame.dataset.src = '';
+      frame.src = 'about:blank';
+      setPreviewLoading(dock, false);
+      setPreviewMessage(
+        dock,
+        'Embedded preview unavailable',
+        `${frameBlock.label} protects its pages from being displayed inside another site. Open it in a new tab instead.`,
+      );
+      dock.classList.add('preview-blocked');
+    } else {
+      setPreviewMessage(
+        dock,
+        'Loading preview…',
+        'If this remains blank, the service is refusing to be embedded. Use Open tab.',
+      );
+      frame.dataset.src = href;
+      setPreviewLoading(dock, true);
+      frame.src = href;
+    }
     dock.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     dock.querySelector('[data-preview-action="close"]').focus({ preventScroll: true });
   }
@@ -120,9 +154,11 @@
     const frame = dock.querySelector('.portal-preview-frame');
     frame.src = 'about:blank';
     frame.dataset.src = '';
+    dock.dataset.href = '';
+    dock.querySelector('[data-preview-action="external"]').href = '#';
     dock.hidden = true;
     setPreviewLoading(dock, false);
-    dock.classList.remove('preview-load-slow');
+    dock.classList.remove('preview-load-slow', 'preview-blocked');
     if (previousFocus instanceof HTMLElement) previousFocus.focus();
   }
 
@@ -184,6 +220,37 @@
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') closePreview();
+  });
+
+  // Delegate toolbar actions from the document. Homepage can replace or move
+  // generated layout nodes during tab updates; delegation keeps these controls
+  // live even when that happens.
+  document.addEventListener('click', (event) => {
+    const control = event.target.closest('[data-preview-action]');
+    if (!control) return;
+    const dock = control.closest('#portal-preview-dock');
+    if (!dock) return;
+
+    const action = control.dataset.previewAction;
+    if (action === 'external') return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    if (action === 'close') {
+      closePreview();
+      return;
+    }
+    if (action === 'reload') {
+      const frame = dock.querySelector('.portal-preview-frame');
+      const current = frame.dataset.src;
+      if (!current) return;
+      dock.classList.remove('preview-load-slow');
+      setPreviewLoading(dock, true);
+      frame.src = 'about:blank';
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => { frame.src = current; });
+      });
+    }
   });
 
   if (document.readyState === 'loading') {

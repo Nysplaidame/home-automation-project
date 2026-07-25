@@ -4,7 +4,7 @@ description: Implementation tasks by phase — updated June 2026
 tags: [tasks, implementation]
 aliases: [TODO, Tasks]
 created: 2025-09-15
-modified: 2026-07-13
+modified: 2026-07-26
 type: task-list
 status: active
 ---
@@ -128,6 +128,10 @@ Planning baseline until explicitly revalidated:
 - [x] Add visible portal-card preview controls and an inline embedded workspace
   below the active tab's portal cards, with a contained split/work area and an
   `Open tab` fallback; deployed and refined 2026-07-25
+- [x] Repair Homepage preview toolbar delegation, use a real external link,
+  replace known frame-blocked blank screens with an explicit fallback, make
+  narrow cards grow into a dedicated Preview action row, and strengthen tab
+  navigation states; live-verified 2026-07-26
 - [x] Replace Mermaid Viewer placeholders with all 11 canonical sources and add
   search, deep links, pan, zoom, fit, 100% view and fullscreen; deployed and
   render-verified 2026-07-24
@@ -142,7 +146,10 @@ Planning baseline until explicitly revalidated:
 - [ ] Audit every portal for both direct navigation and embedded-preview
   behaviour. Record service health, HTTPS/mixed-content, authentication and
   `X-Frame-Options`/CSP framing results; fix reachability or use the normal
-  link rather than weakening a service's frame protections.
+  link rather than weakening a service's frame protections. Home Assistant and
+  GardenKeeper are confirmed frame-blocked and now show the safe fallback;
+  Mermaid Viewer and Household Hub are confirmed embeddable. Continue with the
+  remaining portals.
 - [ ] Design the Jellyfin media library using the existing OMV-backed Immich
   storage. Do not claim that Jellyfin can consume Immich albums directly:
   decide whether a scheduled, read-only Immich API/export job should curate
