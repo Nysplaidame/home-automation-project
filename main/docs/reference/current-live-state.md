@@ -170,9 +170,8 @@ memory) and date/time, while Home starts with the reference links. Portal cards
 use 50% translucent, elevated glass surfaces.
 Each card also exposes a visible Preview action that opens an inline embedded
 workspace below the active tab's portal cards, with working Reload, Close and
-normal-link `Open tab` controls. Home Assistant and GardenKeeper advertise
-frame protections, so their Preview actions render an explicit protected-service
-fallback instead of a blank iframe; those protections remain intact. The
+normal-link `Open tab` controls. Every configured service is attempted in the
+iframe; Open tab remains the safe fallback if a target declines framing. The
 workspace is margin-bounded and acts as a splitter/work area rather than a popup. Header and
 card surfaces use a 50% translucent dark-teal/light-teal visual system with
 restrained outline shadows; the header's adaptive search fills remaining space
@@ -184,6 +183,12 @@ where space permits. Cards at 250 px or narrower grow vertically and reserve a
 bottom action row; wider cards keep Preview equally inset from the top and
 bottom. Hover no longer moves the action over the status indicator. Navigation
 tabs now have visually distinct raised default, hover/focus and selected states.
+The dock placement routine changes its parent only when Homepage replaces the
+active layout. This prevents the former mutation/re-append loop that repeatedly
+detached the iframe, blanked otherwise valid previews and moved controls during
+pointer clicks. Household Hub and Mermaid Viewer were visibly rendered in the
+live embedded workspace after the 2026-07-26 correction; Reload and Close were
+also exercised successfully.
 Its local network SVG now has a slow background and ambient-glow drift; both
 animations are disabled for `prefers-reduced-motion`.
 Mermaid Viewer is live at `http://192.168.20.102:8092/` and is generated from

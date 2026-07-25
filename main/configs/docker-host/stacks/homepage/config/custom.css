@@ -346,17 +346,6 @@
   box-shadow: inset 0 1px 0 rgb(236 253 245 / 0.18), 0 5px 14px rgb(2 44 45 / 0.32);
 }
 
-.portal-preview-dock.preview-blocked .portal-preview-loading {
-  inset: 0;
-  display: grid;
-  border: 0;
-  border-radius: 0;
-  background:
-    radial-gradient(circle at 50% 42%, rgb(13 148 136 / 0.18), transparent 28%),
-    rgb(2 44 45);
-  box-shadow: none;
-}
-
 /* Use the available desktop width before wrapping a service category. */
 @media (min-width: 721px) {
   .services-list {

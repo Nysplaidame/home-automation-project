@@ -48,13 +48,16 @@ No required secrets. Do not place tokens or passwords in visible Homepage config
 - The preview toolbar provides working Reload, Open tab and Close controls.
   `Open tab` is a normal browser link rather than a scripted popup, for reliable
   desktop and mobile behaviour.
-- Home Assistant and GardenKeeper currently prohibit cross-origin framing with
-  `X-Frame-Options`/CSP. Their Preview action therefore shows an explicit
-  protected-service explanation instead of an empty iframe, while preserving
-  the Open tab link. Their protections have not been weakened.
+- Every Preview action attempts the configured service URL. Individual services
+  can still decline framing through their own browser headers; use Open tab in
+  that case rather than weakening the target service's protection.
 - Preview loading is deliberately fail-safe: cross-origin frame failures do not
   emit a dependable browser error, so a delayed-preview notice replaces the
   loading veil after six seconds and never captures pointer input.
+- The preview dock is appended only when its Homepage layout parent actually
+  changes. Never re-append it on every observed DOM mutation: detaching an
+  iframe reloads it, and the resulting mutation can otherwise create a loop
+  that blanks previews and moves toolbar controls during clicks.
 - The header is a responsive full-width control bar: title, adaptive search,
   portal-runtime resources and date/time use the same raised translucent teal
   surface treatment. Service cards are 50% translucent dark teal with light
@@ -126,9 +129,8 @@ Invoke-WebRequest http://192.168.20.102:3001/images/portal-background.svg -UseBa
 
 Also check one desktop and one mobile viewport, each tab, browser console
 errors, normal card navigation, the Mermaid Viewer and Household Hub embedded
-previews, the explicit Home Assistant protected-preview fallback, all three
-workspace toolbar controls, and that the number of mapped Docker workloads
-matches `docker ps`.
+previews, all three workspace toolbar controls, and that the number of mapped
+Docker workloads matches `docker ps`.
 
 ## Backup
 

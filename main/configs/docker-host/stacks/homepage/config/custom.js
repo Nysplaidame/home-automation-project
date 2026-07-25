@@ -4,19 +4,6 @@
   let observerQueued = false;
   let previousFocus = null;
   let previewLoadTimer = null;
-  const KNOWN_FRAME_BLOCKS = [
-    { host: '192.168.20.101', port: '8123', label: 'Home Assistant' },
-    { host: '192.168.20.102', port: '8091', label: 'GardenKeeper' },
-  ];
-
-  function getKnownFrameBlock(href) {
-    try {
-      const url = new URL(href);
-      return KNOWN_FRAME_BLOCKS.find(({ host, port }) => url.hostname === host && url.port === port) || null;
-    } catch {
-      return null;
-    }
-  }
 
   function setPreviewMessage(dock, title, detail) {
     dock.querySelector('.portal-preview-loading strong').textContent = title;
@@ -103,12 +90,19 @@
   function placePreviewDock(dock) {
     const layoutGroups = document.getElementById('layout-groups');
     if (layoutGroups) {
-      layoutGroups.append(dock);
+      // Re-appending an existing iframe detaches and reloads it. Because that
+      // DOM move is itself observed, doing it unconditionally creates a loop
+      // that leaves previews blank and moves controls during pointer clicks.
+      if (dock.parentElement !== layoutGroups) layoutGroups.append(dock);
       return;
     }
     const tabs = document.getElementById('tabs');
-    if (tabs) tabs.after(dock);
-    else document.querySelector('#information-widgets, main, body').append(dock);
+    if (tabs) {
+      if (dock.previousElementSibling !== tabs) tabs.after(dock);
+      return;
+    }
+    const fallback = document.querySelector('#information-widgets, main, body');
+    if (fallback && dock.parentElement !== fallback) fallback.append(dock);
   }
 
   function openPreview(card, href) {
@@ -122,28 +116,14 @@
     dock.querySelector('[data-preview-action="external"]').href = href;
     dock.hidden = false;
     dock.classList.remove('preview-load-slow', 'preview-blocked');
-
-    const frameBlock = getKnownFrameBlock(href);
-    if (frameBlock) {
-      frame.dataset.src = '';
-      frame.src = 'about:blank';
-      setPreviewLoading(dock, false);
-      setPreviewMessage(
-        dock,
-        'Embedded preview unavailable',
-        `${frameBlock.label} protects its pages from being displayed inside another site. Open it in a new tab instead.`,
-      );
-      dock.classList.add('preview-blocked');
-    } else {
-      setPreviewMessage(
-        dock,
-        'Loading preview…',
-        'If this remains blank, the service is refusing to be embedded. Use Open tab.',
-      );
-      frame.dataset.src = href;
-      setPreviewLoading(dock, true);
-      frame.src = href;
-    }
+    setPreviewMessage(
+      dock,
+      'Loading preview…',
+      'If this remains blank, the service is refusing to be embedded. Use Open tab.',
+    );
+    frame.dataset.src = href;
+    setPreviewLoading(dock, true);
+    frame.src = href;
     dock.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     dock.querySelector('[data-preview-action="close"]').focus({ preventScroll: true });
   }
