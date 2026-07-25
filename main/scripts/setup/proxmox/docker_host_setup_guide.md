@@ -258,6 +258,10 @@ ufw allow from 192.168.60.10 to any port 2283 proto tcp comment "Monitoring to I
 ufw allow in on tailscale0 to any port 2283 proto tcp comment "Tailscale Immich"
 ufw allow from 192.168.10.0/24 to any port 3001 proto tcp comment "Management to Homepage"
 ufw allow from 192.168.1.0/24 to any port 3001 proto tcp comment "LAN to Homepage"
+ufw allow from 192.168.10.0/24 to any port 8180:8187 proto tcp comment "Management to Homepage previews"
+ufw allow from 192.168.1.0/24 to any port 8180:8187 proto tcp comment "LAN to Homepage previews"
+ufw allow from 192.168.20.0/24 to any port 8180:8187 proto tcp comment "Automation to Homepage previews"
+ufw allow in on tailscale0 to any port 8180:8187 proto tcp comment "Tailscale Homepage previews"
 ufw allow from 192.168.10.0/24 to any port 8080 proto tcp comment "Management to AdGuard UI"
 ufw allow from 192.168.10.0/24 to any port 8081 proto tcp comment "Management to Dozzle"
 ```

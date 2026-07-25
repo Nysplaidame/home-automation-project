@@ -133,6 +133,15 @@ Planning baseline until explicitly revalidated:
   make narrow cards grow into a dedicated Preview action row, and strengthen
   tab navigation states; Household Hub and Mermaid Viewer visibly rendered and
   Reload/Close live-verified 2026-07-26
+- [x] Close the embedded workspace before Homepage tab changes and place it as
+  a sibling after the complete active card grid; live-verified on Home, Tools
+  and Infrastructure 2026-07-26
+- [x] Add a fixed-target, UFW-scoped Homepage preview proxy and restore framed
+  GardenKeeper, Bambuddy and Whoogle views; live-verified 2026-07-26
+- [ ] Sign into live OpenWrt and deploy the narrow source-controlled rules for
+  docker-host preview/status access to Proxmox `8006`, router/switch HTTP,
+  Frigate API `5000`, monitoring `3000/3001`, and OMV/Transfer `80/8088`; then
+  verify proxy ports `8183`-`8187` and all eight new status dots turn healthy
 - [x] Replace Mermaid Viewer placeholders with all 11 canonical sources and add
   search, deep links, pan, zoom, fit, 100% view and fullscreen; deployed and
   render-verified 2026-07-24
@@ -148,8 +157,9 @@ Planning baseline until explicitly revalidated:
   behaviour. Record service health, HTTPS/mixed-content, authentication and
   `X-Frame-Options`/CSP framing results; fix reachability or use the normal
   link rather than weakening a service's frame protections. Mermaid Viewer and
-  Household Hub are confirmed embeddable after repairing the portal's iframe
-  re-parent loop. Continue with the remaining portals.
+  Household Hub are confirmed directly embeddable after repairing the portal's
+  iframe re-parent loop. GardenKeeper, Bambuddy and Whoogle are confirmed via
+  the fixed-target proxy. Continue after the pending OpenWrt rules are live.
 - [ ] Design the Jellyfin media library using the existing OMV-backed Immich
   storage. Do not claim that Jellyfin can consume Immich albums directly:
   decide whether a scheduled, read-only Immich API/export job should curate

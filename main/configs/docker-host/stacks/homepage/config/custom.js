@@ -1,6 +1,16 @@
 (() => {
   const CARD_SELECTOR = '[id^="portal-"]:not(#portal-preview-dock)';
   const PREVIEW_CLASS = 'portal-preview-trigger';
+  const PREVIEW_PROXY_PORTS = new Map([
+    ['192.168.20.102:8091', 8180],
+    ['192.168.20.102:8000', 8181],
+    ['192.168.20.102:8088', 8182],
+    ['192.168.10.10:8006', 8183],
+    ['192.168.10.1', 8184],
+    ['192.168.10.12', 8185],
+    ['192.168.60.10:3001', 8186],
+    ['192.168.40.50', 8187],
+  ]);
   let observerQueued = false;
   let previousFocus = null;
   let previewLoadTimer = null;
@@ -31,6 +41,17 @@
     const copy = link.cloneNode(true);
     copy.querySelectorAll('p, img, svg').forEach((element) => element.remove());
     return { href: link.href, name: copy.textContent.trim() || 'Service' };
+  }
+
+  function getFrameHref(href) {
+    try {
+      const url = new URL(href);
+      const port = PREVIEW_PROXY_PORTS.get(url.host);
+      if (!port) return href;
+      return `http://${window.location.hostname}:${port}${url.pathname}${url.search}${url.hash}`;
+    } catch {
+      return href;
+    }
   }
 
   function getPreviewDock() {
@@ -93,7 +114,7 @@
       // Re-appending an existing iframe detaches and reloads it. Because that
       // DOM move is itself observed, doing it unconditionally creates a loop
       // that leaves previews blank and moves controls during pointer clicks.
-      if (dock.parentElement !== layoutGroups) layoutGroups.append(dock);
+      if (dock.previousElementSibling !== layoutGroups) layoutGroups.after(dock);
       return;
     }
     const tabs = document.getElementById('tabs');
@@ -121,9 +142,10 @@
       'Loading preview…',
       'If this remains blank, the service is refusing to be embedded. Use Open tab.',
     );
-    frame.dataset.src = href;
+    const frameHref = getFrameHref(href);
+    frame.dataset.src = frameHref;
     setPreviewLoading(dock, true);
-    frame.src = href;
+    frame.src = frameHref;
     dock.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     dock.querySelector('[data-preview-action="close"]').focus({ preventScroll: true });
   }
@@ -201,6 +223,14 @@
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') closePreview();
   });
+
+  // A preview belongs to the active Homepage tab. Close it before Homepage
+  // replaces that tab's card grid so it cannot linger above the next layout.
+  document.addEventListener('click', (event) => {
+    const tab = event.target.closest('[role="tab"]');
+    if (tab && tab.getAttribute('aria-selected') !== 'true') closePreview();
+  }, true);
+  window.addEventListener('hashchange', closePreview);
 
   // Delegate toolbar actions from the document. Homepage can replace or move
   // generated layout nodes during tab updates; delegation keeps these controls

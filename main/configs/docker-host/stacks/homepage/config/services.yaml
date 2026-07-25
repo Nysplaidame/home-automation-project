@@ -10,6 +10,7 @@
         icon: frigate.png
         href: https://192.168.30.20:8971/
         description: Cameras, recordings and security events
+        siteMonitor: http://192.168.30.20:5000/api/version
     - ntfy:
         id: portal-ntfy
         icon: ntfy.png
@@ -99,17 +100,19 @@
         icon: proxmox.png
         href: https://192.168.10.10:8006/
         description: Virtual machines, containers and host status
+        ping: 192.168.10.10
     - OpenWrt Router:
         id: portal-openwrt
         icon: openwrt.png
         href: http://192.168.10.1/
         description: Routing, VLANs, Wi-Fi and firewall
+        siteMonitor: http://192.168.10.1/
     - Zyxel GS1900 Switch:
         id: portal-zyxel-switch
         icon: mdi-switch
         href: http://192.168.10.12/
         description: Managed switch VLANs, ports and link status
-        ping: 192.168.10.12
+        siteMonitor: http://192.168.10.12/
     - Docker Host:
         id: portal-docker-host
         icon: docker.png
@@ -123,11 +126,13 @@
         icon: grafana.png
         href: http://192.168.60.10:3000/
         description: Metrics and architecture dashboards
+        siteMonitor: http://192.168.60.10:3000/api/health
     - Uptime Kuma:
         id: portal-uptime-kuma
         icon: uptime-kuma.png
         href: http://192.168.60.10:3001/
         description: Service availability and incident history
+        siteMonitor: http://192.168.60.10:3001/
     - AdGuard Home:
         id: portal-adguard
         icon: adguard-home.png
@@ -148,11 +153,13 @@
         icon: openmediavault.png
         href: http://192.168.40.50/
         description: NAS storage, shares and disk health
+        siteMonitor: http://192.168.40.50/
     - Transfer Portal:
         id: portal-transfer
         icon: mdi-folder-swap-outline
         href: http://192.168.40.50:8088/
         description: Guarded NAS disk-to-disk transfers
+        siteMonitor: http://192.168.40.50:8088/
     - Obsidian LiveSync:
         id: portal-livesync
         icon: obsidian.png

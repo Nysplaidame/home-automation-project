@@ -172,7 +172,8 @@ Each card also exposes a visible Preview action that opens an inline embedded
 workspace below the active tab's portal cards, with working Reload, Close and
 normal-link `Open tab` controls. Every configured service is attempted in the
 iframe; Open tab remains the safe fallback if a target declines framing. The
-workspace is margin-bounded and acts as a splitter/work area rather than a popup. Header and
+workspace is a sibling immediately after the complete card grid, closes before
+tab changes, is margin-bounded and acts as a splitter/work area rather than a popup. Header and
 card surfaces use a 50% translucent dark-teal/light-teal visual system with
 restrained outline shadows; the header's adaptive search fills remaining space
 between the title, runtime resource widget and date/time.
@@ -189,6 +190,18 @@ detached the iframe, blanked otherwise valid previews and moved controls during
 pointer clicks. Household Hub and Mermaid Viewer were visibly rendered in the
 live embedded workspace after the 2026-07-26 correction; Reload and Close were
 also exercised successfully.
+A fixed-target `homepage-preview-proxy` Nginx sidecar is live on docker-host.
+Its ports `8180`-`8187` are host-firewall scoped to the established management,
+LAN, automation and Tailscale sources; it cannot proxy arbitrary destinations.
+GardenKeeper, Bambuddy and Whoogle visibly load through it after their upstream
+frame-denial headers are replaced with portal-scoped CSP. Proxmox, OpenWrt,
+Zyxel, Uptime Kuma and OMV proxy listeners are staged but return `502` until
+the new source-controlled OpenWrt rules permit docker-host to those exact UI
+ports. Router authentication is the current deployment gate.
+Frigate, Proxmox, OpenWrt, Zyxel, Grafana, Uptime Kuma, OMV and Transfer Portal
+now all have Homepage health sources and render a status dot. The cross-VLAN
+checks currently show down/error where the same pending router policy blocks
+docker-host; local Docker-backed statuses remain accurate.
 Its local network SVG now has a slow background and ambient-glow drift; both
 animations are disabled for `prefers-reduced-motion`.
 Mermaid Viewer is live at `http://192.168.20.102:8092/` and is generated from

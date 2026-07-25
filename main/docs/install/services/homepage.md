@@ -42,15 +42,22 @@ No required secrets. Do not place tokens or passwords in visible Homepage config
 - Docker-backed cards expose state and expandable CPU, memory and network
   statistics.
 - Each portal card keeps its normal link and has a visible `Preview` control
-  that opens the service in an inline workspace below the active tab's portal
-  cards. The workspace remains within a margin-bounded split/work area rather
-  than becoming a popup or touching the viewport edges.
+  that opens the service in an inline workspace immediately after the active
+  tab's complete card grid. The workspace closes before a different tab is
+  selected and remains within a margin-bounded split/work area rather than
+  becoming a popup or touching the viewport edges.
 - The preview toolbar provides working Reload, Open tab and Close controls.
   `Open tab` is a normal browser link rather than a scripted popup, for reliable
   desktop and mobile behaviour.
-- Every Preview action attempts the configured service URL. Individual services
-  can still decline framing through their own browser headers; use Open tab in
-  that case rather than weakening the target service's protection.
+- A fixed-target Nginx sidecar provides portal-scoped preview routes on
+  `8180`-`8187` for services that send `SAMEORIGIN`/`DENY`. It has no dynamic
+  target input, preserves service-specific CSP directives, replaces only the
+  framing policy, and is host-firewall scoped to the existing LAN and Tailscale
+  clients. Open tab always uses the original service URL.
+- GardenKeeper, Bambuddy and Whoogle proxy previews are live. The Proxmox,
+  OpenWrt, Zyxel, Uptime Kuma and OMV proxy listeners are staged but currently
+  return `502` because live OpenWrt still denies docker-host to those VLAN UI
+  ports. Deploy the four source-controlled narrow rules before certifying them.
 - Preview loading is deliberately fail-safe: cross-origin frame failures do not
   emit a dependable browser error, so a delayed-preview notice replaces the
   loading veil after six seconds and never captures pointer input.
@@ -96,6 +103,8 @@ The tracked stack includes:
 - `config/custom.css` — shared teal glass surfaces, restrained card elevation,
   responsive header/workspace styling and accessible low-motion background drift.
 - `assets/portal-background.svg` — local, non-tracking visual background.
+- `preview-proxy/` — fixed-upstream Nginx framing adapter; listeners are hosted
+  directly on docker-host so existing inter-VLAN policy remains authoritative.
 
 ## Explanation
 
@@ -129,8 +138,9 @@ Invoke-WebRequest http://192.168.20.102:3001/images/portal-background.svg -UseBa
 
 Also check one desktop and one mobile viewport, each tab, browser console
 errors, normal card navigation, the Mermaid Viewer and Household Hub embedded
-previews, all three workspace toolbar controls, and that the number of mapped
-Docker workloads matches `docker ps`.
+previews, the GardenKeeper/Bambuddy/Whoogle proxy previews, automatic close on
+tab change, placement after `#layout-groups`, all three workspace toolbar
+controls, and that the number of mapped Docker workloads matches `docker ps`.
 
 ## Backup
 
@@ -146,6 +156,9 @@ Back up `/opt/stacks/homepage/config`, `/opt/stacks/homepage/assets`, and
   regenerate that page. Restarting the container alone can leave the previous
   generated page visible until it is revalidated.
 - If Docker socket exposure is undesired, remove the socket mount.
+- If the preview sidecar must be rolled back, stop `preview-proxy`, remove its
+  Compose service and delete only the four UFW rules whose comments end in
+  `Homepage previews`. Portal links and Open tab remain usable.
 
 ## Completion checklist
 
