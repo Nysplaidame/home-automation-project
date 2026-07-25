@@ -3,6 +3,20 @@
   const PREVIEW_CLASS = 'portal-preview-trigger';
   let observerQueued = false;
   let previousFocus = null;
+  let previewLoadTimer = null;
+
+  function setPreviewLoading(dock, loading) {
+    window.clearTimeout(previewLoadTimer);
+    dock.classList.toggle('is-loading', loading);
+    if (!loading) return;
+
+    // Cross-origin iframe failures do not provide a reliable error event. Do
+    // not leave a loading veil over a working frame or its controls forever.
+    previewLoadTimer = window.setTimeout(() => {
+      dock.classList.remove('is-loading');
+      dock.classList.add('preview-load-slow');
+    }, 2500);
+  }
 
   function getServiceName(card) {
     const link =
@@ -56,12 +70,13 @@
       const frame = dock.querySelector('.portal-preview-frame');
       const current = frame.dataset.src;
       if (!current) return;
-      dock.classList.add('is-loading');
+      setPreviewLoading(dock, true);
       frame.src = 'about:blank';
       requestAnimationFrame(() => { frame.src = current; });
     });
     dock.querySelector('.portal-preview-frame').addEventListener('load', () => {
-      dock.classList.remove('is-loading');
+      setPreviewLoading(dock, false);
+      dock.classList.remove('preview-load-slow');
     });
 
     // Keep the workspace below the active portal content, rather than between
@@ -91,9 +106,10 @@
     dock.querySelector('#portal-preview-title').textContent = name;
     dock.querySelector('[data-preview-action="external"]').href = href;
     frame.dataset.src = href;
-    frame.src = href;
     dock.hidden = false;
-    dock.classList.add('is-loading');
+    dock.classList.remove('preview-load-slow');
+    setPreviewLoading(dock, true);
+    frame.src = href;
     dock.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     dock.querySelector('[data-preview-action="close"]').focus({ preventScroll: true });
   }
@@ -105,7 +121,8 @@
     frame.src = 'about:blank';
     frame.dataset.src = '';
     dock.hidden = true;
-    dock.classList.remove('is-loading');
+    setPreviewLoading(dock, false);
+    dock.classList.remove('preview-load-slow');
     if (previousFocus instanceof HTMLElement) previousFocus.focus();
   }
 

@@ -175,6 +175,11 @@ margin-bounded and acts as a splitter/work area rather than a popup. Header and
 card surfaces use a 50% translucent dark-teal/light-teal visual system with
 restrained outline shadows; the header's adaptive search fills remaining space
 between the title, runtime resource widget and date/time.
+The preview loading veil is pointer-transparent and clears after a short
+cross-origin-safe timeout, so it cannot trap the embedded UI when a service
+blocks or delays iframe loading. Desktop service groups consume a single row
+where space permits, and their centred Preview controls remain comfortably
+touch-sized.
 Its local network SVG now has a slow background and ambient-glow drift; both
 animations are disabled for `prefers-reduced-motion`.
 Mermaid Viewer is live at `http://192.168.20.102:8092/` and is generated from

@@ -47,11 +47,17 @@ No required secrets. Do not place tokens or passwords in visible Homepage config
   than becoming a popup or touching the viewport edges.
 - The preview toolbar always retains an `Open tab` fallback because individual
   services may prohibit framing with their own browser security headers.
+- Preview loading is deliberately fail-safe: cross-origin frame failures do not
+  emit a dependable browser error, so the loading veil clears after a short
+  interval and never captures pointer input. A blocked service can therefore
+  still be closed or opened normally.
 - The header is a responsive full-width control bar: title, adaptive search,
   portal-runtime resources and date/time use the same raised translucent teal
   surface treatment. Service cards are 50% translucent dark teal with light
   teal copy and restrained outline shadows; the local network artwork remains
   unchanged apart from its gentle reduced-motion-aware drift.
+- At desktop widths, a service group's cards use the available row before
+  wrapping, so small groups such as two to five applications remain together.
 
 ## Commands
 
