@@ -173,8 +173,10 @@ workspace below the active tab's portal cards, with working Reload, Close and
 normal-link `Open tab` controls. Every configured service is attempted in the
 iframe; Open tab remains the safe fallback if a target declines framing. The
 workspace is a sibling immediately after the complete card grid, closes before
-tab changes, is margin-bounded and acts as a splitter/work area rather than a popup. Header and
-card surfaces use a 50% translucent dark-teal/light-teal visual system with
+tab changes, is margin-bounded and acts as a splitter/work area rather than a
+popup. On 2026-07-26 its responsive desktop and mobile heights were doubled,
+allowing page scroll so embedded applications have substantially more working
+space. Header and card surfaces use a 50% translucent dark-teal/light-teal visual system with
 restrained outline shadows; the header's adaptive search fills remaining space
 between the title, runtime resource widget and date/time.
 The preview loading veil is pointer-transparent and becomes a delayed-preview

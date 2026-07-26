@@ -136,6 +136,9 @@ Planning baseline until explicitly revalidated:
 - [x] Close the embedded workspace before Homepage tab changes and place it as
   a sibling after the complete active card grid; live-verified on Home, Tools
   and Infrastructure 2026-07-26
+- [x] Double the responsive embedded-workspace height on desktop and mobile so
+  framed applications have a larger scrollable work area; deployed and
+  live-verified 2026-07-26
 - [x] Add a fixed-target, UFW-scoped Homepage preview proxy and restore framed
   GardenKeeper, Bambuddy and Whoogle views; live-verified 2026-07-26
 - [x] Deploy narrow OpenWrt rules for docker-host preview/status access to

@@ -45,7 +45,9 @@ No required secrets. Do not place tokens or passwords in visible Homepage config
   that opens the service in an inline workspace immediately after the active
   tab's complete card grid. The workspace closes before a different tab is
   selected and remains within a margin-bounded split/work area rather than
-  becoming a popup or touching the viewport edges.
+  becoming a popup or touching the viewport edges. Its desktop and mobile
+  heights are twice the original work-area dimensions, deliberately allowing
+  page scrolling in exchange for a substantially larger embedded application.
 - The preview toolbar provides working Reload, Open tab and Close controls.
   `Open tab` is a normal browser link rather than a scripted popup, for reliable
   desktop and mobile behaviour.

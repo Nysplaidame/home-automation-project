@@ -237,6 +237,8 @@
 .portal-preview-dock {
   position: relative;
   z-index: 20;
+  flex: 0 0 auto;
+  height: auto;
   width: calc(100% - clamp(1rem, 2.25vw, 2.75rem));
   margin: 1rem auto 1.25rem;
   border: 1px solid rgb(94 234 212 / 0.34);
@@ -249,8 +251,8 @@
 
 .portal-preview-shell {
   display: grid;
-  height: min(68vh, 780px);
-  min-height: 28rem;
+  height: min(136vh, 1560px);
+  min-height: 56rem;
   grid-template-rows: auto minmax(0, 1fr);
 }
 
@@ -479,8 +481,8 @@
 
 @media (max-width: 720px) {
   .portal-preview-shell {
-    height: 64dvh;
-    min-height: 22rem;
+    height: 128dvh;
+    min-height: 44rem;
   }
 
   .portal-preview-toolbar {
