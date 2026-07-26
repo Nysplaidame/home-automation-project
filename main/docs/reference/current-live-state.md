@@ -194,14 +194,23 @@ A fixed-target `homepage-preview-proxy` Nginx sidecar is live on docker-host.
 Its ports `8180`-`8187` are host-firewall scoped to the established management,
 LAN, automation and Tailscale sources; it cannot proxy arbitrary destinations.
 GardenKeeper, Bambuddy and Whoogle visibly load through it after their upstream
-frame-denial headers are replaced with portal-scoped CSP. Proxmox, OpenWrt,
-Zyxel, Uptime Kuma and OMV proxy listeners are staged but return `502` until
-the new source-controlled OpenWrt rules permit docker-host to those exact UI
-ports. Router authentication is the current deployment gate.
+frame-denial headers are replaced with portal-scoped CSP. On 2026-07-26, the
+source- and port-scoped OpenWrt rules were deployed and Proxmox, OpenWrt, Zyxel
+and OMV proxy listeners were verified from docker-host (`200`). Router LuCI
+requires a separate INPUT rule because traffic addressed to OpenWrt itself is
+not an inter-zone forward. Uptime Kuma's proxy remains blocked at the
+monitoring VM host firewall; the OpenWrt `3000/3001` forwarding rule is live,
+but direct tests from docker-host time out while the same URLs answer from the
+admin LAN.
 Frigate, Proxmox, OpenWrt, Zyxel, Grafana, Uptime Kuma, OMV and Transfer Portal
-now all have Homepage health sources and render a status dot. The cross-VLAN
-checks currently show down/error where the same pending router policy blocks
-docker-host; local Docker-backed statuses remain accurate.
+all have Homepage health sources and render a status dot. Frigate, OpenWrt,
+Zyxel, OMV and Transfer Portal were visibly healthy after revalidation;
+Proxmox uses the fixed-target proxy health endpoint because ICMP from the
+Homepage container was not reliable. Docker-host UFW permits the Homepage
+bridge `172.18.0.0/16` to reach only gateway port `8183/tcp` for this check;
+the rebuild rule is tracked in `docker-host-ufw-homepage-previews.sh`. Grafana
+and Uptime Kuma remain red until the monitoring VM permits `192.168.20.102` to
+reach `3000/tcp` and `3001/tcp`.
 Its local network SVG now has a slow background and ambient-glow drift; both
 animations are disabled for `prefers-reduced-motion`.
 Mermaid Viewer is live at `http://192.168.20.102:8092/` and is generated from

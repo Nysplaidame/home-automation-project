@@ -54,10 +54,17 @@ No required secrets. Do not place tokens or passwords in visible Homepage config
   target input, preserves service-specific CSP directives, replaces only the
   framing policy, and is host-firewall scoped to the existing LAN and Tailscale
   clients. Open tab always uses the original service URL.
-- GardenKeeper, Bambuddy and Whoogle proxy previews are live. The Proxmox,
-  OpenWrt, Zyxel, Uptime Kuma and OMV proxy listeners are staged but currently
-  return `502` because live OpenWrt still denies docker-host to those VLAN UI
-  ports. Deploy the four source-controlled narrow rules before certifying them.
+- GardenKeeper, Bambuddy, Whoogle, Proxmox, OpenWrt, Zyxel and OMV proxy
+  previews are live. OpenWrt has source- and port-scoped rules for the Docker
+  host, including a separate INPUT rule for LuCI because traffic addressed to
+  the router is not inter-zone forwarded traffic. Uptime Kuma remains blocked
+  by the monitoring VM's host firewall even though its OpenWrt forwarding rule
+  is live; `3000/tcp` and `3001/tcp` still need a monitoring-host allowance
+  from `192.168.20.102`.
+- Proxmox status uses the fixed-target local proxy health endpoint rather than
+  ICMP. The Homepage bridge subnet `172.18.0.0/16` is allowed only to proxy port
+  `8183/tcp`, so the health check reflects the real upstream without granting
+  the container general host-service access.
 - Preview loading is deliberately fail-safe: cross-origin frame failures do not
   emit a dependable browser error, so a delayed-preview notice replaces the
   loading veil after six seconds and never captures pointer input.
@@ -89,6 +96,15 @@ Copy the tracked `configs/docker-host/stacks/homepage/` directory to
 cd /opt/stacks/homepage
 docker compose config
 docker compose up -d
+```
+
+Install and apply the tracked host-firewall rules after confirming the
+Homepage Compose subnet remains `172.18.0.0/16`:
+
+```sh
+install -m 0755 docker-host-ufw-homepage-previews.sh \
+  /usr/local/sbin/docker-host-ufw-homepage-previews.sh
+/usr/local/sbin/docker-host-ufw-homepage-previews.sh
 ```
 
 The tracked stack includes:
@@ -138,9 +154,10 @@ Invoke-WebRequest http://192.168.20.102:3001/images/portal-background.svg -UseBa
 
 Also check one desktop and one mobile viewport, each tab, browser console
 errors, normal card navigation, the Mermaid Viewer and Household Hub embedded
-previews, the GardenKeeper/Bambuddy/Whoogle proxy previews, automatic close on
-tab change, placement after `#layout-groups`, all three workspace toolbar
-controls, and that the number of mapped Docker workloads matches `docker ps`.
+previews, the GardenKeeper/Bambuddy/Whoogle/Proxmox/OpenWrt/Zyxel/OMV proxy
+previews, automatic close on tab change, placement after `#layout-groups`, all
+three workspace toolbar controls, and that the number of mapped Docker
+workloads matches `docker ps`.
 
 ## Backup
 

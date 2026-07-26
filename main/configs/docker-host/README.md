@@ -3,7 +3,7 @@ title: Docker Host Config Templates
 description: Rebuildable source templates for VM 103 docker-host stacks, host firewall, and app-data backup
 tags: [docker-host, compose, firewall, backup, templates]
 created: 2026-05-27
-modified: 2026-07-24
+modified: 2026-07-26
 type: config-reference
 status: active
 ---
@@ -41,6 +41,7 @@ Live stack paths:
 | Docker host firewall | `/usr/local/sbin/docker-host-firewall.sh` | `system/docker-host-firewall.sh` |
 | Docker host UFW routed DNS rules | `/usr/local/sbin/docker-host-ufw-route-dns.sh` | `system/docker-host-ufw-route-dns.sh` |
 | Docker host UFW routed monitoring rules | `/usr/local/sbin/docker-host-ufw-route-monitoring-tailscale.sh` | `system/docker-host-ufw-route-monitoring-tailscale.sh` |
+| Docker host Homepage preview UFW rules | `/usr/local/sbin/docker-host-ufw-homepage-previews.sh` | `system/docker-host-ufw-homepage-previews.sh` |
 | Docker host Fail2ban SSH jail | `/etc/fail2ban/jail.d/docker-host-sshd.local` | `system/docker-host-fail2ban-sshd.local` |
 | Docker host app-data backup script | `/usr/local/sbin/docker-host-app-data-backup.sh` | `system/docker-host-app-data-backup.sh` |
 | Docker host app-data backup service | `/etc/systemd/system/docker-host-app-data-backup.service` | `system/docker-host-app-data-backup.service` |

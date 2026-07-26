@@ -100,7 +100,7 @@
         icon: proxmox.png
         href: https://192.168.10.10:8006/
         description: Virtual machines, containers and host status
-        ping: 192.168.10.10
+        siteMonitor: http://172.18.0.1:8183/
     - OpenWrt Router:
         id: portal-openwrt
         icon: openwrt.png
