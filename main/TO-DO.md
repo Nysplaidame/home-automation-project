@@ -139,6 +139,15 @@ Planning baseline until explicitly revalidated:
 - [x] Double the responsive embedded-workspace height on desktop and mobile so
   framed applications have a larger scrollable work area; deployed and
   live-verified 2026-07-26
+- [ ] Repair Homepage near-phone-width layout using explicit `320`, `350`,
+  `375`, `390`, `430` and `480` px visual checks: make the title, search,
+  resource and date/time cards reflow into a clean header without overlap or
+  edge contact; add consistent gaps between stacked navigation buttons; keep
+  text and controls inside every header, navigation and service card with equal
+  left/right padding; preserve readable service-card spacing; and remove the
+  light teal/blue background band or glow that expands downward as the viewport
+  narrows while retaining the intended dark network artwork. Recheck desktop
+  widths after the mobile correction.
 - [x] Add a fixed-target, UFW-scoped Homepage preview proxy and restore framed
   GardenKeeper, Bambuddy and Whoogle views; live-verified 2026-07-26
 - [x] Deploy narrow OpenWrt rules for docker-host preview/status access to
