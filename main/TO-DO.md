@@ -145,8 +145,8 @@ Planning baseline until explicitly revalidated:
   HA login screen, GardenKeeper, Mermaid Viewer, Reload and Close were
   live-verified on 2026-07-26. The first HA login on the distinct `8188` origin
   remains a normal one-time user authentication step.
-- [ ] Repair Homepage near-phone-width layout using explicit `320`, `350`,
-  `375`, `390`, `430` and `480` px visual checks: make the title, search,
+- [ ] Repair Homepage narrow/intermediate viewport layout using explicit `320`, `350`,
+  `375`, `390`, `430`, `480` and tablet-width visual checks: make the title, search,
   resource and date/time cards reflow into a clean header without overlap or
   edge contact; add consistent gaps between stacked navigation buttons; keep
   text and controls inside every header, navigation and service card with equal
@@ -176,36 +176,30 @@ Planning baseline until explicitly revalidated:
   reduced-motion preferences, deployed 2026-07-24
 - [ ] Deploy the prepared Transfer Portal transfer-grid canvas through the OMV
   native-service deployment route once OMV management access is available
-- [ ] Decide and deploy a password manager only with native HTTPS, a documented
-  backup/restore path and an owner-controlled emergency-access policy; do not
-  expose a vault over the current HTTP-only portal links
-- [ ] Audit every portal for both direct navigation and embedded-preview
+- [ ] Implement Vaultwarden only after its dedicated HTTPS hostname, backup and
+  isolated restore proof, 2FA/recovery policy, owner-controlled emergency access,
+  and source-scoped firewall plan in
+  `docs/procedures/household-services-implementation-plan.md` are approved.
+  Do not embed it or expose its raw HTTP port.
+- [x] Audit every portal for both direct navigation and embedded-preview
   behaviour. Record service health, HTTPS/mixed-content, authentication and
   `X-Frame-Options`/CSP framing results; fix reachability or use the normal
   link rather than weakening a service's frame protections. Mermaid Viewer and
   Household Hub are confirmed directly embeddable after repairing the portal's
   iframe re-parent loop. GardenKeeper, Bambuddy, Whoogle, Proxmox, OpenWrt,
   Zyxel and OMV are confirmed via the fixed-target proxy. Continue with the
-  monitoring VM host-firewall exception, then test the remaining portals.
-- [ ] Design the Jellyfin media library using the existing OMV-backed Immich
-  storage. Do not claim that Jellyfin can consume Immich albums directly:
-  decide whether a scheduled, read-only Immich API/export job should curate
-  approved album assets into a separate Jellyfin library path, including
-  ownership, duplicate handling, video format/transcode policy and backup.
-- [ ] Design the OMV download/media stack before deployment. Prefer
-  qBittorrent plus an isolated VPN/kill-switch path for authorised torrent
-  downloads; make NZBGet conditional on an approved Usenet provider; keep
-  aria2 as an optional direct-download utility rather than a primary library
-  manager. All need approved storage paths, user/group ownership, backup scope
-  and OMV Docker management access.
-- [ ] Evaluate Autobrr only as a complement to an approved qBittorrent/NZBGet
-  workflow: it listens to authorised indexer IRC/RSS announcements and dispatches
-  matching releases; it is not a replacement downloader. Require tracker policy,
-  credentials outside version control, categories/save paths and notification
-  rules before deployment.
-- [ ] Deploy Calibre-Web and Atsumeru only after book/comic source directories,
-  write policy, library metadata backup and OMV Docker management access are
-  approved; then add their Homepage widgets and Media-tab cards.
+  monitoring VM host-firewall exception, then test the remaining portals. The
+  audit was completed on 2026-07-26; direct navigation remains the fallback when
+  a service's own framing policy prevents embedding.
+- [ ] Implement the approved media plan: dedicated OMV media export, a read-only
+  Jellyfin library, an allow-listed Immich album export with manifest and review
+  queue, then independently gated Calibre-Web and Atsumeru libraries. See
+  `docs/procedures/household-services-implementation-plan.md`.
+- [ ] Implement the approved download plan only after a VPN provider and
+  kill-switch test: qBittorrent behind a dedicated gateway, separate incomplete/
+  complete/quarantine paths, then optional allow-listed Autobrr dispatch.
+  NZBGet and aria2 remain separate decisions. See
+  `docs/procedures/household-services-implementation-plan.md`.
 - [ ] Add Homepage service widgets where an approved, least-privilege credential
   path exists. Prioritise already deployed Home Assistant, Frigate, Immich,
   Mealie, Grocy, AdGuard Home, Grafana, Uptime Kuma, Proxmox, OpenWrt and

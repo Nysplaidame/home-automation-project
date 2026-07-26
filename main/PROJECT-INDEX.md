@@ -170,6 +170,7 @@ status: active
 | [[docs/procedures/update_maintenance_playbook.md]] | Update windows, caching/offline patterns, and update-monitoring posture |
 | [[docs/procedures/update_review_log.md]] | Weekly update-candidate review execution log and follow-up tracking |
 | [[docs/procedures/docker_host_patch_window_runbook.md]] | Command-by-command docker-host package/container patch window |
+| [[docs/procedures/household-services-implementation-plan.md]] | Decision-gated Vaultwarden, media-library and download-automation implementation plan |
 | [[docs/procedures/garage_admin_pi_setup_guide.md]] | Raspberry Pi setup for a trusted garage admin workstation on HomeAdmin |
 | [[docs/procedures/local_ai_performance_testing.md]] | Baseline, model/context, voice, and upgrade tests for CT 114 local AI |
 | [[scripts/monitoring/health_check.sh]] | Single-command health check for all systems |
