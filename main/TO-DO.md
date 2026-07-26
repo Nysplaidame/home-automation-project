@@ -139,6 +139,12 @@ Planning baseline until explicitly revalidated:
 - [x] Double the responsive embedded-workspace height on desktop and mobile so
   framed applications have a larger scrollable work area; deployed and
   live-verified 2026-07-26
+- [x] Deploy trusted local-CA HTTPS for Homepage on `443`, retain HTTP `3001` as
+  rollback, convert fixed preview listeners to HTTPS, add mixed-content-safe
+  wrappers for every configured HTTP portal, and add Home Assistant on `8188`;
+  HA login screen, GardenKeeper, Mermaid Viewer, Reload and Close were
+  live-verified on 2026-07-26. The first HA login on the distinct `8188` origin
+  remains a normal one-time user authentication step.
 - [ ] Repair Homepage near-phone-width layout using explicit `320`, `350`,
   `375`, `390`, `430` and `480` px visual checks: make the title, search,
   resource and date/time cards reflow into a clean header without overlap or
@@ -149,7 +155,8 @@ Planning baseline until explicitly revalidated:
   narrows while retaining the intended dark network artwork. Recheck desktop
   widths after the mobile correction.
 - [x] Add a fixed-target, UFW-scoped Homepage preview proxy and restore framed
-  GardenKeeper, Bambuddy and Whoogle views; live-verified 2026-07-26
+  GardenKeeper, Bambuddy and Whoogle views; upgraded to HTTPS and expanded to
+  all configured preview targets on 2026-07-26
 - [x] Deploy narrow OpenWrt rules for docker-host preview/status access to
   Proxmox `8006`, router/switch HTTP, Frigate API `5000`, monitoring
   `3000/3001`, and OMV/Transfer `80/8088`; Proxmox/OpenWrt/Zyxel/Frigate/OMV/

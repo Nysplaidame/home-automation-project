@@ -6,7 +6,7 @@ services:
     ports:
       - "3001:3000"
     environment:
-      HOMEPAGE_ALLOWED_HOSTS: "192.168.20.102:3001,homepage.home.local:3001,100.94.122.18:3001,docker-host:3001,docker-host.tail7012a0.ts.net:3001"
+      HOMEPAGE_ALLOWED_HOSTS: "192.168.20.102,homepage.home.local,100.94.122.18,docker-host,docker-host.home.local,docker-host.tail7012a0.ts.net,192.168.20.102:3001,homepage.home.local:3001,100.94.122.18:3001,docker-host:3001,docker-host.tail7012a0.ts.net:3001"
     volumes:
       - ./config:/app/config
       - ./assets:/app/public/images:ro
@@ -22,3 +22,5 @@ services:
     volumes:
       - ./preview-proxy/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./preview-proxy/proxy-common.conf:/etc/nginx/proxy-common.conf:ro
+      - ./preview-proxy/tls-common.conf:/etc/nginx/tls-common.conf:ro
+      - ./tls:/etc/nginx/tls:ro

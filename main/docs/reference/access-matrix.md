@@ -34,7 +34,7 @@ management interface should use `192.168.10.12` once its MAC address is known.
 | Admin devices | tailnet admin group | `192.168.20.101/32` | 8123 | Home Assistant |
 | Admin devices | tailnet admin group | `192.168.40.50/32` | 80, 443, 445, 2049, 22 | OMV admin/shares as needed |
 | Admin devices | tailnet admin group | `192.168.60.10/32` | 3000, 3001 | Grafana and Uptime Kuma only |
-| Household mobile devices | approved user/device tags | docker-host service UI ports | 2283, 3001, selected apps | No Management/NVR/IoT/Printers |
+| Household mobile devices | approved user/device tags | docker-host service UI ports | 443, 3001 rollback, 8180-8204 previews, 2283, selected apps | No Management/NVR/IoT/Printers |
 | Household mobile devices | approved user/device tags | `192.168.60.10/32` | 3000, 3001 | Monitoring dashboards only if desired for daily mobile use |
 | Admin devices | tailnet admin group | `192.168.20.104/32` | 3002, 8081, 10200, 10300, 10400 | Local AI admin/testing only if explicitly approved; embedding port 8082 is source-scoped to docker-host |
 | Unknown devices | any | any routed subnet | none | Require explicit approval |
@@ -51,7 +51,7 @@ WireGuard fallback activation/deactivation governance is defined in
 | Source | Destination | Allowed | Notes |
 |---|---|---|---|
 | LAN | Home Assistant | 8123/tcp | HA UI |
-| LAN / Management | docker-host app UIs | 5984, 8000, 2283, 3001, 8080, 8081, 8085, 8087, 8088, 8091, 8092, 8093, 8100, 9283, 9925/tcp | Obsidian LiveSync, Bambuddy, Immich, Homepage, AdGuard admin, Dozzle, ntfy, SearXNG, Whoogle, GardenKeeper, Mermaid Viewer, Gridfinity Layout Tool, Household Hub, Grocy, Mealie |
+| LAN / Management | docker-host app UIs | 443, 5984, 8000, 2283, 3001, 8080, 8081, 8085, 8087, 8088, 8091, 8092, 8093, 8100, 8180-8204, 9283, 9925/tcp | Homepage HTTPS and fixed previews, Obsidian LiveSync, Bambuddy, Immich, HTTP rollback, AdGuard admin, Dozzle, ntfy, SearXNG, Whoogle, GardenKeeper, Mermaid Viewer, Gridfinity Layout Tool, Household Hub, Grocy, Mealie |
 | LAN | Printers | 8883, 21, 80, 8080/tcp | Slicer/local printer access |
 | HA | Frigate | 8971, 5000, 8554, 8555/tcp | HA integration |
 | HA | OMV | 22, 445, 2049/tcp | Backup/storage |

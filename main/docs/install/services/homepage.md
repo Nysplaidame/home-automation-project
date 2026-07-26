@@ -31,8 +31,10 @@ No required secrets. Do not place tokens or passwords in visible Homepage config
 ## Current live state
 
 - Live at `/opt/stacks/homepage` on docker-host.
-- Reliable local URL: `http://192.168.20.102:3001/`.
-- Planned friendly URL: `http://homepage.home.local:3001/`; use the IP until
+- Primary local URL: `https://192.168.20.102/`, using a `Home Local CA`
+  certificate. The former `http://192.168.20.102:3001/` remains available as
+  a rollback endpoint.
+- Planned friendly URL: `https://homepage.home.local/`; use the IP until
   the canonical `home.local` router records are deployed.
 - Uptime Kuma monitor `Homepage UI` is live.
 - Rebuildable template: `configs/docker-host/stacks/homepage/`.
@@ -51,13 +53,17 @@ No required secrets. Do not place tokens or passwords in visible Homepage config
 - The preview toolbar provides working Reload, Open tab and Close controls.
   `Open tab` is a normal browser link rather than a scripted popup, for reliable
   desktop and mobile behaviour.
-- A fixed-target Nginx sidecar provides portal-scoped preview routes on
-  `8180`-`8187` for services that send `SAMEORIGIN`/`DENY`. It has no dynamic
+- A fixed-target Nginx sidecar terminates Homepage HTTPS on `443` and provides
+  HTTPS portal-scoped preview routes on `8180`-`8204`. It has no dynamic
   target input, preserves service-specific CSP directives, replaces only the
   framing policy, and is host-firewall scoped to the existing LAN and Tailscale
   clients. Open tab always uses the original service URL.
-- GardenKeeper, Bambuddy, Whoogle, Proxmox, OpenWrt, Zyxel and OMV proxy
-  previews are live. OpenWrt has source- and port-scoped rules for the Docker
+- Home Assistant is framed through `8188` with its upstream local-CA
+  certificate verified and WebSocket upgrade preserved. Because `8188` is a
+  distinct browser origin, the first embedded visit requires its own HA login;
+  the direct `8123` session cookie is not shared. GardenKeeper, Bambuddy,
+  Whoogle, Proxmox, OpenWrt, Zyxel, Frigate and OMV proxy previews are live.
+  OpenWrt has source- and port-scoped rules for the Docker
   host, including a separate INPUT rule for LuCI because traffic addressed to
   the router is not inter-zone forwarded traffic. Uptime Kuma remains blocked
   by the monitoring VM's host firewall even though its OpenWrt forwarding rule
@@ -65,7 +71,7 @@ No required secrets. Do not place tokens or passwords in visible Homepage config
   from `192.168.20.102`.
 - Proxmox status uses the fixed-target local proxy health endpoint rather than
   ICMP. The Homepage bridge subnet `172.18.0.0/16` is allowed only to proxy port
-  `8183/tcp`, so the health check reflects the real upstream without granting
+  `8299/tcp`, so the health check reflects the real upstream without granting
   the container general host-service access.
 - Preview loading is deliberately fail-safe: cross-origin frame failures do not
   emit a dependable browser error, so a delayed-preview notice replaces the
@@ -123,6 +129,9 @@ The tracked stack includes:
 - `assets/portal-background.svg` — local, non-tracking visual background.
 - `preview-proxy/` — fixed-upstream Nginx framing adapter; listeners are hosted
   directly on docker-host so existing inter-VLAN policy remains authoritative.
+- `tls/` — live-only certificate, CA certificate and private key. This
+  directory is never copied into version control; the private key remains on
+  docker-host and only its CSR is signed by the HA-hosted local CA.
 
 ## Explanation
 
@@ -140,7 +149,7 @@ outside tracked YAML.
 
 ## Expected result
 
-Homepage loads at `http://192.168.20.102:3001/` with Home, Tools,
+Homepage loads at `https://192.168.20.102/` with Home, Tools,
 Infrastructure, Monitoring, Storage, Media and Operations tabs. Docker-backed
 cards show a green status dot when their mapped container is running or healthy.
 
@@ -149,14 +158,15 @@ cards show a green status dot when their mapped container is running or healthy.
 Run on: Admin laptop.
 
 ```powershell
-Test-NetConnection 192.168.20.102 -Port 3001
-Invoke-WebRequest http://192.168.20.102:3001/api/services -UseBasicParsing
-Invoke-WebRequest http://192.168.20.102:3001/images/portal-background.svg -UseBasicParsing
+Test-NetConnection 192.168.20.102 -Port 443
+Invoke-WebRequest https://192.168.20.102/api/services -UseBasicParsing
+Invoke-WebRequest https://192.168.20.102/images/portal-background.svg -UseBasicParsing
 ```
 
 Also check one desktop and one mobile viewport, each tab, browser console
 errors, normal card navigation, the Mermaid Viewer and Household Hub embedded
-previews, the GardenKeeper/Bambuddy/Whoogle/Proxmox/OpenWrt/Zyxel/OMV proxy
+previews, the Home Assistant/GardenKeeper/Bambuddy/Whoogle/Proxmox/OpenWrt/
+Zyxel/Frigate/OMV proxy
 previews, automatic close on tab change, placement after `#layout-groups`, all
 three workspace toolbar controls, and that the number of mapped Docker
 workloads matches `docker ps`.
@@ -175,9 +185,8 @@ Back up `/opt/stacks/homepage/config`, `/opt/stacks/homepage/assets`, and
   regenerate that page. Restarting the container alone can leave the previous
   generated page visible until it is revalidated.
 - If Docker socket exposure is undesired, remove the socket mount.
-- If the preview sidecar must be rolled back, stop `preview-proxy`, remove its
-  Compose service and delete only the four UFW rules whose comments end in
-  `Homepage previews`. Portal links and Open tab remain usable.
+- If the HTTPS sidecar must be rolled back, stop `preview-proxy` and use
+  `http://192.168.20.102:3001/`. Portal links and Open tab remain usable.
 
 ## Completion checklist
 

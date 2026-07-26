@@ -161,7 +161,9 @@ Live workloads: Bambuddy, AdGuard Home, Immich, Homepage, Dozzle,
 ntfy, SearXNG, Whoogle, Mealie, Grocy, Obsidian LiveSync/CouchDB, Watchtower
 monitor-only, GardenKeeper, Household Hub, Gridfinity Layout Tool and Telegraf.
 Homepage is the central `Home Operations` navigation portal at
-`http://192.168.20.102:3001/`. Its Home, Tools, Infrastructure, Monitoring,
+`https://192.168.20.102/`, using a `Home Local CA` certificate. The former
+`http://192.168.20.102:3001/` endpoint remains live for rollback. Its Home,
+Tools, Infrastructure, Monitoring,
 Storage, Media and Operations tabs cover every user-facing portal and every
 live docker-host container; Docker-backed cards expose container health and
 expandable resource statistics. The header aligns the Home Operations title,
@@ -193,7 +195,8 @@ pointer clicks. Household Hub and Mermaid Viewer were visibly rendered in the
 live embedded workspace after the 2026-07-26 correction; Reload and Close were
 also exercised successfully.
 A fixed-target `homepage-preview-proxy` Nginx sidecar is live on docker-host.
-Its ports `8180`-`8187` are host-firewall scoped to the established management,
+It terminates HTTPS on `443`; HTTPS preview ports `8180`-`8204` are
+host-firewall scoped to the established management,
 LAN, automation and Tailscale sources; it cannot proxy arbitrary destinations.
 GardenKeeper, Bambuddy and Whoogle visibly load through it after their upstream
 frame-denial headers are replaced with portal-scoped CSP. On 2026-07-26, the
@@ -204,12 +207,18 @@ not an inter-zone forward. Uptime Kuma's proxy remains blocked at the
 monitoring VM host firewall; the OpenWrt `3000/3001` forwarding rule is live,
 but direct tests from docker-host time out while the same URLs answer from the
 admin LAN.
+Home Assistant now loads its login UI through HTTPS preview `8188`, with the
+upstream local-CA certificate verified and WebSocket upgrade preserved. The
+direct `8123` login cookie is not shared with this distinct origin, so the first
+embedded visit requires a normal one-time HA login. GardenKeeper and Mermaid
+Viewer were also visibly rendered through the HTTPS portal, and Reload/Close
+were exercised successfully.
 Frigate, Proxmox, OpenWrt, Zyxel, Grafana, Uptime Kuma, OMV and Transfer Portal
 all have Homepage health sources and render a status dot. Frigate, OpenWrt,
 Zyxel, OMV and Transfer Portal were visibly healthy after revalidation;
 Proxmox uses the fixed-target proxy health endpoint because ICMP from the
 Homepage container was not reliable. Docker-host UFW permits the Homepage
-bridge `172.18.0.0/16` to reach only gateway port `8183/tcp` for this check;
+bridge `172.18.0.0/16` to reach only gateway port `8299/tcp` for this check;
 the rebuild rule is tracked in `docker-host-ufw-homepage-previews.sh`. Grafana
 and Uptime Kuma remain red until the monitoring VM permits `192.168.20.102` to
 reach `3000/tcp` and `3001/tcp`.
