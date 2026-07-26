@@ -203,10 +203,11 @@ frame-denial headers are replaced with portal-scoped CSP. On 2026-07-26, the
 source- and port-scoped OpenWrt rules were deployed and Proxmox, OpenWrt, Zyxel
 and OMV proxy listeners were verified from docker-host (`200`). Router LuCI
 requires a separate INPUT rule because traffic addressed to OpenWrt itself is
-not an inter-zone forward. Uptime Kuma's proxy remains blocked at the
-monitoring VM host firewall; the OpenWrt `3000/3001` forwarding rule is live,
-but direct tests from docker-host time out while the same URLs answer from the
-admin LAN.
+not an inter-zone forward. The OpenWrt `3000/3001` forwarding rule is live.
+The monitoring VM now permits only docker-host `192.168.20.102` to its Grafana
+`3000/tcp` and Uptime Kuma `3001/tcp` published ports. Matching `DOCKER-USER`
+returns are applied by the enabled `monitoring-firewall.service`, so Docker's
+forwarding path remains restricted after reboot.
 Home Assistant now loads its login UI through HTTPS preview `8188`, with the
 upstream local-CA certificate verified and WebSocket upgrade preserved. The
 direct `8123` login cookie is not shared with this distinct origin, so the first
@@ -220,8 +221,8 @@ Proxmox uses the fixed-target proxy health endpoint because ICMP from the
 Homepage container was not reliable. Docker-host UFW permits the Homepage
 bridge `172.18.0.0/16` to reach only gateway port `8299/tcp` for this check;
 the rebuild rule is tracked in `docker-host-ufw-homepage-previews.sh`. Grafana
-and Uptime Kuma remain red until the monitoring VM permits `192.168.20.102` to
-reach `3000/tcp` and `3001/tcp`.
+and Uptime Kuma return through HTTPS preview proxy ports `8202` and `8186`
+respectively; their Homepage status dots are healthy.
 Its local network SVG now has a slow background and ambient-glow drift; both
 animations are disabled for `prefers-reduced-motion`.
 Mermaid Viewer is live at `http://192.168.20.102:8092/` and is generated from

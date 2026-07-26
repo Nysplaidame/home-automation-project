@@ -162,11 +162,12 @@ Planning baseline until explicitly revalidated:
   `3000/3001`, and OMV/Transfer `80/8088`; Proxmox/OpenWrt/Zyxel/Frigate/OMV/
   Transfer paths and proxy ports `8183`/`8184`/`8185`/`8187` verified live on
   2026-07-26
-- [ ] Permit docker-host `192.168.20.102` to reach Grafana `3000/tcp` and Uptime
+- [x] Permit docker-host `192.168.20.102` to reach Grafana `3000/tcp` and Uptime
   Kuma `3001/tcp` in the monitoring VM host firewall, then verify proxy `8186`
-  and both Homepage status dots. OpenWrt forwarding is already live; the VM
-  refuses SSH and the admin LAN can reach both apps, isolating the remaining
-  block to the monitoring host.
+  and both Homepage status dots. On 2026-07-26 the source-scoped UFW and
+  `DOCKER-USER` rules were verified from docker-host (`200` Grafana, `302` Kuma;
+  HTTPS proxy `8202=200`, `8186=302`) and made reboot-persistent with
+  `monitoring-firewall.service`.
 - [x] Replace Mermaid Viewer placeholders with all 11 canonical sources and add
   search, deep links, pan, zoom, fit, 100% view and fullscreen; deployed and
   render-verified 2026-07-24

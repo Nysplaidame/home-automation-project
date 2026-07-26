@@ -62,13 +62,14 @@ No required secrets. Do not place tokens or passwords in visible Homepage config
   certificate verified and WebSocket upgrade preserved. Because `8188` is a
   distinct browser origin, the first embedded visit requires its own HA login;
   the direct `8123` session cookie is not shared. GardenKeeper, Bambuddy,
-  Whoogle, Proxmox, OpenWrt, Zyxel, Frigate and OMV proxy previews are live.
+  Whoogle, Proxmox, OpenWrt, Zyxel, Frigate, Grafana, Uptime Kuma and OMV proxy
+  previews are live.
   OpenWrt has source- and port-scoped rules for the Docker
   host, including a separate INPUT rule for LuCI because traffic addressed to
-  the router is not inter-zone forwarded traffic. Uptime Kuma remains blocked
-  by the monitoring VM's host firewall even though its OpenWrt forwarding rule
-  is live; `3000/tcp` and `3001/tcp` still need a monitoring-host allowance
-  from `192.168.20.102`.
+  the router is not inter-zone forwarded traffic. The monitoring VM permits only
+  docker-host `192.168.20.102` to Grafana `3000/tcp` and Uptime Kuma `3001/tcp`;
+  matching `DOCKER-USER` returns are rebuilt by `monitoring-firewall.service`
+  after Docker starts.
 - Proxmox status uses the fixed-target local proxy health endpoint rather than
   ICMP. The Homepage bridge subnet `172.18.0.0/16` is allowed only to proxy port
   `8299/tcp`, so the health check reflects the real upstream without granting

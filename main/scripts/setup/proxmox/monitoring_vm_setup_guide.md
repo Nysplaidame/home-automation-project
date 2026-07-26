@@ -26,6 +26,10 @@
 > Uptime Kuma baseline monitors are configured, OpenWrt syslog is flowing into
 > InfluxDB, and Home Assistant is exporting state history to the `homeassistant`
 > bucket with `source=HA`.
+> The live host firewall also permits docker-host `192.168.20.102` to the
+> Grafana and Uptime Kuma published ports only. The source-controlled policy is
+> `configs/monitoring/system/monitoring-firewall.sh`, enabled as
+> `monitoring-firewall.service`.
 
 ---
 

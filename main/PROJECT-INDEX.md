@@ -66,6 +66,12 @@ status: active
 ### Local AI
 - [[configs/local-ai/docker-compose.yml]] — CT 114 llama.cpp, Open WebUI and Wyoming services
 
+### Monitoring VM
+- [[configs/monitoring/system/monitoring-firewall.sh]] — VM 102 source-scoped
+  `DOCKER-USER` policy for docker-host Homepage access to Grafana and Uptime Kuma
+- [[configs/monitoring/system/monitoring-firewall.service]] — rebuilds the
+  monitoring firewall policy after Docker starts
+
 ### Docker Host
 - [[configs/docker-host/README.md]] — rebuildable source templates for VM 103 Compose stacks and host firewall
 - [[configs/docker-host/system/docker-host-firewall.sh]] — canonical `DOCKER-USER` source for docker-host published-port scoping
