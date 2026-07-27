@@ -109,14 +109,15 @@ firewall rule has been created for them.
   approval and a backup/recovery plan.
 - Transfer Portal has no scheduler and currently records no active job. Its
   historical `test` portal has one confirmed actual copy (job 8, 2026-06-25)
-  plus preview-only jobs, with source `Print/Cases` on the NAS and destination
-  `Media` on the 14 TB share. Retained logs and journal records contain no
-  root-level Media/Print mapping. This portal is inconsistent with the desired
-  separation and remains a future write risk, but the available evidence rules
-  it out as the cause of the inverse roots: it never targets `Y:\Media` or
-  `Z:\Print`, and those stray directories have later timestamps. Treat an
-  earlier/manual copy or another external process as the unconfirmed cause
-  until host-side configuration/history can be reviewed.
+  plus preview-only jobs. The live bind units point from the *inverse* roots
+  (`14 TB/Print/Cases` to `NAS/Media`), not the canonical data roots. Retained
+  logs and journal records contain no historical root-level Media/Print
+  mapping. This portal is therefore not evidence for the original creation of
+  either inverse root, but it is misconfigured and a future write risk.
+- Directory metadata shows the stray `14 TB/Print` was created on 2026-06-20
+  while retaining an older directory modification time, a pattern consistent
+  with a historical recursive directory copy. The stray `NAS/Media` was
+  created on 2026-07-12. The responsible process has not yet been identified.
 - A read-only host configuration sweep found no Docker mount, Compose file,
   cron entry or systemd task referencing either inverse root. The only matching
   units are the expected Transfer Portal bind mounts for `Print/Cases` and
