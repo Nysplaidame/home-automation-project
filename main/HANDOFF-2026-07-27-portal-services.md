@@ -129,6 +129,11 @@ firewall rule has been created for them.
   and unit definitions, not the disk-root paths. Static host evidence is now
   exhausted; the creator was an earlier manual/SMB-client operation or a
   historical process whose logs are no longer retained.
+- The misconfigured `test` Transfer Portal mapping was removed through its
+  confirmed-delete UI on 2026-07-27. This stopped/disabled and removed its
+  bind-mount units and removed the portal entry without deleting either real
+  source/destination folder or their contents. Historical job records remain
+  as audit evidence; only the disposable `Smoke Test` portal is active.
 
 ## Next safe work
 
