@@ -42,7 +42,7 @@ The root of this repo is the Obsidian vault wrapper. The wiki lives separately u
 | Project overview and current status | [`main/README.md`](main/README.md) |
 | Full documentation index | [`main/PROJECT-INDEX.md`](main/PROJECT-INDEX.md) |
 | Task list | [`main/TO-DO.md`](main/TO-DO.md) |
-| Current session handoff | [`main/HANDOFF-2026-06-19-igpu-lxc-migration.md`](main/HANDOFF-2026-06-19-igpu-lxc-migration.md) |
+| Current session handoff | [`main/HANDOFF-2026-07-27-portal-services.md`](main/HANDOFF-2026-07-27-portal-services.md) |
 | Fresh rebuild manual | [`main/docs/install/START-HERE.md`](main/docs/install/START-HERE.md) |
 | Router configs | [`main/configs/openwrt/`](main/configs/openwrt/) |
 | Router deploy toolkit | [`main/tools/router-deploy/`](main/tools/router-deploy/) |
