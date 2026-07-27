@@ -117,6 +117,10 @@ firewall rule has been created for them.
   `Z:\Print`, and those stray directories have later timestamps. Treat an
   earlier/manual copy or another external process as the unconfirmed cause
   until host-side configuration/history can be reviewed.
+- A read-only host configuration sweep found no Docker mount, Compose file,
+  cron entry or systemd task referencing either inverse root. The only matching
+  units are the expected Transfer Portal bind mounts for `Print/Cases` and
+  `Media`; they do not reference `Y:\Media` or `Z:\Print`.
 
 ## Next safe work
 
