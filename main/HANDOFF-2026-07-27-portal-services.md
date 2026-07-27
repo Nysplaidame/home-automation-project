@@ -100,6 +100,22 @@ firewall rule has been created for them.
   separate authenticated direct-download utility, not a media manager. No Arr
   application is in scope yet.
 
+### OMV share-layout investigation (read-only, 2026-07-27)
+
+- Windows share mapping confirms the intended live data roots are `Z:\Media`
+  (the populated 14 TB media tree) and `Y:\Print` (the populated NAS print
+  tree). The inverse roots `Y:\Media` (empty) and `Z:\Print` (an empty
+  directory skeleton) are stray and must not be deleted without explicit
+  approval and a backup/recovery plan.
+- Transfer Portal has no scheduler and currently records no active job. Its
+  historical `test` portal has three completed copy jobs on 2026-06-25, with
+  source `Print/Cases` on the NAS and destination `Media` on the 14 TB share.
+  This portal is inconsistent with the desired separation and remains a future
+  write risk, but the available record does **not** prove it created either
+  inverse root: it never targets `Y:\Media` or `Z:\Print` in its present
+  mapping. Treat an earlier/manual copy or another external process as the
+  unconfirmed cause until host-side logs/history can be reviewed.
+
 ## Next safe work
 
 1. Repair and visually validate the Homepage narrow/intermediate layout.
