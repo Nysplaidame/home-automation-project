@@ -108,13 +108,15 @@ firewall rule has been created for them.
   directory skeleton) are stray and must not be deleted without explicit
   approval and a backup/recovery plan.
 - Transfer Portal has no scheduler and currently records no active job. Its
-  historical `test` portal has three completed copy jobs on 2026-06-25, with
-  source `Print/Cases` on the NAS and destination `Media` on the 14 TB share.
-  This portal is inconsistent with the desired separation and remains a future
-  write risk, but the available record does **not** prove it created either
-  inverse root: it never targets `Y:\Media` or `Z:\Print` in its present
-  mapping. Treat an earlier/manual copy or another external process as the
-  unconfirmed cause until host-side logs/history can be reviewed.
+  historical `test` portal has one confirmed actual copy (job 8, 2026-06-25)
+  plus preview-only jobs, with source `Print/Cases` on the NAS and destination
+  `Media` on the 14 TB share. Retained logs and journal records contain no
+  root-level Media/Print mapping. This portal is inconsistent with the desired
+  separation and remains a future write risk, but the available evidence rules
+  it out as the cause of the inverse roots: it never targets `Y:\Media` or
+  `Z:\Print`, and those stray directories have later timestamps. Treat an
+  earlier/manual copy or another external process as the unconfirmed cause
+  until host-side configuration/history can be reviewed.
 
 ## Next safe work
 
