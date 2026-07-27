@@ -87,9 +87,12 @@ firewall rule has been created for them.
 - qBittorrent is the first proposed downloader, behind a dedicated VPN gateway
   container and kill switch. It will have no direct WAN route when the tunnel is
   down.
-- Storage flow: `incoming/qbittorrent/incomplete` →
-  `incoming/qbittorrent/complete` → `quarantine` → manually approved Jellyfin
-  library. qBittorrent never writes final libraries.
+- All payload storage is on the OMV media export mounted at
+  `/mnt/omv/media` on docker-host, not VM 103's local disk. Storage flow:
+  `/mnt/omv/media/incoming/qbittorrent/incomplete` →
+  `/mnt/omv/media/incoming/qbittorrent/complete` →
+  `/mnt/omv/media/quarantine` → manually approved destination by content type.
+  qBittorrent never writes final libraries, document shares or backup paths.
 - Autobrr is optional and only follows a proven qBittorrent path. It listens to
   authorised indexer announcements/feeds, filters them and sends allowed matches
   to a dedicated qBittorrent category; it is not a downloader or library mover.

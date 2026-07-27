@@ -107,6 +107,9 @@ media/
   comics/
     atsumeru-library/
   incoming/
+    qbittorrent/
+      incomplete/
+      complete/
   quarantine/
 ```
 
@@ -177,14 +180,22 @@ qBittorrent is the first and only proposed downloader. Run it behind a dedicated
 VPN gateway container with a kill switch: qBittorrent shares the gateway's
 network namespace and has no direct Docker/WAN egress path. The Web UI is
 published only through a fixed local-CA HTTPS host and the existing source-
-scoped firewall model. A VPN provider supporting the required protocol and, if
-needed, port forwarding must be selected and tested before enabling any torrent
-workflow.
+scoped firewall model. Select and test a VPN provider before enabling any
+torrent workflow. Port forwarding is optional rather than required: record the
+chosen provider's position and accept the reduced inbound-peer connectivity when
+it is unavailable. Mullvad is compatible with this design through WireGuard but
+does not offer port forwarding.
 
-Use `media/incoming/qbittorrent/{incomplete,complete}` for temporary payloads.
-Completed items enter `quarantine/` for manual/legal review before any curated
-move into a Jellyfin library. Do not grant qBittorrent write access to the final
-libraries. The plan is restricted to material the household is authorised to
+All download payload folders live on the OMV media export mounted at
+`/mnt/omv/media` on docker-host; do not use the VM 103 disk for downloaded
+payloads. qBittorrent writes first to
+`/mnt/omv/media/incoming/qbittorrent/incomplete`, then completes into
+`/mnt/omv/media/incoming/qbittorrent/complete`. A completed item moves to
+`/mnt/omv/media/quarantine` for manual/legal review before any curated move to
+its approved destination by content type. The quarantine folder is therefore a
+NAS-resident staging area, not a Docker-host folder. Do not grant qBittorrent
+write access to final media libraries, book/comic libraries, documents or
+backup paths. The plan is restricted to material the household is authorised to
 download, share or redistribute.
 
 ### Autobrr's role
@@ -213,13 +224,15 @@ library import is permitted in the first phase.
 
 ### Deployment gates and acceptance
 
-1. Choose and document the VPN provider, protocol, credential storage and
-   expected port-forward behaviour; make no torrent connection before this.
+1. Choose and document the VPN provider, protocol, credential storage and its
+   port-forward/no-port-forward behaviour; make no torrent connection before
+   this.
 2. Build the gateway/qBittorrent Compose stack with a kill-switch test: remove
    the tunnel and prove qBittorrent has no Internet route while its Web UI stays
    local-only.
-3. Prove the storage permissions and quarantine boundary using a legal test
-   payload. Confirm incomplete files cannot appear in Jellyfin.
+3. Prove the OMV-mounted storage permissions and quarantine boundary using a
+   legal test payload. Confirm incomplete and quarantined files cannot appear
+   in Jellyfin or any other final library.
 4. Add Uptime Kuma checks for the Web UI and VPN gateway, plus an ntfy alert for
    tunnel failure or a blocked downloader.
 5. Only then evaluate Autobrr against one authorised source and one explicit
