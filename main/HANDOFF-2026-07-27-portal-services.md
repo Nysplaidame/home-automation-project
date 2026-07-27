@@ -140,6 +140,9 @@ firewall rule has been created for them.
   the Smoke Test. They do not target either inverse Media/Print folder, so do
   not remove them as a remedy for the stray `14tb/Print` tree without a
   separate decision to retire/rebuild Transfer Portal.
+- The OMV File Browser is a Podman container (not Docker), but it mounts only
+  the NAS disk root at `/srv`; it has no 14 TB, Print or Transfer Portal mount
+  and is ruled out as a creator of `14tb/Print`.
 
 ## Next safe work
 
