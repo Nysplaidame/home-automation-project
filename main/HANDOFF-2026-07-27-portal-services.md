@@ -122,6 +122,13 @@ firewall rule has been created for them.
   cron entry or systemd task referencing either inverse root. The only matching
   units are the expected Transfer Portal bind mounts for `Print/Cases` and
   `Media`; they do not reference `Y:\Media` or `Z:\Print`.
+- OMV's shared-folder configuration defines only the `NAS` and `14tb` disk-root
+  shares (plus HA/Frigate/Immich/config subshares on NAS); neither inverse
+  Media/Print path is an OMV shared-folder definition. Transfer Portal's
+  service sandbox has write paths only for its own app, logs, portal bind mounts
+  and unit definitions, not the disk-root paths. Static host evidence is now
+  exhausted; the creator was an earlier manual/SMB-client operation or a
+  historical process whose logs are no longer retained.
 
 ## Next safe work
 
