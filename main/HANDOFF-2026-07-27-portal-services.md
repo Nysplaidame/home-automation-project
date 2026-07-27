@@ -134,6 +134,12 @@ firewall rule has been created for them.
   bind-mount units and removed the portal entry without deleting either real
   source/destination folder or their contents. Historical job records remain
   as audit evidence; only the disposable `Smoke Test` portal is active.
+- The older `srv-transferportal-source.mount` and
+  `srv-transferportal-destination.mount` units remain active by design: they
+  bind the two whole disk roots into Transfer Portal for legacy browsing and
+  the Smoke Test. They do not target either inverse Media/Print folder, so do
+  not remove them as a remedy for the stray `14tb/Print` tree without a
+  separate decision to retire/rebuild Transfer Portal.
 
 ## Next safe work
 
