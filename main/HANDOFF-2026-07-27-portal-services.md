@@ -143,6 +143,14 @@ firewall rule has been created for them.
 - The OMV File Browser is a Podman container (not Docker), but it mounts only
   the NAS disk root at `/srv`; it has no 14 TB, Print or Transfer Portal mount
   and is ruled out as a creator of `14tb/Print`.
+- The apparent re-creation of `14tb/Print` subfolders was resolved as an SMB
+  permissions issue, not a live creator: a controlled write through the live
+  `Z:` mapping was denied before reaching OMV, while a local OMV inotify probe
+  worked. Samba exposes `14tb` as writable only to SMB user `Admin`
+  (`valid users = Admin`, `write list = Admin`). Windows refreshes the denied
+  delete and shows the folder again. Remap the Windows share using the intended
+  `Admin` SMB credentials, or deliberately change the share's authorised user;
+  verify a harmless create/remove test before deleting the stale tree.
 
 ## Next safe work
 
