@@ -156,7 +156,10 @@ firewall rule has been created for them.
   with an empty-directory-only operation. Explorer continued to display a
   stale directory handle until both SMB mappings were disconnected and
   remounted; the physical path remained absent, confirming there is no active
-  recreation process.
+  recreation process. A final `nasadmin` write/delete test also passed on the
+  `NAS` share. The obsolete uppercase `Admin` share privileges and temporary
+  audit watches have been removed; the Linux UID 1000 account itself remains
+  untouched pending any future ownership audit.
 
 ## Next safe work
 
