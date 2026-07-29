@@ -100,13 +100,13 @@ firewall rule has been created for them.
   separate authenticated direct-download utility, not a media manager. No Arr
   application is in scope yet.
 
-### OMV share-layout investigation (read-only, 2026-07-27)
+### OMV share-layout investigation and resolution (2026-07-27 to 2026-07-29)
 
 - Windows share mapping confirms the intended live data roots are `Z:\Media`
   (the populated 14 TB media tree) and `Y:\Print` (the populated NAS print
   tree). The inverse roots `Y:\Media` (empty) and `Z:\Print` (an empty
-  directory skeleton) are stray and must not be deleted without explicit
-  approval and a backup/recovery plan.
+  directory skeleton) were confirmed as stray. Both inverse roots have now
+  been removed without changing either canonical data tree.
 - Transfer Portal has no scheduler and currently records no active job. Its
   historical `test` portal has one confirmed actual copy (job 8, 2026-06-25)
   plus preview-only jobs. The live bind units point from the *inverse* roots
@@ -143,18 +143,20 @@ firewall rule has been created for them.
 - The OMV File Browser is a Podman container (not Docker), but it mounts only
   the NAS disk root at `/srv`; it has no 14 TB, Print or Transfer Portal mount
   and is ruled out as a creator of `14tb/Print`.
-- The apparent re-creation of `14tb/Print` subfolders was resolved as an SMB
-  permissions issue, not a live creator: a controlled write through the live
-  `Z:` mapping was denied before reaching OMV, while a local OMV inotify probe
-  worked. Samba exposes `14tb` as writable only to SMB user `Admin`
-  (`valid users = Admin`, `write list = Admin`). Windows refreshes the denied
-  delete and shows the folder again. The verified root cause is a case-only
-  account collision: Linux has OMV WebGUI `admin` at UID 996 and storage user
-  `Admin` at UID 1000, while Samba resolves both names to one passdb entry named
-  `Admin` but bound to UID 996. Reconnecting as `Admin` cannot correct this.
-  Create a distinctly named SMB user (recommended `nasadmin`), grant it the
-  intended root-share privileges, verify a harmless create/remove test, and
-  only then remove the stale tree and retire the broken Samba passdb entry.
+- The apparent re-creation of `14tb/Print` subfolders was an SMB/Windows view
+  problem, not a live creator. Linux has OMV WebGUI `admin` at UID 996 and a
+  storage user `Admin` at UID 1000, while Samba collapsed both case-only names
+  into one passdb entry bound to UID 996. A distinct `nasadmin` account (UID
+  1006, groups `users` and `sambashare`) now has read/write privileges on the
+  `NAS` and `14tb` shares. The 14 TB root ACL also needed explicit access and
+  default entries for `nasadmin`: its extended ACL gave the base `users` group
+  only `r-x` even though `stat` presented mode `2775`. A direct local
+  create/remove test and a Windows UNC create/remove test both passed after the
+  ACL correction. The empty `14tb/Print` directory skeleton was then removed
+  with an empty-directory-only operation. Explorer continued to display a
+  stale directory handle until both SMB mappings were disconnected and
+  remounted; the physical path remained absent, confirming there is no active
+  recreation process.
 
 ## Next safe work
 
