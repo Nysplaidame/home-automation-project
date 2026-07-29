@@ -148,9 +148,13 @@ firewall rule has been created for them.
   `Z:` mapping was denied before reaching OMV, while a local OMV inotify probe
   worked. Samba exposes `14tb` as writable only to SMB user `Admin`
   (`valid users = Admin`, `write list = Admin`). Windows refreshes the denied
-  delete and shows the folder again. Remap the Windows share using the intended
-  `Admin` SMB credentials, or deliberately change the share's authorised user;
-  verify a harmless create/remove test before deleting the stale tree.
+  delete and shows the folder again. The verified root cause is a case-only
+  account collision: Linux has OMV WebGUI `admin` at UID 996 and storage user
+  `Admin` at UID 1000, while Samba resolves both names to one passdb entry named
+  `Admin` but bound to UID 996. Reconnecting as `Admin` cannot correct this.
+  Create a distinctly named SMB user (recommended `nasadmin`), grant it the
+  intended root-share privileges, verify a harmless create/remove test, and
+  only then remove the stale tree and retire the broken Samba passdb entry.
 
 ## Next safe work
 
