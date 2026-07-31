@@ -164,12 +164,38 @@ The Proxmox UI is normally reached through the docker-host
   requests. Only the response body size differs (77 bytes failed, ~782 bytes
   succeeded). A jail keyed on body size is a brittle heuristic, not a control.
 
-The sound fix is to reach `https://192.168.10.10:8006` directly from the
-management VLAN so Proxmox logs real client addresses, then enable the
-`[proxmox]` jail with the retained filter. Keeping Homepage as a convenience
-link is fine; it just cannot be the jailed path. Adding `192.168.20.102` to
-`ignoreip` is explicitly rejected — it makes the jail blind to every proxied
-login while appearing to be protection.
+Adding `192.168.20.102` to `ignoreip` is explicitly rejected — it makes the jail
+blind to every proxied login while appearing to be protection.
+
+### Resolution (2026-07-31)
+
+This was initially framed as a trade-off against Homepage convenience. It was
+not one. Homepage's Proxmox tile `href` in `services.yaml` already points
+directly at `https://192.168.10.10:8006/`, and its `siteMonitor` health check on
+proxy port `8299` performs unauthenticated GETs that never generate
+`authentication failure` lines. Only the browser TLS listener on `8183` masked
+client addresses.
+
+The `8183` server block was therefore removed from the docker-host
+`homepage-preview-proxy` and the container restarted. Verified after the change:
+`8183` refuses connections, while `8180`, `8184`, `8186`, `8187`, `8188` and the
+`8299` health check all still respond. Live rollback copy:
+`/opt/stacks/homepage/preview-proxy/nginx.conf.pre-8183-removal-20260731T192248Z`.
+
+Known consequence: Homepage's embedded iframe *preview* of Proxmox is gone,
+because the `8183` block carried its `frame-ancestors` CSP. The tile link still
+opens Proxmox directly. There is no configuration that keeps the embedded
+preview and still exposes real client IPs — an iframe on `:8183` is a separate
+origin and would require its own login through the proxy.
+
+Remaining gate before enabling the `[proxmox]` jail: confirm a direct login at
+`https://192.168.10.10:8006` works, then confirm a deliberate failure logs
+`rhost=` as the real client rather than `192.168.20.102`. Only then enable the
+jail. Note that direct access presents Proxmox's own certificate; signing it
+with the local `Home Local CA` would remove the browser warning.
+
+The proxy configuration was previously untracked. It is now mirrored at
+`configs/docker-host/stacks/homepage/preview-proxy/`.
 
 ## Exit criteria
 
