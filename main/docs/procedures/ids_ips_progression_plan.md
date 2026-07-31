@@ -23,8 +23,11 @@ stack too early.
 
 Update (2026-07-31): the remaining applicable Linux hosts were enumerated and
 each now has a canonical jail source plus a deployment/rollback procedure in
-`docs/procedures/fail2ban_host_rollout.md`. Source is ready and not deployed for
-the Proxmox host, monitoring VM 102, CT 114 `llm-host` and OMV. Home Assistant
+`docs/procedures/fail2ban_host_rollout.md`. The Proxmox host is now live with a
+verified `sshd` jail; its web-UI jail is deferred because the UI is
+reverse-proxied through docker-host and pvedaemon cannot see real client
+addresses. Source is ready and not deployed for monitoring VM 102, CT 114
+`llm-host` and OMV. Home Assistant
 OS, the OpenWrt router, the managed switch and the cameras are excluded with
 written reasons in that procedure.
 

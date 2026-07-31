@@ -206,6 +206,13 @@ registry mirror and Node-RED remain decision-gated candidates.
   docker-host Telegraf; router syslog UDP/514 remains router-only.
 - Proxmox, HA, docker-host, DNS, core apps and local-AI endpoints are monitored.
 - Alert routing through ntfy exists for configured Kuma monitors.
+- Proxmox host Fail2ban is live as of 2026-07-31: fail2ban `1.1.0-8` with the
+  `sshd` jail only, `nftables-multiport` ban action, 1h/10m/5 policy, and
+  `ignoreip` covering loopback plus Management VLAN 10. The ban path was proved
+  by a real ban/unban creating and clearing `table inet f2b-table`. The Proxmox
+  web-UI jail is deliberately not enabled because the UI is reverse-proxied
+  through docker-host, so `pvedaemon` attributes all proxied login failures to
+  `192.168.20.102`; see `docs/procedures/fail2ban_host_rollout.md`.
 - `home-automation-health-check.timer` checks OMV NFS, Proxmox storage,
   Frigate, Immich, Transfer Portal, llama.cpp, Open WebUI, CT 111/114 root
   usage, the CT 111 recording bind source, and 36-hour archive freshness for

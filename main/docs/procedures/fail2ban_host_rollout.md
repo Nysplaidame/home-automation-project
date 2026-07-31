@@ -36,7 +36,7 @@ why, not applied silently on the live host.
 |---|---|---|---|
 | docker-host (VM 103) | `192.168.20.102` | `configs/docker-host/system/docker-host-fail2ban-sshd.local` | Live |
 | frigate-nvr (CT 111) | `192.168.30.20` | `configs/frigate/system/frigate-nvr-fail2ban-sshd.local` | Live |
-| Proxmox host | `192.168.10.10` | `configs/proxmox/system/proxmox-fail2ban.local` | Source ready, not deployed |
+| Proxmox host | `192.168.10.10` | `configs/proxmox/system/proxmox-fail2ban.local` | Live (`sshd` only, 2026-07-31); web-UI jail deferred |
 | monitoring (VM 102) | `192.168.60.10` | `configs/grafana/system/monitoring-fail2ban-sshd.local` | Source ready, not deployed |
 | llm-host (CT 114) | `192.168.20.104` | `configs/local-ai/system/llm-host-fail2ban-sshd.local` | Source ready, not deployed |
 | OMV NAS | `192.168.40.50` | `configs/omv/system/omv-fail2ban-sshd.local` | Source ready, not deployed |
@@ -132,6 +132,44 @@ exporting.
 After deployment, add the host's Fail2ban service to Uptime Kuma or the health
 check so a stopped Fail2ban is visible, and confirm the `Security Posture`
 Grafana dashboard shows the new series.
+
+## Lessons from the Proxmox host (2026-07-31)
+
+Three findings that will repeat on the other hosts:
+
+1. **Debian trixie ships no stock `proxmox` filter.** Do not assume a filter
+   exists because upstream fail2ban has one. Check
+   `ls /etc/fail2ban/filter.d/` during pre-flight and ship the filter with the
+   jail when it is missing.
+2. **Anchor failregex with `__prefix_line`, not the daemon name.** Under the
+   systemd backend fail2ban sees `<hostname> <daemon>[<pid>]: <message>`. A
+   regex anchored as `^daemon\[` silently matches zero lines and looks like
+   "no attacks" rather than a broken filter. Always prove a new filter with
+   `fail2ban-regex` against real failures before enabling the jail.
+3. **`fail2ban-regex` "ignored" is not "dropped".** The sshd filter classified
+   1252 benign disconnect lines as ignored with 0 matched. That is correct
+   behaviour on a host with no real attacks, not a defect.
+
+### Proxmox web UI — why its jail is deferred
+
+The Proxmox UI is normally reached through the docker-host
+`homepage-preview-proxy` (nginx). Consequences, both confirmed live:
+
+- `pvedaemon` records every proxied login failure as
+  `rhost=::ffff:192.168.20.102`, the proxy — never the real client. A jail on
+  that signal bans the proxy and removes UI access for everyone, while an
+  actual attacker stays invisible.
+- The proxy's own access log does see real client IPs, but Proxmox returns
+  HTTP `200` for both failed and successful `POST /api2/extjs/access/ticket`
+  requests. Only the response body size differs (77 bytes failed, ~782 bytes
+  succeeded). A jail keyed on body size is a brittle heuristic, not a control.
+
+The sound fix is to reach `https://192.168.10.10:8006` directly from the
+management VLAN so Proxmox logs real client addresses, then enable the
+`[proxmox]` jail with the retained filter. Keeping Homepage as a convenience
+link is fine; it just cannot be the jailed path. Adding `192.168.20.102` to
+`ignoreip` is explicitly rejected — it makes the jail blind to every proxied
+login while appearing to be protection.
 
 ## Exit criteria
 

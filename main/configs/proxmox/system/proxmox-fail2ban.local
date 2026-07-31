@@ -1,19 +1,24 @@
 # Proxmox host (192.168.10.10) Fail2ban baseline.
 # Deploy to /etc/fail2ban/jail.d/proxmox-fail2ban.local
 #
-# Policy is standardised with the docker-host and Frigate CT baselines:
-# bantime 1h, findtime 10m, maxretry 5.
+# LIVE as of 2026-07-31. Verified on Debian trixie / PVE 9, fail2ban 1.1.0-8:
+#   - `fail2ban-client -t` passed; service enabled and active.
+#   - `nft` is present; ufw is not installed, so `nftables-multiport` is correct.
+#   - Ban path proved end to end: `fail2ban-client set sshd banip 203.0.113.99`
+#     created `table inet f2b-table` with `addr-set-sshd` and a reject rule on
+#     tcp dport 22; unban removed it cleanly.
+#   - Journal stream confirmed. The `_COMM=sshd` match does NOT hide
+#     OpenSSH 9.8 `sshd-session` entries; both journalmatch variants scan the
+#     same 3187 lines.
 #
-# banaction: the Proxmox host does not run ufw. Confirm the live backend before
-# deploying and keep this value matched to it:
-#   command -v ufw && ufw status          # expect: not installed / inactive
-#   nft list tables | head                # nftables present on PVE 8/9
-# Use `nftables-multiport` when nft is the active backend; fall back to
-# `iptables-multiport` only if nftables is absent.
-#
-# The [proxmox] jail uses the stock fail2ban filter. Verify it exists first:
-#   test -f /etc/fail2ban/filter.d/proxmox.conf && echo present
-# If absent, deploy the sshd jail alone and treat the web-UI jail as follow-up.
+# The web-UI jail is deliberately NOT enabled. See the "Proxmox web UI" section
+# of docs/procedures/fail2ban_host_rollout.md: the UI is normally reached
+# through the docker-host `homepage-preview-proxy`, so pvedaemon records every
+# proxied login failure as `rhost=192.168.20.102`. Enabling a jail on that
+# signal would ban the proxy and cut off UI access for everyone, while never
+# seeing a real attacker's address. The working filter is retained as
+# `proxmox-fail2ban-filter.conf` for the day direct management-VLAN access
+# replaces the proxied path.
 
 [DEFAULT]
 banaction = nftables-multiport
@@ -26,9 +31,10 @@ ignoreip = 127.0.0.1/8 192.168.10.0/24
 enabled = true
 backend = systemd
 
-# Proxmox VE web UI / API authentication failures (pvedaemon journal).
-[proxmox]
-enabled = true
-backend = systemd
-port = 8006,22
-filter = proxmox
+# [proxmox]
+# enabled = false
+# backend = systemd
+# port = 8006,22
+# filter = proxmox
+# Enable only after Proxmox web-UI access stops being reverse-proxied through
+# docker-host, so that pvedaemon logs real client addresses.
