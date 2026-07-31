@@ -3,7 +3,7 @@ title: IDS IPS Progression Plan
 description: Practical phased plan for host hardening, log-driven blocking, and optional network IDS/IPS
 tags: [security, ids, ips, fail2ban, crowdsec, suricata, monitoring]
 created: 2026-05-28
-modified: 2026-05-30
+modified: 2026-07-31
 type: procedure
 status: active
 ---
@@ -20,16 +20,27 @@ stack too early.
 - True network IDS and IPS are not deployed.
 - Docker-host Fail2ban `sshd` baseline is deployed and exported into the `dockerhost` InfluxDB bucket.
 - Frigate CT Fail2ban `sshd` baseline is deployed at `/etc/fail2ban/jail.d/frigate-nvr-sshd.local`.
-- Other applicable Linux service hosts still need Fail2ban/hardening review when they become active.
+
+Update (2026-07-31): the remaining applicable Linux hosts were enumerated and
+each now has a canonical jail source plus a deployment/rollback procedure in
+`docs/procedures/fail2ban_host_rollout.md`. Source is ready and not deployed for
+the Proxmox host, monitoring VM 102, CT 114 `llm-host` and OMV. Home Assistant
+OS, the OpenWrt router, the managed switch and the cameras are excluded with
+written reasons in that procedure.
 
 ## Phase plan
 
 ### Phase A - host hardening first
 
 1. Extend Fail2ban from docker-host/Frigate to any other Linux service host
-   with meaningful auth surfaces.
-2. Standardize jail policies and ban windows.
-3. Add monitoring signals for Fail2ban service health and active bans.
+   with meaningful auth surfaces. Execute through
+   `docs/procedures/fail2ban_host_rollout.md`, one host per window.
+2. Standardize jail policies and ban windows — the standard is now
+   `bantime 1h`, `findtime 10m`, `maxretry 5`, `backend systemd`, with
+   `banaction` matched to each host's live firewall backend.
+3. Add monitoring signals for Fail2ban service health and active bans. The
+   existing exporter tags only `jail`, so add a `host` tag or per-host buckets
+   before a second host exports.
 
 ### Phase B - log-driven response evaluation
 

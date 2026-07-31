@@ -1,0 +1,30 @@
+# CT 114 llm-host (192.168.20.104) Fail2ban baseline.
+# Deploy to /etc/fail2ban/jail.d/llm-host-fail2ban-sshd.local
+#
+# Policy matches the docker-host and Frigate CT baselines.
+#
+# CT 114 is an unprivileged LXC. Two pre-flight checks matter here:
+#   1. backend: the CT must have a working systemd journal for sshd.
+#        journalctl -u ssh -n 5 --no-pager
+#      If the journal is unavailable, switch to `backend = auto` with
+#      `logpath = /var/log/auth.log` and ensure rsyslog is installed.
+#   2. banaction: unprivileged containers cannot always load nft/iptables
+#      modules. Verify before enabling:
+#        nft list ruleset >/dev/null 2>&1 && echo nftables-ok
+#      If packet filtering is not permitted inside the CT, keep the jail in
+#      detection-only mode with `banaction = dummy` and rely on the host/router
+#      path for blocking, rather than leaving a jail that fails on every ban.
+#
+# Open WebUI (3002) and the llama.cpp APIs (8081/8082) are source-scoped by
+# host and Docker firewall policy; their app-level auth is not jailed here.
+
+[DEFAULT]
+banaction = nftables-multiport
+bantime = 1h
+findtime = 10m
+maxretry = 5
+ignoreip = 127.0.0.1/8 192.168.10.0/24 192.168.20.0/24
+
+[sshd]
+enabled = true
+backend = systemd

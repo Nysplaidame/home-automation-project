@@ -1,0 +1,27 @@
+# Monitoring VM 102 (192.168.60.10) Fail2ban baseline.
+# Deploy to /etc/fail2ban/jail.d/monitoring-fail2ban-sshd.local
+#
+# Policy matches the docker-host and Frigate CT baselines.
+#
+# banaction: VM 102 enforces Docker-published ports through
+# `monitoring-docker-firewall.service` (nftables/iptables DOCKER-USER rules),
+# not ufw. Confirm before deploying:
+#   command -v ufw && ufw status
+# Keep `nftables-multiport` when nft is active; use `iptables-multiport`
+# otherwise. Do not set `ufw` unless ufw is installed and enabled.
+#
+# Grafana and Uptime Kuma web authentication are deliberately out of scope for
+# this baseline: both are already source-restricted to Management, HA health
+# checks and Tailscale clients. Revisit only if their auth logs are exposed to
+# a broader source set.
+
+[DEFAULT]
+banaction = nftables-multiport
+bantime = 1h
+findtime = 10m
+maxretry = 5
+ignoreip = 127.0.0.1/8 192.168.10.0/24 192.168.20.0/24
+
+[sshd]
+enabled = true
+backend = systemd

@@ -1,0 +1,34 @@
+# Proxmox host (192.168.10.10) Fail2ban baseline.
+# Deploy to /etc/fail2ban/jail.d/proxmox-fail2ban.local
+#
+# Policy is standardised with the docker-host and Frigate CT baselines:
+# bantime 1h, findtime 10m, maxretry 5.
+#
+# banaction: the Proxmox host does not run ufw. Confirm the live backend before
+# deploying and keep this value matched to it:
+#   command -v ufw && ufw status          # expect: not installed / inactive
+#   nft list tables | head                # nftables present on PVE 8/9
+# Use `nftables-multiport` when nft is the active backend; fall back to
+# `iptables-multiport` only if nftables is absent.
+#
+# The [proxmox] jail uses the stock fail2ban filter. Verify it exists first:
+#   test -f /etc/fail2ban/filter.d/proxmox.conf && echo present
+# If absent, deploy the sshd jail alone and treat the web-UI jail as follow-up.
+
+[DEFAULT]
+banaction = nftables-multiport
+bantime = 1h
+findtime = 10m
+maxretry = 5
+ignoreip = 127.0.0.1/8 192.168.10.0/24
+
+[sshd]
+enabled = true
+backend = systemd
+
+# Proxmox VE web UI / API authentication failures (pvedaemon journal).
+[proxmox]
+enabled = true
+backend = systemd
+port = 8006,22
+filter = proxmox

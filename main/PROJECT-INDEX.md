@@ -156,6 +156,7 @@ status: active
 | [[docs/procedures/tailscale_remote_access_guide.md]] | Daily remote access through docker-host Tailscale host routes |
 | [[docs/procedures/wireguard_fallback_governance.md]] | Activation/deactivation governance for dormant WireGuard fallback |
 | [[docs/procedures/ids_ips_progression_plan.md]] | Phased IDS/IPS and host hardening progression plan |
+| [[docs/procedures/fail2ban_host_rollout.md]] | Standard Fail2ban jail policy and per-host deployment, verification and rollback procedure |
 | [[docs/procedures/monitoring_roadmap.md]] | Monitoring stack rollout, direct-link posture, and IDS/IPS progression |
 | [[docs/procedures/proxmox_grafana_metrics.md]] | Native Proxmox metrics into InfluxDB and Grafana dashboard state |
 | [[docs/procedures/grafana_architecture_dashboards.md]] | Architecture-level Grafana dashboards and lightweight Influx exporters |

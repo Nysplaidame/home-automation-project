@@ -4,7 +4,7 @@ description: Implementation tasks by phase — updated June 2026
 tags: [tasks, implementation]
 aliases: [TODO, Tasks]
 created: 2025-09-15
-modified: 2026-07-07
+modified: 2026-07-31
 type: task-list
 status: active
 ---
@@ -106,7 +106,7 @@ Planning baseline until explicitly revalidated:
 49. [x] Enable Home Assistant native HTTPS with the local CA on 2026-07-02; validate browser, Companion App, CCTV mobile views, Frigate integration, VentSys static assets, Grafana/Kuma direct links, and rollback path
 50. [ ] Optional only if mobile access becomes flaky: improve Tailscale direct connectivity for off-WiFi mobile access by adding explicit UDP `41641` forwarding through the upstream router and GL-MT6000 to docker-host; current user validation on 2026-07-03 found CCTV feeds working on both home WiFi and mobile data with Tailscale
 51. [x] Restore OMV/VLAN 40 reachability, recreate the HA Supervisor backup mount `nas_backups`, and confirm Proxmox storage `omv-backups` is active again; the 2026-07-03 switch port 8 cutover restored service, then OMV moved to direct router `lan4` untagged VLAN 40 on 2026-07-16 and was revalidated
-52. [ ] Approve and validate the new Tailscale `192.168.30.20/32` Frigate host route for off-WiFi Frigate PWA access; docker-host route advertisement, docker-host UFW routed allow, and OpenWrt docker-host-to-Frigate HTTPS rule were staged on 2026-07-05
+52. [x] Approve and validate the new Tailscale `192.168.30.20/32` Frigate host route for off-WiFi Frigate PWA access; the route is one of the four approved docker-host routes after the 2026-07-10 owner-side ACL replacement (single grant from `oneplus-9-pro` `100.105.216.6`), and the operator's approved-route access test passed on 2026-07-11
 53. [x] Add an internal web-based Mermaid diagram viewer for `docs/diagrams/` so the canonical `.mermaid` sources can be browsed without opening the Obsidian desktop vault; keep it read-only and internal-only
 
 ---
@@ -212,7 +212,7 @@ must work without HACS.
 - [ ] Add P1S details and Home Assistant token in the Bambuddy web UI when physically available
 - [ ] Do not deploy `configs/home-assistant/bambuddy_p1s_package.yaml` until `<P1S_SERIAL>` is replaced and MQTT topics are confirmed
 - [x] Remove deprecated InfluxDB connection/auth keys from HA YAML after confirming the UI-managed Influx connection
-- [ ] Create `/opt/frigate/.env` after camera RTSP and MQTT credentials/certs are ready
+- [x] Create `/opt/frigate/.env` after camera RTSP and MQTT credentials/certs are ready; live file holds the MQTT password plus bench/Gate/Patio RTSP credentials at mode `600`, and source keeps placeholders only
 - [x] Design `apt-cacher-ng` on docker-host for package caching
 - [x] Deploy `apt-cacher-ng` on docker-host and test with frigate-nvr
 - [x] Move Bambuddy MQTT relay from 1883 to TLS 8883 and verify retained `bambuddy/status`
@@ -239,7 +239,7 @@ must work without HACS.
 ### Deployment
 - [x] Flash/configure GL-MT6000 with router phases 1–8
 - [x] Run router validation/tests from management IP (`test.ps1`: PASS=62/WARN=0/FAIL=0; `test-connectivity.ps1`: PASS=74/WARN=0/FAIL=0)
-- [ ] Fill in MAC addresses in dhcp-config.conf (Proxmox host, VMs, NAS)
+- [x] Fill in MAC addresses in dhcp-config.conf (Proxmox host, VMs, NAS): Proxmox host `38:05:25:31:55:D3` added from a management-VLAN ARP lookup on 2026-07-31 (cross-checked against the known GS1900 MAC), and a missing CT 114 `llm-host` reservation was added at `192.168.20.104` (`BC:24:11:CE:B9:E5`). Remaining placeholders are hardware that does not exist yet: P1S, Athena 2, VentSys ESP32s, DMZ hosts, TL-WA801N. Source-only change; router deploy is still gated
 - [x] Confirm no live valve-1 temporary plain-MQTT firewall exception exists; keep source as TLS `8883`-only for VentSys MQTT
 - [x] Remove stale valve-1 firewall-source drift items after parity verification
 - [ ] Keep WireGuard fallback clients unrolled unless Tailscale daily-access posture changes or resilience drills require activation
@@ -445,7 +445,7 @@ must work without HACS.
 
 ## Phase 5 — NVR / Cameras ⏳
 
-- [ ] Select PoE IP camera models (H.265, RTSP, compatible with Frigate)
+- [x] Select PoE IP camera model: ANNKE C500 (`I51HJ`), firmware `V5.8.10`, H.264 main `101` (`3072x1728`) and sub `102` (`1280x720`) RTSP streams, proven with Frigate on three units
 - [ ] Purchase 4× cameras and PoE switch
 - [ ] Record sourced camera and smart PoE switch model numbers, firmware lines, RTSP/substream paths, PoE budget, management VLAN behavior, and reset procedures in `docs/procedures/frigate_camera_preflight_checklist.md`
 - [ ] Bench-test one camera at a time using `docs/procedures/frigate_camera_preflight_checklist.md` before permanent mounting
@@ -464,7 +464,7 @@ must work without HACS.
 
 - [x] Set up MQTT TLS (8883) — broker listener live, CA/broker certs installed, authenticated TLS pub/sub verified
 - [x] Keep router source TLS-oriented for MQTT: no valve-specific `1883` exception exists, and remaining clients should migrate to `8883` without reintroducing plain-MQTT router rules
-- [ ] Enable HTTPS on HA — follow `ssl_tls_guide.md` (choose Option A/B/C)
+- [x] Enable HTTPS on HA — native HA HTTPS live at `https://192.168.20.101:8123` since 2026-07-02 using `/ssl/fullchain.pem` and `/ssl/privkey.pem` signed by the local `Home Local CA`
 - [x] Configure Fail2ban on docker-host (`sshd` jail baseline live at `/etc/fail2ban/jail.d/docker-host-sshd.local`)
 - [x] Configure Fail2ban on Frigate VM (`sshd` jail baseline live at `/etc/fail2ban/jail.d/frigate-nvr-sshd.local`)
 - [x] Deploy monitoring VM on VLAN 60 (Uptime Kuma, InfluxDB, Grafana, Telegraf)
@@ -491,7 +491,8 @@ must work without HACS.
 - [x] Add/validate router DNS enforcement rules for filtering coverage and public fallback
 - [x] Add monitoring for the DNS filtering service before making it the only resolver path
 - [x] Verify historical pre-NAS Proxmox local backup job for VMs 100/101/102/103; current recurring guest backups now use OMV `omv-backups`
-- [ ] Extend `Fail2ban` from docker-host baseline to Frigate and other applicable Linux service hosts
+- [ ] Extend `Fail2ban` from the docker-host and Frigate CT baselines to the remaining Linux service hosts. Canonical jail sources now exist for the Proxmox host (`configs/proxmox/system/proxmox-fail2ban.local`, `sshd` + `proxmox` jails), monitoring VM 102 (`configs/grafana/system/monitoring-fail2ban-sshd.local`), CT 114 `llm-host` (`configs/local-ai/system/llm-host-fail2ban-sshd.local`) and OMV (`configs/omv/system/omv-fail2ban-sshd.local`), with the standard policy, pre-flight, rollback and monitoring steps in `docs/procedures/fail2ban_host_rollout.md`. HAOS, OpenWrt, the switch and cameras are excluded with written reasons. Deployment is still outstanding: each host needs its `banaction`/backend pre-flight, a one-host maintenance window, and service-path revalidation
+- [ ] Add a `host` tag to `scripts/monitoring/export_fail2ban_to_influx.sh` (or give each host its own bucket) before a second host exports Fail2ban counters; the current schema tags only `jail` and would collide
 - [ ] Execute IDS/IPS progression Phase A (`docs/procedures/ids_ips_progression_plan.md`): monitor Fail2ban jails/bans and tune policy after live observation
 - [ ] After at least 30 days of baseline security-event data, decide CrowdSec pilot vs defer and document the decision
 - [ ] Add a scoped internal penetration-testing pass after hardening + update governance stabilize; record findings and remediation evidence
