@@ -23,7 +23,10 @@ status: active
 4. [x] Add draft docker-host service manuals for Tier 1, Tier 2, and Tier 3/evaluate services
 5. [x] Add the companion setup-documentation checklist at `docs/install/INSTALL-TO-DO.md`
 6. [x] Replace stale static diagrams with canonical Mermaid sources for architecture, install sequence, DNS/NTP, access, storage, docker-host services, and VentSys safety flow
-7. [ ] Deploy the reconciled 47-entry `home.local` domain inventory from `configs/openwrt/dhcp-config.conf` to live OpenWrt, restart dnsmasq, remove the temporary workstation hosts entry for Home Assistant, and pass `scripts/validation/validate-home-local-dns.ps1` against `192.168.10.1`
+7. [x] Deploy the reconciled 48-entry `home.local` domain inventory from `configs/openwrt/dhcp-config.conf` to live OpenWrt, restart dnsmasq, and pass `scripts/validation/validate-home-local-dns.ps1` against `192.168.10.1` (completed 2026-07-29)
+   - [x] Remove the now-redundant workstation hosts entry for
+     `homeassistant.home.local` and flush the Windows DNS cache (completed
+     2026-07-29)
 8. [ ] Continue expanding each install phase until every command has expected output examples and every failure mode has a tested recovery path
 9. [ ] Work through the comprehensive checklist in `docs/install/INSTALL-TO-DO.md`
 10. [ ] Run a full dry-read from `docs/install/START-HERE.md` after the next content expansion pass
@@ -92,7 +95,10 @@ Planning baseline until explicitly revalidated:
 35. [x] Apply `configs/home-assistant/lovelace/monitoring-grafana-links.yaml` to the live HA Monitoring dashboard through the HA UI; confirmed visible in a dashboard tab on 2026-06-01
 36. [x] Approve and retest mobile Tailscale monitoring access: docker-host now advertises `192.168.60.10/32` and has routed UFW allowances for Grafana `3000` and Uptime Kuma `3001`; route approved in Tailscale admin and mobile access to HA/Grafana/Kuma confirmed working on 2026-05-31
 37. [x] Re-export `Proxmox Resource Overview` and apply explicit labels (`Guest RAM`, `RAM Pressure`, `Root Disk`) to live/source panels; 2026-05-31 datasource check found high HA/docker-host/monitoring percentages are guest-memory values, not CPU/disk saturation
-38. [ ] Schedule controlled docker-host patch window for Docker engine/component and kernel package candidates from `docs/procedures/update_review_log.md`
+38. [x] Complete the controlled docker-host patch window for Docker/containerd,
+    Compose/Buildx, Python 3.13 and Tailscale candidates; completed 2026-08-01
+    with fresh pre/post NAS backups, no reboot required, no pending upgrades and
+    all 33 existing containers/endpoints healthy
 39. [x] Add first NAS telemetry using existing docker-host Telegraf -> InfluxDB -> Grafana pattern by exposing the OMV-backed Immich mount to Telegraf
 40. [x] Build CT 114 `llm-host` after confirming Proxmox RAM pressure was healthy enough for the local-AI workload
 41. [x] Deploy llama.cpp, Open WebUI, Wyoming Whisper, Wyoming Piper, and OpenWakeWord on CT 114 per `scripts/setup/proxmox/llm_host_setup_guide.md`
@@ -107,7 +113,11 @@ Planning baseline until explicitly revalidated:
 49. [x] Enable Home Assistant native HTTPS with the local CA on 2026-07-02; validate browser, Companion App, CCTV mobile views, Frigate integration, VentSys static assets, Grafana/Kuma direct links, and rollback path
 50. [ ] Optional only if mobile access becomes flaky: improve Tailscale direct connectivity for off-WiFi mobile access by adding explicit UDP `41641` forwarding through the upstream router and GL-MT6000 to docker-host; current user validation on 2026-07-03 found CCTV feeds working on both home WiFi and mobile data with Tailscale
 51. [x] Restore OMV/VLAN 40 reachability, recreate the HA Supervisor backup mount `nas_backups`, and confirm Proxmox storage `omv-backups` is active again; fixed by moving OMV to GS1900 port 8 untagged VLAN 40 and converting router `lan3` to the planned trunk on 2026-07-03
-52. [ ] Approve and validate the new Tailscale `192.168.30.20/32` Frigate host route for off-WiFi Frigate PWA access; docker-host route advertisement, docker-host UFW routed allow, and OpenWrt docker-host-to-Frigate HTTPS rule were staged on 2026-07-05
+52. [x] Approve and validate the Tailscale `192.168.30.20/32` Frigate host route
+    for off-WiFi Frigate PWA access. On 2026-07-29 the route appeared in
+    docker-host `PrimaryRoutes`/`AllowedIPs`, the authenticated HTTPS path
+    returned the expected `401`, the unauthenticated API on `5000` remained
+    blocked, and the workstation Tailscale state was restored after testing.
 
 ---
 
@@ -145,7 +155,7 @@ Planning baseline until explicitly revalidated:
   HA login screen, GardenKeeper, Mermaid Viewer, Reload and Close were
   live-verified on 2026-07-26. The first HA login on the distinct `8188` origin
   remains a normal one-time user authentication step.
-- [ ] Repair Homepage narrow/intermediate viewport layout using explicit `320`, `350`,
+- [x] Repair Homepage narrow/intermediate viewport layout using explicit `320`, `350`,
   `375`, `390`, `430`, `480` and tablet-width visual checks: make the title, search,
   resource and date/time cards reflow into a clean header without overlap or
   edge contact; add consistent gaps between stacked navigation buttons; keep
@@ -153,7 +163,15 @@ Planning baseline until explicitly revalidated:
   left/right padding; preserve readable service-card spacing; and remove the
   light teal/blue background band or glow that expands downward as the viewport
   narrows while retaining the intended dark network artwork. Recheck desktop
-  widths after the mobile correction.
+  widths after the mobile correction. Deployed and visually verified at all
+  listed widths plus `768`, `900`, and `1280` px on 2026-07-29; the 390 px
+  embedded-workspace controls were also exercised successfully. Follow-up at
+  the reported `956` px and `489` px widths confirmed no title/search overlap
+  and measured `10.4` px vertical gaps between stacked service cards.
+- [x] Confirm `https://homepage.home.local/` from mobile data after reconnecting
+  the OnePlus to Tailscale; split DNS, the enabled AdGuard rewrite, tailnet
+  HTTPS/DNS grants, explicit listeners, and host firewall rules were deployed
+  and user-validated on 2026-07-29
 - [x] Add a fixed-target, UFW-scoped Homepage preview proxy and restore framed
   GardenKeeper, Bambuddy and Whoogle views; upgraded to HTTPS and expanded to
   all configured preview targets on 2026-07-26
@@ -176,11 +194,14 @@ Planning baseline until explicitly revalidated:
   reduced-motion preferences, deployed 2026-07-24
 - [ ] Deploy the prepared Transfer Portal transfer-grid canvas through the OMV
   native-service deployment route once OMV management access is available
-- [ ] Implement Vaultwarden only after its dedicated HTTPS hostname, backup and
-  isolated restore proof, 2FA/recovery policy, owner-controlled emergency access,
-  and source-scoped firewall plan in
-  `docs/procedures/household-services-implementation-plan.md` are approved.
-  Do not embed it or expose its raw HTTP port.
+- [x] Deploy Vaultwarden behind its dedicated local-CA HTTPS hostname with a
+  loopback-only raw listener, disabled sign-ups/admin endpoint, source-scoped
+  access and two isolated SQLite restore proofs (including a disposable account);
+  completed 2026-07-29. Do not embed it or expose its raw HTTP port.
+- [ ] Complete Vaultwarden owner onboarding after live `vault.home.local` DNS is
+  deployed: temporarily enable sign-up for the owner account only, disable it
+  immediately afterward, then record the 2FA/recovery-code and owner-controlled
+  emergency-access policy outside Git.
 - [x] Audit every portal for both direct navigation and embedded-preview
   behaviour. Record service health, HTTPS/mixed-content, authentication and
   `X-Frame-Options`/CSP framing results; fix reachability or use the normal
@@ -191,15 +212,24 @@ Planning baseline until explicitly revalidated:
   monitoring VM host-firewall exception, then test the remaining portals. The
   audit was completed on 2026-07-26; direct navigation remains the fallback when
   a service's own framing policy prevents embedding.
-- [ ] Implement the approved media plan: dedicated OMV media export, a read-only
-  Jellyfin library, an allow-listed Immich album export with manifest and review
-  queue, then independently gated Calibre-Web and Atsumeru libraries. See
-  `docs/procedures/household-services-implementation-plan.md`.
-- [ ] Implement the approved download plan only after a VPN provider and
-  kill-switch test: qBittorrent behind a dedicated gateway, separate incomplete/
-  complete/quarantine paths, then optional allow-listed Autobrr dispatch.
-  NZBGet and aria2 remain separate decisions. See
-  `docs/procedures/household-services-implementation-plan.md`.
+- [x] Create and prove the dedicated OMV media export, then deploy source-scoped
+  Jellyfin (read-only libraries), Calibre-Web and Atsumeru foundations with
+  explicit non-overlapping Docker IPAM, restart proofs and NAS-backed app-data
+  backup; completed 2026-07-29.
+- [ ] Implement the allow-listed Immich album exporter into
+  `jellyfin/immich-curated` with a manifest and review queue. Immich remains the
+  photo system of record; do not mount its live library into Jellyfin.
+- [x] Complete the prepared Mullvad/Gluetun/qBittorrent gateway: securely install
+  the generated WireGuard private key/address, start the stack, set separate
+  incomplete/complete paths, rotate the qBittorrent Web UI credential, prove
+  tunnel egress and the fail-closed kill switch, then prove NAS config backup and
+  restore. Quarantine promotion remains a manual host-side step; qBittorrent has
+  no final-library mount. Completed 2026-08-01; optional allow-listed Autobrr
+  dispatch follows only after this proof. NZBGet and aria2 remain separate
+  decisions.
+- [x] Repair the AdGuard/Tailscale reboot race with an enabled systemd Compose
+  gate that waits for the Tailscale address and force-recreates the stack; local
+  and Tailscale DNS port bindings were revalidated on 2026-07-29.
 - [ ] Add Homepage service widgets where an approved, least-privilege credential
   path exists. Prioritise already deployed Home Assistant, Frigate, Immich,
   Mealie, Grocy, AdGuard Home, Grafana, Uptime Kuma, Proxmox, OpenWrt and
@@ -525,8 +555,15 @@ must work without HACS.
 - [x] Keep Frigate "live" recordings on MINISFORUM local storage first during first-camera proving; superseded by the 2026-07-07 OMV recording cutover
 - [x] Mount OMV Frigate export on Proxmox, bind-mount it into CT 111 at `/mnt/nas/frigate`, update docker-compose.yml volume, add the required UID `100000` ACL for the unprivileged CT root mapping, recreate Frigate, and verify fresh recordings write to OMV
 - [x] Add OMV as HA network storage → verify backup writes successfully
-- [ ] Configure robocopy or rsync scheduled task for vault backup to NAS
-- [ ] Enable SMART monitoring on NAS drives
+- [x] Add a guarded, dry-run-by-default robocopy helper for the vault at
+  `scripts/backup/backup_vault_to_nas.ps1`; source/destination and boundary
+  checks passed against the live `NAS\configs` path on 2026-07-29
+- [ ] Configure the scheduled vault backup only after an explicit approval,
+  first manual `-Execute` copy, and restore-to-temporary-folder proof
+- [x] Verify SMART monitoring on NAS drives: global polling is enabled every
+  1,800 seconds with 5 C change/55 C maximum alerts; all five physical disks
+  are individually monitored and reported `Good` at 33-44 C on 2026-07-29. No
+  new SMART self-test schedule was added.
 
 ---
 
@@ -538,10 +575,17 @@ must work without HACS.
 - [ ] Bench-test one camera at a time using `docs/procedures/frigate_camera_preflight_checklist.md` before permanent mounting
 - [x] Bench-test first camera on the Zyxel switch: ANNKE C500 (`I51HJ`, firmware `v5.8.10 build 250917`) now reserved at `192.168.30.21`, with verified RTSP `/Streaming/Channels/101` and `/Streaming/Channels/102`, router-local NTP, and cloud access disabled
 - [x] Deploy router `lan3` as the managed-switch trunk after the GS1900 baseline was configured; keep future switch access-port changes gated and labelled
-- [ ] Mount cameras, run CAT6 to PoE switch access ports on VLAN 30
-- [ ] Assign static IPs: camera 1 is reserved at `192.168.30.21`; future cameras remain planned at `192.168.30.22-24`
-- [ ] Update RTSP paths in `configs/frigate/config.yml` (currently placeholder `/stream1`)
-- [ ] Restart Frigate, confirm all 4 camera streams visible in UI
+- [x] Mount the first three cameras and run CAT6 to PoE switch access ports on
+  VLAN 30; retain ports 5-7 for the remaining/future camera rollout
+- [x] Assign live camera addresses and switch ports: Camera 1 is
+  `192.168.30.21`/port 2, Gate is `192.168.30.22`/port 4, and Patio is
+  `192.168.30.23`/port 3; `192.168.30.24` remains planned for the next camera
+- [x] Standardize Zyxel ports 2-7 as saved PoE VLAN 30 access ports and add
+  debounced HA offline/recovery alerts for the three live cameras
+- [x] Mirror the three live main/sub RTSP paths and go2rtc streams in
+  `configs/frigate/config.yml`
+- [x] Confirm all three installed camera streams are visible and sustaining
+  approximately `10 fps` in Frigate; fourth camera remains future scope
 - [ ] Test person detection notifications in HA
 
 ---
@@ -566,6 +610,42 @@ must work without HACS.
 - [x] Export docker-host Fail2ban counters to InfluxDB bucket `dockerhost`
 - [x] Add HA Monitoring page/sidebar entry with direct links to Grafana and Kuma
 - [x] Deploy internal ntfy notification service for future HA/Kuma/Grafana alerts
+- [x] Repair stale Uptime Kuma checks on 2026-07-29: Home Assistant now checks
+  native HTTPS with the private-CA error ignored, and the retired Ollama
+  `11434/api/tags` check now targets llama.cpp `8081/v1/models`; both returned
+  `200 OK` immediately after save
+- [x] Set Uptime Kuma's primary base URL to
+  `http://uptime-kuma.home.local:3001` and create the initial `core`, `network`,
+  `storage`, `security`, `ai`, and `apps` tag taxonomy
+- [x] Add host-scoped OpenWrt rules from monitoring VM `192.168.60.10` to
+  Frigate API TCP `5000`, OMV web/NFS TCP `80`/`2049`, and ICMP for the three
+  camera addresses. `fw4 check` passed before restart and live nft counters
+  confirmed every new rule was exercised on 2026-07-29.
+- [x] Add direct Kuma checks for OMV web, OMV NFS, and all three live camera
+  hosts with the ntfy notification channel enabled; every check returned `Up`
+  after the narrow OpenWrt rules were deployed.
+- [ ] Allow Frigate API TCP `5000` from `192.168.60.10` in CT 111's host
+  firewall, then revalidate Kuma monitor 28. OpenWrt's rule counter increments,
+  but the current HTTP check times out after routing, so the remaining reject is
+  local to the Frigate host.
+- [x] Finish the OMV SMART push heartbeat: monitor 34, the OMV
+  `smartctl -H` producer, host-only token file, 30-minute systemd timer, narrow
+  OpenWrt rule, and VM 102 `DOCKER-USER` exception are live. The first accepted
+  heartbeat on 2026-07-29 reported all five physical disks healthy.
+- [ ] Add a separate backup-freshness push heartbeat after docker-host access is
+  restored and the producer script is deployed.
+- [x] Create a read-only ntfy `mobile-monitoring` subscriber for `monitoring`
+  and `watchtower`, store its generated password in Windows Credential Manager,
+  and validate authenticated subscription from docker-host. A real Android
+  notification over Tailscale remains the final phone-side acceptance check.
+- [x] Add the authenticated Grafana `ntfy Monitoring` contact point, make it the
+  default notification policy, and add initial 85%/10-minute metric alerts for
+  docker-host root disk and Proxmox root storage. Both rules evaluated `Normal`
+  and Grafana's test notification reached ntfy on 2026-07-29. SMART is routed
+  through Kuma monitor 34; backup freshness remains a separate producer task.
+- [x] Deploy and restore-smoke the repo's SQLite-consistent ntfy addition to the
+  docker-host app-data backup job. A fresh NAS run completed on 2026-07-29 and
+  restored copies of both `user.db` and `cache.db` passed SQLite integrity checks.
 - [x] Prepare HA HTTPS certificate files without enabling HTTPS cutover
 - [x] Keep monitoring operational posture as direct-link access from HA, with embedding intentionally parked for now
 - [ ] Re-open Grafana/Uptime Kuma embedding work only after same-origin HTTPS/reverse-proxy path and auth model are approved

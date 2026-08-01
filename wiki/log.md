@@ -186,3 +186,59 @@
 - Canonical docs/configs were cleaned for stale router, MQTT, Frigate, VentSys, and local-AI references.
 - Pages updated: [[entities/gl-mt6000]], [[entities/frigate]], [[entities/mosquitto-mqtt]], [[index]]
 - Notes: Router wiki now matches the managed-switch port topology; Frigate wiki records the `mqtt.enabled: false` / `cameras: {}` baseline; MQTT wiki treats plaintext `1883` as a documented temporary recovery/bootstrap exception only.
+
+## [2026-07-28] update | Three-camera CCTV fleet and health alerts
+- Pages created: [[entities/cctv-camera-fleet]]
+- Pages updated: [[entities/frigate]], [[entities/home-assistant]], [[concepts/vlan-segmentation]], [[index]]
+- Notes: Synced the wiki to canonical three-camera Frigate state, confirmed all three as ANNKE C500 `I51HJ` on firmware `v5.8.10 build 250917`, saved Zyxel ports 2-7 as CCTV VLAN 30 access ports, and recorded Home Assistant FPS-based offline/recovery alerts.
+
+## [2026-07-28] lint | CCTV and Frigate state sync
+- Report: [[analyses/lint-2026-07-28]]
+- Pages repaired: [[entities/mosquitto-mqtt]] and the active CCTV/Frigate/HA entity set
+- Notes: Historical source summaries remain historical; active entity pages now match canonical live state.
+
+## [2026-07-29] update | DNS, Homepage, remote Frigate, and NAS operations
+- Canonical project state now has all 48 `home.local` aliases deployed and validated on OpenWrt.
+- Homepage exact-width regressions were repaired at 956 px and 489 px.
+- Off-WiFi Frigate HTTPS access was validated through the narrow Tailscale host route while port 5000 remained blocked.
+- OMV SMART monitoring was verified globally and on all five physical disks; the vault backup helper remains dry-run-only and no schedule was created.
+- Pages updated: [[entities/gl-mt6000]], [[entities/homepage]], [[entities/openmediavault-nas]], [[index]].
+
+## [2026-07-29] update | Homepage split-horizon mobile DNS
+- Added an identity-gated AdGuard listener on docker-host's Tailscale address and an enabled rewrite for `homepage.home.local`.
+- Added Tailscale split DNS for `home.local` plus phone-only DNS and HTTPS grants, preserving OpenWrt's LAN answer while using the tailnet answer remotely.
+- The user confirmed the same `https://homepage.home.local/` bookmark works on mobile data and home WiFi.
+- Pages updated: [[entities/adguard-home]], [[entities/homepage]], [[concepts/tailscale-remote-access]].
+
+## [2026-07-29] update | Kuma storage and CCTV monitoring expansion
+- Canonical state updated first in `main/TO-DO.md`, OpenWrt firewall source, and the current live-state reference.
+- Pages updated: [[entities/monitoring-vm]], [[entities/openmediavault-nas]], [[entities/cctv-camera-fleet]], [[index]].
+- Notes: Added host-scoped VLAN 60 paths and live ntfy-enabled checks for OMV web/NFS and all three cameras; recorded the remaining Frigate host-firewall, Grafana alerting, and ntfy mobile-subscriber gaps.
+- Staged the OMV aggregate SMART push service and Kuma monitor without enabling
+  either; VM 102's narrow host-firewall exception remains the activation gate.
+
+## [2026-07-29] update | Monitoring alerting and ntfy backup completion
+- Activated the OMV SMART push heartbeat and confirmed all five disks healthy.
+- Added and live-tested Grafana's authenticated ntfy contact point, default
+  policy, and initial docker-host/Proxmox disk-pressure alerts.
+- Created the read-only ntfy mobile subscriber and validated authenticated
+  polling; Android notification acceptance remains user-side.
+- Deployed the SQLite-consistent ntfy app-data backup, completed a fresh NAS
+  run, and passed a temporary restore/integrity smoke for both databases.
+- Pages updated: [[entities/monitoring-vm]], [[entities/docker-host]].
+
+## [2026-08-01] update | Docker-host maintenance and Mullvad download gateway
+- Completed the controlled Docker/containerd/Compose/Python/Tailscale package
+  window with no reboot required and all existing services healthy.
+- Activated qBittorrent behind Gluetun/Mullvad, proved tunnel identity and
+  interface-drop/full-provider-stop fail-closed behavior, and restored its
+  configuration from the NAS backup in isolation.
+- Pages created: [[entities/qbittorrent]].
+- Pages updated: [[entities/docker-host]], [[entities/homepage]],
+  [[entities/gl-mt6000]], [[entities/openmediavault-nas]], [[index]].
+
+## [2026-08-01] lint | Maintenance and download-gateway state sync
+- Report: [[analyses/lint-2026-08-01]].
+- No stale stopped/gated Mullvad state or superseded VPN-rule name remained.
+- Corrected the pre-existing index source count from 25 to the actual 21 and
+  refreshed the analysis count to 5.

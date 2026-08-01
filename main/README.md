@@ -98,6 +98,16 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 - docker-host is the expected target for future containerized AI-adjacent query apps; no YouTube transcript app architecture, ports, APIs, MCP contract, or firewall rules are defined yet
 - Tier 1 docker-host services are live: AdGuard Home, Immich, Homepage, Dozzle, plus Bambuddy
 - Tier 2/Tier 3 services with live baselines include Mealie, Grocy, Obsidian LiveSync/CouchDB, ntfy internal alerts, Watchtower monitor-only, SearXNG and Whoogle
+- The OMV-backed media foundation is live: Jellyfin uses read-only approved
+  libraries, while Calibre-Web and Atsumeru have separate writable book/comic
+  roots. The Immich curated-album exporter remains pending.
+- Vaultwarden is live behind dedicated local-CA HTTPS with loopback-only raw
+  HTTP and completed isolated restore proofs; owner onboarding/2FA/recovery is
+  still gated before real credentials are imported.
+- The Mullvad/Gluetun/qBittorrent gateway is live on `8084`: its WireGuard
+  secret is host-only, incomplete/complete payloads stay on OMV, the downloader
+  has no quarantine/final-library mount, and both tunnel identity and
+  fail-closed behaviour are proven.
 - Rebuildable docker-host templates live in `configs/docker-host/`; live secrets and app databases stay on VM 103, not in git
 - Tailscale is daily remote access through docker-host with host routes only:
   `192.168.20.101/32`, `192.168.30.20/32`, `192.168.40.50/32`, and `192.168.60.10/32`

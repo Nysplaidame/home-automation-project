@@ -40,3 +40,9 @@ Decision gates prevent a draft install from silently becoming a risky live servi
 
 Do not remove a gate from a service manual unless the decision is recorded in
 `docs/decisions/` or `TO-DO.md`.
+
+Vaultwarden's deployment gate passed on 2026-07-29: the raw listener is
+loopback-only, dedicated local-CA HTTPS and no-framing policy are live, and two
+isolated SQLite restore proofs succeeded. Its account-recovery gate remains
+open until live DNS, owner onboarding, 2FA, recovery-code storage and emergency
+access are completed; do not import real credentials before then.

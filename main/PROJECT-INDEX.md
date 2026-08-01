@@ -75,10 +75,15 @@ status: active
 ### Docker Host
 - [[configs/docker-host/README.md]] — rebuildable source templates for VM 103 Compose stacks and host firewall
 - [[configs/docker-host/system/docker-host-firewall.sh]] — canonical `DOCKER-USER` source for docker-host published-port scoping
-- [[configs/docker-host/system/docker-host-app-data-backup.sh]] — planned rsync copy for Mealie, Grocy, LiveSync, and GardenKeeper data/dumps to OMV `backups/docker-host`
+- [[configs/docker-host/system/docker-host-app-data-backup.sh]] — live NAS backup for household application state, including media apps and SQLite-consistent Vaultwarden/ntfy staging
 - [[configs/docker-host/system/docker-host-app-data-backup.service]] — systemd service template for the docker-host app-data backup job
 - [[configs/docker-host/system/docker-host-app-data-backup.timer]] — daily timer template for the docker-host app-data backup job
 - [[configs/docker-host/stacks/]] — non-secret Compose/config templates for live docker-host services
+- [[configs/docker-host/stacks/jellyfin/README.md]] — live read-only OMV media library service
+- [[configs/docker-host/stacks/calibre-web/README.md]] — live dedicated ebook library service
+- [[configs/docker-host/stacks/atsumeru/README.md]] — live dedicated comics/manga backend
+- [[configs/docker-host/stacks/download-gateway/README.md]] — installed Mullvad/Gluetun/qBittorrent containment stack and acceptance gate
+- [[configs/docker-host/stacks/vaultwarden/README.md]] — live HTTPS Vaultwarden foundation and onboarding gate
 
 - [[docs/install/services/gridfinity-layout-tool.md]] — live local Gridfinity Layout Tool portal
 

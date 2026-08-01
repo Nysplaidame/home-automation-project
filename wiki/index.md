@@ -3,8 +3,8 @@
 > **LLM:** Read this file first on every query. Master catalog of all wiki content.
 > Updated after every ingest, query (if filed), or lint pass.
 
-**Stats:** 25 sources - 22 entities - 7 concepts - 3 analyses
-**Last updated:** 2026-06-29
+**Stats:** 21 sources - 24 entities - 7 concepts - 5 analyses
+**Last updated:** 2026-08-01
 
 ---
 
@@ -54,24 +54,26 @@
 - [[entities/gl-mt6000]] - GL.iNet WiFi 6 router; OpenWrt DSA; 10-VLAN core
 - [[entities/tplink-ap]] - TP-Link TL-WA801N AP on lan5
 - [[entities/rpi-displays]] - Pi kiosk displays on VLAN 1
+- [[entities/cctv-camera-fleet]] - Three-camera Frigate fleet on PoE VLAN 30 access ports
 - [[entities/bambu-p1s]] - FDM printer on VLAN 35
-- [[entities/openmediavault-nas]] - OMV NAS on VLAN 40 at 192.168.40.50
+- [[entities/openmediavault-nas]] - Live OMV NAS on VLAN 40 with five-disk SMART monitoring
 - [[entities/raspberry-pi-nas]] - Deprecated historical NAS plan; superseded by OMV
 
 ### Infrastructure
 - [[entities/proxmox]] - Proxmox VE on MINIX; VMs 100/102/103 and CTs 111/114 live
 - [[entities/docker-host]] - VM 103; Bambuddy, Tier 1 apps, ntfy/search pre-flight, Tailscale, Telegraf, Fail2ban
-- [[entities/monitoring-vm]] - VM 102; Uptime Kuma, InfluxDB, Grafana, Telegraf, architecture dashboards, exporters
+- [[entities/monitoring-vm]] - VM 102; Uptime Kuma, InfluxDB, Grafana, Telegraf, ntfy routing, infrastructure checks, dashboards, and exporters
 
 ### Software / integrations
-- [[entities/home-assistant]] - HAOS on VM 100; VentSys packages/dashboard staged and Frigate integration planned
-- [[entities/frigate]] - CT 111 Frigate baseline live with shared-iGPU OpenVINO; cameras/MQTT pending
+- [[entities/home-assistant]] - HAOS on VM 100; three-camera Frigate integration and camera-health alerts live
+- [[entities/frigate]] - CT 111 Frigate 0.17.1 with three cameras, MQTT TLS, shared-iGPU acceleration, and OMV recordings
 - [[entities/llm-host]] - CT 114 llama.cpp/Open WebUI/Wyoming host with shared-iGPU Vulkan
 - [[entities/bambuddy]] - Bambu P1S bridge on docker-host
 - [[entities/adguard-home]] - Live DNS filtering/adblocking service on docker-host
 - [[entities/immich]] - Live skeleton gallery/photos service; real imports blocked until OMV/backup readiness
-- [[entities/homepage]] - Live internal dashboard on docker-host
+- [[entities/homepage]] - Live responsive HTTPS operations dashboard on docker-host
 - [[entities/dozzle]] - Live Docker log viewer on docker-host
+- [[entities/qbittorrent]] - Mullvad/Gluetun-isolated authorised download staging with fail-closed proof
 - [[entities/ventsys]] - Fire safety ventilation packages/dashboard staged; hardware rollout gated by TLS-path revalidation
 - [[entities/smart-plugs-ventsys]] - VentSys smart plugs
 - [[entities/esphome]] - ESP32 firmware platform; VentSys hardware adoption pending revalidation
@@ -96,6 +98,8 @@
 - [[analyses/deployment-status-2026-04]] - Project snapshot from April 2026
 - [[analyses/lint-2026-05-18]] - Wiki maintenance lint against May 2026 canonical docs
 - [[analyses/lint-2026-05-30]] - Documentation/wiki audit after monitoring, Grafana, Fail2ban, and docker-host service updates
+- [[analyses/lint-2026-07-28]] - Targeted CCTV/Frigate/MQTT state lint after the three-camera rollout
+- [[analyses/lint-2026-08-01]] - Targeted maintenance/download-gateway state lint and index-count repair
 
 ---
 

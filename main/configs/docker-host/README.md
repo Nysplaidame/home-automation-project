@@ -38,7 +38,13 @@ Live stack paths:
 | Gridfinity Layout Tool | `/opt/stacks/gridfinity-layout-tool` | `stacks/gridfinity-layout-tool/` |
 | Docker-host Telegraf metrics | `/opt/stacks/telegraf` | `stacks/telegraf/` |
 | GardenKeeper | `/opt/stacks/gardenkeeper` | `stacks/gardenkeeper/` |
+| Jellyfin | `/opt/stacks/jellyfin` | `stacks/jellyfin/` |
+| Calibre-Web | `/opt/stacks/calibre-web` | `stacks/calibre-web/` |
+| Atsumeru | `/opt/stacks/atsumeru` | `stacks/atsumeru/` |
+| Mullvad download gateway + qBittorrent | `/opt/stacks/download-gateway` | `stacks/download-gateway/` |
+| Vaultwarden | `/opt/stacks/vaultwarden` | `stacks/vaultwarden/` |
 | Docker host firewall | `/usr/local/sbin/docker-host-firewall.sh` | `system/docker-host-firewall.sh` |
+| AdGuard/Tailscale boot gate | `/etc/systemd/system/adguard-home-compose.service` | `system/adguard-home-compose.service` |
 | Docker host UFW routed DNS rules | `/usr/local/sbin/docker-host-ufw-route-dns.sh` | `system/docker-host-ufw-route-dns.sh` |
 | Docker host UFW routed monitoring rules | `/usr/local/sbin/docker-host-ufw-route-monitoring-tailscale.sh` | `system/docker-host-ufw-route-monitoring-tailscale.sh` |
 | Docker host Homepage preview UFW rules | `/usr/local/sbin/docker-host-ufw-homepage-previews.sh` | `system/docker-host-ufw-homepage-previews.sh` |

@@ -1,9 +1,9 @@
 ---
 title: "Docker Host (VM 103)"
 category: entity
-tags: [software, docker, proxmox, bambuddy, apt-cache, tailscale, monitoring, fail2ban]
+tags: [software, docker, proxmox, bambuddy, apt-cache, tailscale, monitoring, fail2ban, mullvad, qbittorrent]
 created: 2026-05-08
-updated: 2026-05-31
+updated: 2026-08-01
 sources: [project-readme, project-todo]
 status: stable
 ---
@@ -12,7 +12,7 @@ status: stable
 
 **Type:** integration - trusted Docker host
 **Status:** Live - trusted Docker app host, Tailscale node, metrics collector, and Fail2ban baseline
-**Related:** [[entities/proxmox]], [[entities/bambuddy]], [[entities/home-assistant]], [[concepts/tailscale-remote-access]], [[entities/adguard-home]], [[entities/immich]], [[entities/homepage]], [[entities/dozzle]]
+**Related:** [[entities/proxmox]], [[entities/bambuddy]], [[entities/home-assistant]], [[concepts/tailscale-remote-access]], [[entities/adguard-home]], [[entities/immich]], [[entities/homepage]], [[entities/dozzle]], [[entities/qbittorrent]]
 
 ## Overview
 
@@ -23,8 +23,8 @@ search-service pre-flight stacks, Watchtower monitor-only, docker-host
 Telegraf, and the Fail2ban SSH baseline are live.
 
 Internet access is blocked by router policy except for narrowly documented
-Tailscale, AdGuard, docker-host-to-InfluxDB, and approved pre-flight search
-egress. General package/container updates still go through a controlled
+Tailscale, Mullvad WireGuard, AdGuard, docker-host-to-InfluxDB, and approved
+service egress. General package/container updates still go through a controlled
 maintenance window.
 
 ## Key Properties
@@ -34,7 +34,8 @@ maintenance window.
 - IP: `192.168.20.102`
 - MAC: `BC:24:11:BC:B8:1A`
 - OS: Debian GNU/Linux 13
-- Docker and Docker Compose: installed
+- Docker `29.7.1`, containerd `2.2.6`, Buildx `0.36.0`, Compose `5.3.1`
+- Tailscale `1.98.10`; Python `3.13.5-2+deb13u4`
 - Stack path convention: `/opt/stacks/<service>/`
 - Tailscale routes: live `192.168.20.101/32`, `192.168.40.50/32`,
   `192.168.60.10/32` for Grafana/Kuma mobile access only
@@ -56,6 +57,7 @@ maintenance window.
 | Whoogle | `/opt/stacks/whoogle/` | 8088 | Direct-access search pre-flight |
 | Watchtower | `/opt/stacks/watchtower/` | none | Monitor-only; no automatic updates |
 | Telegraf | `/opt/stacks/telegraf/` | none | Host/container metrics to InfluxDB |
+| [[entities/qbittorrent]] | `/opt/stacks/download-gateway/` | 8084 | Mullvad-isolated downloader; fail-closed proof passed |
 | Fail2ban | host service | none | SSH jail baseline |
 
 ## Tailscale Role
@@ -83,16 +85,26 @@ Grafana and Uptime Kuma should use routed access to the monitoring VM on ports
   `main/configs/docker-host/system/docker-host-ufw-route-monitoring-tailscale.sh`.
 - Watchtower remains monitor-only; update notifications are candidates for a
   planned patch window, not automatic approval.
+- ntfy has a read-only `mobile-monitoring` identity for household phone
+  subscriptions. Its credential is held outside the repository.
+- The live app-data backup job uses SQLite's online backup API for ntfy
+  `user.db` and `cache.db`; a fresh NAS backup and temporary restore smoke passed
+  on 2026-07-29.
 
 ## Open Questions
 
-- [ ] Run the planned docker-host package patch window and post-check sequence.
-- [ ] Keep Mullvad egress hardening for search services parked until storage and
-  backup priorities are clear.
+- [ ] Continue weekly update review and schedule the next controlled window only
+  when new candidates justify it.
+- [ ] Decide whether one tightly allow-listed Autobrr source/category is useful.
 
 ## Change Log
 
+- 2026-08-01: Completed the controlled package window with no reboot required;
+  activated and acceptance-proved the Mullvad/qBittorrent gateway and its NAS
+  backup/restore path.
 - 2026-05-30: Synced live service state: Tier 1 apps, ntfy, Watchtower monitor-only, Telegraf metrics, Tailscale routes, and Fail2ban baseline are live.
 - 2026-05-31: Applied monitoring VM Tailscale host route on docker-host and added routed UFW source artifact for Grafana/Kuma mobile access; route may still need Tailscale admin approval before mobile clients can use it.
+- 2026-07-29: Added the read-only ntfy phone subscriber and deployed/validated
+  SQLite-consistent ntfy backups to OMV.
 - 2026-05-23: Added Tailscale host-route role and Tier 1 service roadmap.
 - 2026-05-08: Page created - VM 103 live with Bambuddy and apt-cache.

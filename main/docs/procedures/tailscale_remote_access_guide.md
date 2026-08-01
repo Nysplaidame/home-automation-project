@@ -3,7 +3,7 @@ title: Tailscale Remote Access Guide
 description: Daily remote access through docker-host host routes, with WireGuard as fallback
 tags: [tailscale, remote-access, docker-host, vpn]
 created: 2026-05-23
-modified: 2026-07-02
+modified: 2026-07-29
 type: procedure
 status: active
 ---
@@ -34,9 +34,8 @@ Live state, 2026-07-02:
 - `tailscale up` is configured with `--accept-dns=false`,
   `--hostname=docker-host`, and only host routes:
   `192.168.20.101/32,192.168.30.20/32,192.168.40.50/32,192.168.60.10/32`.
-- The HA, OMV and monitoring routes have been approved in the Tailscale admin
-  console. The Frigate `192.168.30.20/32` route was added on 2026-07-05 and
-  needs admin-console approval before clients can use it.
+- The HA, OMV, monitoring, and Frigate routes are approved. On 2026-07-29
+  docker-host reported all four under both `PrimaryRoutes` and `AllowedIPs`.
 - Local forwarding to Home Assistant has been validated from docker-host
   (`https://192.168.20.101:8123` returned `200` after HA native HTTPS cutover).
 - Off-LAN client validation passed on 2026-05-28 for docker-host and routed
@@ -82,7 +81,7 @@ Validation note, 2026-07-02:
 
 Validation note, 2026-07-05:
 
-- Direct Frigate PWA off-WiFi access is being added as a narrow host route.
+- Direct Frigate PWA off-WiFi access uses a narrow host route.
   docker-host now advertises `192.168.30.20/32`, has a UFW route allowance from
   `tailscale0` to `192.168.30.20:8971`, and OpenWrt allows only docker-host
   `192.168.20.102` to Frigate `192.168.30.20:8971`.
@@ -90,8 +89,24 @@ Validation note, 2026-07-05:
   unadvertised and is not part of the mobile route.
 - Live docker-host validation reached `https://192.168.30.20:8971/api/version`
   and received HTTP `401`, which is the expected auth challenge.
-- Tailscale admin console approval is still required before clients can use the
-  new `192.168.30.20/32` route.
+- On 2026-07-29 the existing workstation Tailscale identity was enabled only
+  for the validation window. Frigate HTTPS on `8971` returned the expected
+  authenticated `401` challenge while port `5000` remained unreachable. The
+  workstation was returned to its prior stopped Tailscale state afterward.
+
+Homepage canonical-name note, 2026-07-29:
+
+- The OnePlus phone has identity-scoped grants to docker-host
+  `100.94.122.18` on HTTPS `tcp/443` and split DNS `tcp/53,udp/53` only.
+- Tailscale split DNS sends the `home.local` suffix to AdGuard on
+  `100.94.122.18`. AdGuard rewrites only `homepage.home.local` to that tailnet
+  address, while router dnsmasq remains authoritative on home WiFi and returns
+  the LAN address `192.168.20.102`.
+- This split-horizon arrangement gives the phone one bookmark,
+  `https://homepage.home.local/`, without advertising a broad VLAN route.
+- After reconnecting the phone to Tailscale, the user confirmed
+  `https://homepage.home.local/` works on mobile data. The same bookmark also
+  remains valid on home WiFi.
 
 ## Target access
 
@@ -121,6 +136,8 @@ Use interface-scoped or tailnet-scoped rules. Example intent:
 ```bash
 ufw allow in on tailscale0 to any port 22 proto tcp comment "Tailscale SSH admin"
 ufw allow in on tailscale0 to any port 3001 proto tcp comment "Homepage"
+ufw allow in on tailscale0 to any port 53 proto tcp comment "Tailscale split DNS TCP"
+ufw allow in on tailscale0 to any port 53 proto udp comment "Tailscale split DNS UDP"
 ufw allow in on tailscale0 to any port 8081 proto tcp comment "Dozzle"
 ufw route allow in on tailscale0 out on eth0 to 192.168.20.101 port 8123 proto tcp comment "Tailscale routed HA UI"
 ufw route allow in on tailscale0 out on eth0 to 192.168.40.50 port 22 proto tcp comment "Tailscale routed OMV SSH"

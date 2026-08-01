@@ -1,0 +1,24 @@
+name: calibre-web
+
+services:
+  calibre-web:
+    image: lscr.io/linuxserver/calibre-web:version-0.6.26
+    container_name: calibre-web
+    restart: unless-stopped
+    ports:
+      - "8083:8083"
+    environment:
+      PUID: "${MEDIA_UID}"
+      PGID: "${MEDIA_GID}"
+      TZ: Europe/London
+    volumes:
+      - ./config:/config
+      - /mnt/omv/media/books/calibre-library:/books
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 10.240.11.0/24

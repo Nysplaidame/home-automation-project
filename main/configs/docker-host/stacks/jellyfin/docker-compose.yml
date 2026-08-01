@@ -1,0 +1,29 @@
+name: jellyfin
+
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:10.11.11
+    container_name: jellyfin
+    user: "${MEDIA_UID}:${MEDIA_GID}"
+    restart: unless-stopped
+    ports:
+      - "8096:8096"
+    environment:
+      TZ: Europe/London
+      JELLYFIN_PublishedServerUrl: "${JELLYFIN_PUBLISHED_URL}"
+    volumes:
+      - ./config:/config
+      - ./cache:/cache
+      - /etc/localtime:/etc/localtime:ro
+      - /mnt/omv/media/jellyfin/films:/media/films:ro
+      - /mnt/omv/media/jellyfin/series:/media/series:ro
+      - /mnt/omv/media/jellyfin/music:/media/music:ro
+      - /mnt/omv/media/jellyfin/immich-curated:/media/immich-curated:ro
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 10.240.10.0/24

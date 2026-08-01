@@ -356,7 +356,7 @@
 }
 
 /* Narrow cards grow vertically and give the action its own bottom row. */
-@container (max-width: 250px) {
+@container (max-width: 330px) {
   [id^="portal-"] .service-card {
     min-height: 8.75rem;
     padding-right: 0.25rem;
@@ -463,23 +463,120 @@
   }
 }
 
-@media (max-width: 900px) {
-  #widgets-wrap,
-  #information-widgets-right {
-    flex-wrap: wrap !important;
+/* The desktop header needs nearly the full 1280 px canvas. Reflow it before
+   search/resources can compress into the brand card at intermediate widths. */
+@media (max-width: 1230px) {
+  #widgets-wrap {
+    display: grid !important;
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 0.65rem;
+    overflow: hidden;
+  }
+
+  .portal-brand {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 4rem;
   }
 
   #information-widgets-right {
-    justify-content: flex-start !important;
+    display: grid !important;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+    justify-content: stretch !important;
+    gap: 0.55rem;
+    margin: 0 !important;
+  }
+
+  #information-widgets-right > * {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100%;
+    height: auto;
+    min-height: 4.25rem;
   }
 
   #information-widgets-right .information-widget-search {
-    min-width: min(100%, 22rem);
-    flex: 1 1 16rem;
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+
+  #information-widgets-right .widget-container:not(.information-widget-datetime) > div:first-child {
+    display: grid !important;
+    width: 100% !important;
+    min-width: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.25rem;
+  }
+
+  #information-widgets-right .information-widget-resource {
+    min-width: 0;
+    justify-content: center;
+    margin-right: 0 !important;
+  }
+
+  #information-widgets-right .widget-container:not(.information-widget-datetime) > div:last-child {
+    width: 100% !important;
+    min-width: 0;
+    margin-left: 0 !important;
+  }
+
+}
+
+@media (max-width: 900px) {
+
+  #myTab {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+
+  #myTab > li {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+  }
+
+  #myTab button[role="tab"] {
+    width: 100%;
+    min-width: 0;
+    min-height: 3rem;
+    padding-right: 0.55rem !important;
+    padding-left: 0.55rem !important;
+    white-space: normal;
+  }
+
+  /* Retain the dark network artwork without the expanding mobile glow band. */
+  #background::after {
+    display: none;
   }
 }
 
 @media (max-width: 720px) {
+  #information-widgets-right {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #information-widgets-right .information-widget-search {
+    grid-column: auto;
+  }
+
+  #myTab {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .services-list {
+    grid-template-columns: minmax(0, 1fr) !important;
+    row-gap: 0.65rem !important;
+  }
+
   .portal-preview-shell {
     height: 128dvh;
     min-height: 44rem;
@@ -496,5 +593,11 @@
 
   .portal-preview-actions {
     margin-left: auto;
+  }
+}
+
+@media (max-width: 350px) {
+  #myTab {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

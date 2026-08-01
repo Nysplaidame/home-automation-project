@@ -3,7 +3,7 @@ title: Homepage Install Manual
 description: Tier 1 internal dashboard for service links
 tags: [install, docker-host, homepage]
 created: 2026-05-24
-modified: 2026-07-26
+modified: 2026-07-29
 type: install-guide
 status: live
 ---
@@ -93,6 +93,17 @@ No required secrets. Do not place tokens or passwords in visible Homepage config
   Preview hover/focus no longer shifts the control or exposes the status dot.
 - Navigation tabs use distinct raised teal-glass default, hover/focus and
   selected states.
+- Narrow/intermediate layout repair is live: the header becomes a bounded grid,
+  resource metrics reflow without overlap, navigation uses gapped one/two/four
+  column layouts, narrow service cards reserve a full-width Preview row, and
+  the mobile-only ambient glow layer is removed while the dark network artwork
+  remains. Visual checks passed at `320`, `350`, `375`, `390`, `430`, `480`,
+  `768`, `900`, and `1280` px; the 390 px embedded workspace remained bounded
+  and its Reload, Open tab, and Close controls remained operable.
+- The reported intermediate-width regression was rechecked at exactly `956` px:
+  header controls reflow below `1230` px and the search no longer encroaches on
+  the title. At exactly `489` px, stacked service cards have a computed `10.4`
+  px row gap rather than touching vertically.
 
 ## Commands
 

@@ -64,7 +64,9 @@ without live assistance.
 - [ ] Scrypted: hardware/camera decision gate, install, storage, HA/Frigate overlap, rollback.
 - [x] SearXNG: install, instance secret, egress policy, rate-limit/abuse controls, backup, rollback.
 - [x] Whoogle: install, egress policy, rate-limit/abuse controls, backup, rollback.
-- [ ] Vaultwarden: explicit security gate, backup/encryption, exposure decision, restore test.
+- [x] Vaultwarden: explicit security gate, HTTPS-only exposure, SQLite-consistent
+  backup and two isolated restore proofs documented; owner onboarding/2FA/
+  recovery remains an operational follow-up rather than a manual-coverage gap.
 - [ ] Portainer: explicit admin-surface gate, auth, backup, rollback.
 - [x] Watchtower monitor-only: install, notifications, no automatic updates, rollback.
 - [ ] Local registry mirror: storage sizing, cache policy, backup/exclusion policy, rollback.

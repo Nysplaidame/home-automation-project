@@ -3,7 +3,7 @@ title: Current Live State
 description: Canonical inventory of deployed hosts, services, and deliberately deferred components
 tags: [reference, current-state, infrastructure]
 created: 2026-06-20
-modified: 2026-07-26
+modified: 2026-07-29
 type: reference
 status: active
 ---
@@ -13,7 +13,7 @@ status: active
 This is the canonical current-state inventory. Rebuild manuals describe how to
 build from blank and must link here rather than duplicating live-status claims.
 
-Last verified: **2026-07-19**.
+Last verified: **2026-08-01**.
 
 The Household admin workstation joined Tailscale on 2026-07-13 as
 `household-admin-workstation` (`100.95.209.14`). Tailnet peer discovery and
@@ -22,13 +22,14 @@ service and SSH connections from the new device. Management-VLAN access remains
 available through the explicit `192.168.20.0/24` route while ACL approval is
 completed in the Tailscale admin console.
 
-The canonical OpenWrt and service-matrix inventories contain 47 authoritative
-`home.local` aliases as of 2026-07-13. Live OpenWrt returned NXDOMAIN and
-AdGuard correctly had no local rewrites during verification, showing that the
-router's canonical domain records still need deployment. A workstation-only
-hosts entry temporarily restores `homeassistant.home.local`; it is not the
-network-wide fix. Validate source and live DNS with
-`scripts/validation/validate-home-local-dns.ps1` after router deployment.
+The canonical OpenWrt and service-matrix inventories contain 48 authoritative
+`home.local` aliases. They were deployed to live OpenWrt on 2026-07-29 and
+dnsmasq restarted successfully. The full
+`scripts/validation/validate-home-local-dns.ps1 -DnsServer 192.168.10.1` run
+passed all 48 aliases after temporarily disconnecting Mullvad's DNS leak
+protection; Mullvad was reconnected immediately afterward. The now-redundant
+workstation hosts entry for `homeassistant.home.local` was removed with an
+elevated edit on 2026-07-29 and the Windows DNS cache was flushed.
 
 ## Compute
 
@@ -81,28 +82,32 @@ while its replacement LXC is running.
   have matching SHA-256 hashes. The valve contract is direct `0`/`50`, HA
   configuration validation passes, and HA restarted successfully on that source.
 - Frigate integration in Home Assistant is live using Frigate API URL
-  `http://192.168.30.20:5000`; the first camera's Frigate entities and
-  Advanced Camera Card CCTV views are available in HA.
+  `http://192.168.30.20:5000`; all three cameras have Frigate entities and
+  Advanced Camera Card CCTV views in HA.
 
 ## Frigate
 
 - CT 111 runs Frigate 0.17.1 live on the shared Intel iGPU.
 - OpenVINO detector process uses the shared Intel iGPU.
 - VA-API is configured and active for camera decoding.
-- One bench camera is now identified and reachable on VLAN 30: ANNKE C500
-  (`I51HJ`, firmware `v5.8.10 build 250917`) at reserved address
-  `192.168.30.21`, with verified RTSP main/substream paths.
+- Three cameras are live on VLAN 30: Camera 1 at `192.168.30.21` on switch
+  port 2, Gate at `192.168.30.22` on port 4, and Patio at `192.168.30.23` on
+  port 3. All three are ANNKE C500 cameras (`I51HJ`, firmware
+  `v5.8.10 build 250917`), use verified RTSP main/substream paths, and sustain
+  approximately `10 fps`.
 - Camera RTSP auth required switching the camera from RTSP `Digest` to
   `Digest/Basic`; after that change, Frigate confirmed live ingest at roughly
   `10 fps` on the first bench camera using substream detect and mainstream
   record roles.
-- Live CT 111 carries the accepted one-camera config and live
-  `/opt/frigate/.env`; repository source now mirrors the first-camera layout
+- Live CT 111 carries the accepted three-camera config and live
+  `/opt/frigate/.env`; repository source now mirrors the three-camera layout
   with RTSP and MQTT secrets represented only as environment placeholders.
   `configs/frigate/config-baseline.yml` remains the no-camera migration-safe
   fallback.
-- HA validates Frigate API version/stats and sees the first camera through the
-  Frigate integration.
+- HA validates Frigate API version/stats and sees all three cameras through the
+  Frigate integration. `/config/packages/frigate_camera_health_package.yaml`
+  adds MQTT FPS sensors plus three-minute camera-offline and recovery alerts;
+  alerts use persistent notifications and the tested operator mobile service.
 - Frigate HTTPS UI is live on `https://192.168.30.20:8971`; auth is enabled.
   Plain HTTP to port `8971` is rejected, while HA continues to use the internal
   unauthenticated API on `http://192.168.30.20:5000`.
@@ -111,10 +116,11 @@ while its replacement LXC is running.
   include `192.168.30.20`, `frigate.home.local`, `frigate-nvr`, and `frigate`.
   This replaced Frigate's generated `FRIGATE DEFAULT CERT` so trusted Android
   and Apple browsers should not show the local certificate as untrusted.
-- Direct Frigate PWA access off-WiFi is staged through docker-host Tailscale as
-  a narrow `192.168.30.20/32` route with firewall access only to authenticated
-  HTTPS port `8971`. The route still needs Tailscale admin-console approval and
-  mobile-data validation before it is treated as complete.
+- Direct Frigate PWA access off-WiFi is live through docker-host Tailscale as a
+  narrow approved `192.168.30.20/32` route with firewall access only to
+  authenticated HTTPS port `8971`. A routed workstation validation on
+  2026-07-29 received the expected `401` challenge from `8971`, while the
+  unauthenticated API on port `5000` remained unreachable.
 - Recordings now write to OMV NFS storage. Proxmox mounts
   `192.168.40.50:/export/frigate` at `/mnt/omv/frigate`, CT 111 has
   `mp0: /mnt/omv/frigate,mp=/mnt/nas/frigate`, and Frigate maps
@@ -181,10 +187,26 @@ allowing page scroll so embedded applications have substantially more working
 space. Header and card surfaces use a 50% translucent dark-teal/light-teal visual system with
 restrained outline shadows; the header's adaptive search fills remaining space
 between the title, runtime resource widget and date/time.
+On 2026-07-29 the responsive header, navigation, service-card and background
+rules were repaired and visually verified at `320`, `350`, `375`, `390`,
+`430`, `480`, `768`, `900`, and `1280` px. The header no longer overlaps,
+narrow navigation and cards keep consistent gaps/padding, and the expanding
+mobile glow was removed without removing the dark network artwork. The 390 px
+embedded-workspace controls were exercised successfully.
+Follow-up checks against the reported edge cases passed at exactly `956` px and
+`489` px: header controls now reflow below `1230` px without search/title
+encroachment, and stacked service cards have a measured `10.4` px row gap.
+On 2026-07-29, Tailscale split DNS was added so the same canonical
+`https://homepage.home.local/` bookmark can be used locally and remotely:
+OpenWrt returns `192.168.20.102` on home WiFi, while the OnePlus tailnet client
+is sent to the identity-gated AdGuard listener at `100.94.122.18`, which returns
+the docker-host Tailscale address. The phone ACL allows only HTTPS and DNS to
+that node. The user confirmed the same canonical bookmark works on mobile data
+after reconnecting Tailscale.
 The preview loading veil is pointer-transparent and becomes a delayed-preview
 notice after six seconds, so it cannot trap the embedded UI when a service
 blocks or delays iframe loading. Desktop service groups consume a single row
-where space permits. Cards at 250 px or narrower grow vertically and reserve a
+where space permits. Cards at 330 px or narrower grow vertically and reserve a
 bottom action row; wider cards keep Preview equally inset from the top and
 bottom. Hover no longer moves the action over the status indicator. Navigation
 tabs now have visually distinct raised default, hover/focus and selected states.
@@ -279,18 +301,108 @@ shards, and a GardenKeeper compressed SQL dump, then removed the temp copy.
 local runs. After the Grocy voice API key was added, backup run
 `20260707T132647Z` completed and updated `latest/` to `22M`.
 
-Paperless-ngx, Actual Budget, Scrypted, Vaultwarden, Portainer, a local
+On 2026-07-29 OMV gained a dedicated `media` export for the populated
+`14tb/Media` tree, restricted to docker-host `192.168.20.102`. Docker-host
+mounts it at `/mnt/omv/media` with a persistent systemd automount. The dedicated
+`media-service` identity (`1007:100`) passed create/read/delete validation in
+the new isolated library and staging roots; no legacy media path was changed.
+
+The first media foundation is live on docker-host:
+
+- Jellyfin `10.11.11` on `8096/tcp`, with films, series, music and the future
+  `immich-curated` export mounted read-only; hardware transcoding is disabled.
+- Calibre-Web on `8083/tcp`, with write access only to
+  `books/calibre-library`.
+- Atsumeru on `31337/tcp`, with write access only to
+  `comics/atsumeru-library` and local application state.
+
+Each stack has a source-scoped UFW/`DOCKER-USER` policy, a restart proof and a
+non-overlapping explicit Docker subnet (`10.240.10.0/24` through
+`10.240.12.0/24`). This is mandatory: the first Jellyfin Compose attempt
+automatically chose `192.168.0.0/20`, overlapping the management VLAN and
+temporarily removing VM 103 management reachability. The stack was stopped,
+routes recovered and every new stack was assigned explicit `10.240.x.0/24`
+IPAM before deployment resumed.
+
+Vaultwarden `1.36.0` is live with its raw HTTP listener bound only to
+`127.0.0.1:8222`. Production access is through the fixed Nginx proxy at
+`https://vault.home.local` using a dedicated local-CA certificate, HSTS and a
+no-framing policy. Sign-ups and the admin endpoint remain disabled. A
+SQLite-consistent NAS backup passed two isolated restore exercises, including a
+disposable registered account restored into a second temporary container with
+database integrity, exact-account-count and HTTP health checks. Owner onboarding,
+2FA/recovery and emergency-access policy remain gated on live local DNS.
+Backup run `20260729T160804Z` added Jellyfin, Calibre-Web, Atsumeru, ntfy and
+Vaultwarden application state to the existing NAS job; the restored Vaultwarden
+database passed `PRAGMA integrity_check` before the disposable proof was removed.
+
+The Mullvad/Gluetun + qBittorrent gateway is live on `8084/tcp` with explicit
+Docker subnet `10.240.20.0/24`. qBittorrent shares Gluetun's network namespace,
+uses NAS-backed `/downloads/incomplete` and `/downloads/complete`, and cannot see
+quarantine or any final media/book/document library. Mullvad recognized the
+tunnel and its public route differed from the host. Dropping Gluetun's `tun0`
+interface blocked qBittorrent public egress while the Web UI and host egress
+remained available; automatic tunnel recovery then passed. The stronger full
+provider-stop test also failed closed while host and unrelated-container egress
+continued. Its permanent Web UI credential is in Windows Credential Manager as
+`home-automation/qbittorrent`. NAS backup run `20260801T144643Z` passed an
+isolated restore proof for the credential hash and both download paths.
+
+The controlled docker-host package window completed on 2026-08-01: Docker CE
+and CLI `29.7.1`, containerd `2.2.6`, Buildx `0.36.0`, Compose `5.3.1`, Python
+`3.13.5-2+deb13u4`, and Tailscale `1.98.10` were installed. No reboot was
+required, no package remained upgradable, `dpkg --audit` was clean, all 33
+pre-existing containers remained running, both OMV mounts were present and all
+tested local/monitoring endpoints passed.
+
+The 2026-07-29 VM reboot exposed an AdGuard/Tailscale boot race: Docker tried to
+bind `100.94.122.18:53` before `tailscale0` owned the address, leaving AdGuard
+half-created without port bindings. The enabled
+`adguard-home-compose.service` now waits for the Tailscale address and force-
+recreates the Compose stack. Local and Tailscale DNS listeners plus the UI were
+revalidated after installation.
+
+Paperless-ngx, Actual Budget, Scrypted, Portainer, a local
 registry mirror and Node-RED remain decision-gated candidates.
 
 ## Monitoring
 
 - Uptime Kuma, InfluxDB, Grafana and Telegraf are live on VM 102.
 - Proxmox, HA, docker-host, DNS, core apps and local-AI endpoints are monitored.
-- Alert routing through ntfy exists for configured Kuma monitors.
+- Alert routing through ntfy exists for configured Kuma monitors. Grafana also
+  uses an authenticated `ntfy Monitoring` webhook as its default notification
+  policy; a live Grafana test notification succeeded on 2026-07-29.
+- On 2026-07-29, stale Kuma checks were repaired for HA native HTTPS and the
+  llama.cpp models API. New ntfy-enabled checks for OMV web, OMV NFS, and all
+  three camera hosts are live and `Up`.
+- OpenWrt now permits only monitoring VM `192.168.60.10` to Frigate API TCP
+  `5000`, OMV TCP `80`/`2049`, and ICMP for camera hosts `.21`-.23. The OMV and
+  camera checks pass. Frigate API packets match the router allow rule but still
+  time out at CT 111, pending its host-firewall exception.
+- Kuma monitor 34 and the OMV `smartctl -H` heartbeat service/timer are live for
+  aggregate disk-health reporting. The 30-minute timer uses a host-only token
+  file and narrow OMV-to-Kuma network path; the first accepted heartbeat on
+  2026-07-29 reported `All 5 physical disks report healthy`.
+- Grafana 13.0.1 has two initial metric alerts in `Infrastructure health`:
+  docker-host root disk and Proxmox root storage, each warning above 85% for
+  10 minutes. Both evaluated `Normal` after creation. The reset Grafana admin
+  credential is stored in Windows Credential Manager under
+  `home-automation/grafana`; it is not stored in this repository.
+- ntfy has a separate read-only `mobile-monitoring` account for the `monitoring`
+  and `watchtower` topics. Its generated credential is stored in Windows
+  Credential Manager under `home-automation/ntfy-mobile`; authenticated polling
+  passed, while a real phone notification remains a user-side acceptance check.
+- The live docker-host app-data job now snapshots ntfy's `user.db` and
+  `cache.db` through SQLite's backup API. A fresh NAS run and temporary restore
+  smoke on 2026-07-29 passed integrity checks for both databases.
 - OMV NFS TCP 2049 and Proxmox storage pressure are checked by
   `home-automation-health-check.timer`. Backup storage is intentionally on md0;
   the old 86-87% high-water warning was cleared by the 2026-07-05 Proxmox
   check showing `omv-backups` active at 54.21% used.
+- OMV SMART monitoring is globally enabled with a 1,800-second check interval,
+  a 5 C change threshold and a 55 C maximum alert. Monitoring is enabled on all
+  five physical disks (`/dev/sda` through `/dev/sde`); all reported `Good` on
+  2026-07-29 at 33-44 C. No new SMART self-test schedule was added.
 
 ## Backup storage
 
@@ -301,6 +413,11 @@ registry mirror and Node-RED remain decision-gated candidates.
   `/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/CCTV/`.
 - OMV exports NFS paths for Proxmox backups, HA backups, docker-host backups,
   config backups, Immich DB backups, Immich media, and Frigate/NVR recordings.
+- `scripts/backup/backup_vault_to_nas.ps1` provides a guarded, additive
+  robocopy helper for the project vault. Its default dry run against
+  `\\192.168.40.50\NAS\configs\home-automation-project` enumerated about 11,700
+  files (229 MB) successfully on 2026-07-29. No scheduled vault-backup task has
+  been created; first execution and restore proof remain approval-gated.
 - The Frigate export is mounted on the Proxmox host and bind-mounted into CT
   111 for recordings. CT 111 remains unprivileged and must not mount NFS
   directly.
@@ -318,6 +435,12 @@ registry mirror and Node-RED remain decision-gated candidates.
   on untagged VLAN 40 port 8. Router ARP confirmed OMV at
   `a8:b8:e0:0a:93:7d` on VLAN 40. The GS1900 Save action was invoked after
   the cutover and the switch remained reachable at `192.168.10.12`.
+- On 2026-07-28, switch ports 2-7 were standardized as PoE CCTV access ports:
+  VLAN 30 untagged, PVID 30, and excluded from VLANs 1/10/40. Port 1 remains
+  the tagged router trunk and port 8 remains the NAS access port with PVID 40.
+  The change was saved to switch startup configuration. Live validation showed
+  cameras on ports 2-4 at approximately 10 fps, including recovery of the gate
+  camera at `192.168.30.22` after correcting port 4 and cycling only its PoE.
 - HA Supervisor mount `nas_backups` is active again and set as the default
   backup mount. Manual backup
   `post-switch-trunk-nas-backups-20260703-db-excluded`, slug `3e3b1ecb`,

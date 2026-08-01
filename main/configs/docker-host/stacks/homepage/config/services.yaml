@@ -176,6 +176,30 @@
         description: Household photo and video library
         server: docker-host
         container: immich_server
+    - Jellyfin:
+        icon: jellyfin.png
+        href: http://192.168.20.102:8096/
+        description: Read-only household film, series and music library
+        server: docker-host
+        container: jellyfin
+    - Calibre-Web:
+        icon: calibre-web.png
+        href: http://192.168.20.102:8083/
+        description: Household ebook library
+        server: docker-host
+        container: calibre-web
+    - Atsumeru:
+        icon: mdi-bookshelf
+        href: http://192.168.20.102:31337/
+        description: Comics and manga library backend
+        server: docker-host
+        container: atsumeru
+    - qBittorrent:
+        icon: qbittorrent.png
+        href: http://192.168.20.102:8084/
+        description: Mullvad-isolated authorised download staging
+        server: docker-host
+        container: qbittorrent
 
 - Docker Infrastructure:
     - Dozzle:

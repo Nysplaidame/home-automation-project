@@ -1,0 +1,24 @@
+name: atsumeru
+
+services:
+  atsumeru:
+    image: atsumerudev/atsumeru:latest
+    container_name: atsumeru
+    user: "${MEDIA_UID}:${MEDIA_GID}"
+    restart: unless-stopped
+    ports:
+      - "31337:31337"
+    volumes:
+      - /mnt/omv/media/comics/atsumeru-library:/library
+      - ./config:/app/config
+      - ./database:/app/database
+      - ./cache:/app/cache
+      - ./logs:/app/logs
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 10.240.12.0/24

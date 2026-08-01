@@ -3,7 +3,7 @@ title: ntfy Install Manual
 description: Tier 2 notification service draft install
 tags: [install, docker-host, ntfy, notifications]
 created: 2026-05-24
-modified: 2026-05-27
+modified: 2026-07-29
 type: install-guide
 status: preflight-live
 ---
@@ -28,6 +28,7 @@ docker-host over SSH at `192.168.20.102`.
 - `<NTFY_ADMIN_PASSWORD>`
 - `<NTFY_WATCHTOWER_PASSWORD>`
 - `<NTFY_MONITORING_PASSWORD>`
+- `<NTFY_MOBILE_SUBSCRIBER_PASSWORD>`
 
 ## Commands
 
@@ -79,6 +80,9 @@ As of 2026-05-27:
   - `admin`: admin role.
   - `watchtower`: write-only access to topic `watchtower`.
   - `monitoring`: write-only access to topic `monitoring`.
+  - `mobile-monitoring`: read-only access to topics `monitoring` and
+    `watchtower`; generated credential stored outside the repository in Windows
+    Credential Manager target `home-automation/ntfy-mobile`.
 - UFW and `docker-host-firewall.service` scope `8085/tcp` to management, LAN,
   HA, monitoring, and `tailscale0`.
 - Uptime Kuma monitor `ntfy UI` is live.
@@ -104,9 +108,46 @@ cd /opt/stacks/ntfy && docker compose ps
 curl -fsS -o /dev/null -w '%{http_code}\n' http://192.168.20.102:8085/
 ```
 
+## Mobile subscriber rollout
+
+Create a separate read-only identity for household phones rather than signing
+the app in as the ntfy administrator or a publisher account:
+
+```sh
+docker exec -it ntfy ntfy user add mobile-monitoring
+docker exec ntfy ntfy access mobile-monitoring monitoring ro
+docker exec ntfy ntfy access mobile-monitoring watchtower ro
+docker exec ntfy ntfy user list
+docker exec ntfy ntfy access
+```
+
+Store the generated password in a credential manager; do not add it to this
+repository. The live account was created on 2026-07-29 and its credential is in
+Windows Credential Manager under `home-automation/ntfy-mobile`.
+On the phone, connect Tailscale and add a custom ntfy server using:
+
+- server: `http://ntfy.home.local:8085`
+- topic: `monitoring`
+- user: `mobile-monitoring`
+- password: the Bitwarden value
+
+The Android deep-link equivalent is
+`ntfy://ntfy.home.local:8085/monitoring?secure=false&display=Home+Monitoring`,
+but credentials still need to be entered in the app. HTTP is acceptable only
+while this endpoint remains private and traffic is carried inside the encrypted
+tailnet; do not expose port `8085` publicly. Replace it with HTTPS before any
+non-tailnet access is considered.
+
+After subscribing, publish one labelled test message and confirm it appears on
+the phone before relying on ntfy for incident delivery.
+
 ## Backup
 
-Back up `/opt/stacks/ntfy/etc` and cache if message history matters.
+VM 103's recurring Proxmox backup covers the whole stack. The live docker-host
+app-data backup job also stages a consistent SQLite snapshot of `etc/user.db`
+and `cache/cache.db` using Python's SQLite backup API, plus the remaining files
+under `etc/`. On 2026-07-29 a fresh NAS run completed and temporary restored
+copies of both databases passed SQLite integrity checks.
 
 ## Failure recovery
 
@@ -119,3 +160,8 @@ before changing firewall exposure.
 - [x] Default access is not open.
 - [x] Topic users created for Watchtower and Uptime Kuma monitoring.
 - [x] Config is backed up by stack path and Proxmox VM backup.
+- [x] Create the read-only `mobile-monitoring` subscriber and validate its
+  authenticated subscription; phone-side notification acceptance is pending.
+- [x] Deploy and restore-smoke the granular ntfy app-data backup template.
+- [ ] Add an HTTPS canonical endpoint before permitting any access outside the
+  LAN or tailnet.

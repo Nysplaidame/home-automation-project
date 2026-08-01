@@ -4,16 +4,18 @@ description: Decision-gated design for Vaultwarden, media libraries, and authori
 tags: [planning, vaultwarden, media, jellyfin, downloads, autobrr]
 created: 2026-07-26
 type: implementation-plan
-status: approved-design-pending-implementation
+status: implementation-in-progress
 ---
 
 # Household Services Implementation Plan
 
-This plan defines the intended implementation order and acceptance gates for
-three new household-service areas. Nothing in this document authorises a live
-deployment, account creation, tracker use, VPN subscription, Usenet provider,
-or media acquisition. Deploy one bounded phase at a time and retain a working
-Homepage and backup path throughout.
+This plan defines the implementation order and acceptance gates for three new
+household-service areas. The user authorised the bounded rollout on 2026-07-29.
+Vaultwarden's HTTPS/restore foundation, the OMV/Jellyfin/Calibre-Web/Atsumeru
+media foundation and the Mullvad/qBittorrent containment proof are live; owner
+onboarding and the Immich curated exporter remain gated. Nothing here authorises
+tracker use, a Usenet provider or media acquisition. Deploy one bounded phase at
+a time and retain a working Homepage and backup path throughout.
 
 ## Shared operating rules
 
@@ -241,8 +243,12 @@ library import is permitted in the first phase.
 
 ## Recommended implementation order
 
-1. Vaultwarden design-gate review, dedicated HTTPS host and backup/restore proof.
-2. OMV media export and Jellyfin read-only test library.
-3. Immich curated-export proof, then Calibre-Web and Atsumeru.
-4. VPN gateway and qBittorrent containment proof.
-5. Autobrr evaluation; NZBGet and aria2 remain separate decisions.
+1. [x] Vaultwarden design gate, dedicated HTTPS host and two isolated
+   backup/restore proofs.
+2. [x] OMV media export and Jellyfin read-only library foundation.
+3. [x] Calibre-Web and Atsumeru least-privilege library foundations.
+4. [ ] Immich allow-listed curated-export proof with manifest/review queue.
+5. [x] Mullvad gateway and qBittorrent containment proof; completed 2026-08-01
+   with tunnel identity, Web UI/path configuration, interface-drop and full
+   provider-stop fail-closed tests, and isolated NAS config restore.
+6. [ ] Autobrr evaluation; NZBGet and aria2 remain separate decisions.

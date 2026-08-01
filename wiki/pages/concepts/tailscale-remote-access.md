@@ -3,7 +3,7 @@ title: "Tailscale Remote Access"
 category: concept
 tags: [tailscale, vpn, remote-access, subnet-router]
 created: 2026-05-23
-updated: 2026-05-31
+updated: 2026-07-29
 sources: [project-readme, project-todo]
 status: active
 ---
@@ -23,6 +23,7 @@ for docker-host services, plus narrow approved host routes:
 - `192.168.20.101/32` for Home Assistant
 - `192.168.40.50/32` for OMV
 - `192.168.60.10/32` for Grafana and Uptime Kuma only
+- `192.168.30.20/32` for authenticated Frigate HTTPS only
 
 Off-LAN validation passed on 2026-05-28 for docker-host and routed Home
 Assistant/OMV host paths.
@@ -33,6 +34,12 @@ docker-host now advertises the monitoring VM host route and has routed UFW
 allowances for ports `3000` and `3001`; do not expose InfluxDB `8086` as part
 of daily mobile access. Mobile clients may still need the new route approved in
 Tailscale admin before it works off-LAN.
+
+Homepage uses split-horizon DNS instead of a second mobile bookmark. Tailscale
+sends `home.local` queries to the identity-gated AdGuard listener on docker-host;
+AdGuard returns the docker-host tailnet address for `homepage.home.local`, while
+OpenWrt returns its LAN address on home WiFi. The phone is granted only DNS and
+Homepage HTTPS to docker-host.
 
 ## Trade-offs / Considerations
 

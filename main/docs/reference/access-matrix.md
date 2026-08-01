@@ -103,4 +103,8 @@ WireGuard fallback activation/deactivation governance is defined in
 | Household Hub | dedicated HA secret; voice surface is read-only knowledge and recipe research; no garden-state or downstream writes |
 | Hermes Agent candidate | advisory/tooling-only until separate sandbox, credentials, logging, and tool allowlist are approved |
 | OMV | unique admin and service-user credentials |
-| Vaultwarden candidate | separate security review before deployment |
+| Jellyfin | household account authentication; libraries are read-only in the container; no iGPU passthrough in the first phase |
+| Calibre-Web | household account authentication; only the dedicated Calibre library is writable |
+| Atsumeru | administrator/client authentication; generated credentials never enter Git or chat logs |
+| qBittorrent | strong Web UI credential; management/monitoring/Tailscale sources only; all public egress must fail closed through Gluetun |
+| Vaultwarden | HTTPS-only through `vault.home.local`; raw listener is loopback-only; sign-ups/admin endpoint disabled outside bounded owner onboarding; 2FA/recovery required before real credentials |
