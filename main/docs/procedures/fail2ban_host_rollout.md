@@ -167,34 +167,35 @@ The Proxmox UI is normally reached through the docker-host
 Adding `192.168.20.102` to `ignoreip` is explicitly rejected — it makes the jail
 blind to every proxied login while appearing to be protection.
 
-### Resolution (2026-07-31)
+### Decision (2026-07-31): web-UI jail permanently deferred
 
-This was initially framed as a trade-off against Homepage convenience. It was
-not one. Homepage's Proxmox tile `href` in `services.yaml` already points
-directly at `https://192.168.10.10:8006/`, and its `siteMonitor` health check on
-proxy port `8299` performs unauthenticated GETs that never generate
-`authentication failure` lines. Only the browser TLS listener on `8183` masked
-client addresses.
+Removing the proxied login path was trialled and reverted. On 2026-07-31 the
+`8183` server block was removed from the docker-host `homepage-preview-proxy`
+and the container restarted; `8183` correctly refused connections while all
+other routes and the `8299` health check kept responding. The change was then
+reverted at the operator's direction because that block also carries the
+`frame-ancestors` CSP that powers Homepage's embedded Proxmox iframe preview,
+which is in daily use. Restore was verified: `8183` returns `200`, the other
+routes are healthy, and the CSP is present.
 
-The `8183` server block was therefore removed from the docker-host
-`homepage-preview-proxy` and the container restarted. Verified after the change:
-`8183` refuses connections, while `8180`, `8184`, `8186`, `8187`, `8188` and the
-`8299` health check all still respond. Live rollback copy:
-`/opt/stacks/homepage/preview-proxy/nginx.conf.pre-8183-removal-20260731T192248Z`.
+There is no configuration that keeps the embedded preview and also exposes real
+client IPs to `pvedaemon`. An iframe on `:8183` is a separate origin and needs
+its own login through the proxy, which is precisely what masks the address.
+The operator's requirement is the iframe; the web-UI jail therefore stays
+disabled indefinitely rather than pending. Do not reopen this as a gate.
 
-Known consequence: Homepage's embedded iframe *preview* of Proxmox is gone,
-because the `8183` block carried its `frame-ancestors` CSP. The tile link still
-opens Proxmox directly. There is no configuration that keeps the embedded
-preview and still exposes real client IPs — an iframe on `:8183` is a separate
-origin and would require its own login through the proxy.
+Residual risk, stated plainly: the Proxmox web UI has no brute-force protection.
+It is internal-only and not internet-exposed, which is the reason this is
+acceptable rather than merely tolerated.
 
-Remaining gate before enabling the `[proxmox]` jail: confirm a direct login at
-`https://192.168.10.10:8006` works, then confirm a deliberate failure logs
-`rhost=` as the real client rather than `192.168.20.102`. Only then enable the
-jail. Note that direct access presents Proxmox's own certificate; signing it
-with the local `Home Local CA` would remove the browser warning.
+The compensating control worth considering, because it does not require
+distinguishing failed from successful logins, is nginx `limit_req` on the
+`/api2/*/access/ticket` location in the `8183` block. Rate limiting throttles
+credential stuffing regardless of response codes and leaves the iframe intact.
+It has not been implemented.
 
-The proxy configuration was previously untracked. It is now mirrored at
+The proxy configuration was previously untracked despite fronting eleven
+services. It is now mirrored at
 `configs/docker-host/stacks/homepage/preview-proxy/`.
 
 ## Exit criteria

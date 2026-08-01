@@ -213,14 +213,15 @@ registry mirror and Node-RED remain decision-gated candidates.
   web-UI jail is deliberately not enabled because the UI is reverse-proxied
   through docker-host, so `pvedaemon` attributed all proxied login failures to
   `192.168.20.102`; see `docs/procedures/fail2ban_host_rollout.md`.
-- On 2026-07-31 the docker-host `homepage-preview-proxy` lost its `8183` TLS
-  listener, which fronted the Proxmox web UI. Proxmox UI logins now go directly
-  to `https://192.168.10.10:8006` from the management VLAN so real client
-  addresses are logged. All other proxy routes were retested and still respond,
-  including Homepage's `8299` Proxmox health check. Homepage's embedded Proxmox
-  iframe preview is intentionally gone; its tile link was already direct. The
-  proxy config is now mirrored at
-  `configs/docker-host/stacks/homepage/preview-proxy/`; it was untracked before.
+- The docker-host `homepage-preview-proxy` retains its `8183` TLS listener
+  fronting the Proxmox web UI, which powers Homepage's embedded Proxmox iframe
+  preview. Removing it was trialled and reverted on 2026-07-31; the restored
+  state is verified (`8183` returns `200`, other routes healthy, `8299` health
+  check `200`, `frame-ancestors` CSP present). Because that path masks client
+  addresses, the Proxmox web-UI Fail2ban jail stays permanently disabled and the
+  UI has no brute-force protection; it is internal-only. The proxy config is now
+  mirrored at `configs/docker-host/stacks/homepage/preview-proxy/`; it was
+  untracked before.
 - `home-automation-health-check.timer` checks OMV NFS, Proxmox storage,
   Frigate, Immich, Transfer Portal, llama.cpp, Open WebUI, CT 111/114 root
   usage, the CT 111 recording bind source, and 36-hour archive freshness for
