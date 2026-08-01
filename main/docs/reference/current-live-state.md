@@ -153,6 +153,13 @@ while its replacement LXC is running.
 - SearXNG web search is reachable at docker-host port 8087, including from Home
   Assistant after the 2026-07-07 HA Supervisor-network docker-host firewall
   update.
+- CT 114 has no working APT path as of 2026-08-01 and therefore cannot receive
+  security updates. Its sources point directly at `deb.debian.org` and
+  `security.debian.org` with no proxy configured, outbound HTTP fails over both
+  IPv4 and IPv6, and docker-host's `apt-cacher-ng` ufw policy allows port
+  `3142` only from `192.168.30.20` and `192.168.60.10`. CT 114 replaced VM 104
+  after those rules were written and was never added. This also blocks the
+  Fail2ban rollout for this host.
 
 ## Docker host
 
@@ -205,6 +212,11 @@ registry mirror and Node-RED remain decision-gated candidates.
   HA health checks, and Tailscale clients; InfluxDB allows Management, HA, and
   docker-host Telegraf; router syslog UDP/514 remains router-only.
 - Proxmox, HA, docker-host, DNS, core apps and local-AI endpoints are monitored.
+- VM 102 Fail2ban is live as of 2026-08-01: fail2ban `1.1.0`, `sshd` jail,
+  `banaction = ufw`, 1h/10m/5 policy. ufw is installed and active on this host
+  alongside `monitoring-docker-firewall.service`. The ban path was proved by a
+  real ban/unban inserting and removing a ufw REJECT rule, and Grafana, Uptime
+  Kuma and InfluxDB were revalidated afterwards.
 - Alert routing through ntfy exists for configured Kuma monitors.
 - Proxmox host Fail2ban is live as of 2026-07-31: fail2ban `1.1.0-8` with the
   `sshd` jail only, `nftables-multiport` ban action, 1h/10m/5 policy, and

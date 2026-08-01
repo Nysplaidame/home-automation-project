@@ -1,22 +1,27 @@
 # Monitoring VM 102 (192.168.60.10) Fail2ban baseline.
 # Deploy to /etc/fail2ban/jail.d/monitoring-fail2ban-sshd.local
 #
-# Policy matches the docker-host and Frigate CT baselines.
+# LIVE as of 2026-08-01. Verified on fail2ban 1.1.0:
+#   - ufw IS installed and active on this host, with default deny (incoming)
+#     and 106 kernel chain rules. An earlier draft of this file assumed
+#     nftables-multiport because VM 102 also runs
+#     monitoring-docker-firewall.service; that assumption was wrong. Docker
+#     port policy and ufw coexist here.
+#   - `fail2ban-client get sshd actions` reports `ufw`.
+#   - Ban path proved end to end: banning 203.0.113.99 inserted a real ufw
+#     REJECT rule ("by Fail2Ban after 0 attempts against sshd"); unban removed
+#     it.
+#   - Grafana (3000), Uptime Kuma (3001) and InfluxDB (8086) revalidated after
+#     deployment: 200 / 302 / 200 on 192.168.60.10. They bind to the LAN
+#     address, not loopback.
 #
-# banaction: VM 102 enforces Docker-published ports through
-# `monitoring-docker-firewall.service` (nftables/iptables DOCKER-USER rules),
-# not ufw. Confirm before deploying:
-#   command -v ufw && ufw status
-# Keep `nftables-multiport` when nft is active; use `iptables-multiport`
-# otherwise. Do not set `ufw` unless ufw is installed and enabled.
-#
-# Grafana and Uptime Kuma web authentication are deliberately out of scope for
-# this baseline: both are already source-restricted to Management, HA health
-# checks and Tailscale clients. Revisit only if their auth logs are exposed to
-# a broader source set.
+# Note on scope: a ufw ban blocks host-level services such as SSH. Docker
+# published ports bypass the ufw INPUT path, so Grafana and Uptime Kuma remain
+# governed by monitoring-docker-firewall.service rather than by this jail.
+# That is correct for an sshd jail; do not assume this file protects the web UIs.
 
 [DEFAULT]
-banaction = nftables-multiport
+banaction = ufw
 bantime = 1h
 findtime = 10m
 maxretry = 5

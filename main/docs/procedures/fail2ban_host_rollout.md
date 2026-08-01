@@ -37,8 +37,8 @@ why, not applied silently on the live host.
 | docker-host (VM 103) | `192.168.20.102` | `configs/docker-host/system/docker-host-fail2ban-sshd.local` | Live |
 | frigate-nvr (CT 111) | `192.168.30.20` | `configs/frigate/system/frigate-nvr-fail2ban-sshd.local` | Live |
 | Proxmox host | `192.168.10.10` | `configs/proxmox/system/proxmox-fail2ban.local` | Live (`sshd` only, 2026-07-31); web-UI jail deferred |
-| monitoring (VM 102) | `192.168.60.10` | `configs/grafana/system/monitoring-fail2ban-sshd.local` | Source ready, not deployed |
-| llm-host (CT 114) | `192.168.20.104` | `configs/local-ai/system/llm-host-fail2ban-sshd.local` | Source ready, not deployed |
+| monitoring (VM 102) | `192.168.60.10` | `configs/grafana/system/monitoring-fail2ban-sshd.local` | Live (2026-08-01, `ufw` action, ban proved) |
+| llm-host (CT 114) | `192.168.20.104` | `configs/local-ai/system/llm-host-fail2ban-sshd.local` | Blocked — no working APT path |
 | OMV NAS | `192.168.40.50` | `configs/omv/system/omv-fail2ban-sshd.local` | Source ready, not deployed |
 
 Deliberately out of scope:
@@ -82,12 +82,20 @@ apt-get update && apt-get install -y fail2ban
 cp /etc/fail2ban/jail.d/<name>.local /root/<name>.local.pre-rollout-$(date -u +%Y%m%dT%H%M%SZ) 2>/dev/null || true
 install -o root -g root -m 0644 <name>.local /etc/fail2ban/jail.d/<name>.local
 fail2ban-client -t
-systemctl enable --now fail2ban
+systemctl enable fail2ban
+systemctl restart fail2ban
 ```
 
 `fail2ban-client -t` must pass before the service is started or reloaded. A
 failed test means the jail file is wrong; fix the source file in the repository
 rather than editing the live host.
+
+**Use `restart`, never `enable --now`.** Installing the package starts
+fail2ban immediately, before the jail file exists. `enable --now` is a no-op on
+an already-running service, so the daemon keeps Debian's default configuration
+and silently ignores the deployed policy. This happened on VM 102: the jail
+reported bans while running Debian's `nftables` action instead of the intended
+`ufw`, so nothing was enforced and no error was logged.
 
 ## Verification
 
@@ -95,11 +103,29 @@ rather than editing the live host.
 systemctl is-enabled fail2ban && systemctl is-active fail2ban
 fail2ban-client status
 fail2ban-client status sshd
+fail2ban-client get sshd actions
 ```
 
 Expected: the service is enabled and active, the jail list contains `sshd` (plus
 `proxmox` on the Proxmox host), and the jail reports counters rather than an
 error.
+
+`fail2ban-client get <jail> actions` is not optional. It is the only cheap way
+to prove the daemon loaded the intended `banaction`. A jail can report bans
+while using a different action than the one deployed.
+
+Then prove the ban path with a real ban, because a wrong or unloaded action
+fails silently:
+
+```bash
+fail2ban-client set sshd banip 203.0.113.99; sleep 3
+ufw status | grep 203.0.113.99        # ufw hosts
+nft list table inet f2b-table         # nftables hosts
+fail2ban-client set sshd unbanip 203.0.113.99
+```
+
+`203.0.113.0/24` is TEST-NET-3 and safe to ban. Confirm the rule appears and
+then disappears.
 
 Then confirm the host's own service path still works — Proxmox backups to OMV,
 HA backup writes, Frigate recording writes, or the monitoring scrape, depending
@@ -197,6 +223,36 @@ It has not been implemented.
 The proxy configuration was previously untracked despite fronting eleven
 services. It is now mirrored at
 `configs/docker-host/stacks/homepage/preview-proxy/`.
+
+### CT 114 — blocked on a broken package path (2026-08-01)
+
+Fail2ban cannot be installed on CT 114 because the container has no working APT
+path. This is a pre-existing condition discovered during the rollout, not
+something the rollout caused:
+
+- `/etc/apt/sources.list.d/` points directly at `deb.debian.org` and
+  `security.debian.org`, with no apt proxy configured.
+- Outbound HTTP fails over both IPv6 (no default route) and IPv4.
+- docker-host runs `apt-cacher-ng` and answers locally on `3142`, but its ufw
+  policy allows that port only from Frigate `192.168.30.20` and Monitoring
+  `192.168.60.10`. CT 114 replaced VM 104 after those rules were written and
+  was never added.
+
+The consequence is broader than this procedure: **CT 114 cannot receive
+security updates**, while running llama.cpp on `8081`, embeddings on `8082` and
+Open WebUI on `3002`. Its jail configuration is otherwise ready and its
+pre-flight passed.
+
+Restoring the path needs two changes, both deliberate:
+
+1. Add `192.168.20.104` to the `3142` allowances in the canonical
+   `configs/docker-host/system/docker-host-firewall.sh`, matching the existing
+   Frigate and Monitoring rules.
+2. Point CT 114's APT at the cache, e.g. an
+   `/etc/apt/apt.conf.d/01proxy` entry for `http://192.168.20.102:3142`.
+
+Confirm first whether CT 114's egress restriction is deliberate isolation of
+the local-AI host rather than an oversight.
 
 ## Exit criteria
 

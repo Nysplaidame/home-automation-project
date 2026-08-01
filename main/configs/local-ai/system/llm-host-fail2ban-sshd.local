@@ -1,25 +1,29 @@
 # CT 114 llm-host (192.168.20.104) Fail2ban baseline.
 # Deploy to /etc/fail2ban/jail.d/llm-host-fail2ban-sshd.local
 #
-# Policy matches the docker-host and Frigate CT baselines.
+# NOT DEPLOYED as of 2026-08-01 — blocked on the host's package path, not on
+# this configuration. See the CT 114 section of
+# docs/procedures/fail2ban_host_rollout.md.
 #
-# CT 114 is an unprivileged LXC. Two pre-flight checks matter here:
-#   1. backend: the CT must have a working systemd journal for sshd.
-#        journalctl -u ssh -n 5 --no-pager
-#      If the journal is unavailable, switch to `backend = auto` with
-#      `logpath = /var/log/auth.log` and ensure rsyslog is installed.
-#   2. banaction: unprivileged containers cannot always load nft/iptables
-#      modules. Verify before enabling:
-#        nft list ruleset >/dev/null 2>&1 && echo nftables-ok
-#      If packet filtering is not permitted inside the CT, keep the jail in
-#      detection-only mode with `banaction = dummy` and rely on the host/router
-#      path for blocking, rather than leaving a jail that fails on every ban.
+# Pre-flight results (2026-08-01), which settled the open questions from the
+# first draft of this file:
+#   - ufw is installed and ACTIVE, so `banaction = ufw` is correct and matches
+#     the docker-host, Frigate and monitoring baselines.
+#   - Both `nft list ruleset` and `iptables -S` succeed inside this unprivileged
+#     LXC, so the earlier concern that it could not write packet-filter rules
+#     was unfounded. No `banaction = dummy` fallback is needed.
+#   - The systemd journal carries sshd entries normally, so
+#     `backend = systemd` is correct.
 #
-# Open WebUI (3002) and the llama.cpp APIs (8081/8082) are source-scoped by
-# host and Docker firewall policy; their app-level auth is not jailed here.
+# Blocker: CT 114 has no working APT path. Its sources point directly at
+# deb.debian.org and security.debian.org, it has no apt proxy configured, it has
+# no outbound HTTP over IPv4 or IPv6, and docker-host's apt-cacher-ng ufw policy
+# allows 3142 only from Frigate (192.168.30.20) and Monitoring
+# (192.168.60.10). CT 114 was built after those rules and was never added.
+# Fail2ban cannot be installed until that path is restored.
 
 [DEFAULT]
-banaction = nftables-multiport
+banaction = ufw
 bantime = 1h
 findtime = 10m
 maxretry = 5
