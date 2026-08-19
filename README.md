@@ -2,7 +2,7 @@
 title: Home Automation Project
 description: Repository root navigation guide
 created: 2025-09-15
-modified: 2026-05-25
+modified: 2026-08-19
 ---
 
 # Home Automation Project
@@ -40,6 +40,7 @@ The root of this repo is the Obsidian vault wrapper. The wiki lives separately u
 | What | Where |
 |---|---|
 | Project overview and current status | [`main/README.md`](main/README.md) |
+| Canonical deployed-state inventory | [`main/docs/reference/current-live-state.md`](main/docs/reference/current-live-state.md) |
 | Full documentation index | [`main/PROJECT-INDEX.md`](main/PROJECT-INDEX.md) |
 | Task list | [`main/TO-DO.md`](main/TO-DO.md) |
 | Current session handoff | [`main/HANDOFF-2026-07-27-portal-services.md`](main/HANDOFF-2026-07-27-portal-services.md) |
@@ -52,4 +53,4 @@ The root of this repo is the Obsidian vault wrapper. The wiki lives separately u
 
 ---
 
-*Last updated: June 2026*
+*Last updated: 19 August 2026*

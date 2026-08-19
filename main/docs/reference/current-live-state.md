@@ -3,7 +3,7 @@ title: Current Live State
 description: Canonical inventory of deployed hosts, services, and deliberately deferred components
 tags: [reference, current-state, infrastructure]
 created: 2026-06-20
-modified: 2026-08-09
+modified: 2026-08-19
 type: reference
 status: active
 ---
@@ -13,7 +13,9 @@ status: active
 This is the canonical current-state inventory. Rebuild manuals describe how to
 build from blank and must link here rather than duplicating live-status claims.
 
-Last verified: **2026-08-09**.
+Full state verification: **2026-08-09**. Core endpoint reachability, including
+Recomp Tracker, was rechecked on **2026-08-19**; this does not replace the
+recorded functional acceptance checks.
 
 The Household admin workstation joined Tailscale on 2026-07-13 as
 `household-admin-workstation` (`100.95.209.14`). Tailnet peer discovery and
@@ -171,7 +173,8 @@ while its replacement LXC is running.
 
 Live workloads: Bambuddy, AdGuard Home, Immich, Homepage, Dozzle,
 ntfy, SearXNG, Whoogle, Mealie, Grocy, Obsidian LiveSync/CouchDB, Watchtower
-monitor-only, GardenKeeper, Household Hub, Gridfinity Layout Tool and Telegraf.
+monitor-only, GardenKeeper, Household Hub, Gridfinity Layout Tool, Recomp
+Tracker and Telegraf.
 Homepage is the central `Home Operations` navigation portal at
 `https://192.168.20.102/`, using a `Home Local CA` certificate. The former
 `http://192.168.20.102:3001/` endpoint remains live for rollback. Its Home,
@@ -317,6 +320,12 @@ allocation. A Windows per-user 09:00 daily autodeploy checks the locally
 recorded release, builds a newer upstream tag externally, and uses the atomic
 health-checked deployment/rollback workflow in
 `docs/install/services/gridfinity-layout-tool.md`.
+Recomp Tracker is live at `http://192.168.20.102:8420` for personal habits and
+workout tracking. Its source is tracked in
+`configs/docker-host/stacks/recomp-tracker/`, its Docker bridge is explicitly
+allocated as `10.240.31.0/24`, and its firewall permits only management, LAN
+and Tailscale sources. Its HTTP endpoint returned `200` during the 2026-08-19
+reachability recheck.
 VM 103 has a 64 GiB virtual disk and 6 GiB RAM. On 2026-07-13 both app stacks were rebuilt from verified source,
 their scoped HA credentials were rotated, the Hub database was baselined at
 Alembic revision `20260617_0001`, and authenticated assistant probes passed.

@@ -65,7 +65,7 @@ else
 fi
 
 # Verify required VLAN interfaces exist
-for vlan in lan management printers iot_sensors guest; do
+for vlan in lan management printers HomeIoT guest; do
     if uci show network | grep -q "interface.*$vlan"; then
         echo "✓ Interface $vlan ready" >> /tmp/phase5_validation.txt
     else
@@ -194,7 +194,7 @@ uci add wireless wifi-iface
 uci set wireless.@wifi-iface[-1].device='radio0'
 uci set wireless.@wifi-iface[-1].mode='ap'
 uci set wireless.@wifi-iface[-1].ssid='HomeIoT'
-uci set wireless.@wifi-iface[-1].network='iot_sensors'
+uci set wireless.@wifi-iface[-1].network='HomeIoT'
 uci set wireless.@wifi-iface[-1].encryption='psk2'
 uci set wireless.@wifi-iface[-1].key="$IOT_PASSWORD"
 uci set wireless.@wifi-iface[-1].ieee80211w='0'
@@ -392,7 +392,7 @@ mappings=(
     "HomeMain:lan"
     "HomeAdmin:management"
     "HomePrinters:printers"
-    "HomeIoT:iot_sensors"
+    "HomeIoT:HomeIoT"
     "HomeGuest:guest"
     "HomeDMZ:dmz"
 )
@@ -422,8 +422,8 @@ if uci show wireless | grep -q "ssid='HomeIoT'"; then
     echo "✓ HomeIoT SSID configured" >> /tmp/phase5_ventsys_test.txt
     
     # Check VLAN 50 mapping
-    if uci show wireless | grep -A5 "ssid='HomeIoT'" | grep -q "network='iot_sensors'"; then
-        echo "✓ HomeIoT mapped to iot_sensors (VLAN 50)" >> /tmp/phase5_ventsys_test.txt
+    if uci show wireless | grep -A5 "ssid='HomeIoT'" | grep -q "network='HomeIoT'"; then
+        echo "✓ HomeIoT mapped to HomeIoT (VLAN 50)" >> /tmp/phase5_ventsys_test.txt
     else
         echo "✗ HomeIoT VLAN mapping incorrect" >> /tmp/phase5_ventsys_test.txt
     fi

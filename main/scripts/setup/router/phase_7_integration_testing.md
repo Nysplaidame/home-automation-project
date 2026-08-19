@@ -281,12 +281,12 @@ homeiot_iface=$(uci show wireless | grep "\.ssid='HomeIoT'" | cut -d. -f1-2 2>/d
 if [ -n "$homeiot_iface" ]; then
     disabled=$(uci get ${homeiot_iface}.disabled 2>/dev/null)
     network=$(uci get ${homeiot_iface}.network 2>/dev/null)
-    if [ "$disabled" != "1" ] && [ "$network" = "iot_sensors" ]; then
-        echo "✓ HomeIoT SSID enabled and mapped to iot_sensors (VLAN 50)" >> /tmp/phase7_ventsys_readiness.txt
+    if [ "$disabled" != "1" ] && [ "$network" = "HomeIoT" ]; then
+        echo "✓ HomeIoT SSID enabled and mapped to HomeIoT (VLAN 50)" >> /tmp/phase7_ventsys_readiness.txt
     elif [ "$disabled" = "1" ]; then
         echo "✗ HomeIoT SSID is disabled" >> /tmp/phase7_ventsys_readiness.txt
     else
-        echo "✗ HomeIoT SSID network mapping incorrect (expected: iot_sensors, got: $network)" >> /tmp/phase7_ventsys_readiness.txt
+        echo "✗ HomeIoT SSID network mapping incorrect (expected: HomeIoT, got: $network)" >> /tmp/phase7_ventsys_readiness.txt
     fi
 else
     echo "✗ HomeIoT WiFi SSID not configured" >> /tmp/phase7_ventsys_readiness.txt

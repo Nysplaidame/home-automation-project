@@ -1,0 +1,12 @@
+[Unit]
+Description=Monitoring VM Docker published-port firewall policy
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/monitoring-docker-firewall.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

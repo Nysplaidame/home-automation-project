@@ -1,0 +1,74 @@
+placement,component,type,version_or_image,state,exposure_or_dependency,classification,validation,finding
+physical,upstream-router,network-control-plane,unknown,unverified,WAN and upstream routing,live-critical,blocked,control-plane unavailable
+physical,managed-switch,network-control-plane,Zyxel GS1900 family,reachable-auth-blocked,VLAN trunks PVID PoE,live-critical,blocked,F-012
+openwrt,home-router,router,live OpenWrt,operational,DHCP DNS NTP firewall Wi-Fi,live-critical,partial,F-003
+openwrt,HomeIoT VLAN50,network-segment,live internal iot_sensors,operational,MQTT allow plus DNS and internet deny,live-critical,verified-read-only,F-003
+tailscale,docker-host subnet router,remote-access-control,installed client,operational-local,4 narrow /32 advertisements,live-critical,partial,F-012
+proxmox,VM100 home-assistant,virtual-machine,HAOS,running,4096MB runtime plus 32GB disk,live-critical,verified-read-only,F-006
+proxmox,VM101 frigate-nvr,virtual-machine,retired rollback,stopped,4096MB plus 64GB,retired,classified,no current owner decision
+proxmox,VM102 monitoring,virtual-machine,Debian 13,running,2048MB plus 32GB,live-critical,verified-read-only,F-014
+proxmox,VM103 docker-host,virtual-machine,Debian 13,running,4096MB plus 64GB,live-critical,verified-read-only,F-002
+proxmox,VM104 llm-host,virtual-machine,retired rollback,stopped,10240MB plus 160GB,retired,classified,no current owner decision
+proxmox,CT111 frigate-nvr,container,Debian 13,running,iGPU plus thin root plus OMV NFS,live-critical,verified-read-only,F-004
+proxmox,CT114 llm-host,container,Debian 13,running,iGPU plus 20GB RAM,live-critical,verified-read-only,F-020
+home-assistant,Home Assistant Core,automation-platform,2026.7.1,healthy,HTTPS and integrations,live-critical,verified-read-only,F-013
+home-assistant,Supervisor,control-plane,2026.06.2,healthy,HA app supervision,live-critical,verified-read-only,F-006
+home-assistant,HAOS,operating-system,18.1,healthy,VM100 platform,live-critical,verified-read-only,F-006
+home-assistant,Mosquitto broker,HA app,7.1.0,started,MQTT TLS for Frigate and ESPHome,live-critical,verified-read-only,F-006
+home-assistant,File editor,HA app,6.0.0,started,HA config write access,live-admin,verified-read-only,governance review
+home-assistant,Terminal and SSH,HA app,10.3.0,started,approved SSH path,live-admin,verified-read-only,F-017
+home-assistant,ESPHome Device Builder,HA app,2026.6.4,started,device builds and secrets,live-critical,verified-read-only,F-021
+home-assistant,MQTT IO,HA app,0.4.0,stopped,legacy MQTT GPIO bridge,retired-or-dormant,classified,owner decision required
+home-assistant,Samba share,HA app,12.7.1,started,Windows config share,live-admin,verified-read-only,access review
+home-assistant,Advanced SSH and Web Terminal,HA app,24.0.1,error,host network plus Docker API manager role,live-failed,failed,F-017
+home-assistant,Sonarr,HA app,0.5.0,started,undocumented media application,live-unexplained,verified-read-only,F-018
+frigate,frigate,application-container,ghcr.io/blakeblackshear/frigate 0.17.1,healthy,8971 TLS plus RTSP WebRTC MQTT NFS,live-critical,verified-read-only,F-004
+camera,Hikvision camera,camera,I51HJ firmware V5.8.10 build 250917,operational,RTSP ISAPI to Frigate,live-critical,verified-read-only,F-019
+omv,openmediavault,NAS-control-plane,8.4.0-3,operational,HTTP admin plus NFS SMB,live-critical,verified-read-only,F-009
+omv,md0,RAID1,14.55TiB,clean-58-percent,NFS SMB production and backups,live-critical,verified-read-only,F-005
+omv,sdd1,standalone-filesystem,14.6TiB,operational,Transfer Portal source data,live-data,verified-read-only,F-008
+omv,Transfer Portal,native systemd app,live source drift,restart-loop,obsolete 192.168.10.147:8088 bind,live-failed,failed,F-008
+omv,omv-hddfanctrl,systemd-service,unknown,failed,fan control,live-failed,failed,physical thermal review
+omv,quotaon md0 and sdd1,systemd-services,unknown,failed,filesystem quota enablement,live-failed,failed,quota policy review
+docker-host,adguard-home,application-container,image 7157eb1dc3b2,up,DNS 53 plus admin 8080,live,verified-read-only,F-010
+docker-host,bambuddy,application-container,image debbfe09b1cf,healthy,no published port observed,live,verified-read-only,F-007
+docker-host,docker-host-telegraf,monitoring-agent,image f0870a1e3faa,up,metrics and Docker socket,live,verified-read-only,F-015
+docker-host,dozzle,admin-container,image dac897ce93cb,up,8081 plus Docker socket,live-admin,verified-read-only,F-015
+docker-host,gardenkeeper-api,application-container,local build,up,8090,live,verified-read-only,F-007
+docker-host,gardenkeeper-postgres,database-container,postgres image dc17045ccfd3,healthy,internal 5432,live-data,verified-read-only,F-007
+docker-host,gardenkeeper-redis,cache-container,redis:7-alpine,healthy,internal 6379,live-data,verified-read-only,F-007
+docker-host,gardenkeeper-web,application-container,local build,up,8091,live,verified-read-only,F-007
+docker-host,gardenkeeper-worker,worker-container,local build,up,internal worker,live,verified-read-only,F-007
+docker-host,grocy,application-container,image 2e30cd100e65,up,9283,live,verified-read-only,F-015
+docker-host,homepage,admin-container,image d8d784e50901,healthy,3001 plus Docker socket,live-admin,verified-read-only,F-015
+docker-host,household-hub-api,application-container,household-hub-api:0.1.0,up,8101,live,verified-read-only,F-007
+docker-host,household-hub-postgres,database-container,postgres image dc17045ccfd3,healthy,internal 5432,live-data,verified-read-only,F-007
+docker-host,household-hub-qdrant,vector-database-container,qdrant/qdrant:v1.12.6,up,internal 6333-6334,live-data,verified-read-only,F-007
+docker-host,household-hub-redis,cache-container,redis:7-alpine,healthy,internal 6379,live-data,verified-read-only,F-007
+docker-host,household-hub-web,application-container,household-hub-web:0.1.0,up,8100,live,verified-read-only,F-007
+docker-host,household-hub-worker,worker-container,household-hub-worker:0.1.0,up,internal worker,live,verified-read-only,F-007
+docker-host,immich-machine-learning,application-container,ghcr.io/immich-app/immich-machine-learning:v2.7.5,healthy,internal ML,live,verified-read-only,F-002
+docker-host,immich-postgres,database-container,Immich postgres 14 VectorChord,healthy,internal 5432,live-data,verified-read-only,F-002
+docker-host,immich-redis,cache-container,valkey/valkey:9,healthy,internal 6379,live-data,verified-read-only,F-002
+docker-host,immich-server,application-container,ghcr.io/immich-app/immich-server:v2.7.5,restarting,missing NFS media mount,live-failed,failed,F-002
+docker-host,mealie,application-container,ghcr.io/mealie-recipes/mealie:v3.19.2,healthy,9925,live,verified-read-only,F-028
+docker-host,ntfy,notification-container,image b32b4221a64e,up,8085,live,verified-read-only,F-015
+docker-host,obsidian-livesync,database-container,couchdb:3.5.0,up,5984,live-data,verified-read-only,F-001
+docker-host,searxng,search-container,image 1a9d21346437,up,8087,live,verified-read-only,F-015
+docker-host,watchtower,update-monitor-container,containrrr/watchtower:latest,healthy,Docker socket and internal 8080,live-admin,verified-read-only,F-015
+docker-host,whoogle,search-container,benbusby/whoogle-search:latest,healthy,8088,live,verified-read-only,F-015
+monitoring,grafana,monitoring-container,grafana/grafana:latest,up,192.168.60.10:3000,live-critical,verified-read-only,F-014
+monitoring,influxdb,time-series-database,influxdb:2.7,up,192.168.60.10:8086,live-data,verified-read-only,F-005
+monitoring,telegraf,monitoring-agent,telegraf:latest,up,syslog and metrics,live,verified-read-only,F-015
+monitoring,uptime-kuma,monitoring-container,louislam/uptime-kuma:1,healthy,192.168.60.10:3001,live-critical,verified-read-only,F-014
+local-ai,llama-cpp-chat,AI-container,ghcr.io/ggml-org/llama.cpp:server-vulkan,healthy,8081 plus iGPU,live,verified-read-only,F-020
+local-ai,llama-cpp-embeddings,AI-container,ghcr.io/ggml-org/llama.cpp:server-vulkan,healthy,8082 plus iGPU,live,verified-read-only,F-020
+local-ai,open-webui,AI-web-container,ghcr.io/open-webui/open-webui:main,healthy,3002,live,verified-read-only,F-015
+local-ai,wyoming-openwakeword,voice-container,rhasspy/wyoming-openwakeword:latest,up,10400,live,verified-read-only,F-020
+local-ai,wyoming-piper,voice-container,rhasspy/wyoming-piper:latest,up,10200,live,verified-read-only,F-020
+local-ai,wyoming-whisper,voice-container,rhasspy/wyoming-whisper:latest,up,10300,live,verified-read-only,F-020
+client,Windows desktop,management-client,Windows with Chrome and Schannel,operational,local CA plus SSH keys plus browser sessions,live-client,partial,F-016
+client,mobile CCTV viewport,client-profile,390x844 browser emulation,operational,HA CCTV view,observed-profile,partial,F-026
+physical,VentSys hardware,physical-control-system,pending,not-present,relays sensors ventilation,planned,blocked,F-021
+physical,future cameras,physical-camera,pending,not-present,six-camera target,planned,blocked,F-020
+physical,UPS and power topology,physical-infrastructure,unknown,unverified,router switch Proxmox OMV cameras,omitted,blocked,F-022

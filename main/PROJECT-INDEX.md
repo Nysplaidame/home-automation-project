@@ -4,7 +4,7 @@ description: Master navigation hub for all project documentation
 tags: [index, navigation, home-automation]
 aliases: [Project Index, Documentation Hub]
 created: 2025-09-15
-modified: 2026-07-13
+modified: 2026-08-19
 type: index
 status: active
 ---
@@ -37,7 +37,7 @@ status: active
 | Physical deployment | ✅ Router, Proxmox trunk, HAOS, and docker-host live |
 | Docker-host service templates | ✅ Written for live VM 103 stacks, host firewall, and app-data backup templates |
 | Local AI / voice inference | ✅ CT 114 live with shared-iGPU llama.cpp and HA voice/search migration pending |
-| Hardware procurement (sensors/cameras/NAS) | ⏳ Pending |
+| Hardware procurement | ⏳ VentSys components and a fourth camera pending; NAS, switch and three cameras are live |
 
 ---
 
@@ -86,10 +86,15 @@ status: active
 - [[configs/docker-host/stacks/vaultwarden/README.md]] — live HTTPS Vaultwarden foundation and onboarding gate
 
 - [[docs/install/services/gridfinity-layout-tool.md]] — live local Gridfinity Layout Tool portal
+- [[configs/docker-host/stacks/recomp-tracker/README.md]] — live Recomp Tracker service and recovery notes
 
 ### Monitoring / Grafana
 - [[configs/grafana/README.md]] — rebuildable source exports for Grafana dashboards
 - [[configs/grafana/dashboards/]] — architecture dashboard JSON exports
+
+### OpenMediaVault
+- [[configs/omv/README]] — sanitized NFS contract and root-only OMV config backup automation
+- [[configs/omv/nfs-exports.json]] — current dataset/client/root-mapping contract
 - [[configs/home-assistant/lovelace/monitoring-grafana-links.yaml]] — HA Lovelace direct-link snippet for Grafana/Kuma
 
 ### Bambuddy / P1S
@@ -121,6 +126,7 @@ status: active
 - [[docs/install/garage-pi-desktop-setup-guide.md]] — garage Raspberry Pi 5 desktop, NVMe, OLED, project access, and optional AI readiness
 - [[docs/install/oled-screen-setup-guide.md]] — 52Pi/GeeekPi case OLED setup and `minitower_oled.service`
 - [[docs/diagrams/README.md]] — canonical install and architecture diagram library
+- [[docs/install/services/mermaid-viewer.md]] — draft internal Mermaid diagram browser for canonical `.mermaid` sources
 - [[docs/install/reference/command-location-legend.md]] — where every command runs
 - [[docs/install/reference/secrets-placeholder-ledger.md]] — central placeholder and secret ledger
 - [[docs/install/reference/package-dependency-matrix.md]] — packages, hosts, install commands, verification commands
@@ -203,6 +209,10 @@ status: active
 - [[docs/diagrams/network/remote-access-flow.mermaid]] — Tailscale daily access and WireGuard fallback flow
 - [[docs/diagrams/network/dns-ntp-flow.mermaid]] — router DNS/NTP, AdGuard, and public fallback flow
 - [[docs/diagrams/network/security-access-flow.mermaid]] — firewall, ACL, host firewall, and service-auth intent
+- [[docs/diagrams/network/physical-port-and-cabling.mermaid]] — router and GS1900 port/cabling map for Proxmox, OMV, and CCTV
+- [[docs/diagrams/infrastructure/proxmox-guests-and-backups.mermaid]] — Proxmox guest inventory, shared iGPU, and backup relationships
+- [[docs/reference/physical-port-and-cabling.md]] — physical port table, cable labels, and CCTV rollout capacity constraint
+- [[docs/reference/canonical-names.md]] — canonical identifiers for physical devices, guests, and live services
 - [[docs/diagrams/infrastructure/docker-host-service-placement.mermaid]] — docker-host stack layout and app tiers
 - [[docs/diagrams/infrastructure/proxmox-guests-and-backups.mermaid]] — production and rollback guests, shared iGPU paths, and backup schedules
 - [[apps/mermaid-viewer/README.md]] — generated live viewer for all canonical Mermaid sources
@@ -223,4 +233,4 @@ status: active
 
 ---
 
-**Updated:** July 2026
+**Updated:** 2026-08-19

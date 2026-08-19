@@ -102,11 +102,11 @@ config wifi-iface 'admin_2g'
 # Fire safety sensors, environmental monitors, smart switches
 # ============================================================================
 
-config wifi-iface 'iot_2g'
+config wifi-iface 'HomeIoT_2G'
     option device 'radio0'
     option mode 'ap'
     option ssid 'HomeIoT'
-    option network 'iot_sensors'
+    option network 'HomeIoT'
     option encryption 'psk2'
     option key 'YOUR_IOT_WIFI_PASSWORD_HERE'
     option ieee80211w '0'
@@ -167,7 +167,7 @@ config wifi-device 'radio1'
 ### Network Binding
 - **HomeMain** → `lan` network (VLAN 1: 192.168.1.0/24)
 - **HomeAdmin** → `management` network (VLAN 10: 192.168.10.0/24)  
-- **HomeIoT** → `iot_sensors` network (VLAN 50: 192.168.50.0/24)
+- **HomeIoT** → `HomeIoT` network (VLAN 50: 192.168.50.0/24)
 - **HomeGuest** → `guest` network (isolated, needs creation)
 
 ## Deployment Checklist

@@ -40,7 +40,7 @@ Implements comprehensive firewall security architecture using corrected UCI comm
 echo "=== Phase 4 Prerequisites ===" > /tmp/phase4_validation.txt
 
 # Verify all network interfaces exist
-for interface in lan management automation nvr printers storage iot_sensors monitoring dmz guest; do
+for interface in lan management automation nvr printers storage HomeIoT monitoring dmz guest; do
     if uci show network | grep -q "interface.*$interface"; then
         echo "✓ Interface $interface exists" >> /tmp/phase4_validation.txt
     else
@@ -153,7 +153,7 @@ cat /tmp/phase4_internet_test.txt
 echo "=== Firewall Zone Validation ===" > /tmp/phase4_zones_test.txt
 
 # Verify all firewall zones exist
-expected_zones="wan lan management automation nvr printers storage iot_sensors monitoring dmz guest vpn_clients"
+expected_zones="wan lan management automation nvr printers storage HomeIoT monitoring dmz guest vpn_clients"
 for zone in $expected_zones; do
     if uci show firewall | grep -q "zone.*name='$zone'"; then
         echo "✓ Zone $zone configured" >> /tmp/phase4_zones_test.txt

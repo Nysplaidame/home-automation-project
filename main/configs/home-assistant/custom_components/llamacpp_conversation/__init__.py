@@ -88,6 +88,20 @@ RECIPE_STEP_NUMBER_RE = re.compile(
     r"\bstep\s+(?P<number>one|two|three|four|five|six|seven|eight|nine|ten|\d+)\b",
     re.IGNORECASE,
 )
+SHOPPING_LIST_RE = re.compile(
+    r"\b(shopping list|shopping-list|grocy)\b",
+    re.IGNORECASE,
+)
+HEALTH_STATUS_RE = re.compile(
+    r"\b(healthy|health|online|offline|reachable|up|down|running|status)\b",
+    re.IGNORECASE,
+)
+PRODUCTION_APP_RE = re.compile(
+    r"\b(uptime kuma|kuma|grafana|llm host|llm-host|mealie|grocy|searxng|"
+    r"whoogle|frigate|omv|proxmox|immich|dozzle|homepage|adguard|open webui|"
+    r"openwebui|piper|whisper|openwakeword)\b",
+    re.IGNORECASE,
+)
 ACTIVE_RECIPE_REF_RE = re.compile(
     r"\b(this|that|the|current|saved|active)\s+recipe\b|\bit\b",
     re.IGNORECASE,
@@ -922,6 +936,13 @@ def _select_llm_hass_api(
     if _is_web_search_affirmation(text, chat_log):
         return _selected_apis(configured, ["searxng_search"])
 
+    wants_shopping_list = bool(SHOPPING_LIST_RE.search(text))
+    if wants_shopping_list and "grocy_household" in configured:
+        return _selected_apis(configured, ["grocy_household"])
+
+    if HEALTH_STATUS_RE.search(text) and PRODUCTION_APP_RE.search(text):
+        return _selected_apis(configured, ["assist"])
+
     wants_recipe = bool(RECIPE_RE.search(text))
     wants_web = bool(WEB_RE.search(text))
 
@@ -1159,6 +1180,9 @@ def _maybe_direct_recipe_history_answer(
     chat_log: conversation.ChatLog,
 ) -> str | None:
     """Answer recipe follow-ups from the latest Mealie result in chat history."""
+    if SHOPPING_LIST_RE.search(user_text):
+        return None
+
     recipe = _latest_recipe_from_history(chat_log)
     if recipe is None:
         return None
@@ -1303,6 +1327,10 @@ def _maybe_direct_web_recipe_followup_answer(
     chat_log: conversation.ChatLog,
 ) -> str | None:
     """Answer web-result detail follow-ups without drifting into saved recipes."""
+    lowered = user_text.lower()
+    if re.search(r"\b(library|saved|mealie|mealy|melee)\b", lowered):
+        return None
+
     if not (RECIPE_INGREDIENTS_RE.search(user_text) or RECIPE_STEPS_RE.search(user_text)):
         return None
 

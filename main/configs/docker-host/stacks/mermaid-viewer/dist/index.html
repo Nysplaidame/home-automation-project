@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mermaid Diagram Viewer</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./vendor/mermaid.min.js"></script>
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <header class="hero">
+    <div>
+      <p class="eyebrow">Internal diagram browser</p>
+      <h1>Mermaid Diagram Viewer</h1>
+      <p class="lede">Browse canonical `.mermaid` sources, search them, and copy links without opening the Obsidian vault.</p>
+    </div>
+    <div class="controls">
+      <input id="search" type="search" placeholder="Search diagrams, tags, or file names">
+      <button id="copy-current" type="button">Copy current link</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <div class="panel">
+        <h2>Sections</h2>
+        <div id="section-list" class="chips"></div>
+      </div>
+      <div class="panel">
+        <h2>Diagrams</h2>
+        <div id="diagram-list" class="list"></div>
+      </div>
+    </aside>
+
+    <section class="viewer panel">
+      <div class="viewer-head">
+        <div>
+          <p id="diagram-path" class="path"></p>
+          <h2 id="diagram-title">Select a diagram</h2>
+          <p id="diagram-summary" class="summary"></p>
+        </div>
+        <div class="actions">
+          <button id="copy-markdown" type="button">Copy Markdown link</button>
+          <button id="copy-path" type="button">Copy path</button>
+        </div>
+      </div>
+      <div id="render-target" class="render-target">Choose a diagram to render it here.</div>
+      <pre id="source-view" class="source-view" hidden></pre>
+    </section>
+  </main>
+</body>
+</html>

@@ -24,7 +24,7 @@ Implements DSA-based VLAN infrastructure creating 10 isolated network segments. 
 - **Phase 3**: DHCP requires network interfaces to exist
 - **Phase 4**: Firewall zones reference these network names
 - **Phase 5**: Wireless SSIDs map to these VLANs
-- **VentSys**: VLANs 20 (automation) and 50 (iot_sensors) critical
+- **VentSys**: VLANs 20 (automation) and 50 (HomeIoT) critical
 
 ## Critical Configuration Notes
 
@@ -49,7 +49,7 @@ ports. Until then, keep the live direct-port layout in place.
 - **lan1**: Trunk to Proxmox (tagged VLANs 10,20,30,35,40,50,60,70)
 - **lan2**: Management port (VLAN 10 untagged)
 - **lan3**: Managed switch trunk (VLANs 1,10,30,40 tagged)
-- **lan4**: Management/admin PC port (VLAN 10 untagged)
+- **lan4**: OMV NAS port (VLAN 40 untagged)
 - **lan5**: LAN/user PC or recovery port (VLAN 1 untagged)
 
 ## Sub-Tasks
@@ -98,7 +98,7 @@ uci set network.@device[-1].type='bridge'
 uci add_list network.@device[-1].ports='lan1'
 uci add_list network.@device[-1].ports='lan2' 
 uci add_list network.@device[-1].ports='lan3'  # Managed switch trunk
-uci add_list network.@device[-1].ports='lan4'  # Management/admin PC port
+uci add_list network.@device[-1].ports='lan4'  # OMV NAS port
 uci add_list network.@device[-1].ports='lan5'  # LAN/user PC or recovery port
 
 # Enable bridge features for VM environment
@@ -147,7 +147,6 @@ uci add_list network.@bridge-vlan[-1].ports='lan1:t'  # Trunk to Proxmox
 # frames on lan2 would NOT be assigned to VLAN 10, breaking management access.
 uci add_list network.@bridge-vlan[-1].ports='lan2:u*' # Management port — PVID
 uci add_list network.@bridge-vlan[-1].ports='lan3:t'  # Managed switch trunk
-uci add_list network.@bridge-vlan[-1].ports='lan4:u*' # Management/admin PC port — PVID
 
 # VLAN 20: VentSys Automation Network (CRITICAL)
 uci add network bridge-vlan
@@ -179,7 +178,8 @@ uci set network.@bridge-vlan[-1].device='br-lan'
 uci set network.@bridge-vlan[-1].vlan='40'
 uci set network.@bridge-vlan[-1].local='1'
 uci add_list network.@bridge-vlan[-1].ports='lan1:t'  # Trunk to Proxmox
-uci add_list network.@bridge-vlan[-1].ports='lan3:t'  # Managed switch trunk; NAS port is access VLAN 40
+uci add_list network.@bridge-vlan[-1].ports='lan3:t'  # Managed switch trunk; switch port 8 is spare VLAN 40
+uci add_list network.@bridge-vlan[-1].ports='lan4:u*' # Direct OMV NAS port — PVID
 
 # VLAN 50: VentSys IoT Sensors Network (CRITICAL)
 uci add network bridge-vlan
@@ -223,11 +223,11 @@ echo "All bridge VLANs configured" >> /tmp/deployment_logs/phase2.log
 - lan1 MUST carry all non-VLAN-1 VLANs for Proxmox VM networking
 - VLAN 1 is otherwise WiFi-only; main users reach it via HomeMain SSID (Phase 5)
 - lan3 is a tagged-only trunk to the managed switch for VLANs 1,10,30,40
-- lan4 carries only VLAN 10 untagged for an admin PC
+- lan4 carries only VLAN 40 untagged for the OMV NAS
 - lan5 carries only VLAN 1 untagged for a LAN PC or recovery laptop
 - VLAN 50 (IoT) carries lan1:t so HA VM on Proxmox can reach sensor devices
 - Port tagging (t) vs untagged (u*) critical for proper operation
-- Each physical access port can have only ONE untagged PVID: lan2=VLAN10, lan4=VLAN10, lan5=VLAN1
+- Each physical access port can have only ONE untagged PVID: lan2=VLAN10, lan4=VLAN40, lan5=VLAN1
 
 ### 2.4 Logical Network Interface Creation  
 **Duration**: 30 minutes
@@ -284,11 +284,11 @@ uci set network.storage.ipaddr='192.168.40.1'
 uci set network.storage.netmask='255.255.255.0'
 
 # IoT Sensors VLAN 50
-uci set network.iot_sensors=interface
-uci set network.iot_sensors.proto='static'
-uci set network.iot_sensors.device='br-lan.50'
-uci set network.iot_sensors.ipaddr='192.168.50.1'
-uci set network.iot_sensors.netmask='255.255.255.0'
+uci set network.HomeIoT=interface
+uci set network.HomeIoT.proto='static'
+uci set network.HomeIoT.device='br-lan.50'
+uci set network.HomeIoT.ipaddr='192.168.50.1'
+uci set network.HomeIoT.netmask='255.255.255.0'
 
 # Monitoring VLAN 60
 uci set network.monitoring=interface
@@ -504,7 +504,7 @@ cat /tmp/phase2_validation.txt
 - **Bridge configuration functional**: DSA bridge with STP enabled, IGMP snooping active
 - **Physical port assignments correct**: Proxmox trunk, managed-switch trunk, management, and LAN/recovery ports configured
 - **WAN connectivity preserved**: Internet access maintained through configuration changes
-- **VentSys readiness**: VLANs 20 (automation) and 50 (iot_sensors) ready for HA and IoT integration
+- **VentSys readiness**: VLANs 20 (automation) and 50 (HomeIoT) ready for HA and IoT integration
 - **Network routing operational**: All VLANs can reach their respective gateways
 
 ## Failure Recovery Procedures

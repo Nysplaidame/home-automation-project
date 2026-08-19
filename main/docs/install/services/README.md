@@ -30,6 +30,7 @@ only candidates.
 - [immich-curated-exporter.md](immich-curated-exporter.md) — staged, allow-listed one-way album export to Jellyfin; live test-album proof still required
 - [homepage.md](homepage.md) — preflight-live service dashboard
 - [dozzle.md](dozzle.md) — preflight-live log viewer with host-firewall scoping
+- [mermaid-viewer.md](mermaid-viewer.md) — draft internal Mermaid diagram browser
 
 ## Tier 2
 

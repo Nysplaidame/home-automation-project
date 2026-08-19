@@ -1,0 +1,577 @@
+path,git_state,scope,category,validation,result,notes
+.codex/environments/environment.toml,tracked,wrapper,project,existence/hash,present,Binary or format-specific artifact
+.gitattributes,tracked,wrapper,project,existence/hash,present,Binary or format-specific artifact
+.gitignore,tracked,wrapper,project,existence/hash,present,Binary or format-specific artifact
+.obsidian/app.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/appearance.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/community-plugins.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/core-plugins.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/graph.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/plugins/dataview/data.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/plugins/dataview/main.js,tracked,wrapper,project,UTF-8 decode/static review,pass,No syntax/read failure
+.obsidian/plugins/dataview/manifest.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/plugins/dataview/styles.css,tracked,wrapper,project,existence/hash,present,Binary or format-specific artifact
+.obsidian/plugins/excalibrain/data.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/plugins/excalibrain/main.js,tracked,wrapper,project,UTF-8 decode/static review,pass,No syntax/read failure
+.obsidian/plugins/excalibrain/manifest.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/plugins/excalibrain/styles.css,tracked,wrapper,project,existence/hash,present,Binary or format-specific artifact
+.obsidian/plugins/mermaid-popup/main.js,tracked,wrapper,project,UTF-8 decode/static review,pass,No syntax/read failure
+.obsidian/plugins/mermaid-popup/manifest.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/plugins/mermaid-popup/styles.css,tracked,wrapper,project,existence/hash,present,Binary or format-specific artifact
+.obsidian/plugins/mermaid-tools/main.js,tracked,wrapper,project,UTF-8 decode/static review,pass,No syntax/read failure
+.obsidian/plugins/mermaid-tools/manifest.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/plugins/mermaid-tools/styles.css,tracked,wrapper,project,existence/hash,present,Binary or format-specific artifact
+.obsidian/plugins/obsidian-excalidraw-plugin/data.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/plugins/obsidian-excalidraw-plugin/manifest.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/plugins/obsidian-excalidraw-plugin/styles.css,tracked,wrapper,project,existence/hash,present,Binary or format-specific artifact
+.obsidian/plugins/obsidian-git/data.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/plugins/obsidian-git/main.js,tracked,wrapper,project,UTF-8 decode/static review,pass,No syntax/read failure
+.obsidian/plugins/obsidian-git/manifest.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/plugins/obsidian-git/styles.css,tracked,wrapper,project,existence/hash,present,Binary or format-specific artifact
+.obsidian/plugins/obsidian-kanban/data.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/plugins/obsidian-kanban/main.js,tracked,wrapper,project,UTF-8 decode/static review,pass,No syntax/read failure
+.obsidian/plugins/obsidian-kanban/manifest.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/plugins/obsidian-kanban/styles.css,tracked,wrapper,project,existence/hash,present,Binary or format-specific artifact
+.obsidian/plugins/obsidian-livesync/main.js,tracked,wrapper,project,UTF-8 decode/static review,pass,No syntax/read failure
+.obsidian/plugins/obsidian-livesync/manifest.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/plugins/obsidian-livesync/styles.css,tracked,wrapper,project,existence/hash,present,Binary or format-specific artifact
+.obsidian/plugins/obsidian-local-rest-api/data.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/plugins/obsidian-local-rest-api/main.js,tracked,wrapper,project,UTF-8 decode/static review,pass,No syntax/read failure
+.obsidian/plugins/obsidian-local-rest-api/manifest.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/plugins/obsidian-local-rest-api/styles.css,tracked,wrapper,project,existence/hash,present,Binary or format-specific artifact
+.obsidian/plugins/obsidian-tasks-plugin/data.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/plugins/obsidian-tasks-plugin/main.js,tracked,wrapper,project,UTF-8 decode/static review,pass,No syntax/read failure
+.obsidian/plugins/obsidian-tasks-plugin/manifest.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/plugins/obsidian-tasks-plugin/styles.css,tracked,wrapper,project,existence/hash,present,Binary or format-specific artifact
+.obsidian/plugins/obsidian-trash-explorer/main.js,tracked,wrapper,project,UTF-8 decode/static review,pass,No syntax/read failure
+.obsidian/plugins/obsidian-trash-explorer/manifest.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/plugins/obsidian42-brat/data.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/plugins/obsidian42-brat/main.js,tracked,wrapper,project,UTF-8 decode/static review,pass,No syntax/read failure
+.obsidian/plugins/obsidian42-brat/manifest.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/plugins/obsidian42-brat/styles.css,tracked,wrapper,project,existence/hash,present,Binary or format-specific artifact
+.obsidian/plugins/regex-mark/main.js,tracked,wrapper,project,UTF-8 decode/static review,pass,No syntax/read failure
+.obsidian/plugins/regex-mark/manifest.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/plugins/regex-mark/styles.css,tracked,wrapper,project,existence/hash,present,Binary or format-specific artifact
+.obsidian/plugins/table-editor-obsidian/data.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/plugins/table-editor-obsidian/main.js,tracked,wrapper,project,UTF-8 decode/static review,pass,No syntax/read failure
+.obsidian/plugins/table-editor-obsidian/manifest.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/plugins/table-editor-obsidian/styles.css,tracked,wrapper,project,existence/hash,present,Binary or format-specific artifact
+.obsidian/plugins/templater-obsidian/main.js,tracked,wrapper,project,UTF-8 decode/static review,pass,No syntax/read failure
+.obsidian/plugins/templater-obsidian/manifest.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/plugins/templater-obsidian/styles.css,tracked,wrapper,project,existence/hash,present,Binary or format-specific artifact
+.obsidian/snippets/Mermaid Style.css,tracked,wrapper,project,existence/hash,present,Binary or format-specific artifact
+.obsidian/themes/80s Neon/manifest.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/themes/80s Neon/theme.css,tracked,wrapper,project,existence/hash,present,Binary or format-specific artifact
+.obsidian/types.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+.obsidian/workspace.json,tracked,wrapper,project,JSON parse,pass,No syntax/read failure
+AGENTS.md,tracked,wrapper,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+CLAUDE.md,tracked,wrapper,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+README.md,tracked,wrapper,documentation,UTF-8 decode and local-link resolution,pass,12 link token(s) checked
+cam_01_latest_check.jpg,tracked,wrapper,project,existence/hash,present,Binary or format-specific artifact
+main/.gitignore,tracked,active,project,existence/hash,present,Binary or format-specific artifact
+main/.obsidian/app.json,tracked,active,tool-metadata,JSON parse,pass,No syntax/read failure
+main/.obsidian/appearance.json,tracked,active,tool-metadata,JSON parse,pass,No syntax/read failure
+main/.obsidian/core-plugins.json,tracked,active,tool-metadata,JSON parse,pass,No syntax/read failure
+main/AGENTS.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/HANDOFF-2026-06-19-igpu-lxc-migration.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/HANDOFF-2026-07-01-frigate-first-camera.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/PROJECT-INDEX.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,112 link token(s) checked
+main/README.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,4 link token(s) checked
+main/TO-DO.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,2 link token(s) checked
+main/_archive/20-04-30/ventsys/integration-process/ventsys_complete_implementation_plan.md,tracked,historical,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/_archive/20-04-30/ventsys/integration-process/ventsys_technical_specifications.md,tracked,historical,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/_archive/20-04-30/ventsys/integration-process/ventsys_tls_implementation_guide.md,tracked,historical,documentation,UTF-8 decode and local-link resolution,pass,4 link token(s) checked
+main/_archive/2026-06-20-pre-lxc-and-handoffs/06-local-ai-infrastructure-vm-era.md,tracked,historical,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/_archive/2026-06-20-pre-lxc-and-handoffs/HANDOFF-2026-05-07-current.md,tracked,historical,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/_archive/2026-06-20-pre-lxc-and-handoffs/HANDOFF-2026-05-13-valve1-deployment-and-stepping.md,tracked,historical,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/_archive/2026-06-20-pre-lxc-and-handoffs/HANDOFF-2026-05-28-preflight-next.md,tracked,historical,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/_archive/2026-06-20-pre-lxc-and-handoffs/HANDOFF-2026-06-04-valve-feedback-wiring-and-carrier.md,tracked,historical,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/_archive/2026-06-20-pre-lxc-and-handoffs/HANDOFF-router-deploy-spec.md,tracked,historical,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/_archive/2026-06-20-pre-lxc-and-handoffs/README.md,tracked,historical,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/_archive/2026-06-20-pre-lxc-and-handoffs/eighth_audit_router_deep_dive.md,tracked,historical,documentation,UTF-8 decode and local-link resolution,pass,5 link token(s) checked
+main/_archive/2026-06-20-pre-lxc-and-handoffs/firewall_analysis_summary.md,tracked,historical,documentation,UTF-8 decode and local-link resolution,pass,1 link token(s) checked
+main/_archive/2026-06-20-pre-lxc-and-handoffs/frigate_vm_setup_guide.md,tracked,historical,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/_archive/2026-06-20-pre-lxc-and-handoffs/igpu_passthrough_guide.md,tracked,historical,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/_archive/2026-06-20-pre-lxc-and-handoffs/llm_host_setup_guide.md,tracked,historical,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/_archive/2026-06-20-pre-lxc-and-handoffs/proxmox_setup_guide-pre-lxc.md,tracked,historical,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/_archive/2026-06-20-pre-lxc-and-handoffs/ventilation_v9k-Original.html,tracked,historical,project,UTF-8 decode/static review,pass,No syntax/read failure
+main/_archive/2026-06-20-pre-lxc-and-handoffs/ventilation_v9k.html,tracked,historical,project,UTF-8 decode/static review,pass,No syntax/read failure
+main/_archive/2026-06-20-pre-lxc-and-handoffs/ventsys_ha_scripts.yaml.bak-20260512,tracked,historical,project,existence/hash,present,Binary or format-specific artifact
+main/_archive/2026-06-20-pre-lxc-and-handoffs/vm-configs-pre-lxc.conf,tracked,historical,project,UTF-8 decode/static review,pass,No syntax/read failure
+main/_archive/2026-06-20-pre-lxc-and-handoffs/vm-setup-pre-lxc.sh,tracked,historical,project,UTF-8 decode; shell/runtime checked separately,pass,No syntax/read failure
+main/_archive/2026-06-29-stale-bootstrap/GitHub.ps1,tracked,historical,project,PowerShell parser (separate static test),pass,No syntax/read failure
+main/_archive/Network Infrastructure Diagram - Old.mmd,tracked,historical,project,existence/hash,present,Binary or format-specific artifact
+main/_archive/README.md,tracked,historical,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/_archive/full-config.md,tracked,historical,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/_archive/openwrt_complete_config_phase_2.md,tracked,historical,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/_archive/openwrt_script_analysis.md,tracked,historical,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/_archive/ventsys-execution-guide-prompt.md,tracked,historical,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/_archive/ventsys_solution1_implementation.md,tracked,historical,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/_verify.ps1,tracked,active,project,PowerShell parser (separate static test),pass,No syntax/read failure
+main/apps/mermaid-viewer/Dockerfile,untracked,active,application,existence/hash,present,Binary or format-specific artifact
+main/apps/mermaid-viewer/README.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/apps/mermaid-viewer/app.js,tracked,active,application,UTF-8 decode/static review,pass,No syntax/read failure
+main/apps/mermaid-viewer/diagram-data.js,tracked,active,application,UTF-8 decode/static review,pass,No syntax/read failure
+main/apps/mermaid-viewer/dist/app.js,untracked,active,application,UTF-8 decode/static review,pass,No syntax/read failure
+main/apps/mermaid-viewer/dist/diagram-data.js,untracked,active,application,UTF-8 decode/static review,pass,No syntax/read failure
+main/apps/mermaid-viewer/dist/index.html,untracked,active,application,UTF-8 decode/static review,pass,No syntax/read failure
+main/apps/mermaid-viewer/dist/styles.css,untracked,active,application,existence/hash,present,Binary or format-specific artifact
+main/apps/mermaid-viewer/dist/vendor/mermaid.esm.min.mjs,untracked,active,application,existence/hash,present,Binary or format-specific artifact
+main/apps/mermaid-viewer/index.html,tracked,active,application,UTF-8 decode/static review,pass,No syntax/read failure
+main/apps/mermaid-viewer/nginx.conf,untracked,active,application,UTF-8 decode/static review,pass,No syntax/read failure
+main/apps/mermaid-viewer/package-lock.json,untracked,active,application,JSON parse,pass,No syntax/read failure
+main/apps/mermaid-viewer/package.json,untracked,active,application,JSON parse,pass,No syntax/read failure
+main/apps/mermaid-viewer/packaging/README.md,untracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/apps/mermaid-viewer/packaging/docker-compose.yml,untracked,active,docker-compose,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/apps/mermaid-viewer/scripts/build.mjs,untracked,active,script/tool,existence/hash,present,Binary or format-specific artifact
+main/apps/mermaid-viewer/styles.css,tracked,active,application,existence/hash,present,Binary or format-specific artifact
+main/apps/mermaid-viewer/vendor/mermaid.esm.min.mjs,untracked,active,application,existence/hash,present,Binary or format-specific artifact
+main/apps/transferportal/README.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/apps/transferportal/packaging/examples/config.yaml,tracked,active,application,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/apps/transferportal/packaging/examples/transferportal.env.example,tracked,active,application,UTF-8 decode/static review,pass,No syntax/read failure
+main/apps/transferportal/packaging/install-native-omv.sh,tracked,active,application,UTF-8 decode; shell/runtime checked separately,pass,No syntax/read failure
+main/apps/transferportal/packaging/root-helper,tracked,active,application,existence/hash,present,Binary or format-specific artifact
+main/apps/transferportal/packaging/sudoers/transferportal,tracked,active,application,existence/hash,present,Binary or format-specific artifact
+main/apps/transferportal/packaging/systemd/transferportal.service,tracked,active,application,UTF-8 decode/static review,pass,No syntax/read failure
+main/apps/transferportal/pyproject.toml,tracked,active,application,existence/hash,present,Binary or format-specific artifact
+main/apps/transferportal/tests/test_job_lifecycle.py,tracked,active,application,Python AST parse,pass,No syntax/read failure
+main/apps/transferportal/tests/test_move_mode.py,tracked,active,application,Python AST parse,pass,No syntax/read failure
+main/apps/transferportal/tests/test_path_safety.py,tracked,active,application,Python AST parse,pass,No syntax/read failure
+main/apps/transferportal/tests/test_portal_delete_flow.py,tracked,active,application,Python AST parse,pass,No syntax/read failure
+main/apps/transferportal/tests/test_root_helper.py,tracked,active,application,Python AST parse,pass,No syntax/read failure
+main/apps/transferportal/tests/test_rsync.py,tracked,active,application,Python AST parse,pass,No syntax/read failure
+main/apps/transferportal/tests/test_ui_helpers.py,tracked,active,application,Python AST parse,pass,No syntax/read failure
+main/apps/transferportal/transferportal/__init__.py,tracked,active,application,Python AST parse,pass,No syntax/read failure
+main/apps/transferportal/transferportal/app.py,tracked,active,application,Python AST parse,pass,No syntax/read failure
+main/apps/transferportal/transferportal/helper_client.py,tracked,active,application,Python AST parse,pass,No syntax/read failure
+main/apps/transferportal/transferportal/job_runner.py,tracked,active,application,Python AST parse,pass,No syntax/read failure
+main/apps/transferportal/transferportal/models.py,tracked,active,application,Python AST parse,pass,No syntax/read failure
+main/apps/transferportal/transferportal/move_mode.py,tracked,active,application,Python AST parse,pass,No syntax/read failure
+main/apps/transferportal/transferportal/path_safety.py,tracked,active,application,Python AST parse,pass,No syntax/read failure
+main/apps/transferportal/transferportal/portals.py,tracked,active,application,Python AST parse,pass,No syntax/read failure
+main/apps/transferportal/transferportal/root_helper.py,tracked,active,application,Python AST parse,pass,No syntax/read failure
+main/apps/transferportal/transferportal/rsync.py,tracked,active,application,Python AST parse,pass,No syntax/read failure
+main/apps/transferportal/transferportal/settings.py,tracked,active,application,Python AST parse,pass,No syntax/read failure
+main/apps/transferportal/transferportal/store.py,tracked,active,application,Python AST parse,pass,No syntax/read failure
+main/assets/3d-printing/Feedback Carrier/ventsys_feedback_carrier.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/assets/3d-printing/Feedback Carrier/ventsys_feedback_carrier.scad,tracked,active,physical-design/asset,existence/hash,present,Binary or format-specific artifact
+main/assets/3d-printing/Feedback Carrier/ventsys_feedback_carrier.stl,tracked,active,physical-design/asset,existence/hash,present,Binary or format-specific artifact
+main/assets/3d-printing/Feedback Carrier/ventsys_feedback_carrier_preview.png,tracked,active,physical-design/asset,existence/hash,present,Binary or format-specific artifact
+main/assets/3d-printing/Feedback Carrier/ventsys_feedback_carrier_top_view.svg,tracked,active,physical-design/asset,existence/hash,present,Binary or format-specific artifact
+main/assets/3d-printing/Feedback Carrier/ventsys_feedback_carrier_v2_concept.png,tracked,active,physical-design/asset,existence/hash,present,Binary or format-specific artifact
+main/assets/3d-printing/Feedback Carrier/ventsys_feedback_carrier_v2_concept.svg,tracked,active,physical-design/asset,existence/hash,present,Binary or format-specific artifact
+main/assets/3d-printing/skill-test-servo-wiring-no-led-v16/README.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/assets/3d-printing/skill-test-servo-wiring-no-led-v16/generate_concept.py,tracked,active,physical-design/asset,Python AST parse,pass,No syntax/read failure
+main/assets/3d-printing/skill-test-servo-wiring-no-led-v16/preview_original.scad,tracked,active,physical-design/asset,existence/hash,present,Binary or format-specific artifact
+main/assets/3d-printing/skill-test-servo-wiring-no-led-v16/servo_wiring_no_led_v16 - copy.scad,tracked,active,physical-design/asset,existence/hash,present,Binary or format-specific artifact
+main/assets/3d-printing/skill-test-servo-wiring-no-led-v16/servo_wiring_no_led_v16.json,tracked,active,physical-design/asset,JSON parse,pass,No syntax/read failure
+main/assets/3d-printing/skill-test-servo-wiring-no-led-v16/servo_wiring_no_led_v16.scad,tracked,active,physical-design/asset,existence/hash,present,Binary or format-specific artifact
+main/assets/3d-printing/skill-test-servo-wiring-no-led-v16/servo_wiring_no_led_v16.stl,tracked,active,physical-design/asset,existence/hash,present,Binary or format-specific artifact
+main/assets/3d-printing/skill-test-servo-wiring-no-led-v16/servo_wiring_no_led_v16_concept.png,tracked,active,physical-design/asset,existence/hash,present,Binary or format-specific artifact
+main/assets/3d-printing/skill-test-servo-wiring-no-led-v16/servo_wiring_no_led_v16_latest.stl,tracked,active,physical-design/asset,existence/hash,present,Binary or format-specific artifact
+main/assets/3d-printing/skill-test-servo-wiring-no-led-v16/servo_wiring_no_led_v16_original.3mf,tracked,active,physical-design/asset,existence/hash,present,Binary or format-specific artifact
+main/assets/3d-printing/skill-test-servo-wiring-no-led-v16/servo_wiring_no_led_v16_original.stl,tracked,active,physical-design/asset,existence/hash,present,Binary or format-specific artifact
+main/assets/3d-printing/skill-test-servo-wiring-no-led-v16/servo_wiring_no_led_v16_preview.png,tracked,active,physical-design/asset,existence/hash,present,Binary or format-specific artifact
+main/assets/vendor/three.core.min.js,tracked,active,vendor/custom-component,UTF-8 decode/static review,pass,No syntax/read failure
+main/assets/vendor/three.module.min.js,tracked,active,vendor/custom-component,UTF-8 decode/static review,pass,No syntax/read failure
+main/bill-of-materials/3d-printing/parts-list.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,7 link token(s) checked
+main/bill-of-materials/hardware/parts-list.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,12 link token(s) checked
+main/configs/docker-host/README.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/configs/docker-host/stacks/adguard-home/README.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/configs/docker-host/stacks/adguard-home/docker-compose.yml,tracked,active,docker-compose,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/docker-host/stacks/dozzle/docker-compose.yml,tracked,active,docker-compose,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/docker-host/stacks/gardenkeeper/README.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/configs/docker-host/stacks/gardenkeeper/backup-gardenkeeper.sh,tracked,active,configuration,UTF-8 decode; shell/runtime checked separately,pass,No syntax/read failure
+main/configs/docker-host/stacks/gardenkeeper/docker-compose.yml,tracked,active,docker-compose,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/docker-host/stacks/gardenkeeper/env.example,tracked,active,configuration,UTF-8 decode/static review,pass,No syntax/read failure
+main/configs/docker-host/stacks/gardenkeeper/gardenkeeper-backup.service,tracked,active,configuration,UTF-8 decode/static review,pass,No syntax/read failure
+main/configs/docker-host/stacks/gardenkeeper/gardenkeeper-backup.timer,tracked,active,configuration,UTF-8 decode/static review,pass,No syntax/read failure
+main/configs/docker-host/stacks/grocy/docker-compose.yml,tracked,active,docker-compose,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/docker-host/stacks/homepage/config/kubernetes.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/docker-host/stacks/homepage/config/services.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/docker-host/stacks/homepage/config/settings.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/docker-host/stacks/homepage/docker-compose.yml,tracked,active,docker-compose,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/docker-host/stacks/immich/README-STAGED.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/configs/docker-host/stacks/immich/docker-compose.yml,tracked,active,docker-compose,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/docker-host/stacks/mealie/docker-compose.yml,tracked,active,docker-compose,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/docker-host/stacks/mermaid-viewer/README.md,untracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/configs/docker-host/stacks/mermaid-viewer/dist/app.js,untracked,active,configuration,UTF-8 decode/static review,pass,No syntax/read failure
+main/configs/docker-host/stacks/mermaid-viewer/dist/diagram-data.js,untracked,active,configuration,UTF-8 decode/static review,pass,No syntax/read failure
+main/configs/docker-host/stacks/mermaid-viewer/dist/index.html,untracked,active,configuration,UTF-8 decode/static review,pass,No syntax/read failure
+main/configs/docker-host/stacks/mermaid-viewer/dist/styles.css,untracked,active,configuration,existence/hash,present,Binary or format-specific artifact
+main/configs/docker-host/stacks/mermaid-viewer/dist/vendor/mermaid.esm.min.mjs,untracked,active,configuration,existence/hash,present,Binary or format-specific artifact
+main/configs/docker-host/stacks/mermaid-viewer/docker-compose.yml,untracked,active,docker-compose,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/docker-host/stacks/mermaid-viewer/nginx.conf,untracked,active,configuration,UTF-8 decode/static review,pass,No syntax/read failure
+main/configs/docker-host/stacks/ntfy/docker-compose.yml,tracked,active,docker-compose,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/docker-host/stacks/ntfy/etc/server.yml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/docker-host/stacks/obsidian-livesync/docker-compose.yml,tracked,active,docker-compose,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/docker-host/stacks/obsidian-livesync/env.example,tracked,active,configuration,UTF-8 decode/static review,pass,No syntax/read failure
+main/configs/docker-host/stacks/obsidian-livesync/local.ini,tracked,active,configuration,existence/hash,present,Binary or format-specific artifact
+main/configs/docker-host/stacks/searxng/README.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/configs/docker-host/stacks/searxng/docker-compose.yml,tracked,active,docker-compose,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/docker-host/stacks/telegraf/docker-compose.yml,tracked,active,docker-compose,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/docker-host/stacks/telegraf/telegraf.conf,tracked,active,configuration,UTF-8 decode/static review,pass,No syntax/read failure
+main/configs/docker-host/stacks/watchtower/docker-compose.yml,tracked,active,docker-compose,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/docker-host/stacks/whoogle/docker-compose.yml,tracked,active,docker-compose,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/docker-host/system/docker-host-app-data-backup.service,tracked,active,configuration,UTF-8 decode/static review,pass,No syntax/read failure
+main/configs/docker-host/system/docker-host-app-data-backup.sh,tracked,active,configuration,UTF-8 decode; shell/runtime checked separately,pass,No syntax/read failure
+main/configs/docker-host/system/docker-host-app-data-backup.timer,tracked,active,configuration,UTF-8 decode/static review,pass,No syntax/read failure
+main/configs/docker-host/system/docker-host-fail2ban-sshd.local,tracked,active,configuration,existence/hash,present,Binary or format-specific artifact
+main/configs/docker-host/system/docker-host-firewall.sh,tracked,active,configuration,UTF-8 decode; shell/runtime checked separately,pass,No syntax/read failure
+main/configs/docker-host/system/docker-host-ufw-route-dns.sh,tracked,active,configuration,UTF-8 decode; shell/runtime checked separately,pass,No syntax/read failure
+main/configs/docker-host/system/docker-host-ufw-route-monitoring-tailscale.sh,tracked,active,configuration,UTF-8 decode; shell/runtime checked separately,pass,No syntax/read failure
+main/configs/esphome/.gitignore,tracked,active,configuration,existence/hash,present,Binary or format-specific artifact
+main/configs/esphome/_dev/README.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/configs/esphome/_dev/ventsys_airflow_sensor.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/_dev/ventsys_butterfly_valve.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_air_sensor_base.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_booth_airflow.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_booth_fan.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_fdm_360_valve.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_fdm_360_valve_v2_nerdiy.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_fdm_360_valve_v2_nerdiy_original_test.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_fdm_airflow.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_fdm_array_1.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_fdm_array_2.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_fdm_branch_valve.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_fdm_pipe_air_sensor.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_fdm_print_valve.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_garage_air_sensor.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_main_fan.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/configs/esphome/ventsys_main_valve1.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_main_valve2.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_plug_tapo_p110_notes.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/configs/esphome/ventsys_plug_ultrasonic.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_plug_uv1.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_plug_uv2.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_plug_wash_cure.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_sla_360_valve.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_sla_360_valve_v2_nerdiy.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_sla_airflow.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_sla_array_1.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_sla_array_2.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_sla_branch_valve.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_sla_pipe_air_sensor.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/esphome/ventsys_sla_print_valve.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/frigate/config-baseline.yml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/frigate/config.yml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/frigate/docker-compose.yml,tracked,active,docker-compose,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/frigate/frigate.env.example,tracked,active,configuration,UTF-8 decode/static review,pass,No syntax/read failure
+main/configs/frigate/system/frigate-nvr-fail2ban-sshd.local,tracked,active,configuration,existence/hash,present,Binary or format-specific artifact
+main/configs/grafana/README.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/configs/grafana/dashboards/network-dns-overview.json,tracked,active,configuration,JSON parse,pass,No syntax/read failure
+main/configs/grafana/dashboards/proxmox-resource-overview.json,tracked,active,configuration,JSON parse,pass,No syntax/read failure
+main/configs/grafana/dashboards/security-posture-overview.json,tracked,active,configuration,JSON parse,pass,No syntax/read failure
+main/configs/grafana/dashboards/service-availability-overview.json,tracked,active,configuration,JSON parse,pass,No syntax/read failure
+main/configs/home-assistant/automations.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/home-assistant/bambuddy_p1s_package.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/home-assistant/cam_01_annke_c500_package.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/home-assistant/configuration.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/home-assistant/custom_components/grocy_llm/__init__.py,tracked,active,vendor/custom-component,Python AST parse,pass,No syntax/read failure
+main/configs/home-assistant/custom_components/grocy_llm/manifest.json,tracked,active,vendor/custom-component,JSON parse,pass,No syntax/read failure
+main/configs/home-assistant/custom_components/llamacpp_conversation/__init__.py,tracked,active,vendor/custom-component,Python AST parse,pass,No syntax/read failure
+main/configs/home-assistant/custom_components/llamacpp_conversation/manifest.json,tracked,active,vendor/custom-component,JSON parse,pass,No syntax/read failure
+main/configs/home-assistant/custom_components/mealie_llm/__init__.py,tracked,active,vendor/custom-component,Python AST parse,pass,No syntax/read failure
+main/configs/home-assistant/custom_components/mealie_llm/manifest.json,tracked,active,vendor/custom-component,JSON parse,pass,No syntax/read failure
+main/configs/home-assistant/custom_components/searxng_llm/__init__.py,tracked,active,vendor/custom-component,Python AST parse,pass,No syntax/read failure
+main/configs/home-assistant/custom_components/searxng_llm/manifest.json,tracked,active,vendor/custom-component,JSON parse,pass,No syntax/read failure
+main/configs/home-assistant/haos-timesyncd-router.conf,tracked,active,configuration,UTF-8 decode/static review,pass,No syntax/read failure
+main/configs/home-assistant/lovelace/monitoring-grafana-links.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/home-assistant/monitoring_external_health_package.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/home-assistant/packages/gardenkeeper_package.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/home-assistant/scenes.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/home-assistant/scripts.yaml,tracked,active,configuration,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/local-ai/docker-compose.yml,tracked,active,docker-compose,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/configs/local-ai/models/llama3.1-search.Modelfile,tracked,active,configuration,existence/hash,present,Binary or format-specific artifact
+main/configs/local-ai/system/docker.service.d/firewall.conf,tracked,active,configuration,UTF-8 decode/static review,pass,No syntax/read failure
+main/configs/local-ai/system/llm-host-firewall.sh,tracked,active,configuration,UTF-8 decode; shell/runtime checked separately,pass,No syntax/read failure
+main/configs/openwrt/dhcp-config.conf,tracked,active,configuration,UTF-8 decode/static review,pass,No syntax/read failure
+main/configs/openwrt/firewall-config.conf,tracked,active,configuration,UTF-8 decode/static review,pass,No syntax/read failure
+main/configs/openwrt/system-config.conf,tracked,active,configuration,UTF-8 decode/static review,pass,No syntax/read failure
+main/configs/openwrt/vlan-config.conf,tracked,active,configuration,UTF-8 decode/static review,pass,No syntax/read failure
+main/configs/openwrt/wireless-config.conf,tracked,active,configuration,UTF-8 decode/static review,pass,No syntax/read failure
+main/configs/proxmox/guest-configs.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/configs/proxmox/home-automation-health-check.service,tracked,active,configuration,UTF-8 decode/static review,pass,No syntax/read failure
+main/configs/proxmox/home-automation-health-check.timer,tracked,active,configuration,UTF-8 decode/static review,pass,No syntax/read failure
+main/dashboards/ventsys-card-wrapper.html,tracked,active,dashboard,UTF-8 decode/static review,pass,No syntax/read failure
+main/dashboards/ventsys-config.js.example,tracked,active,dashboard,UTF-8 decode/static review,pass,No syntax/read failure
+main/dashboards/ventsys-dashboard.html,tracked,active,dashboard,UTF-8 decode/static review,pass,No syntax/read failure
+main/dashboards/ventsys_solar_screensaver.html,tracked,active,dashboard,UTF-8 decode/static review,pass,No syntax/read failure
+main/docs/audits/2026-06-system-audit/01-scope-environment.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/audits/2026-06-system-audit/02-claim-traceability.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/audits/2026-06-system-audit/03-findings.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/audits/2026-06-system-audit/04-live-tests.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/audits/2026-06-system-audit/05-resilience-test-cards.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/audits/2026-06-system-audit/06-remediation-backlog.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/audits/2026-06-system-audit/07-final-correctness-report.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/audits/2026-06-system-audit/08-remediation-execution-and-correctness.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/audits/2026-06-system-audit/README.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/audits/2026-06-system-audit/artifact-inventory.csv,tracked,active,documentation,existence/hash,present,Binary or format-specific artifact
+main/docs/audits/2026-06-system-audit/generate_inventory.py,tracked,active,documentation,Python AST parse,pass,No syntax/read failure
+main/docs/audits/2026-06-system-audit/roadmap-disposition.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/audits/2026-06-system-audit/todo-disposition.md,tracked,active,documentation,UTF-8 decode and local-link resolution,fail,2 unresolved local link target(s)
+main/docs/audits/2026-07-full-system-audit/01-scope-baseline.md,untracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/audits/2026-07-full-system-audit/02-static-test-record.md,untracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/audits/2026-07-full-system-audit/03-live-evidence.md,untracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/audits/2026-07-full-system-audit/04-architecture.mmd,untracked,active,documentation,existence/hash,present,Binary or format-specific artifact
+main/docs/audits/2026-07-full-system-audit/04-dependency-matrix.csv,untracked,active,documentation,existence/hash,present,Binary or format-specific artifact
+main/docs/audits/2026-07-full-system-audit/05-backup-recovery-matrix.md,untracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/audits/2026-07-full-system-audit/06-claim-traceability.md,untracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/audits/2026-07-full-system-audit/07-findings.md,untracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/audits/2026-07-full-system-audit/08-resilience-test-cards.md,untracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/audits/2026-07-full-system-audit/09-remediation-backlog.md,untracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/audits/2026-07-full-system-audit/10-final-correctness-report.md,untracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/audits/2026-07-full-system-audit/11-vendor-compatibility.md,untracked,active,documentation,UTF-8 decode and local-link resolution,pass,15 link token(s) checked
+main/docs/audits/2026-07-full-system-audit/12-owner-decisions.md,untracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/audits/2026-07-full-system-audit/HANDOFF.md,untracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/audits/2026-07-full-system-audit/README.md,untracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/audits/2026-07-full-system-audit/analyze_compose.py,untracked,active,documentation,Python AST parse,pass,No syntax/read failure
+main/docs/audits/2026-07-full-system-audit/artifact-inventory.csv,untracked,active,documentation,existence/hash,present,Binary or format-specific artifact
+main/docs/audits/2026-07-full-system-audit/compose-inventory.csv,untracked,active,documentation,existence/hash,present,Binary or format-specific artifact
+main/docs/audits/2026-07-full-system-audit/generate_inventory.py,untracked,active,documentation,Python AST parse,pass,No syntax/read failure
+main/docs/audits/2026-07-full-system-audit/live-component-inventory.csv,untracked,active,documentation,existence/hash,present,Binary or format-specific artifact
+main/docs/audits/2026-07-full-system-audit/roadmap-disposition.md,untracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/audits/2026-07-full-system-audit/scan_secrets.py,untracked,active,documentation,Python AST parse,pass,No syntax/read failure
+main/docs/audits/2026-07-full-system-audit/secret-scan-redacted.csv,untracked,active,documentation,existence/hash,present,Binary or format-specific artifact
+main/docs/audits/2026-07-full-system-audit/todo-disposition.md,untracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/audits/2026-07-full-system-audit/worktree-file-inventory.csv,untracked,active,documentation,existence/hash,present,Binary or format-specific artifact
+main/docs/decisions/01-network-architecture.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,3 link token(s) checked
+main/docs/decisions/02-printer-vlan-architecture.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,5 link token(s) checked
+main/docs/decisions/03-docker-host-service-policy.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/decisions/04-dns-resolver-and-adblocking.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,4 link token(s) checked
+main/docs/decisions/05-self-hosted-services-remote-access.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,6 link token(s) checked
+main/docs/decisions/07-shared-igpu-lxc-infrastructure.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/decisions/08-household-knowledge-recipes-and-inventory.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/decisions/openwrt_wireless_config.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/decisions/router-security-recommendations.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/diagrams/README.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,11 link token(s) checked
+main/docs/diagrams/infrastructure/docker-host-service-placement.mermaid,tracked,active,documentation,UTF-8 decode/static review,pass,No syntax/read failure
+main/docs/diagrams/install/install-sequence.mermaid,tracked,active,documentation,UTF-8 decode/static review,pass,No syntax/read failure
+main/docs/diagrams/mind-map/excalibrain.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/diagrams/network/current-master-architecture.mermaid,tracked,active,documentation,UTF-8 decode/static review,pass,No syntax/read failure
+main/docs/diagrams/network/dns-ntp-flow.mermaid,tracked,active,documentation,UTF-8 decode/static review,pass,No syntax/read failure
+main/docs/diagrams/network/remote-access-flow.mermaid,tracked,active,documentation,UTF-8 decode/static review,pass,No syntax/read failure
+main/docs/diagrams/network/security-access-flow.mermaid,tracked,active,documentation,UTF-8 decode/static review,pass,No syntax/read failure
+main/docs/diagrams/network/vlan_architecture_clean.mermaid,tracked,active,documentation,UTF-8 decode/static review,pass,No syntax/read failure
+main/docs/diagrams/storage/storage-and-backup-flow.mermaid,tracked,active,documentation,UTF-8 decode/static review,pass,No syntax/read failure
+main/docs/diagrams/ventsys/ventsys-control-and-safety-flow.mermaid,tracked,active,documentation,UTF-8 decode/static review,pass,No syntax/read failure
+main/docs/diagrams/wiring-diagrams/carrier-board/README.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/diagrams/wiring-diagrams/carrier-board/esp32-d1-mini-servo-feedback-carrier-concept.png,tracked,active,documentation,existence/hash,present,Binary or format-specific artifact
+main/docs/diagrams/wiring-diagrams/carrier-board/esp32-d1-mini-servo-feedback-carrier-preview.png,tracked,active,documentation,existence/hash,present,Binary or format-specific artifact
+main/docs/diagrams/wiring-diagrams/carrier-board/esp32-d1-mini-servo-feedback-carrier.scad,tracked,active,documentation,existence/hash,present,Binary or format-specific artifact
+main/docs/diagrams/wiring-diagrams/carrier-board/esp32-d1-mini-servo-feedback-carrier.stl,tracked,active,documentation,existence/hash,present,Binary or format-specific artifact
+main/docs/diagrams/wiring-diagrams/carrier-concept.png,tracked,active,documentation,existence/hash,present,Binary or format-specific artifact
+main/docs/diagrams/wiring-diagrams/esp32-d1-mini-servo-feedback-wiring.html,tracked,active,documentation,UTF-8 decode/static review,pass,No syntax/read failure
+main/docs/diagrams/wiring-diagrams/esp32-d1-mini-servo-feedback-wiring.png,tracked,active,documentation,existence/hash,present,Binary or format-specific artifact
+main/docs/diagrams/wiring-diagrams/ventsys_wiring_reference.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/INSTALL-TO-DO.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,5 link token(s) checked
+main/docs/install/START-HERE.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,30 link token(s) checked
+main/docs/install/garage-pi-desktop-setup-guide.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,2 link token(s) checked
+main/docs/install/oled-screen-setup-guide.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/phases/00-operator-basics.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/phases/01-router-openwrt.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/phases/02-proxmox-host.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/phases/03-home-assistant.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/phases/04-frigate.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/phases/05-docker-host.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/phases/05a-local-ai.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/phases/06-omv-nas.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/phases/07-tier1-apps.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,4 link token(s) checked
+main/docs/install/phases/08-tier2-apps.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,9 link token(s) checked
+main/docs/install/phases/09-tier3-evaluate.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,5 link token(s) checked
+main/docs/install/phases/10-backups-monitoring-maintenance.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/phases/11-physical-integrations.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/phases/12-validation-troubleshooting.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/reference/command-location-legend.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/reference/decision-gates.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/reference/hacs-enhancement-roadmap.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/reference/manual-template.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/reference/package-dependency-matrix.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/reference/rebuild-state-matrix.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/reference/secrets-placeholder-ledger.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/reference/version-policy.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/services/README.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,20 link token(s) checked
+main/docs/install/services/actual-budget.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/services/adguard-home.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/services/dozzle.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/services/gardenkeeper.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/services/grocy.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/services/homepage.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/services/immich.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/services/local-registry-mirror.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/services/mealie.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/services/mermaid-viewer.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/services/node-red.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/services/ntfy.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/services/obsidian-livesync.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/services/paperless-ngx.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/services/portainer.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/services/scrypted.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/services/searxng.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/services/transferportal.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/services/vaultwarden.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/services/watchtower-monitor-only.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/install/services/whoogle.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/procedures/apt_cacher_ng_design.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/procedures/claude-MCP-integration.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/procedures/docker_host_patch_window_runbook.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/procedures/frigate_apple_pwa_guide.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/procedures/frigate_camera_preflight_checklist.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/procedures/garage_admin_pi_setup_guide.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/procedures/grafana_architecture_dashboards.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/procedures/home_assistant_companion_app_guide.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/procedures/ids_ips_progression_plan.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/procedures/local_ai_performance_testing.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/procedures/monitoring_roadmap.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/procedures/omv_cutover_execution_runbook.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/procedures/omv_storage_cutover_checklist.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/procedures/proxmox_grafana_metrics.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/procedures/router_temporary_uplink_policy.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/procedures/ssl_tls_guide.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/procedures/tailscale_remote_access_guide.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/procedures/time_sync_strategy.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/procedures/unattended_print_preflight_checklist.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/procedures/unified-formatting-standard.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/procedures/update_maintenance_playbook.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/procedures/update_review_log.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/procedures/ventsys_esphome_tls_rollout_guide.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/procedures/ventsys_solar_screensaver.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/procedures/wireguard_fallback_governance.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/reference/access-matrix.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/reference/current-live-state.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/reference/service-matrix.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/secrets.example.yaml,tracked,active,documentation,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/docs/secrets_reference.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/session-states/session-template.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/docs/troubleshooting/troubleshooting_reference.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/backup/backup_strategy.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/backup/proxmox-lxc-backup-guard.sh,tracked,active,script/tool,UTF-8 decode; shell/runtime checked separately,pass,No syntax/read failure
+main/scripts/monitoring/export_fail2ban_to_influx.sh,tracked,active,script/tool,UTF-8 decode; shell/runtime checked separately,pass,No syntax/read failure
+main/scripts/monitoring/export_uptime_kuma_to_influx.py,tracked,active,script/tool,Python AST parse,pass,No syntax/read failure
+main/scripts/monitoring/health_check.ps1,tracked,active,script/tool,PowerShell parser (separate static test),pass,No syntax/read failure
+main/scripts/monitoring/health_check.sh,tracked,active,script/tool,UTF-8 decode; shell/runtime checked separately,pass,No syntax/read failure
+main/scripts/setup/nas/omv_nas_setup_guide.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/nas/transfer_portal_cheat_sheet.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/printers/bambuddy_p1s_setup_guide.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/proxmox/bambuddy_vm_setup_guide.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/proxmox/docker_host_setup_guide.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/proxmox/frigate_vm_setup_guide.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/proxmox/ha_vm_setup_guide.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/proxmox/igpu_passthrough_guide.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/proxmox/llm_host_setup_guide.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/proxmox/monitoring_vm_setup_guide.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,1 link token(s) checked
+main/scripts/setup/proxmox/proxmox_setup_guide.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/router/network_testing_guide.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/router/openwrt_offline_testing_guide.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/router/phase_1_prerequisites.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/router/phase_2_network_infrastructure_complete.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/router/phase_3_dhcp_configuration.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/router/phase_4_firewall_implementation.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/router/phase_5_wireless_configuration.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/router/phase_6_vpn_setup.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/router/phase_7_integration_testing.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/router/phase_8_ventsys_readiness.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/router/tplink_wa801n_ap_setup.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/router/wireguard_vpn_guide.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/ventsys/Code/ventsys_week1_execution_simple_execution_guide.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/ventsys/Code/ventsys_week1_focused_network_validation.sh,tracked,active,script/tool,UTF-8 decode; shell/runtime checked separately,pass,No syntax/read failure
+main/scripts/setup/ventsys/Code/ventsys_week1_mac_simple_collection_tool.sh,tracked,active,script/tool,UTF-8 decode; shell/runtime checked separately,pass,No syntax/read failure
+main/scripts/setup/ventsys/esphome_adoption_guide.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/ventsys/ventsys_phase1_foundation.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,2 link token(s) checked
+main/scripts/setup/ventsys/ventsys_phase2_hardware.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/ventsys/ventsys_phase3_control.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/ventsys/ventsys_phase4_ui.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/ventsys/ventsys_phase5_diagnostics.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/ventsys/ventsys_phase6_integration.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/scripts/setup/ventsys/ventsys_week1_execution_guide.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/tools/playwright-smoke/package-lock.json,tracked,active,script/tool,JSON parse,pass,No syntax/read failure
+main/tools/playwright-smoke/package.json,tracked,active,script/tool,JSON parse,pass,No syntax/read failure
+main/tools/playwright-smoke/playwright.config.js,tracked,active,script/tool,UTF-8 decode/static review,pass,No syntax/read failure
+main/tools/playwright-smoke/scripts/preview-screensaver.js,tracked,active,script/tool,UTF-8 decode/static review,pass,No syntax/read failure
+main/tools/playwright-smoke/test-results/.last-run.json,tracked,active,script/tool,JSON parse,pass,No syntax/read failure
+main/tools/playwright-smoke/tests/dashboard.spec.js,tracked,active,script/tool,UTF-8 decode/static review,pass,No syntax/read failure
+main/tools/playwright-smoke/tests/screensaver.spec.js,tracked,active,script/tool,UTF-8 decode/static review,pass,No syntax/read failure
+main/tools/router-deploy/.gitignore,tracked,active,script/tool,existence/hash,present,Binary or format-specific artifact
+main/tools/router-deploy/README.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/tools/router-deploy/compile.py,tracked,active,script/tool,Python AST parse,pass,No syntax/read failure
+main/tools/router-deploy/deploy.ps1,tracked,active,script/tool,PowerShell parser (separate static test),pass,No syntax/read failure
+main/tools/router-deploy/keys/.gitkeep,tracked,active,script/tool,existence/hash,present,Binary or format-specific artifact
+main/tools/router-deploy/keys/uplink_wifi.example.json,tracked,active,script/tool,JSON parse,pass,No syntax/read failure
+main/tools/router-deploy/lib/parse_uci.py,tracked,active,script/tool,Python AST parse,pass,No syntax/read failure
+main/tools/router-deploy/lib/ssh_session.ps1,tracked,active,script/tool,PowerShell parser (separate static test),pass,No syntax/read failure
+main/tools/router-deploy/lint.py,tracked,active,script/tool,Python AST parse,pass,No syntax/read failure
+main/tools/router-deploy/test-connectivity.ps1,tracked,active,script/tool,PowerShell parser (separate static test),pass,No syntax/read failure
+main/tools/router-deploy/test.ps1,tracked,active,script/tool,PowerShell parser (separate static test),pass,No syntax/read failure
+main/tools/router-deploy/uplink.ps1,tracked,active,script/tool,PowerShell parser (separate static test),pass,No syntax/read failure
+main/tools/validate_ventsys_contract.py,tracked,active,script/tool,Python AST parse,pass,No syntax/read failure
+main/ventsys/integration-process/ventsys_implementation_roadmap.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/ventsys/integration-process/ventsys_network_integration_analysis.md,tracked,active,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked
+main/ventsys/ventsys_addons_bundle/esphome_device_lifecycle_snippets.yaml,tracked,active,project,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/ventsys/ventsys_addons_bundle/nodered_pid_tuning_and_logging.json,tracked,active,project,JSON parse,pass,No syntax/read failure
+main/ventsys/ventsys_addons_bundle/ventsys_ha_tuning_and_popups.yaml,tracked,active,project,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/ventsys/ventsys_bundle_updated/ventsys_combined.json,tracked,active,project,JSON parse,pass,No syntax/read failure
+main/ventsys/ventsys_bundle_updated/ventsys_fan_controller.yaml,tracked,active,project,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/ventsys/ventsys_bundle_updated/ventsys_fan_controller_pretls.yaml,tracked,active,project,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/ventsys/ventsys_bundle_updated/ventsys_ha_optional.yaml,tracked,active,project,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/ventsys/ventsys_bundle_updated/ventsys_ha_package.yaml,tracked,active,project,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/ventsys/ventsys_bundle_updated/ventsys_ha_scripts.yaml,tracked,active,project,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/ventsys/ventsys_bundle_updated/ventsys_optional_arbitration.json,tracked,active,project,JSON parse,pass,No syntax/read failure
+main/ventsys/ventsys_bundle_updated/ventsys_valve_controller.yaml,tracked,active,project,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+main/ventsys/ventsys_bundle_updated/ventsys_valve_controller_pretls.yaml,tracked,active,project,YAML syntax parse (BaseLoader),pass,No syntax/read failure
+wiki/CLAUDE.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,fail,4 unresolved local link target(s)
+wiki/index.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,54 link token(s) checked
+wiki/log.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,fail,5 unresolved local link target(s)
+wiki/pages/analyses/deployment-status-2026-04.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,13 link token(s) checked
+wiki/pages/analyses/lint-2026-05-18.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,37 link token(s) checked
+wiki/pages/analyses/lint-2026-05-30.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,16 link token(s) checked
+wiki/pages/concepts/mqtt-tls.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,7 link token(s) checked
+wiki/pages/concepts/printairpipe.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,7 link token(s) checked
+wiki/pages/concepts/rag-vs-wiki-pattern.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,fail,1 unresolved local link target(s)
+wiki/pages/concepts/tailscale-remote-access.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,5 link token(s) checked
+wiki/pages/concepts/ventsys-architecture.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,9 link token(s) checked
+wiki/pages/concepts/vlan-segmentation.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,10 link token(s) checked
+wiki/pages/concepts/wireguard-vpn.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,7 link token(s) checked
+wiki/pages/entities/adguard-home.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,3 link token(s) checked
+wiki/pages/entities/bambu-p1s.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,5 link token(s) checked
+wiki/pages/entities/bambuddy.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,6 link token(s) checked
+wiki/pages/entities/docker-host.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,12 link token(s) checked
+wiki/pages/entities/dozzle.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,2 link token(s) checked
+wiki/pages/entities/esphome.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,5 link token(s) checked
+wiki/pages/entities/frigate.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,6 link token(s) checked
+wiki/pages/entities/gl-mt6000.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,9 link token(s) checked
+wiki/pages/entities/home-assistant.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,9 link token(s) checked
+wiki/pages/entities/homepage.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,1 link token(s) checked
+wiki/pages/entities/immich.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,4 link token(s) checked
+wiki/pages/entities/llm-host.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,3 link token(s) checked
+wiki/pages/entities/minix-neo-z350.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,3 link token(s) checked
+wiki/pages/entities/monitoring-vm.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,4 link token(s) checked
+wiki/pages/entities/mosquitto-mqtt.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,7 link token(s) checked
+wiki/pages/entities/openmediavault-nas.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,6 link token(s) checked
+wiki/pages/entities/proxmox.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,7 link token(s) checked
+wiki/pages/entities/raspberry-pi-nas.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,7 link token(s) checked
+wiki/pages/entities/rpi-displays.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,2 link token(s) checked
+wiki/pages/entities/smart-plugs-ventsys.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,2 link token(s) checked
+wiki/pages/entities/tplink-ap.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,1 link token(s) checked
+wiki/pages/entities/ventsys.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,6 link token(s) checked
+wiki/pages/sources/bambuddy-p1s-setup-guide.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,8 link token(s) checked
+wiki/pages/sources/esphome-adoption-guide.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,7 link token(s) checked
+wiki/pages/sources/frigate-vm-setup-guide.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,8 link token(s) checked
+wiki/pages/sources/ha-configuration-yaml.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,5 link token(s) checked
+wiki/pages/sources/ha-vm-setup-guide.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,6 link token(s) checked
+wiki/pages/sources/hardware-bom.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,6 link token(s) checked
+wiki/pages/sources/igpu-passthrough-guide.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,3 link token(s) checked
+wiki/pages/sources/llm-wiki-idea-file.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,fail,7 unresolved local link target(s)
+wiki/pages/sources/network-architecture-decision.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,10 link token(s) checked
+wiki/pages/sources/network-testing-guide.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,7 link token(s) checked
+wiki/pages/sources/openwrt-dhcp-config.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,10 link token(s) checked
+wiki/pages/sources/openwrt-vlan-firewall-configs.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,10 link token(s) checked
+wiki/pages/sources/pi-nas-setup-guide.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,5 link token(s) checked
+wiki/pages/sources/project-readme.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,26 link token(s) checked
+wiki/pages/sources/project-todo.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,10 link token(s) checked
+wiki/pages/sources/proxmox-setup-guide.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,6 link token(s) checked
+wiki/pages/sources/router-setup-complete.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,8 link token(s) checked
+wiki/pages/sources/troubleshooting-reference.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,13 link token(s) checked
+wiki/pages/sources/ventsys-implementation-roadmap.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,7 link token(s) checked
+wiki/pages/sources/ventsys-phase1-foundation.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,7 link token(s) checked
+wiki/pages/sources/ventsys-technical-specs.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,6 link token(s) checked
+wiki/raw/llm-wiki-idea-file.md,tracked,wiki,documentation,UTF-8 decode and local-link resolution,pass,0 link token(s) checked

@@ -4,7 +4,7 @@ description: Fire safety ventilation, NVR surveillance, secure network, and home
 tags: [home-automation, project-overview]
 aliases: [Project Overview]
 created: 2025-09-15
-modified: 2026-07-06
+modified: 2026-08-19
 type: project-overview
 status: active
 ---
@@ -29,7 +29,7 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 | Router deployment | ✅ Live | GL-MT6000 stable on management IP 192.168.10.1 |
 | Proxmox | ✅ Live | MINISFORUM M1 Pro-125H on 192.168.10.10, Proxmox VE 9 |
 | HA VM | ✅ Live | HAOS VM 100 at 192.168.20.101, native HTTPS with local CA, VentSys packages staged |
-| Frigate | ✅ First-camera baseline live | CT 111 runs Frigate 0.17.1 with shared-iGPU OpenVINO, MQTT/HA integration, HTTPS UI and one ANNKE bench camera; broader camera rollout resumes when the new cameras arrive |
+| Frigate | ✅ Three-camera baseline live | CT 111 runs Frigate 0.17.1 with shared-iGPU OpenVINO, MQTT/HA integration, HTTPS UI and three ANNKE C500 cameras; fourth-camera selection and policy tuning remain pending |
 | Docker host | ✅ Live | VM 103 on VLAN 20 with a 64 GiB disk; Mealie, Grocy and Obsidian LiveSync join the existing internal services |
 | Local AI | ✅ LXC + local inference live | CT 114 runs GPU-backed llama.cpp, Open WebUI, Whisper, Piper and OpenWakeWord |
 | OMV NAS | ✅ Live | OpenMediaVault at 192.168.40.50 on VLAN 40; Proxmox/HA/Immich storage paths are live, and the old md0 high-water warning was cleared by the 2026-07-05 `omv-backups` check |
@@ -38,7 +38,7 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 | VentSys HA packages | ✅ Written / staged | Package YAML, scripts, automations all written; do not treat VentSys entities as live until hardware is adopted |
 | ESPHome sensor configs | ✅ Written / validation ongoing | Production VentSys files live under `configs/esphome/`; hardware adoption remains gated |
 | VentSys hardware | ⏳ Pending | ESP32 boards, sensors, PrintAirPipe parts not yet purchased |
-| Cameras | ⏳ Partial | First ANNKE C500 bench camera is live; remaining camera models/RTSP URLs are still pending |
+| Cameras | ✅ Three live / one pending | Three ANNKE C500 cameras are live at `192.168.30.21`–`.23`; a fourth camera remains to be selected and commissioned |
 | MAC addresses | ⏳ Partial | Core VM MACs are recorded; many hardware/device placeholders remain |
 
 ---
@@ -50,8 +50,8 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 | Compute | MINISFORUM M1 Pro-125H (Intel Core Ultra 5 125H, 32GB RAM, 1TB NVMe) | ✅ Owned |
 | Router | GL.iNet GL-MT6000 (OpenWrt, WiFi 6) | ✅ Owned and deployed |
 | NAS | OMV-capable storage host | ✅ Owned and deployed as OMV at 192.168.40.50 |
-| PoE switch | 8-port Gigabit PoE+ | ⏳ Needed |
-| IP cameras | PoE cameras | ⏳ More arriving soon; first ANNKE C500 bench camera is live |
+| PoE switch | Zyxel GS1900-8HP managed PoE+ | ✅ Deployed; management VLAN 10 and camera access ports on VLAN 30 |
+| IP cameras | ANNKE C500 PoE cameras | ✅ Three deployed; fourth remains future scope |
 | ESP32 boards | 4× (2× sensor, 1× fan ctrl, 1× valve ctrl) | ⏳ Needed |
 
 ---
@@ -82,9 +82,9 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 
 ### NVR / Cameras (VLAN 30)
 - Frigate runs on unprivileged CT 111 with shared Intel iGPU acceleration, OpenVINO detection, VA-API decode and HTTPS UI access
-- First ANNKE C500 bench camera is live at 192.168.30.21; future cameras remain planned at 192.168.30.22-24 as hardware arrives
+- Three ANNKE C500 cameras are live at `192.168.30.21`–`.23`; a fourth camera remains planned at `.24` after its model is selected
 - Current recordings write to OMV NFS storage through a Proxmox-host mount and CT 111 bind mount; CT-local storage remains fallback/non-recording media only
-- HA Frigate integration and Advanced Camera Card are live for the first bench camera; keep this path active for the near-term camera rollout instead of parking it
+- HA Frigate integration and Advanced Camera Card are live for all three cameras; keep this path active for the near-term camera rollout instead of parking it
 
 ### Docker host + Bambuddy / P1S printer (VLAN 20 → VLAN 35)
 - Docker host runs on VM 103 at 192.168.20.102; Bambuddy is live on port 8000
@@ -98,6 +98,7 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 - docker-host is the expected target for future containerized AI-adjacent query apps; no YouTube transcript app architecture, ports, APIs, MCP contract, or firewall rules are defined yet
 - Tier 1 docker-host services are live: AdGuard Home, Immich, Homepage, Dozzle, plus Bambuddy
 - Tier 2/Tier 3 services with live baselines include Mealie, Grocy, Obsidian LiveSync/CouchDB, ntfy internal alerts, Watchtower monitor-only, SearXNG and Whoogle
+- Recomp Tracker is live at `http://192.168.20.102:8420` with a source-scoped firewall policy and explicit `10.240.31.0/24` Docker network
 - The OMV-backed media foundation is live: Jellyfin uses read-only approved
   libraries, while Calibre-Web and Atsumeru have separate writable book/comic
   roots. The Immich curated-album exporter remains pending.
@@ -220,4 +221,4 @@ The older setup guides remain deep-dive appendices for individual systems.
 
 ---
 
-**Updated:** 2026-07-06
+**Updated:** 2026-08-19

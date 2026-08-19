@@ -206,7 +206,7 @@ echo "Storage DHCP scope configured: 192.168.40.100-139" >> /tmp/deployment_logs
 ```bash
 # Create IoT Sensors DHCP scope (CRITICAL FOR VENTSYS)
 uci add dhcp dhcp
-uci set dhcp.@dhcp[-1].interface='iot_sensors'
+uci set dhcp.@dhcp[-1].interface='HomeIoT'
 uci set dhcp.@dhcp[-1].start='100'
 uci set dhcp.@dhcp[-1].limit='91'
 uci set dhcp.@dhcp[-1].leasetime='6h'
@@ -696,7 +696,7 @@ else
 fi
 
 # Verify IoT Sensors VLAN DHCP scope  
-if uci show dhcp | grep -q "interface='iot_sensors'"; then
+if uci show dhcp | grep -q "interface='HomeIoT'"; then
     echo "✓ VLAN 50 (IoT Sensors) DHCP scope configured" >> /tmp/phase3_validation.txt
 else
     echo "✗ VLAN 50 (IoT Sensors) DHCP scope missing" >> /tmp/phase3_validation.txt

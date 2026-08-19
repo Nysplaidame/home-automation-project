@@ -2,6 +2,7 @@
 title: Portal, Monitoring and Household Services Handoff
 description: Live Homepage/monitoring state and the next decision-gated service work
 created: 2026-07-27
+modified: 2026-08-19
 type: handoff
 status: current
 ---
