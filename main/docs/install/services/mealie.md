@@ -122,6 +122,8 @@ Consistency rule:
 
 Restore smoke:
 
+Run on: docker-host over SSH.
+
 ```sh
 cd /opt/stacks/mealie
 docker compose stop mealie

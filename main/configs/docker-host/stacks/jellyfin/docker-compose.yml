@@ -2,7 +2,7 @@ name: jellyfin
 
 services:
   jellyfin:
-    image: jellyfin/jellyfin:10.11.11
+    image: jellyfin/jellyfin:10.11.11@sha256:aefb67e6a7ff1debdd154a78a7bbb780fd0c873d8639210a7f6a2016ad2b35db
     container_name: jellyfin
     user: "${MEDIA_UID}:${MEDIA_GID}"
     restart: unless-stopped
@@ -24,6 +24,7 @@ services:
 
 networks:
   default:
+    name: jellyfin
     ipam:
       config:
         - subnet: 10.240.10.0/24

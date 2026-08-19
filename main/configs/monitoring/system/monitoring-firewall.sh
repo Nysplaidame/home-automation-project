@@ -12,3 +12,12 @@ for port in 3000 3001; do
       -j RETURN
   fi
 done
+
+# OMV sends only its aggregate SMART-health push heartbeat to Uptime Kuma.
+if ! iptables -C DOCKER-USER -p tcp -s 192.168.40.50/32 \
+  -m conntrack --ctorigdst 192.168.60.10 --ctorigdstport 3001 \
+  -j RETURN 2>/dev/null; then
+  iptables -I DOCKER-USER 2 -p tcp -s 192.168.40.50/32 \
+    -m conntrack --ctorigdst 192.168.60.10 --ctorigdstport 3001 \
+    -j RETURN
+fi

@@ -2,7 +2,7 @@ name: download-gateway
 
 services:
   gluetun:
-    image: qmcgaw/gluetun:v3.41.1
+    image: qmcgaw/gluetun:v3.41.1@sha256:1a5bf4b4820a879cdf8d93d7ef0d2d963af56670c9ebff8981860b6804ebc8ab
     container_name: download-vpn
     restart: unless-stopped
     cap_add:
@@ -32,7 +32,7 @@ services:
       - no-new-privileges:true
 
   qbittorrent:
-    image: lscr.io/linuxserver/qbittorrent:latest
+    image: lscr.io/linuxserver/qbittorrent@sha256:6816d2b144b1eb97665f886e41e18a14d026ba78c9d0953fc68a1211ea819433
     container_name: qbittorrent
     network_mode: "service:gluetun"
     depends_on:
@@ -53,6 +53,7 @@ services:
 
 networks:
   default:
+    name: download-gateway
     ipam:
       config:
         - subnet: 10.240.20.0/24

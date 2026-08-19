@@ -4,7 +4,7 @@ description: Fresh-rebuild-first manual for replicating the home automation syst
 tags: [install, rebuild, runbook, beginner]
 aliases: [Install Start Here, Rebuild Manual]
 created: 2026-05-24
-modified: 2026-07-06
+modified: 2026-08-09
 type: install-guide
 status: active
 ---
@@ -74,9 +74,9 @@ Use the location names in [command-location-legend.md](reference/command-locatio
 ## Current project state callout
 
 The existing live project is not blank. Router, Proxmox, Home Assistant,
-docker-host, OMV, Tier 1 services, local AI, and the first Frigate camera have
-live state. Frigate remains active near-term for the incoming cameras; only the
-broader camera rollout and OMV recording cutover are still pending. Mealie,
+docker-host, OMV, Tier 1 services, local AI, and three Frigate cameras have
+live state. Frigate recording storage is OMV-backed; only broader camera rollout
+and its per-device acceptance remain pending. Mealie,
 Grocy, Obsidian LiveSync, and GardenKeeper are live or backend-live but still
 need operator setup, app-data backup proof, or client rollout before they are
 household-complete. Much VentSys hardware remains pending or planned. Use

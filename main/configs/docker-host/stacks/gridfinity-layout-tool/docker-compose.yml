@@ -2,7 +2,7 @@ name: gridfinity-layout-tool
 
 services:
   app:
-    image: nginxinc/nginx-unprivileged:alpine
+    image: nginxinc/nginx-unprivileged@sha256:334d92979f15aaecd5dd50af5105e1230e2bb70765d45b1e2f964e7c5eda81c3
     container_name: gridfinity-layout-tool
     restart: unless-stopped
     ports:

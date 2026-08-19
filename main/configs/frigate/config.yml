@@ -3,10 +3,10 @@
 # Deployed via: /opt/frigate/config/config.yml on CT 111 (frigate-nvr)
 # See: scripts/setup/proxmox/frigate_vm_setup_guide.md
 #
-# Live first-camera config:
+# Live three-camera config:
 # - MQTT is enabled over TLS to Home Assistant Mosquitto.
 # - RTSP and MQTT secrets are supplied from /opt/frigate/.env.
-# - The first ANNKE C500 uses go2rtc restreams for HA/Frigate viewing.
+# - All cameras use go2rtc main/sub restreams for HA/Frigate viewing.
 # - Keep config-baseline.yml as the no-camera migration-safe fallback.
 
 mqtt:
@@ -27,6 +27,14 @@ go2rtc:
       - "ffmpeg:cam_01_annke_c500#audio=aac"
     cam_01_annke_c500_sub:
       - rtsp://admin:{FRIGATE_RTSP_PASSWORD}@192.168.30.21:554/Streaming/Channels/102
+    cam_02_gate:
+      - rtsp://admin:{FRIGATE_RTSP_PASSWORD}@192.168.30.22:554/Streaming/Channels/101
+    cam_02_gate_sub:
+      - rtsp://admin:{FRIGATE_RTSP_PASSWORD}@192.168.30.22:554/Streaming/Channels/102
+    cam_03_patio:
+      - rtsp://admin:{FRIGATE_RTSP_PASSWORD}@192.168.30.23:554/Streaming/Channels/101
+    cam_03_patio_sub:
+      - rtsp://admin:{FRIGATE_RTSP_PASSWORD}@192.168.30.23:554/Streaming/Channels/102
   webrtc:
     candidates:
       - 192.168.30.20:8555
@@ -69,6 +77,17 @@ snapshots:
   retain:
     default: 14
 
+# Exterior-camera detection starts with people only. Add camera-specific zones
+# and alert delivery only after each final view has been reviewed.
+objects:
+  track:
+    - person
+
+# Detection is opt-in per camera so inactive/future streams do not consume
+# detector capacity.
+detect:
+  enabled: false
+
 cameras:
   cam_01_annke_c500:
     detect:
@@ -93,5 +112,57 @@ cameras:
       streams:
         Main Stream: cam_01_annke_c500
         Sub Stream: cam_01_annke_c500_sub
+  cam_02_gate:
+    detect:
+      enabled: true
+      width: 1280
+      height: 720
+      fps: 10
+    motion:
+      contour_area: 25
+    ffmpeg:
+      output_args:
+        record: preset-record-generic-audio-aac
+      inputs:
+        - path: rtsp://127.0.0.1:8554/cam_02_gate
+          input_args: preset-rtsp-restream
+          roles:
+            - record
+        - path: rtsp://127.0.0.1:8554/cam_02_gate_sub
+          input_args: preset-rtsp-restream
+          roles:
+            - detect
+    live:
+      streams:
+        Main Stream: cam_02_gate
+        Sub Stream: cam_02_gate_sub
+  cam_03_patio:
+    detect:
+      enabled: true
+      width: 1280
+      height: 720
+      fps: 10
+    motion:
+      # Initial night-noise profile. Reassess with a real person walk-through
+      # before copying these values to the gate camera.
+      threshold: 40
+      contour_area: 50
+      improve_contrast: false
+    ffmpeg:
+      output_args:
+        record: preset-record-generic-audio-aac
+      inputs:
+        - path: rtsp://127.0.0.1:8554/cam_03_patio
+          input_args: preset-rtsp-restream
+          roles:
+            - record
+        - path: rtsp://127.0.0.1:8554/cam_03_patio_sub
+          input_args: preset-rtsp-restream
+          roles:
+            - detect
+    live:
+      streams:
+        Main Stream: cam_03_patio
+        Sub Stream: cam_03_patio_sub
 
 version: 0.17-0

@@ -1,0 +1,112 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: Infrastructure health
+    folder: Home Automation
+    interval: 1m
+    rules:
+      - uid: docker-host-root-disk-high
+        title: Docker host root disk high
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange: {from: 600, to: 0}
+            datasourceUid: influxdb-dockerhost
+            model:
+              datasource: {type: influxdb, uid: influxdb-dockerhost}
+              intervalMs: 1000
+              maxDataPoints: 43200
+              query: 'from(bucket: "dockerhost") |> range(start: -10m) |> filter(fn: (r) => r._measurement == "disk" and r.path == "/" and r._field == "used_percent") |> last() |> keep(columns: ["_time", "_value"])'
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator: {params: [], type: gt}
+                  operator: {type: and}
+                  query: {params: [B]}
+                  reducer: {params: [], type: last}
+                  type: query
+              datasource: {type: __expr__, uid: __expr__}
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator: {params: [85], type: gt}
+                  operator: {type: and}
+                  query: {params: [C]}
+                  reducer: {params: [], type: last}
+                  type: query
+              datasource: {type: __expr__, uid: __expr__}
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 10m
+        annotations:
+          description: Docker host root disk high threshold exceeded
+          summary: Docker host root disk high
+        labels: {severity: warning, source: grafana}
+        isPaused: false
+      - uid: proxmox-root-storage-high
+        title: Proxmox root storage high
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange: {from: 600, to: 0}
+            datasourceUid: influxdb-proxmox
+            model:
+              datasource: {type: influxdb, uid: influxdb-proxmox}
+              intervalMs: 1000
+              maxDataPoints: 43200
+              query: 'from(bucket: "proxmox") |> range(start: -10m) |> filter(fn: (r) => r._measurement == "system" and r.object == "storages" and r.host == "local" and (r._field == "used" or r._field == "total")) |> last() |> pivot(rowKey:["host"], columnKey:["_field"], valueColumn:"_value") |> map(fn: (r) => ({ _value: float(v: r.used) / float(v: r.total) * 100.0 })) |> keep(columns: ["_value"])'
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator: {params: [], type: gt}
+                  operator: {type: and}
+                  query: {params: [B]}
+                  reducer: {params: [], type: last}
+                  type: query
+              datasource: {type: __expr__, uid: __expr__}
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator: {params: [85], type: gt}
+                  operator: {type: and}
+                  query: {params: [C]}
+                  reducer: {params: [], type: last}
+                  type: query
+              datasource: {type: __expr__, uid: __expr__}
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 10m
+        annotations:
+          description: Proxmox root storage high threshold exceeded
+          summary: Proxmox root storage high
+        labels: {severity: warning, source: grafana}
+        isPaused: false

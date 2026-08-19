@@ -90,6 +90,8 @@ same generated Postgres password.
 
 Place GardenKeeper source at `/opt/stacks/gardenkeeper/source`, then:
 
+Run on: docker-host over SSH.
+
 ```sh
 docker compose config
 docker compose up -d --build
@@ -137,6 +139,8 @@ Back up:
 
 The docker-host template also includes a lightweight local PostgreSQL dump
 timer:
+
+Run on: docker-host over SSH.
 
 ```sh
 install -m 0755 backup-gardenkeeper.sh /opt/stacks/gardenkeeper/backup-gardenkeeper.sh

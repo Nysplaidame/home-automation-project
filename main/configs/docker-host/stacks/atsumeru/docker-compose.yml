@@ -2,7 +2,7 @@ name: atsumeru
 
 services:
   atsumeru:
-    image: atsumerudev/atsumeru:latest
+    image: atsumerudev/atsumeru@sha256:16ee7196726ac343c57353435dca8f5ce240a02e50babf97e1a1c24da74c3aef
     container_name: atsumeru
     user: "${MEDIA_UID}:${MEDIA_GID}"
     restart: unless-stopped
@@ -19,6 +19,7 @@ services:
 
 networks:
   default:
+    name: atsumeru
     ipam:
       config:
         - subnet: 10.240.12.0/24

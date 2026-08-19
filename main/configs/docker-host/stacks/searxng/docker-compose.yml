@@ -1,6 +1,6 @@
 services:
   searxng:
-    image: searxng/searxng:latest
+    image: searxng/searxng@sha256:cd22dbf7fac8b25d5e39e65af53a4b47009df5ad3162e270c477fd5b30ce03f2
     container_name: searxng
     restart: unless-stopped
     ports:
@@ -10,3 +10,10 @@ services:
       SEARXNG_SECRET: "${SEARXNG_SECRET}"
     volumes:
       - ./searxng:/etc/searxng
+
+networks:
+  default:
+    name: searxng
+    ipam:
+      config:
+        - subnet: 10.240.8.0/24

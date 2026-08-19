@@ -131,7 +131,24 @@ rollback() {
     (cd "$stack" && docker compose up -d --force-recreate) || true
 }
 
-if ! (cd "$stack" && docker compose up -d --force-recreate) || ! curl -fsS --retry 8 --retry-delay 2 http://127.0.0.1:8093/healthz >/dev/null; then
+if ! (cd "$stack" && docker compose up -d --force-recreate); then
+    rollback
+    echo "Deployment of $tag failed; restored the prior release." >&2
+    exit 1
+fi
+
+# Nginx briefly resets its listener while the replacement container starts.
+# A retryable polling loop avoids treating that normal handover as a failed
+# static release, while still rolling back if the health endpoint never opens.
+healthy=0
+for attempt in $(seq 1 15); do
+    if curl -fsS --connect-timeout 2 http://127.0.0.1:8093/healthz >/dev/null; then
+        healthy=1
+        break
+    fi
+    sleep 2
+done
+if [ "$healthy" -ne 1 ]; then
     rollback
     echo "Deployment of $tag failed; restored the prior release." >&2
     exit 1

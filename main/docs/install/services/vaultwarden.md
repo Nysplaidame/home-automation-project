@@ -49,7 +49,7 @@ is blank.
 
 ## Commands
 
-Run from the repository checkout:
+Run on: Admin laptop from the repository checkout.
 
 ```powershell
 scp main/configs/docker-host/stacks/vaultwarden/docker-compose.yml docker-host-lan:/tmp/vaultwarden-compose.yml
@@ -59,11 +59,35 @@ ssh docker-host-lan 'sudo install -d -m 0750 /opt/stacks/vaultwarden/data; sudo 
 Validate and reconcile only after comparing live `.env` and data paths; never
 overwrite them from Git:
 
+Run on: docker-host over SSH.
+
 ```sh
 cd /opt/stacks/vaultwarden
 docker compose up -d
 docker compose ps
 ```
+
+Expected result: Compose recreates only Vaultwarden, the container is `Up`, and
+the live host-only `.env`/data remain in place.
+
+The Homepage proxy keeps Vaultwarden optional so a fresh Tier 1 rebuild does not
+depend on Tier 3 certificate files. Activate the fixed server only after the
+Vaultwarden leaf certificate, key, and loopback listener are ready.
+
+Run on: docker-host over SSH.
+
+```sh
+test -s /opt/stacks/homepage/tls/vault.crt
+test -s /opt/stacks/homepage/tls/vault.key
+cp /opt/stacks/homepage/preview-proxy/vaultwarden.conf.example \
+  /opt/stacks/homepage/preview-proxy/optional.d/vaultwarden.conf
+cd /opt/stacks/homepage
+docker compose exec -T preview-proxy nginx -t
+docker compose exec -T preview-proxy nginx -s reload
+```
+
+Expected result: all file guards pass, Nginx reports that configuration syntax
+and test are successful, and reload exits `0`.
 
 ## Explanation
 
@@ -99,6 +123,10 @@ Run on: docker-host over SSH.
 ```sh
 cd /opt/stacks/vaultwarden
 docker compose down
+rm -f /opt/stacks/homepage/preview-proxy/optional.d/vaultwarden.conf
+cd /opt/stacks/homepage
+docker compose exec -T preview-proxy nginx -t
+docker compose exec -T preview-proxy nginx -s reload
 ```
 
 ## Completion checklist

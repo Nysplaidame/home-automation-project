@@ -3,7 +3,7 @@ title: "Docker Host (VM 103)"
 category: entity
 tags: [software, docker, proxmox, bambuddy, apt-cache, tailscale, monitoring, fail2ban, mullvad, qbittorrent]
 created: 2026-05-08
-updated: 2026-08-01
+updated: 2026-08-09
 sources: [project-readme, project-todo]
 status: stable
 ---
@@ -12,7 +12,7 @@ status: stable
 
 **Type:** integration - trusted Docker host
 **Status:** Live - trusted Docker app host, Tailscale node, metrics collector, and Fail2ban baseline
-**Related:** [[entities/proxmox]], [[entities/bambuddy]], [[entities/home-assistant]], [[concepts/tailscale-remote-access]], [[entities/adguard-home]], [[entities/immich]], [[entities/homepage]], [[entities/dozzle]], [[entities/qbittorrent]]
+**Related:** [[entities/proxmox]], [[entities/bambuddy]], [[entities/home-assistant]], [[concepts/tailscale-remote-access]], [[entities/adguard-home]], [[entities/immich]], [[entities/homepage]], [[entities/dozzle]], [[entities/household-hub]], [[entities/qbittorrent]]
 
 ## Overview
 
@@ -52,6 +52,7 @@ maintenance window.
 | [[entities/immich]] | `/opt/stacks/immich/` | 2283 | Skeleton/pre-flight only until OMV-backed storage exists |
 | [[entities/homepage]] | `/opt/stacks/homepage/` | 3001 | Internal dashboard |
 | [[entities/dozzle]] | `/opt/stacks/dozzle/` | 8081 | Docker logs, management/internal only |
+| [[entities/household-hub]] | `/opt/stacks/household-hub/` | 8100 | Knowledge/RAG, recipe research, read-only Grocy and Markdown/ICS exports |
 | ntfy | `/opt/stacks/ntfy/` | 8085 | Internal alert relay |
 | SearXNG | `/opt/stacks/searxng/` | 8087 | Direct-access search pre-flight |
 | Whoogle | `/opt/stacks/whoogle/` | 8088 | Direct-access search pre-flight |
@@ -90,6 +91,9 @@ Grafana and Uptime Kuma should use routed access to the monitoring VM on ports
 - The live app-data backup job uses SQLite's online backup API for ntfy
   `user.db` and `cache.db`; a fresh NAS backup and temporary restore smoke passed
   on 2026-07-29.
+- The app-data backup service sends Kuma monitor 36's host-only-token heartbeat
+  in `ExecStartPost`, meaning backup freshness is reported only after a
+  successful backup. Its first live heartbeat was accepted on 2026-08-01.
 
 ## Open Questions
 
@@ -99,9 +103,15 @@ Grafana and Uptime Kuma should use routed access to the monitoring VM on ports
 
 ## Change Log
 
+- 2026-08-09: Added the live Household Hub workload and its persisted,
+  confirmation-gated recipe/Mealie workflow.
+- 2026-08-09: Connected Household Hub read-only to Grocy and added its persistent
+  Obsidian Markdown outbox; Nextcloud remains export-only because it is absent.
 - 2026-08-01: Completed the controlled package window with no reboot required;
   activated and acceptance-proved the Mullvad/qBittorrent gateway and its NAS
   backup/restore path.
+- 2026-08-01: Added the post-success Uptime Kuma backup-freshness heartbeat to
+  the live app-data backup service and acceptance-tested its first delivery.
 - 2026-05-30: Synced live service state: Tier 1 apps, ntfy, Watchtower monitor-only, Telegraf metrics, Tailscale routes, and Fail2ban baseline are live.
 - 2026-05-31: Applied monitoring VM Tailscale host route on docker-host and added routed UFW source artifact for Grafana/Kuma mobile access; route may still need Tailscale admin approval before mobile clients can use it.
 - 2026-07-29: Added the read-only ntfy phone subscriber and deployed/validated

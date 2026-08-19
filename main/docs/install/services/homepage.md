@@ -26,7 +26,11 @@ docker-host over SSH at `192.168.20.102`.
 
 ## Inputs
 
-No required secrets. Do not place tokens or passwords in visible Homepage config.
+- `<DOCKER_HOST_TAILSCALE_IP>` from `tailscale ip -4`; this is not secret.
+- A `Home Local CA` signed leaf certificate. Generate and keep its private key
+  on docker-host.
+
+Do not place tokens or passwords in visible Homepage config.
 
 ## Current live state
 
@@ -54,7 +58,7 @@ No required secrets. Do not place tokens or passwords in visible Homepage config
   `Open tab` is a normal browser link rather than a scripted popup, for reliable
   desktop and mobile behaviour.
 - A fixed-target Nginx sidecar terminates Homepage HTTPS on `443` and provides
-  HTTPS portal-scoped preview routes on `8180`-`8204`. It has no dynamic
+  HTTPS portal-scoped preview routes on `8180`-`8208`. It has no dynamic
   target input, preserves service-specific CSP directives, replaces only the
   framing policy, and is host-firewall scoped to the existing LAN and Tailscale
   clients. Open tab always uses the original service URL.
@@ -71,7 +75,7 @@ No required secrets. Do not place tokens or passwords in visible Homepage config
   matching `DOCKER-USER` returns are rebuilt by `monitoring-firewall.service`
   after Docker starts.
 - Proxmox status uses the fixed-target local proxy health endpoint rather than
-  ICMP. The Homepage bridge subnet `172.18.0.0/16` is allowed only to proxy port
+  ICMP. The explicit Homepage bridge subnet `10.240.1.0/24` is allowed only to proxy port
   `8299/tcp`, so the health check reflects the real upstream without granting
   the container general host-service access.
 - Preview loading is deliberately fail-safe: cross-origin frame failures do not
@@ -112,14 +116,26 @@ Run on: docker-host over SSH.
 Copy the tracked `configs/docker-host/stacks/homepage/` directory to
 `/opt/stacks/homepage/`, then run:
 
+Run on: docker-host over SSH.
+
 ```sh
 cd /opt/stacks/homepage
+DOCKER_HOST_TAILSCALE_IP=$(tailscale ip -4)
+test -n "$DOCKER_HOST_TAILSCALE_IP"
+printf 'DOCKER_HOST_TAILSCALE_IP=%s\n' "$DOCKER_HOST_TAILSCALE_IP" >.env
+chmod 600 .env
+test -s tls/homepage.key
+test -s tls/homepage.crt
+test -s tls/ca.crt
+openssl verify -CAfile tls/ca.crt tls/homepage.crt
 docker compose config
 docker compose up -d
 ```
 
 Install and apply the tracked host-firewall rules after confirming the
-Homepage Compose subnet remains `172.18.0.0/16`:
+Homepage Compose subnet is `10.240.1.0/24`:
+
+Run on: docker-host over SSH.
 
 ```sh
 install -m 0755 docker-host-ufw-homepage-previews.sh \

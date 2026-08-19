@@ -21,6 +21,10 @@ completed payloads. Promotion from `complete` to the sibling NAS-backed
 `/mnt/omv/media/quarantine` tree is an explicit host-side review step; the
 container cannot see that path or any final library.
 
+Its WebUI has reverse-proxy support enabled for Homepage's fixed HTTPS preview
+wrapper. This affects only trusted forwarding headers and does not add a public
+listener or weaken the Mullvad kill-switch boundary.
+
 Acceptance passed by dropping Gluetun's `tun0` interface: qBittorrent public
 egress failed closed, its local Web UI remained available, and host egress
 continued. Gluetun then recovered automatically and Mullvad recognition passed.

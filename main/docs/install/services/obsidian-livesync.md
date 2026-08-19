@@ -95,6 +95,8 @@ Consistency rule:
 
 Restore smoke:
 
+Run on: docker-host over SSH.
+
 ```sh
 cd /opt/stacks/obsidian-livesync
 docker compose stop obsidian-livesync
@@ -102,6 +104,28 @@ docker compose stop obsidian-livesync
 docker compose up -d
 curl -I http://127.0.0.1:5984/
 ```
+
+## Household Hub Markdown outbox
+
+Household Hub's optional Obsidian exporter is live at container path
+`/exports/obsidian`, backed by
+`/opt/stacks/household-hub/data/obsidian-exports` on docker-host. Treat this as
+a persistent Markdown staging outbox only. It does not write directly into the
+`home-automation-project` CouchDB database because LiveSync owns that internal
+document format and may encrypt it.
+
+The 2026-08-09 deployment smoke created a sanitized recipe Markdown note,
+verified its content, and removed the exact disposable note. Moving selected
+outbox notes into an authoritative Obsidian vault remains a separate controlled
+workflow until a supported vault filesystem mount exists.
+
+The export API requires a persisted recipe confirmation UUID, and the confirmed
+candidate's title and source URL must match the requested note. An unconfirmed
+production probe returned `404` and left the outbox unchanged.
+
+The docker-host app-data job includes the outbox as
+`household-hub-exports`. Its dry-run and real NAS run `20260809T130054Z` passed,
+and `latest/household-hub-exports` exists.
 
 ## Completion checklist
 

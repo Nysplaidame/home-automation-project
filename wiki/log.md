@@ -242,3 +242,44 @@
 - No stale stopped/gated Mullvad state or superseded VPN-rule name remained.
 - Corrected the pre-existing index source count from 25 to the actual 21 and
   refreshed the analysis count to 5.
+
+## [2026-08-01] update | Docker-host backup freshness monitoring
+- Pages updated: [[entities/docker-host]], [[entities/monitoring-vm]].
+- Notes: Kuma monitor 36 now receives the docker-host app-data backup heartbeat
+  only after the existing backup service completes successfully; its first live
+  delivery was accepted.
+
+## [2026-08-01] update | Frigate API monitoring recovery
+- Pages updated: [[entities/monitoring-vm]].
+- Notes: CT 111 accepted the narrow monitoring-VM TCP 5000 exception; Kuma
+  monitor 28 was re-enabled and returned `200 - OK`.
+
+## [2026-08-09] update | Household Hub recipe workflow
+- Created [[entities/household-hub]] for the live transcript RAG, recipe
+  research and persisted confirmation-gated Mealie workflow.
+- Updated [[entities/docker-host]], [[entities/llm-host]] and
+  [[entities/home-assistant]] to reflect current service and ownership
+  relationships.
+- Updated [[index]] to 25 entities.
+
+## [2026-08-09] lint | Household Hub state sync
+- Report: [[analyses/lint-2026-08-09]].
+- Confirmed the new Household Hub entity has inbound links and current ownership
+  claims match canonical project state.
+- Updated [[index]] to 6 analyses.
+
+## [2026-08-09] update | Household Hub household integrations
+- Added a dedicated-key, read-only Grocy overview and recorded its five-location
+  live proof with empty stock and shopping-list state.
+- Activated the persistent Obsidian Markdown staging outbox without writing raw
+  LiveSync CouchDB documents.
+- Required a matching persisted confirmation UUID for every Markdown write and
+  proved an unconfirmed live request cannot create a file.
+- Added downloadable `.ics` output for Nextcloud-compatible dry-runs while
+  keeping live CalDAV upload disabled because Nextcloud is not deployed.
+- Extended the NAS app-data job and completed backup run `20260809T130054Z` for
+  the new Grocy key state and persistent Markdown outbox.
+- Pages updated: [[entities/household-hub]], [[entities/docker-host]],
+  [[analyses/lint-2026-08-09]], [[index]].
+- Targeted changed-page links and index counts passed; the lint report records
+  older unresolved knowledge-tool links for a later full-wiki cleanup.

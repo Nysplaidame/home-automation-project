@@ -65,14 +65,17 @@ Bench notes from the first live camera test on 2026-07-01:
 - For the Zyxel GS1900-8HP, record hardware revision, current firmware version,
   PoE budget, admin access method, backup/export procedure and recovery/reset
   procedure before changing VLAN settings.
-- Decide the camera naming/location map before adoption:
+- Current camera naming, network, and switch-port inventory:
 
-| Frigate name | Planned IP | Physical label | Initial role |
-|---|---:|---|---|
-| `cam_01` | `192.168.30.21` | `<label>` | detect + record |
-| `cam_02` | `192.168.30.22` | `<label>` | detect + record |
-| `cam_03` | `192.168.30.23` | `<label>` | detect + record |
-| `cam_04` | `192.168.30.24` | `<label>` | detect + record |
+| Frigate name | IP | Switch port | MAC | Physical label | Model / validation |
+|---|---:|---:|---|---|---|
+| `cam_01_annke_c500` | `192.168.30.21` | 2 | `D0:3B:F4:07:71:45` | Camera 1 / original bench camera | ANNKE C500, model `I51HJ`; firmware `v5.8.10 build 250917` verified |
+| `cam_02_gate` | `192.168.30.22` | 4 | `D0:3B:F4:07:71:A0` | Gate | ANNKE C500, model `I51HJ`; firmware `v5.8.10 build 250917` |
+| `cam_03_patio` | `192.168.30.23` | 3 | `D0:3B:F4:07:72:BE` | Patio | ANNKE C500, model `I51HJ`; firmware `v5.8.10 build 250917` |
+| future `cam_04` | `192.168.30.24` planned | 5 preferred | TBD | TBD | Validate before adoption |
+
+Ports 2-7 are saved as PoE VLAN 30 access ports (untagged, PVID 30). Port 1
+remains the router trunk and port 8 remains the VLAN 40 NAS access port.
 
 - Prepare one unique camera admin password and one RTSP/viewer credential in
   Bitwarden. Prefer a non-admin RTSP user if the camera firmware supports it.

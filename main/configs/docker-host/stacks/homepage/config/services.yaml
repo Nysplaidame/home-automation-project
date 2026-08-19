@@ -14,7 +14,7 @@
     - ntfy:
         id: portal-ntfy
         icon: ntfy.png
-        href: http://192.168.20.102:8085/
+        href: https://192.168.20.102:8193/
         description: Internal alerts and notification topics
         server: docker-host
         container: ntfy
@@ -57,6 +57,13 @@
         container: bambuddy
 
 - Workshop & Knowledge:
+    - Recomp Tracker:
+        id: portal-recomp-tracker
+        icon: mdi-chart-line
+        href: http://192.168.20.102:8420/
+        description: Personal daily habits and workout tracking
+        server: docker-host
+        container: recomp-tracker
     - Open WebUI:
         id: portal-open-webui
         icon: open-webui.png
@@ -177,26 +184,30 @@
         server: docker-host
         container: immich_server
     - Jellyfin:
+        id: portal-jellyfin
         icon: jellyfin.png
         href: http://192.168.20.102:8096/
         description: Read-only household film, series and music library
         server: docker-host
         container: jellyfin
     - Calibre-Web:
+        id: portal-calibre-web
         icon: calibre-web.png
         href: http://192.168.20.102:8083/
         description: Household ebook library
         server: docker-host
         container: calibre-web
     - Atsumeru:
+        id: portal-atsumeru
         icon: mdi-bookshelf
         href: http://192.168.20.102:31337/
         description: Comics and manga library backend
         server: docker-host
         container: atsumeru
     - qBittorrent:
+        id: portal-qbittorrent
         icon: qbittorrent.png
-        href: http://192.168.20.102:8084/
+        href: https://192.168.20.102/portal-preview/qbittorrent/
         description: Mullvad-isolated authorised download staging
         server: docker-host
         container: qbittorrent
@@ -210,11 +221,13 @@
         server: docker-host
         container: dozzle
     - Watchtower:
+        id: portal-watchtower
         icon: watchtower.png
         description: Monitor-only container update checks
         server: docker-host
         container: watchtower
     - Telegraf:
+        id: portal-telegraf
         icon: telegraf.png
         description: Docker-host metrics collection
         server: docker-host
@@ -222,21 +235,25 @@
 
 - Application Services:
     - GardenKeeper API:
+        id: portal-gardenkeeper-api
         icon: mdi-api
         description: GardenKeeper application API
         server: docker-host
         container: gardenkeeper-api
     - GardenKeeper Worker:
+        id: portal-gardenkeeper-worker
         icon: mdi-cog-sync-outline
         description: GardenKeeper background processing
         server: docker-host
         container: gardenkeeper-worker
     - Household Hub API:
+        id: portal-household-hub-api
         icon: mdi-api
         description: Knowledge workbench API
         server: docker-host
         container: household-hub-api-1
     - Immich Machine Learning:
+        id: portal-immich-machine-learning
         icon: mdi-image-filter-center-focus
         description: Photo recognition and indexing
         server: docker-host
@@ -244,36 +261,43 @@
 
 - Data Services:
     - GardenKeeper PostgreSQL:
+        id: portal-gardenkeeper-postgres
         icon: postgres.png
         description: GardenKeeper relational data
         server: docker-host
         container: gardenkeeper-postgres
     - GardenKeeper Redis:
+        id: portal-gardenkeeper-redis
         icon: redis.png
         description: GardenKeeper queue and cache
         server: docker-host
         container: gardenkeeper-redis
     - Household Hub PostgreSQL:
+        id: portal-household-hub-postgres
         icon: postgres.png
         description: Household Hub relational data
         server: docker-host
         container: household-hub-postgres-1
     - Household Hub Redis:
+        id: portal-household-hub-redis
         icon: redis.png
         description: Household Hub queue and cache
         server: docker-host
         container: household-hub-redis-1
     - Household Hub Qdrant:
+        id: portal-household-hub-qdrant
         icon: qdrant.png
         description: Household Hub vector search
         server: docker-host
         container: household-hub-qdrant-1
     - Immich PostgreSQL:
+        id: portal-immich-postgres
         icon: postgres.png
         description: Immich library database
         server: docker-host
         container: immich_postgres
     - Immich Redis:
+        id: portal-immich-redis
         icon: redis.png
         description: Immich job queue
         server: docker-host

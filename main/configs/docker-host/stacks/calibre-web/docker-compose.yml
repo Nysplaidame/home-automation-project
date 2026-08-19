@@ -2,7 +2,7 @@ name: calibre-web
 
 services:
   calibre-web:
-    image: lscr.io/linuxserver/calibre-web:version-0.6.26
+    image: lscr.io/linuxserver/calibre-web:version-0.6.26@sha256:7c0464228f2fdcf543b46e5327f36114596b097db6af0297c26b0452ed15f17c
     container_name: calibre-web
     restart: unless-stopped
     ports:
@@ -19,6 +19,7 @@ services:
 
 networks:
   default:
+    name: calibre-web
     ipam:
       config:
         - subnet: 10.240.11.0/24

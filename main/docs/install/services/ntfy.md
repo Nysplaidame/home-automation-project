@@ -3,7 +3,7 @@ title: ntfy Install Manual
 description: Tier 2 notification service draft install
 tags: [install, docker-host, ntfy, notifications]
 created: 2026-05-24
-modified: 2026-07-29
+modified: 2026-08-01
 type: install-guide
 status: preflight-live
 ---
@@ -38,7 +38,7 @@ Run on: docker-host over SSH.
 mkdir -p /opt/stacks/ntfy/cache /opt/stacks/ntfy/etc
 cd /opt/stacks/ntfy
 cat > etc/server.yml <<'YAML'
-base-url: "http://ntfy.home.local:8085"
+base-url: "https://192.168.20.102:8193"
 listen-http: ":80"
 cache-file: "/var/cache/ntfy/cache.db"
 auth-file: "/etc/ntfy/user.db"
@@ -72,7 +72,13 @@ docker compose up -d
 As of 2026-05-27:
 
 - Stack path: `/opt/stacks/ntfy`.
-- URL: `http://192.168.20.102:8085/` / `http://ntfy.home.local:8085/`.
+- Primary browser URL: `https://192.168.20.102:8193/`, terminated by the
+  Homepage local-CA HTTPS proxy. This is the required secure context for the
+  browser Notifications API.
+- Raw `http://192.168.20.102:8085/` remains an internal service listener only;
+  do not use it in a browser or as ntfy's advertised base URL.
+- Mobile Tailscale URL: `https://docker-host.tail7012a0.ts.net:8444/`, served
+  privately by Tailscale Serve with a Tailscale-issued certificate.
 - DNS alias `ntfy.home.local` points to `192.168.20.102`.
 - Credentials are stored on docker-host at `/root/ntfy-credentials.txt`.
 - `auth-default-access: "deny-all"` is live.
@@ -97,7 +103,8 @@ accidentally creating an unauthenticated notification relay.
 
 ## Expected result
 
-ntfy listens internally at `http://192.168.20.102:8085/`.
+ntfy's browser-facing base URL is `https://192.168.20.102:8193/`; it listens
+internally on HTTP `8085` only behind the HTTPS/Tailscale terminators.
 
 ## Validation
 
@@ -105,13 +112,15 @@ Run on: docker-host over SSH.
 
 ```sh
 cd /opt/stacks/ntfy && docker compose ps
-curl -fsS -o /dev/null -w '%{http_code}\n' http://192.168.20.102:8085/
+curl -kfsS -o /dev/null -w '%{http_code}\n' https://192.168.20.102:8193/
 ```
 
 ## Mobile subscriber rollout
 
 Create a separate read-only identity for household phones rather than signing
 the app in as the ntfy administrator or a publisher account:
+
+Run on: docker-host over SSH.
 
 ```sh
 docker exec -it ntfy ntfy user add mobile-monitoring
@@ -126,17 +135,14 @@ repository. The live account was created on 2026-07-29 and its credential is in
 Windows Credential Manager under `home-automation/ntfy-mobile`.
 On the phone, connect Tailscale and add a custom ntfy server using:
 
-- server: `http://ntfy.home.local:8085`
+- server: `https://docker-host.tail7012a0.ts.net:8444`
 - topic: `monitoring`
 - user: `mobile-monitoring`
 - password: the Bitwarden value
 
-The Android deep-link equivalent is
-`ntfy://ntfy.home.local:8085/monitoring?secure=false&display=Home+Monitoring`,
-but credentials still need to be entered in the app. HTTP is acceptable only
-while this endpoint remains private and traffic is carried inside the encrypted
-tailnet; do not expose port `8085` publicly. Replace it with HTTPS before any
-non-tailnet access is considered.
+This must be entered manually rather than through the old `ntfy://` deep link.
+The mobile endpoint uses a Tailscale-issued HTTPS certificate; do not expose
+port `8085` publicly.
 
 After subscribing, publish one labelled test message and confirm it appears on
 the phone before relying on ntfy for incident delivery.

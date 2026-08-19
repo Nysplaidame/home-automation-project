@@ -27,6 +27,7 @@ only candidates.
 
 - [adguard-home.md](adguard-home.md) — preflight-live DNS/ad-blocking baseline
 - [immich.md](immich.md) — preflight-live with OMV media mount, real-library import still gated
+- [immich-curated-exporter.md](immich-curated-exporter.md) — staged, allow-listed one-way album export to Jellyfin; live test-album proof still required
 - [homepage.md](homepage.md) — preflight-live service dashboard
 - [dozzle.md](dozzle.md) — preflight-live log viewer with host-firewall scoping
 

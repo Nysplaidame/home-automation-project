@@ -14,6 +14,8 @@ Grocy runs on docker-host at `http://grocy.home.local:9283/` using the pinned
 LinuxServer image for Grocy 4.6.0. Persistent state is under
 `/opt/stacks/grocy/config`.
 
+Run on: docker-host over SSH.
+
 ```sh
 mkdir -p /opt/stacks/grocy/config
 cp /path/to/repo/main/configs/docker-host/stacks/grocy/docker-compose.yml \
@@ -76,6 +78,8 @@ Consistency rule:
 
 Restore smoke:
 
+Run on: docker-host over SSH.
+
 ```sh
 cd /opt/stacks/grocy
 docker compose stop grocy
@@ -117,6 +121,24 @@ Manual Assist phrases to test:
 
 - "Add bananas to the shopping list."
 - "What's on the Grocy shopping list?"
+
+## Household Hub read-only access
+
+Household Hub joins `grocy_default` and uses its own API-key identity named
+`household-hub-read-only`. The key is stored only on docker-host in the Hub
+environment and `/root/household-hub-grocy-api-key.txt`; it is not the Home
+Assistant voice key and is not tracked in Git.
+
+`GET /api/integrations/grocy/overview` reads locations, stock/expiry and
+unchecked shopping-list items. The Hub client exposes only GET requests and no
+mutation route. Grocy API keys are not endpoint-scoped, so this application
+boundary and independent revocation are the effective safeguards.
+
+Before creating the key, the live database was checkpointed at
+`/opt/stacks/grocy/config/data/grocy.db.pre-household-hub-20260809`. The first
+live overview on 2026-08-09 returned all five seeded locations; stock and the
+shopping list were both empty. NAS app-data run `20260809T130054Z` then captured
+the updated Grocy configuration and key state.
 
 ## Completion checklist
 

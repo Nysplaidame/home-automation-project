@@ -56,6 +56,17 @@ backup_path() {
   fi
 }
 
+backup_path_if_present() {
+  name="$1"
+  source_path="$2"
+
+  if [ -d "$source_path" ]; then
+    backup_path "$name" "$source_path"
+  else
+    echo "optional backup source is absent, skipping: $name ($source_path)"
+  fi
+}
+
 backup_sqlite() {
   source_path="$1"
   destination_path="$2"
@@ -95,6 +106,14 @@ backup_sqlite /opt/stacks/vaultwarden/data/db.sqlite3 \
 
 backup_path mealie /opt/stacks/mealie/data
 backup_path grocy /opt/stacks/grocy/config
+backup_path household-hub-exports /opt/stacks/household-hub/data/obsidian-exports
+backup_path_if_present immich-curated-exporter /opt/stacks/immich-curated-exporter/state
+
+recomp_tracker_stage="$(mktemp -d /var/tmp/recomp-tracker-app-backup.XXXXXX)"
+trap 'rm -rf "$ntfy_stage" "$vaultwarden_stage" "$recomp_tracker_stage"' EXIT INT TERM
+backup_sqlite /opt/stacks/recomp-tracker/data/recomp.db \
+  "$recomp_tracker_stage/recomp.db"
+backup_path recomp-tracker "$recomp_tracker_stage"
 backup_path obsidian-livesync /opt/stacks/obsidian-livesync/data
 backup_path gardenkeeper /opt/stacks/gardenkeeper/backups
 backup_path ntfy "$ntfy_stage"

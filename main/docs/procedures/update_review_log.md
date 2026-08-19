@@ -573,3 +573,24 @@ Actions deferred:
 - optional allow-listed Autobrr evaluation
 - Vaultwarden owner onboarding after live DNS
 - no package autoremove was performed
+
+## 2026-08-01 - Gridfinity Layout Tool recovery
+
+Actions taken:
+
+- corrected the static Nginx redirect so `/designer` and `/baseplate` retain
+  the public service port rather than redirecting to Docker-host's AdGuard
+  listener on `:8080`
+- updated the pinned static release from `gridfinity-layout-tool-v4.253.0` to
+  `gridfinity-layout-tool-v4.342.0`; this includes upstream's geometry-worker
+  timeout/error handling for the Bin and Baseplate infinite-spinner defect
+- hardened the release updater's health probe to tolerate Nginx's short
+  listener handover during an otherwise healthy container recreation
+
+Post-check:
+
+- `/healthz` returned `ok`
+- direct and HTTPS-preview `/designer` and `/baseplate` redirects now stay on
+  their original host and port
+- browser checks rendered both the Baseplate and Bin Designer canvases with no
+  visible loading state after the update

@@ -41,12 +41,16 @@ rsync transfer is finished or during a quiet window. The install script does not
 stop existing rsync jobs, but avoid changing portal mounts while a transfer is
 active.
 
+Run on: OMV shell from the staged TransferPortal source directory.
+
 ```bash
 cd /root/transferportal
 ./packaging/install-native-omv.sh /root/transferportal
 ```
 
 Then edit:
+
+Run on: OMV shell.
 
 ```bash
 nano /etc/transferportal/transferportal.env
@@ -64,6 +68,8 @@ systemctl status transferportal --no-pager -l
   source deletion permission, and explicit confirmation.
 
 ## Validation
+
+Run on: OMV shell.
 
 ```bash
 systemctl status transferportal --no-pager -l
@@ -87,6 +93,8 @@ so the helper can create bind-mount directories and mount units.
 - interrupted retry completed with exit `0`
 
 ## Rollback
+
+Run on: OMV shell.
 
 ```bash
 systemctl stop transferportal

@@ -1,0 +1,41 @@
+name: recomp-tracker
+
+services:
+  recomp-tracker:
+    build:
+      context: .
+      provenance: false
+    container_name: recomp-tracker
+    restart: unless-stopped
+    ports:
+      - "8420:8420"
+    volumes:
+      - ./data:/data
+    environment:
+      TZ: "${RECOMP_TIMEZONE:-Europe/London}"
+      NTFY_URL: "http://ntfy"
+      NTFY_TOPIC: "${RECOMP_NTFY_TOPIC:?set RECOMP_NTFY_TOPIC in .env}"
+      NTFY_USER: "${RECOMP_NTFY_USER:?set RECOMP_NTFY_USER in .env}"
+      NTFY_PASSWORD: "${RECOMP_NTFY_PASSWORD:?set RECOMP_NTFY_PASSWORD in .env}"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - default
+      - alerting
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8420/healthz')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  default:
+    name: recomp-tracker
+    ipam:
+      config:
+        - subnet: 10.240.31.0/24
+  alerting:
+    name: local-alerting
+    external: true

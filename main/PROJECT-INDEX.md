@@ -143,6 +143,7 @@ status: active
 
 ### 3. Storage
 - [[scripts/setup/nas/omv_nas_setup_guide.md]] — OpenMediaVault NAS, NFS/SMB, HA/Frigate/Immich storage
+- [[docs/install/services/immich-curated-exporter.md]] — allow-listed, non-destructive Immich album export into Jellyfin
 - [[docs/install/services/transferportal.md]] — native OMV Transfer Portal service for guarded local rsync jobs
 - [[apps/transferportal/README.md]] — FastAPI app, root helper, tests, and packaging source
 

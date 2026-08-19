@@ -46,7 +46,8 @@ Completed live:
 - Guest hostname set to `docker-host`.
 - `qemu-guest-agent` installed and active.
 - Docker and Docker Compose installed and active.
-- Bambuddy image `ghcr.io/maziggy/bambuddy:latest` pulled.
+- Bambuddy rebuild source is digest-pinned and uses the explicit
+  `10.240.23.0/24` bridge network.
 - Bambuddy stack staged at `/opt/stacks/bambuddy`.
 - Homepage stack staged at `/opt/stacks/homepage` and live on port `3001`.
 - Dozzle stack staged at `/opt/stacks/dozzle` and live on port `8081`.
@@ -78,7 +79,7 @@ Completed live:
 - VM 103 disk was expanded online to 64 GiB on 2026-06-21.
 - Uptime Kuma notification `ntfy Monitoring` is live and mapped to all active
   monitors through ntfy topic `monitoring`.
-- UFW route rules allow only AdGuard's Docker bridge subnet `172.20.0.0/16`
+- UFW route rules allow only AdGuard's Docker bridge subnet `10.240.2.0/24`
   to reach upstream DNS ports `53/tcp`, `53/udp`, and `853/tcp`; this is
   required because UFW otherwise denies Docker routed traffic.
 - Rebuildable source script for these routed DNS allowances is
@@ -342,19 +343,29 @@ Bambuddy Compose file:
 services:
   bambuddy:
     container_name: bambuddy
-    image: ghcr.io/maziggy/bambuddy:latest
+    image: ghcr.io/maziggy/bambuddy@sha256:954d93d7aaf98436cd8a31f67246d12453aa401830c34b8b645effc009caa897
     restart: unless-stopped
-    network_mode: host
+    ports:
+      - "8000:8000"
     environment:
-      - TZ=Europe/London
-      - PORT=8000
-      - MQTT_HOST=${MQTT_HOST}
-      - MQTT_PORT=${MQTT_PORT}
-      - MQTT_USER=${MQTT_USER}
-      - MQTT_PASSWORD=${MQTT_PASSWORD}
+      TZ: Europe/London
+      PORT: "8000"
+      MQTT_HOST: "${MQTT_HOST}"
+      MQTT_PORT: "${MQTT_PORT}"
+      MQTT_USER: "${MQTT_USER}"
+      MQTT_PASSWORD: "${MQTT_PASSWORD}"
     volumes:
-      - /opt/stacks/bambuddy/data:/app/data
-      - /opt/stacks/bambuddy/logs:/app/logs
+      - ./data:/app/data
+      - ./logs:/app/logs
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  default:
+    name: bambuddy
+    ipam:
+      config:
+        - subnet: 10.240.23.0/24
 ```
 
 Example environment file:
@@ -374,6 +385,11 @@ Use MQTT port `8883` after Mosquitto TLS is configured and verified. Also enable
 TLS in the Bambuddy application settings so its internal MQTT relay connects
 over TLS.
 
+Before migrating an existing host-network deployment, install and run
+`configs/docker-host/system/docker-host-ufw-route-bambuddy.sh`; it permits only
+the new bridge to Home Assistant and the P1S destinations that Bambuddy needs.
+The matching source-scoped UI policy is in `docker-host-firewall.sh`.
+
 When ready to start the service:
 
 ```bash
@@ -384,6 +400,10 @@ chmod 600 .env
 docker compose up -d
 docker compose logs bambuddy -f
 ```
+
+Use the complete tracked template in `configs/docker-host/stacks/bambuddy/`.
+Do not reuse an automatic Docker subnet; the canonical allocation table is
+`configs/docker-host/NETWORK-ALLOCATION.md`.
 
 ### Tier 1 stack paths
 

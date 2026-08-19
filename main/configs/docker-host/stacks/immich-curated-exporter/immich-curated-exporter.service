@@ -1,0 +1,19 @@
+[Unit]
+Description=Export allow-listed Immich albums for Jellyfin
+Wants=network-online.target
+After=network-online.target
+ConditionPathIsMountPoint=/mnt/omv/media
+
+[Service]
+Type=oneshot
+User=media-service
+EnvironmentFile=/etc/immich-curated-exporter.env
+WorkingDirectory=/opt/stacks/immich-curated-exporter
+ExecStart=/usr/bin/python3 /opt/stacks/immich-curated-exporter/exporter.py
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/mnt/omv/media/jellyfin/immich-curated /opt/stacks/immich-curated-exporter/state
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+UMask=0027

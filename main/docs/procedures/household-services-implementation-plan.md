@@ -248,6 +248,9 @@ library import is permitted in the first phase.
 2. [x] OMV media export and Jellyfin read-only library foundation.
 3. [x] Calibre-Web and Atsumeru least-privilege library foundations.
 4. [ ] Immich allow-listed curated-export proof with manifest/review queue.
+   Source, systemd templates, tests and runbook are staged in
+   `configs/docker-host/stacks/immich-curated-exporter/`; live test-album,
+   Jellyfin-scan, review-queue and backup acceptance remain required.
 5. [x] Mullvad gateway and qBittorrent containment proof; completed 2026-08-01
    with tunnel identity, Web UI/path configuration, interface-drop and full
    provider-stop fail-closed tests, and isolated NAS config restore.

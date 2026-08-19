@@ -1,7 +1,7 @@
 ---
 title: Gridfinity Layout Tool
 description: Local Docker-host deployment for the Gridfinity Layout Tool
-modified: 2026-07-19
+modified: 2026-08-01
 type: runbook
 status: live
 ---
@@ -26,7 +26,7 @@ The stack uses the fixed `172.32.0.0/24` bridge subnet. Do not remove that
 setting: an earlier automatic Docker allocation overlapped the management
 network and broke VM 103 reachability.
 
-On VM 103, run:
+Run on: docker-host VM 103 over SSH.
 
 ```sh
 cd /opt/stacks/gridfinity-layout-tool
@@ -45,15 +45,19 @@ and deploy at 09:00 while the Windows user is signed in. It never opens WAN
 access on docker-host. The scheduled task deploys only upstream version tags,
 uses a dedicated non-interactive SSH key restricted to the management subnet,
 and saves its latest result under `C:\ProgramData\home-automation-project\`.
-The currently deployed release is `gridfinity-layout-tool-v4.253.0`.
+The currently deployed release is `gridfinity-layout-tool-v4.342.0`.
 
 Run the same check on demand from the repository root:
+
+Run on: Admin laptop from repository root in PowerShell.
 
 ```powershell
 .\main\scripts\maintenance\gridfinity-layout-tool-update.ps1 -Mode Check
 ```
 
 To install the latest release, or a specific tag reported by the check:
+
+Run on: Admin laptop from repository root in PowerShell.
 
 ```powershell
 .\main\scripts\maintenance\gridfinity-layout-tool-update.ps1 -Mode Install
@@ -76,12 +80,16 @@ repository.
 
 To repair or change the daily local autodeploy task's time, run:
 
+Run on: Admin laptop from repository root in an elevated PowerShell terminal.
+
 ```powershell
 .\main\scripts\maintenance\install-gridfinity-update-check-task.ps1 -AutoDeploy
 .\main\scripts\maintenance\install-gridfinity-update-check-task.ps1 -AutoDeploy -At 14:30
 ```
 
 To return to the immediately previous successful release:
+
+Run on: Admin laptop from repository root in PowerShell.
 
 ```powershell
 .\main\scripts\maintenance\gridfinity-layout-tool-update.ps1 -Mode Rollback

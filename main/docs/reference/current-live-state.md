@@ -3,7 +3,7 @@ title: Current Live State
 description: Canonical inventory of deployed hosts, services, and deliberately deferred components
 tags: [reference, current-state, infrastructure]
 created: 2026-06-20
-modified: 2026-07-29
+modified: 2026-08-09
 type: reference
 status: active
 ---
@@ -13,7 +13,7 @@ status: active
 This is the canonical current-state inventory. Rebuild manuals describe how to
 build from blank and must link here rather than duplicating live-status claims.
 
-Last verified: **2026-08-01**.
+Last verified: **2026-08-09**.
 
 The Household admin workstation joined Tailscale on 2026-07-13 as
 `household-admin-workstation` (`100.95.209.14`). Tailnet peer discovery and
@@ -111,6 +111,12 @@ while its replacement LXC is running.
 - Frigate HTTPS UI is live on `https://192.168.30.20:8971`; auth is enabled.
   Plain HTTP to port `8971` is rejected, while HA continues to use the internal
   unauthenticated API on `http://192.168.30.20:5000`.
+- On 2026-08-01, the Frigate `admin` password was recovered with the supported
+  one-time `auth.reset_admin_password` flag, then changed and the flag removed
+  before a final verified restart. The credential is not recorded in the
+  repository. Live API checks confirmed MQTT enabled, all three camera streams
+  healthy at about 8 fps, and detection enabled for the Gate and Patio cameras
+  (Camera 1 detection remains disabled).
 - Frigate HTTPS now uses a `Home Local CA` signed certificate mounted from
   `/opt/frigate/tls` into `/etc/letsencrypt/live/frigate`. The certificate SANs
   include `192.168.30.20`, `frigate.home.local`, `frigate-nvr`, and `frigate`.
@@ -216,8 +222,52 @@ detached the iframe, blanked otherwise valid previews and moved controls during
 pointer clicks. Household Hub and Mermaid Viewer were visibly rendered in the
 live embedded workspace after the 2026-07-26 correction; Reload and Close were
 also exercised successfully.
+On 2026-08-09, Household Hub's workbench search authentication was repaired.
+The browser no longer stores or submits the production API token; the web
+container's Nginx proxy injects the existing bearer credential server-side for
+same-origin `/api/` requests. Direct container-to-API requests remain protected
+and returned `401`, while live recipe and YouTube searches each returned six
+candidates without a browser token. The production web image build and
+`nginx -t` both passed before the container was recreated.
+The same 2026-08-09 maintenance updated only the frontend lockfile resolutions
+for transitive `nanoid` (`3.3.18`) and `postcss` (`8.5.26`). A fresh production
+build reported zero npm vulnerabilities; live health and recipe-search probes
+returned `200`, and direct unauthenticated API access continued to return `401`.
+Household Hub recipe review and Mealie handoff are now confirmation-gated and
+durable. Reviews persist a UUID plus candidate/search provenance; imports require
+that UUID and the matching source URL, reject duplicate/in-progress handoffs,
+and record imported or retryable failed state. Search candidates and
+assistant-extracted drafts use the same two-step workbench flow. Alembic revision
+`20260809_0002` is live with an empty `recipe_workflows` table after deployment;
+no live Mealie import was performed during verification.
+Household Hub now also has a live read-only Grocy overview at
+`GET /api/integrations/grocy/overview`. It uses a separate
+`household-hub-read-only` Grocy API key and an application-enforced GET-only
+client; Grocy does not provide per-key endpoint scopes, so all mutation routes
+remain absent from Household Hub. The live probe returned the five seeded
+locations and correctly reported empty stock and shopping lists.
+The Obsidian Markdown exporter is configured at container path
+`/exports/obsidian`, backed by the persistent host outbox
+`/opt/stacks/household-hub/data/obsidian-exports`. This does not write directly
+to Self-hosted LiveSync's plugin-managed CouchDB. A disposable recipe export
+created valid Markdown and was removed after verification. The API now requires
+a persisted confirmation UUID whose candidate title and source URL match the
+draft; an unconfirmed live probe returned `404` and left the outbox unchanged.
+Nextcloud is not
+deployed and has no CalDAV credential; the workbench now exposes its valid
+dry-run `VTODO`/`VEVENT` payload as a downloadable `.ics` file without claiming
+live upload.
+The integration deployment passed 62 backend tests, Ruff with the pre-existing
+`TRY004`/`ISC004` baseline exclusions, production API/web builds, live API
+smokes, desktop interaction and a 390 px mobile layout check. The mobile check
+also caught and repaired a pre-existing dark-on-dark button-label override;
+the final browser console had no warnings or errors.
+The docker-host app-data job now includes the Household Hub Markdown outbox.
+Its dry-run passed and real NAS run `20260809T130054Z` completed successfully,
+capturing the new Grocy key state and creating
+`latest/household-hub-exports`.
 A fixed-target `homepage-preview-proxy` Nginx sidecar is live on docker-host.
-It terminates HTTPS on `443`; HTTPS preview ports `8180`-`8204` are
+It terminates HTTPS on `443`; HTTPS preview ports `8180`-`8208` are
 host-firewall scoped to the established management,
 LAN, automation and Tailscale sources; it cannot proxy arbitrary destinations.
 GardenKeeper, Bambuddy and Whoogle visibly load through it after their upstream
@@ -258,7 +308,7 @@ in `apps/custom-site-themes/`. The Transfer Portal source has the matching
 style prepared but is not deployed until OMV management access is restored.
 The portal uses only non-secret configuration and remains an internal/Tailscale
 surface rather than an authentication boundary.
-Gridfinity Layout Tool (`gridfinity-layout-tool-v4.253.0`) is live at
+Gridfinity Layout Tool (`gridfinity-layout-tool-v4.342.0`) is live at
 `http://192.168.20.102:8093`; its
 `gridfinity.home.local` DNS source is staged but not yet router-deployed. It
 serves a pinned externally built static release through Nginx on the fixed
@@ -377,12 +427,18 @@ registry mirror and Node-RED remain decision-gated candidates.
   three camera hosts are live and `Up`.
 - OpenWrt now permits only monitoring VM `192.168.60.10` to Frigate API TCP
   `5000`, OMV TCP `80`/`2049`, and ICMP for camera hosts `.21`-.23. The OMV and
-  camera checks pass. Frigate API packets match the router allow rule but still
-  time out at CT 111, pending its host-firewall exception.
+  camera checks pass. CT 111 now also allows the monitoring VM to Frigate API
+  TCP `5000`; a direct monitoring-VM probe and Kuma monitor 28 both returned
+  HTTP `200` on 2026-08-01.
 - Kuma monitor 34 and the OMV `smartctl -H` heartbeat service/timer are live for
   aggregate disk-health reporting. The 30-minute timer uses a host-only token
   file and narrow OMV-to-Kuma network path; the first accepted heartbeat on
   2026-07-29 reported `All 5 physical disks report healthy`.
+- Kuma monitor 36 tracks docker-host app-data backup freshness with a 25-hour
+  push window. The existing backup service invokes its host-only-token producer
+  in `ExecStartPost`, so a heartbeat is sent only after a successful backup;
+  the first `Docker-host app-data backup completed` heartbeat was accepted on
+  2026-08-01.
 - Grafana 13.0.1 has two initial metric alerts in `Infrastructure health`:
   docker-host root disk and Proxmox root storage, each warning above 85% for
   10 minutes. Both evaluated `Normal` after creation. The reset Grafana admin
@@ -390,8 +446,10 @@ registry mirror and Node-RED remain decision-gated candidates.
   `home-automation/grafana`; it is not stored in this repository.
 - ntfy has a separate read-only `mobile-monitoring` account for the `monitoring`
   and `watchtower` topics. Its generated credential is stored in Windows
-  Credential Manager under `home-automation/ntfy-mobile`; authenticated polling
-  passed, while a real phone notification remains a user-side acceptance check.
+  Credential Manager under `home-automation/ntfy-mobile`. Mobile access is
+  Tailscale Serve HTTPS at `https://docker-host.tail7012a0.ts.net`; the
+  Homepage proxy remains bound to the LAN address so the Tailscale listener can
+  own port 443.
 - The live docker-host app-data job now snapshots ntfy's `user.db` and
   `cache.db` through SQLite's backup API. A fresh NAS run and temporary restore
   smoke on 2026-07-29 passed integrity checks for both databases.
@@ -484,8 +542,8 @@ registry mirror and Node-RED remain decision-gated candidates.
 
 ## Not built or not production-ready
 
-- Broader Frigate camera rollout beyond the first ANNKE bench camera, including
-  new-camera validation, source updates, motion/zone tuning, and AI rules.
+- Frigate expansion beyond the three live ANNKE cameras, including any fourth
+  camera, remaining motion/zone tuning, and later AI-rule decisions.
 - Most VentSys physical hardware, remaining ESPHome adoption and full safety
   acceptance testing.
 - P1S details and HA Bambuddy package deployment.

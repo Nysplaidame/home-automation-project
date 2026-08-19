@@ -28,6 +28,8 @@ docker-host over SSH at `192.168.20.102`; admin UI from Management network.
 ## Inputs
 
 - `<ADGUARD_ADMIN_PASSWORD>`
+- `<DOCKER_HOST_TAILSCALE_IP>` from `tailscale ip -4`; this is a node address,
+  not a secret.
 
 ## Current live state
 
@@ -51,24 +53,18 @@ Run on: docker-host over SSH.
 ```sh
 mkdir -p /opt/stacks/adguard-home/{work,conf}
 cd /opt/stacks/adguard-home
-cat > docker-compose.yml <<'COMPOSE'
-services:
-  adguard-home:
-    image: adguard/adguardhome:latest
-    container_name: adguard-home
-    restart: unless-stopped
-    ports:
-      - "192.168.20.102:53:53/tcp"
-      - "192.168.20.102:53:53/udp"
-      - "8080:80/tcp"
-    volumes:
-      - ./work:/opt/adguardhome/work
-      - ./conf:/opt/adguardhome/conf
-COMPOSE
+DOCKER_HOST_TAILSCALE_IP=$(tailscale ip -4)
+test -n "$DOCKER_HOST_TAILSCALE_IP"
+printf 'DOCKER_HOST_TAILSCALE_IP=%s\n' "$DOCKER_HOST_TAILSCALE_IP" >.env
+chmod 600 .env
 docker compose config
 docker compose up -d
 docker compose logs --tail=80
 ```
+
+Copy the tracked `configs/docker-host/stacks/adguard-home/` template into this
+directory before running the block. The environment value prevents a clean
+Tailscale re-enrolment from silently retaining the old node address in Compose.
 
 ## Explanation
 

@@ -5,7 +5,7 @@ set -eu
 # when UFW uses "default deny routed" on docker-host.
 
 UFW_BIN="${UFW_BIN:-/usr/sbin/ufw}"
-SRC_SUBNET="${SRC_SUBNET:-172.20.0.0/16}"
+SRC_SUBNET="${SRC_SUBNET:-10.240.2.0/24}"
 
 if ! command -v "$UFW_BIN" >/dev/null 2>&1; then
     echo "ERROR: ufw binary not found at $UFW_BIN" >&2

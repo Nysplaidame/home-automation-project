@@ -212,13 +212,29 @@ Planning baseline until explicitly revalidated:
   monitoring VM host-firewall exception, then test the remaining portals. The
   audit was completed on 2026-07-26; direct navigation remains the fallback when
   a service's own framing policy prevents embedding.
+- [x] Repair qBittorrent's embedded preview and direct HTTPS entry after its
+  legacy WebUI failed inside a port-based iframe. It now uses Homepage's
+  same-origin `/portal-preview/qbittorrent/` route plus a minimal parent-window
+  compatibility bridge; the authenticated Transfers view rendered with no new
+  console errors on 2026-08-01.
 - [x] Create and prove the dedicated OMV media export, then deploy source-scoped
   Jellyfin (read-only libraries), Calibre-Web and Atsumeru foundations with
   explicit non-overlapping Docker IPAM, restart proofs and NAS-backed app-data
   backup; completed 2026-07-29.
+- [ ] Resolve the 14 TB SMB case-collision using an explicit, reversible
+  recovery plan: server-side inspection on 2026-08-02 proved `Media` is the
+  populated canonical library and `media` is a distinct, empty wrapper created
+  eight minutes earlier that contains only `media/Media`. Windows SMB
+  case-insensitive lookup aliases both spellings to the populated `Media`
+  object, causing intermittent Explorer failures. OMV proved `/export/media`
+  correctly bind-mounts only the canonical `Media` path, and no active
+  NFS/systemd/fstab configuration references the stray wrapper. Do not delete
+  or rename either path until a rollback path is documented and approved.
 - [ ] Implement the allow-listed Immich album exporter into
   `jellyfin/immich-curated` with a manifest and review queue. Immich remains the
-  photo system of record; do not mount its live library into Jellyfin.
+  photo system of record; do not mount its live library into Jellyfin. The
+  non-destructive source, service/timer templates and contract tests are staged;
+  a selected test album plus live Jellyfin/review/backup proof remain required.
 - [x] Complete the prepared Mullvad/Gluetun/qBittorrent gateway: securely install
   the generated WireGuard private key/address, start the stack, set separate
   incomplete/complete paths, rotate the qBittorrent Web UI credential, prove
@@ -230,6 +246,13 @@ Planning baseline until explicitly revalidated:
 - [x] Repair the AdGuard/Tailscale reboot race with an enabled systemd Compose
   gate that waits for the Tailscale address and force-recreates the stack; local
   and Tailscale DNS port bindings were revalidated on 2026-07-29.
+- [ ] Apply the 2026-08-11 docker-host network/firewall remediation in a
+  maintenance window: migrate automatic bridges to the explicit CIDR map,
+  recreate the shared alerting network only with all dependants stopped, move
+  Bambuddy from host networking to its scoped bridge, load the IPv6/8000
+  firewall policy, and prove each service/denial path. Source and a preflight
+  allocation table are ready; live application still requires PVE operator
+  access and a captured image inventory before any image change.
 - [ ] Add Homepage service widgets where an approved, least-privilege credential
   path exists. Prioritise already deployed Home Assistant, Frigate, Immich,
   Mealie, Grocy, AdGuard Home, Grafana, Uptime Kuma, Proxmox, OpenWrt and
@@ -252,6 +275,10 @@ Planning baseline until explicitly revalidated:
 - [x] Deploy Grocy for pantry/fridge/freezer stock and expiry tracking
 - [x] Seed Grocy household data model with core locations, quantity units, and product groups; service health reconfirmed on 2026-07-07 (`HTTP/1.1 302 Found` login redirect), database checkpoint created, and OMV app-data backup run `20260707T125454Z` captured the change
 - [x] Add Grocy voice shopping-list support to Home Assistant Assist with add/list-only LLM tools, dedicated Grocy API key, HA/dockerd firewall allowances, direct HA-to-Grocy API proof, and OMV app-data backup run `20260707T132647Z`
+- [x] Add Household Hub's separate-key, read-only Grocy overview for locations, stock/expiry and the active shopping list; live API/UI verified 2026-08-09 with all five seeded locations and no mutation routes
+- [x] Activate Household Hub's persistent, confirmation-gated Obsidian Markdown staging outbox without writing into LiveSync CouchDB; valid export smoke completed, disposable note removed, and an unconfirmed live write rejected without a file on 2026-08-09
+- [x] Add the Household Hub Markdown outbox to the docker-host NAS app-data job; dry-run and real backup `20260809T130054Z` passed
+- [x] Add downloadable `.ics` fallback for Household Hub Nextcloud CalDAV dry-runs; live upload remains gated on an actual Nextcloud deployment and app credential
 - [ ] Parked: Self-hosted LiveSync client rollout; backend/client prep exists, but Obsidian is no longer part of the near-term path
 - [x] Install and prove docker-host app-data backup to OMV `backups/docker-host` covers Mealie, Grocy, Obsidian LiveSync, and GardenKeeper dumps; completed on 2026-07-07 after deploying the live OpenWrt `Docker Host to OMV NFS` rule, mounting `/mnt/omv/docker-host-backups`, running backup `20260706T231304Z`, restore-smoking to `/tmp`, and enabling the daily `03:45` systemd timer
 - [x] Deploy ntfy internal-only under `/opt/stacks/ntfy/`
@@ -263,7 +290,10 @@ Planning baseline until explicitly revalidated:
 
 ### Tier 3 - evaluate carefully
 
-- [ ] Evaluate Vaultwarden only after a backup/security review
+- [x] Evaluate and deploy Vaultwarden only after a backup/security review.
+  Vaultwarden is live behind dedicated local-CA HTTPS with raw HTTP bound to
+  loopback only; two isolated SQLite restore proofs passed on 2026-07-29.
+  Owner onboarding remains separately gated on live `vault.home.local` DNS.
 - [ ] Evaluate Portainer only if its convenience beats the added admin surface
 - [x] Deploy Watchtower in monitor-only mode only
 - [ ] Revisit local registry mirror after more Compose workloads exist
@@ -309,6 +339,30 @@ must work without HACS.
 - [ ] Evaluate Scheduler Card / scheduler-component if native schedules feel awkward
 - [ ] Evaluate Adaptive Lighting only if smart lighting enters project scope
 - [ ] Revisit Bambu Lab / printer HACS integrations only after P1S details are confirmed and Bambuddy overlap is understood
+
+### P1S expansion (after Bambuddy baseline)
+
+- [ ] Evaluate [BambUI](https://github.com/fidoriel/BambUI) as a docker-host
+  (`/opt/stacks/bambui/`) LAN-only, mobile-friendly P1S console after Bambuddy
+  telemetry, MQTT TLS and the HA package have passed their baseline checks.
+  Keep Bambuddy/HA as the safety and automation authority; verify that the two
+  direct printer clients remain stable before retaining BambUI, use Tailscale
+  for remote access, and add its data/backup, firewall and Uptime Kuma design
+  before deployment.
+- [ ] Evaluate [BambuHelper](https://github.com/Keralots/BambuHelper) as an
+  optional physical ESP32 status display beside the P1S. Scope its Wi-Fi/VLAN
+  placement and least-privilege path to the printer first; use it for local
+  read-only status and optionally local smart-plug energy display, with any
+  power control disabled until the VentSys and emergency-cutoff safety policy
+  explicitly permits it.
+- [ ] Research [bambu-printer-mcp](https://github.com/DMontgomery40/bambu-printer-mcp)
+  for a future operator-assist workflow only. Confirm current P1S firmware,
+  LAN-only/Developer Mode and Bambu access-code requirements; assess the
+  project's maintenance, MQTT/FTPS command surface, file-storage permissions,
+  network rules and secret handling. Design confirmation-gated, auditable
+  print/pause/cancel actions with read-only status as the default. Do not
+  deploy it, give an LLM autonomous printer control, or connect it to a safety
+  or emergency-power path without an approved threat model and live test plan.
 
 ### Risk-gated automation candidates
 
@@ -569,8 +623,11 @@ must work without HACS.
 
 ## Phase 5 — NVR / Cameras ⏳
 
-- [ ] Select PoE IP camera models (H.265, RTSP, compatible with Frigate)
-- [ ] Purchase 4× cameras and PoE switch
+- [ ] Select the model and requirements for the remaining camera rollout.
+  Three ANNKE C500 cameras are already proven with Frigate; keep H.265, RTSP,
+  PoE budget and Frigate compatibility as selection gates.
+- [ ] Purchase and commission the remaining fourth camera when its model is
+  selected; the GS1900 PoE switch and three ANNKE C500 cameras are live.
 - [ ] Record sourced camera and smart PoE switch model numbers, firmware lines, RTSP/substream paths, PoE budget, management VLAN behavior, and reset procedures in `docs/procedures/frigate_camera_preflight_checklist.md`
 - [ ] Bench-test one camera at a time using `docs/procedures/frigate_camera_preflight_checklist.md` before permanent mounting
 - [x] Bench-test first camera on the Zyxel switch: ANNKE C500 (`I51HJ`, firmware `v5.8.10 build 250917`) now reserved at `192.168.30.21`, with verified RTSP `/Streaming/Channels/101` and `/Streaming/Channels/102`, router-local NTP, and cloud access disabled
@@ -594,7 +651,9 @@ must work without HACS.
 
 - [x] Set up MQTT TLS (8883) — broker listener live, CA/broker certs installed, authenticated TLS pub/sub verified
 - [x] Keep router source TLS-oriented for MQTT: no valve-specific `1883` exception exists, and remaining clients should migrate to `8883` without reintroducing plain-MQTT router rules
-- [ ] Enable HTTPS on HA — follow `ssl_tls_guide.md` (choose Option A/B/C)
+- [x] Enable Home Assistant native HTTPS with the local `Home Local CA` on
+  2026-07-02; browser, Companion App, CCTV, Frigate integration, VentSys
+  assets, monitoring links and the rollback path were validated.
 - [x] Configure Fail2ban on docker-host (`sshd` jail baseline live at `/etc/fail2ban/jail.d/docker-host-sshd.local`)
 - [x] Configure Fail2ban on Frigate VM (`sshd` jail baseline live at `/etc/fail2ban/jail.d/frigate-nvr-sshd.local`)
 - [x] Deploy monitoring VM on VLAN 60 (Uptime Kuma, InfluxDB, Grafana, Telegraf)
@@ -624,16 +683,18 @@ must work without HACS.
 - [x] Add direct Kuma checks for OMV web, OMV NFS, and all three live camera
   hosts with the ntfy notification channel enabled; every check returned `Up`
   after the narrow OpenWrt rules were deployed.
-- [ ] Allow Frigate API TCP `5000` from `192.168.60.10` in CT 111's host
-  firewall, then revalidate Kuma monitor 28. OpenWrt's rule counter increments,
-  but the current HTTP check times out after routing, so the remaining reject is
-  local to the Frigate host.
+- [x] Allow Frigate API TCP `5000` from `192.168.60.10` in CT 111's host
+  firewall and revalidate Kuma monitor 28. The host rule was applied on
+  2026-08-01; a monitoring-VM probe returned HTTP `200` and the re-enabled
+  `Frigate API Health` monitor returned `200 - OK`.
 - [x] Finish the OMV SMART push heartbeat: monitor 34, the OMV
   `smartctl -H` producer, host-only token file, 30-minute systemd timer, narrow
   OpenWrt rule, and VM 102 `DOCKER-USER` exception are live. The first accepted
   heartbeat on 2026-07-29 reported all five physical disks healthy.
-- [ ] Add a separate backup-freshness push heartbeat after docker-host access is
-  restored and the producer script is deployed.
+- [x] Add a docker-host app-data backup-freshness push heartbeat: Kuma monitor
+  36 expects a heartbeat within 25 hours, and the backup service sends it only
+  through `ExecStartPost` after a successful run. Its first live `Up` heartbeat
+  was accepted on 2026-08-01.
 - [x] Create a read-only ntfy `mobile-monitoring` subscriber for `monitoring`
   and `watchtower`, store its generated password in Windows Credential Manager,
   and validate authenticated subscription from docker-host. A real Android
@@ -642,11 +703,12 @@ must work without HACS.
   default notification policy, and add initial 85%/10-minute metric alerts for
   docker-host root disk and Proxmox root storage. Both rules evaluated `Normal`
   and Grafana's test notification reached ntfy on 2026-07-29. SMART is routed
-  through Kuma monitor 34; backup freshness remains a separate producer task.
+  through Kuma monitor 34 and backup freshness through Kuma monitor 36.
 - [x] Deploy and restore-smoke the repo's SQLite-consistent ntfy addition to the
   docker-host app-data backup job. A fresh NAS run completed on 2026-07-29 and
   restored copies of both `user.db` and `cache.db` passed SQLite integrity checks.
-- [x] Prepare HA HTTPS certificate files without enabling HTTPS cutover
+- [x] Retain the HA HTTPS certificate and rollback artefacts for renewal and
+  recovery; the native HTTPS cutover is live.
 - [x] Keep monitoring operational posture as direct-link access from HA, with embedding intentionally parked for now
 - [ ] Re-open Grafana/Uptime Kuma embedding work only after same-origin HTTPS/reverse-proxy path and auth model are approved
 - [ ] Add Uptime Kuma dashboard view into Home Assistant after same-origin reverse proxy/HTTPS path exists
@@ -657,7 +719,8 @@ must work without HACS.
 - [x] Add/validate router DNS enforcement rules for filtering coverage and public fallback
 - [x] Add monitoring for the DNS filtering service before making it the only resolver path
 - [x] Verify historical pre-NAS Proxmox local backup job for VMs 100/101/102/103; current recurring guest backups now use OMV `omv-backups`
-- [ ] Extend `Fail2ban` from docker-host baseline to Frigate and other applicable Linux service hosts
+- [ ] Extend `Fail2ban` beyond the live docker-host and Frigate SSH baselines
+  to other applicable Linux service hosts
 - [ ] Execute IDS/IPS progression Phase A (`docs/procedures/ids_ips_progression_plan.md`): monitor Fail2ban jails/bans and tune policy after live observation
 - [ ] After at least 30 days of baseline security-event data, decide CrowdSec pilot vs defer and document the decision
 - [ ] Add a scoped internal penetration-testing pass after hardening + update governance stabilize; record findings and remediation evidence

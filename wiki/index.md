@@ -3,8 +3,8 @@
 > **LLM:** Read this file first on every query. Master catalog of all wiki content.
 > Updated after every ingest, query (if filed), or lint pass.
 
-**Stats:** 21 sources - 24 entities - 7 concepts - 5 analyses
-**Last updated:** 2026-08-01
+**Stats:** 21 sources - 25 entities - 7 concepts - 6 analyses
+**Last updated:** 2026-08-09
 
 ---
 
@@ -73,6 +73,7 @@
 - [[entities/immich]] - Live skeleton gallery/photos service; real imports blocked until OMV/backup readiness
 - [[entities/homepage]] - Live responsive HTTPS operations dashboard on docker-host
 - [[entities/dozzle]] - Live Docker log viewer on docker-host
+- [[entities/household-hub]] - Transcript RAG, confirmed recipe handoff, read-only Grocy, and Markdown/ICS exports on docker-host
 - [[entities/qbittorrent]] - Mullvad/Gluetun-isolated authorised download staging with fail-closed proof
 - [[entities/ventsys]] - Fire safety ventilation packages/dashboard staged; hardware rollout gated by TLS-path revalidation
 - [[entities/smart-plugs-ventsys]] - VentSys smart plugs
@@ -100,6 +101,7 @@
 - [[analyses/lint-2026-05-30]] - Documentation/wiki audit after monitoring, Grafana, Fail2ban, and docker-host service updates
 - [[analyses/lint-2026-07-28]] - Targeted CCTV/Frigate/MQTT state lint after the three-camera rollout
 - [[analyses/lint-2026-08-01]] - Targeted maintenance/download-gateway state lint and index-count repair
+- [[analyses/lint-2026-08-09]] - Targeted Household Hub recipe-workflow and ownership-boundary lint
 
 ---
 

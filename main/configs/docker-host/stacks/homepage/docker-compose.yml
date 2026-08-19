@@ -1,12 +1,12 @@
 services:
   homepage:
-    image: ghcr.io/gethomepage/homepage:latest
+    image: ghcr.io/gethomepage/homepage@sha256:a0b71c8e757298d02560186bab9fbe3fc2d375c523a62cc1019177b37e48aa28
     container_name: homepage
     restart: unless-stopped
     ports:
       - "3001:3000"
     environment:
-      HOMEPAGE_ALLOWED_HOSTS: "192.168.20.102,homepage.home.local,100.94.122.18,docker-host,docker-host.home.local,docker-host.tail7012a0.ts.net,192.168.20.102:3001,homepage.home.local:3001,100.94.122.18:3001,docker-host:3001,docker-host.tail7012a0.ts.net:3001"
+      HOMEPAGE_ALLOWED_HOSTS: "192.168.20.102,homepage.home.local,${DOCKER_HOST_TAILSCALE_IP:?set DOCKER_HOST_TAILSCALE_IP},docker-host,docker-host.home.local,docker-host.tail7012a0.ts.net,192.168.20.102:3001,homepage.home.local:3001,${DOCKER_HOST_TAILSCALE_IP}:3001,docker-host:3001,docker-host.tail7012a0.ts.net:3001"
     volumes:
       - ./config:/app/config
       - ./assets:/app/public/images:ro
@@ -15,12 +15,24 @@ services:
       - preview-proxy
 
   preview-proxy:
-    image: nginx:1.27-alpine
+    image: nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10
     container_name: homepage-preview-proxy
     restart: unless-stopped
     network_mode: host
+    environment:
+      DOCKER_HOST_TAILSCALE_IP: "${DOCKER_HOST_TAILSCALE_IP:?set DOCKER_HOST_TAILSCALE_IP}"
+      NGINX_ENVSUBST_FILTER: "DOCKER_HOST_TAILSCALE_IP"
+      NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
     volumes:
-      - ./preview-proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./preview-proxy/nginx.conf:/etc/nginx/templates/nginx.conf.template:ro
       - ./preview-proxy/proxy-common.conf:/etc/nginx/proxy-common.conf:ro
       - ./preview-proxy/tls-common.conf:/etc/nginx/tls-common.conf:ro
+      - ./preview-proxy/optional.d:/etc/nginx/optional.d:ro
       - ./tls:/etc/nginx/tls:ro
+
+networks:
+  default:
+    name: homepage
+    ipam:
+      config:
+        - subnet: 10.240.1.0/24

@@ -2,7 +2,7 @@ name: vaultwarden
 
 services:
   vaultwarden:
-    image: ghcr.io/dani-garcia/vaultwarden:1.36.0
+    image: ghcr.io/dani-garcia/vaultwarden:1.36.0@sha256:d626d04934cd1192ad8ced1adb975099fca78cec33ab467d2d3c923cde7f3b0c
     container_name: vaultwarden
     restart: unless-stopped
     env_file:
@@ -22,6 +22,7 @@ services:
 
 networks:
   default:
+    name: vaultwarden
     ipam:
       config:
         - subnet: 10.240.30.0/24

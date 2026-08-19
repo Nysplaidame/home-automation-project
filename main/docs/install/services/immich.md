@@ -31,21 +31,33 @@ docker-host over SSH at `192.168.20.102`.
 
 - `<IMMICH_ADMIN_EMAIL>`
 - `<IMMICH_ADMIN_PASSWORD>`
+- `<IMMICH_DB_PASSWORD>`
 
 ## Commands
 
 Run on: docker-host over SSH.
 
+Copy the reviewed tracked `configs/docker-host/stacks/immich/` template into
+`/opt/stacks/immich/`. Compare it with the current official Immich release
+before deployment and record the accepted version/digests.
+
+Run on: docker-host over SSH.
+
 ```sh
-mkdir -p /opt/stacks/immich
+findmnt -n -o SOURCE,FSTYPE,TARGET --target /mnt/omv/immich
+test "$(findmnt -n -o FSTYPE --target /mnt/omv/immich)" = nfs4
 cd /opt/stacks/immich
-wget -O docker-compose.yml https://github.com/immich-app/immich/releases/latest/download/docker-compose.yml
-wget -O .env https://github.com/immich-app/immich/releases/latest/download/example.env
-sed -i 's#^UPLOAD_LOCATION=.*#UPLOAD_LOCATION=/mnt/omv/immich#' .env
-docker compose config
-docker compose up -d
+cp .env.example .env
+chmod 600 .env
+nano .env
+! grep -n '<IMMICH_DB_PASSWORD>' .env
+docker compose config --quiet
+docker compose up -d database redis immich-server
 docker compose ps
 ```
+
+Enter `<IMMICH_DB_PASSWORD>` only in the local editor and save it to the
+password manager. The negated `grep` must return success with no output.
 
 ## Current live state
 
@@ -73,8 +85,10 @@ path and local PostgreSQL data are accepted.
 
 ## Explanation
 
-Immich publishes official Compose files per release. The upload location is
-changed to the OMV-backed mount so the VM disk is not the long-term media store.
+Immich publishes official Compose files per release. The tracked template is the
+reviewed rebuild baseline; compare it with upstream before updates. The upload
+location stays on the OMV-backed mount so the VM disk cannot become accidental
+long-term media storage.
 
 ## Expected result
 

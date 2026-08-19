@@ -23,9 +23,11 @@ Live stack paths:
 | Service | Live path | Template path |
 |---|---|---|
 | Homepage | `/opt/stacks/homepage` | `stacks/homepage/` |
+| Bambuddy | `/opt/stacks/bambuddy` | `stacks/bambuddy/` |
 | Dozzle | `/opt/stacks/dozzle` | `stacks/dozzle/` |
 | AdGuard Home | `/opt/stacks/adguard-home` | `stacks/adguard-home/` |
 | Immich | `/opt/stacks/immich` | `stacks/immich/` |
+| Immich curated exporter | `/opt/stacks/immich-curated-exporter` | `stacks/immich-curated-exporter/` |
 | ntfy | `/opt/stacks/ntfy` | `stacks/ntfy/` |
 | Watchtower monitor-only | `/opt/stacks/watchtower` | `stacks/watchtower/` |
 | SearXNG | `/opt/stacks/searxng` | `stacks/searxng/` |
@@ -43,9 +45,13 @@ Live stack paths:
 | Atsumeru | `/opt/stacks/atsumeru` | `stacks/atsumeru/` |
 | Mullvad download gateway + qBittorrent | `/opt/stacks/download-gateway` | `stacks/download-gateway/` |
 | Vaultwarden | `/opt/stacks/vaultwarden` | `stacks/vaultwarden/` |
+| Recomp tracker | `/opt/stacks/recomp-tracker` | `stacks/recomp-tracker/` |
 | Docker host firewall | `/usr/local/sbin/docker-host-firewall.sh` | `system/docker-host-firewall.sh` |
+| Docker host firewall unit | `/etc/systemd/system/docker-host-firewall.service` | `system/docker-host-firewall.service` |
+| Docker host security audit | `/usr/local/sbin/docker-host-security-audit.sh` | `system/docker-host-security-audit.sh` |
 | AdGuard/Tailscale boot gate | `/etc/systemd/system/adguard-home-compose.service` | `system/adguard-home-compose.service` |
 | Docker host UFW routed DNS rules | `/usr/local/sbin/docker-host-ufw-route-dns.sh` | `system/docker-host-ufw-route-dns.sh` |
+| Docker host UFW routed Bambuddy rules | `/usr/local/sbin/docker-host-ufw-route-bambuddy.sh` | `system/docker-host-ufw-route-bambuddy.sh` |
 | Docker host UFW routed monitoring rules | `/usr/local/sbin/docker-host-ufw-route-monitoring-tailscale.sh` | `system/docker-host-ufw-route-monitoring-tailscale.sh` |
 | Docker host Homepage preview UFW rules | `/usr/local/sbin/docker-host-ufw-homepage-previews.sh` | `system/docker-host-ufw-homepage-previews.sh` |
 | Docker host Fail2ban SSH jail | `/etc/fail2ban/jail.d/docker-host-sshd.local` | `system/docker-host-fail2ban-sshd.local` |
@@ -60,3 +66,8 @@ smoke before marking household app backups complete.
 
 Do not commit live `.env` files, app databases, generated auth databases,
 AdGuard password hashes, SearXNG secrets, or Immich database credentials.
+
+Read [NETWORK-ALLOCATION.md](NETWORK-ALLOCATION.md) before creating or
+recreating any Compose network. Every bridge CIDR is explicit and image
+references are digest-pinned; changing either is a reviewed maintenance change,
+not an incidental `docker compose up` side effect.

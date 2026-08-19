@@ -12,7 +12,7 @@
 | HA native backup | HA config, add-ons, automations | OMV md0 NFS `backups/home-assistant` | Daily 03:00 | 7 daily + 6 monthly |
 | Frigate recordings | Camera footage | OMV md0 NFS `CCTV` share | Continuous | Set in Frigate before cameras go live |
 | Frigate LXC state | OS disk, DB, cache, compose/config | MINISFORUM NVMe on CT 111 | Continuous | Rebuildable + config-backed |
-| Docker-host app data | Mealie, Grocy, LiveSync, GardenKeeper, ntfy, Jellyfin, Calibre-Web, Atsumeru, qBittorrent config, and Vaultwarden state | OMV md0 NFS `backups/docker-host` | Daily 03:45 | 14 days of timestamped runs plus `latest`; SQLite-consistent staging for ntfy/Vaultwarden |
+| Docker-host app data | Mealie, Grocy, LiveSync, GardenKeeper, ntfy, Jellyfin, Calibre-Web, Atsumeru, qBittorrent config, Vaultwarden state, and the staged Immich curated-exporter manifest/review queue | OMV md0 NFS `backups/docker-host` | Daily 03:45 | 14 days of timestamped runs plus `latest`; SQLite-consistent staging for ntfy/Vaultwarden |
 | Config file backup | Safety vault YAML/configs | OMV md0 NFS `backups/configs` | Daily via rsync | 7 daily + 6 monthly |
 | GitHub | Safety vault docs + configs | GitHub repo | On push | Full history |
 
@@ -278,7 +278,9 @@ Expanded live proof on 2026-07-29:
 - The live script now stages consistent ntfy and Vaultwarden SQLite snapshots
   using Python's online backup API, plus Jellyfin, Calibre-Web and Atsumeru
   application state. qBittorrent configuration joins the same job after the
-  gateway's first successful start.
+  gateway's first successful start. When deployed, the Immich curated exporter
+  adds only its manifest and non-destructive review queue; exported media stays
+  on the OMV media source of truth.
 - Backup run `20260729T160804Z` completed on the NAS. Restored ntfy databases
   passed SQLite integrity checks. Vaultwarden passed both a clean production
   restore and a disposable-account restore into isolated temporary containers;
@@ -337,6 +339,7 @@ Initial service paths:
 | GardenKeeper | `/opt/stacks/gardenkeeper/backups/` | Local PostgreSQL dump timer output; restore from a selected compressed SQL dump |
 | ntfy | staged copy of `/opt/stacks/ntfy/` | `user.db` and `cache.db` use SQLite online backup before rsync |
 | Jellyfin | `/opt/stacks/jellyfin/config/` | application metadata/config only; media libraries remain on the separate OMV media export |
+| Immich curated exporter | `/opt/stacks/immich-curated-exporter/state/` | manifest and review queue only; curated media remains on the OMV media export |
 | Calibre-Web | `/opt/stacks/calibre-web/config/` | application config/database; ebook payload library remains on the media export |
 | Atsumeru | `/opt/stacks/atsumeru/config/`, `/opt/stacks/atsumeru/database/` | application config and database; comics payload library remains on the media export |
 | qBittorrent | `/opt/stacks/download-gateway/qbittorrent-config/` | include only after the gateway starts; never back up the live Mullvad `.env` to Git |

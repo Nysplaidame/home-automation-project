@@ -27,10 +27,50 @@
     ['192.168.60.10:3000', 8202],
     ['192.168.60.10:8086', 8203],
     ['192.168.30.20:8971', 8204],
+    ['192.168.20.102:8096', 8205],
+    ['192.168.20.102:8083', 8206],
+    ['192.168.20.102:31337', 8208],
   ]);
   let observerQueued = false;
   let previousFocus = null;
   let previewLoadTimer = null;
+  let qBittorrentPreviewBridgeInstalled = false;
+
+  // qBittorrent's classic WebUI treats `window.parent` as its own top-level
+  // window. That is true when it is opened normally, but not when it is in
+  // Homepage's iframe. Keep the small compatibility surface it expects on the
+  // Homepage parent, and expose it only while the qBittorrent preview exists.
+  function getQbittorrentPreviewFrame() {
+    const dock = document.getElementById('portal-preview-dock');
+    if (!dock || dock.hidden || !dock.classList.contains('portal-preview-qbittorrent')) return null;
+    return dock.querySelector('.portal-preview-frame');
+  }
+
+  function installQbittorrentPreviewBridge() {
+    if (qBittorrentPreviewBridgeInstalled) return;
+    qBittorrentPreviewBridgeInstalled = true;
+
+    Object.defineProperty(window, 'qBittorrent', {
+      configurable: true,
+      get() {
+        return getQbittorrentPreviewFrame()?.contentWindow?.qBittorrent;
+      },
+    });
+
+    window.getCoordinates = () => {
+      const frame = getQbittorrentPreviewFrame();
+      if (!frame) return { left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 };
+      const rect = frame.getBoundingClientRect();
+      return {
+        left: rect.left,
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height,
+      };
+    };
+  }
 
   function setPreviewMessage(dock, title, detail) {
     dock.querySelector('.portal-preview-loading strong').textContent = title;
@@ -150,6 +190,7 @@
     previousFocus = document.activeElement;
     placePreviewDock(dock);
     dock.querySelector('#portal-preview-title').textContent = name;
+    dock.classList.toggle('portal-preview-qbittorrent', name === 'qBittorrent');
     dock.dataset.href = href;
     dock.querySelector('[data-preview-action="external"]').href = href;
     dock.hidden = false;
@@ -160,6 +201,7 @@
       'If this remains blank, the service is refusing to be embedded. Use Open tab.',
     );
     const frameHref = getFrameHref(href);
+    if (name === 'qBittorrent') installQbittorrentPreviewBridge();
     frame.dataset.src = frameHref;
     setPreviewLoading(dock, true);
     frame.src = frameHref;
@@ -178,6 +220,7 @@
     dock.hidden = true;
     setPreviewLoading(dock, false);
     dock.classList.remove('preview-load-slow', 'preview-blocked');
+    dock.classList.remove('portal-preview-qbittorrent');
     if (previousFocus instanceof HTMLElement) previousFocus.focus();
   }
 
@@ -199,11 +242,18 @@
     }
   }
 
+  function decorateReferenceLinks() {
+    document.querySelectorAll('.bookmark-group').forEach((group) => {
+      const heading = group.querySelector('.bookmark-group-name');
+      group.classList.toggle('portal-reference-links', heading?.textContent?.trim() === 'Reference Links');
+    });
+  }
+
   function decorateCards() {
     document.querySelectorAll(CARD_SELECTOR).forEach((card) => {
-      if (card.querySelector(`.${PREVIEW_CLASS}`)) return;
       const { href, name } = getServiceName(card);
-      if (!href) return;
+      card.classList.toggle('portal-status-only', !href);
+      if (!href || card.querySelector(`.${PREVIEW_CLASS}`)) return;
 
       const button = document.createElement('button');
       button.type = 'button';
@@ -231,6 +281,7 @@
     requestAnimationFrame(() => {
       observerQueued = false;
       decorateHeader();
+      decorateReferenceLinks();
       decorateCards();
       const dock = document.getElementById('portal-preview-dock');
       if (dock) placePreviewDock(dock);

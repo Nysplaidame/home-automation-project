@@ -17,12 +17,16 @@ flowchart LR
     subgraph Switch["Zyxel GS1900-8HP · 192.168.10.12"]
         SW1["Port 1<br/>router trunk"]
         SW2["Port 2<br/>PoE · VLAN 30 access"]
-        SW3["Ports 3-7<br/>future PoE cameras"]
+        SW3["Port 3<br/>PoE · VLAN 30 access"]
+        SW4["Port 4<br/>PoE · VLAN 30 access"]
+        SW57["Ports 5-7<br/>PoE · VLAN 30 access<br/>spare CCTV ports"]
         SW8["Port 8<br/>VLAN 40 access"]
     end
 
     SW2 --> Camera["ANNKE C500 cam-01<br/>192.168.30.21"]
-    SW3 -.-> FutureCameras["Future exterior cameras<br/>VLAN 30"]
+    SW3 --> PatioCamera["Patio camera cam-03<br/>192.168.30.23"]
+    SW4 --> GateCamera["Gate camera cam-02<br/>192.168.30.22"]
+    SW57 -.-> FutureCameras["Future exterior cameras<br/>VLAN 30"]
     SW8 --> OMV["OpenMediaVault NAS<br/>192.168.40.50"]
     WiFi --> Admin["Admin workstation<br/>HomeAdmin · VLAN 10"]
     WiFi --> Users["Household devices<br/>HomeMain · VLAN 1"]
@@ -37,5 +41,5 @@ flowchart LR
 
     classDef live fill:#78c6a3,stroke:#276749,color:#08251a
     classDef future fill:#334155,stroke:#94a3b8,color:#e2e8f0,stroke-dasharray: 5 5
-    class WAN,LAN1,LAN3,WiFi,Proxmox,SW1,SW2,SW8,Camera,OMV,Admin,Users,Printer,HA,Monitor,Docker,Frigate,LLM live
-    class SW3,FutureCameras,VentSys future
+    class WAN,LAN1,LAN3,WiFi,Proxmox,SW1,SW2,SW3,SW4,SW8,Camera,PatioCamera,GateCamera,OMV,Admin,Users,Printer,HA,Monitor,Docker,Frigate,LLM live
+    class SW57,FutureCameras,VentSys future
