@@ -4,7 +4,7 @@ description: Fire safety ventilation, NVR surveillance, secure network, and home
 tags: [home-automation, project-overview]
 aliases: [Project Overview]
 created: 2025-09-15
-modified: 2026-08-19
+modified: 2026-08-25
 type: project-overview
 status: active
 ---
@@ -30,7 +30,7 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 | Proxmox | ✅ Live | MINISFORUM M1 Pro-125H on 192.168.10.10, Proxmox VE 9 |
 | HA VM | ✅ Live | HAOS VM 100 at 192.168.20.101, native HTTPS with local CA, VentSys packages staged |
 | Frigate | ✅ Three-camera baseline live | CT 111 runs Frigate 0.17.1 with shared-iGPU OpenVINO, MQTT/HA integration, HTTPS UI and three ANNKE C500 cameras; fourth-camera selection and policy tuning remain pending |
-| Docker host | ✅ Live | VM 103 on VLAN 20 with a 64 GiB disk; Mealie, Grocy and Obsidian LiveSync join the existing internal services |
+| Docker host | ✅ Live / one network exception | VM 103 uses explicit non-overlapping Compose bridges for every deployed stack except Bambuddy, which remains temporarily on host networking until the P1S/VLAN 35 path is reachable |
 | Local AI | ✅ LXC + local inference live | CT 114 runs GPU-backed llama.cpp, Open WebUI, Whisper, Piper and OpenWakeWord |
 | OMV NAS | ✅ Live | OpenMediaVault at 192.168.40.50 on VLAN 40; Proxmox/HA/Immich storage paths are live, and the old md0 high-water warning was cleared by the 2026-07-05 `omv-backups` check |
 | Remote access | ✅ Live | Tailscale daily access via docker-host host routes; WireGuard kept dormant as fallback |
@@ -126,7 +126,7 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 ### Home Assistant (VLAN 20)
 - HAOS on Proxmox VM 100 at 192.168.20.101
 - Mosquitto MQTT, ESPHome, Terminal & SSH and File Editor add-ons are live; native HTTPS uses the local CA at `https://192.168.20.101:8123`
-- Frigate integration and the CCTV dashboard are live for the first bench camera; broader camera work is active near-term hardware follow-up, not a fully parked branch
+- Frigate integration and the CCTV dashboard are live for all three installed cameras; a fourth camera and final detection/zone policy remain near-term follow-up
 - VentSys packages in `/config/packages/`
 - Treat the broader Frigate camera rollout, OMV recording cutover, and VentSys
   hardware entities as unbuilt until explicitly revalidated.
@@ -221,4 +221,4 @@ The older setup guides remain deep-dive appendices for individual systems.
 
 ---
 
-**Updated:** 2026-08-19
+**Updated:** 2026-08-25

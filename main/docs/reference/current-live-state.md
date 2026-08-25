@@ -3,7 +3,7 @@ title: Current Live State
 description: Canonical inventory of deployed hosts, services, and deliberately deferred components
 tags: [reference, current-state, infrastructure]
 created: 2026-06-20
-modified: 2026-08-19
+modified: 2026-08-25
 type: reference
 status: active
 ---
@@ -15,7 +15,15 @@ build from blank and must link here rather than duplicating live-status claims.
 
 Full state verification: **2026-08-09**. Core endpoint reachability, including
 Recomp Tracker, was rechecked on **2026-08-19**; this does not replace the
-recorded functional acceptance checks.
+recorded functional acceptance checks. Homepage's fixed mobile proxy routes and
+their Tailscale grant were server-side rechecked on **2026-08-21**. The
+canonical architecture references, diagrams, active setup guides and generated
+Mermaid Viewer source were reconciled against that evidence and the tracked
+configuration on **2026-08-25**. A management-workstation endpoint spot check
+that day passed router, Frigate, docker-host, Bambuddy, MQTT TLS, Grafana, Kuma,
+llama.cpp, OMV NFS and Frigate HTTPS; Home Assistant returned HTTPS `200` via
+`curl -k`. The PowerShell health-check HTTP implementation was corrected after
+it misreported that trusted-local-CA response as `HTTP 0`.
 
 The Household admin workstation joined Tailscale on 2026-07-13 as
 `household-admin-workstation` (`100.95.209.14`). Tailnet peer discovery and
@@ -37,7 +45,7 @@ elevated edit on 2026-07-29 and the Windows DNS cache was flushed.
 
 | ID | Kind | Name | Address | State | Role |
 |---:|---|---|---|---|---|
-| 100 | QEMU VM | home-assistant | `192.168.20.101` | Live | HAOS 2026.7.0, native HTTPS, MQTT, ESPHome and Assist |
+| 100 | QEMU VM | home-assistant | `192.168.20.101` | Live | HAOS 2026.7.1, native HTTPS, MQTT, ESPHome and Assist |
 | 101 | QEMU VM | frigate-nvr | offline | Rollback only | Pre-LXC snapshot; `onboot=0` |
 | 102 | QEMU VM | monitoring | `192.168.60.10` | Live | Uptime Kuma, InfluxDB, Grafana and Telegraf |
 | 103 | QEMU VM | docker-host | `192.168.20.102` | Live | Trusted Compose workloads and Tailscale routing |
@@ -205,13 +213,17 @@ embedded-workspace controls were exercised successfully.
 Follow-up checks against the reported edge cases passed at exactly `956` px and
 `489` px: header controls now reflow below `1230` px without search/title
 encroachment, and stacked service cards have a measured `10.4` px row gap.
-On 2026-07-29, Tailscale split DNS was added so the same canonical
-`https://homepage.home.local/` bookmark can be used locally and remotely:
-OpenWrt returns `192.168.20.102` on home WiFi, while the OnePlus tailnet client
-is sent to the identity-gated AdGuard listener at `100.94.122.18`, which returns
-the docker-host Tailscale address. The phone ACL allows only HTTPS and DNS to
-that node. The user confirmed the same canonical bookmark works on mobile data
-after reconnecting Tailscale.
+On 2026-07-29, Tailscale split DNS was added so the canonical
+`https://homepage.home.local/` name can be used locally and remotely: OpenWrt
+returns `192.168.20.102` on home WiFi, while the OnePlus tailnet client is sent
+to the identity-gated AdGuard listener at `100.94.122.18`, which returns the
+docker-host Tailscale address. On 2026-08-21, every user-facing Homepage card
+was changed from a private-address direct link to its named fixed HTTPS proxy
+(`443` or `8180`-`8209`; qBittorrent remains the fixed same-origin
+`/portal-preview/qbittorrent/` route). The OnePlus grant is limited to DNS,
+`tcp/443`, and `tcp/8180`-`8209` on that node; it is not a broad VLAN route.
+The same card links work on home WiFi with Tailscale off because DNS resolves
+the canonical name to the LAN address and the proxies are LAN-allowed.
 The preview loading veil is pointer-transparent and becomes a delayed-preview
 notice after six seconds, so it cannot trap the embedded UI when a service
 blocks or delays iframe loading. Desktop service groups consume a single row
@@ -270,7 +282,8 @@ Its dry-run passed and real NAS run `20260809T130054Z` completed successfully,
 capturing the new Grocy key state and creating
 `latest/household-hub-exports`.
 A fixed-target `homepage-preview-proxy` Nginx sidecar is live on docker-host.
-It terminates HTTPS on `443`; HTTPS preview ports `8180`-`8208` are
+It terminates HTTPS on the LAN and Tailscale addresses at `443`; HTTPS preview
+ports `8180`-`8209` are
 host-firewall scoped to the established management,
 LAN, automation and Tailscale sources; it cannot proxy arbitrary destinations.
 GardenKeeper, Bambuddy and Whoogle visibly load through it after their upstream
@@ -321,7 +334,8 @@ recorded release, builds a newer upstream tag externally, and uses the atomic
 health-checked deployment/rollback workflow in
 `docs/install/services/gridfinity-layout-tool.md`.
 Recomp Tracker is live at `http://192.168.20.102:8420` for personal habits and
-workout tracking. Its source is tracked in
+workout tracking, with the fixed Homepage HTTPS proxy at
+`https://homepage.home.local:8209/` for portal navigation. Its source is tracked in
 `configs/docker-host/stacks/recomp-tracker/`, its Docker bridge is explicitly
 allocated as `10.240.31.0/24`, and its firewall permits only management, LAN
 and Tailscale sources. Its HTTP endpoint returned `200` during the 2026-08-19
@@ -382,6 +396,16 @@ automatically chose `192.168.0.0/20`, overlapping the management VLAN and
 temporarily removing VM 103 management reachability. The stack was stopped,
 routes recovered and every new stack was assigned explicit `10.240.x.0/24`
 IPAM before deployment resumed.
+
+Controlled remediation on 2026-08-21 recreated every project bridge at its
+canonical explicit allocation and name, including Household Hub's shared
+SearXNG/Mealie/Grocy dependencies and the four-consumer `local-alerting`
+network. All application, storage, dependency, VPN-egress and firewall checks
+passed. The persistent firewall covers Bambuddy port `8000` on IPv4 and IPv6,
+and the Bambuddy routed-UFW policy and empty `10.240.23.0/24` bridge are ready;
+the Bambuddy container itself remains on host networking because the P1S ports
+are currently unreachable from VM 103. This is the sole failing assertion in
+the live security audit and the only remaining remediation step.
 
 Vaultwarden `1.36.0` is live with its raw HTTP listener bound only to
 `127.0.0.1:8222`. Production access is through the fixed Nginx proxy at
@@ -457,8 +481,8 @@ registry mirror and Node-RED remain decision-gated candidates.
   and `watchtower` topics. Its generated credential is stored in Windows
   Credential Manager under `home-automation/ntfy-mobile`. Mobile access is
   Tailscale Serve HTTPS at `https://docker-host.tail7012a0.ts.net`; the
-  Homepage proxy remains bound to the LAN address so the Tailscale listener can
-  own port 443.
+  Homepage proxy binds both its LAN and Tailscale address on port 443; Tailscale
+  Serve continues to own its separate MagicDNS endpoint.
 - The live docker-host app-data job now snapshots ntfy's `user.db` and
   `cache.db` through SQLite's backup API. A fresh NAS run and temporary restore
   smoke on 2026-07-29 passed integrity checks for both databases.

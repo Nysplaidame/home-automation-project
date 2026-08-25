@@ -4,7 +4,7 @@ description: Master navigation hub for all project documentation
 tags: [index, navigation, home-automation]
 aliases: [Project Index, Documentation Hub]
 created: 2025-09-15
-modified: 2026-08-19
+modified: 2026-08-25
 type: index
 status: active
 ---
@@ -26,9 +26,9 @@ status: active
 | VentSys HA packages + dashboard | ✅ Complete |
 | ESPHome configs | ✅ Written (hardware IDs pending) |
 | OMV NAS setup guide | ✅ Written |
-| Service/ACL reference docs | ✅ Written |
+| Service/ACL reference docs | ✅ Reconciled with deployed architecture on 2026-08-25 |
 | Backup strategy | ✅ Written |
-| Troubleshooting reference | ✅ Written |
+| Troubleshooting reference | ✅ Current HTTPS, three-camera, fixed-proxy, storage, and Docker-network paths documented |
 | Network testing guide | ✅ Written |
 | SSL/TLS guide | ✅ Written |
 | Tailscale remote access guide | ✅ Written |
@@ -74,6 +74,7 @@ status: active
 
 ### Docker Host
 - [[configs/docker-host/README.md]] — rebuildable source templates for VM 103 Compose stacks and host firewall
+- [[configs/docker-host/NETWORK-ALLOCATION.md]] — canonical explicit Docker bridge allocations and change rules
 - [[configs/docker-host/system/docker-host-firewall.sh]] — canonical `DOCKER-USER` source for docker-host published-port scoping
 - [[configs/docker-host/system/docker-host-app-data-backup.sh]] — live NAS backup for household application state, including media apps and SQLite-consistent Vaultwarden/ntfy staging
 - [[configs/docker-host/system/docker-host-app-data-backup.service]] — systemd service template for the docker-host app-data backup job

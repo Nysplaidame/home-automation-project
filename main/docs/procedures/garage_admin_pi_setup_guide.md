@@ -3,7 +3,7 @@ title: Garage Admin Raspberry Pi Setup Guide
 description: Command-by-command setup for a Raspberry Pi used as a trusted garage admin workstation on the HomeAdmin management SSID
 tags: [procedure, raspberry-pi, management, wifi, admin]
 created: 2026-06-09
-modified: 2026-06-09
+modified: 2026-08-25
 type: procedure
 status: active
 ---
@@ -509,7 +509,7 @@ ssh root@192.168.10.10
 Home Assistant reachability:
 
 ```bash
-curl -I http://192.168.20.101:8123
+curl -k -I https://192.168.20.101:8123
 ```
 
 Docker host:

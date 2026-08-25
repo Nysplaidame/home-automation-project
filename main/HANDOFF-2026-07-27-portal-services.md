@@ -2,7 +2,7 @@
 title: Portal, Monitoring and Household Services Handoff
 description: Live Homepage/monitoring state and the next decision-gated service work
 created: 2026-07-27
-modified: 2026-08-19
+modified: 2026-08-25
 type: handoff
 status: current
 ---
@@ -48,6 +48,21 @@ status: current
   `https://192.168.20.102:8193/`. This is required for the browser
   Notifications API. Tailscale Serve remains the separate mobile endpoint on
   `https://docker-host.tail7012a0.ts.net:8444/`.
+
+### Homepage mobile-card access (2026-08-21)
+
+- All user-facing Homepage cards now navigate to fixed HTTPS proxy routes on
+  `homepage.home.local` instead of private `192.168.x.x` URLs; qBittorrent
+  remains the fixed same-origin `/portal-preview/qbittorrent/` exception.
+- The fixed-target proxy has the new Recomp Tracker route at `8209` and all
+  fixed proxy ports `8180`-`8209` are covered by its source-scoped UFW script.
+  Nginx configuration validation and each fixed upstream route passed locally.
+- Tailscale's live grant allows only OnePlus `100.105.216.6` to docker-host
+  `100.94.122.18` on `tcp:8180-8209`, in addition to the existing DNS and
+  `tcp:443` access. No broad subnet route was added. On home WiFi with
+  Tailscale off, router DNS and the LAN proxy binding preserve the same links.
+- Phone-side acceptance passed on mobile data after reconnecting Tailscale and
+  opening cards from every Homepage tab.
 
 ### Household Hub search authentication repair
 
@@ -299,32 +314,118 @@ status: current
   policy for every new docker-host Compose network; never rely on Docker's
   automatic address-pool selection.
 
+## Docker-host network/firewall remediation (started 2026-08-21)
+
+- The required live preflight captured every Docker bridge, attached container,
+  running image ID/digest, route, UFW rule, IPv4/IPv6 `DOCKER-USER` rule and
+  firewall persistence unit. No non-project network occupied `10.240.0.0/16`.
+- The persistent firewall now includes the missing IPv6 port-`8000` drop, the
+  Bambuddy routed-UFW rules are installed, and the security audit covers that
+  denial path. The allocation map now also assigns Mermaid Viewer
+  `10.240.13.0/24` and Household Hub `10.240.14.0/24`.
+- Every project bridge now exists at its canonical explicit allocation and
+  network name. This includes the coordinated Household Hub/SearXNG/Mealie/
+  Grocy cutover, the four-consumer `local-alerting` recreation, the media and
+  download networks, and the previously omitted Mermaid Viewer and Household
+  Hub allocations. Bambuddy's `.23` bridge is prepared but has no consumer yet.
+- Service health, 20 HTTP/API checks, authenticated CouchDB `_up`, Nginx
+  validation, monitoring-VLAN DNS resolution, internal Household Hub and ntfy
+  dependency connections, VPN/host egress separation, persisted data mounts,
+  Compose parsing, firewall reload and unit persistence all passed. No
+  container remained exited, unhealthy or starting. An unapproved container
+  was denied direct access to Recomp while the management path returned `200`.
+- Immich remained on v2.7.5 during its network-only recreation; staged v3.1.0
+  images were deliberately not deployed. A protected pre-change PostgreSQL
+  dump was captured. Fresh Household Hub and GardenKeeper database dumps plus
+  NAS app-data backup run `20260821T095807Z` also completed before their
+  coordinated changes.
+- Bambuddy's bridge candidate passed health, UI and Home Assistant connections,
+  but the P1S ports were unreachable from both the candidate bridge and VM 103
+  itself. Its rollback completed and the original host-network container is
+  healthy. Retry only when the printer/VLAN path is reachable.
+- Each changed live Compose file has a timestamped rollback copy beside it;
+  Bambuddy also has a protected pre-change `data`/`logs` archive under
+  `/opt/backups/network-remediation-20260821/`.
+- The live security audit passes every network and firewall assertion except
+  the deliberate Bambuddy bridge-attachment check. Do not mark the parent task
+  complete until the P1S path is reachable, Bambuddy is moved from host mode,
+  and the audit exits zero.
+
 ## Next safe work
 
-1. Apply the staged 2026-08-11 docker-host network/firewall remediation from
-   `configs/docker-host/NETWORK-ALLOCATION.md`. This must be a controlled live
-   maintenance action, not a source-only claim: inventory current networks and
-   image digests first, install/reload the firewall and routed-UFW scripts,
-   migrate one non-shared stack at a time, then stop every `local-alerting`
-   consumer before recreating that shared network. Bambuddy's tracked template
-   now uses `10.240.23.0/24` instead of host networking; apply its dedicated
-   routed-UFW rule before recreation. All changed Compose files parsed locally;
-   Docker build checks could not run on the workstation because its Docker
-   engine is unavailable.
-2. Deploy live `vault.home.local` DNS, then complete the bounded Vaultwarden
+1. Restore or power the P1S/VLAN-35 path, confirm ports `21` and `8883` are
+   reachable from VM 103, then retry the prepared Bambuddy migration to
+   `10.240.23.0/24`. Re-run `docker-host-security-audit.sh --verify`; this is
+   the only remaining assertion before the network/firewall remediation can be
+   marked complete.
+2. Build the read-only troubleshooting-dashboard proof of concept from the
+   reconciled service matrix, dependency diagrams, health checks and runbooks.
+   Start with Homepage, HA, one camera, P1S telemetry and backup freshness; do
+   not expose arbitrary shell or automatic remediation in v1.
+3. Deploy live `vault.home.local` DNS, then complete the bounded Vaultwarden
    owner onboarding/2FA/recovery process before importing real credentials.
-3. Implement the allow-listed Immich curated-album exporter.
-4. Evaluate one tightly allow-listed Autobrr source/category only if desired;
+4. Implement the allow-listed Immich curated-album exporter.
+5. Evaluate one tightly allow-listed Autobrr source/category only if desired;
    NZBGet and aria2 remain separate decisions.
-5. Continue weekly update review; the 2026-08-01 docker-host package window is
+6. Continue weekly update review; the 2026-08-01 docker-host package window is
    complete and did not require a reboot.
+
+## Architecture documentation reconciliation (2026-08-25)
+
+- Reconciled the canonical current-state, service, access, naming and physical
+  cabling references against tracked configuration and the accepted 2026-08-21
+  deployment evidence. Corrected the obsolete one-camera and direct-router-NAS
+  representations, the missing Frigate Tailscale route, the fixed Homepage
+  proxy range, the deployed docker-host application set and the Bambuddy
+  host-network exception.
+- Updated the active troubleshooting, monitoring, Homepage, router testing,
+  Raspberry Pi, OMV cutover, Docker-host and related setup material for HA
+  native HTTPS, three live cameras, OMV on GS1900 port 8, fixed mobile portal
+  routes and explicit Compose networks. Historical audits and superseded
+  handoffs were retained as dated evidence rather than rewritten.
+- Updated all affected canonical Mermaid diagrams and rebuilt the Mermaid
+  Viewer's generated data. A browser-side parse passed all 11 diagram sources.
+- Corrected the Windows `health_check.ps1` local-CA handling. Its full run now
+  passes all 11 checks: router SSH, HA HTTPS, Frigate SSH/HTTPS, docker-host
+  SSH, Bambuddy, MQTT TLS, Grafana, Kuma, llama.cpp and OMV NFS.
+- Live SSH inventory of VM 103 could not be repeated from this workstation
+  because root public-key authentication was denied. The latest accepted live
+  container/network inventory therefore remains the 2026-08-21 remediation
+  evidence; no unverified live version or container claim was added.
+
+## Installation manual continuation (2026-08-24)
+
+- The canonical install suite was dry-read from `docs/install/START-HERE.md`.
+  All 50 active install-document links resolve, all 52 angle-bracket
+  placeholders appear in the secrets ledger, all 311 shell blocks pass
+  `bash -n`, and all 66 PowerShell blocks parse.
+- Mealie, Grocy and Obsidian LiveSync now document explicit pre-live gates,
+  operator acceptance, consistent off-host backup, loopback-only isolated
+  restore, update and matching-data rollback. LiveSync now names the canonical
+  `K:` vault rather than the stale `E:` checkout and remains correctly parked
+  while the canonical tree is dirty.
+- `docs/install/services/README.md` records the last safe stop and promotion
+  evidence for all 23 service manuals. Version and decision-gate references now
+  cover volatile-release lookup, public exposure, credential stores, camera
+  bridges, low-code/agent automation and automatic updates.
+- The dependency audit added OpenWrt `ethtool`, workstation Node/npm and Garage
+  Pi virtual-environment dependencies; the stale OLED Python 2 install hint was
+  corrected. The service matrix gained the staged Immich curated-exporter row
+  and now points Mermaid Viewer to its install manual.
+- The final dry-run remains open. Using Windows `py -3`, router lint,
+  `first-flight` compile and placeholder-tolerant `full` preview all still stop
+  at `architecture.docker_host_tailscale_egress_rule_present`. Normal `full`
+  compile additionally requires the real WireGuard, device-MAC and Wi-Fi
+  inputs. The next documentation pass should reconcile that router invariant,
+  then finish service/access-matrix verification before claiming a complete
+  end-to-end dry run.
 
 ## Repository state
 
 - Branch: `codex/portal-refinement`
 - Recent relevant commits:
-  - `358bb17 docs(services): define household rollout gates`
-  - `03a8213 fix(monitoring): restore portal health checks`
-  - `9083c24 feat(homepage): add trusted HTTPS previews`
+  - `0b1fb29 chore: merge origin/main`
+  - `b426537 chore(infra): capture August service updates`
+  - `1f7d557 feat(services): finish household rollout`
 - User-owned Obsidian changes may be present under `.obsidian/`; do not stage or
   overwrite them during project work.

@@ -3,7 +3,7 @@ title: "Tailscale Remote Access"
 category: concept
 tags: [tailscale, vpn, remote-access, subnet-router]
 created: 2026-05-23
-updated: 2026-07-29
+updated: 2026-08-21
 sources: [project-readme, project-todo]
 status: active
 ---
@@ -38,8 +38,10 @@ Tailscale admin before it works off-LAN.
 Homepage uses split-horizon DNS instead of a second mobile bookmark. Tailscale
 sends `home.local` queries to the identity-gated AdGuard listener on docker-host;
 AdGuard returns the docker-host tailnet address for `homepage.home.local`, while
-OpenWrt returns its LAN address on home WiFi. The phone is granted only DNS and
-Homepage HTTPS to docker-host.
+OpenWrt returns its LAN address on home WiFi. The approved phone is granted only
+DNS, Homepage HTTPS, and the fixed Homepage proxy range `tcp:8180-8209` to
+docker-host. All user-facing Homepage cards use those fixed proxy routes rather
+than their private-address direct URLs.
 
 ## Trade-offs / Considerations
 
@@ -49,6 +51,8 @@ Homepage HTTPS to docker-host.
 - Must not advertise Management, NVR, Printers, IoT, or broad Storage VLANs.
 - Must not advertise the broad Monitoring VLAN; use only the monitoring VM host
   route when dashboard mobile access is intentionally allowed.
+- Homepage's fixed proxy range is application access, not a substitute for a
+  broad VLAN route; it remains host firewall- and Tailscale identity-scoped.
 - WireGuard remains a dormant fallback, not a parallel daily-access default.
 
 ## Key Entities Using This Concept

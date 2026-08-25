@@ -3,7 +3,7 @@ title: Tailscale Remote Access Guide
 description: Daily remote access through docker-host host routes, with WireGuard as fallback
 tags: [tailscale, remote-access, docker-host, vpn]
 created: 2026-05-23
-modified: 2026-07-29
+modified: 2026-08-21
 type: procedure
 status: active
 ---
@@ -94,19 +94,24 @@ Validation note, 2026-07-05:
   authenticated `401` challenge while port `5000` remained unreachable. The
   workstation was returned to its prior stopped Tailscale state afterward.
 
-Homepage canonical-name note, 2026-07-29:
+Homepage canonical-name note, updated 2026-08-21:
 
 - The OnePlus phone has identity-scoped grants to docker-host
-  `100.94.122.18` on HTTPS `tcp/443` and split DNS `tcp/53,udp/53` only.
+  `100.94.122.18` on HTTPS `tcp/443`, fixed Homepage proxy ports
+  `tcp/8180-8209`, and split DNS `tcp/53,udp/53` only.
 - Tailscale split DNS sends the `home.local` suffix to AdGuard on
   `100.94.122.18`. AdGuard rewrites only `homepage.home.local` to that tailnet
   address, while router dnsmasq remains authoritative on home WiFi and returns
   the LAN address `192.168.20.102`.
-- This split-horizon arrangement gives the phone one bookmark,
-  `https://homepage.home.local/`, without advertising a broad VLAN route.
-- After reconnecting the phone to Tailscale, the user confirmed
-  `https://homepage.home.local/` works on mobile data. The same bookmark also
-  remains valid on home WiFi.
+- This split-horizon arrangement gives the phone Homepage and every
+  user-facing card's fixed proxy URL without advertising a broad VLAN route.
+  Homepage cards use `https://homepage.home.local/` or a fixed
+  `https://homepage.home.local:<proxy-port>/` route; qBittorrent uses the
+  fixed same-origin `/portal-preview/qbittorrent/` route.
+- The same Homepage links remain valid on home WiFi with Tailscale off because
+  router DNS returns `192.168.20.102` and the proxy firewall allows LAN
+  clients. The mobile-data acceptance test must use Tailscale because no public
+  Internet exposure was added.
 
 ## Target access
 
@@ -136,6 +141,7 @@ Use interface-scoped or tailnet-scoped rules. Example intent:
 ```bash
 ufw allow in on tailscale0 to any port 22 proto tcp comment "Tailscale SSH admin"
 ufw allow in on tailscale0 to any port 3001 proto tcp comment "Homepage"
+ufw allow in on tailscale0 to any port 8180:8209 proto tcp comment "Homepage fixed proxies"
 ufw allow in on tailscale0 to any port 53 proto tcp comment "Tailscale split DNS TCP"
 ufw allow in on tailscale0 to any port 53 proto udp comment "Tailscale split DNS UDP"
 ufw allow in on tailscale0 to any port 8081 proto tcp comment "Dozzle"

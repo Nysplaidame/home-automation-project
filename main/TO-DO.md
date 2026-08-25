@@ -4,7 +4,7 @@ description: Implementation tasks by phase — updated June 2026
 tags: [tasks, implementation]
 aliases: [TODO, Tasks]
 created: 2025-09-15
-modified: 2026-08-19
+modified: 2026-08-25
 type: task-list
 status: active
 ---
@@ -28,18 +28,38 @@ status: active
      `homeassistant.home.local` and flush the Windows DNS cache (completed
      2026-07-29)
 8. [ ] Continue expanding each install phase until every command has expected output examples and every failure mode has a tested recovery path
+   - 2026-08-24 continuation: expanded Mealie, Grocy and Obsidian LiveSync with
+     pre-start/promotion gates, operator flows, consistent backups,
+     loopback-only isolated restores, updates and version/data rollback. Added a
+     last-safe-stop matrix for all 23 service manuals.
 9. [ ] Work through the comprehensive checklist in `docs/install/INSTALL-TO-DO.md`
+   - 2026-08-24 pass closed package/dependency, volatile-version,
+     decision-gate, placeholder, command-label and per-service promotion-boundary
+     coverage. Service/access-matrix review and live acceptance gates remain.
 10. [ ] Run a full dry-read from `docs/install/START-HERE.md` after the next content expansion pass
+    - 2026-08-24 structural dry-read passed 50-document link navigation, 52
+      documented placeholders, 311 shell blocks and 66 PowerShell blocks. The
+      full dry-run remains open because all router-deploy profiles still fail
+      `architecture.docker_host_tailscale_egress_rule_present`, and a structural
+      documentation pass is not a blank-hardware rebuild.
 11. [x] Deploy and document shared-iGPU CT 111 Frigate and CT 114 local AI architecture
+12. [x] Reconcile the canonical architecture documentation on 2026-08-25:
+    update current-state/service/access/name/cabling references, active setup
+    guides, troubleshooting, monitoring and all affected Mermaid sources;
+    rebuild the Mermaid Viewer and pass all 11 browser-side Mermaid parses.
+13. [ ] Build the read-only troubleshooting-dashboard proof of concept around
+    five initial symptoms: Homepage access, Home Assistant availability, one
+    camera path, P1S telemetry and backup freshness. Keep arbitrary shell and
+    automatic remediation out of v1.
 
 Planning baseline until explicitly revalidated:
 
 - Treat OMV and Proxmox NFS backups as live. On 2026-07-05, Proxmox reported
   `omv-backups` active at 54.21% used, so the old 86-87% md0 high-water warning
   is cleared; keep normal monthly backup and SMART checks.
-- Treat Frigate as live with one bench camera ingest on CT 111; keep HA
-  integration, source cleanup, and broader camera rollout as the remaining
-  work.
+- Treat Frigate as live with three ANNKE C500 cameras on CT 111; keep the
+  fourth-camera choice, detection/zone tuning and notification acceptance as
+  the remaining camera work.
 - Treat Home Assistant native HTTPS as live at
   `https://192.168.20.101:8123` with the local `Home Local CA`. HTTP on
   port `8123` is no longer the active HA UI.
@@ -251,8 +271,13 @@ Planning baseline until explicitly revalidated:
   recreate the shared alerting network only with all dependants stopped, move
   Bambuddy from host networking to its scoped bridge, load the IPv6/8000
   firewall policy, and prove each service/denial path. Source and a preflight
-  allocation table are ready; live application still requires PVE operator
-  access and a captured image inventory before any image change.
+  allocation table are ready. Live execution on 2026-08-21 completed every
+  explicit bridge recreation, including Household Hub's shared dependency
+  networks and `local-alerting`; Compose, health, HTTP, storage, dependency,
+  VPN-egress, allowed/denied and firewall-persistence checks passed. Bambuddy
+  alone remains on host networking because the P1S ports are unreachable from
+  VM 103 itself. Restore that path, migrate Bambuddy to `10.240.23.0/24`, and
+  obtain a zero-exit security audit before checking off this parent item.
 - [ ] Add Homepage service widgets where an approved, least-privilege credential
   path exists. Prioritise already deployed Home Assistant, Frigate, Immich,
   Mealie, Grocy, AdGuard Home, Grafana, Uptime Kuma, Proxmox, OpenWrt and

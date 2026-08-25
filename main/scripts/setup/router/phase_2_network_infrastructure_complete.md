@@ -42,14 +42,14 @@ Implements DSA-based VLAN infrastructure creating 10 isolated network segments. 
 
 ### Physical Port Assignment Strategy
 
-Planned managed-switch layout: do not deploy this port map until the Zyxel
-GS1900-8HP is present and preconfigured with the matching VLAN trunk/access
-ports. Until then, keep the live direct-port layout in place.
+Current managed-switch layout: the Zyxel GS1900-8HP is live with the matching
+VLAN trunk/access ports. Keep router `lan4` configured as an unplugged VLAN 40
+storage-recovery path; production OMV connects through switch port 8.
 
 - **lan1**: Trunk to Proxmox (tagged VLANs 10,20,30,35,40,50,60,70)
 - **lan2**: Management port (VLAN 10 untagged)
 - **lan3**: Managed switch trunk (VLANs 1,10,30,40 tagged)
-- **lan4**: OMV NAS port (VLAN 40 untagged)
+- **lan4**: Storage recovery/access port (VLAN 40 untagged, normally unplugged)
 - **lan5**: LAN/user PC or recovery port (VLAN 1 untagged)
 
 ## Sub-Tasks
@@ -98,7 +98,7 @@ uci set network.@device[-1].type='bridge'
 uci add_list network.@device[-1].ports='lan1'
 uci add_list network.@device[-1].ports='lan2' 
 uci add_list network.@device[-1].ports='lan3'  # Managed switch trunk
-uci add_list network.@device[-1].ports='lan4'  # OMV NAS port
+uci add_list network.@device[-1].ports='lan4'  # Storage recovery/access port
 uci add_list network.@device[-1].ports='lan5'  # LAN/user PC or recovery port
 
 # Enable bridge features for VM environment
@@ -178,8 +178,8 @@ uci set network.@bridge-vlan[-1].device='br-lan'
 uci set network.@bridge-vlan[-1].vlan='40'
 uci set network.@bridge-vlan[-1].local='1'
 uci add_list network.@bridge-vlan[-1].ports='lan1:t'  # Trunk to Proxmox
-uci add_list network.@bridge-vlan[-1].ports='lan3:t'  # Managed switch trunk; switch port 8 is spare VLAN 40
-uci add_list network.@bridge-vlan[-1].ports='lan4:u*' # Direct OMV NAS port — PVID
+uci add_list network.@bridge-vlan[-1].ports='lan3:t'  # Managed switch trunk; OMV is on switch port 8
+uci add_list network.@bridge-vlan[-1].ports='lan4:u*' # Storage recovery/access port — PVID
 
 # VLAN 50: VentSys IoT Sensors Network (CRITICAL)
 uci add network bridge-vlan
@@ -223,7 +223,7 @@ echo "All bridge VLANs configured" >> /tmp/deployment_logs/phase2.log
 - lan1 MUST carry all non-VLAN-1 VLANs for Proxmox VM networking
 - VLAN 1 is otherwise WiFi-only; main users reach it via HomeMain SSID (Phase 5)
 - lan3 is a tagged-only trunk to the managed switch for VLANs 1,10,30,40
-- lan4 carries only VLAN 40 untagged for the OMV NAS
+- lan4 carries only VLAN 40 untagged as the normally unplugged storage-recovery path
 - lan5 carries only VLAN 1 untagged for a LAN PC or recovery laptop
 - VLAN 50 (IoT) carries lan1:t so HA VM on Proxmox can reach sensor devices
 - Port tagging (t) vs untagged (u*) critical for proper operation

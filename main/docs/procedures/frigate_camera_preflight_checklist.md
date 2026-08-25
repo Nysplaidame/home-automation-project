@@ -3,7 +3,7 @@ title: Frigate Camera Pre-Flight Checklist
 description: Pre-arrival, bench, and first-deployment checklist for PoE cameras and the managed PoE switch
 tags: [frigate, cameras, poe, preflight, nvr]
 created: 2026-06-28
-modified: 2026-07-01
+modified: 2026-08-25
 type: procedure
 status: active
 ---
@@ -12,32 +12,33 @@ status: active
 
 ## Purpose
 
-Prepare the Frigate camera rollout before the PoE cameras and managed PoE
-switch arrive, without enabling production recording or camera MQTT before the
-real RTSP paths, credentials, MAC addresses and switch behavior are known.
+Provide a repeatable preflight and one-camera-at-a-time adoption procedure for
+the remaining fourth camera and any later replacements. The first three
+cameras and the managed PoE switch are already live.
 
 Current baseline:
 
 - Frigate CT 111 is live at `192.168.30.20`.
-- The live Frigate config is the migration-safe baseline with MQTT and cameras
-  disabled.
+- Frigate is live with MQTT over TLS and three cameras enabled.
 - `configs/frigate/config.yml` is the future production template for four
   cameras at `192.168.30.21` through `192.168.30.24`.
-- Router `lan3` is reserved for the managed switch as a tagged trunk carrying
-  VLANs 1, 10, 30 and 40 after the switch is present and configured.
+- Router `lan3` is the live tagged trunk to the managed switch, carrying VLANs
+  1, 10, 30 and 40.
 - The managed PoE switch is a Zyxel GS1900-8HP. Use stock firmware for initial
   camera rollout; treat OpenWrt-on-switch as a later evaluation only if stock
   firmware blocks the desired VLAN, PoE, monitoring or management posture.
-- The switch is no longer camera-only: it will also carry OMV NAS access on
-  VLAN 40 and the TL-WA801N extender on VLAN 1.
+- The switch also carries OMV NAS access on port 8, untagged VLAN 40. Its six
+  PoE access ports are allocated to CCTV; the future TL-WA801N VLAN 1 access
+  port requires an explicit capacity/design decision.
 - Do not route or advertise VLAN 30 through Tailscale.
 
-Bench notes from the first live camera test on 2026-07-01:
+Deployment notes beginning with the first live camera test on 2026-07-01:
 
-- Managed switch arrived as a Zyxel GS1900-8HP on stock firmware and is
-  temporarily reachable on VLAN 30 while router `lan3` remains in its old
-  untagged VLAN 30 posture.
-- First bench camera is an ANNKE C500 identified in the UI as model `I51HJ`.
+- The Zyxel GS1900-8HP is live on stock firmware at `192.168.10.12` on VLAN 10;
+  router `lan3` is its tagged VLAN 1/10/30/40 trunk.
+- The first validated camera is an ANNKE C500 identified in the UI as model
+  `I51HJ`; three matching C500 units are now live, while this checklist remains
+  the one-camera-at-a-time procedure for the fourth and later additions.
 - Firmware observed: `v5.8.10 build 250917`.
 - Camera MAC: `D0:3B:F4:07:71:45`.
 - Current DHCP reservation after bench cutover: `192.168.30.21`.
@@ -87,10 +88,9 @@ remains the router trunk and port 8 remains the VLAN 40 NAS access port.
   credentials are ready.
 - Put the PoE switch management interface on VLAN 10. Use planned reservation
   `192.168.10.12` after recording the switch management MAC address.
-- Plan a bench-test patch lead layout: router `lan3` to PoE switch uplink,
-  one camera at a time, labelled patch leads, no permanent mounting. Do not
-  recable OMV or the extender to the switch until the trunk and access-port
-  VLAN tests pass.
+- Use the existing router `lan3` to switch-port-1 trunk and connect only one
+  unadopted camera at a time with a labelled patch lead. Do not disturb OMV on
+  switch port 8 or the three live camera connections.
 - Do not update `configs/frigate/config.yml` RTSP paths until the real camera
   stream URLs have been verified with `ffprobe`.
 - When testing RTSP URLs with credentials that contain reserved URL
@@ -99,7 +99,7 @@ remains the router trunk and port 8 remains the VLAN 40 NAS access port.
 
 ## Network And Switch Pre-Flight
 
-Planned router source assigns `lan3` as a tagged trunk after the switch arrives:
+Current network posture:
 
 ```text
 router lan3 -> Zyxel GS1900-8HP uplink
@@ -107,7 +107,7 @@ Tagged VLANs:   1, 10, 30, 40
 Switch mgmt:    VLAN 10, 192.168.10.12
 Camera ports:   untagged VLAN 30, PVID 30
 OMV NAS port:   untagged VLAN 40, PVID 40
-Extender port:  untagged VLAN 1, PVID 1
+Extender port:  not currently available; capacity/design decision required
 ```
 
 Expected switch posture:
@@ -116,7 +116,8 @@ Expected switch posture:
 - Uplink to router `lan3` is tagged for VLANs 1, 10, 30 and 40.
 - Switch management interface is VLAN 10 at `192.168.10.12`.
 - OMV NAS access port is untagged VLAN 40.
-- TL-WA801N extender access port is untagged VLAN 1.
+- Any future TL-WA801N port must be an explicit untagged VLAN 1/PVID 1 access
+  port; no such free switch port exists in the current allocation.
 - If the switch requires a PVID/native VLAN on the uplink, use an unused
   isolated VLAN for untagged ingress containment; do not make VLAN 30 native.
 - Disable unused switch ports.

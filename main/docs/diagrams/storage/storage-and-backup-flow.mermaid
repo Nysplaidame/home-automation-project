@@ -3,7 +3,9 @@ flowchart LR
     Frigate["Frigate<br/>CT 111"]
     DockerHost["docker-host<br/>VM 103"]
     Immich["Immich<br/>on docker-host"]
-    Apps["Mealie / Grocy / LiveSync / GardenKeeper<br/>on docker-host"]
+    Apps["Mealie · Grocy · LiveSync · GardenKeeper<br/>Household Hub · Recomp · ntfy · Vaultwarden"]
+    Media["Jellyfin · Calibre-Web · Atsumeru<br/>scoped OMV media roots"]
+    Downloads["Gluetun/qBittorrent<br/>incomplete + complete roots"]
     OMV["OMV NAS<br/>192.168.40.50<br/>NFS/SMB shares"]
     Proxmox["Proxmox host<br/>omv-backups NFS storage"]
     Vault["Project vault<br/>Obsidian repo"]
@@ -13,9 +15,11 @@ flowchart LR
     Frigate -->|"live NFS recordings<br/>Proxmox host mount + CT bind mount"| OMV
     Immich -->|"library and upload storage"| OMV
     Apps -->|"daily 03:45 data/dump copy<br/>backups/docker-host"| OMV
+    Media -->|"read-only or app-specific writable mounts"| OMV
+    Downloads -->|"payload roots only<br/>no final-library mount"| OMV
     DockerHost -->|"templates and stack configs<br/>Git + app-data plan"| Apps
     Proxmox -->|"VM/CT vzdump backups<br/>7 daily + 6 monthly"| OMV
-    Vault -.->|"planned rsync/robocopy backup"| OMV
+    Vault -.->|"guarded robocopy helper live<br/>schedule pending restore proof"| OMV
     OMV -.->|"periodic copy after restore plan exists"| Offsite
 
     SMART["OMV SMART monitoring<br/>disk health alerts"]

@@ -283,3 +283,43 @@
   [[analyses/lint-2026-08-09]], [[index]].
 - Targeted changed-page links and index counts passed; the lint report records
   older unresolved knowledge-tool links for a later full-wiki cleanup.
+
+## [2026-08-21] update | Homepage mobile fixed-proxy access
+- Pages updated: [[entities/homepage]], [[entities/docker-host]],
+  [[concepts/tailscale-remote-access]], [[index]].
+- Notes: All user-facing Homepage cards now use fixed HTTPS proxy routes;
+  Recomp Tracker was added at `8209`; the approved OnePlus identity receives
+  only DNS, `tcp:443`, and `tcp:8180-8209` to docker-host.
+
+## [2026-08-21] lint | Mobile Homepage proxy and Tailscale access
+- Report: [[analyses/lint-2026-08-21]].
+- Confirmed the updated Homepage, docker-host, and Tailscale pages agree with
+  the canonical access matrix and retain the no-broad-subnet boundary.
+
+## [2026-08-21] update | Mobile Homepage acceptance completed
+- Phone-side mobile-data acceptance passed after reconnecting Tailscale and
+  opening cards from every Homepage tab.
+- Updated [[analyses/lint-2026-08-21]] so the completed acceptance is no longer
+  reported as an open follow-up.
+
+## [2026-08-21] update | Docker-host explicit network remediation
+- Recreated every project Docker bridge at its canonical explicit allocation,
+  including Household Hub's shared dependency networks and `local-alerting`.
+- Application, storage, dependency, VPN-egress, allowed/denied and firewall
+  checks passed. Bambuddy remains the only exception because the P1S path is
+  unreachable from VM 103; its scoped bridge and firewall rules are prepared.
+- Page updated: [[entities/docker-host]].
+
+## [2026-08-25] lint | Architecture documentation reconciliation
+- Report: [[analyses/lint-2026-08-25]].
+- Repaired current topology, Tailscale routes, P1S/Bambuddy placement, OMV
+  SMART/physical state, Immich storage and docker-host workload claims.
+- Pages updated: [[entities/docker-host]], [[entities/openmediavault-nas]],
+  [[entities/gl-mt6000]], [[entities/bambu-p1s]], [[entities/bambuddy]],
+  [[entities/immich]], [[entities/homepage]], [[entities/tplink-ap]],
+  [[entities/rpi-displays]], [[entities/minisforum-m1-pro-125h]],
+  [[entities/minix-neo-z350]], [[entities/proxmox]],
+  [[concepts/vlan-segmentation]], [[concepts/rag-vs-wiki-pattern]], [[sources/project-readme]],
+  [[sources/proxmox-setup-guide]], [[sources/igpu-passthrough-guide]], [[index]].
+- Notes: Historical sources/audits remain dated evidence; active wiki pages now
+  match the canonical project references reconciled on 2026-08-25.

@@ -10,7 +10,9 @@ flowchart TB
     Monitoring["Monitoring<br/>VLAN 60"]
     DMZ["DMZ<br/>VLAN 70"]
     Guest["Guest<br/>VLAN 99"]
-    Tailscale["Tailscale ACLs<br/>daily remote"]
+    TailAdmin["Tailscale admin paths<br/>four narrow /32 routes"]
+    TailMobile["OnePlus portal grant<br/>DNS · 443 · 8180-8209"]
+    PortalProxy["Homepage fixed-target proxy<br/>docker-host"]
     HostFW["Host firewalls / UFW<br/>Linux services"]
     ServiceAuth["Service auth<br/>HA 2FA, app logins, tokens"]
     LocalAI["llm-host CT 114<br/>llama.cpp + Wyoming<br/>approved HA entities only"]
@@ -26,8 +28,12 @@ flowchart TB
     Router --> DMZ
     Router --> Guest
 
-    Tailscale --> Automation
-    Tailscale --> Storage
+    TailAdmin --> Automation
+    TailAdmin --> NVR
+    TailAdmin --> Storage
+    TailAdmin --> Monitoring
+    TailMobile --> PortalProxy
+    PortalProxy --> HostFW
     Automation --> HostFW
     Automation --> LocalAI
     Storage --> HostFW
@@ -35,8 +41,8 @@ flowchart TB
     LocalAI --> ServiceAuth
 
     Automation -.->|"MQTT / ESPHome only"| IoT
-    NVR -.->|"camera streams only"| Printers
     NVR -.->|"recording/archive only"| Storage
+    Automation -.->|"Bambuddy to P1S ports 21/8883 only"| Printers
     Monitoring -.->|"health checks and metrics only"| Automation
     Monitoring -.->|"AI service checks only"| LocalAI
     Monitoring -.->|"health checks and metrics only"| NVR
@@ -47,9 +53,11 @@ flowchart TB
     StorageX["Storage has no broad internet"]
     NVRX["NVR has no broad internet"]
     PrinterX["Printers limited to required OTA/cloud paths"]
+    TailX["Mobile portal identity has no broad VLAN or SSH access"]
 
     Guest -.->|"blocked"| GuestX
     IoT -.->|"blocked"| IoTX
     Storage -.->|"blocked"| StorageX
     NVR -.->|"blocked"| NVRX
     Printers -.->|"limited"| PrinterX
+    TailMobile -.->|"blocked"| TailX

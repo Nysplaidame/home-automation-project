@@ -24,23 +24,22 @@ function Test-Tcp([string]$Name, [string]$HostName, [int]$Port) {
 }
 
 function Test-Http([string]$Name, [string]$Uri) {
-    $oldCallback = [System.Net.ServicePointManager]::ServerCertificateValidationCallback
-    [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
+    $handler = [System.Net.Http.HttpClientHandler]::new()
+    $handler.ServerCertificateCustomValidationCallback =
+        [System.Net.Http.HttpClientHandler]::DangerousAcceptAnyServerCertificateValidator
+    $client = [System.Net.Http.HttpClient]::new($handler)
+    $client.Timeout = [TimeSpan]::FromSeconds(5)
     try {
-        $request = [System.Net.HttpWebRequest]::Create($Uri)
-        $request.Method = "GET"
-        $request.Timeout = 5000
-        $request.AllowAutoRedirect = $false
-        $response = $request.GetResponse()
+        $response = $client.GetAsync($Uri).GetAwaiter().GetResult()
         $status = [int]$response.StatusCode
         $ok = $status -in @(200, 302, 401)
         Add-Result $Name $(if ($ok) { "PASS" } else { "FAIL" }) "HTTP $status"
         $response.Dispose()
     } catch {
-        $status = if ($_.Exception.PSObject.Properties.Name -contains "Response" -and $_.Exception.Response) { [int]$_.Exception.Response.StatusCode } else { 0 }
-        Add-Result $Name $(if ($status -in @(200, 302, 401)) { "PASS" } else { "FAIL" }) "HTTP $status"
+        Add-Result $Name "FAIL" "HTTP request failed: $($_.Exception.Message)"
     } finally {
-        [System.Net.ServicePointManager]::ServerCertificateValidationCallback = $oldCallback
+        $client.Dispose()
+        $handler.Dispose()
     }
 }
 

@@ -3,20 +3,23 @@ title: "MINIX NEO Z350-0dB"
 category: entity
 tags: [hardware, compute, proxmox, minipc]
 created: 2026-04-07
-updated: 2026-04-07
+updated: 2026-08-25
 sources: [project-readme, hardware-bom]
-status: stable
+status: superseded
 ---
 
 # MINIX NEO Z350-0dB
 
 **Type:** device — compute hardware (Mini PC)
-**Status:** ✅ Owned / ⏳ Proxmox not yet installed
-**Related:** [[entities/proxmox]], [[entities/home-assistant]], [[entities/frigate]]
+**Status:** Superseded early hardware plan; not the production host
+**Related:** [[entities/minisforum-m1-pro-125h]], [[entities/proxmox]]
 
 ## Overview
 
-Fanless Intel mini PC used as the Proxmox hypervisor host for the entire home automation stack. Runs all VMs (Home Assistant, Frigate, and future workloads) from a single silent device.
+This was the compute platform described by the early BOM and April wiki ingest.
+It is not the production Proxmox host. The live system uses a
+[[entities/minisforum-m1-pro-125h]]; retain this page only to explain historical
+source references.
 
 ## Key Properties
 
@@ -27,25 +30,13 @@ Fanless Intel mini PC used as the Proxmox hypervisor host for the entire home au
 - OS: Proxmox VE (bare metal)
 - Network: single NIC (`enp1s0`), connected to GL-MT6000 `lan1` as a VLAN trunk
 
-## Network Assignment
+The specifications below describe the superseded candidate, not live state:
 
-- VLAN: 10 (Management)
-- Static IP: `192.168.10.10`
-- Bridge: `vmbr0` (VLAN-aware), tag trunk on `enp1s0`
-- IOMMU: must be enabled (`intel_iommu=on`) for iGPU passthrough to Frigate VM
-
-## VMs Hosted
-
-| VM ID | Name | VLAN | IP |
-|---|---|---|---|
-| 100 | Home Assistant (HAOS) | 20 | 192.168.20.101 |
-| 101 | Frigate NVR + Bambuddy | 30 | 192.168.30.20 |
-
-## Open Questions
-
-- [ ] Verify actual installed RAM (README says 16GB, BOM says 32GB)
-- [ ] Confirm M.2 slot is PCIe Gen3 or Gen4
+- CPU: Intel i3-N350
+- Form factor: fanless / passively cooled
+- Earlier storage/RAM claims were never accepted as production evidence.
 
 ## Change Log
 
 - 2026-04-07: Page created from README + BOM ingest
+- 2026-08-25: Marked superseded after reconciliation with the production MINISFORUM host.

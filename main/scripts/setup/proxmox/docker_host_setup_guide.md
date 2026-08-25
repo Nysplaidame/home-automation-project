@@ -71,7 +71,7 @@ Completed live:
   admin/DNS ports stay scoped despite Docker DNAT bypassing normal UFW input.
 - Tailscale installed and `tailscaled` active; docker-host is authenticated as
   `100.94.122.18` and advertises only `192.168.20.101/32`,
-  `192.168.40.50/32`, and `192.168.60.10/32`. Stale broad route preference
+  `192.168.30.20/32`, `192.168.40.50/32`, and `192.168.60.10/32`. Stale broad route preference
   `192.168.20.0/24` was removed on 2026-07-02.
 - `/etc/apt/apt.conf.d/01proxy` keeps HTTP apt traffic through apt-cacher-ng and
   sends HTTPS apt traffic direct because apt-cacher-ng rejects HTTPS CONNECT.
@@ -259,10 +259,10 @@ ufw allow from 192.168.60.10 to any port 2283 proto tcp comment "Monitoring to I
 ufw allow in on tailscale0 to any port 2283 proto tcp comment "Tailscale Immich"
 ufw allow from 192.168.10.0/24 to any port 3001 proto tcp comment "Management to Homepage"
 ufw allow from 192.168.1.0/24 to any port 3001 proto tcp comment "LAN to Homepage"
-ufw allow from 192.168.10.0/24 to any port 8180:8187 proto tcp comment "Management to Homepage previews"
-ufw allow from 192.168.1.0/24 to any port 8180:8187 proto tcp comment "LAN to Homepage previews"
-ufw allow from 192.168.20.0/24 to any port 8180:8187 proto tcp comment "Automation to Homepage previews"
-ufw allow in on tailscale0 to any port 8180:8187 proto tcp comment "Tailscale Homepage previews"
+ufw allow from 192.168.10.0/24 to any port 8180:8209 proto tcp comment "Management to Homepage previews"
+ufw allow from 192.168.1.0/24 to any port 8180:8209 proto tcp comment "LAN to Homepage previews"
+ufw allow from 192.168.20.0/24 to any port 8180:8209 proto tcp comment "Automation to Homepage previews"
+ufw allow in on tailscale0 to any port 8180:8209 proto tcp comment "Tailscale Homepage previews"
 ufw allow from 192.168.10.0/24 to any port 8080 proto tcp comment "Management to AdGuard UI"
 ufw allow from 192.168.10.0/24 to any port 8081 proto tcp comment "Management to Dozzle"
 ```
@@ -410,8 +410,8 @@ Do not reuse an automatic Docker subnet; the canonical allocation table is
 | Service | Path | Planned port(s) | Notes |
 |---|---|---|---|
 | AdGuard Home | `/opt/stacks/adguard-home/` | 53/tcp+udp, 3000 initial, 8080 admin target | Router forwards DNS here first; public fallback stays on router |
-| Immich | `/opt/stacks/immich/` | 2283/tcp | Pre-flight live with local placeholder storage; store real media on OMV-backed mount, not the VM disk |
-| Homepage | `/opt/stacks/homepage/` | 3001/tcp | Internal dashboard |
+| Immich | `/opt/stacks/immich/` | 2283/tcp | Live with its media library on the approved OMV-backed mount |
+| Homepage | `/opt/stacks/homepage/` | 443/tcp, 3001 rollback, 8180-8209 fixed HTTPS proxies | Central Home Operations portal |
 | Dozzle | `/opt/stacks/dozzle/` | 8081/tcp | Internal Docker log viewer |
 | SearXNG | `/opt/stacks/searxng/` | 8087/tcp | Direct-access metasearch pre-flight |
 | Whoogle | `/opt/stacks/whoogle/` | 8088/tcp | Direct-access Google search proxy pre-flight |
@@ -428,7 +428,7 @@ Tailscale is installed on the host OS, not inside Docker.
 Target route advertisement:
 
 ```bash
-tailscale up --advertise-routes=192.168.20.101/32,192.168.40.50/32,192.168.60.10/32
+tailscale up --accept-dns=false --hostname=docker-host --advertise-routes=192.168.20.101/32,192.168.30.20/32,192.168.40.50/32,192.168.60.10/32
 ```
 
 Approve each host route in the Tailscale admin console. Do not advertise broad
@@ -438,10 +438,14 @@ VLAN routes such as `192.168.20.0/24`, `192.168.40.0/24`, or
 Remote access model:
 
 - Home Assistant through `192.168.20.101/32`.
+- Frigate authenticated HTTPS through `192.168.30.20/32`; keep internal API
+  port `5000` denied remotely.
 - OMV through `192.168.40.50/32`.
 - Grafana and Uptime Kuma through `192.168.60.10/32`, with only ports `3000`
   and `3001` allowed through docker-host routed firewall policy.
 - Docker-host services through docker-host's Tailscale node identity/MagicDNS.
+- The approved OnePlus daily path uses split DNS plus Homepage `443` and fixed
+  proxy ports `8180-8209`; it does not receive broad routed-subnet access.
 - WireGuard remains dormant fallback, not daily access.
 
 ---

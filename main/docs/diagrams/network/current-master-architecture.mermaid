@@ -32,22 +32,33 @@ flowchart TB
         Grocy["Grocy<br/>stock and shopping"]
         Garden["GardenKeeper<br/>garden state and tasks"]
         Hub["Household Hub<br/>knowledge and research"]
+        Recomp["Recomp Tracker<br/>habits and workouts"]
         Bambuddy["Bambuddy<br/>Bambu P1S integration"]
     end
 
+    subgraph MediaSecurity["docker-host media, download and secure services"]
+        Media["Jellyfin · Calibre-Web · Atsumeru<br/>OMV-backed media libraries"]
+        Vault["Vaultwarden<br/>loopback raw listener · HTTPS proxy"]
+        Download["Mullvad/Gluetun + qBittorrent<br/>fail-closed · OMV payloads"]
+    end
+
     subgraph PlatformApps["docker-host platform and tools"]
-        Homepage["Home Operations portal"]
+        Homepage["Home Operations portal<br/>HTTPS 443 · fixed proxies 8180-8209"]
         AdGuard["AdGuard Home"]
         Dozzle["Dozzle logs"]
         Search["SearXNG + Whoogle"]
         Ntfy["ntfy notifications"]
         LiveSync["Obsidian LiveSync"]
         Tools["Mermaid Viewer<br/>Gridfinity Layout Tool"]
-        Watch["Watchtower monitor-only<br/>Telegraf metrics"]
+        Watch["Watchtower monitor-only<br/>Telegraf · apt-cacher-ng"]
     end
 
     DockerHost --- HouseholdApps
+    DockerHost --- MediaSecurity
     DockerHost --- PlatformApps
+
+    Bridges["Explicit Compose bridges<br/>10.240.x.0/24 allocations<br/>Bambuddy host-mode exception pending P1S path"]
+    DockerHost --- Bridges
 
     subgraph Storage["Storage VLAN 40"]
         OMV["OpenMediaVault NAS<br/>192.168.40.50<br/>NFS · SMB · backups · CCTV · Immich"]
@@ -60,16 +71,16 @@ flowchart TB
     OMV -->|"VM/CT backups"| Proxmox
 
     subgraph Physical["Physical integrations"]
-        Camera["ANNKE C500<br/>192.168.30.21"]
-        FutureCameras["Future exterior cameras<br/>192.168.30.22-24+"]
+        Cameras["Three ANNKE C500 cameras<br/>.21 port 2 · .23 patio port 3 · .22 gate port 4"]
+        FutureCamera["Fourth camera pending<br/>192.168.30.24 · switch ports 5-7 reserved"]
         Printer["Bambu P1S<br/>192.168.35.200"]
         VentSys["VentSys ESPHome fleet<br/>VLAN 50 · hardware adoption pending"]
     end
 
-    Switch -->|"port 2 · VLAN 30 PoE"| Camera
-    Switch -.-> FutureCameras
-    Camera -->|"RTSP main/sub streams"| Frigate
-    FutureCameras -.-> Frigate
+    Switch -->|"ports 2-4 · VLAN 30 PoE"| Cameras
+    Switch -.-> FutureCamera
+    Cameras -->|"RTSP main/sub streams"| Frigate
+    FutureCamera -.-> Frigate
     Printer --> Bambuddy
     VentSys -->|"MQTT / ESPHome"| HA
 
@@ -85,12 +96,14 @@ flowchart TB
     subgraph Remote["Remote access"]
         Tailnet["Tailscale tailnet<br/>daily access"]
         TailRouter["docker-host tailscale0<br/>100.94.122.18"]
+        MobileProxy["OnePlus fixed portal grant<br/>DNS · 443 · 8180-8209<br/>no broad VLAN route"]
         HostRoutes["Approved narrow routes<br/>HA .101 · Frigate .20 · OMV .50 · Monitoring .10"]
         WireGuard["WireGuard<br/>dormant split-tunnel fallback"]
     end
 
     Operator --> Tailnet --> TailRouter
     TailRouter --> DockerHost
+    TailRouter --> MobileProxy --> Homepage
     TailRouter --> HostRoutes
     HostRoutes --> HA
     HostRoutes --> Frigate
@@ -105,6 +118,6 @@ flowchart TB
     classDef remote fill:#ef9a9a,stroke:#963f3f,color:#350b0b
     class Router,Switch edge
     class Proxmox,HA,Monitoring,DockerHost,Frigate,LLMHost compute
-    class Immich,Mealie,Grocy,Garden,Hub,Bambuddy,Homepage,AdGuard,Dozzle,Search,Ntfy,LiveSync,Tools,Watch app
+    class Immich,Mealie,Grocy,Garden,Hub,Recomp,Bambuddy,Media,Vault,Download,Homepage,AdGuard,Dozzle,Search,Ntfy,LiveSync,Tools,Watch app
     class OMV storage
-    class Tailnet,TailRouter,HostRoutes,WireGuard remote
+    class Tailnet,TailRouter,MobileProxy,HostRoutes,WireGuard remote

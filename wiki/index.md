@@ -3,8 +3,8 @@
 > **LLM:** Read this file first on every query. Master catalog of all wiki content.
 > Updated after every ingest, query (if filed), or lint pass.
 
-**Stats:** 21 sources - 25 entities - 7 concepts - 6 analyses
-**Last updated:** 2026-08-09
+**Stats:** 21 sources - 26 entities - 7 concepts - 8 analyses
+**Last updated:** 2026-08-25
 
 ---
 
@@ -29,7 +29,7 @@
 ### Setup guides
 - [[sources/router-setup-complete]] - GL-MT6000 deployment; first-flight deployed via router-deploy toolkit
 - [[sources/network-testing-guide]] - Post-cutover validation
-- [[sources/proxmox-setup-guide]] - Proxmox VE on MINIX; VM creation; backup strategy
+- [[sources/proxmox-setup-guide]] - Proxmox VE on MINISFORUM; current VM/LXC build and backup references
 - [[sources/ha-vm-setup-guide]] - HAOS onboarding and VentSys packages
 - [[sources/frigate-vm-setup-guide]] - Debian + Docker + Frigate staging; iGPU; NAS storage
 - [[sources/igpu-passthrough-guide]] - Intel iGPU passthrough to Frigate VM
@@ -50,9 +50,10 @@
 ## Entities
 
 ### Hardware
-- [[entities/minix-neo-z350]] - Fanless Intel mini PC; Proxmox host
+- [[entities/minisforum-m1-pro-125h]] - Live Proxmox host; Core Ultra 5 125H, 32 GiB, shared iGPU
+- [[entities/minix-neo-z350]] - Superseded early compute plan retained for source history
 - [[entities/gl-mt6000]] - GL.iNet WiFi 6 router; OpenWrt DSA; 10-VLAN core
-- [[entities/tplink-ap]] - TP-Link TL-WA801N AP on lan5
+- [[entities/tplink-ap]] - Planned TP-Link TL-WA801N AP; VLAN 1 switch capacity unresolved
 - [[entities/rpi-displays]] - Pi kiosk displays on VLAN 1
 - [[entities/cctv-camera-fleet]] - Three-camera Frigate fleet on PoE VLAN 30 access ports
 - [[entities/bambu-p1s]] - FDM printer on VLAN 35
@@ -60,8 +61,8 @@
 - [[entities/raspberry-pi-nas]] - Deprecated historical NAS plan; superseded by OMV
 
 ### Infrastructure
-- [[entities/proxmox]] - Proxmox VE on MINIX; VMs 100/102/103 and CTs 111/114 live
-- [[entities/docker-host]] - VM 103; Bambuddy, Tier 1 apps, ntfy/search pre-flight, Tailscale, Telegraf, Fail2ban
+- [[entities/proxmox]] - Proxmox VE on MINISFORUM; VMs 100/102/103 and CTs 111/114 live
+- [[entities/docker-host]] - VM 103; live household/media services, explicit Compose networks, fixed Homepage proxy, Tailscale, Telegraf and Fail2ban
 - [[entities/monitoring-vm]] - VM 102; Uptime Kuma, InfluxDB, Grafana, Telegraf, ntfy routing, infrastructure checks, dashboards, and exporters
 
 ### Software / integrations
@@ -70,7 +71,7 @@
 - [[entities/llm-host]] - CT 114 llama.cpp/Open WebUI/Wyoming host with shared-iGPU Vulkan
 - [[entities/bambuddy]] - Bambu P1S bridge on docker-host
 - [[entities/adguard-home]] - Live DNS filtering/adblocking service on docker-host
-- [[entities/immich]] - Live skeleton gallery/photos service; real imports blocked until OMV/backup readiness
+- [[entities/immich]] - Live gallery/photos service with OMV-backed media storage
 - [[entities/homepage]] - Live responsive HTTPS operations dashboard on docker-host
 - [[entities/dozzle]] - Live Docker log viewer on docker-host
 - [[entities/household-hub]] - Transcript RAG, confirmed recipe handoff, read-only Grocy, and Markdown/ICS exports on docker-host
@@ -102,6 +103,8 @@
 - [[analyses/lint-2026-07-28]] - Targeted CCTV/Frigate/MQTT state lint after the three-camera rollout
 - [[analyses/lint-2026-08-01]] - Targeted maintenance/download-gateway state lint and index-count repair
 - [[analyses/lint-2026-08-09]] - Targeted Household Hub recipe-workflow and ownership-boundary lint
+- [[analyses/lint-2026-08-21]] - Targeted mobile Homepage proxy and Tailscale-access lint
+- [[analyses/lint-2026-08-25]] - Architecture-document reconciliation and targeted wiki drift repair
 
 ---
 

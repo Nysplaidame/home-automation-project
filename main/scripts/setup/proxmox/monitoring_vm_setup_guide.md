@@ -586,15 +586,15 @@ Add monitors for every device in the system. Suggested list:
 |---|---|---|
 | Router DNS | TCP port | 192.168.10.1:53 |
 | Proxmox UI | HTTP(s) | https://192.168.10.10:8006 |
-| Home Assistant UI | HTTP(s) | http://192.168.20.101:8123 |
+| Home Assistant UI | HTTPS | https://192.168.20.101:8123; ignore the private-CA error in Kuma only after confirming the certificate identity |
 | Docker Host SSH | TCP port | 192.168.20.102:22 |
 | Docker Host APT Cache | TCP port | 192.168.20.102:3142 |
 | Bambuddy UI Port | TCP port | 192.168.20.102:8000 |
 | Grafana UI | HTTP(s) | http://grafana:3000 |
 | InfluxDB Health | HTTP(s) | http://influxdb:8086/health |
 | Uptime Kuma UI | HTTP(s) | http://127.0.0.1:3001 |
-| Frigate | HTTPS | https://192.168.30.20:8971, after Frigate is started |
-| OMV NAS | Ping | 192.168.40.50, after NAS is built |
+| Frigate | HTTPS | https://192.168.30.20:8971; live CT 111 UI plus separate checks for all three cameras |
+| OMV NAS | Ping/NFS/HTTP | 192.168.40.50; live NAS with web, NFS and SMART monitoring |
 
 **All 16 VentSys ESPHome boards (Ping)**
 Add one entry per IP: 192.168.50.21, .22, .31, .32, .33, .34,

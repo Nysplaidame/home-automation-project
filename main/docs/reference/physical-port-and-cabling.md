@@ -3,6 +3,7 @@ title: Router and Switch Physical Port Layout
 description: Confirmed and reserved physical cabling map for the router, GS1900 switch, OMV, and CCTV rollout
 tags: [network, cabling, ports, switch, cctv]
 created: 2026-07-10
+modified: 2026-08-25
 type: reference
 status: active
 ---
@@ -21,11 +22,13 @@ router or switch changes. Canonical device names are in
 
 | Canonical name | Physical device | Connectivity |
 |---|---|---|
-| `router` | GL.iNet GL-MT6000 | WAN upstream; CAT6 to `proxmox`, `gs1900-switch`, and `omvnas`; Wi-Fi AP |
+| `router` | GL.iNet GL-MT6000 | WAN upstream; CAT6 to `proxmox` and `gs1900-switch`; Wi-Fi AP; unplugged recovery access ports |
 | `proxmox` | MINISFORUM M1 Pro-125H mini PC | Router `lan1` tagged trunk; hosts VMs/CTs |
-| `gs1900-switch` | Zyxel GS1900-8HP | Router `lan3` tagged trunk; PoE cameras and a spare VLAN 40 access port |
-| `omvnas` | OMV NAS hardware | Router `lan4` / VLAN 40 |
+| `gs1900-switch` | Zyxel GS1900-8HP | Router `lan3` tagged trunk; three PoE cameras; OMV on VLAN 40 access port 8 |
+| `omvnas` | OMV NAS hardware | GS1900 port 8 / VLAN 40 |
 | `cam-01-annke-c500` | ANNKE C500 | GS1900 port 2 / VLAN 30 / PoE |
+| `cam-02-gate-annke-c500` | ANNKE C500 gate camera | GS1900 port 4 / VLAN 30 / PoE |
+| `cam-03-patio-annke-c500` | ANNKE C500 patio camera | GS1900 port 3 / VLAN 30 / PoE |
 | `p1s` | Bambu Lab P1S | HomePrinters Wi-Fi / VLAN 35 |
 | `operator-mobile` | Android phone | Wi-Fi locally; Tailscale off-site |
 
@@ -37,12 +40,12 @@ router or switch changes. Canonical device names are in
 | `lan1` | MINISFORUM Proxmox host | Tagged trunk: 10, 20, 30, 35, 40, 50, 60, 70 | Live |
 | `lan2` | None connected | Untagged VLAN 10; reserved for a temporary management device | Available, assigned |
 | `lan3` | GS1900-8HP port 1 | Tagged trunk: 1, 10, 30, 40 | Live |
-| `lan4` | OMV NAS | Untagged VLAN 40; `192.168.40.50` | Live |
+| `lan4` | None connected | Untagged VLAN 40; reserved storage recovery/access port | Available, assigned |
 | `lan5` | None connected | Untagged VLAN 1; reserved for a LAN or recovery laptop | Available, assigned |
 
-Every LAN port has an assignment. There are no unassigned router LAN ports in
-the current design. `lan2` and `lan5` are intentionally unplugged until
-temporary management or recovery access is needed.
+Every LAN port has a policy assignment. `lan2`, `lan4`, and `lan5` are
+intentionally unplugged until temporary management, storage recovery, or LAN
+recovery access is needed.
 
 Use `lan5` for a normal LAN device or recovery laptop only. Do not put a
 switch, camera, or NAS there: those devices belong on their assigned router
@@ -59,12 +62,12 @@ camera bench/mounting change.
 |---|---|---|---|
 | `1` | Router `lan3` | Tagged trunk: 1, 10, 30, 40; no camera PoE | Live |
 | `2` | ANNKE C500, camera 1 | Untagged VLAN 30, PVID 30, PoE; `192.168.30.21` | Live |
-| `3` | Camera 2 | Reserve: untagged VLAN 30, PVID 30, PoE; `192.168.30.22` | Future |
-| `4` | Camera 3 | Reserve: untagged VLAN 30, PVID 30, PoE; `192.168.30.23` | Future |
+| `3` | Patio camera / camera 3 | Untagged VLAN 30, PVID 30, PoE; `192.168.30.23` | Live |
+| `4` | Gate camera / camera 2 | Untagged VLAN 30, PVID 30, PoE; `192.168.30.22` | Live |
 | `5` | Camera 4 | Reserve: untagged VLAN 30, PVID 30, PoE; `192.168.30.24` | Future |
 | `6` | Camera 5 | Reserve: untagged VLAN 30, PVID 30, PoE; IP to allocate | Future |
 | `7` | Camera 6 | Reserve: untagged VLAN 30, PVID 30, PoE; IP to allocate | Future |
-| `8` | None connected | Untagged VLAN 40, PVID 40; reserved for a future storage device | Available, assigned |
+| `8` | OMV NAS | Untagged VLAN 40, PVID 40; `192.168.40.50` | Live |
 
 ## CCTV Connectivity
 
@@ -77,17 +80,19 @@ camera -> GS1900 port 2-7 (VLAN 30 access) -> GS1900 port 1
        -> Proxmox -> CT 111 Frigate
 ```
 
-Camera 1 is the ANNKE C500 at `192.168.30.21`. Its verified RTSP paths are
+All three live cameras are ANNKE C500 units and use verified RTSP paths
 `/Streaming/Channels/101` (main) and `/Streaming/Channels/102` (substream).
-The other ports remain a cabling and VLAN reservation until their camera model,
-MAC, field location, and tested RTSP paths are known.
+Camera 1 is `.21` on port 2, Patio is `.23` on port 3, and Gate is `.22` on
+port 4. Ports 5-7 remain the future CCTV block; `.24` is reserved for the next
+camera.
 
 ## Capacity Decision
 
-The eight-port switch has one free VLAN 40 access port now OMV is directly on
-router `lan4`, but it cannot provide the planned TL-WA801N extender port
-without a VLAN/access-port change. Do not repurpose a camera or the reserved
-storage port for that extender without first choosing one of:
+The eight-port switch has three future camera ports and no general-purpose
+access port: port 8 is occupied by OMV. It cannot provide the planned
+TL-WA801N extender port without consuming CCTV capacity or changing the design.
+Do not repurpose a camera or the OMV port for that extender without first
+choosing one of:
 
 1. Keep the extender disconnected or use a separate suitable access path.
 2. Add a second managed switch for the extender and future non-camera devices.
@@ -100,7 +105,7 @@ Label both ends of every cable using the exact port pair, for example:
 ```text
 RTR-lan3 <-> SW-p1
 SW-p2 <-> CCTV-01-ANNKE
-RTR-lan4 <-> OMVNAS
+SW-p8 <-> OMVNAS
 RTR-lan1 <-> PROXMOX
 ```
 

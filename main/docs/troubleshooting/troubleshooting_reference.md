@@ -1,9 +1,34 @@
+---
+title: Troubleshooting Reference
+description: Cross-system quick diagnosis for the current deployed architecture
+tags: [troubleshooting, diagnostics, recovery, architecture]
+created: 2026-05-08
+modified: 2026-08-25
+type: reference
+status: active
+---
+
 # Troubleshooting Reference
-# Cross-system quick-reference for the most common failure modes
-# See per-system guides for deeper diagnostics
-#
-# Updated 2026-06-29: CT 111 runs Frigate, CT 114 runs local AI, and MQTT TLS
-# on 8883 is the normal path.
+
+This reference follows the current architecture: HA uses native HTTPS, Frigate
+runs in CT 111 with three cameras, local AI runs in CT 114, OMV is on GS1900
+port 8, docker-host uses explicit Compose bridges except for the documented
+Bambuddy exception, and remote Homepage cards use fixed HTTPS proxy ports.
+
+## Start here
+
+1. Record the symptom and time; do not restart several systems at once.
+2. Check the path from the operator inward: client/DNS/TLS, router/firewall,
+   host or guest, container/service, dependency, then storage or physical device.
+3. Run `scripts/monitoring/health_check.ps1 -Full` from Windows, or
+   `scripts/monitoring/health_check.sh --json` from Proxmox.
+4. Compare the result with `docs/reference/current-live-state.md`,
+   `docs/reference/service-matrix.md`, and `docs/reference/access-matrix.md`.
+5. Preserve the exact error, HTTP status, timestamp and relevant logs before a
+   change. Prefer one reversible action followed by the same validation.
+
+Historical audits and handoffs may describe earlier states. They are evidence,
+not the current operating instructions.
 
 ---
 
@@ -48,7 +73,7 @@ mosquitto_sub -h localhost -p 8883 --cafile /ssl/ca.crt -u mqtt -P <password> -t
 - Open browser console (F12) — look for WebSocket errors
 - Confirm the Long-Lived Token in `HA_CONFIG.token` is still valid (tokens can be revoked)
 - Create a new token: Settings → Profile → Security → Long-Lived Access Tokens
-- Confirm HA is at `http://192.168.20.101:8123` (not HTTPS yet)
+- Confirm HA is at `https://192.168.20.101:8123`; HTTP is no longer the live UI.
 
 ---
 
@@ -60,9 +85,12 @@ mosquitto_sub -h localhost -p 8883 --cafile /ssl/ca.crt -u mqtt -P <password> -t
 # From management laptop
 ping 192.168.20.101           # is the VM reachable?
 nc -zv 192.168.20.101 8123    # is port 8123 open?
+curl -k -I https://192.168.20.101:8123/
 ```
 - No ping: check Proxmox VM 100 is running, check VLAN 20 is up on the router
 - Ping OK, port closed: HA is still booting (wait 2 min after VM start) or check VM console in Proxmox
+- Port open but browser warns about trust: install/trust the Home Local CA; do
+  not switch the documented URL back to HTTP.
 
 ### HA restarting repeatedly after config change
 
@@ -95,7 +123,7 @@ nc -zv 192.168.20.101 8123    # is port 8123 open?
 
 ```bash
 # From frigate-nvr CT
-ffprobe rtsp://admin:<password>@192.168.30.21:554/stream1
+ffprobe 'rtsp://admin:<password>@192.168.30.21:554/Streaming/Channels/102'
 ```
 - Connection refused: wrong RTSP path or camera credentials — check camera manufacturer docs
 - Timeout: camera unreachable — check camera power and VLAN 30 connectivity
@@ -115,10 +143,12 @@ nc -zv 192.168.20.101 8883
 
 ```bash
 # From HA Terminal
-nc -zv 192.168.30.20 8971    # Frigate 0.14+ port; use 5000 for <0.14
+nc -zv 192.168.30.20 5000    # HA integration API
+nc -zv 192.168.30.20 8971    # authenticated browser UI
 ```
 - Fails: check `HA to NVR Access` rule — verify src_ip is 192.168.20.101
-- Also check the CT firewall allows 192.168.20.0/24 → port 8971
+- Also check the CT firewall allows the HA source to the required API/stream
+  ports. Do not expose API port `5000` through the remote Frigate host route.
 
 ### Frigate container not starting
 
@@ -221,12 +251,16 @@ nslookup example.com 192.168.20.102
 ```bash
 tailscale status
 ping 192.168.20.101
-curl -I http://192.168.20.101:8123
+curl -k -I https://192.168.20.101:8123
 ```
 
 - Confirm docker-host is online in the tailnet.
 - Confirm `192.168.20.101/32` is advertised and approved.
 - Confirm Tailscale ACLs allow the client to reach HA on 8123.
+
+This direct host route is an admin path. The approved OnePlus daily portal
+identity normally opens `https://homepage.home.local/` and its fixed proxy
+ports rather than browsing routed private addresses.
 
 ### Tailscale client cannot reach OMV
 
@@ -238,6 +272,22 @@ curl -I http://192.168.40.50/
 - Confirm `192.168.40.50/32` is advertised and approved.
 - Confirm OpenWrt allows docker-host routed access only to the OMV host where required.
 - Do not widen this to the whole storage VLAN.
+
+### Homepage cards fail on mobile data
+
+```text
+https://homepage.home.local/
+https://homepage.home.local:8180/ ... :8209/
+```
+
+- Confirm Tailscale is connected and split DNS resolves `homepage.home.local`
+  to docker-host's tailnet address `100.94.122.18`.
+- Confirm the device identity is the approved OnePlus client and its grant
+  permits DNS, `tcp/443`, and `tcp/8180-8209` only.
+- If Homepage opens but one card fails, test that card's fixed proxy port and
+  then its fixed upstream from docker-host. Do not add a broad VLAN route.
+- qBittorrent is the deliberate same-origin
+  `/portal-preview/qbittorrent/` exception rather than a separate proxy port.
 
 ### Docker-host services unreachable over Tailscale
 
@@ -301,6 +351,12 @@ docker compose logs --tail=80
 - Invalid config: fix the Compose or `.env` file.
 - Port already in use: `ss -tlnp | grep <port>`.
 - Permission issue: check ownership under `/opt/stacks/<service>/`.
+- Network overlap or wrong Compose label: compare the stack with
+  `configs/docker-host/NETWORK-ALLOCATION.md`; every project bridge must use its
+  explicit CIDR and a Compose network key matching the explicit network name.
+- Run `/usr/local/sbin/docker-host-security-audit.sh --verify` after any network
+  or firewall change. The current expected exception is Bambuddy's bridge
+  attachment only, until the P1S network path is restored.
 
 ### Docker-host cannot reach the internet
 
@@ -331,11 +387,16 @@ ss -tlnp | grep 2283
 ```bash
 cd /opt/stacks/homepage
 docker compose ps
-ss -tlnp | grep 3001
+ss -tlnp | grep -E ':443|:3001|:81[89][0-9]|:820[0-9]'
+nginx -t
 ```
 
 - Confirm `homepage.home.local` resolves to `192.168.20.102`.
+- Use `https://homepage.home.local/` as the normal local and remote bookmark;
+  `http://192.168.20.102:3001/` is the rollback path.
 - Check config syntax in `/opt/stacks/homepage/config/`.
+- If only previews fail, validate the fixed-target proxy sidecar, its source-
+  scoped UFW rules and the exact `8180-8209` mapping in `services.yaml`.
 
 ## Dozzle
 
@@ -357,6 +418,9 @@ docker ps
 > The P1S is at 192.168.35.200 (VLAN 35 — Printers, HomePrinters WiFi SSID).
 > The P1S runs its own MQTT broker on port 8883 — Bambuddy connects TO the
 > printer, not the other way around.
+> Bambuddy currently remains on host networking. Its explicit
+> `10.240.23.0/24` bridge and routed UFW rules are prepared, but migration is
+> blocked until VM 103 itself can reach P1S ports `21` and `8883`.
 
 ### Bambuddy container not starting
 
@@ -382,6 +446,7 @@ ss -tlnp | grep 8000
 ```bash
 # From VM 103 (docker-host):
 nc -zv 192.168.35.200 8883    # should say open
+nc -zv 192.168.35.200 21      # FTP/control path used by the integration
 ping 192.168.35.200            # basic reachability
 ```
 - Printer not at 192.168.35.200: check DHCP leases on router, confirm P1S is on HomePrinters SSID
@@ -435,9 +500,18 @@ mount -t nfs 192.168.40.50:/export/ha-backups /tmp/test-mount
 - Permission denied: check the OMV NFS export allows `192.168.20.101`
 - Timeout: `HA to Storage Access` firewall rule covers VLAN 20 → VLAN 40:2049
 
-### Frigate can't mount NAS
+### Frigate recordings are not reaching OMV
 
-Same approach from frigate-nvr CT. `Frigate to NAS Access` rule allows ports 2049 and 445.
+CT 111 does not mount NFS directly. Proxmox mounts
+`192.168.40.50:/export/frigate` at `/mnt/omv/frigate`, then bind-mounts it into
+CT 111 at `/mnt/nas/frigate`.
+
+1. On Proxmox, confirm the NFS mount source and free space.
+2. Confirm `pct config 111` contains the expected `mp0` bind mount.
+3. In CT 111, confirm `/mnt/nas/frigate` is writable by the unprivileged UID
+   mapping and new recording segments appear.
+4. If mounted but unwritable, verify the OMV ACL for host UID `100000`; do not
+   enable dormant NFS client units inside CT 111.
 
 ### Immich can't write media to OMV
 
