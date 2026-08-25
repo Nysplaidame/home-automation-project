@@ -3,7 +3,7 @@ title: Docker Host Config Templates
 description: Rebuildable source templates for VM 103 docker-host stacks, host firewall, and app-data backup
 tags: [docker-host, compose, firewall, backup, templates]
 created: 2026-05-27
-modified: 2026-07-26
+modified: 2026-08-25
 type: config-reference
 status: active
 ---
@@ -35,7 +35,7 @@ Live stack paths:
 | Mealie | `/opt/stacks/mealie` | `stacks/mealie/` |
 | Grocy | `/opt/stacks/grocy` | `stacks/grocy/` |
 | Obsidian LiveSync | `/opt/stacks/obsidian-livesync` | `stacks/obsidian-livesync/` |
-| Household Hub | `/opt/stacks/household-hub` | app repository deployment source |
+| Household Hub | `/opt/stacks/household-hub` | `stacks/household-hub/docker-compose.prod.yml` network-safe production mirror; application source remains in its deployment repository |
 | Mermaid Viewer | `/opt/stacks/mermaid-viewer` | `../../apps/mermaid-viewer/` |
 | Gridfinity Layout Tool | `/opt/stacks/gridfinity-layout-tool` | `stacks/gridfinity-layout-tool/` |
 | Docker-host Telegraf metrics | `/opt/stacks/telegraf` | `stacks/telegraf/` |
@@ -71,3 +71,10 @@ Read [NETWORK-ALLOCATION.md](NETWORK-ALLOCATION.md) before creating or
 recreating any Compose network. Every bridge CIDR is explicit and image
 references are digest-pinned; changing either is a reviewed maintenance change,
 not an incidental `docker compose up` side effect.
+
+The controlled 2026-08-21 remediation recreated every project bridge at its
+documented allocation and passed service, storage, dependency, VPN-egress and
+firewall-persistence checks. Bambuddy is the sole temporary exception: its
+`10.240.23.0/24` bridge and routed firewall policy are prepared, but the live
+container remains on host networking until VM 103 can again reach the P1S on
+ports `21` and `8883`.

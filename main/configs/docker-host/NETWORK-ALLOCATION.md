@@ -18,6 +18,8 @@ which overlaps the management VLAN and breaks return routing.
 | `jellyfin` | `10.240.10.0/24` | Jellyfin |
 | `calibre-web` | `10.240.11.0/24` | Calibre-Web |
 | `atsumeru` | `10.240.12.0/24` | Atsumeru |
+| `mermaid-viewer` | `10.240.13.0/24` | Mermaid Viewer |
+| `household-hub` | `10.240.14.0/24` | Household Hub |
 | `local-alerting` | `10.240.15.0/24` | ntfy shared network |
 | `download-gateway` | `10.240.20.0/24` | Gluetun/qBittorrent |
 | `gardenkeeper` | `10.240.21.0/24` | GardenKeeper |
@@ -31,6 +33,10 @@ which overlaps the management VLAN and breaks return routing.
 
 - Create or recreate a stack only from its tracked Compose file after
   `docker compose config --quiet` passes.
+- Use a Compose network key that matches the explicit network `name`. Docker
+  Compose 5.3.1 rejects a pre-created network when its
+  `com.docker.compose.network` label was produced by a differently named key
+  such as `default`.
 - A network CIDR cannot be changed in place. Stop only the owning stack,
   confirm its data is persisted outside the network, remove its now-unused
   network, then recreate the stack and verify the CIDR with `docker network

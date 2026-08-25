@@ -169,7 +169,7 @@ iptables -A DOCKER-USER -j RETURN
 ip6tables -N DOCKER-USER 2>/dev/null || true
 ip6tables -F DOCKER-USER
 ip6tables -A DOCKER-USER -m conntrack --ctstate RELATED,ESTABLISHED -j RETURN
-for port in 2283 3001 5984 8080 8081 8083 8084 8085 8087 8088 8090 8091 8092 8093 8096 8100 8420 9283 9925 31337; do
+for port in 2283 3001 5984 8000 8080 8081 8083 8084 8085 8087 8088 8090 8091 8092 8093 8096 8100 8420 9283 9925 31337; do
     ip6tables -A DOCKER-USER -i tailscale0 -p tcp -m conntrack --ctorigdstport "$port" -j RETURN
     ip6tables -A DOCKER-USER -p tcp -m conntrack --ctorigdstport "$port" -j DROP
 done

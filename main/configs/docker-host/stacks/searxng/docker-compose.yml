@@ -10,9 +10,11 @@ services:
       SEARXNG_SECRET: "${SEARXNG_SECRET}"
     volumes:
       - ./searxng:/etc/searxng
+    networks:
+      - searxng
 
 networks:
-  default:
+  searxng:
     name: searxng
     ipam:
       config:

@@ -6,6 +6,8 @@ set -eu
 
 UFW_BIN="${UFW_BIN:-/usr/sbin/ufw}"
 SRC_SUBNET="${SRC_SUBNET:-10.240.2.0/24}"
+LEGACY_SRC_SUBNET="${LEGACY_SRC_SUBNET:-172.20.0.0/16}"
+PRUNE_LEGACY="${PRUNE_LEGACY:-0}"
 
 if ! command -v "$UFW_BIN" >/dev/null 2>&1; then
     echo "ERROR: ufw binary not found at $UFW_BIN" >&2
@@ -25,5 +27,12 @@ add_rule() {
 add_rule udp 53 "AdGuard container upstream DNS UDP"
 add_rule tcp 53 "AdGuard container upstream DNS TCP"
 add_rule tcp 853 "AdGuard container upstream DoT"
+
+if [ "$PRUNE_LEGACY" = "1" ]; then
+    for rule in "udp 53" "tcp 53" "tcp 853"; do
+        set -- $rule
+        "$UFW_BIN" --force route delete allow from "$LEGACY_SRC_SUBNET" to any port "$2" proto "$1" >/dev/null 2>&1 || true
+    done
+fi
 
 echo "Applied routed DNS UFW rules for $SRC_SUBNET"

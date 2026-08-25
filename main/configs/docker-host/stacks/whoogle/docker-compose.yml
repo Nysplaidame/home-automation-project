@@ -5,9 +5,11 @@ services:
     restart: unless-stopped
     ports:
       - "8088:5000"
+    networks:
+      - whoogle
 
 networks:
-  default:
+  whoogle:
     name: whoogle
     ipam:
       config:

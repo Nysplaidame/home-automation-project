@@ -13,9 +13,11 @@ services:
       PGID: "1000"
       TZ: "Europe/London"
       BASE_URL: "http://mealie.home.local:9925"
+    networks:
+      - mealie
 
 networks:
-  default:
+  mealie:
     name: mealie
     ipam:
       config:

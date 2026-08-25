@@ -28,16 +28,25 @@ fi
 "$UFW_BIN" --force delete allow from 192.168.1.0/24 to any port 8180:8187 proto tcp >/dev/null 2>&1 || true
 "$UFW_BIN" --force delete allow from 192.168.20.0/24 to any port 8180:8187 proto tcp >/dev/null 2>&1 || true
 "$UFW_BIN" --force delete allow in on tailscale0 to any port 8180:8187 proto tcp >/dev/null 2>&1 || true
+"$UFW_BIN" --force delete allow from 192.168.10.0/24 to any port 8180:8208 proto tcp >/dev/null 2>&1 || true
+"$UFW_BIN" --force delete allow from 192.168.1.0/24 to any port 8180:8208 proto tcp >/dev/null 2>&1 || true
+"$UFW_BIN" --force delete allow from 192.168.20.0/24 to any port 8180:8208 proto tcp >/dev/null 2>&1 || true
+"$UFW_BIN" --force delete allow in on tailscale0 to any port 8180:8208 proto tcp >/dev/null 2>&1 || true
+"$UFW_BIN" --force delete allow from 192.168.10.0/24 to any port 8180:8209 proto tcp >/dev/null 2>&1 || true
+"$UFW_BIN" --force delete allow from 192.168.1.0/24 to any port 8180:8209 proto tcp >/dev/null 2>&1 || true
+"$UFW_BIN" --force delete allow from 192.168.20.0/24 to any port 8180:8209 proto tcp >/dev/null 2>&1 || true
+"$UFW_BIN" --force delete allow in on tailscale0 to any port 8180:8209 proto tcp >/dev/null 2>&1 || true
+"$UFW_BIN" --force delete allow from 172.18.0.0/16 to 172.18.0.1 port 8299 proto tcp >/dev/null 2>&1 || true
 "$UFW_BIN" --force delete allow from "$HOMEPAGE_BRIDGE_SUBNET" to "$HOMEPAGE_BRIDGE_GATEWAY" port 8183 proto tcp >/dev/null 2>&1 || true
 
 "$UFW_BIN" allow from 192.168.10.0/24 to any port 443 proto tcp comment "Management to Homepage HTTPS" >/dev/null
 "$UFW_BIN" allow from 192.168.1.0/24 to any port 443 proto tcp comment "LAN to Homepage HTTPS" >/dev/null
 "$UFW_BIN" allow from 192.168.20.0/24 to any port 443 proto tcp comment "Automation to Homepage HTTPS" >/dev/null
 "$UFW_BIN" allow in on tailscale0 to any port 443 proto tcp comment "Tailscale Homepage HTTPS" >/dev/null
-"$UFW_BIN" allow from 192.168.10.0/24 to any port 8180:8208 proto tcp comment "Management to Homepage previews" >/dev/null
-"$UFW_BIN" allow from 192.168.1.0/24 to any port 8180:8208 proto tcp comment "LAN to Homepage previews" >/dev/null
-"$UFW_BIN" allow from 192.168.20.0/24 to any port 8180:8208 proto tcp comment "Automation to Homepage previews" >/dev/null
-"$UFW_BIN" allow in on tailscale0 to any port 8180:8208 proto tcp comment "Tailscale Homepage previews" >/dev/null
+"$UFW_BIN" allow from 192.168.10.0/24 to any port 8180:8209 proto tcp comment "Management to Homepage previews" >/dev/null
+"$UFW_BIN" allow from 192.168.1.0/24 to any port 8180:8209 proto tcp comment "LAN to Homepage previews" >/dev/null
+"$UFW_BIN" allow from 192.168.20.0/24 to any port 8180:8209 proto tcp comment "Automation to Homepage previews" >/dev/null
+"$UFW_BIN" allow in on tailscale0 to any port 8180:8209 proto tcp comment "Tailscale Homepage previews" >/dev/null
 "$UFW_BIN" allow from "$HOMEPAGE_BRIDGE_SUBNET" to "$HOMEPAGE_BRIDGE_GATEWAY" port 8299 proto tcp comment "Homepage Proxmox status" >/dev/null
 
 echo "Applied Homepage preview UFW rules"

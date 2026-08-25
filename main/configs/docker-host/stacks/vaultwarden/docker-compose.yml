@@ -19,9 +19,11 @@ services:
       - "127.0.0.1:8222:80"
     security_opt:
       - no-new-privileges:true
+    networks:
+      - vaultwarden
 
 networks:
-  default:
+  vaultwarden:
     name: vaultwarden
     ipam:
       config:

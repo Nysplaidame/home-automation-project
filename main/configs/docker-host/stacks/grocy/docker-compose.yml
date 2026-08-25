@@ -11,9 +11,11 @@ services:
       PUID: "1000"
       PGID: "1000"
       TZ: "Europe/London"
+    networks:
+      - grocy
 
 networks:
-  default:
+  grocy:
     name: grocy
     ipam:
       config:

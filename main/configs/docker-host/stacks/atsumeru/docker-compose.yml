@@ -16,9 +16,11 @@ services:
       - ./logs:/app/logs
     security_opt:
       - no-new-privileges:true
+    networks:
+      - atsumeru
 
 networks:
-  default:
+  atsumeru:
     name: atsumeru
     ipam:
       config:

@@ -12,9 +12,11 @@ services:
     volumes:
       - ./work:/opt/adguardhome/work
       - ./conf:/opt/adguardhome/conf
+    networks:
+      - adguard-home
 
 networks:
-  default:
+  adguard-home:
     name: adguard-home
     ipam:
       config:

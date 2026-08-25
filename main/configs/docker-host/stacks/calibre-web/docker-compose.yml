@@ -16,9 +16,11 @@ services:
       - /mnt/omv/media/books/calibre-library:/books
     security_opt:
       - no-new-privileges:true
+    networks:
+      - calibre-web
 
 networks:
-  default:
+  calibre-web:
     name: calibre-web
     ipam:
       config:

@@ -21,9 +21,11 @@ services:
       - /mnt/omv/media/jellyfin/immich-curated:/media/immich-curated:ro
     security_opt:
       - no-new-privileges:true
+    networks:
+      - jellyfin
 
 networks:
-  default:
+  jellyfin:
     name: jellyfin
     ipam:
       config:

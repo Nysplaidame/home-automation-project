@@ -13,6 +13,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:
       - preview-proxy
+    networks:
+      - homepage
 
   preview-proxy:
     image: nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10
@@ -31,7 +33,7 @@ services:
       - ./tls:/etc/nginx/tls:ro
 
 networks:
-  default:
+  homepage:
     name: homepage
     ipam:
       config:
