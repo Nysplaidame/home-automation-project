@@ -36,6 +36,7 @@ bambuddy 10.240.23.0/24
 gridfinity-layout-tool 172.32.0.0/24
 vaultwarden 10.240.30.0/24
 recomp-tracker 10.240.31.0/24
+troubleshooting-dashboard 10.240.32.0/24
 '
 
 inventory() {
@@ -117,6 +118,21 @@ if ip6tables -C DOCKER-USER -p tcp -m conntrack --ctorigdstport 8420 -j DROP >/d
     echo 'PASS IPv6 Docker firewall drops non-Tailscale Recomp traffic'
 else
     echo 'FAIL missing IPv6 Docker firewall Recomp drop' >&2
+    failed=1
+fi
+
+if iptables -C DOCKER-USER -p tcp -s 192.168.10.0/24 -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8094 -j RETURN >/dev/null 2>&1 \
+   && iptables -C DOCKER-USER -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8094 -j DROP >/dev/null 2>&1; then
+    echo 'PASS Troubleshooting Dashboard is management-scoped on IPv4'
+else
+    echo 'FAIL Troubleshooting Dashboard IPv4 scope is incomplete' >&2
+    failed=1
+fi
+
+if ip6tables -C DOCKER-USER -p tcp -m conntrack --ctorigdstport 8094 -j DROP >/dev/null 2>&1; then
+    echo 'PASS Troubleshooting Dashboard has no IPv6 exposure'
+else
+    echo 'FAIL Troubleshooting Dashboard IPv6 drop is missing' >&2
     failed=1
 fi
 

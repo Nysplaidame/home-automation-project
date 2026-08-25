@@ -358,10 +358,10 @@ status: current
    `10.240.23.0/24`. Re-run `docker-host-security-audit.sh --verify`; this is
    the only remaining assertion before the network/firewall remediation can be
    marked complete.
-2. Build the read-only troubleshooting-dashboard proof of concept from the
-   reconciled service matrix, dependency diagrams, health checks and runbooks.
-   Start with Homepage, HA, one camera, P1S telemetry and backup freshness; do
-   not expose arbitrary shell or automatic remediation in v1.
+2. Review and promote the completed read-only troubleshooting-dashboard POC.
+   Approve its wording and exposure, then deploy staged port `8094` only after
+   DNS/Homepage and operator-acceptance decisions. Arbitrary shell and
+   automatic remediation remain excluded.
 3. Deploy live `vault.home.local` DNS, then complete the bounded Vaultwarden
    owner onboarding/2FA/recovery process before importing real credentials.
 4. Implement the allow-listed Immich curated-album exporter.
@@ -385,13 +385,33 @@ status: current
   handoffs were retained as dated evidence rather than rewritten.
 - Updated all affected canonical Mermaid diagrams and rebuilt the Mermaid
   Viewer's generated data. A browser-side parse passed all 11 diagram sources.
-- Corrected the Windows `health_check.ps1` local-CA handling. Its full run now
-  passes all 11 checks: router SSH, HA HTTPS, Frigate SSH/HTTPS, docker-host
-  SSH, Bambuddy, MQTT TLS, Grafana, Kuma, llama.cpp and OMV NFS.
+- Corrected the Windows `health_check.ps1` local-CA handling. The POC extension
+  adds dashboard-compatible JSON plus Homepage HTTPS and Camera 1 RTSP; its
+  full run now passes all 13 checks.
 - Live SSH inventory of VM 103 could not be repeated from this workstation
   because root public-key authentication was denied. The latest accepted live
   container/network inventory therefore remains the 2026-08-21 remediation
   evidence; no unverified live version or container claim was added.
+
+## Troubleshooting dashboard POC (2026-08-25)
+
+- Added `apps/troubleshooting-dashboard/`, a dependency-free static interface
+  for Homepage access, Home Assistant availability, Camera 1, P1S telemetry
+  and backup freshness.
+- The browser imports `health_check.sh --json` or Windows
+  `health_check.ps1 -Full -Json` locally. It does not probe the network, upload
+  evidence, execute commands or expose automatic remediation.
+- Each symptom maps health signals onto a dependency path, presents an ordered
+  read-only evidence sequence, links canonical runbooks and can copy a
+  credential-free incident report. Missing checks remain `Needs evidence`.
+- Nine model tests, Compose validation, WSL `bash -n`, a live 13/13 Windows JSON
+  collection and Playwright desktop/mobile smoke checks passed. The staged
+  Compose definition reserves `10.240.32.0/24` and port `8094`, but no live
+  deployment, DNS entry or Homepage card has been approved.
+- The promotion review now names the execution host for every command, shows
+  the first failed or missing signal, preserves bounded endpoint/HTTP detail
+  from Windows snapshots, and keeps Proxmox-only backup evidence explicitly
+  unknown when a workstation snapshot cannot collect it.
 
 ## Installation manual continuation (2026-08-24)
 
@@ -424,6 +444,9 @@ status: current
 
 - Branch: `codex/portal-refinement`
 - Recent relevant commits:
+  - `6a82bb0 docs(architecture): reconcile live system`
+  - `fc5c174 docs(install): expand service runbooks`
+  - `d8610fb fix(docker): pin service bridge networks`
   - `0b1fb29 chore: merge origin/main`
   - `b426537 chore(infra): capture August service updates`
   - `1f7d557 feat(services): finish household rollout`

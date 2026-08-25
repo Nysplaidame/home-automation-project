@@ -47,10 +47,20 @@ status: active
     update current-state/service/access/name/cabling references, active setup
     guides, troubleshooting, monitoring and all affected Mermaid sources;
     rebuild the Mermaid Viewer and pass all 11 browser-side Mermaid parses.
-13. [ ] Build the read-only troubleshooting-dashboard proof of concept around
+13. [x] Build the read-only troubleshooting-dashboard proof of concept around
     five initial symptoms: Homepage access, Home Assistant availability, one
     camera path, P1S telemetry and backup freshness. Keep arbitrary shell and
-    automatic remediation out of v1.
+    automatic remediation out of v1. Completed locally on 2026-08-25 with
+    health-JSON import, honest unknown states, guided evidence collection,
+    incident-report copy, nine model tests and desktop/mobile browser smoke.
+14. [ ] Promote the troubleshooting dashboard from POC to a controlled live
+    service: review the diagnostic wording, add collector-side backup detail to
+    Windows if needed, approve DNS/Homepage exposure, deploy on staged port
+    `8094`, and complete operator acceptance before calling it operational.
+    - 2026-08-25 local review now names the execution host for every command,
+      highlights the first failed or missing signal, retains bounded Windows
+      collector detail, and explains that authoritative backup freshness still
+      requires a Proxmox-host snapshot. Exposure and live acceptance remain open.
 
 Planning baseline until explicitly revalidated:
 

@@ -28,6 +28,7 @@ which overlaps the management VLAN and breaks return routing.
 | `gridfinity-layout-tool` | `172.32.0.0/24` | Gridfinity (already explicit) |
 | `vaultwarden` | `10.240.30.0/24` | Vaultwarden |
 | `recomp-tracker` | `10.240.31.0/24` | Recomp Tracker |
+| `troubleshooting-dashboard` | `10.240.32.0/24` | Troubleshooting Dashboard POC; reserved, not live |
 
 ## Change rules
 

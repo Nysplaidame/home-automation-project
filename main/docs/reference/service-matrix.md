@@ -69,6 +69,7 @@ remote exposure, backup expectations, monitoring, and runbook coverage.
 | Tier 3 | local registry mirror | `/opt/stacks/registry-mirror/` | proposed trusted HTTPS 5001 | `docs/install/services/local-registry-mirror.md`; quota/TLS/client-rollback gate |
 | Tier 3 | Node-RED | `/opt/stacks/node-red/` | 1880 loopback raw; proposed Tailscale HTTPS 8447 | `docs/install/services/node-red.md`; safe-mode/auth/HA-overlap gate |
 | Future | AI-adjacent query apps | `/opt/stacks/<service>/` | TBD | VM 103 is the expected target for future containerized query apps; define app-specific API, egress, storage, monitoring, and firewall rules before deployment |
+| POC | Troubleshooting Dashboard | `/opt/stacks/troubleshooting-dashboard/` proposed | 8094 staged; no DNS or Homepage route approved | Static read-only UI imports local health-check JSON in the browser; explicit `10.240.32.0/24` bridge reserved; live deployment and operator acceptance remain open |
 
 ## DNS aliases
 

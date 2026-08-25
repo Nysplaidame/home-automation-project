@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Read-only guided troubleshooting for the home automation system">
+  <title>Home Operations Troubleshooting</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#investigation">Skip to investigation</a>
+  <header class="topbar">
+    <div class="brand">
+      <p class="eyebrow">Home operations / diagnostics</p>
+      <h1>Troubleshooting</h1>
+      <p class="lede">Choose the symptom you can see. The dashboard will order the evidence without running or changing anything.</p>
+    </div>
+    <div class="snapshot-controls" aria-label="Diagnostic snapshot controls">
+      <input id="snapshot-file" type="file" accept="application/json,.json">
+      <label class="file-button" for="snapshot-file">Load health JSON</label>
+      <label for="sample-select" class="visually-hidden">Load an example snapshot</label>
+      <select id="sample-select">
+        <option value="">Use an example…</option>
+      </select>
+      <button id="clear-snapshot" type="button">Clear</button>
+    </div>
+  </header>
+
+  <section class="health-strip" aria-label="Snapshot summary">
+    <div class="snapshot-identity">
+      <span>Snapshot</span>
+      <strong id="snapshot-time">Not loaded</strong>
+      <small id="snapshot-source">Collector not supplied</small>
+    </div>
+    <div><span>Passed</span><strong id="pass-count">0</strong></div>
+    <div><span>Failed</span><strong id="fail-count">0</strong></div>
+    <div><span>Needs evidence</span><strong id="unknown-count">5 symptoms</strong></div>
+    <p id="snapshot-error" class="snapshot-error" role="alert" hidden></p>
+  </section>
+
+  <main class="workspace">
+    <nav class="symptom-rail" aria-labelledby="symptom-heading">
+      <div class="region-heading">
+        <p class="eyebrow">Start with what you see</p>
+        <h2 id="symptom-heading">Symptoms</h2>
+      </div>
+      <div id="symptom-list" class="symptom-list"></div>
+      <div class="rail-note">
+        <strong>Read-only POC</strong>
+        <p>Commands are shown for evidence collection. This version cannot execute them.</p>
+      </div>
+    </nav>
+
+    <section id="investigation" class="investigation" aria-labelledby="active-title">
+      <header class="investigation-head">
+        <div>
+          <p id="active-order" class="eyebrow"></p>
+          <h2 id="active-title"></h2>
+          <p id="active-description" class="section-copy"></p>
+        </div>
+        <span id="active-status" class="status-pill"></span>
+      </header>
+
+      <section class="path-section" aria-labelledby="path-heading">
+        <div class="section-title-row">
+          <h3 id="path-heading">Dependency path</h3>
+          <p>Work left to right; stop at the first failed boundary.</p>
+        </div>
+        <div id="evidence-focus" class="evidence-focus status-border-unknown">
+          <p id="focus-stage" class="eyebrow">Evidence</p>
+          <strong id="focus-label">Load a health snapshot</strong>
+          <p id="focus-message">No diagnostic evidence is loaded, so no boundary can be assessed yet.</p>
+        </div>
+        <ol id="dependency-path" class="dependency-path"></ol>
+      </section>
+
+      <section class="sequence-section" aria-labelledby="sequence-heading">
+        <div class="section-title-row">
+          <h3 id="sequence-heading">Diagnostic sequence</h3>
+          <p>Collect before changing.</p>
+        </div>
+        <ol id="diagnostic-steps" class="diagnostic-steps"></ol>
+      </section>
+    </section>
+
+    <aside class="evidence" aria-labelledby="evidence-heading">
+      <div class="region-heading">
+        <p class="eyebrow">Current snapshot</p>
+        <h2 id="evidence-heading">Evidence</h2>
+        <p id="evidence-coverage" class="evidence-coverage">0/0 signals collected</p>
+      </div>
+      <div id="evidence-list" class="evidence-list"></div>
+
+      <section class="safety-note" aria-labelledby="safety-heading">
+        <h3 id="safety-heading">Safety boundary</h3>
+        <p>No restarts, firewall changes, restores, shell execution or credentials belong in this interface.</p>
+      </section>
+
+      <section class="references" aria-labelledby="references-heading">
+        <h3 id="references-heading">Open next</h3>
+        <ul id="reference-list"></ul>
+      </section>
+
+      <section class="incident-notes" aria-labelledby="notes-heading">
+        <h3 id="notes-heading">Incident notes</h3>
+        <label for="notes">Record times and exact errors. Do not paste passwords or tokens.</label>
+        <textarea id="notes" rows="5" placeholder="Observed at 14:32…"></textarea>
+        <button id="copy-report" type="button">Copy incident report</button>
+      </section>
+    </aside>
+  </main>
+
+  <div id="live-message" class="live-message" role="status" aria-live="polite"></div>
+</body>
+</html>
