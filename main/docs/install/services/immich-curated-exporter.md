@@ -58,7 +58,7 @@ Immich remains the photo system of record.
 
 ## Validation commands
 
-Run on docker-host:
+Run on: docker-host over SSH.
 
 ```sh
 findmnt -n -o SOURCE,FSTYPE,TARGET --target /mnt/omv/media/jellyfin/immich-curated

@@ -4,7 +4,7 @@ description: Fresh-rebuild-first manual for replicating the home automation syst
 tags: [install, rebuild, runbook, beginner]
 aliases: [Install Start Here, Rebuild Manual]
 created: 2026-05-24
-modified: 2026-08-09
+modified: 2026-08-24
 type: install-guide
 status: active
 ---
@@ -83,6 +83,21 @@ household-complete. Much VentSys hardware remains pending or planned. Use
 `TO-DO.md`, `PROJECT-INDEX.md`, the service matrix, and handoff files to
 understand live state, but do not skip fresh rebuild steps unless you have
 validated the equivalent state manually.
+
+## Documentation dry-read status
+
+The 2026-08-24 continuation pass resolved all local install-document links,
+command-location labels and placeholder-ledger references. All 311 active shell
+blocks pass `bash -n`, and all 66 PowerShell blocks parse. Mealie, Grocy and
+Obsidian LiveSync now have explicit operator, isolated-restore and rollback
+paths; the service index records the last safe pre-live stop for every service.
+
+This is not yet a complete blank-hardware dry run. Router-deploy lint,
+`first-flight` compile and placeholder-tolerant `full` preview still stop on the
+missing `architecture.docker_host_tailscale_egress_rule_present` invariant.
+Normal full compile also intentionally remains blocked by unresolved real
+WireGuard, device-MAC and Wi-Fi inputs. Do not deploy generated router artifacts
+until those conditions are resolved and the final end-to-end phase passes.
 
 ## Completion definition
 

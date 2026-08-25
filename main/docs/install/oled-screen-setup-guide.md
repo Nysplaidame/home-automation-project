@@ -185,7 +185,7 @@ Save this as:
 ```
 
 ```python
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Copyright (c) 2014-2022 Richard Hull and contributors
 # See LICENSE.rst for details.
@@ -196,8 +196,8 @@ Display basic system information.
 
 Needs psutil (+ dependencies) installed::
 
-  $ sudo apt-get install python-dev
-  $ sudo -H pip install psutil
+  $ sudo apt-get install python3-dev
+  $ ~/oled/venv/bin/pip install psutil
 """
 
 import os
@@ -218,7 +218,7 @@ from PIL import ImageFont
 try:
     import psutil
 except ImportError:
-    print("The psutil library was not found. Run 'sudo -H pip install psutil' to install it.")
+    print("The psutil library was not found. Run '~/oled/venv/bin/pip install psutil' to install it.")
     sys.exit()
 
 

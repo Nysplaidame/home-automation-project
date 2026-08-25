@@ -3,7 +3,7 @@ title: Package Dependency Matrix
 description: Packages and tools required by host during rebuild
 tags: [install, packages, dependencies]
 created: 2026-05-24
-modified: 2026-08-09
+modified: 2026-08-24
 type: reference
 status: active
 ---
@@ -18,6 +18,7 @@ status: active
 | `qrencode` | Optional client QR codes | `opkg install qrencode` | `qrencode --version` |
 | `tcpdump` | Packet diagnostics | `opkg install tcpdump` | `tcpdump --version` |
 | `iperf3` | Network testing | `opkg install iperf3` | `iperf3 --version` |
+| `ethtool` | Inspect and diagnose physical router Ethernet links during first flight | `opkg install ethtool` | `ethtool --version` |
 
 ## Debian VMs and docker-host
 
@@ -88,6 +89,7 @@ status: active
 | Browser | Web UIs | Load Proxmox, HA, OMV |
 | Git | Repository work | `git --version` |
 | Text editor | Manual config edits | Open repo files |
+| Node.js + npm | Reproducible Mermaid Viewer build from `package-lock.json` | Install a supported Node.js LTS from the official distribution for the workstation | `node --version && npm --version` |
 
 ## Garage Raspberry Pi desktop
 
@@ -102,3 +104,15 @@ status: active
 | `python3 python3-venv python3-pip pipx python3-dev` | Isolated Python tooling for OLED, ESPHome, and experiments | `apt install -y python3 python3-venv python3-pip pipx python3-dev` | `python3 --version && pipx --version` |
 | `i2c-tools python3-pil` | Case OLED setup support | `apt install -y i2c-tools python3-pil` | `i2cdetect -V` |
 | `smartmontools nvme-cli` | NVMe health checks | `apt install -y smartmontools nvme-cli` | `smartctl --version && nvme version` |
+
+## Garage Pi Python virtual environments
+
+These packages stay inside the guide-specific virtual environment; do not use
+`sudo pip` against the system Python.
+
+| Package/source | Purpose | Install command | Verify |
+|---|---|---|---|
+| `pip` | Virtual-environment package installer | `python3 -m venv path/to/venv; pip install --upgrade pip` inside the activated venv | `pip --version` shows the venv path |
+| `esphome` | Optional local ESPHome validation/experiments | `pip install esphome` inside `~/venvs/esphome` | `esphome version` |
+| `luma.examples` editable project and its declared dependencies | 52Pi OLED example runtime | Clone the reviewed `rm-hull/luma.examples` revision, then `pip install -e .` inside `~/oled/venv` | `~/oled/venv/bin/python3 -c "from luma.core.render import canvas"` |
+| `psutil` | OLED host CPU/memory/network status | `pip install psutil` inside `~/oled/venv` | `~/oled/venv/bin/python3 -c "import psutil; print(psutil.__version__)"` |

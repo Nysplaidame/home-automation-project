@@ -3,7 +3,7 @@ title: Installation Manual Suite To-Do
 description: Companion checklist for completing and validating the fresh rebuild documentation suite
 tags: [install, tasks, rebuild, documentation]
 created: 2026-05-24
-modified: 2026-08-09
+modified: 2026-08-24
 type: task-list
 status: active
 ---
@@ -22,8 +22,12 @@ without live assistance.
 - [x] Every placeholder used in an install command appears in
   [secrets-placeholder-ledger.md](reference/secrets-placeholder-ledger.md)
   (2026-08-09 audit: 52 unique active-install placeholders, zero missing).
-- [ ] Every package or dependency appears in [package-dependency-matrix.md](reference/package-dependency-matrix.md).
-- [ ] Every risky service has a decision gate before deployment.
+- [x] Every package or dependency appears in [package-dependency-matrix.md](reference/package-dependency-matrix.md)
+  (2026-08-24 install-command audit added the missing OpenWrt `ethtool`,
+  workstation Node/npm, and Garage Pi virtual-environment dependencies).
+- [x] Every risky service has a decision gate before deployment (2026-08-24:
+  global public-exposure, credential-store, camera-bridge, low-code/agent and
+  automatic-update gates plus the service promotion-boundary matrix).
 - [ ] Every Tier 1-3 service has install, validation, backup, update, rollback, and troubleshooting coverage.
 - [ ] The suite passes a dry-read from [START-HERE.md](START-HERE.md) through final validation.
 
@@ -59,9 +63,16 @@ without live assistance.
 - [x] Homepage: install, service widgets, secrets handling, backup, rollback.
 - [x] Dozzle: install, read-only Docker socket decision, auth/exposure decision, backup, rollback.
 - [x] Paperless-ngx: install, scanner/import path, OCR dependencies, backup, retention, rollback.
-- [ ] Mealie: live install documented; finish users, import/export, rollback.
-- [ ] Grocy: live install documented; base household model and backup proof complete; finish pilot product workflow and rollback drill.
-- [ ] Obsidian LiveSync: live backend, CORS, local plugin install, and backup proof documented; finish Bitwarden secrets, client wizard, second-device rollout, and rollback drill.
+- [x] Mealie: manual now covers named users, full application backup, portable
+  recipe export, loopback-only isolated restore, updates and matching-data
+  rollback. Live admin/export acceptance remains an operator action.
+- [x] Grocy: manual now covers the disposable purchase/consume/correction/
+  expiry workflow, pre-pilot checkpoint, isolated restore and version/data
+  rollback. The live pilot remains an operator action.
+- [x] Obsidian LiveSync: manual now covers backend rebuild, `K:` canonical-vault
+  selection, Bitwarden/setup-URI separation, stop-before-initialise gate,
+  two-device round trip, isolated CouchDB restore and wrong-source rollback.
+  Client rollout remains parked while the canonical tree is dirty.
 - [x] ntfy: install, topic policy, public/private exposure decision, backup, rollback.
 - [x] Actual Budget: install, auth, backup/export, rollback.
 - [x] Scrypted: hardware/camera decision gate, install, storage, HA/Frigate overlap, rollback.
@@ -81,10 +92,16 @@ without live assistance.
 - [x] Rebuild state matrix: verify every phase maps
   blank/prepared/installed/configured/validated/live.
 - [ ] Secrets ledger: add every router, HA, MQTT, Tailscale, Docker, OMV, app, camera, and printer placeholder.
-- [ ] Package matrix: add every package used in command blocks with install and verification commands.
+- [x] Package matrix: every active `apt`/`opkg` install dependency plus the
+  Garage Pi Python and Mermaid Viewer Node/npm build dependencies has install
+  and verification coverage (2026-08-24 audit).
 - [x] Command location legend: add UI-only contexts where no shell is used.
-- [ ] Version policy: mark volatile app docs that require official latest lookup before deployment.
-- [ ] Decision gates: add final approvals for public exposure, password managers, camera bridges, low-code automation, and automatic updates.
+- [x] Version policy: volatile infrastructure, app, AI and client manuals now
+  require official release lookup, immutable version recording and compatible
+  data rollback before deployment (2026-08-24).
+- [x] Decision gates: public exposure, password managers, camera bridges,
+  low-code/agent automation, and automatic updates have explicit approvals and
+  rollback requirements (2026-08-24).
 - [ ] Service matrix: verify every planned app has host, port, URL, VLAN, Tailscale exposure, backup, monitoring, and runbook.
 - [ ] ACL/access matrix: verify no undocumented path reaches Management, NVR, IoT, Printers, or Storage.
 - [x] Local AI references: align CT 114 packages, firewall paths, monitoring checks and performance evidence.
@@ -103,20 +120,24 @@ without live assistance.
 
 ## Sanity Checks
 
-- [x] Run local Markdown link validation (2026-05-30: active docs checked; one historical wikilink repaired; remaining hits are known code/example false positives).
+- [x] Run local Markdown link validation (2026-08-24: all 50 active install
+  documents checked; zero broken local Markdown links).
 - [x] Search for stale `Main/` paths (active docs clean; legacy `Main/` paths remain in `_archive/` historical files).
 - [x] Search for stale Pi OS Lite NAS claims.
 - [x] Search for Pi-hole-preferred claims.
 - [x] Search for Google DNS fallback references.
 - [x] Search for broad Tailscale/WireGuard storage subnet claims.
-- [ ] Search for unresolved placeholders outside approved examples.
-- [x] Confirm every command block has a `Run on:` label (2026-08-09: zero
-  missing across active install docs; 66 PowerShell blocks parsed without
-  errors and 296 shell blocks passed `bash -n`).
+- [x] Search for unresolved placeholders outside approved examples (2026-08-24:
+  52 active angle-bracket placeholders, all present in the secrets ledger;
+  zero undocumented placeholders).
+- [x] Confirm every command block has a `Run on:` label (2026-08-24: two newer
+  omissions repaired; zero missing across active install docs, 66 PowerShell
+  blocks parsed without errors and 311 shell blocks passed `bash -n`).
 - [ ] Run router-deploy lint/compile after router config or router-deploy edits.
   - 2026-08-09 source audit: `validate-home-local-dns.ps1 -SkipLive` passed for
     48 aliases.
-  - 2026-08-09 blocker: lint, `first-flight`, and placeholder-tolerant `full`
+  - 2026-08-24 blocker revalidated with Windows `py -3`: lint, `first-flight`,
+    and placeholder-tolerant `full`
     compile fail `architecture.docker_host_tailscale_egress_rule_present`;
     normal `full` compile also has unresolved WireGuard, device-MAC, and Wi-Fi
     placeholders. Do not deploy generated artifacts until both issues are fixed.
@@ -132,6 +153,14 @@ without live assistance.
 - [x] For each phase, confirm expected result and failure recovery are actionable
   (2026-08-09: all 13 phase manuals have a nearby expected-result contract for
   every shell/PowerShell block plus a bounded recovery/rehearsal path).
-- [ ] For each service, confirm deployment can be stopped before it becomes live.
+- [x] For each service, confirm deployment can be stopped before it becomes
+  live (2026-08-24: `services/README.md` records the last safe stop and
+  promotion evidence for all 23 service manuals).
 - [x] Update this checklist with any missing steps found during the dry-run
   (router source blockers and live-only acceptance gates remain explicit).
+
+2026-08-24 continuation result: the documentation structure, navigation,
+placeholders and parsed command syntax pass. The suite-wide dry-read remains
+open because the router-deploy architecture invariant still fails and the
+manuals deliberately retain live/operator acceptance gates; a structural pass
+is not a successful blank-hardware rebuild.

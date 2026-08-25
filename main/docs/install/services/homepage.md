@@ -3,7 +3,7 @@ title: Homepage Install Manual
 description: Tier 1 internal dashboard for service links
 tags: [install, docker-host, homepage]
 created: 2026-05-24
-modified: 2026-07-29
+modified: 2026-08-25
 type: install-guide
 status: live
 ---
@@ -35,11 +35,11 @@ Do not place tokens or passwords in visible Homepage config.
 ## Current live state
 
 - Live at `/opt/stacks/homepage` on docker-host.
-- Primary local URL: `https://192.168.20.102/`, using a `Home Local CA`
-  certificate. The former `http://192.168.20.102:3001/` remains available as
-  a rollback endpoint.
-- Planned friendly URL: `https://homepage.home.local/`; use the IP until
-  the canonical `home.local` router records are deployed.
+- Canonical local and remote bookmark: `https://homepage.home.local/`, using a
+  `Home Local CA` certificate and split DNS. Local DNS returns
+  `192.168.20.102`; the approved OnePlus tailnet client receives the
+  docker-host Tailscale address. Direct local `https://192.168.20.102/` also
+  works, and `http://192.168.20.102:3001/` remains the rollback endpoint.
 - Uptime Kuma monitor `Homepage UI` is live.
 - Rebuildable template: `configs/docker-host/stacks/homepage/`.
 - Seven tabs are live: Home, Tools, Infrastructure, Monitoring, Storage, Media
@@ -56,12 +56,18 @@ Do not place tokens or passwords in visible Homepage config.
   page scrolling in exchange for a substantially larger embedded application.
 - The preview toolbar provides working Reload, Open tab and Close controls.
   `Open tab` is a normal browser link rather than a scripted popup, for reliable
-  desktop and mobile behaviour.
+  desktop and mobile behaviour. User-facing card links use their named fixed
+  HTTPS proxy URLs, so the same links work locally and through the scoped
+  OnePlus tailnet grant.
 - A fixed-target Nginx sidecar terminates Homepage HTTPS on `443` and provides
-  HTTPS portal-scoped preview routes on `8180`-`8208`. It has no dynamic
+  HTTPS portal-scoped preview routes on `8180`-`8209`. It has no dynamic
   target input, preserves service-specific CSP directives, replaces only the
   framing policy, and is host-firewall scoped to the existing LAN and Tailscale
-  clients. Open tab always uses the original service URL.
+  clients. qBittorrent remains the deliberate same-origin
+  `/portal-preview/qbittorrent/` exception.
+- The approved OnePlus mobile grant permits only split-DNS traffic, `tcp/443`
+  and `tcp/8180-8209` to docker-host. Phone-side acceptance passed from mobile
+  data across every Homepage tab; no broad VLAN route is part of this path.
 - Home Assistant is framed through `8188` with its upstream local-CA
   certificate verified and WebSocket upgrade preserved. Because `8188` is a
   distinct browser origin, the first embedded visit requires its own HA login;
