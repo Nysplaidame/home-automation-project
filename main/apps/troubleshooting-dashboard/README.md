@@ -59,10 +59,14 @@ policy. It has no DNS, Homepage, LAN, monitoring or Tailscale exposure.
 - no persistence beyond the current browser tab;
 - no claim that a missing signal is healthy.
 
-## Promotion gates
+## Staged live state
 
-- owner review of the five diagnostic sequences and command wording;
-- explicit approval for the DNS name and Homepage placement;
-- staged deployment on port `8094` without broader network exposure;
-- desktop and mobile operator acceptance using a real health snapshot;
-- rollback proof before the POC is described as operational.
+- [x] Five diagnostic sequences reviewed with explicit execution hosts.
+- [x] Staged deployment on management-only port `8094`.
+- [x] Desktop/mobile acceptance using a real 13/13 Windows snapshot.
+- [x] Stop/start rollback proof and post-rollback access revalidation.
+- [ ] Real Proxmox snapshot acceptance for mount and backup-freshness evidence.
+- [ ] Explicit approval for any DNS name or Homepage placement.
+
+The pre-change live firewall and audit scripts are retained on VM 103 under
+`/opt/backups/troubleshooting-dashboard-20260825T1518Z/`.

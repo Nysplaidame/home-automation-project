@@ -3,7 +3,7 @@
 > **LLM:** Read this file first on every query. Master catalog of all wiki content.
 > Updated after every ingest, query (if filed), or lint pass.
 
-**Stats:** 21 sources - 26 entities - 7 concepts - 8 analyses
+**Stats:** 21 sources - 27 entities - 7 concepts - 8 analyses
 **Last updated:** 2026-08-25
 
 ---
@@ -76,6 +76,7 @@
 - [[entities/dozzle]] - Live Docker log viewer on docker-host
 - [[entities/household-hub]] - Transcript RAG, confirmed recipe handoff, read-only Grocy, and Markdown/ICS exports on docker-host
 - [[entities/qbittorrent]] - Mullvad/Gluetun-isolated authorised download staging with fail-closed proof
+- [[entities/troubleshooting-dashboard]] - Staged read-only symptom-led diagnostics on management-only VM 103 port 8094
 - [[entities/ventsys]] - Fire safety ventilation packages/dashboard staged; hardware rollout gated by TLS-path revalidation
 - [[entities/smart-plugs-ventsys]] - VentSys smart plugs
 - [[entities/esphome]] - ESP32 firmware platform; VentSys hardware adoption pending revalidation

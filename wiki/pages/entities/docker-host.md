@@ -12,7 +12,7 @@ status: stable
 
 **Type:** integration - trusted Docker host
 **Status:** Live - trusted Docker app host, Tailscale node, metrics collector, and Fail2ban baseline
-**Related:** [[entities/proxmox]], [[entities/bambuddy]], [[entities/home-assistant]], [[concepts/tailscale-remote-access]], [[entities/adguard-home]], [[entities/immich]], [[entities/homepage]], [[entities/dozzle]], [[entities/household-hub]], [[entities/qbittorrent]]
+**Related:** [[entities/proxmox]], [[entities/bambuddy]], [[entities/home-assistant]], [[concepts/tailscale-remote-access]], [[entities/adguard-home]], [[entities/immich]], [[entities/homepage]], [[entities/dozzle]], [[entities/household-hub]], [[entities/qbittorrent]], [[entities/troubleshooting-dashboard]]
 
 ## Overview
 
@@ -63,6 +63,7 @@ maintenance window.
 | Mealie / Grocy | `/opt/stacks/mealie/`, `/opt/stacks/grocy/` | 9925, 9283 | Live recipes, meal planning, stock and shopping |
 | Jellyfin / Calibre-Web / Atsumeru | respective `/opt/stacks/` paths | 8096, 8083, 31337 | Live OMV-backed media services |
 | Recomp Tracker | `/opt/stacks/recomp-tracker/` | 8420 | Live habits/workout tracker; fixed proxy 8209 |
+| [[entities/troubleshooting-dashboard]] | `/opt/stacks/troubleshooting-dashboard/` | 8094 | Staged live; Management VLAN only |
 | Vaultwarden | `/opt/stacks/vaultwarden/` | loopback 8222, HTTPS SNI proxy | Live; owner onboarding remains gated |
 | Watchtower | `/opt/stacks/watchtower/` | none | Monitor-only; no automatic updates |
 | Telegraf | `/opt/stacks/telegraf/` | none | Host/container metrics to InfluxDB |
@@ -115,9 +116,14 @@ not create a general route into VLAN 20 or other private subnets.
 - [ ] Continue weekly update review and schedule the next controlled window only
   when new candidates justify it.
 - [ ] Decide whether one tightly allow-listed Autobrr source/category is useful.
+- [ ] Complete the Troubleshooting Dashboard's real Proxmox backup-snapshot
+  acceptance before considering DNS or Homepage exposure.
 
 ## Change Log
 
+- 2026-08-25: Staged the read-only Troubleshooting Dashboard on explicit bridge
+  `10.240.32.0/24` with management-only port `8094`; access and rollback proofs
+  passed, while Proxmox snapshot acceptance remains open.
 - 2026-08-25: Reconciled the four-route Tailscale set and current live workload
   inventory with the canonical service/network references.
 - 2026-08-21: Recreated all project Docker bridges at explicit canonical

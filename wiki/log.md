@@ -323,3 +323,17 @@
   [[sources/proxmox-setup-guide]], [[sources/igpu-passthrough-guide]], [[index]].
 - Notes: Historical sources/audits remain dated evidence; active wiki pages now
   match the canonical project references reconciled on 2026-08-25.
+
+## [2026-08-25] update | Troubleshooting Dashboard staged acceptance
+- Created [[entities/troubleshooting-dashboard]] and updated
+  [[entities/docker-host]], [[sources/project-readme]], [[sources/project-todo]]
+  and [[index]].
+- Notes: Management-only port `8094`, explicit Docker network, real Windows
+  snapshot, desktop/mobile flow and rollback proof are live; Proxmox backup
+  snapshot acceptance and DNS/Homepage exposure remain open.
+
+## [2026-08-25] lint | Troubleshooting Dashboard state sync
+- Updated [[analyses/lint-2026-08-25]] and confirmed the new entity has inbound
+  links from the index, docker-host and canonical source summaries.
+- Confirmed access claims match the canonical service/access matrices and that
+  missing Proxmox evidence remains an explicit open gate.

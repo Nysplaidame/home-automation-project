@@ -92,8 +92,8 @@ status: active
 ### Monitoring / Grafana
 - [[configs/grafana/README.md]] — rebuildable source exports for Grafana dashboards
 - [[configs/grafana/dashboards/]] — architecture dashboard JSON exports
-- [[apps/troubleshooting-dashboard/README.md]] — read-only five-symptom
-  troubleshooting POC driven by local health-check JSON
+- [[apps/troubleshooting-dashboard/README.md]] — management-only staged
+  troubleshooting service driven by local health-check JSON
 - [[apps/troubleshooting-dashboard/design-system.md]] — operational UI,
   accessibility and no-remediation contract for the POC
 

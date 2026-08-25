@@ -57,10 +57,13 @@ status: active
     service: review the diagnostic wording, add collector-side backup detail to
     Windows if needed, approve DNS/Homepage exposure, deploy on staged port
     `8094`, and complete operator acceptance before calling it operational.
-    - 2026-08-25 local review now names the execution host for every command,
-      highlights the first failed or missing signal, retains bounded Windows
-      collector detail, and explains that authoritative backup freshness still
-      requires a Proxmox-host snapshot. Exposure and live acceptance remain open.
+    - 2026-08-25 staged live on VM 103 at management-only
+      `http://192.168.20.102:8094/`. Real Windows 13/13 snapshot import,
+      desktop/mobile browser flow, container hardening, VLAN-10 allow,
+      LAN/Tailscale/IPv6 denial and stop/start rollback all passed.
+    - Remaining gate: authorize a workstation key on the Proxmox host and
+      accept a real Proxmox JSON snapshot for backup freshness. DNS and
+      Homepage exposure remain a separate owner decision after that proof.
 
 Planning baseline until explicitly revalidated:
 

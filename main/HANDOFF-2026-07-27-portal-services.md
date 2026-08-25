@@ -358,10 +358,10 @@ status: current
    `10.240.23.0/24`. Re-run `docker-host-security-audit.sh --verify`; this is
    the only remaining assertion before the network/firewall remediation can be
    marked complete.
-2. Review and promote the completed read-only troubleshooting-dashboard POC.
-   Approve its wording and exposure, then deploy staged port `8094` only after
-   DNS/Homepage and operator-acceptance decisions. Arbitrary shell and
-   automatic remediation remain excluded.
+2. Finish Troubleshooting Dashboard acceptance: authorize an appropriate
+   workstation key on the Proxmox host, import a real Proxmox JSON snapshot,
+   and accept the backup-freshness path. The dashboard is already staged on
+   management-only port `8094`; DNS and Homepage remain unapproved.
 3. Deploy live `vault.home.local` DNS, then complete the bounded Vaultwarden
    owner onboarding/2FA/recovery process before importing real credentials.
 4. Implement the allow-listed Immich curated-album exporter.
@@ -405,13 +405,26 @@ status: current
   read-only evidence sequence, links canonical runbooks and can copy a
   credential-free incident report. Missing checks remain `Needs evidence`.
 - Nine model tests, Compose validation, WSL `bash -n`, a live 13/13 Windows JSON
-  collection and Playwright desktop/mobile smoke checks passed. The staged
-  Compose definition reserves `10.240.32.0/24` and port `8094`, but no live
-  deployment, DNS entry or Homepage card has been approved.
+  collection and Playwright desktop/mobile smoke checks passed.
 - The promotion review now names the execution host for every command, shows
   the first failed or missing signal, preserves bounded endpoint/HTTP detail
   from Windows snapshots, and keeps Proxmox-only backup evidence explicitly
   unknown when a workstation snapshot cannot collect it.
+- Commit `c5a57ee` was pushed, then the dashboard was staged live at
+  `http://192.168.20.102:8094/` on bridge `10.240.32.0/24`. It binds only the
+  VM 103 VLAN-20 address; `DOCKER-USER` allows VLAN 10 and drops other IPv4
+  sources, while the IPv6 policy drops port `8094`. Management returned HTTP
+  `200`; forced LAN and Tailscale tests were denied.
+- The deployed desktop/mobile flow accepted the real Windows 13/13 snapshot.
+  `docker compose down` removed the container, network and listener; the
+  management probe failed closed; `docker compose up -d` restored the service
+  and the access tests passed again. Rollback copies of the pre-change firewall
+  and audit scripts are under
+  `/opt/backups/troubleshooting-dashboard-20260825T1518Z/`.
+- The live security audit passes the new dashboard network and IPv4/IPv6 scope
+  checks. It still exits non-zero solely because Bambuddy remains on its
+  documented temporary host-network exception. Proxmox-host JSON acceptance is
+  still open because all available workstation keys are denied by Proxmox.
 
 ## Installation manual continuation (2026-08-24)
 

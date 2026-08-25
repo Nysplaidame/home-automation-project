@@ -182,7 +182,15 @@ while its replacement LXC is running.
 Live workloads: Bambuddy, AdGuard Home, Immich, Homepage, Dozzle,
 ntfy, SearXNG, Whoogle, Mealie, Grocy, Obsidian LiveSync/CouchDB, Watchtower
 monitor-only, GardenKeeper, Household Hub, Gridfinity Layout Tool, Recomp
-Tracker and Telegraf.
+Tracker, the staged Troubleshooting Dashboard and Telegraf.
+The read-only Troubleshooting Dashboard is staged at
+`http://192.168.20.102:8094/` on explicit bridge `10.240.32.0/24`. Its host
+bind and `DOCKER-USER` policy allow Management VLAN `192.168.10.0/24` only;
+LAN, Tailscale, monitoring and IPv6 access were denied in live tests. A real
+13/13 Windows snapshot, desktop/mobile browser flow and stop/start rollback
+passed on 2026-08-25. It has no DNS alias or Homepage card. Proxmox-host JSON
+acceptance remains open because the available workstation keys are not
+authorized on the Proxmox host.
 Homepage is the central `Home Operations` navigation portal at
 `https://192.168.20.102/`, using a `Home Local CA` certificate. The former
 `http://192.168.20.102:3001/` endpoint remains live for rollback. Its Home,

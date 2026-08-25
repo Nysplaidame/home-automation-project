@@ -6,6 +6,7 @@ import { chromium } from '../../../tools/playwright-smoke/node_modules/playwrigh
 
 const baseUrl = process.env.POC_URL ?? 'http://127.0.0.1:8099';
 const outputDir = process.env.SCREENSHOT_DIR ?? path.join(os.tmpdir(), 'troubleshooting-dashboard-poc');
+const snapshotPath = process.env.SNAPSHOT_PATH;
 await mkdir(outputDir, { recursive: true });
 
 const browser = await chromium.launch({ headless: true });
@@ -29,17 +30,23 @@ try {
     .map((element) => element.outerHTML));
   assert.deepEqual(unlabeledControls, []);
 
-  await desktop.locator('#snapshot-file').setInputFiles({
-    name: 'health.json',
-    mimeType: 'application/json',
-    buffer: Buffer.from(JSON.stringify({
-      timestamp: 'Imported smoke snapshot',
-      collector: 'Browser smoke collector',
-      checks: { router: { status: 'pass', detail: '192.168.10.1:22' }, homepage: 'pass' },
-    })),
-  });
-  assert.match(await desktop.locator('#snapshot-time').textContent(), /Imported smoke snapshot/);
-  assert.match(await desktop.locator('#snapshot-source').textContent(), /Browser smoke collector/);
+  if (snapshotPath) {
+    await desktop.locator('#snapshot-file').setInputFiles(snapshotPath);
+    assert.doesNotMatch(await desktop.locator('#snapshot-time').textContent(), /Not loaded/);
+    assert.doesNotMatch(await desktop.locator('#snapshot-source').textContent(), /not supplied/i);
+  } else {
+    await desktop.locator('#snapshot-file').setInputFiles({
+      name: 'health.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(JSON.stringify({
+        timestamp: 'Imported smoke snapshot',
+        collector: 'Browser smoke collector',
+        checks: { router: { status: 'pass', detail: '192.168.10.1:22' }, homepage: 'pass' },
+      })),
+    });
+    assert.match(await desktop.locator('#snapshot-time').textContent(), /Imported smoke snapshot/);
+    assert.match(await desktop.locator('#snapshot-source').textContent(), /Browser smoke collector/);
+  }
 
   await desktop.selectOption('#sample-select', 'p1s');
   await desktop.getByRole('button', { name: /P1S telemetry/ }).click();

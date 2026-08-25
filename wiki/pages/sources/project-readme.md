@@ -30,6 +30,9 @@ have been removed.
 - [[entities/frigate]] is live in CT 111 with three cameras, shared-iGPU
   acceleration, MQTT TLS and OMV recordings
 - [[entities/docker-host]] runs on VM 103 at 192.168.20.102 and hosts Bambuddy, Tier 1 app pre-flight services, ntfy, Watchtower monitor-only, Tailscale, Telegraf, and Fail2ban
+- [[entities/troubleshooting-dashboard]] is staged on VM 103 as a read-only,
+  management-only diagnostic guide; Proxmox backup-snapshot acceptance remains
+  open
 - [[entities/monitoring-vm]] runs architecture dashboards and exporters for Proxmox, docker-host, Uptime Kuma, DNS, and security posture
 - [[entities/openmediavault-nas]] is live at 192.168.40.50
 - Daily remote access is [[concepts/tailscale-remote-access]] through docker-host host routes
@@ -40,7 +43,8 @@ have been removed.
 [[entities/minisforum-m1-pro-125h]], [[entities/gl-mt6000]], [[entities/home-assistant]],
 [[entities/proxmox]], [[entities/frigate]], [[entities/docker-host]],
 [[entities/bambuddy]], [[entities/bambu-p1s]], [[entities/ventsys]],
-[[entities/openmediavault-nas]], [[entities/esphome]], [[entities/mosquitto-mqtt]]
+[[entities/openmediavault-nas]], [[entities/esphome]], [[entities/mosquitto-mqtt]],
+[[entities/troubleshooting-dashboard]]
 
 ## Concepts Mentioned
 

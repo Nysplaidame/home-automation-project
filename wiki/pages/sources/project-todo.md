@@ -3,14 +3,14 @@ title: "Project Task List"
 category: source
 tags: [tasks, implementation, phases, todo]
 created: 2026-04-07
-updated: 2026-05-31
+updated: 2026-08-25
 status: stable
 ---
 
 # Source: Project Task List
 
 **Original file:** `main/TO-DO.md`
-**Date ingested:** 2026-04-07; audited against May 31 task list on 2026-05-31
+**Date ingested:** 2026-04-07; refreshed against the canonical task list on 2026-08-25
 **Type:** task list (living document)
 
 ## Summary
@@ -36,10 +36,13 @@ explicitly revalidated.
 - **Phase 6 (Security):** MQTT TLS migration, HTTPS on HA, extending Fail2ban beyond docker-host, IDS/IPS baseline observation, WireGuard DDNS only if fallback endpoint churn matters
 - **Ongoing:** Monthly backup health check; update MAC addresses in DHCP config when hardware arrives
 - ESPHome device YAMLs for all 17 boards exist in `configs/esphome/`; only flashing remains
+- **Troubleshooting:** The read-only dashboard is staged on management-only
+  port `8094`; real Proxmox backup-snapshot acceptance and any DNS/Homepage
+  exposure remain open
 
 ## Entities Mentioned
 
-[[entities/gl-mt6000]], [[entities/proxmox]], [[entities/home-assistant]], [[entities/frigate]], [[entities/bambuddy]], [[entities/ventsys]], [[entities/esphome]], [[entities/openmediavault-nas]]
+[[entities/gl-mt6000]], [[entities/proxmox]], [[entities/home-assistant]], [[entities/frigate]], [[entities/bambuddy]], [[entities/ventsys]], [[entities/esphome]], [[entities/openmediavault-nas]], [[entities/troubleshooting-dashboard]]
 
 ## Concepts Mentioned
 

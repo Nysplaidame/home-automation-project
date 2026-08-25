@@ -117,6 +117,7 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 ### Monitoring and dashboards (VLAN 60)
 - Monitoring VM 102 is live at 192.168.60.10 with Uptime Kuma, InfluxDB, Grafana, and Telegraf
 - Grafana dashboards cover home automation baseline, Proxmox/docker-host resources, service availability, DNS, and security posture
+- The read-only Troubleshooting Dashboard is staged separately on VM 103 at management-only `http://192.168.20.102:8094/`; DNS, Homepage and Proxmox backup-snapshot acceptance remain open
 - Docker-host Telegraf and lightweight Uptime Kuma/Fail2ban exporters feed InfluxDB buckets for architecture dashboards
 - CT 114 local AI checks are live in Uptime Kuma for llama.cpp, Open WebUI,
   Wyoming Piper, and Wyoming Whisper; the Kuma-to-Influx export path includes
