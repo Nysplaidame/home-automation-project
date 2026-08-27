@@ -3,7 +3,7 @@ title: ACL And Access Matrix
 description: Canonical OpenWrt, Tailscale, host firewall, and service-auth access intent
 tags: [reference, acl, firewall, tailscale, access-control]
 created: 2026-05-23
-modified: 2026-08-25
+modified: 2026-08-27
 type: reference
 status: active
 ---
@@ -56,6 +56,7 @@ WireGuard fallback activation/deactivation governance is defined in
 | LAN | Home Assistant | 8123/tcp | HA UI |
 | LAN / Management | docker-host app UIs | 443, 5984, 8000, 2283, 3001, 8080, 8081, 8085, 8087, 8088, 8091, 8092, 8093, 8100, 8180-8209, 9283, 9925/tcp | Homepage HTTPS and fixed proxies, Obsidian LiveSync, Bambuddy, Immich, HTTP rollback, AdGuard admin, Dozzle, ntfy, SearXNG, Whoogle, GardenKeeper, Mermaid Viewer, Gridfinity Layout Tool, Recomp Tracker, Household Hub, Grocy, Mealie |
 | Management | Troubleshooting Dashboard staged POC | 8094/tcp | Acceptance-only path; no LAN, Tailscale, monitoring, DNS alias, or Homepage exposure |
+| Management / HomeAdmin | MediaMTX | 8554/tcp | Authenticated RTSP publisher/viewer path for the Android phone and garage Pi; no other VLAN, Tailscale or IPv6 access |
 | LAN | Printers | 8883, 21, 80, 8080/tcp | Slicer/local printer access |
 | HA | Frigate | 8971, 5000, 8554, 8555/tcp | HA integration |
 | HA | OMV | 22, 445, 2049/tcp | Backup/storage |

@@ -21,6 +21,7 @@ which overlaps the management VLAN and breaks return routing.
 | `mermaid-viewer` | `10.240.13.0/24` | Mermaid Viewer |
 | `household-hub` | `10.240.14.0/24` | Household Hub |
 | `local-alerting` | `10.240.15.0/24` | ntfy shared network |
+| `mediamtx` | `10.240.16.0/24` | MediaMTX phone stream relay/recorder |
 | `download-gateway` | `10.240.20.0/24` | Gluetun/qBittorrent |
 | `gardenkeeper` | `10.240.21.0/24` | GardenKeeper |
 | `docker-host-telegraf` | `10.240.22.0/24` | Telegraf |

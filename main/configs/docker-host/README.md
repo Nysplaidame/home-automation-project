@@ -46,6 +46,7 @@ Live stack paths:
 | Mullvad download gateway + qBittorrent | `/opt/stacks/download-gateway` | `stacks/download-gateway/` |
 | Vaultwarden | `/opt/stacks/vaultwarden` | `stacks/vaultwarden/` |
 | Recomp tracker | `/opt/stacks/recomp-tracker` | `stacks/recomp-tracker/` |
+| MediaMTX | `/opt/stacks/mediamtx` | `stacks/mediamtx/` |
 | Docker host firewall | `/usr/local/sbin/docker-host-firewall.sh` | `system/docker-host-firewall.sh` |
 | Docker host firewall unit | `/etc/systemd/system/docker-host-firewall.service` | `system/docker-host-firewall.service` |
 | Docker host security audit | `/usr/local/sbin/docker-host-security-audit.sh` | `system/docker-host-security-audit.sh` |

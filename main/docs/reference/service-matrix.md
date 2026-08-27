@@ -3,7 +3,7 @@ title: Service Matrix
 description: Central service, port, DNS, backup, monitoring, and runbook reference
 tags: [reference, services, ports, dns, docker-host]
 created: 2026-05-23
-modified: 2026-08-25
+modified: 2026-08-27
 type: reference
 status: active
 ---
@@ -46,6 +46,7 @@ remote exposure, backup expectations, monitoring, and runbook coverage.
 | Mermaid Viewer | `/opt/stacks/mermaid-viewer/` | 8092/tcp | `mermaid-viewer.home.local:8092` | Via docker-host Tailscale identity after ACL approval | stateless utility | HTTP check | `docs/install/services/mermaid-viewer.md` |
 | Gridfinity Layout Tool | `/opt/stacks/gridfinity-layout-tool/` | 8093/tcp | `gridfinity.home.local:8093`; fixed Homepage proxy `8196` | Management/LAN direct; Homepage proxy available to the scoped mobile identity | stateless browser-local utility; no server-side data | container health and HTTP `/healthz` check | `docs/install/services/gridfinity-layout-tool.md` |
 | Recomp Tracker | `/opt/stacks/recomp-tracker/` | 8420/tcp; Homepage fixed proxy 8209/tcp HTTPS | `http://192.168.20.102:8420` (direct); `https://homepage.home.local:8209/` (portal) | Management/LAN direct; Homepage proxy available to the scoped mobile identity | persistent service data under the stack path; explicit `10.240.31.0/24` bridge | container health and HTTP `/healthz` check | `configs/docker-host/stacks/recomp-tracker/README.md` |
+| MediaMTX | `/opt/stacks/mediamtx/` | 8554/tcp RTSP-over-TCP | `rtsp://192.168.20.102:8554/garage-phone` with a client-specific account | HomeAdmin/Management VLAN only; no Tailscale or IPv6 exposure | fMP4 recordings on OMV at `/mnt/omv/media/phone-recordings/garage-phone/`; no automatic deletion pending retention decision | container/log/resource check plus authenticated publish/read and recording probe | `docs/install/services/mediamtx.md` |
 | Jellyfin | `/opt/stacks/jellyfin/` | 8096/tcp | `jellyfin.home.local:8096` (DNS source staged) | Management, LAN, monitoring, and docker-host Tailscale identity | config local and backed up to OMV; approved media roots mounted read-only | container health and HTTP redirect | stack README + household implementation plan |
 | Calibre-Web | `/opt/stacks/calibre-web/` | 8083/tcp | `calibre-web.home.local:8083` (DNS source staged) | Management, LAN, monitoring, and docker-host Tailscale identity | config local and backed up to OMV; only dedicated Calibre library writable | container state and HTTP redirect | stack README + household implementation plan |
 | Atsumeru | `/opt/stacks/atsumeru/` | 31337/tcp | `atsumeru.home.local:31337` (DNS source staged) | Management, LAN, monitoring, and docker-host Tailscale identity | config/database local and backed up to OMV; only dedicated comics library writable | container health and authenticated HTTP response | stack README + household implementation plan |

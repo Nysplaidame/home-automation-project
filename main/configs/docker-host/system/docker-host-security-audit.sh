@@ -29,6 +29,7 @@ atsumeru 10.240.12.0/24
 mermaid-viewer 10.240.13.0/24
 household-hub 10.240.14.0/24
 local-alerting 10.240.15.0/24
+mediamtx 10.240.16.0/24
 download-gateway 10.240.20.0/24
 gardenkeeper 10.240.21.0/24
 docker-host-telegraf 10.240.22.0/24
@@ -118,6 +119,21 @@ if ip6tables -C DOCKER-USER -p tcp -m conntrack --ctorigdstport 8420 -j DROP >/d
     echo 'PASS IPv6 Docker firewall drops non-Tailscale Recomp traffic'
 else
     echo 'FAIL missing IPv6 Docker firewall Recomp drop' >&2
+    failed=1
+fi
+
+if iptables -C DOCKER-USER -p tcp -s 192.168.10.0/24 -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8554 -j RETURN >/dev/null 2>&1 \
+   && iptables -C DOCKER-USER -p tcp -m conntrack --ctorigdst 192.168.20.102 --ctorigdstport 8554 -j DROP >/dev/null 2>&1; then
+    echo 'PASS MediaMTX RTSP is HomeAdmin-scoped on IPv4'
+else
+    echo 'FAIL MediaMTX RTSP IPv4 scope is incomplete' >&2
+    failed=1
+fi
+
+if ip6tables -C DOCKER-USER -p tcp -m conntrack --ctorigdstport 8554 -j DROP >/dev/null 2>&1; then
+    echo 'PASS MediaMTX has no IPv6 exposure'
+else
+    echo 'FAIL MediaMTX IPv6 drop is missing' >&2
     failed=1
 fi
 

@@ -1,8 +1,10 @@
-"""Curated import of common generic foods from UK CoFID 2021.
+"""Conflict-aware import of foods from UK CoFID 2021.
 
 Download the official workbook from GOV.UK, run this script without --apply to
-review additions, then use --apply to add only missing food names to a running
-Recomp Tracker. Values are per 100g edible portion and retain CoFID metadata.
+review additions, then use --apply to add only missing foods to a running
+Recomp Tracker. The default remains the original curated set; --full imports
+the usable current dataset with coarse library categories. Values are per 100g
+and retain CoFID metadata.
 """
 
 import argparse
@@ -16,6 +18,14 @@ import pandas as pd
 
 
 SOURCE = "UK CoFID 2021"
+GROUP_CATEGORIES = {
+    "A": "Cereals, breads and pasta", "B": "Dairy and cheese", "C": "Eggs",
+    "D": "Vegetables and legumes", "F": "Fruit and juices", "G": "Nuts and seeds",
+    "H": "Herbs and spices", "J": "Fish and seafood", "M": "Meat and poultry",
+    "O": "Fats and oils", "P": "Drinks", "Q": "Alcoholic drinks",
+    "S": "Sugars, preserves and snacks", "W": "Sauces, soups and condiments",
+}
+CORE_COLUMNS = ["Energy (kcal) (kcal)", "Protein (g)", "Carbohydrate (g)", "Fat (g)"]
 
 # Generic foods only: each description makes preparation state explicit. Do not
 # substitute branded products for these entries; add a separate library item
@@ -302,10 +312,49 @@ def canonical(value):
 
 
 def number(value):
+    if str(value).strip().lower() == "tr":
+        return 0.0
     try:
         return float(value)
     except (TypeError, ValueError):
         return 0.0
+
+
+def core_macros_available(row):
+    unavailable = {"", "n", "nan", "none"}
+    return all(str(row[column]).strip().lower() not in unavailable for column in CORE_COLUMNS)
+
+
+def full_dataset_rows(table):
+    """Yield current records suitable for an edible-weight macro diary."""
+    for _, row in table.iterrows():
+        name = str(row["Food Name"]).strip()
+        if not name or name.lower() == "nan":
+            continue
+        # These records express nutrients against purchased weight including
+        # inedible waste and conflict with the app's edible/cooked gram prompt.
+        if re.search(r"\bweighed (?:with|as)\b", name, re.I):
+            continue
+        if not core_macros_available(row):
+            continue
+        yield GROUP_CATEGORIES.get(str(row["Group"])[0], "Other foods"), row
+
+
+def item_from_row(category, row):
+    return {
+        "id": "cofid-2021-" + str(row["Food Code"]).replace(" ", "").lower(),
+        "name": row["Food Name"],
+        "calories": number(row["Energy (kcal) (kcal)"]),
+        "protein": number(row["Protein (g)"]),
+        "carbs": number(row["Carbohydrate (g)"]),
+        "fat": number(row["Fat (g)"]),
+        "basis": "100ml" if category == "Alcoholic drinks" else "100g",
+        "archived": False,
+        "category": category,
+        "source": SOURCE,
+        "sourceFoodCode": str(row["Food Code"]),
+        "sourceFoodName": row["Food Name"],
+    }
 
 
 def main():
@@ -313,6 +362,7 @@ def main():
     parser.add_argument("workbook")
     parser.add_argument("--url", default="http://192.168.20.102:8420")
     parser.add_argument("--apply", action="store_true")
+    parser.add_argument("--full", action="store_true", help="Import all usable current CoFID records, not only the curated list")
     args = parser.parse_args()
 
     table = pd.read_excel(args.workbook, sheet_name="1.3 Proximates", skiprows=[1, 2])
@@ -323,34 +373,35 @@ def main():
     foods = json.loads(record["value"])
     items = foods.setdefault("items", [])
     existing = {canonical(item.get("name")) for item in items}
+    existing_codes = {str(item.get("sourceFoodCode")) for item in items if item.get("sourceFoodCode")}
 
     additions, missing, skipped = [], [], []
-    for category, names in FOODS.items():
-        for source_name in names:
-            key = canonical(source_name)
-            if key not in lookup.index:
-                missing.append(source_name)
-                continue
-            row = lookup.loc[key]
-            if canonical(row["Food Name"]) in existing:
-                skipped.append(row["Food Name"])
-                continue
-            additions.append({
-                "id": "cofid-2021-" + str(row["Food Code"]).replace(" ", "").lower(),
-                "name": row["Food Name"],
-                "calories": number(row["Energy (kcal) (kcal)"]),
-                "protein": number(row["Protein (g)"]),
-                "carbs": number(row["Carbohydrate (g)"]),
-                "fat": number(row["Fat (g)"]),
-                "archived": False,
-                "category": category,
-                "source": SOURCE,
-                "sourceFoodCode": str(row["Food Code"]),
-                "sourceFoodName": row["Food Name"],
-            })
-            existing.add(canonical(row["Food Name"]))
+    if args.full:
+        candidates = full_dataset_rows(table)
+    else:
+        selected = []
+        for category, names in FOODS.items():
+            for source_name in names:
+                key = canonical(source_name)
+                if key not in lookup.index:
+                    missing.append(source_name)
+                    continue
+                selected.append((category, lookup.loc[key]))
+        candidates = selected
+    for category, row in candidates:
+        name_key, code = canonical(row["Food Name"]), str(row["Food Code"])
+        if name_key in existing or code in existing_codes:
+            skipped.append(row["Food Name"])
+            continue
+        additions.append(item_from_row(category, row))
+        existing.add(name_key); existing_codes.add(code)
 
-    report = {"existing": len(items), "additions": len(additions), "skipped": skipped, "missing": missing}
+    category_counts = {}
+    for item in additions:
+        category_counts[item["category"]] = category_counts.get(item["category"], 0) + 1
+    report = {"mode": "full" if args.full else "curated", "existing": len(items), "additions": len(additions),
+              "additionCategories": category_counts, "skippedCount": len(skipped), "missing": missing,
+              "sampleAdditions": [item["name"] for item in additions[:30]]}
     print(json.dumps(report, indent=2))
     if missing:
         sys.exit("Refusing to apply: review missing CoFID source names first.")

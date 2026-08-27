@@ -3,7 +3,7 @@ title: Current Live State
 description: Canonical inventory of deployed hosts, services, and deliberately deferred components
 tags: [reference, current-state, infrastructure]
 created: 2026-06-20
-modified: 2026-08-25
+modified: 2026-08-27
 type: reference
 status: active
 ---
@@ -182,7 +182,17 @@ while its replacement LXC is running.
 Live workloads: Bambuddy, AdGuard Home, Immich, Homepage, Dozzle,
 ntfy, SearXNG, Whoogle, Mealie, Grocy, Obsidian LiveSync/CouchDB, Watchtower
 monitor-only, GardenKeeper, Household Hub, Gridfinity Layout Tool, Recomp
-Tracker, the staged Troubleshooting Dashboard and Telegraf.
+Tracker, MediaMTX, the staged Troubleshooting Dashboard and Telegraf.
+MediaMTX `1.20.1` is live at `192.168.20.102:8554/tcp` on explicit bridge
+`10.240.16.0/24`. HomeAdmin `192.168.10.0/24` is the only permitted source;
+publisher and viewer credentials are separate and path-scoped. It relays the
+compressed `garage-phone` RTSP stream without transcoding and records 30-minute
+fMP4 segments to the OMV-backed
+`/mnt/omv/media/phone-recordings/garage-phone/` path as UID/GID `1007:100`.
+Authenticated publish/read, unauthenticated denial, live H.264 relay and a
+decodable NAS recording passed on 2026-08-27; synthetic acceptance files were
+removed afterward. Automatic recording deletion is disabled pending an owner
+retention decision.
 The read-only Troubleshooting Dashboard is staged at
 `http://192.168.20.102:8094/` on explicit bridge `10.240.32.0/24`. Its host
 bind and `DOCKER-USER` policy allow Management VLAN `192.168.10.0/24` only;
@@ -348,7 +358,7 @@ workout tracking, with the fixed Homepage HTTPS proxy at
 allocated as `10.240.31.0/24`, and its firewall permits only management, LAN
 and Tailscale sources. Its HTTP endpoint returned `200` during the 2026-08-19
 reachability recheck.
-VM 103 has a 64 GiB virtual disk and 6 GiB RAM. On 2026-07-13 both app stacks were rebuilt from verified source,
+VM 103 has a 64 GiB virtual disk and 8 GiB RAM. On 2026-07-13 both app stacks were rebuilt from verified source,
 their scoped HA credentials were rotated, the Hub database was baselined at
 Alembic revision `20260617_0001`, and authenticated assistant probes passed.
 

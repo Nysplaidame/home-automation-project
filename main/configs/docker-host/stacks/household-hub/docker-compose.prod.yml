@@ -1,0 +1,131 @@
+name: household-hub
+
+# Network-safe production mirror for VM 103. Application source and build
+# context remain in the separate Household Hub deployment repository.
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - household-hub
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - household-hub
+
+  qdrant:
+    image: qdrant/qdrant:v1.12.6
+    restart: unless-stopped
+    volumes:
+      - qdrant-data:/qdrant/storage
+    networks:
+      - household-hub
+
+  api:
+    image: household-hub-api:0.1.0
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      HOUSEHOLD_HUB_ENV: ${HOUSEHOLD_HUB_ENV:-production}
+      HOUSEHOLD_HUB_API_HOST: ${HOUSEHOLD_HUB_API_HOST:-0.0.0.0}
+      HOUSEHOLD_HUB_API_PORT: ${HOUSEHOLD_HUB_API_PORT:-8091}
+      HOUSEHOLD_HUB_API_TOKEN: ${HOUSEHOLD_HUB_API_TOKEN:?HOUSEHOLD_HUB_API_TOKEN is required}
+      HOUSEHOLD_HUB_HOME_ASSISTANT_SECRET: ${HOUSEHOLD_HUB_HOME_ASSISTANT_SECRET:?HOUSEHOLD_HUB_HOME_ASSISTANT_SECRET is required}
+      HOUSEHOLD_HUB_AUTO_CREATE_SCHEMA: ${HOUSEHOLD_HUB_AUTO_CREATE_SCHEMA:-false}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
+      QDRANT_COLLECTION: ${QDRANT_COLLECTION:-household_transcript_chunks}
+      LLM_ASSISTANT_BASE_URL: ${LLM_ASSISTANT_BASE_URL:-}
+      LLM_ASSISTANT_EMBED_BASE_URL: ${LLM_ASSISTANT_EMBED_BASE_URL:-}
+      LLM_ASSISTANT_API_KEY: ${LLM_ASSISTANT_API_KEY:-}
+      LLM_ASSISTANT_CHAT_MODEL: ${LLM_ASSISTANT_CHAT_MODEL:-home-assistant-llm}
+      LLM_ASSISTANT_EMBED_MODEL: ${LLM_ASSISTANT_EMBED_MODEL:-}
+      LLM_ASSISTANT_CHAT_PATH: ${LLM_ASSISTANT_CHAT_PATH:-/chat/completions}
+      LLM_ASSISTANT_EMBED_PATH: ${LLM_ASSISTANT_EMBED_PATH:-/embeddings}
+      LLM_ASSISTANT_TIMEOUT_SECONDS: ${LLM_ASSISTANT_TIMEOUT_SECONDS:-90}
+      SEARXNG_URL: ${SEARXNG_URL:-}
+      MEALIE_URL: ${MEALIE_URL:-}
+      MEALIE_API_TOKEN: ${MEALIE_API_TOKEN:-}
+      GROCY_URL: ${GROCY_URL:-}
+      GROCY_API_KEY: ${GROCY_API_KEY:-}
+      NEXTCLOUD_CALDAV_URL: ${NEXTCLOUD_CALDAV_URL:-}
+      NEXTCLOUD_USER: ${NEXTCLOUD_USER:-}
+      NEXTCLOUD_APP_PASSWORD: ${NEXTCLOUD_APP_PASSWORD:-}
+      OBSIDIAN_EXPORT_PATH: ${OBSIDIAN_EXPORT_PATH:-}
+      HOUSEHOLD_HUB_NOTIFICATION_BROKER_URL: ${HOUSEHOLD_HUB_NOTIFICATION_BROKER_URL:-}
+      HOUSEHOLD_HUB_NOTIFICATION_BROKER_TOKEN: ${HOUSEHOLD_HUB_NOTIFICATION_BROKER_TOKEN:-}
+      NTFY_BROKER_URL: ${NTFY_BROKER_URL:-}
+      NTFY_BROKER_TOKEN: ${NTFY_BROKER_TOKEN:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    networks:
+      - household-hub
+      - searxng
+      - mealie
+      - grocy
+    volumes:
+      - ../../data/obsidian-exports:/exports/obsidian
+
+  web:
+    image: household-hub-web:0.1.0
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    environment:
+      HOUSEHOLD_HUB_API_TOKEN: ${HOUSEHOLD_HUB_API_TOKEN:?HOUSEHOLD_HUB_API_TOKEN is required}
+    ports:
+      - "8100:80"
+    depends_on:
+      - api
+    networks:
+      - household-hub
+
+volumes:
+  postgres-data:
+  redis-data:
+  qdrant-data:
+
+networks:
+  household-hub:
+    name: household-hub
+    ipam:
+      config:
+        - subnet: 10.240.14.0/24
+  searxng:
+    external: true
+    name: searxng
+  mealie:
+    external: true
+    name: mealie
+  grocy:
+    external: true
+    name: grocy

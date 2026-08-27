@@ -22,7 +22,7 @@ services:
     cap_drop:
       - ALL
     networks:
-      - default
+      - recomp-tracker
       - alerting
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8420/healthz')"]
@@ -31,7 +31,7 @@ services:
       retries: 3
 
 networks:
-  default:
+  recomp-tracker:
     name: recomp-tracker
     ipam:
       config:

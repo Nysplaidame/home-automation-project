@@ -4,7 +4,7 @@ description: Implementation tasks by phase — updated June 2026
 tags: [tasks, implementation]
 aliases: [TODO, Tasks]
 created: 2025-09-15
-modified: 2026-08-25
+modified: 2026-08-27
 type: task-list
 status: active
 ---
@@ -64,6 +64,14 @@ status: active
     - Remaining gate: authorize a workstation key on the Proxmox host and
       accept a real Proxmox JSON snapshot for backup freshness. DNS and
       Homepage exposure remain a separate owner decision after that proof.
+15. [x] Deploy MediaMTX `1.20.1` on VM 103 as an authenticated RTSP-over-TCP
+    relay/recorder for the garage phone stream. The HomeAdmin-only firewall,
+    separate publisher/viewer accounts, live relay and OMV recording validation
+    passed on 2026-08-27.
+    - [ ] Configure Larix on the OnePlus and the garage Pi player, then accept a
+      real 30-minute session.
+    - [ ] Choose a recording retention period before unattended/frequent use;
+      automatic deletion is deliberately disabled meanwhile.
 
 Planning baseline until explicitly revalidated:
 

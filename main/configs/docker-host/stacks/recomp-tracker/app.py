@@ -16,7 +16,7 @@ NTFY_USER = os.environ.get("NTFY_USER", "")
 NTFY_PASSWORD = os.environ.get("NTFY_PASSWORD", "")
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
-app.config["MAX_CONTENT_LENGTH"] = 1024 * 1024
+app.config["MAX_CONTENT_LENGTH"] = int(os.environ.get("MAX_CONTENT_LENGTH", str(8 * 1024 * 1024)))
 
 KEY_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$")
 

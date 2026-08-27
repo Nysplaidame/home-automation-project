@@ -2,7 +2,7 @@
 title: Portal, Monitoring and Household Services Handoff
 description: Live Homepage/monitoring state and the next decision-gated service work
 created: 2026-07-27
-modified: 2026-08-25
+modified: 2026-08-27
 type: handoff
 status: current
 ---
@@ -452,6 +452,38 @@ status: current
   inputs. The next documentation pass should reconcile that router invariant,
   then finish service/access-matrix verification before claiming a complete
   end-to-end dry run.
+
+## MediaMTX phone relay deployment (2026-08-27)
+
+- Deployed pinned MediaMTX `1.20.1` on VM 103 from
+  `configs/docker-host/stacks/mediamtx/`, using explicit bridge
+  `10.240.16.0/24` and host bind `192.168.20.102:8554/tcp`.
+- Only RTSP-over-TCP is enabled. MediaMTX does no decode/transcode; it relays
+  the phone's compressed stream to the garage Pi and writes fMP4 directly to
+  `/mnt/omv/media/phone-recordings/garage-phone/` on the existing OMV media
+  mount. The container runs as `media-service` (`1007:100`) with read-only root,
+  all capabilities dropped, no-new-privileges, one CPU and 256 MiB limits.
+- UFW and persistent `DOCKER-USER` rules allow only HomeAdmin
+  `192.168.10.0/24` to port `8554`; IPv6 and other IPv4 sources are dropped.
+  Separate host-only publisher and viewer credentials are path-scoped to
+  `garage-phone` in `/opt/stacks/mediamtx/.env` (`0600`).
+- Acceptance passed authenticated H.264 publish/read, unauthenticated
+  publisher/reader denial and a decodable fMP4 owned by
+  `media-service:users` on OMV. Synthetic recordings were removed after the
+  test. Automatic deletion remains disabled pending an explicit retention
+  decision.
+- Post-deployment idle use was `0.00%` CPU and `22 MiB` RAM. VM 103 had 4 vCPU,
+  2.7 GiB available RAM, 34 MiB of 2 GiB swap used, and 19 GiB free on its
+  64 GiB virtual disk (`69%` used). OMV media had 6.4 TiB free. No VM resource
+  increase is justified for MediaMTX; reclaim the roughly 17 GiB of unused
+  Docker images/build cache during a separate reviewed cleanup if system-disk
+  pressure grows.
+- Proxmox host-wide headroom and the authoritative VM 103 allocation could not
+  be queried because this workstation has no accepted Proxmox SSH key. Guest
+  Linux reports 7.7 GiB usable memory, consistent with an 8 GiB allocation.
+- Next acceptance: configure Larix on the OnePlus and the garage Pi RTSP
+  viewer, then run one real 30-minute 1080p session before considering H.265 or
+  4K.
 
 ## Repository state
 
