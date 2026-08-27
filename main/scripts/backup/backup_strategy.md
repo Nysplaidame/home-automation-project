@@ -10,12 +10,11 @@
 | Proxmox VM backup | VM disks 100/102/103 | OMV md0 NFS `backups/proxmox` (`omv-backups`) | Daily 02:00 | 7 daily + 6 monthly |
 | Proxmox LXC backup | CT 111/114 root filesystems | OMV md0 NFS `backups/proxmox` (`omv-backups`) | Daily 04:00 | 7 daily + 6 monthly |
 | HA native backup | HA config, add-ons, automations | OMV md0 NFS `backups/home-assistant` | Daily 03:00 | 7 daily + 6 monthly |
-| Frigate recordings | Camera footage | OMV md0 NFS `/export/frigate` through the Proxmox-host bind mount | Continuous | Frigate retention policy |
+| Frigate recordings | Camera footage | OMV md0 NFS `CCTV` share | Continuous | Set in Frigate before cameras go live |
 | Frigate LXC state | OS disk, DB, cache, compose/config | MINISFORUM NVMe on CT 111 | Continuous | Rebuildable + config-backed |
-| Docker-host app data | Mealie, Grocy, LiveSync, GardenKeeper stack data/dumps | OMV md0 NFS `backups/docker-host` | Daily 03:45 | 14 days of timestamped runs plus `latest` |
-| Config file backup | Safety vault YAML/configs | GitHub is current; preserved OMV `backups/configs` directory is not exported | Not implemented | Define a narrow producer/export before enabling |
+| Docker-host app data | Mealie, Grocy, LiveSync, GardenKeeper, ntfy, Jellyfin, Calibre-Web, Atsumeru, qBittorrent config, Vaultwarden state, and the staged Immich curated-exporter manifest/review queue | OMV md0 NFS `backups/docker-host` | Daily 03:45 | 14 days of timestamped runs plus `latest`; SQLite-consistent staging for ntfy/Vaultwarden |
+| Config file backup | Safety vault YAML/configs | OMV md0 NFS `backups/configs` | Daily via rsync | 7 daily + 6 monthly |
 | GitHub | Safety vault docs + configs | GitHub repo | On push | Full history |
-| OMV host configuration | Sensitive OMV XML plus export/mount/share evidence | Root-only md0 `backups/configs/omv-config` | Daily 01:30 | Timestamped runs; local same-array protection only |
 
 ---
 
@@ -196,7 +195,22 @@ cd /opt/frigate && docker compose restart frigate
 
 The safety vault on your Windows machine is the authoritative source for all configs. Back it up to the NAS daily.
 
-### Setup rsync from Windows to NAS
+### Prepare the Windows-to-NAS vault backup
+
+The tracked helper defaults to a non-writing dry run and targets the live
+`NAS\configs` path. It uses an additive copy (`/E`) rather than `/MIR`, so a
+source deletion cannot silently purge the NAS copy. Run it manually first:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File `
+  .\scripts\backup\backup_vault_to_nas.ps1
+```
+
+Review the reported log. A real manual copy requires the explicit `-Execute`
+switch. Do not create the Task Scheduler entry until the first copy and a
+restore-to-temporary-folder check have both passed.
+
+### Legacy command examples
 
 On your Windows machine, create a scheduled task or run manually:
 
@@ -212,7 +226,7 @@ robocopy "\\VBoxSvr\home-automation-safety" "\\192.168.40.50\nas-configs\home-au
     /MIR /Z /W:5 /LOG:"C:\Users\%USERNAME%\Desktop\backup.log"
 ```
 
-### Setup automatic daily backup (Task Scheduler)
+### Future automatic daily backup (not yet deployed)
 
 1. Open Task Scheduler → Create Basic Task
 2. Name: `Safety Vault NAS Backup`
@@ -258,6 +272,19 @@ Live proof on 2026-07-07:
   GardenKeeper `gardenkeeper-postgres-*.sql.gz`, then removed the temp copy.
 - `docker-host-app-data-backup.timer` is enabled and active, next firing daily
   at `03:45` local time.
+
+Expanded live proof on 2026-07-29:
+
+- The live script now stages consistent ntfy and Vaultwarden SQLite snapshots
+  using Python's online backup API, plus Jellyfin, Calibre-Web and Atsumeru
+  application state. qBittorrent configuration joins the same job after the
+  gateway's first successful start. When deployed, the Immich curated exporter
+  adds only its manifest and non-destructive review queue; exported media stays
+  on the OMV media source of truth.
+- Backup run `20260729T160804Z` completed on the NAS. Restored ntfy databases
+  passed SQLite integrity checks. Vaultwarden passed both a clean production
+  restore and a disposable-account restore into isolated temporary containers;
+  integrity, exact account count and HTTP health passed before cleanup.
 
 Target OMV location:
 
@@ -310,6 +337,13 @@ Initial service paths:
 | Grocy | `/opt/stacks/grocy/config/` | Includes Grocy config and database; stop the container before file-level backup/restore |
 | Obsidian LiveSync | `/opt/stacks/obsidian-livesync/data/` | CouchDB backend; synchronization is not a backup, and Git remains the project history layer |
 | GardenKeeper | `/opt/stacks/gardenkeeper/backups/` | Local PostgreSQL dump timer output; restore from a selected compressed SQL dump |
+| ntfy | staged copy of `/opt/stacks/ntfy/` | `user.db` and `cache.db` use SQLite online backup before rsync |
+| Jellyfin | `/opt/stacks/jellyfin/config/` | application metadata/config only; media libraries remain on the separate OMV media export |
+| Immich curated exporter | `/opt/stacks/immich-curated-exporter/state/` | manifest and review queue only; curated media remains on the OMV media export |
+| Calibre-Web | `/opt/stacks/calibre-web/config/` | application config/database; ebook payload library remains on the media export |
+| Atsumeru | `/opt/stacks/atsumeru/config/`, `/opt/stacks/atsumeru/database/` | application config and database; comics payload library remains on the media export |
+| qBittorrent | `/opt/stacks/download-gateway/qbittorrent-config/` | include only after the gateway starts; never back up the live Mullvad `.env` to Git |
+| Vaultwarden | staged copy of `/opt/stacks/vaultwarden/data/` | `db.sqlite3` uses SQLite online backup; attachments, sends and keys copy with the data directory |
 
 Validation pattern:
 
@@ -346,9 +380,10 @@ Completion criteria:
 - [x] Live OpenWrt `Docker Host to OMV NFS` allow rule verified before retrying
   the mount.
 - [x] OMV `backups/docker-host` mount path verified from docker-host.
-- [x] Dry-run covers Mealie, Grocy, Obsidian LiveSync, and GardenKeeper dump paths.
+- [x] Dry-run and dated runs cover the documented live application paths.
 - [x] Scheduled job or timer enabled and logged.
-- [x] One restore smoke test completed to a temporary directory.
+- [x] Restore smoke tests completed for the original household set, ntfy and
+  Vaultwarden; qBittorrent config restore remains pending its first start.
 
 ---
 

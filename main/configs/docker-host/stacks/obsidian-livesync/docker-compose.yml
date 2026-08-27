@@ -1,6 +1,6 @@
 services:
   couchdb:
-    image: couchdb:3.5.0
+    image: couchdb:3.5.0@sha256:1c0a30a54535377bc9ae23f42efb1ca4e92abe796f78ec98b768ac1d5874cc1b
     container_name: obsidian-livesync
     restart: unless-stopped
     user: "5984:5984"
@@ -11,4 +11,12 @@ services:
     volumes:
       - ./data:/opt/couchdb/data
       - ./local.ini:/opt/couchdb/etc/local.d/obsidian-livesync.ini:ro
+    networks:
+      - obsidian-livesync
 
+networks:
+  obsidian-livesync:
+    name: obsidian-livesync
+    ipam:
+      config:
+        - subnet: 10.240.7.0/24

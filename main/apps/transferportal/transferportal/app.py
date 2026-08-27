@@ -786,18 +786,18 @@ def page(title: str, body: str, authenticated: bool = True, status_code: int = 2
   <title>{esc(title)} - Transfer Portal</title>
   <style>
     :root {{ color-scheme: light; --ink:#172026; --muted:#5f6b74; --line:#d8dee4; --panel:#ffffff; --bg:#f5f7f9; --accent:#176b87; --danger:#b42318; --danger-soft:#fff1f0; }}
-    body {{ margin:0; background:var(--bg); color:var(--ink); font-family:Segoe UI,Roboto,Arial,sans-serif; }}
-    header {{ display:flex; align-items:center; gap:20px; padding:12px 20px; border-bottom:1px solid var(--line); background:#fff; }}
+    body {{ margin:0; background:radial-gradient(circle at 14% 8%,rgba(23,107,135,.12),transparent 25rem),radial-gradient(circle at 86% 92%,rgba(34,151,102,.09),transparent 27rem),repeating-linear-gradient(90deg,transparent 0 95px,rgba(23,107,135,.035) 96px),repeating-linear-gradient(0deg,transparent 0 95px,rgba(23,107,135,.025) 96px),var(--bg); color:var(--ink); font-family:Segoe UI,Roboto,Arial,sans-serif; }}
+    header {{ display:flex; align-items:center; gap:20px; padding:12px 20px; border-bottom:1px solid var(--line); background:rgba(255,255,255,.72); box-shadow:inset 0 1px 0 rgba(255,255,255,.78),0 10px 28px rgba(23,32,38,.1); backdrop-filter:blur(16px) saturate(125%); }}
     .brand {{ display:flex; align-items:center; gap:10px; min-width:190px; }}
     .brand pre {{ margin:0; color:var(--accent); background:transparent; padding:0; font:700 9px/0.9 Consolas,monospace; letter-spacing:0; }}
     nav {{ display:flex; gap:8px; flex:1; }}
-    nav a, .button, button {{ border:1px solid var(--line); background:#fff; color:var(--ink); padding:8px 10px; border-radius:6px; text-decoration:none; font:inherit; cursor:pointer; }}
-    nav a.active, .primary, button:hover, .button:hover {{ border-color:var(--accent); color:var(--accent); }}
+    nav a, .button, button {{ border:1px solid var(--line); background:linear-gradient(145deg,rgba(255,255,255,.9),rgba(245,248,250,.72)); box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 5px 12px rgba(23,32,38,.12); color:var(--ink); padding:8px 10px; border-radius:6px; text-decoration:none; font:inherit; cursor:pointer; transition:transform 150ms ease,box-shadow 150ms ease,border-color 150ms ease; }}
+    nav a.active, .primary, button:hover, .button:hover {{ border-color:var(--accent); color:var(--accent); box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 9px 18px rgba(23,32,38,.18); transform:translateY(-1px); }}
     main {{ max-width:1120px; margin:24px auto; padding:0 20px; }}
     .grid {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px; }}
     .settings-grid {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px; }}
     .note-block {{ margin-top:20px; border-top:1px solid var(--line); padding-top:16px; }}
-    .card, .panel {{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; }}
+    .card, .panel {{ background:linear-gradient(135deg,rgba(255,255,255,.72),rgba(255,255,255,.52)); border:1px solid rgba(216,222,228,.88); border-radius:8px; box-shadow:inset 0 1px 0 rgba(255,255,255,.82),inset 0 -1px 0 rgba(23,32,38,.04),0 16px 32px rgba(23,32,38,.12); padding:16px; backdrop-filter:blur(14px) saturate(120%); }}
     .toolbar, .actions {{ display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }}
     .form-head {{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:8px; }}
     .lede {{ max-width:720px; color:var(--muted); margin:4px 0 0; }}

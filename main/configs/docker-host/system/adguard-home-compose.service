@@ -1,0 +1,19 @@
+[Unit]
+Description=AdGuard Home Compose stack after Tailscale address is ready
+Requires=docker.service tailscaled.service
+After=docker.service tailscaled.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/stacks/adguard-home
+ExecStartPre=/bin/sh -c 'i=0; until ip -4 address show dev tailscale0 2>/dev/null | grep -q "100.94.122.18/32"; do i=$((i+1)); [ "$i" -ge 60 ] && exit 1; sleep 2; done'
+ExecStart=/usr/bin/docker compose up -d --force-recreate
+ExecReload=/usr/bin/docker compose up -d --force-recreate
+ExecStop=/usr/bin/docker compose stop
+TimeoutStartSec=150
+TimeoutStopSec=45
+
+[Install]
+WantedBy=multi-user.target

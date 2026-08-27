@@ -1,75 +1,45 @@
 flowchart LR
-    Internet["Upstream internet router / modem<br/>physical upstream device; model not recorded"]
+    Upstream["Upstream modem/router<br/>internet handoff"] --> WAN
 
-    subgraph RouterPorts["router: GL.iNet GL-MT6000"]
-        direction TB
-        WAN["wan<br/>Live: upstream DHCP"]
-        LAN1["lan1<br/>Live: tagged trunk 10,20,30,35,40,50,60,70"]
-        LAN2["lan2<br/>Unconnected: reserved VLAN 10 management"]
-        LAN3["lan3<br/>Live: tagged trunk 1,10,30,40"]
-        LAN4["lan4<br/>Live: OMV NAS VLAN 40 untagged"]
-        LAN5["lan5<br/>Unconnected: reserved VLAN 1 recovery"]
+    subgraph Router["GL-MT6000 OpenWrt · 192.168.10.1"]
+        WAN["WAN<br/>upstream DHCP"]
+        LAN1["lan1<br/>tagged Proxmox trunk"]
+        LAN2["lan2<br/>management/recovery"]
+        LAN3["lan3<br/>tagged switch trunk<br/>VLANs 1/10/30/40"]
+        LAN4["lan4<br/>VLAN 40 storage recovery<br/>normally unplugged"]
+        LAN5["lan5<br/>LAN/recovery access"]
+        WiFi["Wi-Fi<br/>HomeMain · HomeAdmin · HomePrinters<br/>HomeIoT · HomeGuest"]
     end
 
-    MiniPC["proxmox<br/>MINISFORUM M1 Pro-125H mini PC<br/>192.168.10.10<br/>hosts production VMs and CTs"]
+    LAN1 --> Proxmox["MINISFORUM Proxmox host<br/>192.168.10.10<br/>VLAN-aware guest bridge"]
+    LAN3 --> SW1
 
-    subgraph SwitchPorts["gs1900-switch: Zyxel GS1900-8HP | 192.168.10.12"]
-        direction TB
-        SW1["port 1<br/>Live: router trunk VLANs 1,10,30,40"]
-        SW2["port 2<br/>Live: PoE VLAN 30 camera"]
-        SW3["port 3<br/>Reserved: PoE VLAN 30 camera"]
-        SW4["port 4<br/>Reserved: PoE VLAN 30 camera"]
-        SW5["port 5<br/>Reserved: PoE VLAN 30 camera"]
-        SW6["port 6<br/>Reserved: PoE VLAN 30 camera"]
-        SW7["port 7<br/>Reserved: PoE VLAN 30 camera"]
-        SW8["port 8<br/>Available: untagged VLAN 40 storage"]
+    subgraph Switch["Zyxel GS1900-8HP · 192.168.10.12"]
+        SW1["Port 1<br/>router trunk"]
+        SW2["Port 2<br/>PoE · VLAN 30 access"]
+        SW3["Port 3<br/>PoE · VLAN 30 access"]
+        SW4["Port 4<br/>PoE · VLAN 30 access"]
+        SW57["Ports 5-7<br/>PoE · VLAN 30 access<br/>spare CCTV ports"]
+        SW8["Port 8<br/>VLAN 40 access"]
     end
 
-    NAS["omvnas<br/>OpenMediaVault NAS hardware<br/>192.168.40.50"]
-    RouterRadio["router Wi-Fi radios<br/>2.4 GHz and 5 GHz"]
-    Camera1["cam-01-annke-c500<br/>ANNKE C500 / I51HJ<br/>192.168.30.21"]
-    CameraFuture["cam-02 through cam-06<br/>future PoE cameras"]
-    Admin["Admin workstation / laptop<br/>wired only when needed"]
-    Recovery["Recovery laptop<br/>wired only when needed"]
+    SW2 --> Camera["ANNKE C500 cam-01<br/>192.168.30.21"]
+    SW3 --> PatioCamera["Patio camera cam-03<br/>192.168.30.23"]
+    SW4 --> GateCamera["Gate camera cam-02<br/>192.168.30.22"]
+    SW57 -.-> FutureCameras["Future exterior cameras<br/>VLAN 30"]
+    SW8 --> OMV["OpenMediaVault NAS<br/>192.168.40.50"]
+    WiFi --> Admin["Admin workstation<br/>HomeAdmin · VLAN 10"]
+    WiFi --> Users["Household devices<br/>HomeMain · VLAN 1"]
+    WiFi --> Printer["Bambu P1S<br/>HomePrinters · VLAN 35"]
+    WiFi -.-> VentSys["Future VentSys devices<br/>HomeIoT · VLAN 50"]
 
-    Internet -->|"Ethernet"| WAN
-    LAN1 -->|"CAT6"| MiniPC
-    LAN3 -->|"CAT6"| SW1
-    LAN4 -->|"CAT6"| NAS
-    SW2 -->|"CAT6 + PoE"| Camera1
-    SW3 -.-> CameraFuture
-    SW4 -.-> CameraFuture
-    SW5 -.-> CameraFuture
-    SW6 -.-> CameraFuture
-    SW7 -.-> CameraFuture
-    LAN2 -.-> Admin
-    LAN5 -.-> Recovery
+    Proxmox --> HA["VM 100 HA · VLAN 20"]
+    Proxmox --> Monitor["VM 102 monitoring · VLAN 60"]
+    Proxmox --> Docker["VM 103 docker-host · VLAN 20"]
+    Proxmox --> Frigate["CT 111 Frigate · VLAN 30"]
+    Proxmox --> LLM["CT 114 local AI · VLAN 20"]
 
-    subgraph WiFiDevices["Wireless physical devices"]
-        Mobile["operator-mobile<br/>Android phone<br/>HomeMain/HomeAdmin Wi-Fi or Tailscale"]
-        P1S["p1s<br/>Bambu Lab P1S<br/>192.168.35.200; HomePrinters Wi-Fi"]
-        IoT["Future VentSys ESPHome, smart plugs, sensors<br/>HomeIoT Wi-Fi; hardware pending"]
-        Guest["Guest devices<br/>HomeGuest Wi-Fi"]
-    end
-    RouterRadio -.-> WAN
-    RouterRadio -.->|"Wi-Fi"| Mobile
-    RouterRadio -.->|"HomePrinters Wi-Fi"| P1S
-    RouterRadio -.->|"HomeIoT Wi-Fi"| IoT
-    RouterRadio -.->|"HomeGuest Wi-Fi"| Guest
-
-    Note["Switch capacity: port 1 uplink + ports 2-7 six cameras + port 8 spare VLAN 40.<br/>No VLAN 1 access port remains for the TL-WA801N extender; add a second/larger switch or change the port plan."]
-    SW1 -.-> Note
-
-    classDef core fill:#e8a349,stroke:#6e4315,color:#1c1c1c,stroke-width:2px
-    classDef compute fill:#81b29a,stroke:#2f6654,color:#102c24,stroke-width:2px
-    classDef storage fill:#c9b1d1,stroke:#664873,color:#281630,stroke-width:2px
-    classDef endpoint fill:#9ec1cf,stroke:#376a7a,color:#102a32
-    classDef future fill:#ececec,stroke:#777777,color:#444444,stroke-dasharray: 5 5
-    class WAN,LAN1,LAN3,LAN4,SW1,SW2,RouterRadio core
-    class MiniPC compute
-    class NAS storage
-    class Camera1,Mobile,P1S,Guest endpoint
-    class LAN2,LAN5,SW3,SW4,SW5,SW6,SW7,SW8,CameraFuture,IoT,Admin,Recovery,Note future
-    style RouterPorts fill:#fff4dd,stroke:#a67020,stroke-width:2px
-    style SwitchPorts fill:#fff4dd,stroke:#a67020,stroke-width:2px
-    style WiFiDevices fill:#f3f8ff,stroke:#7a9db8,stroke-width:1px
+    classDef live fill:#78c6a3,stroke:#276749,color:#08251a
+    classDef future fill:#334155,stroke:#94a3b8,color:#e2e8f0,stroke-dasharray: 5 5
+    class WAN,LAN1,LAN3,WiFi,Proxmox,SW1,SW2,SW3,SW4,SW8,Camera,PatioCamera,GateCamera,OMV,Admin,Users,Printer,HA,Monitor,Docker,Frigate,LLM live
+    class SW57,FutureCameras,VentSys future

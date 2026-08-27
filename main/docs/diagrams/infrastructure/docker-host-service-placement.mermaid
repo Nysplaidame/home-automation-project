@@ -1,60 +1,92 @@
 flowchart TB
-    DockerHost["docker-host VM 103<br/>192.168.20.102<br/>Debian + Docker Engine + Compose"]
-    Stacks["/opt/stacks/<service>/"]
-    Network["Docker networks<br/>service-specific where practical"]
-    Volumes["Named volumes and bind mounts<br/>document per service"]
-    Backups["Backups<br/>OMV app-data templates<br/>live mount/job pending"]
-    Logs["Logs<br/>Dozzle + host journal"]
+    DockerHost["docker-host VM 103<br/>192.168.20.102<br/>6 GiB RAM · 64 GiB disk"]
+    Compose["Compose stacks<br/>/opt/stacks/&lt;service&gt;/"]
+    Firewall["DOCKER-USER + UFW policy<br/>management · LAN · HA · monitoring · scoped Tailscale"]
+    Networks["Explicit bridge map<br/>10.240.1.0/24-10.240.31.0/24<br/>Gridfinity 172.32.0.0/24"]
+    Observability["Operations<br/>Dozzle · Telegraf · Watchtower monitor-only"]
+    BackupJob["Daily 03:45 app-data backup<br/>selected data + database dumps"]
+    OMV["OMV backups/docker-host<br/>restore-smoke verified"]
 
-    DockerHost --> Stacks
-    DockerHost --> Network
-    DockerHost --> Volumes
-    DockerHost --> Backups
-    DockerHost --> Logs
+    DockerHost --> Compose
+    DockerHost --> Firewall
+    DockerHost --> Networks
+    DockerHost --> Observability
+    DockerHost --> BackupJob --> OMV
 
-    subgraph Tier1["Tier 1 core"]
-        AdGuard["adguard-home<br/>DNS filtering"]
-        Immich["immich<br/>photos/gallery"]
-        Homepage["homepage<br/>service dashboard"]
-        Dozzle["dozzle<br/>container logs"]
-        Bambuddy["bambuddy<br/>P1S bridge"]
-        Tailscale["tailscale<br/>subnet router"]
+    subgraph Navigation["Navigation and utility"]
+        Homepage["Homepage<br/>HTTPS 443 · rollback 3001<br/>fixed proxies 8180-8209"]
+        Mermaid["Mermaid Viewer<br/>8092 · canonical diagrams"]
+        Gridfinity["Gridfinity Layout Tool<br/>8093"]
     end
 
-    subgraph Tier2Live["Tier 2 live / setup pending"]
-        Mealie["mealie<br/>recipes; admin rotation pending"]
-        Grocy["grocy<br/>stock; household model pending"]
-        LiveSync["obsidian-livesync<br/>CouchDB; client rollout pending"]
-        Ntfy["ntfy<br/>internal alerts"]
-        SearXNG["searxng<br/>search pre-flight"]
-        Whoogle["whoogle<br/>search pre-flight"]
+    subgraph Household["Household applications"]
+        Immich["Immich<br/>2283 · OMV media"]
+        Mealie["Mealie<br/>9925"]
+        Grocy["Grocy<br/>9283"]
+        Garden["GardenKeeper<br/>8090 API · 8091 UI"]
+        Hub["Household Hub<br/>8100 UI · 8101 API"]
+        Bambuddy["Bambuddy<br/>8000"]
+        LiveSync["Obsidian LiveSync<br/>5984"]
+        Recomp["Recomp Tracker<br/>8420"]
     end
 
-    subgraph Tier2Candidates["Tier 2 candidates"]
-        Paperless["paperless-ngx"]
-        Actual["actual-budget"]
-        Scrypted["scrypted"]
+    subgraph MediaSecure["Media, downloads and secure data"]
+        Jellyfin["Jellyfin<br/>8096 · read-only media"]
+        Books["Calibre-Web 8083<br/>Atsumeru 31337"]
+        Download["Gluetun/qBittorrent<br/>8084 · fail-closed VPN"]
+        Vault["Vaultwarden<br/>loopback 8222 · HTTPS SNI proxy"]
     end
 
-    subgraph Tier3["Tier 3 evaluate"]
-        Vaultwarden["vaultwarden<br/>security gate"]
-        Portainer["portainer<br/>admin-surface gate"]
-        Watchtower["watchtower<br/>monitor-only"]
-        Registry["local registry mirror"]
-        NodeRED["node-red<br/>automation gate"]
+    subgraph NetworkServices["Network and messaging"]
+        AdGuard["AdGuard Home<br/>53 DNS · 8080 admin"]
+        Tailscale["Tailscale host service<br/>four advertised /32 routes"]
+        Ntfy["ntfy<br/>8085"]
+        SearXNG["SearXNG<br/>8087"]
+        Whoogle["Whoogle<br/>8088"]
     end
 
-    subgraph Future["Future app/tool containers"]
-        QueryApps["AI-adjacent query apps<br/>app-specific design required"]
+    subgraph DataServices["Private application data services"]
+        ImmichData["Immich PostgreSQL · Redis · ML"]
+        GardenData["GardenKeeper PostgreSQL · Redis · worker"]
+        HubData["Household Hub PostgreSQL · Redis · Qdrant · API"]
     end
 
-    Stacks --> Tier1
-    Stacks --> Tier2Live
-    Stacks --> Tier2Candidates
-    Stacks --> Tier3
-    Stacks -.-> Future
-    Tier1 --> Backups
-    Tier2Live --> Backups
-    Tier2Candidates --> Backups
-    Tier3 --> Backups
-    Future -.-> Backups
+    Compose --> Navigation
+    Compose --> Household
+    Compose --> NetworkServices
+    Compose --> DataServices
+    Compose --> MediaSecure
+    Firewall --> Navigation
+    Firewall --> Household
+    Firewall --> NetworkServices
+    Household --> DataServices
+    Networks --- Navigation
+    Networks --- Household
+    Networks --- NetworkServices
+    Networks --- MediaSecure
+    Bambuddy -.->|"temporary host network<br/>bridge .23 prepared"| Networks
+    Immich -->|"library"| OMV
+    Jellyfin -->|"read-only libraries"| OMV
+    Books -->|"scoped libraries"| OMV
+    Download -->|"incomplete + complete payloads"| OMV
+    BackupJob -.-> Mealie
+    BackupJob -.-> Grocy
+    BackupJob -.-> Garden
+    BackupJob -.-> LiveSync
+    BackupJob -.-> Hub
+    BackupJob -.-> Recomp
+    BackupJob -.-> Vault
+
+    Secrets["Secrets boundary<br/>live .env files and databases stay off Git"]
+    Templates["Rebuildable templates<br/>configs/docker-host/"]
+    Templates --> Compose
+    Secrets -.-> Compose
+
+    classDef host fill:#f4b860,stroke:#8a5a12,color:#241704
+    classDef app fill:#78b7d0,stroke:#245b70,color:#071e27
+    classDef data fill:#b8a1e3,stroke:#5b4391,color:#1b1230
+    classDef policy fill:#78c6a3,stroke:#276749,color:#08251a
+    class DockerHost host
+    class Homepage,Mermaid,Gridfinity,Immich,Mealie,Grocy,Garden,Hub,Bambuddy,LiveSync,Recomp,AdGuard,Ntfy,SearXNG,Whoogle,Jellyfin,Books,Download,Vault app
+    class ImmichData,GardenData,HubData,OMV data
+    class Firewall,Networks,BackupJob,Secrets,Templates policy

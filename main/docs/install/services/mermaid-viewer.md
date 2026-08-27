@@ -64,9 +64,11 @@ Live layout:
 
 ## Build steps
 
+Run on: admin workstation in the canonical repository checkout.
+
 ```sh
 cd main/apps/mermaid-viewer
-npm install
+npm ci
 npm run build
 ```
 

@@ -1,0 +1,21 @@
+apiVersion: 1
+
+# Set NTFY_MONITORING_PASSWORD in the Grafana container environment before
+# provisioning this file. Never replace the placeholder with a tracked secret.
+contactPoints:
+  - orgId: 1
+    name: ntfy Monitoring
+    receivers:
+      - uid: eftl1005bj8cge
+        type: webhook
+        settings:
+          httpMethod: POST
+          url: http://192.168.20.102:8085/monitoring
+          username: monitoring
+          password: ${NTFY_MONITORING_PASSWORD}
+        disableResolveMessage: false
+
+policies:
+  - orgId: 1
+    receiver: ntfy Monitoring
+    group_by: [grafana_folder, alertname]

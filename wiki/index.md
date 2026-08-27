@@ -3,8 +3,8 @@
 > **LLM:** Read this file first on every query. Master catalog of all wiki content.
 > Updated after every ingest, query (if filed), or lint pass.
 
-**Stats:** 25 sources - 22 entities - 7 concepts - 3 analyses
-**Last updated:** 2026-07-10
+**Stats:** 21 sources - 27 entities - 7 concepts - 8 analyses
+**Last updated:** 2026-08-25
 
 ---
 
@@ -29,7 +29,7 @@
 ### Setup guides
 - [[sources/router-setup-complete]] - GL-MT6000 deployment; first-flight deployed via router-deploy toolkit
 - [[sources/network-testing-guide]] - Post-cutover validation
-- [[sources/proxmox-setup-guide]] - Proxmox VE on MINIX; VM creation; backup strategy
+- [[sources/proxmox-setup-guide]] - Proxmox VE on MINISFORUM; current VM/LXC build and backup references
 - [[sources/ha-vm-setup-guide]] - HAOS onboarding and VentSys packages
 - [[sources/frigate-vm-setup-guide]] - Debian + Docker + Frigate staging; iGPU; NAS storage
 - [[sources/igpu-passthrough-guide]] - Intel iGPU passthrough to Frigate VM
@@ -50,28 +50,33 @@
 ## Entities
 
 ### Hardware
-- [[entities/minix-neo-z350]] - Fanless Intel mini PC; Proxmox host
+- [[entities/minisforum-m1-pro-125h]] - Live Proxmox host; Core Ultra 5 125H, 32 GiB, shared iGPU
+- [[entities/minix-neo-z350]] - Superseded early compute plan retained for source history
 - [[entities/gl-mt6000]] - GL.iNet WiFi 6 router; OpenWrt DSA; 10-VLAN core
-- [[entities/tplink-ap]] - TP-Link TL-WA801N AP on lan5
+- [[entities/tplink-ap]] - Planned TP-Link TL-WA801N AP; VLAN 1 switch capacity unresolved
 - [[entities/rpi-displays]] - Pi kiosk displays on VLAN 1
+- [[entities/cctv-camera-fleet]] - Three-camera Frigate fleet on PoE VLAN 30 access ports
 - [[entities/bambu-p1s]] - FDM printer on VLAN 35
-- [[entities/openmediavault-nas]] - OMV NAS on VLAN 40 at 192.168.40.50
+- [[entities/openmediavault-nas]] - Live OMV NAS on VLAN 40 with five-disk SMART monitoring
 - [[entities/raspberry-pi-nas]] - Deprecated historical NAS plan; superseded by OMV
 
 ### Infrastructure
-- [[entities/proxmox]] - Proxmox VE on MINIX; VMs 100/102/103 and CTs 111/114 live
-- [[entities/docker-host]] - VM 103; Bambuddy, Tier 1 apps, ntfy/search pre-flight, Tailscale, Telegraf, Fail2ban
-- [[entities/monitoring-vm]] - VM 102; Uptime Kuma, InfluxDB, Grafana, Telegraf, architecture dashboards, exporters
+- [[entities/proxmox]] - Proxmox VE on MINISFORUM; VMs 100/102/103 and CTs 111/114 live
+- [[entities/docker-host]] - VM 103; live household/media services, explicit Compose networks, fixed Homepage proxy, Tailscale, Telegraf and Fail2ban
+- [[entities/monitoring-vm]] - VM 102; Uptime Kuma, InfluxDB, Grafana, Telegraf, ntfy routing, infrastructure checks, dashboards, and exporters
 
 ### Software / integrations
-- [[entities/home-assistant]] - HAOS on VM 100; VentSys packages/dashboard staged and Frigate integration planned
-- [[entities/frigate]] - CT 111 Frigate baseline live with shared-iGPU OpenVINO; cameras/MQTT pending
+- [[entities/home-assistant]] - HAOS on VM 100; three-camera Frigate integration and camera-health alerts live
+- [[entities/frigate]] - CT 111 Frigate 0.17.1 with three cameras, MQTT TLS, shared-iGPU acceleration, and OMV recordings
 - [[entities/llm-host]] - CT 114 llama.cpp/Open WebUI/Wyoming host with shared-iGPU Vulkan
 - [[entities/bambuddy]] - Bambu P1S bridge on docker-host
 - [[entities/adguard-home]] - Live DNS filtering/adblocking service on docker-host
-- [[entities/immich]] - Live skeleton gallery/photos service; real imports blocked until OMV/backup readiness
-- [[entities/homepage]] - Live internal dashboard on docker-host
+- [[entities/immich]] - Live gallery/photos service with OMV-backed media storage
+- [[entities/homepage]] - Live responsive HTTPS operations dashboard on docker-host
 - [[entities/dozzle]] - Live Docker log viewer on docker-host
+- [[entities/household-hub]] - Transcript RAG, confirmed recipe handoff, read-only Grocy, and Markdown/ICS exports on docker-host
+- [[entities/qbittorrent]] - Mullvad/Gluetun-isolated authorised download staging with fail-closed proof
+- [[entities/troubleshooting-dashboard]] - Staged read-only symptom-led diagnostics on management-only VM 103 port 8094
 - [[entities/ventsys]] - Fire safety ventilation packages/dashboard staged; hardware rollout gated by TLS-path revalidation
 - [[entities/smart-plugs-ventsys]] - VentSys smart plugs
 - [[entities/esphome]] - ESP32 firmware platform; VentSys hardware adoption pending revalidation
@@ -96,6 +101,11 @@
 - [[analyses/deployment-status-2026-04]] - Project snapshot from April 2026
 - [[analyses/lint-2026-05-18]] - Wiki maintenance lint against May 2026 canonical docs
 - [[analyses/lint-2026-05-30]] - Documentation/wiki audit after monitoring, Grafana, Fail2ban, and docker-host service updates
+- [[analyses/lint-2026-07-28]] - Targeted CCTV/Frigate/MQTT state lint after the three-camera rollout
+- [[analyses/lint-2026-08-01]] - Targeted maintenance/download-gateway state lint and index-count repair
+- [[analyses/lint-2026-08-09]] - Targeted Household Hub recipe-workflow and ownership-boundary lint
+- [[analyses/lint-2026-08-21]] - Targeted mobile Homepage proxy and Tailscale-access lint
+- [[analyses/lint-2026-08-25]] - Architecture-document reconciliation and targeted wiki drift repair
 
 ---
 

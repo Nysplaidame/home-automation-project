@@ -1,41 +1,36 @@
----
-title: Mermaid Diagram Viewer
-description: Internal read-only web viewer for canonical Mermaid diagrams
-tags: [apps, diagrams, mermaid, internal]
-created: 2026-07-09
-modified: 2026-07-09
-type: app-spec
-status: draft
----
+# Mermaid Viewer
 
-# Mermaid Diagram Viewer
+Internal read-only viewer generated from the canonical sources under
+`main/docs/diagrams/`.
 
-Read-only internal web UI for browsing the canonical Mermaid sources under
-`docs/diagrams/`.
+## Build
 
-## Goals
-
-- Browse the diagram library by section and title.
-- Search across titles, descriptions, and tags.
-- Open a diagram in-place with Mermaid rendering.
-- Copy a Markdown link or relative file path.
-- Stay internal-only and read-only.
-
-## Proposed shape
-
-- Static frontend served from docker-host.
-- Manifest file listing the canonical `.mermaid` sources.
-- Mermaid rendering in the browser from the source text.
-- No edit, upload, or write-back path.
-
-## Suggested path
-
-```text
-/opt/stacks/mermaid-viewer/
+```powershell
+cd main/apps/mermaid-viewer
+npm install
+npm run build
 ```
 
-## Suggested exposure
+The build:
 
-- Internal LAN / Tailscale only.
-- No public exposure.
-- No auth beyond the existing internal network boundary unless later required.
+1. discovers every canonical `.mermaid` file;
+2. embeds the complete source in `dist/diagram-data.js`;
+3. copies the local Mermaid runtime;
+4. emits a static Nginx-ready `dist/` directory.
+
+The UI uses the full available viewport and adapts its sidebar and diagram
+canvas across desktop, embedded and mobile layouts. It supports full-text
+filtering, deep links, fit, 100% view, zoom, pan, fullscreen, and optional
+source display.
+
+## Deploy
+
+Copy this directory to `/opt/stacks/mermaid-viewer/` on docker-host and run:
+
+```sh
+cd /opt/stacks/mermaid-viewer
+docker compose config
+docker compose up -d
+```
+
+No project secrets are required or included.

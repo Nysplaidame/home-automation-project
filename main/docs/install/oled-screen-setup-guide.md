@@ -14,7 +14,7 @@ It uses the working structure we established during setup:
 
 The original tutorial assumes the default user is `pi`. On newer Raspberry Pi OS images that is often not true.
 
-Run:
+Run on: garage Pi local terminal.
 
 ```bash
 whoami
@@ -25,7 +25,7 @@ Use the output from those commands everywhere this guide says `YOUR_USERNAME` or
 
 Example:
 
-```bash
+```text
 whoami
 admin
 
@@ -42,6 +42,8 @@ In that case, replace:
 
 Install the base packages needed by the OLED example and its dependencies.
 
+Run on: garage Pi local terminal.
+
 ```bash
 sudo apt update
 sudo apt upgrade -y
@@ -57,6 +59,8 @@ sudo apt install -y \
 
 If you are using the OLED from the 52Pi kit, also make sure I2C is enabled:
 
+Run on: garage Pi local terminal.
+
 ```bash
 sudo raspi-config
 ```
@@ -69,11 +73,15 @@ Interface Options -> I2C -> Enable
 
 Add your user to the device groups used by the display and fan hardware:
 
+Run on: garage Pi local terminal.
+
 ```bash
 sudo usermod -aG gpio,i2c YOUR_USERNAME
 ```
 
 Reboot after enabling it:
+
+Run on: garage Pi local terminal.
 
 ```bash
 sudo reboot
@@ -82,6 +90,8 @@ sudo reboot
 ## 3. Create a Clean Project Folder
 
 Use one dedicated folder for the OLED setup.
+
+Run on: garage Pi local terminal.
 
 ```bash
 mkdir -p ~/oled
@@ -92,6 +102,8 @@ cd ~/oled
 
 Create the environment outside the repo so the paths stay easy to understand.
 
+Run on: garage Pi local terminal.
+
 ```bash
 python3 -m venv venv
 source venv/bin/activate
@@ -101,6 +113,8 @@ You should now see `(venv)` in your shell prompt.
 
 Upgrade `pip` inside the virtual environment:
 
+Run on: garage Pi local terminal with the OLED virtual environment active.
+
 ```bash
 pip install --upgrade pip
 ```
@@ -109,11 +123,15 @@ pip install --upgrade pip
 
 Clone the `luma.examples` repository into the same project folder:
 
+Run on: garage Pi local terminal with the OLED virtual environment active.
+
 ```bash
 git clone https://github.com/rm-hull/luma.examples.git
 ```
 
 Install the local package in editable mode:
+
+Run on: garage Pi local terminal with the OLED virtual environment active.
 
 ```bash
 cd ~/oled/luma.examples
@@ -126,6 +144,8 @@ If the install asks for extra packages, install them inside the virtual environm
 
 The example script uses `psutil`, so install it in the virtual environment:
 
+Run on: garage Pi local terminal with the OLED virtual environment active.
+
 ```bash
 pip install psutil
 ```
@@ -136,6 +156,8 @@ If your install complains about Pillow or other graphics dependencies, the earli
 
 Before making a service, test the script manually.
 
+Run on: garage Pi local terminal.
+
 ```bash
 cd ~/oled/luma.examples/examples
 ~/oled/venv/bin/python3 sys_info.py
@@ -144,6 +166,8 @@ cd ~/oled/luma.examples/examples
 If the OLED lights up and shows data, the wiring and libraries are working.
 
 If it fails, fix it here before moving on. The most useful quick checks are:
+
+Run on: garage Pi local terminal.
 
 ```bash
 ~/oled/venv/bin/python3 -m py_compile ~/oled/luma.examples/examples/sys_info.py
@@ -161,7 +185,7 @@ Save this as:
 ```
 
 ```python
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Copyright (c) 2014-2022 Richard Hull and contributors
 # See LICENSE.rst for details.
@@ -172,8 +196,8 @@ Display basic system information.
 
 Needs psutil (+ dependencies) installed::
 
-  $ sudo apt-get install python-dev
-  $ sudo -H pip install psutil
+  $ sudo apt-get install python3-dev
+  $ ~/oled/venv/bin/pip install psutil
 """
 
 import os
@@ -194,7 +218,7 @@ from PIL import ImageFont
 try:
     import psutil
 except ImportError:
-    print("The psutil library was not found. Run 'sudo -H pip install psutil' to install it.")
+    print("The psutil library was not found. Run '~/oled/venv/bin/pip install psutil' to install it.")
     sys.exit()
 
 
@@ -221,7 +245,7 @@ class IPAddressChecker:
     def _retrieve_ip_address():
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-                s.connect(("8.8.8.8", 80))  # Google DNS. Probably will never be down.
+            s.connect(("192.168.10.1", 53))  # Router-local path; no external DNS dependency.
                 return s.getsockname()[0]
         except Exception as e:
             print(f"Error: {e}")
@@ -348,19 +372,23 @@ if __name__ == "__main__":
 
 Create a small shell wrapper that starts the example with the virtual environment Python.
 
+Run on: garage Pi local terminal.
+
 ```bash
 nano ~/start_oled.sh
 ```
 
 Paste this in, replacing `YOUR_USERNAME`:
 
-```bash
+```text
 #!/bin/bash
 cd /home/YOUR_USERNAME/oled/luma.examples/examples
 /home/YOUR_USERNAME/oled/venv/bin/python3 sys_info.py
 ```
 
 Make it executable:
+
+Run on: garage Pi local terminal.
 
 ```bash
 chmod +x ~/start_oled.sh
@@ -369,6 +397,8 @@ chmod +x ~/start_oled.sh
 ## 10. Create the `systemd` Service
 
 Create or edit the service file:
+
+Run on: garage Pi local terminal.
 
 ```bash
 sudo nano /etc/systemd/system/minitower_oled.service
@@ -402,6 +432,8 @@ Notes:
 
 Reload `systemd`, enable the service, and start it:
 
+Run on: garage Pi local terminal.
+
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl enable minitower_oled.service
@@ -410,11 +442,15 @@ sudo systemctl restart minitower_oled.service
 
 Check the status:
 
+Run on: garage Pi local terminal.
+
 ```bash
 systemctl status minitower_oled.service --no-pager -l
 ```
 
 If the display goes blank, check the logs:
+
+Run on: garage Pi local terminal.
 
 ```bash
 sudo journalctl -b -u minitower_oled.service -n 100 --no-pager
@@ -440,11 +476,15 @@ The IP row only appears if the display has enough vertical space.
 
 Run:
 
+Run on: garage Pi local terminal.
+
 ```bash
 ~/oled/venv/bin/python3 -m py_compile ~/oled/luma.examples/examples/sys_info.py
 ```
 
 Then run the script manually:
+
+Run on: garage Pi local terminal.
 
 ```bash
 cd ~/oled/luma.examples/examples
@@ -466,6 +506,8 @@ That just means your Pi is using a different login name. Use `whoami` and `echo 
 If you created mistaken environments or folders while following the old tutorial, you can remove only the ones you no longer need.
 
 Check what exists first:
+
+Run on: garage Pi local terminal.
 
 ```bash
 find ~ -maxdepth 4 -type d \( -name "venv" -o -name "luma.examples" \)

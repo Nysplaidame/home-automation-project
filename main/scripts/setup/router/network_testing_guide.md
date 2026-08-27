@@ -2,13 +2,13 @@
 # Run these tests after router VLAN cutover to verify isolation and routing
 # Prerequisite: management laptop plugged into lan2 (VLAN 10 untagged)
 
-Current first-flight status, verified on 2026-05-07, uses the pre-switch direct
-port layout. The planned managed-switch layout below must not be deployed until
-the Zyxel GS1900-8HP is present and configured first:
+Current production status, reconciled on 2026-08-25, uses the managed switch:
 - lan5 LAN/recovery: DHCP `192.168.1.x`, gateway/DNS `192.168.1.1`
 - lan2 management: DHCP `192.168.10.x`, gateway/DNS `192.168.10.1`
 - lan3 managed-switch trunk: tagged VLANs `1,10,30,40`
-- lan4 OMV NAS: reservation `192.168.40.50`, gateway/DNS `192.168.40.1`
+- lan4 storage recovery/access port: VLAN 40 untagged and normally unplugged
+- GS1900 port 8: OMV NAS at `192.168.40.50` on VLAN 40
+- GS1900 ports 2/3/4: Camera 1 `.21`, Patio `.23`, and Gate `.22` on VLAN 30
 - lan1 is tagged-only trunk to Proxmox; direct untagged laptop DHCP is not expected
 - first-flight WiFi interfaces are configured but disabled
 
@@ -86,7 +86,7 @@ Physical client smoke tests:
 | lan5 | Direct LAN/recovery DHCP `192.168.1.x`, DNS `192.168.1.1`, LuCI/browser reachable at `192.168.1.1` |
 | lan2 | DHCP `192.168.10.x`, DNS `192.168.10.1`, Proxmox/admin clients live here |
 | lan3 | Tagged trunk only; test with the managed switch, not plain laptop DHCP |
-| lan4 | Direct OMV NAS port on VLAN 40; `192.168.40.50` after OMV is connected |
+| lan4 | Unplugged storage recovery/access port on VLAN 40; a temporary test client may use `192.168.40.x` |
 | lan1 | Tagged trunk only; test with Proxmox or VLAN-aware client, not plain DHCP |
 
 Managed switch access-port smoke tests after the switch is installed:
@@ -94,9 +94,10 @@ Managed switch access-port smoke tests after the switch is installed:
 | Switch port role | Expected client result |
 |---|---|
 | Switch management interface | `192.168.10.12` on VLAN 10, reachable from management only |
-| Camera access port | DHCP/static `192.168.30.x`, DNS `192.168.30.1`; no WAN access |
-| OMV NAS access port | OMV reachable at `192.168.40.50`, DNS `192.168.40.1`; no WAN access |
-| TL-WA801N access port | Extender reservation `192.168.1.203`; clients get `192.168.1.x` |
+| Camera access ports 2/3/4 | Camera 1 `.21`, Patio `.23`, Gate `.22`; no broad WAN access |
+| Future camera ports 5-7 | VLAN 30 access, disabled/PoE-off until a labelled camera is commissioned; `.24` reserved next |
+| OMV NAS port 8 | OMV reachable at `192.168.40.50`, DNS `192.168.40.1`; no broad WAN access |
+| TL-WA801N access port | No current free switch port; requires an explicit capacity/design decision |
 
 For restricted zones, DNS is the better client smoke test than gateway ping:
 
@@ -210,7 +211,7 @@ Connect a test device to each physical port and verify it gets the right IP rang
 |---|---|---|
 | lan2 | 10 (Management) | 192.168.10.100–149 |
 | lan3 | tagged trunk only | no untagged DHCP expected |
-| lan4 | 40 (Storage) | OMV reservation `192.168.40.50` |
+| lan4 | 40 (Storage) | Unplugged recovery/access port; OMV is on GS1900 port 8 |
 | lan5 | 1 (LAN/recovery) | 192.168.1.100–199 |
 
 Managed switch access ports:

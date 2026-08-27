@@ -1,0 +1,8 @@
+[Unit]
+Description=Report OMV SMART health to Uptime Kuma
+Wants=network-online.target
+After=network-online.target smartmontools.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/omv-smart-kuma-heartbeat

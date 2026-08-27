@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recomp Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #EDEFE6;
+    --card: #F7F8F2;
+    --ink: #1F2A22;
+    --ink-soft: #5B6459;
+    --ink-faint: #97998C;
+    --line: #DAD9CC;
+    --forest: #2F6B4F;
+    --forest-dim: #B7CFC1;
+    --clay: #B5602A;
+    --clay-dim: #EBD3C0;
+    --stone: #B9AE93;
+    --danger: #A3402F;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Work Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    padding: 0;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 28px 20px 60px; }
+  .masthead { margin-bottom: 24px; }
+  .masthead h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 30px;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+  .masthead p { margin: 0; color: var(--ink-soft); font-size: 14px; }
+  nav { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 22px; }
+  nav button {
+    background: none; border: none; cursor: pointer;
+    font-family: 'Work Sans', sans-serif; font-size: 14px; font-weight: 500;
+    color: var(--ink-faint); padding: 10px 14px 12px;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  nav button.active { color: var(--forest); border-bottom-color: var(--forest); }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 14px;
+  }
+  .card h2 {
+    font-family: 'Fraunces', serif; font-weight: 500; font-size: 17px; margin: 0 0 14px;
+  }
+  .metrics-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+  .metric {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px;
+  }
+  .metric .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-faint); margin-bottom: 6px; }
+  .metric .value { font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 500; }
+  .metric .value.small { font-size: 15px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  label { display: block; font-size: 12px; color: var(--ink-soft); margin-bottom: 5px; }
+  input[type="number"], input[type="date"], input[type="time"], textarea {
+    width: 100%; font-family: 'IBM Plex Mono', monospace; font-size: 14px;
+    padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px;
+    background: #fff; color: var(--ink);
+  }
+  textarea { font-family: 'Work Sans', sans-serif; resize: vertical; min-height: 50px; }
+  .habit-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
+  .habit-toggle {
+    display: flex; align-items: center; gap: 10px; padding: 9px 12px;
+    border: 1px solid var(--line); border-radius: 8px; cursor: pointer; user-select: none;
+    background: #fff;
+  }
+  .habit-toggle.on { background: var(--forest-dim); border-color: var(--forest); }
+  .habit-toggle .box {
+    width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--stone); flex-shrink: 0;
+  }
+  .habit-toggle.on .box { background: var(--forest); border-color: var(--forest); }
+  .habit-toggle span.txt { font-size: 13px; color: var(--ink); }
+  button.save {
+    width: 100%; padding: 11px; margin-top: 6px; border: none; border-radius: 8px;
+    background: var(--forest); color: #fff; font-family: 'Work Sans', sans-serif;
+    font-size: 14px; font-weight: 500; cursor: pointer;
+  }
+  button.save:active { opacity: 0.85; }
+  .status { font-size: 12px; color: var(--forest); margin-top: 8px; min-height: 16px; }
+  .chart-toggle { display: flex; gap: 6px; margin-bottom: 12px; }
+  .chart-toggle button {
+    font-family: 'Work Sans', sans-serif; font-size: 12px; padding: 5px 12px;
+    border: 1px solid var(--line); border-radius: 20px; background: #fff; cursor: pointer; color: var(--ink-soft);
+  }
+  .chart-toggle button.active { background: var(--forest); color: #fff; border-color: var(--forest); }
+  canvas { width: 100%; display: block; }
+  .legend { display: flex; gap: 16px; font-size: 12px; color: var(--ink-soft); margin-top: 8px; }
+  .legend span { display: flex; align-items: center; gap: 5px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .empty { color: var(--ink-faint); font-size: 13px; text-align: center; padding: 20px 0; }
+  .streak-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 4px; }
+  .streak-card { text-align: center; padding: 10px 6px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+  .streak-card .n { font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 500; color: var(--forest); }
+  .streak-card .lbl { font-size: 10px; color: var(--ink-faint); margin-top: 2px; line-height: 1.3; }
+  .photo-reminder {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--clay-dim); border: 1px solid var(--clay); border-radius: 8px;
+    padding: 10px 14px; margin-bottom: 14px; font-size: 13px; color: #6B3417;
+  }
+  .log-list { display: flex; flex-direction: column; gap: 0; max-height: 260px; overflow-y: auto; }
+  .log-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+  .log-row .d { color: var(--ink-soft); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+  .log-row .vals { font-family: 'IBM Plex Mono', monospace; }
+  .hint { font-size: 12px; color: var(--ink-faint); margin-top: -8px; margin-bottom: 14px; }
+  .guide-list { padding-left: 18px; margin: 8px 0 4px; }
+  .guide-list li { margin-bottom: 7px; font-size: 13.5px; line-height: 1.45; }
+  .guide-sub {
+    font-family: 'Work Sans', sans-serif; font-weight: 600; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.04em; color: var(--forest);
+    margin: 16px 0 4px;
+  }
+  .guide-sub:first-child { margin-top: 2px; }
+  .guide-note { font-size: 12.5px; color: var(--ink-faint); margin-top: 10px; }
+  .ex-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .ex-row:last-child { border-bottom: none; }
+  .ex-name { font-size: 13.5px; font-weight: 500; }
+  .ex-del { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 12px; padding: 4px 6px; }
+  .add-ex-row { display: flex; gap: 8px; margin-top: 10px; }
+  .add-ex-row input { flex: 1; }
+  .add-ex-row button { padding: 8px 14px; border: none; border-radius: 6px; background: var(--forest); color: #fff; font-size: 13px; cursor: pointer; }
+  .session-ex-card { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; background: #fff; }
+  .session-ex-card h3 { font-family: 'Work Sans', sans-serif; font-size: 13.5px; font-weight: 600; margin: 0 0 8px; }
+  .set-input-row { display: flex; gap: 6px; margin-bottom: 8px; }
+  .set-input-row input { flex: 1; font-size: 13px; padding: 6px 8px; }
+  .set-input-row input.sets-count { flex: 0 0 46px; text-align: center; }
+  .set-input-row button { padding: 6px 12px; border: 1px solid var(--forest); background: #fff; color: var(--forest); border-radius: 6px; font-size: 12px; cursor: pointer; }
+  .set-chip-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .set-chip { background: var(--forest-dim); border-radius: 14px; padding: 4px 10px; font-size: 12px; font-family: 'IBM Plex Mono', monospace; display: flex; align-items: center; gap: 6px; }
+  .set-chip button { background: none; border: none; color: var(--ink-soft); cursor: pointer; font-size: 12px; padding: 0; }
+  .session-date-row { margin-bottom: 14px; }
+  .history-session { border-bottom: 1px solid var(--line); padding: 10px 0; }
+  .history-session:last-child { border-bottom: none; }
+  .history-session .d { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-soft); margin-bottom: 4px; }
+  .history-ex-line { font-size: 13px; margin-bottom: 2px; }
+  .history-ex-line .nm { font-weight: 500; }
+  .history-ex-line .sets { color: var(--ink-soft); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+  .pb-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+  .pb-row:last-child { border-bottom: none; }
+  .pb-row .val { font-family: 'IBM Plex Mono', monospace; color: var(--forest); font-size: 12.5px; }
+  .ready-badge { background: var(--clay); color: #fff; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; margin-left: 6px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .ex-target { display: flex; align-items: center; gap: 6px; }
+  .ex-target input { width: 40px; font-size: 12px; padding: 4px 6px; text-align: center; }
+  .ex-target span { font-size: 11px; color: var(--ink-faint); }
+
+/* ---------- Mobile ---------- */
+@media (max-width: 480px) {
+  .wrap { padding: 20px 14px 60px; }
+  .masthead h1 { font-size: 25px; }
+
+  /* Prevent iOS Safari's auto-zoom-on-focus, which happens below 16px */
+  input[type="number"], input[type="date"], input[type="time"], input[type="text"],
+  textarea, select {
+    font-size: 16px;
+  }
+  .ex-target input { font-size: 16px; width: 46px; }
+  .set-input-row input { font-size: 16px; }
+
+  /* Nav: scroll horizontally instead of wrapping/crowding 5 tabs */
+  nav {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  nav::-webkit-scrollbar { display: none; }
+  nav button { white-space: nowrap; flex-shrink: 0; }
+
+  /* Grids: fewer columns so labels/numbers don't get crushed */
+  .streak-grid { grid-template-columns: repeat(2, 1fr); }
+  .metrics-row { gap: 8px; }
+  .metric { padding: 10px 10px; }
+  .metric .value { font-size: 17px; }
+
+  /* Exercise rows: stack name above controls rather than squeezing both in one line */
+  .ex-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .ex-target { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
+
+  /* Set input row: allow wrapping instead of overflowing */
+  .set-input-row { flex-wrap: wrap; }
+  .set-input-row input { min-width: 90px; }
+
+  /* Larger tap targets on small interactive controls (44px is the usual accessibility floor) */
+  .ex-del { padding: 8px 10px; }
+  .set-chip button { padding: 6px; font-size: 14px; }
+  .chart-toggle button { padding: 7px 14px; }
+  .habit-toggle { padding: 11px 12px; }
+}
+
+.guide-toc { display: flex; flex-wrap: wrap; gap: 6px; }
+.guide-toc button.toc-link {
+  font-family: 'Work Sans', sans-serif; font-size: 12px; padding: 6px 12px;
+  border: 1px solid var(--line); border-radius: 20px; background: #fff;
+  color: var(--ink-soft); cursor: pointer;
+}
+.guide-toc button.toc-link:hover { border-color: var(--forest); color: var(--forest); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="masthead">
+    <h1>Recomp log</h1>
+    <p>Trend over noise. Track the signal, not the day.</p>
+  </div>
+
+  <nav>
+    <button class="active" data-tab="today">Today</button>
+    <button data-tab="trends">Trends</button>
+    <button data-tab="habits">Habits</button>
+    <button data-tab="guide">Guide</button>
+    <button data-tab="workouts">Workouts</button>
+  </nav>
+
+  <div id="summary-cards" class="metrics-row"></div>
+  <div id="photo-reminder"></div>
+
+  <div id="tab-today">
+    <div class="card">
+      <h2>Log an entry</h2>
+      <div class="field-row">
+        <div>
+          <label for="f-date">Date</label>
+          <input type="date" id="f-date">
+        </div>
+        <div></div>
+      </div>
+      <div class="field-row">
+        <div>
+          <label for="f-weight">Weight (kg)</label>
+          <input type="number" id="f-weight" step="0.1" placeholder="85.0">
+        </div>
+        <div>
+          <label for="f-waist">Waist (cm)</label>
+          <input type="number" id="f-waist" step="0.1" placeholder="98.0">
+        </div>
+      </div>
+      <div class="field-row">
+        <div>
+          <label for="f-sleep">Sleep (hours)</label>
+          <input type="number" id="f-sleep" step="0.25" placeholder="5.5">
+        </div>
+        <div>
+          <label for="f-bedtime">Bedtime</label>
+          <input type="time" id="f-bedtime">
+        </div>
+      </div>
+      <label for="f-notes">Notes (symptoms, cravings, energy)</label>
+      <textarea id="f-notes" placeholder="e.g. afternoon slump after lunch, felt strong on push day"></textarea>
+      <div class="hint">Weight and waist are optional day to day — leave blank if you're not measuring today.</div>
+
+      <h2 style="margin-top:4px;">Habits done today</h2>
+      <div class="habit-list" id="habit-list"></div>
+
+      <button class="save" id="save-btn">Save entry</button>
+      <div class="status" id="save-status"></div>
+    </div>
+  </div>
+
+  <div id="tab-trends" style="display:none;">
+    <div class="card">
+      <h2>Trend, not the day</h2>
+      <div class="chart-toggle">
+        <button class="active" data-metric="weight">Weight</button>
+        <button data-metric="waist">Waist</button>
+        <button data-metric="sleep">Sleep</button>
+      </div>
+      <div style="position:relative;">
+        <canvas id="chart" height="220"></canvas>
+      </div>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--stone);"></span>Daily reading</span>
+        <span><span class="dot" style="background:var(--forest);"></span>7-day average</span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Log history</h2>
+      <div class="log-list" id="log-list"></div>
+    </div>
+  </div>
+
+  <div id="tab-habits" style="display:none;">
+    <div class="card">
+      <h2>Current streaks</h2>
+      <div class="streak-grid" id="streak-grid"></div>
+    </div>
+    <div class="card">
+      <h2>Last 14 days</h2>
+      <div id="habit-history"></div>
+    </div>
+    <div class="card">
+      <h2>Data</h2>
+      <div class="hint" style="margin-top:-4px;">Everything you've logged lives only in this browser's storage. Export a backup periodically, and keep the file somewhere safe.</div>
+      <button class="save" id="export-btn" style="background:var(--ink-soft);">Export backup (.json)</button>
+      <button class="save" id="import-btn" style="background:#fff;color:var(--forest);border:1px solid var(--forest);margin-top:8px;">Import backup</button>
+      <input type="file" id="import-file-input" accept="application/json" style="display:none;">
+      <div class="status" id="data-status"></div>
+    </div>
+  </div>
+
+  <div id="tab-guide" style="display:none;">
+    <div class="card toc-card">
+      <h2>Contents</h2>
+      <div class="guide-toc" id="guide-toc"></div>
+    </div>
+    <div class="card">
+      <h2>Daily</h2>
+      <div class="guide-sub">Supplements</div>
+      <ul class="guide-list">
+        <li>Creatine monohydrate 3–5g — any time, same time daily so it's automatic (coffee/shake works well).</li>
+        <li>Fish oil 1.4–1.5g combined EPA/DHA — with a meal.</li>
+        <li>Protein powder — as needed to close the gap to your ~170–195g/day target.</li>
+        <li>Resistant starch powder, ramped up to 40g — blended into a smoothie; separate from the food-based resistant starch (cooled rice/potato) already in your meals, this dose is specifically for visceral fat.</li>
+        <li>On hold for now: magnesium, glycine, L-theanine, apigenin — paused pending bloodwork given the glycine reaction. Emergency-only tool for a genuinely bad-sleep night: a single 0.35g/kg creatine dose (~25–28g, one-off, not daily) is evidenced for protecting cognitive performance under sleep deprivation.</li>
+      </ul>
+      <div class="guide-sub">Meals</div>
+      <ul class="guide-list">
+        <li>Protein at every meal, palm-to-two-palms sized — protect this floor first as portions shrink; let carbs and fat take almost all of the cut, not protein.</li>
+        <li>Plate method for lunch/dinner: ½ non-starchy veg, ¼ protein, ¼ complex carb, unsaturated fat (olive oil, nuts, avocado, fatty fish).</li>
+        <li>Protein-forward breakfast (Greek yogurt, small unsweetened muesli, ground flax, almonds worked well for you) — never carbs alone. Lean toward whole eggs over whites when eggs are involved. For yogurt specifically: real Greek yogurt or skyr (check the label says "strained," not "Greek style") gives roughly double the protein of natural yogurt at similar calories — best protein-per-calorie choice for this meal.</li>
+        <li>A glass of water ~20–30 min before your larger meals.</li>
+        <li>Eat veg/protein before carbs within a meal where practical; never eat carbs alone.</li>
+        <li>A 10–15 min walk after your largest carb meal of the day.</li>
+      </ul>
+      <div class="guide-sub">Night routine</div>
+      <ul class="guide-list">
+        <li>Morning light exposure within 30–60 min of waking (tracked as a habit) — the actual lever for shifting your rhythm earlier.</li>
+        <li>Dim light and reading (not screens) starting ~2 hours before bed.</li>
+        <li>Cyclic sighing (two quick inhales, one long slow exhale, a few minutes) as a wind-down tool.</li>
+        <li>Bed is for sleep only — if not asleep within ~20 min, get up, calm dim-light activity, return when sleepy.</li>
+        <li>If training that day, keep a 3–4+ hour buffer before bed — the real danger zone is the last ~60–90 minutes before bed, not the evening broadly.</li>
+        <li>Target: asleep by 23:30, up at 7:00.</li>
+      </ul>
+      <div class="guide-sub">Worth knowing</div>
+      <ul class="guide-list">
+        <li>Thirst is often mistaken for hunger — if hunger feels sudden or off-schedule, water first.</li>
+        <li>A small amount of honey or similar is fine when paired with a protein/fat/fiber meal — treat it as a personal experiment.</li>
+        <li>Optional, low priority: nasal breathing at rest during the day, and brief "exercise snacks" (5 min bursts — stairs, bodyweight squats) opportunistically through the day for extra glucose-control benefit.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Recovery &amp; resilience</h2>
+      <ul class="guide-list">
+        <li><b>Isometric holds, 2-3x/week</b> — two purposes, two intensities. For blood pressure (strongest evidence of any exercise mode): wall squat, ~30-45s at moderate effort, breathing through it. For tendon resilience specifically: hold at the actual sticking point of a lift (bottom of a weighted dip, mid-pull of a pull-up) at high effort (~70%+), since the adaptation is joint-angle specific — a generic hold at an easy angle mostly won't transfer to your lifts.</li>
+        <li><b>Cyclic sighing / physiological sigh, a few minutes daily if useful</b> — two quick nasal inhales, one long slow exhale, repeated. Well-evidenced for reducing physiological arousal and improving mood; a genuine wind-down tool given your sleep-onset difficulty, distinct from and complementary to the dim-light/reading routine.</li>
+        <li><b>Focused-attention practice, optional</b> — a few minutes of sustained, undistracted fixation on a neutral point. Real evidence for improving attentional control under pressure. Lower priority than the above two, but genuinely evidence-backed if you want it.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Extra technique notes</h2>
+      <ul class="guide-list">
+        <li><b>Carries over crunches for core work</b> — farmer's or suitcase carries (heavy weight in one or both hands, walk with tall posture and braced core) build real functional core strength without repeated spinal flexion. Worth knowing: repeated spinal flexion under load (situps, crunches) is linked to disc issues over time by spine biomechanics research — planks, dead bugs, and carries train the same core without that repeated-flexion pattern.</li>
+        <li><b>Grip/forearm work is mostly covered already</b> by your weighted pull-ups and dips, but a couple of minutes of direct grip work (dead hangs for time, or simply gripping the bar hard) at the end of a session is low-cost and reinforces the pull-up standard below.</li>
+        <li><b>Pull-up form check</b> — pull to your chest, not just your chin, by leaning back slightly and driving elbows down and back (a rowing motion) rather than pulling straight up. Retract your shoulder blades before you pull, keep your body in one tight line rather than swinging. This gets more out of every rep you're already doing.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Sleep protocol (CBT-I)</h2>
+      <div class="guide-note" style="margin-top:0;margin-bottom:10px;">You've already done the lifestyle layer — morning light, dim evening light, reading over screens. Still not asleep until ~1am despite that means it's worth the next layer, which targets learned/conditioned sleep-onset patterns rather than environment.</div>
+      <ul class="guide-list">
+        <li><b>What it is</b> — cognitive behavioral therapy for insomnia. The actual first-line clinical treatment for insomnia, ahead of medication, per every major sleep-medicine body. Meta-analysis of 20 RCTs found it improves sleep-onset latency by ~19 min and sleep efficiency by ~10 percentage points, with effects holding at follow-up.</li>
+        <li><b>Stimulus control</b> — bed is for sleep only (not reading, not phone, not lying awake worrying). If not asleep within ~20 minutes, get up, do something calm in dim light, only return when sleepy. Breaks the learned association between "being in bed" and "being awake and frustrated."</li>
+        <li><b>Sleep restriction</b> — temporarily limit time in bed closer to your actual average sleep duration to build sleep pressure, then gradually extend as efficiency improves. This is the counterintuitive, most effective component — but also the one most worth doing with structure (app or professional) rather than freelancing, since it causes short-term daytime sleepiness and you're a parent who needs to stay alert.</li>
+        <li><b>Free resource</b> — CBT-I Coach app (built by the VA, no affiliation/commercial angle, structures the above into a guided program).</li>
+        <li><b>Your existing sleep/bedtime log</b> in this app already functions as the sleep diary CBT-I is built around — the data's already being collected either way.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Weekly</h2>
+      <div class="guide-sub">Schedule</div>
+      <ul class="guide-list">
+        <li><b>Mon</b> — Calisthenics: Pair A (weighted pull-up ↔ weighted dip), Pair B (weighted/leverage push-up ↔ row). 3–5 sets, 3–6 reps, 90s–2min rest between exercises. Then 1–2 back-off sets (8–15 reps, lighter) on pull-up/dip for extra definition. Finish with one isometric hold.</li>
+        <li><b>Tue</b> — Cardio (run or skip — skipping already is a plyometric exercise). Add 2-3 sets of 5-8 jump squats or lateral bounds beforehand, quality over quantity, full recovery between sets.</li>
+        <li><b>Wed</b> — Calisthenics, repeat Mon's structure.</li>
+        <li><b>Thu</b> — Cardio. Same optional plyo pairing as Tuesday if recovered well.</li>
+        <li><b>Fri</b> — Rest or light walk — protects the buffer before the weights day.</li>
+        <li><b>Sat</b> — Weights: squat, Romanian deadlift, overhead press. Same 3–6 rep double-progression approach; start conservative on load the first couple weeks. Add isolation work here (bicep curl, lateral raise, tricep pushdown, calf raise) for definition — this is the easiest venue for it given equipment access. Optional isometric finisher.</li>
+        <li><b>Sun</b> — Full rest, non-negotiable.</li>
+      </ul>
+      <div class="guide-sub">Notes</div>
+      <ul class="guide-list">
+        <li>Pre-workout carbs matter most on cardio days — 20–30g fast carbs (juice, banana, dates) 30–45 min before, since the exercise itself consumes the glucose and blunts any crash. Less critical before calisthenics/weights days.</li>
+        <li>Don't stack a hard leg/lower-body day directly against a hard run day early on, while recovery capacity is still building.</li>
+        <li>Walk on true rest days — useful for fat loss, doesn't compete with recovery.</li>
+        <li>Notice patterns across the week (energy, hunger, sleep, cravings) rather than reacting to any single day.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Monthly</h2>
+      <ul class="guide-list">
+        <li>Progress photos, waist measurement, and weigh-in — trust the trend across months, not any single reading.</li>
+        <li>Re-check whether portions or training need a small adjustment — as you lose weight your maintenance needs drop too, so the same plan produces a shrinking deficit over time. This is expected, not failure.</li>
+        <li>Check for bedtime/training-buffer drift — early nights are easy to lose gradually without noticing.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Daily meal template</h2>
+      <div class="guide-note" style="margin-top:0;margin-bottom:10px;">Fixed items every day (~1,045 kcal, ~93g protein) so you never have to decide on them — everything else is the variable slot you rotate for taste and macros.</div>
+      <div class="guide-sub">Fixed constants</div>
+      <ul class="guide-list">
+        <li><b>Breakfast:</b> 2 eggs + 200g Greek yogurt (5%) + 2 tbsp ground flax — ~370 kcal, ~36g protein.</li>
+        <li><b>Lunch:</b> 1 scoop whey protein powder — ~120 kcal, ~23g protein.</li>
+        <li><b>Bedtime:</b> 100g Greek yogurt + 1 scoop casein protein powder (isolate/micellar, not concentrate, to keep carbs low) — ~195 kcal, ~34g protein.</li>
+        <li><b>Throughout the day:</b> 3 tbsp olive oil, cooking + salad — ~360 kcal.</li>
+      </ul>
+      <div class="guide-sub">Variable — lunch (add to the whey scoop)</div>
+      <ul class="guide-list">
+        <li>Protein: 100-150g chicken, fish, or lean beef.</li>
+        <li>Carb: pick one — beans/lentils, or a moderate portion of bread/couscous, not all three.</li>
+        <li>Veg: greens, salad. Optional: hummus, olives.</li>
+      </ul>
+      <div class="guide-sub">Variable — dinner (fully open)</div>
+      <ul class="guide-list">
+        <li>Protein: ~150g chicken or fish.</li>
+        <li>Carb: rice or potato, cooled/reheated when convenient for the resistant-starch benefit.</li>
+        <li>Veg: whatever's on hand.</li>
+      </ul>
+      <div class="guide-note">Worked example lands ~2,010 kcal / ~179g protein — a ~390-640 kcal deficit against your ~2,400-2,650 maintenance estimate. If a day feels short, the variable portions are the lever to adjust, not the fixed items.</div>
+    </div>
+
+    <div class="card">
+      <h2>Macros &amp; supplements reference</h2>
+      <div class="guide-sub">Daily targets (~85kg)</div>
+      <ul class="guide-list">
+        <li>Protein: 170–195g (2.0–2.3 g/kg) — the one number that shouldn't shrink with portions.</li>
+        <li>Fiber: 30–35g, prioritizing soluble fiber (oats, legumes, psyllium) for cholesterol and glucose control.</li>
+        <li>Carbs: fill remaining intake with low-glycemic-load, whole-food sources; always paired, never alone.</li>
+        <li>Fat: ~25–30% of intake, favoring unsaturated sources over saturated.</li>
+      </ul>
+      <div class="guide-sub">Supplements</div>
+      <ul class="guide-list">
+        <li>Creatine monohydrate — 3–5g/day, no loading phase needed.</li>
+        <li>Protein powder — as needed to close the gap to your protein target, not a substitute for whole food.</li>
+        <li>Fish oil — 1–2g combined EPA/DHA, mainly for triglycerides.</li>
+        <li>Resistant starch — food sources (cooled/reheated rice or potatoes, green banana, legumes, oats) are good for the glycemic-pairing benefits already built into your meals. Separately, 40g/day of a resistant starch powder (~65-70g/4-5 tbsp Hi-Maize, or ~5 tbsp raw potato starch — dosed by the ~90-175 kcal it actually adds, since it behaves like fiber not regular carb) is a dose specifically shown across multiple RCTs, MRI-confirmed, to reduce visceral fat. Start at ~1 tbsp/day and build up over 1-2 weeks to avoid GI discomfort — food alone won't reach the full 40g dose, so this is worth its own addition given visceral fat is a priority for you.</li>
+        <li>Magnesium / vitamin D — worth asking your GP about given bloodwork, don't self-dose without that context.</li>
+        <li>Berberine — flagged as a question for your doctor given medication interactions and your family history; don't self-start.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Pitfalls to watch for</h2>
+      <ul class="guide-list">
+        <li>Weighing daily and reacting to normal 1–2kg noise from water/sodium/glycogen.</li>
+        <li>All-or-nothing thinking after one "bad" meal or missed session.</li>
+        <li>Letting portion cuts shrink protein along with everything else.</li>
+        <li>Not expecting the deficit to shrink naturally as you lose weight.</li>
+        <li>Sleep debt quietly undoing appetite control — probably your single biggest lever given your sleep pattern.</li>
+        <li>Comparing your pace to social-media transformation timelines.</li>
+        <li>Training hard without enough recovery, which quietly reduces unconscious daily movement (NEAT).</li>
+        <li>No pre-decided plan for social/eating-out situations — the most commonly reported real-world derailer.</li>
+      </ul>
+      <div class="guide-sub">Stages to expect</div>
+      <ul class="guide-list">
+        <li><b>Week 1–2:</b> fast water-weight drop, not fat — feels great, sets unrealistic pace expectations.</li>
+        <li><b>Week 3–5:</b> "the stall" — measurements plateau even as fat loss continues; the most common quitting point.</li>
+        <li><b>Week 6–10:</b> motivation dip as novelty fades — systems need to take over from willpower.</li>
+        <li><b>Month 3–4:</b> metabolic adaptation — same effort yields less; normal physiology, may need a small adjustment.</li>
+        <li><b>Ongoing:</b> social/environmental pressure — the top reported reason for derailment long-term.</li>
+        <li><b>Late-stage:</b> the "good enough" plateau, as visible results reduce urgency right when close to goal.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>For your GP</h2>
+      <ul class="guide-list">
+        <li>Fasting glucose, HbA1c, and fasting insulin — given family T2D history; HbA1c alone can miss early insulin resistance.</li>
+        <li>The reactive-hypoglycemia-like pattern (pre-lunch weakness, afternoon slump after high-carb breakfast) — a useful early signal alongside the bloodwork.</li>
+        <li>The night-owl-plus-early-waking sleep pattern, given it's a bit more specific than typical chronotype variation.</li>
+        <li>Ask whether liver enzymes are worth checking alongside the glucose/insulin panel — fatty liver disease is closely linked to the exact risk cluster already being investigated (visceral fat, insulin resistance, family T2D history), and prevalence rises sharply with age.</li>
+      </ul>
+      <div class="guide-note">This tab is a static reference from your planning conversation — it doesn't change with your logged entries.</div>
+    </div>
+  </div>
+
+  <div id="tab-workouts" style="display:none;">
+    <div class="card">
+      <h2>Your exercises</h2>
+      <div class="hint" style="margin-top:-4px;">Main lifts target 3-6 reps (strength). Back-off/isolation entries target 8-15 reps (hypertrophy/definition). Jump squat and lateral bound target 5-8 explosive reps — quality over quantity, full recovery between sets, not a to-failure exercise. Farmer's carry logs seconds held per set in the reps field. Edit any rep range if yours should differ.</div>
+      <div id="plan-list"></div>
+      <div class="add-ex-row">
+        <input type="text" id="new-ex-name" placeholder="e.g. Weighted pull-up">
+        <button id="add-ex-btn">Add</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Log a session</h2>
+      <div class="session-date-row">
+        <label for="w-date">Date</label>
+        <input type="date" id="w-date">
+      </div>
+      <div id="session-exercises"></div>
+      <label for="w-notes">Session notes</label>
+      <textarea id="w-notes" placeholder="e.g. felt strong on pull-ups, dips still shaky at +10kg"></textarea>
+      <button class="save" id="save-session-btn">Save session</button>
+      <div class="status" id="session-status"></div>
+    </div>
+
+    <div class="card">
+      <h2>Personal bests</h2>
+      <div id="pb-list"></div>
+    </div>
+
+    <div class="card">
+      <h2>Session history</h2>
+      <div id="workout-history" class="log-list"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const HABITS = [
+  { key: 'training', label: 'Resistance training / calisthenics' },
+  { key: 'proteinBreakfast', label: 'Protein-forward breakfast' },
+  { key: 'postMealWalk', label: 'Post-meal walk after biggest carb meal' },
+  { key: 'dimLight', label: 'Dim light / no screens before bed' },
+  { key: 'morningLight', label: 'Morning light exposure (30-60 min after waking)' }
+];
+
+let DATA = { entries: {} };
+let currentMetric = 'weight';
+
+// ---------- Storage shim: works as a Claude artifact (window.storage) AND
+// when deployed to a real server (falls back to a small Flask KV API at /api/kv/<key>) ----------
+const Storage = {
+  async get(key) {
+    if (window.storage) return window.storage.get(key);
+    try {
+      const res = await fetch('/api/kv/' + encodeURIComponent(key));
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (e) { return null; }
+  },
+  async set(key, value) {
+    if (window.storage) return window.storage.set(key, value);
+    try {
+      const res = await fetch('/api/kv/' + encodeURIComponent(key), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value })
+      });
+      return await res.json();
+    } catch (e) { return null; }
+  }
+};
+
+function todayISO() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+async function loadData() {
+  try {
+    const res = await Storage.get('health-log');
+    if (res && res.value) DATA = JSON.parse(res.value);
+  } catch (e) {
+    DATA = { entries: {} };
+  }
+}
+
+async function saveData() {
+  await Storage.set('health-log', JSON.stringify(DATA));
+}
+
+function sortedDates() {
+  return Object.keys(DATA.entries).sort();
+}
+
+function buildHabitList() {
+  const el = document.getElementById('habit-list');
+  el.innerHTML = '';
+  HABITS.forEach(h => {
+    const row = document.createElement('div');
+    row.className = 'habit-toggle';
+    row.dataset.key = h.key;
+    row.innerHTML = '<div class="box"></div><span class="txt">' + h.label + '</span>';
+    row.addEventListener('click', () => row.classList.toggle('on'));
+    el.appendChild(row);
+  });
+}
+
+function loadFormForDate(dateStr) {
+  const e = DATA.entries[dateStr] || {};
+  document.getElementById('f-weight').value = e.weight ?? '';
+  document.getElementById('f-waist').value = e.waist ?? '';
+  document.getElementById('f-sleep').value = e.sleepHours ?? '';
+  document.getElementById('f-bedtime').value = e.bedtime ?? '';
+  document.getElementById('f-notes').value = e.notes ?? '';
+  document.querySelectorAll('.habit-toggle').forEach(row => {
+    const on = e[row.dataset.key] === true;
+    row.classList.toggle('on', on);
+  });
+}
+
+async function saveEntry() {
+  const dateStr = document.getElementById('f-date').value || todayISO();
+  const entry = {
+    weight: parseFloat(document.getElementById('f-weight').value) || null,
+    waist: parseFloat(document.getElementById('f-waist').value) || null,
+    sleepHours: parseFloat(document.getElementById('f-sleep').value) || null,
+    bedtime: document.getElementById('f-bedtime').value || null,
+    notes: document.getElementById('f-notes').value || ''
+  };
+  document.querySelectorAll('.habit-toggle').forEach(row => {
+    entry[row.dataset.key] = row.classList.contains('on');
+  });
+  DATA.entries[dateStr] = entry;
+  try {
+    await saveData();
+    const status = document.getElementById('save-status');
+    status.textContent = 'Saved ' + dateStr + '.';
+    setTimeout(() => { status.textContent = ''; }, 2500);
+    renderAll();
+  } catch (e) {
+    document.getElementById('save-status').textContent = 'Could not save — try again.';
+  }
+}
+
+function rollingAvg(values, windowSize) {
+  const out = [];
+  for (let i = 0; i < values.length; i++) {
+    const start = Math.max(0, i - windowSize + 1);
+    const slice = values.slice(start, i + 1).filter(v => v !== null && v !== undefined);
+    out.push(slice.length ? slice.reduce((a,b)=>a+b,0) / slice.length : null);
+  }
+  return out;
+}
+
+function renderSummary() {
+  const dates = sortedDates();
+  const el = document.getElementById('summary-cards');
+  if (dates.length === 0) {
+    el.innerHTML = '';
+    return;
+  }
+  const weights = dates.map(d => DATA.entries[d].weight);
+  const validWeights = dates.map((d,i)=>({d, w: weights[i]})).filter(x => x.w !== null && x.w !== undefined);
+  let changeStr = '—';
+  if (validWeights.length >= 2) {
+    const firstAvg = validWeights.slice(0, Math.min(7, validWeights.length)).reduce((a,x)=>a+x.w,0) / Math.min(7, validWeights.length);
+    const lastAvg = validWeights.slice(-Math.min(7, validWeights.length)).reduce((a,x)=>a+x.w,0) / Math.min(7, validWeights.length);
+    const diff = lastAvg - firstAvg;
+    changeStr = (diff > 0 ? '+' : '') + diff.toFixed(1) + ' kg';
+  }
+  const sleepVals = dates.slice(-7).map(d => DATA.entries[d].sleepHours).filter(v => v !== null && v !== undefined);
+  const avgSleep = sleepVals.length ? (sleepVals.reduce((a,b)=>a+b,0) / sleepVals.length).toFixed(1) : '—';
+
+  el.innerHTML =
+    '<div class="metric"><div class="label">Days logged</div><div class="value">' + dates.length + '</div></div>' +
+    '<div class="metric"><div class="label">Trend since start</div><div class="value small">' + changeStr + '</div></div>' +
+    '<div class="metric"><div class="label">Avg sleep (7d)</div><div class="value">' + avgSleep + '<span style="font-size:12px;color:var(--ink-faint);"> hr</span></div></div>';
+}
+
+function renderPhotoReminder() {
+  const el = document.getElementById('photo-reminder');
+  const dates = sortedDates();
+  if (dates.length === 0) { el.innerHTML = ''; return; }
+  const first = new Date(dates[0]);
+  const now = new Date();
+  const daysSince = Math.floor((now - first) / (1000*60*60*24));
+  const monthsSince = Math.floor(daysSince / 30);
+  const daysIntoMonth = daysSince - monthsSince * 30;
+  if (daysIntoMonth <= 2) {
+    el.innerHTML = '<div class="photo-reminder"><span>New month — time for progress photos, waist measurement, and weigh-in.</span></div>';
+  } else {
+    el.innerHTML = '';
+  }
+}
+
+function renderChart() {
+  const dates = sortedDates();
+  const canvas = document.getElementById('chart');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const cssWidth = canvas.parentElement.clientWidth;
+  const cssHeight = 220;
+  canvas.width = cssWidth * dpr;
+  canvas.height = cssHeight * dpr;
+  canvas.style.height = cssHeight + 'px';
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+  const listEl = document.getElementById('log-list');
+
+  if (dates.length === 0) {
+    ctx.fillStyle = '#97998C';
+    ctx.font = '13px Work Sans';
+    ctx.fillText('No entries yet — log your first one under Today.', 10, cssHeight/2);
+    listEl.innerHTML = '<div class="empty">No entries yet.</div>';
+    return;
+  }
+
+  const fieldMap = { weight: 'weight', waist: 'waist', sleep: 'sleepHours' };
+  const field = fieldMap[currentMetric];
+  const raw = dates.map(d => DATA.entries[d][field]);
+  const avg = rollingAvg(raw, 7);
+
+  const validVals = raw.filter(v => v !== null && v !== undefined);
+  if (validVals.length === 0) {
+    ctx.fillStyle = '#97998C';
+    ctx.font = '13px Work Sans';
+    ctx.fillText('No ' + currentMetric + ' data logged yet.', 10, cssHeight/2);
+  } else {
+    const allVals = [...validVals, ...avg.filter(v => v !== null)];
+    let min = Math.min(...allVals), max = Math.max(...allVals);
+    if (min === max) { min -= 1; max += 1; }
+    const pad = (max - min) * 0.15;
+    min -= pad; max += pad;
+
+    const padL = 36, padR = 10, padT = 10, padB = 20;
+    const plotW = cssWidth - padL - padR;
+    const plotH = cssHeight - padT - padB;
+    const n = dates.length;
+    const xFor = i => padL + (n === 1 ? plotW/2 : (i / (n-1)) * plotW);
+    const yFor = v => padT + plotH - ((v - min) / (max - min)) * plotH;
+
+    ctx.strokeStyle = '#DAD9CC';
+    ctx.lineWidth = 1;
+    ctx.font = '10px IBM Plex Mono';
+    ctx.fillStyle = '#97998C';
+    for (let g = 0; g <= 3; g++) {
+      const v = min + (max - min) * (g/3);
+      const y = yFor(v);
+      ctx.beginPath();
+      ctx.moveTo(padL, y);
+      ctx.lineTo(cssWidth - padR, y);
+      ctx.stroke();
+      ctx.fillText(v.toFixed(1), 2, y + 3);
+    }
+
+    ctx.fillStyle = '#B9AE93';
+    raw.forEach((v, i) => {
+      if (v === null || v === undefined) return;
+      ctx.beginPath();
+      ctx.arc(xFor(i), yFor(v), 2.5, 0, Math.PI*2);
+      ctx.fill();
+    });
+
+    ctx.strokeStyle = '#2F6B4F';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    let started = false;
+    avg.forEach((v, i) => {
+      if (v === null || v === undefined) return;
+      const x = xFor(i), y = yFor(v);
+      if (!started) { ctx.moveTo(x, y); started = true; }
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+  }
+
+  listEl.innerHTML = dates.slice().reverse().slice(0, 30).map(d => {
+    const e = DATA.entries[d];
+    const parts = [];
+    if (e.weight) parts.push(e.weight + 'kg');
+    if (e.waist) parts.push(e.waist + 'cm');
+    if (e.sleepHours) parts.push(e.sleepHours + 'h sleep');
+    return '<div class="log-row"><span class="d">' + d + '</span><span class="vals">' + (parts.join(' · ') || '—') + '</span></div>';
+  }).join('');
+}
+
+function renderHabits() {
+  const dates = sortedDates();
+  const grid = document.getElementById('streak-grid');
+  const streaks = {};
+  HABITS.forEach(h => {
+    let streak = 0;
+    for (let i = dates.length - 1; i >= 0; i--) {
+      if (DATA.entries[dates[i]][h.key] === true) streak++;
+      else break;
+    }
+    streaks[h.key] = streak;
+  });
+  grid.innerHTML = HABITS.map(h =>
+    '<div class="streak-card"><div class="n">' + streaks[h.key] + '</div><div class="lbl">' + h.label + '</div></div>'
+  ).join('');
+
+  const hist = document.getElementById('habit-history');
+  const recent = dates.slice(-14).reverse();
+  if (recent.length === 0) {
+    hist.innerHTML = '<div class="empty">No entries yet.</div>';
+    return;
+  }
+  hist.innerHTML = recent.map(d => {
+    const e = DATA.entries[d];
+    const marks = HABITS.map(h => e[h.key] ? '<i class="ti" style="color:#2F6B4F;">&#10003;</i>' : '<span style="color:#DAD9CC;">&middot;</span>').join(' ');
+    return '<div class="log-row"><span class="d">' + d + '</span><span class="vals">' + marks + '</span></div>';
+  }).join('');
+}
+
+function renderAll() {
+  renderSummary();
+  renderPhotoReminder();
+  renderChart();
+  renderHabits();
+}
+
+document.querySelectorAll('nav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    ['today','trends','habits','guide','workouts'].forEach(t => {
+      document.getElementById('tab-' + t).style.display = (t === btn.dataset.tab) ? 'block' : 'none';
+    });
+    if (btn.dataset.tab === 'trends') renderChart();
+    if (btn.dataset.tab === 'workouts') renderWorkoutsTab();
+  });
+});
+
+document.querySelectorAll('.chart-toggle button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.chart-toggle button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentMetric = btn.dataset.metric;
+    renderChart();
+  });
+});
+
+document.getElementById('save-btn').addEventListener('click', saveEntry);
+document.getElementById('f-date').addEventListener('change', (e) => loadFormForDate(e.target.value));
+
+// ---------- Workouts ----------
+const DEFAULT_PLAN = ['Weighted pull-up', 'Weighted dip', 'Weighted / leverage push-up', 'Row', 'Back squat', 'Romanian deadlift', 'Overhead press', 'Isometric hold (wall squat / dip bottom)', 'Pull-up back-off (bodyweight/light)', 'Dip back-off (bodyweight/light)', 'Bicep curl', 'Lateral raise', 'Tricep pushdown', 'Calf raise', 'Jump squat', 'Lateral bound', 'Farmer\'s carry'];
+const DEFAULT_TARGETS = {
+  'Weighted pull-up': { min: 3, max: 6 },
+  'Weighted dip': { min: 3, max: 6 },
+  'Weighted / leverage push-up': { min: 3, max: 6 },
+  'Row': { min: 3, max: 6 },
+  'Back squat': { min: 3, max: 6 },
+  'Romanian deadlift': { min: 3, max: 6 },
+  'Overhead press': { min: 3, max: 6 },
+  'Isometric hold (wall squat / dip bottom)': { min: 30, max: 45 },
+  'Pull-up back-off (bodyweight/light)': { min: 8, max: 15 },
+  'Dip back-off (bodyweight/light)': { min: 8, max: 15 },
+  'Bicep curl': { min: 8, max: 15 },
+  'Lateral raise': { min: 8, max: 15 },
+  'Tricep pushdown': { min: 8, max: 15 },
+  'Calf raise': { min: 8, max: 15 },
+  'Jump squat': { min: 5, max: 8 },
+  'Lateral bound': { min: 5, max: 8 },
+  'Farmer\'s carry': { min: 20, max: 40 }
+};
+let PLAN = [];
+let TARGETS = {}; // { exerciseName: { min, max } }
+let WORKOUT_LOG = { sessions: [] };
+let pendingSets = {}; // { exerciseName: [{reps, load}] }
+
+async function loadPlan() {
+  try {
+    const res = await Storage.get('workout-plan');
+    PLAN = res && res.value ? JSON.parse(res.value) : DEFAULT_PLAN.slice();
+  } catch (e) {
+    PLAN = DEFAULT_PLAN.slice();
+  }
+}
+async function savePlan() {
+  await Storage.set('workout-plan', JSON.stringify(PLAN));
+}
+async function loadTargets() {
+  try {
+    const res = await Storage.get('workout-targets');
+    TARGETS = res && res.value ? JSON.parse(res.value) : Object.assign({}, DEFAULT_TARGETS);
+  } catch (e) {
+    TARGETS = Object.assign({}, DEFAULT_TARGETS);
+  }
+}
+async function saveTargets() {
+  await Storage.set('workout-targets', JSON.stringify(TARGETS));
+}
+function getTarget(name) {
+  return TARGETS[name] || { min: 3, max: 6 };
+}
+async function loadWorkoutLog() {
+  try {
+    const res = await Storage.get('workout-log');
+    WORKOUT_LOG = res && res.value ? JSON.parse(res.value) : { sessions: [] };
+  } catch (e) {
+    WORKOUT_LOG = { sessions: [] };
+  }
+}
+async function saveWorkoutLog() {
+  await Storage.set('workout-log', JSON.stringify(WORKOUT_LOG));
+}
+
+function renderPlanList() {
+  const el = document.getElementById('plan-list');
+  if (PLAN.length === 0) { el.innerHTML = '<div class="empty">No exercises yet — add one below.</div>'; return; }
+  el.innerHTML = PLAN.map((name, i) => {
+    const t = getTarget(name);
+    const safeId = name.replace(/[^a-zA-Z0-9]/g, '_');
+    return '<div class="ex-row"><span class="ex-name">' + name + '</span>' +
+      '<div class="ex-target">' +
+        '<input type="number" min="1" value="' + t.min + '" id="tmin-' + safeId + '"><span>-</span>' +
+        '<input type="number" min="1" value="' + t.max + '" id="tmax-' + safeId + '"><span>reps</span>' +
+        '<button class="ex-del" data-idx="' + i + '">Remove</button>' +
+      '</div></div>';
+  }).join('');
+  el.querySelectorAll('.ex-del').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const removed = PLAN[parseInt(btn.dataset.idx)];
+      PLAN.splice(parseInt(btn.dataset.idx), 1);
+      delete TARGETS[removed];
+      await savePlan();
+      await saveTargets();
+      renderPlanList();
+      renderSessionExercises();
+      renderPBs();
+    });
+  });
+  PLAN.forEach(name => {
+    const safeId = name.replace(/[^a-zA-Z0-9]/g, '_');
+    const minEl = document.getElementById('tmin-' + safeId);
+    const maxEl = document.getElementById('tmax-' + safeId);
+    const save = async () => {
+      TARGETS[name] = { min: parseInt(minEl.value) || 3, max: parseInt(maxEl.value) || 6 };
+      await saveTargets();
+      renderPBs();
+    };
+    minEl.addEventListener('change', save);
+    maxEl.addEventListener('change', save);
+  });
+}
+
+function checkReadyToProgress(name) {
+  const t = getTarget(name);
+  const lastSession = WORKOUT_LOG.sessions.slice().reverse().find(s => s.exercises.some(e => e.name === name));
+  if (!lastSession) return false;
+  const ex = lastSession.exercises.find(e => e.name === name);
+  if (!ex || ex.sets.length === 0) return false;
+  return ex.sets.every(set => (parseFloat(set.reps) || 0) >= t.max);
+}
+
+function renderSessionExercises() {
+  const el = document.getElementById('session-exercises');
+  el.innerHTML = PLAN.map(name => {
+    const safeId = name.replace(/[^a-zA-Z0-9]/g, '_');
+    const t = getTarget(name);
+    const badge = checkReadyToProgress(name) ? '<span class="ready-badge">Add weight</span>' : '';
+    return '<div class="session-ex-card" data-ex="' + name + '">' +
+      '<h3>' + name + ' <span style="font-weight:400;color:var(--ink-faint);">(' + t.min + '-' + t.max + ' reps)</span>' + badge + '</h3>' +
+      '<div class="set-input-row">' +
+        '<input type="number" placeholder="Reps" id="reps-' + safeId + '">' +
+        '<input type="text" placeholder="Load (e.g. +10kg, BW, archer)" id="load-' + safeId + '">' +
+        '<input type="number" class="sets-count" placeholder="Sets" id="setscount-' + safeId + '" value="1" min="1">' +
+        '<button data-ex="' + name + '" class="add-set-btn">Add</button>' +
+      '</div>' +
+      '<div class="set-chip-list" id="chips-' + safeId + '"></div>' +
+    '</div>';
+  }).join('');
+
+  el.querySelectorAll('.add-set-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const name = btn.dataset.ex;
+      const safeId = name.replace(/[^a-zA-Z0-9]/g, '_');
+      const reps = document.getElementById('reps-' + safeId).value;
+      const load = document.getElementById('load-' + safeId).value;
+      const setsCountEl = document.getElementById('setscount-' + safeId);
+      const setsCount = Math.max(1, parseInt(setsCountEl.value) || 1);
+      if (!reps) return;
+      if (!pendingSets[name]) pendingSets[name] = [];
+      for (let i = 0; i < setsCount; i++) {
+        pendingSets[name].push({ reps, load: load || 'BW' });
+      }
+      document.getElementById('reps-' + safeId).value = '';
+      document.getElementById('load-' + safeId).value = '';
+      setsCountEl.value = '1';
+      renderChips(name);
+    });
+  });
+  PLAN.forEach(name => renderChips(name));
+}
+
+function renderChips(name) {
+  const safeId = name.replace(/[^a-zA-Z0-9]/g, '_');
+  const chipEl = document.getElementById('chips-' + safeId);
+  if (!chipEl) return;
+  const sets = pendingSets[name] || [];
+  // Group consecutive identical sets (same reps+load) so bulk-added sets
+  // show as "3\u00d7 8 @ +10kg" instead of three separate chips.
+  const groups = [];
+  sets.forEach((s, i) => {
+    const last = groups[groups.length - 1];
+    if (last && last.reps === s.reps && last.load === s.load) {
+      last.count++;
+      last.endIdx = i;
+    } else {
+      groups.push({ reps: s.reps, load: s.load, count: 1, endIdx: i });
+    }
+  });
+  chipEl.innerHTML = groups.map(g =>
+    '<span class="set-chip">' + (g.count > 1 ? g.count + '\u00d7 ' : '') + g.reps + ' @ ' + g.load +
+    '<button data-ex="' + name + '" data-idx="' + g.endIdx + '">\u2715</button></span>'
+  ).join('');
+  chipEl.querySelectorAll('button').forEach(b => {
+    b.addEventListener('click', () => {
+      pendingSets[b.dataset.ex].splice(parseInt(b.dataset.idx), 1);
+      renderChips(b.dataset.ex);
+    });
+  });
+}
+
+async function saveSession() {
+  const date = document.getElementById('w-date').value || todayISO();
+  const notes = document.getElementById('w-notes').value || '';
+  const exercises = PLAN
+    .filter(name => pendingSets[name] && pendingSets[name].length > 0)
+    .map(name => ({ name, sets: pendingSets[name] }));
+  if (exercises.length === 0) {
+    document.getElementById('session-status').textContent = 'Add at least one set before saving.';
+    return;
+  }
+  WORKOUT_LOG.sessions.push({ id: date + '-' + Date.now(), date, exercises, notes });
+  WORKOUT_LOG.sessions.sort((a, b) => a.date.localeCompare(b.date));
+  try {
+    await saveWorkoutLog();
+    pendingSets = {};
+    renderSessionExercises();
+    document.getElementById('w-notes').value = '';
+    document.getElementById('session-status').textContent = 'Session saved.';
+    setTimeout(() => { document.getElementById('session-status').textContent = ''; }, 2500);
+    renderPBs();
+    renderWorkoutHistory();
+  } catch (e) {
+    document.getElementById('session-status').textContent = 'Could not save — try again.';
+  }
+}
+
+function renderPBs() {
+  const el = document.getElementById('pb-list');
+  if (PLAN.length === 0) { el.innerHTML = '<div class="empty">Add exercises to see personal bests.</div>'; return; }
+  el.innerHTML = PLAN.map(name => {
+    let best = null;
+    WORKOUT_LOG.sessions.forEach(s => {
+      const ex = s.exercises.find(e => e.name === name);
+      if (!ex) return;
+      ex.sets.forEach(set => {
+        const loadNum = parseFloat((set.load || '').replace(/[^0-9.\-]/g, ''));
+        const repsNum = parseFloat(set.reps) || 0;
+        if (!isNaN(loadNum) && loadNum > 0) {
+          if (!best || !best.loadNum || loadNum > best.loadNum) best = { reps: set.reps, load: set.load, loadNum, date: s.date };
+        } else if (!best) {
+          best = { reps: set.reps, load: set.load, loadNum: 0, date: s.date };
+        }
+      });
+    });
+    const val = best ? (best.reps + ' reps @ ' + best.load + ' (' + best.date + ')') : '—';
+    const badge = checkReadyToProgress(name) ? '<span class="ready-badge">Ready to progress</span>' : '';
+    return '<div class="pb-row"><span>' + name + badge + '</span><span class="val">' + val + '</span></div>';
+  }).join('');
+}
+
+function renderWorkoutHistory() {
+  const el = document.getElementById('workout-history');
+  const sessions = WORKOUT_LOG.sessions.slice().reverse().slice(0, 30);
+  if (sessions.length === 0) { el.innerHTML = '<div class="empty">No sessions logged yet.</div>'; return; }
+  el.innerHTML = sessions.map(s => {
+    const lines = s.exercises.map(ex =>
+      '<div class="history-ex-line"><span class="nm">' + ex.name + ':</span> <span class="sets">' +
+      ex.sets.map(set => set.reps + '@' + set.load).join(', ') + '</span></div>'
+    ).join('');
+    return '<div class="history-session"><div class="d">' + s.date + '</div>' + lines +
+      (s.notes ? '<div class="hint" style="margin:6px 0 0;">' + s.notes + '</div>' : '') + '</div>';
+  }).join('');
+}
+
+async function renderWorkoutsTab() {
+  if (PLAN.length === 0 && WORKOUT_LOG.sessions.length === 0) {
+    await loadPlan();
+    await loadTargets();
+    await loadWorkoutLog();
+  }
+  renderPlanList();
+  renderSessionExercises();
+  renderPBs();
+  renderWorkoutHistory();
+}
+
+document.getElementById('add-ex-btn').addEventListener('click', async () => {
+  const input = document.getElementById('new-ex-name');
+  const name = input.value.trim();
+  if (!name || PLAN.includes(name)) return;
+  PLAN.push(name);
+  await savePlan();
+  input.value = '';
+  renderPlanList();
+  renderSessionExercises();
+  renderPBs();
+});
+document.getElementById('save-session-btn').addEventListener('click', saveSession);
+
+// ---------- Data export / import ----------
+const BACKUP_KEYS = ['health-log', 'workout-plan', 'workout-targets', 'workout-log'];
+
+async function exportAllData() {
+  const bundle = { exportedAt: new Date().toISOString(), data: {} };
+  for (const k of BACKUP_KEYS) {
+    try {
+      const res = await Storage.get(k);
+      bundle.data[k] = res && res.value ? JSON.parse(res.value) : null;
+    } catch (e) {
+      bundle.data[k] = null;
+    }
+  }
+  const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'recomp-tracker-backup-' + todayISO() + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+async function importAllData(file) {
+  const text = await file.text();
+  const bundle = JSON.parse(text);
+  if (!bundle || !bundle.data) throw new Error('Not a valid backup file');
+  for (const k of BACKUP_KEYS) {
+    if (bundle.data[k] !== undefined && bundle.data[k] !== null) {
+      await Storage.set(k, JSON.stringify(bundle.data[k]));
+    }
+  }
+}
+
+document.getElementById('export-btn').addEventListener('click', async () => {
+  const status = document.getElementById('data-status');
+  try {
+    await exportAllData();
+    status.textContent = 'Backup downloaded.';
+    setTimeout(() => { status.textContent = ''; }, 3000);
+  } catch (e) {
+    status.textContent = 'Export failed — try again.';
+  }
+});
+
+document.getElementById('import-btn').addEventListener('click', () => {
+  if (!confirm('Importing a backup overwrites your current data (entries, workouts, plan) with the contents of the file. Continue?')) return;
+  document.getElementById('import-file-input').click();
+});
+
+document.getElementById('import-file-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  const status = document.getElementById('data-status');
+  if (!file) return;
+  try {
+    await importAllData(file);
+    status.textContent = 'Backup restored — reloading...';
+    setTimeout(() => location.reload(), 1200);
+  } catch (err) {
+    status.textContent = 'Import failed — file may not be a valid backup.';
+  }
+  e.target.value = '';
+});
+
+// ---------- Guide table of contents ----------
+function buildGuideTOC() {
+  const guideTab = document.getElementById('tab-guide');
+  const tocEl = document.getElementById('guide-toc');
+  if (!guideTab || !tocEl) return;
+  const cards = guideTab.querySelectorAll('.card:not(.toc-card)');
+  let html = '';
+  cards.forEach((card, i) => {
+    const h2 = card.querySelector('h2');
+    if (!h2) return;
+    const id = 'guide-card-' + i;
+    card.id = id;
+    html += '<button class="toc-link" data-target="' + id + '">' + h2.textContent + '</button>';
+  });
+  tocEl.innerHTML = html;
+  tocEl.querySelectorAll('.toc-link').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById(btn.dataset.target);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+}
+
+(async function init() {
+  buildHabitList();
+  document.getElementById('f-date').value = todayISO();
+  document.getElementById('w-date').value = todayISO();
+  await loadData();
+  loadFormForDate(todayISO());
+  renderAll();
+  await loadPlan();
+  await loadTargets();
+  await loadWorkoutLog();
+  buildGuideTOC();
+  window.addEventListener('resize', () => {
+    if (document.getElementById('tab-trends').style.display !== 'none') renderChart();
+  });
+})();
+</script>
+</body>
+</html>

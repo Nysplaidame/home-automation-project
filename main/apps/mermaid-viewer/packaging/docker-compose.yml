@@ -7,4 +7,12 @@ services:
     restart: unless-stopped
     ports:
       - "8092:80"
+    networks:
+      - mermaid-viewer
 
+networks:
+  mermaid-viewer:
+    name: mermaid-viewer
+    ipam:
+      config:
+        - subnet: 10.240.13.0/24

@@ -7,9 +7,9 @@ flowchart TB
         LAN1["LAN1 trunk<br/>Proxmox VLAN trunk"]
         LAN2["LAN2 management access"]
         LAN3["LAN3 managed switch trunk<br/>VLANs 1,10,30,40 tagged"]
-        LAN4["LAN4 OMV NAS<br/>VLAN 40 untagged"]
+        LAN4["LAN4 storage recovery<br/>VLAN 40 untagged · normally unplugged"]
         LAN5["LAN5 LAN PC / recovery<br/>VLAN 1 untagged"]
-        EdgeSwitch["Zyxel GS1900-8HP<br/>switch mgmt VLAN 10<br/>camera/NAS/extender access ports"]
+        EdgeSwitch["Zyxel GS1900-8HP<br/>switch mgmt VLAN 10<br/>three cameras + OMV access ports"]
         WiFi["Router Wi-Fi SSIDs"]
     end
 
@@ -51,6 +51,7 @@ flowchart TB
         Frigate["Frigate CT 111<br/>192.168.30.20"]
         DockerHost["docker-host VM 103<br/>192.168.20.102<br/>Compose apps + Tailscale subnet router"]
         LLMHost["llm-host CT 114<br/>192.168.20.104<br/>local AI inference"]
+        MonitoringHost["monitoring VM 102<br/>192.168.60.10<br/>Kuma · Grafana · InfluxDB"]
         OMV["OMV NAS<br/>192.168.40.50"]
     end
 
@@ -59,7 +60,8 @@ flowchart TB
     Proxmox --- Frigate
     Proxmox --- DockerHost
     Proxmox --- LLMHost
-    V40 --- OMV
+    Proxmox --- MonitoringHost
+    EdgeSwitch ---|"port 8 · VLAN 40 access"| OMV
 
     subgraph Remote["Remote access"]
         Tailnet["Tailscale tailnet<br/>daily access"]
@@ -67,8 +69,10 @@ flowchart TB
     end
 
     Tailnet --> DockerHost
-    DockerHost -.->|"host routes only: HA and OMV"| HA
-    DockerHost -.->|"host route only"| OMV
+    DockerHost -.->|"host route"| HA
+    DockerHost -.->|"host route"| Frigate
+    DockerHost -.->|"host route"| OMV
+    DockerHost -.->|"host route · Grafana/Kuma only"| MonitoringHost
     WireGuard -.->|"fallback only; no broad storage subnet"| Router
 
     classDef router fill:#f8f3d4,stroke:#8a6d00,stroke-width:2px
@@ -78,5 +82,5 @@ flowchart TB
 
     class Router router
     class V1,V10,V20,V30,V35,V40,V50,V60,V70,V99 vlan
-    class Proxmox,HA,Frigate,DockerHost,OMV host
+    class Proxmox,HA,Frigate,DockerHost,LLMHost,MonitoringHost,OMV host
     class Tailnet,WireGuard remote

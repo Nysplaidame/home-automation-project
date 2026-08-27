@@ -187,12 +187,153 @@
 - Pages updated: [[entities/gl-mt6000]], [[entities/frigate]], [[entities/mosquitto-mqtt]], [[index]]
 - Notes: Router wiki now matches the managed-switch port topology; Frigate wiki records the `mqtt.enabled: false` / `cameras: {}` baseline; MQTT wiki treats plaintext `1883` as a documented temporary recovery/bootstrap exception only.
 
-## [2026-07-10] update | VLAN 50 router source/live reconciliation
-- Canonical router source now uses the live internal `iot_sensors` identifier for VLAN 50 while preserving the public `HomeIoT` SSID.
-- Pages updated: [[entities/gl-mt6000]]
-- Notes: Full-profile read-only router validation passed; no router deployment occurred.
+## [2026-07-28] update | Three-camera CCTV fleet and health alerts
+- Pages created: [[entities/cctv-camera-fleet]]
+- Pages updated: [[entities/frigate]], [[entities/home-assistant]], [[concepts/vlan-segmentation]], [[index]]
+- Notes: Synced the wiki to canonical three-camera Frigate state, confirmed all three as ANNKE C500 `I51HJ` on firmware `v5.8.10 build 250917`, saved Zyxel ports 2-7 as CCTV VLAN 30 access ports, and recorded Home Assistant FPS-based offline/recovery alerts.
 
-## [2026-07-10] update | Docker published-port enforcement
-- Docker-host and monitoring Docker-published ports now use persistent, source-scoped `DOCKER-USER` policies with rollback snapshots and representative allow/deny proofs.
-- Pages updated: [[entities/docker-host]], [[entities/monitoring-vm]]
-- Notes: Tailscale identity/ACL proof remains owner-supervised; no broad port exposure was introduced.
+## [2026-07-28] lint | CCTV and Frigate state sync
+- Report: [[analyses/lint-2026-07-28]]
+- Pages repaired: [[entities/mosquitto-mqtt]] and the active CCTV/Frigate/HA entity set
+- Notes: Historical source summaries remain historical; active entity pages now match canonical live state.
+
+## [2026-07-29] update | DNS, Homepage, remote Frigate, and NAS operations
+- Canonical project state now has all 48 `home.local` aliases deployed and validated on OpenWrt.
+- Homepage exact-width regressions were repaired at 956 px and 489 px.
+- Off-WiFi Frigate HTTPS access was validated through the narrow Tailscale host route while port 5000 remained blocked.
+- OMV SMART monitoring was verified globally and on all five physical disks; the vault backup helper remains dry-run-only and no schedule was created.
+- Pages updated: [[entities/gl-mt6000]], [[entities/homepage]], [[entities/openmediavault-nas]], [[index]].
+
+## [2026-07-29] update | Homepage split-horizon mobile DNS
+- Added an identity-gated AdGuard listener on docker-host's Tailscale address and an enabled rewrite for `homepage.home.local`.
+- Added Tailscale split DNS for `home.local` plus phone-only DNS and HTTPS grants, preserving OpenWrt's LAN answer while using the tailnet answer remotely.
+- The user confirmed the same `https://homepage.home.local/` bookmark works on mobile data and home WiFi.
+- Pages updated: [[entities/adguard-home]], [[entities/homepage]], [[concepts/tailscale-remote-access]].
+
+## [2026-07-29] update | Kuma storage and CCTV monitoring expansion
+- Canonical state updated first in `main/TO-DO.md`, OpenWrt firewall source, and the current live-state reference.
+- Pages updated: [[entities/monitoring-vm]], [[entities/openmediavault-nas]], [[entities/cctv-camera-fleet]], [[index]].
+- Notes: Added host-scoped VLAN 60 paths and live ntfy-enabled checks for OMV web/NFS and all three cameras; recorded the remaining Frigate host-firewall, Grafana alerting, and ntfy mobile-subscriber gaps.
+- Staged the OMV aggregate SMART push service and Kuma monitor without enabling
+  either; VM 102's narrow host-firewall exception remains the activation gate.
+
+## [2026-07-29] update | Monitoring alerting and ntfy backup completion
+- Activated the OMV SMART push heartbeat and confirmed all five disks healthy.
+- Added and live-tested Grafana's authenticated ntfy contact point, default
+  policy, and initial docker-host/Proxmox disk-pressure alerts.
+- Created the read-only ntfy mobile subscriber and validated authenticated
+  polling; Android notification acceptance remains user-side.
+- Deployed the SQLite-consistent ntfy app-data backup, completed a fresh NAS
+  run, and passed a temporary restore/integrity smoke for both databases.
+- Pages updated: [[entities/monitoring-vm]], [[entities/docker-host]].
+
+## [2026-08-01] update | Docker-host maintenance and Mullvad download gateway
+- Completed the controlled Docker/containerd/Compose/Python/Tailscale package
+  window with no reboot required and all existing services healthy.
+- Activated qBittorrent behind Gluetun/Mullvad, proved tunnel identity and
+  interface-drop/full-provider-stop fail-closed behavior, and restored its
+  configuration from the NAS backup in isolation.
+- Pages created: [[entities/qbittorrent]].
+- Pages updated: [[entities/docker-host]], [[entities/homepage]],
+  [[entities/gl-mt6000]], [[entities/openmediavault-nas]], [[index]].
+
+## [2026-08-01] lint | Maintenance and download-gateway state sync
+- Report: [[analyses/lint-2026-08-01]].
+- No stale stopped/gated Mullvad state or superseded VPN-rule name remained.
+- Corrected the pre-existing index source count from 25 to the actual 21 and
+  refreshed the analysis count to 5.
+
+## [2026-08-01] update | Docker-host backup freshness monitoring
+- Pages updated: [[entities/docker-host]], [[entities/monitoring-vm]].
+- Notes: Kuma monitor 36 now receives the docker-host app-data backup heartbeat
+  only after the existing backup service completes successfully; its first live
+  delivery was accepted.
+
+## [2026-08-01] update | Frigate API monitoring recovery
+- Pages updated: [[entities/monitoring-vm]].
+- Notes: CT 111 accepted the narrow monitoring-VM TCP 5000 exception; Kuma
+  monitor 28 was re-enabled and returned `200 - OK`.
+
+## [2026-08-09] update | Household Hub recipe workflow
+- Created [[entities/household-hub]] for the live transcript RAG, recipe
+  research and persisted confirmation-gated Mealie workflow.
+- Updated [[entities/docker-host]], [[entities/llm-host]] and
+  [[entities/home-assistant]] to reflect current service and ownership
+  relationships.
+- Updated [[index]] to 25 entities.
+
+## [2026-08-09] lint | Household Hub state sync
+- Report: [[analyses/lint-2026-08-09]].
+- Confirmed the new Household Hub entity has inbound links and current ownership
+  claims match canonical project state.
+- Updated [[index]] to 6 analyses.
+
+## [2026-08-09] update | Household Hub household integrations
+- Added a dedicated-key, read-only Grocy overview and recorded its five-location
+  live proof with empty stock and shopping-list state.
+- Activated the persistent Obsidian Markdown staging outbox without writing raw
+  LiveSync CouchDB documents.
+- Required a matching persisted confirmation UUID for every Markdown write and
+  proved an unconfirmed live request cannot create a file.
+- Added downloadable `.ics` output for Nextcloud-compatible dry-runs while
+  keeping live CalDAV upload disabled because Nextcloud is not deployed.
+- Extended the NAS app-data job and completed backup run `20260809T130054Z` for
+  the new Grocy key state and persistent Markdown outbox.
+- Pages updated: [[entities/household-hub]], [[entities/docker-host]],
+  [[analyses/lint-2026-08-09]], [[index]].
+- Targeted changed-page links and index counts passed; the lint report records
+  older unresolved knowledge-tool links for a later full-wiki cleanup.
+
+## [2026-08-21] update | Homepage mobile fixed-proxy access
+- Pages updated: [[entities/homepage]], [[entities/docker-host]],
+  [[concepts/tailscale-remote-access]], [[index]].
+- Notes: All user-facing Homepage cards now use fixed HTTPS proxy routes;
+  Recomp Tracker was added at `8209`; the approved OnePlus identity receives
+  only DNS, `tcp:443`, and `tcp:8180-8209` to docker-host.
+
+## [2026-08-21] lint | Mobile Homepage proxy and Tailscale access
+- Report: [[analyses/lint-2026-08-21]].
+- Confirmed the updated Homepage, docker-host, and Tailscale pages agree with
+  the canonical access matrix and retain the no-broad-subnet boundary.
+
+## [2026-08-21] update | Mobile Homepage acceptance completed
+- Phone-side mobile-data acceptance passed after reconnecting Tailscale and
+  opening cards from every Homepage tab.
+- Updated [[analyses/lint-2026-08-21]] so the completed acceptance is no longer
+  reported as an open follow-up.
+
+## [2026-08-21] update | Docker-host explicit network remediation
+- Recreated every project Docker bridge at its canonical explicit allocation,
+  including Household Hub's shared dependency networks and `local-alerting`.
+- Application, storage, dependency, VPN-egress, allowed/denied and firewall
+  checks passed. Bambuddy remains the only exception because the P1S path is
+  unreachable from VM 103; its scoped bridge and firewall rules are prepared.
+- Page updated: [[entities/docker-host]].
+
+## [2026-08-25] lint | Architecture documentation reconciliation
+- Report: [[analyses/lint-2026-08-25]].
+- Repaired current topology, Tailscale routes, P1S/Bambuddy placement, OMV
+  SMART/physical state, Immich storage and docker-host workload claims.
+- Pages updated: [[entities/docker-host]], [[entities/openmediavault-nas]],
+  [[entities/gl-mt6000]], [[entities/bambu-p1s]], [[entities/bambuddy]],
+  [[entities/immich]], [[entities/homepage]], [[entities/tplink-ap]],
+  [[entities/rpi-displays]], [[entities/minisforum-m1-pro-125h]],
+  [[entities/minix-neo-z350]], [[entities/proxmox]],
+  [[concepts/vlan-segmentation]], [[concepts/rag-vs-wiki-pattern]], [[sources/project-readme]],
+  [[sources/proxmox-setup-guide]], [[sources/igpu-passthrough-guide]], [[index]].
+- Notes: Historical sources/audits remain dated evidence; active wiki pages now
+  match the canonical project references reconciled on 2026-08-25.
+
+## [2026-08-25] update | Troubleshooting Dashboard staged acceptance
+- Created [[entities/troubleshooting-dashboard]] and updated
+  [[entities/docker-host]], [[sources/project-readme]], [[sources/project-todo]]
+  and [[index]].
+- Notes: Management-only port `8094`, explicit Docker network, real Windows
+  snapshot, desktop/mobile flow and rollback proof are live; Proxmox backup
+  snapshot acceptance and DNS/Homepage exposure remain open.
+
+## [2026-08-25] lint | Troubleshooting Dashboard state sync
+- Updated [[analyses/lint-2026-08-25]] and confirmed the new entity has inbound
+  links from the index, docker-host and canonical source summaries.
+- Confirmed access claims match the canonical service/access matrices and that
+  missing Proxmox evidence remains an explicit open gate.

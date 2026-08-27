@@ -3,7 +3,7 @@ title: "10-Segment Network Segmentation"
 category: concept
 tags: [network, vlan, security, openwrt, architecture]
 created: 2026-04-07
-updated: 2026-05-25
+updated: 2026-08-25
 sources: [network-architecture-decision, project-readme, troubleshooting-reference]
 status: stable
 ---
@@ -43,8 +43,13 @@ isolated while allowing only narrow, documented inter-VLAN paths.
 - **Frigate on VLAN 30, not 20:** NVR belongs with cameras and has no default internet.
 - **Printers on VLAN 35:** Bambu P1S and Athena 2 are multi-service devices, not simple IoT sensors.
 - **Storage on VLAN 40:** OMV is storage-focused and not the Docker app platform.
-- **Tailscale host routes:** daily remote access reaches only Home Assistant and OMV host routes through docker-host.
+- **Tailscale host routes:** admin paths use exactly the HA, Frigate, OMV and
+  monitoring-host `/32` routes through docker-host; the OnePlus daily portal
+  path instead uses fixed Homepage proxy ports.
 - **WireGuard fallback:** kept dormant and split-tunnel, not the daily access layer.
+- **CCTV switch access standard:** Zyxel port 1 is the router trunk, ports 2-7
+  are untagged VLAN 30/PVID 30 PoE camera ports, and port 8 remains the VLAN 40
+  NAS access port.
 
 ## Inter-VLAN Traffic Rules (Key)
 
@@ -60,6 +65,9 @@ isolated while allowing only narrow, documented inter-VLAN paths.
 Started as a 4-VLAN design in September 2025. A firewall audit revised it to 9
 VLANs, then the printer VLAN decision added VLAN 35, making the active
 architecture 10 segments.
+
+- 2026-08-25: Reconciled the live GS1900/OMV physical path and four-route plus
+  fixed-proxy remote-access model.
 
 ## Sources
 

@@ -2,7 +2,7 @@ name: gardenkeeper
 
 services:
   postgres:
-    image: postgres:17-alpine
+    image: postgres:17-alpine@sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193
     container_name: gardenkeeper-postgres
     restart: unless-stopped
     environment:
@@ -16,9 +16,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - gardenkeeper
 
   redis:
-    image: redis:7-alpine
+    image: redis:7-alpine@sha256:e7723ff73d963f5cc6d9c4643ea3d989527a402a319239054e9472a7fb9219a2
     container_name: gardenkeeper-redis
     restart: unless-stopped
     volumes:
@@ -28,6 +30,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - gardenkeeper
 
   api:
     build:
@@ -38,7 +42,7 @@ services:
     env_file:
       - .env
     networks:
-      - default
+      - gardenkeeper
       - alerting
     ports:
       - "8090:8090"
@@ -61,6 +65,8 @@ services:
         condition: service_started
       redis:
         condition: service_healthy
+    networks:
+      - gardenkeeper
 
   web:
     build:
@@ -72,8 +78,15 @@ services:
       - "8091:80"
     depends_on:
       - api
+    networks:
+      - gardenkeeper
 
 networks:
+  gardenkeeper:
+    name: gardenkeeper
+    ipam:
+      config:
+        - subnet: 10.240.21.0/24
   alerting:
     external: true
     name: local-alerting

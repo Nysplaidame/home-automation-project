@@ -18,6 +18,7 @@ HA_PORT="8123"
 FRIGATE_IP="192.168.30.20"
 FRIGATE_PORT="8971"
 DOCKER_HOST_IP="192.168.20.102"
+HOMEPAGE_URL="https://${DOCKER_HOST_IP}/"
 BAMBUDDY_IP="$DOCKER_HOST_IP"
 BAMBUDDY_PORT="8000"
 IMMICH_URL="http://${DOCKER_HOST_IP}:2283/api/server/ping"
@@ -25,6 +26,7 @@ TRANSFER_PORTAL_URL="http://192.168.40.50:8088/"
 LLM_HOST_IP="192.168.20.104"
 LLAMACPP_URL="http://${LLM_HOST_IP}:8081/health"
 OPENWEBUI_URL="http://${LLM_HOST_IP}:3002/health"
+CAMERA_01_IP="192.168.30.21"
 P1S_IP="192.168.35.200"   # VLAN 35 (Printers) — see docs/decisions/02-printer-vlan-architecture.md
 # The printer's MQTT port 8883 is a TLS-authenticated broker and does not
 # respond to unauthenticated TCP probes in a way that reliably confirms health.
@@ -242,12 +244,14 @@ run_checks() {
     check_port "Frigate CT SSH" "$FRIGATE_IP" "22"; r_frigate_ping="$CHECK_RESULT"
     check_http "Frigate UI" "https://${FRIGATE_IP}:${FRIGATE_PORT}/api/version"; r_frigate_http="$CHECK_RESULT"
     check_port "Docker host VM SSH" "$DOCKER_HOST_IP" "22"; r_docker_host="$CHECK_RESULT"
+    check_http "Homepage HTTPS" "$HOMEPAGE_URL"; r_homepage="$CHECK_RESULT"
     check_http "Bambuddy UI" "http://${BAMBUDDY_IP}:${BAMBUDDY_PORT}"; r_bambuddy="$CHECK_RESULT"
     check_http "Immich API" "$IMMICH_URL"; r_immich="$CHECK_RESULT"
     check_http "OMV Transfer Portal" "$TRANSFER_PORTAL_URL"; r_transfer_portal="$CHECK_RESULT"
     check_http "llama.cpp health" "$LLAMACPP_URL"; r_llamacpp="$CHECK_RESULT"
     check_http "Open WebUI health" "$OPENWEBUI_URL"; r_openwebui="$CHECK_RESULT"
     check_port "OMV backup NFS" "$NAS_IP" "$NAS_NFS_PORT"; r_nas="$CHECK_RESULT"
+    check_ping "Camera 1" "$CAMERA_01_IP"; r_camera_01="$CHECK_RESULT"
     # The P1S printer's MQTT port 8883 is the Bambu Lab printer-side MQTT broker
     # which only accepts authenticated connections from Bambu cloud clients —
     # a raw TCP connect returns a TLS handshake, not an open port, causing false
@@ -391,6 +395,7 @@ run_checks() {
         cat <<EOF
 {
   "timestamp": "$ts",
+  "collector": "Proxmox host",
   "summary": {"pass": $pass, "fail": $fail, "total": $((pass+fail))},
   "checks": {
     "router": "$r_router",
@@ -400,6 +405,7 @@ run_checks() {
     "frigate_ping": "$r_frigate_ping",
     "frigate_http": "$r_frigate_http",
     "docker_host": "$r_docker_host",
+    "homepage": "$r_homepage",
     "bambuddy": "$r_bambuddy",
     "immich": "$r_immich",
     "transfer_portal": "$r_transfer_portal",
@@ -407,6 +413,7 @@ run_checks() {
     "openwebui": "$r_openwebui",
     "p1s": "$r_p1s",
     "nas": "$r_nas",
+    "camera_01": "$r_camera_01",
     "mqtt": "$r_mqtt",
     "ct111_root": "${r_ct111_root:-skipped}",
     "ct114_root": "${r_ct114_root:-skipped}",

@@ -1,6 +1,6 @@
 services:
   mealie:
-    image: ghcr.io/mealie-recipes/mealie:v3.19.2
+    image: ghcr.io/mealie-recipes/mealie:v3.19.2@sha256:f68e959bf66f4f458893ea58facac71690fe6f2ac7a31466b5cecb41b4e99c02
     container_name: mealie
     restart: unless-stopped
     ports:
@@ -13,4 +13,12 @@ services:
       PGID: "1000"
       TZ: "Europe/London"
       BASE_URL: "http://mealie.home.local:9925"
+    networks:
+      - mealie
 
+networks:
+  mealie:
+    name: mealie
+    ipam:
+      config:
+        - subnet: 10.240.5.0/24

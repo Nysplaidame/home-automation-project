@@ -3,6 +3,7 @@ title: OMV Cutover Execution Runbook
 description: Command-by-command execution plan for HA backups, Immich storage, and optional Frigate NAS recording cutover
 tags: [omv, nas, cutover, runbook, execution]
 created: 2026-05-28
+modified: 2026-08-25
 type: procedure
 status: active
 ---
@@ -12,7 +13,8 @@ status: active
 This runbook is the executable version of
 `docs/procedures/omv_storage_cutover_checklist.md`.
 
-Use it when OMV hardware is online and reachable at `192.168.40.50`.
+OMV is live at `192.168.40.50`; use this as rebuild/recovery procedure rather
+than evidence that a cutover remains pending.
 
 ## Scope
 
@@ -73,7 +75,7 @@ Expected:
 
 ## Phase C - Home Assistant backup target cutover (UI)
 
-Run on: Home Assistant UI (`http://192.168.20.101:8123`).
+Run on: Home Assistant UI (`https://192.168.20.101:8123`).
 
 1. `Settings -> System -> Storage -> Add Network Storage`
 2. Add OMV NFS share for HA backups.
@@ -198,7 +200,7 @@ Rollback:
 Run on: management laptop.
 
 ```powershell
-curl -s -o NUL -w "HA %{http_code}`n" http://192.168.20.101:8123/
+curl -k -s -o NUL -w "HA %{http_code}`n" https://192.168.20.101:8123/
 curl -s -o NUL -w "Immich %{http_code}`n" http://192.168.20.102:2283/
 ```
 

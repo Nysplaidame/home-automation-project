@@ -5,7 +5,7 @@ title: Update Maintenance Playbook
 description: Temporary WAN access, local caching, and offline update patterns for restricted VLAN hosts
 tags: [operations, updates, firewall, docker-host, frigate, maintenance]
 created: 2026-05-08
-modified: 2026-05-28
+modified: 2026-07-19
 type: procedure
 status: active
 ---
@@ -220,6 +220,18 @@ Automatic updates are not the default in this project. The baseline is:
 
 - Keep Watchtower in `monitor-only` mode with ntfy notifications.
 - Treat these notifications as update candidates, not approval to patch.
+
+### Gridfinity static-release monitoring
+
+Gridfinity Layout Tool is a pinned static release rather than a runtime image
+update. By explicit service exception, a daily local-workstation automation
+checks upstream Git release tags, builds a newer tagged release in WSL/Linux,
+and deploys it with a health-check rollback. The workflow is documented in
+`docs/install/services/gridfinity-layout-tool.md`.
+
+This preserves docker-host's restricted WAN posture: docker-host does not
+build the frontend or access GitHub. Other workloads remain monitor-only or
+intentional-update services unless separately approved.
 
 ### Host package update monitoring
 

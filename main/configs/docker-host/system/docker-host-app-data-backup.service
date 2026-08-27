@@ -7,3 +7,4 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 ExecStart=/usr/local/sbin/docker-host-app-data-backup.sh
+ExecStartPost=/usr/local/sbin/docker-host-backup-kuma-heartbeat.sh

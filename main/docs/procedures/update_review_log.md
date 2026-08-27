@@ -3,7 +3,7 @@ title: Weekly Update Review Log
 description: Execution log for weekly update-candidate review and post-check outcomes
 tags: [operations, updates, maintenance, watchtower, docker-host]
 created: 2026-05-28
-modified: 2026-07-06
+modified: 2026-08-01
 type: procedure
 status: active
 ---
@@ -489,3 +489,108 @@ Actions deferred:
 
 - manual spoken Assist validation from the user's normal voice device
 - Grocy pilot product purchase/consume/correction and expiry workflow
+
+## 2026-07-29 — Docker-host patch-window candidate refresh
+
+Date:
+
+- 2026-07-29
+
+Operator:
+
+- Codex session
+
+Scope:
+
+- read-only package/reboot review before choosing a maintenance window
+
+Findings:
+
+- Docker engine candidates: `containerd.io` `2.2.6`, Docker CE/CLI/rootless
+  extras `29.6.2`, Buildx `0.35.0`, and Compose plugin `5.3.1`
+- Debian candidates: Python 3.13 runtime/minimal packages at
+  `3.13.5-2+deb13u4`
+- Tailscale candidate: `1.98.10`
+- running kernel: `6.12.96+deb13-cloud-amd64`
+- `/var/run/reboot-required` is absent before the window
+
+Actions taken:
+
+- refreshed `docker_host_patch_window_runbook.md` with the current candidate
+  set, working `docker-host-lan` SSH alias, OMV mount checks and the new
+  Homepage/media endpoints
+- no package or container update was applied
+
+Actions deferred:
+
+- choose an explicit date/time for the controlled window
+- re-run `apt list --upgradable` immediately before execution
+- execute package updates, reboot only if required, then run the expanded
+  service, mount, firewall, Grafana and Kuma post-checks
+
+## 2026-08-01 — Docker-host controlled package window
+
+Date:
+
+- 2026-08-01
+
+Operator:
+
+- Codex session
+
+Scope:
+
+- docker-host VM 103 package maintenance
+- post-window Mullvad/Gluetun/qBittorrent activation and containment proof
+
+Actions taken:
+
+- created and verified pre-window NAS backup run `20260801T143119Z` (`41M`)
+- upgraded 11 packages: Docker CE/CLI/rootless `29.7.1`, containerd `2.2.6`,
+  Buildx `0.36.0`, Compose `5.3.1`, Python 3.13 packages
+  `3.13.5-2+deb13u4`, and Tailscale `1.98.10`
+- confirmed no reboot was required and no package remained upgradable
+- installed the Mullvad WireGuard secret only in the mode-`0600` live file
+- expanded the existing host-specific OpenWrt VPN egress rule with UDP `51820`
+- started and configured qBittorrent, proved Mullvad identity and both
+  interface-drop/full-provider-stop fail-closed behaviour
+- created post-configuration backup run `20260801T144643Z` (`49M`) and passed
+  an isolated qBittorrent config restore
+
+Post-check:
+
+- `dpkg --audit`: clean; simulated fix-broken operation: no changes
+- Docker/containerd/Tailscale/Fail2ban/AdGuard coordinator and backup timer:
+  active
+- all 33 pre-existing containers remained running after package maintenance
+- both OMV mounts present
+- Homepage, AdGuard, Dozzle, Mealie, Grocy, Immich, Jellyfin, Calibre-Web,
+  Atsumeru, Vaultwarden, Grafana and Uptime Kuma endpoint checks passed
+- UFW and `DOCKER-USER` policies remained present; Fail2ban had no bans
+
+Actions deferred:
+
+- optional allow-listed Autobrr evaluation
+- Vaultwarden owner onboarding after live DNS
+- no package autoremove was performed
+
+## 2026-08-01 - Gridfinity Layout Tool recovery
+
+Actions taken:
+
+- corrected the static Nginx redirect so `/designer` and `/baseplate` retain
+  the public service port rather than redirecting to Docker-host's AdGuard
+  listener on `:8080`
+- updated the pinned static release from `gridfinity-layout-tool-v4.253.0` to
+  `gridfinity-layout-tool-v4.342.0`; this includes upstream's geometry-worker
+  timeout/error handling for the Bin and Baseplate infinite-spinner defect
+- hardened the release updater's health probe to tolerate Nginx's short
+  listener handover during an otherwise healthy container recreation
+
+Post-check:
+
+- `/healthz` returned `ok`
+- direct and HTTPS-preview `/designer` and `/baseplate` redirects now stay on
+  their original host and port
+- browser checks rendered both the Baseplate and Bin Designer canvases with no
+  visible loading state after the update

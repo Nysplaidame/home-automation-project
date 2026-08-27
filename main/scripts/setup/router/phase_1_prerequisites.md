@@ -94,8 +94,8 @@ ip link show > /tmp/interface_baseline.txt
 # Verify expected interfaces exist
 echo "=== Interface Verification ===" >> /tmp/interface_baseline.txt
 # lan1-lan4: active network ports (trunk, management, cameras, NAS)
-# lan5: recovery/AP port — must exist; used for out-of-band router access during setup
-#        and as the TP-Link TL-WA801N AP connection after setup is stable
+# lan5: direct VLAN 1 LAN/recovery port — must exist; used for out-of-band
+#        router access. The future TP-Link AP needs a managed-switch access port.
 for iface in wan lan1 lan2 lan3 lan4 lan5; do
     if ip link show "$iface" >/dev/null 2>&1; then
         echo "✓ $iface exists" >> /tmp/interface_baseline.txt
@@ -113,7 +113,7 @@ ls -la /sys/class/net/*/dsa/ 2>/dev/null >> /tmp/interface_baseline.txt || echo 
 
 **Testing Criteria**:
 - Physical ports lan1-lan4 exist and are operational
-- lan5 exists — this is the recovery/AP port (must be present; GL-MT6000 has 5 LAN ports)
+- lan5 exists — this is the direct VLAN 1 LAN/recovery port (must be present; GL-MT6000 has 5 LAN ports)
 - WAN interface exists and has link
 - Wireless interfaces radio0/radio1 detected
 - DSA switch architecture confirmed (if applicable)

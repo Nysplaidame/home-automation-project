@@ -3,7 +3,7 @@ title: "Mosquitto MQTT Broker"
 category: entity
 tags: [software, mqtt, mosquitto, broker, tls]
 created: 2026-04-07
-updated: 2026-06-29
+updated: 2026-07-28
 sources: [project-readme, ventsys-technical-specs, ventsys-implementation-roadmap, troubleshooting-reference]
 status: active
 ---
@@ -21,10 +21,9 @@ central message bus for VentSys ESP32 devices, Frigate, Bambuddy, and Home
 Assistant automations.
 
 TLS on port `8883` is live and verified. Plain MQTT `1883` is deprecated and
-should not be opened through router policy for VentSys. Bambuddy has migrated to
-`8883` with TLS. Frigate currently keeps MQTT disabled in its migration-safe
-baseline and should only enable MQTT on the TLS path when cameras and final
-integrations are ready.
+should not be opened through router policy for VentSys. Bambuddy and the live
+three-camera Frigate deployment use `8883` with TLS. The no-camera Frigate
+configuration remains only a migration-safe fallback.
 
 ## Ports
 
@@ -39,6 +38,8 @@ integrations are ready.
 - Bambuddy logs confirmed MQTT relay and smart-plug service connected to `192.168.20.101:8883`.
 - Mosquitto logs confirmed Bambuddy negotiated TLSv1.3 from `192.168.20.102`.
 - Retained `bambuddy/status` was verified over TLS on `8883`.
+- Frigate 0.17.1 publishes live three-camera state and FPS statistics over TLS;
+  Home Assistant consumes those stats for camera-health alerts.
 - 2026-05-28 Frigate-path probe to `192.168.20.101:1883` returned closed/refused.
 - Router/source parity confirmed no valve-specific plain-MQTT `1883` firewall exception.
 
@@ -75,6 +76,8 @@ mosquitto_pub -h 192.168.20.101 -p 8883 --cafile /ssl/ca.crt -u mqtt -P <passwor
 
 ## Change Log
 
+- 2026-07-28: Replaced the stale disabled-Frigate claim with the live
+  three-camera MQTT TLS and Home Assistant camera-health state.
 - 2026-06-29: Clarified that Frigate MQTT is currently disabled and that plaintext `1883` is only a documented temporary recovery/bootstrap exception, not a live policy target.
 - 2026-05-30: Corrected plain-MQTT state; TLS is live, Bambuddy is on TLS, and no valve-specific router `1883` exception should be treated as current.
 - 2026-05-18: Updated from planned/pre-TLS to live mixed-mode state: 8883 TLS verified, 1883 still open temporarily, Bambuddy migrated to TLS, valve-1 still on plain MQTT.

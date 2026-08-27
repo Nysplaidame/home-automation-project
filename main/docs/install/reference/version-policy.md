@@ -3,7 +3,7 @@ title: Installation Version Policy
 description: Pinning and latest-lookup rules for reproducible but maintainable rebuilds
 tags: [install, versions, maintenance]
 created: 2026-05-24
-modified: 2026-05-24
+modified: 2026-08-24
 type: reference
 status: active
 ---
@@ -18,6 +18,24 @@ status: active
   artifacts and the existing guide already expects a lookup.
 - Never hardcode stale point releases for HAOS, Debian ISO downloads, container
   images, or scripts unless a compatibility reason is documented.
+
+## Fresh-rebuild version gate
+
+An exact tag/digest in this repository is the tested recovery anchor, not an
+instruction to upgrade silently or to substitute `latest`. Immediately before
+deploying a volatile component:
+
+1. open its official release notes or installation page;
+2. compare the documented tested version with the current supported stable
+   version and its database/config migration notes;
+3. choose either the tested pin or a separately reviewed upgrade candidate;
+4. record the selected tag, immutable digest, lookup date and rollback pair in
+   the maintenance log; and
+5. take the service-specific backup and prove its isolated restore before a
+   major-version or database-format change.
+
+Do not mix a newer migrated data directory with an older rollback image unless
+the upstream project explicitly supports that downgrade.
 
 ## Pin or record tested version
 
@@ -42,6 +60,22 @@ status: active
 | AdGuard Home Docker image | Use supported Docker image and record image digest/tag |
 | llama.cpp / Open WebUI / Wyoming images | Use documented upstream images, verify current tags before deploy, and record image digests after first live use |
 | Tier 2/3 app drafts | Use documented upstream images but record tag before first live use |
+
+## Volatile manuals requiring an official lookup
+
+| Component/manual | Official check immediately before deployment |
+|---|---|
+| OpenWrt/router-deploy | Confirm router model/revision, installed OpenWrt build and package feed compatibility; never flash a different hardware image. |
+| Proxmox and Debian guests | Confirm supported major release, repository family and upgrade notes before changing the tested base. |
+| HAOS and Home Assistant add-ons | Use the current official HAOS image and read breaking-change notes before restoring or upgrading. |
+| Frigate | Review Frigate release notes, detector/schema changes and the tested iGPU/OpenVINO path before changing the pinned image. |
+| Immich | Use the official release files only; review every intervening release and database migration before changing the server/ML pair. |
+| Mealie and Grocy | Compare the pinned images with official stable releases; take application/stopped-data backups before schema changes. |
+| Obsidian Self-hosted LiveSync | Review plugin and CouchDB compatibility; keep all clients on a reviewed compatible plugin version during rollout. |
+| SearXNG, Whoogle and ntfy | Review upstream image/release notes and retain the tested digest plus config/data rollback. |
+| Paperless-ngx, Actual Budget and Scrypted | Re-run their decision gate against current official deployment guidance before first install. |
+| Vaultwarden, Portainer, Watchtower, registry mirror and Node-RED | Re-run security/backup gates and use current official documentation; never convert a draft into `latest`-tracked production. |
+| llama.cpp, Open WebUI and Wyoming services | Record image/model digests and repeat performance/HA compatibility tests after updates. |
 
 ## Official references used by this suite
 

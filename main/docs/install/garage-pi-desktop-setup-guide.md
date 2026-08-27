@@ -3,7 +3,7 @@ title: Garage Raspberry Pi Desktop Setup Guide
 description: Lean Raspberry Pi 5 desktop, NVMe boot, OLED case display, project access, and optional AI/camera readiness
 tags: [install, raspberry-pi, garage, desktop, ventsys, ai, oled]
 created: 2026-06-10
-modified: 2026-06-10
+modified: 2026-08-25
 type: install-guide
 status: draft
 ---
@@ -86,7 +86,7 @@ needed later, prefer one of these paths:
 | `GARAGE_PI_WIFI_PASSWORD` | Password for the management Wi-Fi |
 | `GARAGE_PI_MAC` | Wi-Fi or Ethernet MAC address used for DHCP reservation |
 | `GARAGE_PI_IP` | Static DHCP address assigned on management VLAN 10 |
-| `HA_URL` | Current Home Assistant URL, normally `http://192.168.20.101:8123` |
+| `HA_URL` | Current Home Assistant URL, normally `https://192.168.20.101:8123` |
 | `NAS_HOST` | Future NAS address, currently planned as `192.168.40.50` |
 
 Keep passwords and tokens in the password manager, not in this repository.
@@ -273,7 +273,7 @@ Run on: garage Pi local terminal.
 
 ```bash
 ping -c 3 192.168.10.1
-curl -I http://192.168.20.101:8123
+curl -k -I https://192.168.20.101:8123
 curl -I http://192.168.60.10:3000
 curl -I http://192.168.60.10:3001
 ```
@@ -497,9 +497,9 @@ Recommended bookmarks:
 
 | Service | URL |
 |---|---|
-| Home Assistant | `http://192.168.20.101:8123` |
-| VentSys dashboard | `http://192.168.20.101:8123/local/ventsys-dashboard.html` |
-| Home Assistant monitoring page | `http://192.168.20.101:8123/monitoring/overview` |
+| Home Assistant | `https://192.168.20.101:8123` |
+| VentSys dashboard | `https://192.168.20.101:8123/local/ventsys-dashboard.html` |
+| Home Assistant monitoring page | `https://192.168.20.101:8123/monitoring/overview` |
 | Proxmox | `https://192.168.10.10:8006` |
 | Grafana | `http://192.168.60.10:3000` |
 | Uptime Kuma | `http://192.168.60.10:3001` |

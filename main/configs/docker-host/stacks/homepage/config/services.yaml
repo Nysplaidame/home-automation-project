@@ -1,38 +1,304 @@
-- Infrastructure:
+- Home & Security:
     - Home Assistant:
-        href: http://192.168.20.101:8123/
-        description: Automation dashboard
-    - Proxmox:
-        href: https://192.168.10.10:8006/
-        description: VM host
-    - Monitoring:
-        href: http://192.168.60.10:3000/
-        description: Grafana
-    - Uptime Kuma:
-        href: http://192.168.60.10:3001/
-        description: Service health
-- Docker Host:
-    - Bambuddy:
-        href: http://192.168.20.102:8000/
-        description: Bambu printer helper
-    - Immich:
-        href: http://192.168.20.102:2283/
-        description: Photo library pre-flight
-    - AdGuard Home:
-        href: http://192.168.20.102:8080/
-        description: DNS filtering
-    - Dozzle:
-        href: http://192.168.20.102:8081/
-        description: Container logs
+        id: portal-home-assistant
+        icon: home-assistant.png
+        href: https://homepage.home.local:8188/
+        description: Automations, rooms and household control
+        ping: 192.168.20.101
+    - Frigate:
+        id: portal-frigate
+        icon: frigate.png
+        href: https://homepage.home.local:8204/
+        description: Cameras, recordings and security events
+        siteMonitor: http://192.168.30.20:5000/api/version
     - ntfy:
-        href: http://192.168.20.102:8085/
-        description: Internal notifications
-    - SearXNG:
-        href: http://192.168.20.102:8087/
-        description: Metasearch pre-flight
-    - Whoogle:
-        href: http://192.168.20.102:8088/
-        description: Google search proxy pre-flight
+        id: portal-ntfy
+        icon: ntfy.png
+        href: https://homepage.home.local:8193/
+        description: Internal alerts and notification topics
+        server: docker-host
+        container: ntfy
+
+- Household:
+    - Household Hub:
+        id: portal-household-hub
+        icon: mdi-home-search-outline
+        href: https://homepage.home.local:8197/
+        description: Household knowledge and research workbench
+        server: docker-host
+        container: household-hub-web-1
+    - Mealie:
+        id: portal-mealie
+        icon: mealie.png
+        href: https://homepage.home.local:8199/
+        description: Recipes and meal planning
+        server: docker-host
+        container: mealie
+    - Grocy:
+        id: portal-grocy
+        icon: grocy.png
+        href: https://homepage.home.local:8198/
+        description: Pantry, freezer and shopping inventory
+        server: docker-host
+        container: grocy
     - GardenKeeper:
-        href: http://192.168.20.102:8091/
-        description: Garden care and task planner
+        id: portal-gardenkeeper
+        icon: mdi-sprout
+        href: https://homepage.home.local:8180/
+        description: Garden care, observations and tasks
+        server: docker-host
+        container: gardenkeeper-web
+    - Bambuddy:
+        id: portal-bambuddy
+        icon: mdi-printer-3d
+        href: https://homepage.home.local:8181/
+        description: Bambu printer helper and job tracking
+        server: docker-host
+        container: bambuddy
+
+- Workshop & Knowledge:
+    - Recomp Tracker:
+        id: portal-recomp-tracker
+        icon: mdi-chart-line
+        href: https://homepage.home.local:8209/
+        description: Personal daily habits and workout tracking
+        server: docker-host
+        container: recomp-tracker
+    - Open WebUI:
+        id: portal-open-webui
+        icon: open-webui.png
+        href: https://homepage.home.local:8200/
+        description: Local AI chat and model interface
+        siteMonitor: http://192.168.20.104:3002/
+    - Gridfinity Layout Tool:
+        id: portal-gridfinity
+        icon: mdi-grid
+        href: https://homepage.home.local:8196/
+        description: Drawer and Gridfinity layout planner
+        server: docker-host
+        container: gridfinity-layout-tool
+    - Mermaid Viewer:
+        id: portal-mermaid-viewer
+        icon: mdi-graph-outline
+        href: https://homepage.home.local:8195/
+        description: Render and inspect Mermaid diagrams
+        server: docker-host
+        container: mermaid-viewer
+
+- Search:
+    - SearXNG:
+        id: portal-searxng
+        icon: searxng.png
+        href: https://homepage.home.local:8194/
+        description: Private metasearch
+        server: docker-host
+        container: searxng
+    - Whoogle:
+        id: portal-whoogle
+        icon: whoogle.png
+        href: https://homepage.home.local:8182/
+        description: Privacy-focused Google search
+        server: docker-host
+        container: whoogle
+
+- Core Infrastructure:
+    - Proxmox:
+        id: portal-proxmox
+        icon: proxmox.png
+        href: https://homepage.home.local:8183/
+        description: Virtual machines, containers and host status
+        siteMonitor: http://172.18.0.1:8299/
+    - OpenWrt Router:
+        id: portal-openwrt
+        icon: openwrt.png
+        href: https://homepage.home.local:8184/
+        description: Routing, VLANs, Wi-Fi and firewall
+        siteMonitor: http://192.168.10.1/
+    - Zyxel GS1900 Switch:
+        id: portal-zyxel-switch
+        icon: mdi-switch
+        href: https://homepage.home.local:8185/
+        description: Managed switch VLANs, ports and link status
+        siteMonitor: http://192.168.10.12/
+    - Docker Host:
+        id: portal-docker-host
+        icon: docker.png
+        href: https://homepage.home.local:8192/
+        description: VM 103 workloads through Dozzle
+        ping: 192.168.20.102
+
+- Monitoring:
+    - Grafana:
+        id: portal-grafana
+        icon: grafana.png
+        href: https://homepage.home.local:8202/
+        description: Metrics and architecture dashboards
+        siteMonitor: http://192.168.60.10:3000/api/health
+    - Uptime Kuma:
+        id: portal-uptime-kuma
+        icon: uptime-kuma.png
+        href: https://homepage.home.local:8186/
+        description: Service availability and incident history
+        siteMonitor: http://192.168.60.10:3001/
+    - AdGuard Home:
+        id: portal-adguard
+        icon: adguard-home.png
+        href: https://homepage.home.local:8191/
+        description: DNS filtering and query activity
+        server: docker-host
+        container: adguard-home
+    - InfluxDB:
+        id: portal-influxdb
+        icon: influxdb.png
+        href: https://homepage.home.local:8203/
+        description: Time-series metrics administration
+        siteMonitor: http://192.168.60.10:8086/health
+
+- Storage & Transfer:
+    - OpenMediaVault:
+        id: portal-omv
+        icon: openmediavault.png
+        href: https://homepage.home.local:8187/
+        description: NAS storage, shares and disk health
+        siteMonitor: http://192.168.40.50/
+    - Transfer Portal:
+        id: portal-transfer
+        icon: mdi-folder-swap-outline
+        href: https://homepage.home.local:8201/
+        description: Guarded NAS disk-to-disk transfers
+        siteMonitor: http://192.168.40.50:8088/
+    - Obsidian LiveSync:
+        id: portal-livesync
+        icon: obsidian.png
+        href: https://homepage.home.local:8190/_utils/
+        description: CouchDB administration for vault sync
+        server: docker-host
+        container: obsidian-livesync
+
+- Media:
+    - Immich:
+        id: portal-immich
+        icon: immich.png
+        href: https://homepage.home.local:8189/
+        description: Household photo and video library
+        server: docker-host
+        container: immich_server
+    - Jellyfin:
+        id: portal-jellyfin
+        icon: jellyfin.png
+        href: https://homepage.home.local:8205/
+        description: Read-only household film, series and music library
+        server: docker-host
+        container: jellyfin
+    - Calibre-Web:
+        id: portal-calibre-web
+        icon: calibre-web.png
+        href: https://homepage.home.local:8206/
+        description: Household ebook library
+        server: docker-host
+        container: calibre-web
+    - Atsumeru:
+        id: portal-atsumeru
+        icon: mdi-bookshelf
+        href: https://homepage.home.local:8208/
+        description: Comics and manga library backend
+        server: docker-host
+        container: atsumeru
+    - qBittorrent:
+        id: portal-qbittorrent
+        icon: qbittorrent.png
+        href: https://homepage.home.local/portal-preview/qbittorrent/
+        description: Mullvad-isolated authorised download staging
+        server: docker-host
+        container: qbittorrent
+
+- Docker Infrastructure:
+    - Dozzle:
+        id: portal-dozzle
+        icon: dozzle.png
+        href: https://homepage.home.local:8192/
+        description: Live logs for every Docker workload
+        server: docker-host
+        container: dozzle
+    - Watchtower:
+        id: portal-watchtower
+        icon: watchtower.png
+        description: Monitor-only container update checks
+        server: docker-host
+        container: watchtower
+    - Telegraf:
+        id: portal-telegraf
+        icon: telegraf.png
+        description: Docker-host metrics collection
+        server: docker-host
+        container: docker-host-telegraf
+
+- Application Services:
+    - GardenKeeper API:
+        id: portal-gardenkeeper-api
+        icon: mdi-api
+        description: GardenKeeper application API
+        server: docker-host
+        container: gardenkeeper-api
+    - GardenKeeper Worker:
+        id: portal-gardenkeeper-worker
+        icon: mdi-cog-sync-outline
+        description: GardenKeeper background processing
+        server: docker-host
+        container: gardenkeeper-worker
+    - Household Hub API:
+        id: portal-household-hub-api
+        icon: mdi-api
+        description: Knowledge workbench API
+        server: docker-host
+        container: household-hub-api-1
+    - Immich Machine Learning:
+        id: portal-immich-machine-learning
+        icon: mdi-image-filter-center-focus
+        description: Photo recognition and indexing
+        server: docker-host
+        container: immich_machine_learning
+
+- Data Services:
+    - GardenKeeper PostgreSQL:
+        id: portal-gardenkeeper-postgres
+        icon: postgres.png
+        description: GardenKeeper relational data
+        server: docker-host
+        container: gardenkeeper-postgres
+    - GardenKeeper Redis:
+        id: portal-gardenkeeper-redis
+        icon: redis.png
+        description: GardenKeeper queue and cache
+        server: docker-host
+        container: gardenkeeper-redis
+    - Household Hub PostgreSQL:
+        id: portal-household-hub-postgres
+        icon: postgres.png
+        description: Household Hub relational data
+        server: docker-host
+        container: household-hub-postgres-1
+    - Household Hub Redis:
+        id: portal-household-hub-redis
+        icon: redis.png
+        description: Household Hub queue and cache
+        server: docker-host
+        container: household-hub-redis-1
+    - Household Hub Qdrant:
+        id: portal-household-hub-qdrant
+        icon: qdrant.png
+        description: Household Hub vector search
+        server: docker-host
+        container: household-hub-qdrant-1
+    - Immich PostgreSQL:
+        id: portal-immich-postgres
+        icon: postgres.png
+        description: Immich library database
+        server: docker-host
+        container: immich_postgres
+    - Immich Redis:
+        id: portal-immich-redis
+        icon: redis.png
+        description: Immich job queue
+        server: docker-host
+        container: immich_redis

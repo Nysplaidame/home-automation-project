@@ -8,7 +8,7 @@ not PCI passthrough; `intel_iommu=on` is not required.
 
 - Render node: `/dev/dri/renderD128`
 - Card node: `/dev/dri/card0`
-- CT render group: GID `992`
+- CT render group: GID `993`
 - CT video group: GID `44`
 
 Run on the Proxmox host:
