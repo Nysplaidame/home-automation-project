@@ -34,6 +34,31 @@ freshness checks that cannot be established from the management workstation.
 For a backup incident, use the Proxmox JSON snapshot rather than treating the
 missing Windows signals as a failure or a pass.
 
+### Proxmox snapshot acceptance
+
+The remaining acceptance gate requires a fresh read-only export from the
+existing Proxmox host collector. On the Proxmox host, use its installed
+`/usr/local/sbin/home-automation-health-check --json` command and copy the
+result to the management workstation. Do not run a backup, restore, restart,
+or configuration change for this evidence collection.
+
+Validate the copied file before importing it into the staged dashboard:
+
+```powershell
+python main\scripts\monitoring\validate_proxmox_snapshot.py .\proxmox-health.json --require-pass
+```
+
+Acceptance also requires a snapshot no older than 36 hours and a valid timezone.
+For a legacy local timestamp, add `--timestamp-offset +01:00` only if that was
+the Proxmox collector's actual offset when collected. Missing, stale, ambiguous
+or future-dated evidence cannot pass. Integrity and restore proof remain separate.
+
+The validator accepts only a `Proxmox host` snapshot with the CT 111/114
+capacity evidence, the CT 111 recording-mount source, and fresh archives for
+VMs 100/102/103 and CTs 111/114. It reports statuses only and never prints
+collector detail. A non-passing result is evidence to investigate; it is not a
+reason to change the dashboard's `Needs evidence` state.
+
 The interface highlights the first failed or missing evidence signal and names
 the host on which each displayed command must be run. These are instructions
 only: copying a command never runs it.
