@@ -1,4 +1,4 @@
-const CACHE = 'recomp-tracker-shell-v15';
+const CACHE = 'recomp-tracker-shell-v20';
 const SHELL = ['/', '/static/app-v2.js', '/static/exercise-catalog.json', '/static/manifest.webmanifest'];
 
 self.addEventListener('install', event => {

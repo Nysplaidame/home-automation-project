@@ -36,7 +36,8 @@ your other home automation containers. Data lives in SQLite on a mounted volume
   Rest can start automatically after a completed set or shared group round;
   compact form/substitution guides are lazy-loaded only when opened. The runner
   has per-set completion checkboxes, reps/load/RPE and set-type fields,
-  previous-session context, one-tap prior-performance/set copying and
+  previous-session context, explicit planned-versus-actual values, one-tap
+  prior-performance/set copying and
   exercise-specific form cues. Routines can define
   planned sets, rest, target RPE and set type per exercise; completed sessions
   retain their copied details. Any weekly programme session can be loaded
@@ -46,8 +47,10 @@ your other home automation containers. Data lives in SQLite on a mounted volume
   The runner visually groups supersets/circuits, allows optional work to be
   skipped, and offers one-tap easier/harder or full-library substitutions while
   preserving the slot's sets, targets, rest, programme link and substitution
-  history. Exercises may also be added, removed or reordered during the live
-  session. Assistance/variation, tempo, form quality, discomfort, failed-set
+  history. Searchable exercise pickers replace long select lists for adding,
+  substituting and assigning goals or HIIT activities. Exercises may also be
+  added, removed or reordered during the live session. Assistance/variation,
+  tempo, form quality, discomfort, failed-set
   flags and short cues are saved with the exercise. A serialized debounced
   autosave indicator and one-step workout undo protect rapid edits.
 - A progression and planning layer: routines can be assigned to weekdays and
@@ -56,8 +59,10 @@ your other home automation containers. Data lives in SQLite on a mounted volume
   completed sessions keep the version they used. Each exact exercise variation
   has a recent-performance chart and a conservative next-session suggestion
   based on its logged range, load, RPE, form, failed-set and discomfort data.
-  Suggestions never invent bodyweight loads and can be applied to the draft for
-  review before sets are completed. The runner also includes a configurable
+  Suggestions never invent bodyweight loads and can be applied as explicit
+  session targets without pre-filling the actual fields. Repeated comparable
+  sessions without progress surface a conservative stall/deload suggestion.
+  The runner also includes a configurable
   bar/plate calculator, while Review stores the normal load increment, bar
   weight and available plate pairs.
 - A weekly Dashboard that combines recorded diet adherence, protein-target
@@ -65,6 +70,12 @@ your other home automation containers. Data lives in SQLite on a mounted volume
   habit completion without treating missing entries as zero. Recovery signals
   remain conservative and explain which logged readiness, form, failure, RPE
   or discomfort data produced them.
+- Body-composition analytics on Dashboard and Habits & Trends: seven-day
+  average weight, regression-based weight and waist rates, change from the
+  first seven-day window, a rough energy-equivalent signal only when enough
+  moderate-rate data exists, and recorded strength-to-bodyweight changes.
+  Missing measurements are never converted to zero and all outputs remain
+  descriptive rather than prescribing a calorie adjustment.
 - Exercise goals for reps, hold duration or external load. Goals can be edited,
   archived and restored; their progress and milestones use the same reconciled
   history as Records, so legacy exercise names continue contributing after a
@@ -72,8 +83,9 @@ your other home automation containers. Data lives in SQLite on a mounted volume
 - A configurable HIIT interval timer at the top of Workout, with work, rest,
   round and preparation controls, 40/20, 30/30 and Tabata presets, pause/resume,
   automatic generated transition alarms and a screen wake-lock request while
-  running. Values are saved as defaults, and the timer does not create a
-  workout record by itself.
+  running. Values can be saved as defaults. After completion, the user may
+  optionally save the selected activity and its work intervals as a workout in
+  Records; duplicate saves from the same completed timer are prevented.
 - Finishing a workout now opens a post-session summary with completed/planned
   sets, work, numeric loaded volume, duration, average logged RPE, PR signals,
   discomfort and comparison with the previous matching routine. Records keeps
@@ -131,12 +143,12 @@ The food library is stored in one version-checked JSON record by design. With
 2,691 foods that record is about 840 KB, so the backend retains a bounded 8 MB
 request ceiling (configurable with `MAX_CONTENT_LENGTH`) rather than the former
 1 MB ceiling. This leaves room for recipes, aliases and servings while still
-rejecting unexpectedly large requests. Backups using schema version 10 include
+rejecting unexpectedly large requests. Backups using schema version 11 include
 food metadata, programme stage history, progression links, routine groups,
 optional exercise flags, reusable routine templates, compact-workout settings
 and live-session rest/quick-note state, weekday schedules and overrides,
-routine versions, equipment/load settings, workout summaries, exercise goals
-and saved HIIT defaults.
+routine versions, equipment/load settings, workout summaries, exercise goals,
+saved HIIT defaults and activity, and explicit planned workout-set targets.
 
 ## Setup
 

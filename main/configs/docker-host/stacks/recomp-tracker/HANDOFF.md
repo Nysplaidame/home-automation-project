@@ -9,7 +9,7 @@ being moved to run as a **real, always-on service** on the user's home
 docker host, mainly to get the ntfy push notifications actually working
 (the artifact can't run a background scheduler when the tab is closed).
 
-## Current deployment state (2026-08-27)
+## Current deployment state (2026-08-28)
 
 - Live on docker-host VM 103 at `http://192.168.20.102:8420/`; the container
   is healthy and uses the explicit `10.240.31.0/24` bridge, avoiding the
@@ -238,6 +238,32 @@ docker host, mainly to get the ntfy push notifications actually working
   unlocked directly from the start gesture. The exact test goal was removed
   with a version-checked write and HIIT defaults were restored to 40 seconds
   work, 20 seconds rest, 10 rounds and 10 seconds preparation.
+- Smarter targets, body-composition and interval-recording release
+  (2026-08-28): fresh routine/programme workouts now seed explicit planned
+  reps/seconds and numeric load from the most recent completed performance,
+  while actual fields remain empty until logged. Suggestions can be applied as
+  targets, target completion appears in workout summaries, and three or more
+  comparable non-improving sessions over at least seven days produce a
+  conservative stall/deload prompt. Searchable, keyboard-operable exercise
+  pickers now cover goals, workout additions, substitutions and HIIT activity.
+  Dashboard and Habits & Trends add seven-day average weight, regression-based
+  weight/waist rates, baseline change, guarded energy-equivalent context and
+  recorded strength-to-bodyweight trends without treating missing data as zero.
+  A completed HIIT timer can optionally create one Records workout with one
+  completed seconds-based set per work interval. Backup schema is 11 and the
+  offline shell cache is v20.
+- Live acceptance for this release verified that a fresh bodyweight routine
+  planned Pull-up at 3 × 6 from the prior completed 3 × 5 while its actual
+  fields stayed blank; exact-name picker ranking and ArrowDown/Enter selection;
+  body trend and relative-strength cards; and an end-to-end 1-second HIIT save
+  showing 1/1 completed and 1/1 targets met in Records. Desktop and 375 × 812
+  checks found no horizontal overflow and browser warnings/errors remained
+  empty. The exact HIIT acceptance record and two blank workout drafts were
+  removed with version-checked writes, leaving the user's 10 completed workouts
+  and no active draft. HIIT defaults remain 40/20 × 10 with 10 seconds prep.
+  A stopped-container backup was saved as
+  `/opt/stacks/recomp-tracker/data/recomp.pre-next-batch-20260828.db` before the
+  release.
 - Remaining acceptance: add a read-only subscriber for the tracker topic in
   the ntfy phone app and confirm receipt of the test/scheduled notification.
   Keep that subscriber separate from `mobile-monitoring`, which remains scoped
