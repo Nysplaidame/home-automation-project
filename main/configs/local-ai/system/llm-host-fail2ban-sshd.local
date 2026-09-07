@@ -1,0 +1,34 @@
+# CT 114 llm-host (192.168.20.104) Fail2ban baseline.
+# Deploy to /etc/fail2ban/jail.d/llm-host-fail2ban-sshd.local
+#
+# NOT DEPLOYED as of 2026-08-01 — blocked on the host's package path, not on
+# this configuration. See the CT 114 section of
+# docs/procedures/fail2ban_host_rollout.md.
+#
+# Pre-flight results (2026-08-01), which settled the open questions from the
+# first draft of this file:
+#   - ufw is installed and ACTIVE, so `banaction = ufw` is correct and matches
+#     the docker-host, Frigate and monitoring baselines.
+#   - Both `nft list ruleset` and `iptables -S` succeed inside this unprivileged
+#     LXC, so the earlier concern that it could not write packet-filter rules
+#     was unfounded. No `banaction = dummy` fallback is needed.
+#   - The systemd journal carries sshd entries normally, so
+#     `backend = systemd` is correct.
+#
+# Blocker: CT 114 has no working APT path. Its sources point directly at
+# deb.debian.org and security.debian.org, it has no apt proxy configured, it has
+# no outbound HTTP over IPv4 or IPv6, and docker-host's apt-cacher-ng ufw policy
+# allows 3142 only from Frigate (192.168.30.20) and Monitoring
+# (192.168.60.10). CT 114 was built after those rules and was never added.
+# Fail2ban cannot be installed until that path is restored.
+
+[DEFAULT]
+banaction = ufw
+bantime = 1h
+findtime = 10m
+maxretry = 5
+ignoreip = 127.0.0.1/8 192.168.10.0/24 192.168.20.0/24
+
+[sshd]
+enabled = true
+backend = systemd

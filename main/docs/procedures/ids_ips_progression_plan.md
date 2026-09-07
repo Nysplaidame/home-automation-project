@@ -15,6 +15,14 @@ stack too early.
 
 ## Current state (2026-05-30)
 
+September update: [[fail2ban_host_rollout]] now preserves the recovered July/
+August sources and deployment evidence. VM102 and VM103 Fail2ban are freshly
+confirmed active; CT114's APT path still fails and its jail is inactive.
+Proxmox deployment is historical evidence pending authorized revalidation;
+OMV remains unproven. Keep the Proxmox web-UI jail deferred behind the shared
+proxy identity. Add a host tag before combining multiple hosts' jail metrics.
+The dated baseline below is historical, not a complete September inventory.
+
 - Central monitoring is live (Kuma, InfluxDB, Grafana, Telegraf).
 - OpenWrt selective deny logging is live and forwarded.
 - True network IDS and IPS are not deployed.
