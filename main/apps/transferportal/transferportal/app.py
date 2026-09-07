@@ -18,7 +18,7 @@ from .models import JobMode, JobStatus, Portal, RsyncOptions
 from .portals import PortalConfigError, find_portal, load_portals, remove_portal, upsert_portal
 from .rsync import RsyncOptionError, build_rsync_command
 from .settings import AppConfig, load_config
-from .store import JobStore
+from .store import JobCapacityError, JobStore
 
 
 CONFIG_PATH = Path(os.environ.get("TRANSFERPORTAL_CONFIG", "/etc/transferportal/config.yaml"))
@@ -29,6 +29,7 @@ def create_app() -> FastAPI:
     app = FastAPI(title="Transfer Portal")
     app.state.config = config
     app.state.store = JobStore(config.database_path)
+    app.state.store.fail_unlaunched_jobs()
     app.state.helper = HelperClient(config.helper_path)
     app.add_middleware(SessionMiddleware, secret_key=_session_secret(config))
 
@@ -95,7 +96,7 @@ def create_app() -> FastAPI:
         try:
             response = app.state.helper.request(
                 "browse-path",
-                {"path": path or "", "config_path": str(CONFIG_PATH)},
+                {"path": path or ""},
             )
         except HelperError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -112,6 +113,8 @@ def create_app() -> FastAPI:
         allow_destination_delete: Annotated[bool, Form()] = False,
     ) -> RedirectResponse:
         actor = require_auth(request)
+        if any(existing.slug == slug for existing in load_portals(CONFIG_PATH)):
+            raise HTTPException(status_code=409, detail="portal slug already exists; delete it before recreating it")
         portal = Portal(
             slug=slug,
             display_name=display_name,
@@ -127,7 +130,6 @@ def create_app() -> FastAPI:
                     "slug": portal.slug,
                     "source_path": str(portal.source_path),
                     "destination_path": str(portal.destination_path),
-                    "config_path": str(CONFIG_PATH),
                 },
             )
             upsert_portal(portal, CONFIG_PATH)
@@ -181,7 +183,7 @@ def create_app() -> FastAPI:
         try:
             response = app.state.helper.request(
                 "remove-portal",
-                {"slug": portal.slug, "config_path": str(CONFIG_PATH)},
+                {"slug": portal.slug},
             )
             remove_portal(portal.slug, CONFIG_PATH)
             app.state.store.record_audit(
@@ -211,9 +213,8 @@ def create_app() -> FastAPI:
 
     @app.post("/jobs/move")
     def move(request: Request, payload: Annotated[dict[str, Any], Depends(job_form)]) -> RedirectResponse:
-        if payload.get("confirm_move") != "confirm":
-            raise HTTPException(status_code=400, detail="move mode requires confirmation")
-        return submit_job(app, request, JobMode.MOVE_AFTER_VERIFIED_COPY, payload)
+        require_auth(request)
+        raise HTTPException(status_code=409, detail="move mode is disabled until verified-copy deletion is implemented")
 
     @app.get("/jobs", response_class=HTMLResponse)
     def jobs(request: Request) -> HTMLResponse:
@@ -283,20 +284,45 @@ def create_app() -> FastAPI:
         job = app.state.store.get_job(job_id)
         if not job:
             raise HTTPException(status_code=404)
-        if app.state.store.active_count() >= config.max_active_jobs:
-            raise HTTPException(status_code=409, detail="another transfer job is active")
-        command = tuple(json_list(job["command_json"]))
-        status_path = config.log_dir / f"job-{job_id}-retry-{uuid.uuid4().hex}.status.json"
-        new_id = app.state.store.create_job(
-            job["portal_slug"],
-            job["mode"],
-            JobStatus.QUEUED.value,
-            {},
-            command,
-            "queued",
-            Path(job["log_path"]) if job["log_path"] else None,
-            status_path,
-        )
+        if job["current_phase"] == "preview":
+            raise HTTPException(status_code=409, detail="preview jobs cannot be retried")
+        if job["status"] not in {JobStatus.FAILED.value, JobStatus.INTERRUPTED.value}:
+            raise HTTPException(status_code=409, detail="only failed or interrupted jobs can be retried")
+        try:
+            mode = JobMode(str(job["mode"]))
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail="stored job mode is no longer supported") from exc
+        if mode == JobMode.MOVE_AFTER_VERIFIED_COPY:
+            raise HTTPException(status_code=409, detail="move mode is disabled")
+        portal = find_portal(load_portals(CONFIG_PATH), str(job["portal_slug"]))
+        if not portal.enabled:
+            raise HTTPException(status_code=409, detail="portal is disabled")
+        option_values = json.loads(job["options_json"])
+        if "advanced_flags" in option_values:
+            option_values["advanced_flags"] = tuple(option_values["advanced_flags"])
+        try:
+            options = RsyncOptions(**option_values)
+        except TypeError as exc:
+            raise HTTPException(status_code=409, detail="stored job options are no longer supported") from exc
+        try:
+            command = build_rsync_command(portal, options, mode)
+        except RsyncOptionError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        token = uuid.uuid4().hex
+        log_path = config.log_dir / f"job-retry-{token}.log"
+        status_path = config.log_dir / f"job-retry-{token}.status.json"
+        try:
+            new_id = app.state.store.reserve_job(
+                portal.slug,
+                mode.value,
+                option_values,
+                command,
+                log_path,
+                status_path,
+                config.max_active_jobs,
+            )
+        except JobCapacityError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
         app.state.store.record_audit(actor, "job.retry", job["portal_slug"], new_id, {"source_job_id": job_id})
         launch_job(
             app,
@@ -304,7 +330,7 @@ def create_app() -> FastAPI:
             new_id,
             job["portal_slug"],
             command,
-            Path(job["log_path"]) if job["log_path"] else config.log_dir / f"job-{new_id}.log",
+            log_path,
             status_path,
         )
         return RedirectResponse(f"/jobs/{new_id}", status_code=303)
@@ -325,29 +351,42 @@ def submit_job(app: FastAPI, request: Request, mode: JobMode, payload: dict[str,
     actor = require_auth(request)
     config: AppConfig = app.state.config
     preview_only = payload.get("preview_only") == "on"
-    if not preview_only and app.state.store.active_count() >= config.max_active_jobs:
-        raise HTTPException(status_code=409, detail="another transfer job is active")
     portal = find_portal(load_portals(CONFIG_PATH), str(payload["portal_slug"]))
     if not portal.enabled:
         raise HTTPException(status_code=400, detail="portal is disabled")
     options = options_from_payload(payload)
     try:
-        command = build_rsync_command(portal, options, mode)
+        command = build_rsync_command(portal, options, mode, verify=preview_only)
     except RsyncOptionError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    log_path = config.log_dir / f"job-{portal.slug}-{mode.value}.log"
-    status_path = config.log_dir / f"job-{portal.slug}-{mode.value}.status.json"
-    job_id = app.state.store.create_job(
-        portal.slug,
-        mode.value,
-        JobStatus.COMPLETED.value if preview_only else JobStatus.QUEUED.value,
-        asdict(options),
-        command,
-        "preview" if preview_only else "queued",
-        log_path,
-        status_path,
-    )
+    token = uuid.uuid4().hex
+    log_path = config.log_dir / f"job-{token}.log"
+    status_path = config.log_dir / f"job-{token}.status.json"
+    if preview_only:
+        job_id = app.state.store.create_job(
+            portal.slug,
+            mode.value,
+            JobStatus.COMPLETED.value,
+            asdict(options),
+            command,
+            "preview",
+            log_path,
+            status_path,
+        )
+    else:
+        try:
+            job_id = app.state.store.reserve_job(
+                portal.slug,
+                mode.value,
+                asdict(options),
+                command,
+                log_path,
+                status_path,
+                config.max_active_jobs,
+            )
+        except JobCapacityError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
     app.state.store.record_audit(
         actor,
         "job.create",
@@ -377,7 +416,6 @@ def launch_job(
                 "command": list(command),
                 "log_path": str(log_path),
                 "status_path": str(status_path),
-                "config_path": str(CONFIG_PATH),
             },
         )
         pid = int(response["response"]["pid"])
@@ -628,7 +666,7 @@ def transfer_form(portals: list[Portal], selected: str) -> str:
         {checkbox('update_newer_only', 'Update newer only')}
         {checkbox('checksum_compare', 'Checksum compare')}
         {checkbox('size_only_compare', 'Size-only compare')}
-        {checkbox('delete_destination_extras', 'Delete destination extras')}
+        <p class="warning">Destination deletion is disabled in this containment release.</p>
         {checkbox('preserve_acls', 'Preserve ACLs', True)}
         {checkbox('preserve_xattrs', 'Preserve xattrs', True)}
         {checkbox('preserve_owner_group', 'Preserve owner/group', True)}
@@ -637,14 +675,14 @@ def transfer_form(portals: list[Portal], selected: str) -> str:
       </fieldset>
       <details><summary>Advanced</summary>
         <p class="warning">Advanced flags can change overwrite behavior. They are allowlisted and shown in the generated command preview.</p>
-        <label>Advanced flag <select name="advanced_flag_1"><option value=""></option><option>--one-file-system</option><option>--whole-file</option><option>--ignore-times</option><option>--inplace</option></select></label>
+        <label>Advanced flag <select name="advanced_flag_1"><option value=""></option><option>--one-file-system</option><option>--whole-file</option><option>--ignore-times</option></select></label>
       </details>
       <label class="check"><input type="checkbox" name="preview_only"> Preview command only, do not run rsync</label>
-      <label>Move confirmation <input name="confirm_move" placeholder="type confirm for move"></label>
+      <p class="warning">Move is temporarily disabled until copy verification and separately confirmed source deletion are implemented.</p>
       <div class="actions">
         <button formaction="/jobs/dry-run" type="submit">Dry run</button>
         <button formaction="/jobs/copy" type="submit">Copy</button>
-        <button class="danger" formaction="/jobs/move" type="submit">Move after verified copy</button>
+        <button class="danger" formaction="/jobs/move" type="submit" disabled aria-disabled="true">Move unavailable</button>
       </div>
     </form>
     """

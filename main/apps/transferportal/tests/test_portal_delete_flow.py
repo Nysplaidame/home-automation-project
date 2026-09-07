@@ -49,7 +49,7 @@ def test_delete_portal_cleans_helper_before_removing_config(tmp_path, monkeypatc
     assert helper.requests == [
         (
             "remove-portal",
-            {"slug": "cleanupcheck", "config_path": str(config)},
+            {"slug": "cleanupcheck"},
         )
     ]
     assert load_portals(config) == []
@@ -89,3 +89,52 @@ def test_delete_portal_blocks_when_portal_has_active_job(tmp_path, monkeypatch):
     assert "active transfer job" in response.text
     assert helper.requests == []
     assert [stored.slug for stored in load_portals(config)] == ["cleanupcheck"]
+
+
+def test_duplicate_portal_slug_is_rejected_before_helper_call(tmp_path, monkeypatch):
+    portal = Portal("duplicate", "Duplicate", Path("/srv/source"), Path("/srv/destination"))
+    client, helper, _config = make_client(tmp_path, monkeypatch, [portal])
+
+    response = client.post(
+        "/portals",
+        data={
+            "slug": "duplicate",
+            "display_name": "Replacement",
+            "source_path": "/srv/other-source",
+            "destination_path": "/srv/other-destination",
+        },
+    )
+
+    assert response.status_code == 409
+    assert "already exists" in response.text
+    assert helper.requests == []
+
+
+def test_preview_copy_stores_dry_run_and_cannot_be_retried(tmp_path, monkeypatch):
+    portal = Portal("preview", "Preview", Path("/srv/source"), Path("/srv/destination"))
+    client, helper, _config = make_client(tmp_path, monkeypatch, [portal])
+
+    response = client.post(
+        "/jobs/copy",
+        data={"portal_slug": "preview", "preview_only": "on"},
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 303
+    job = client.app.state.store.list_jobs()[0]
+    assert "--dry-run" in job["command_json"]
+    retry = client.post(f"/jobs/{job['id']}/retry")
+    assert retry.status_code == 409
+    assert "preview jobs cannot be retried" in retry.text
+    assert helper.requests == []
+
+
+def test_move_route_is_disabled(tmp_path, monkeypatch):
+    portal = Portal("move", "Move", Path("/srv/source"), Path("/srv/destination"), allow_source_delete=True)
+    client, helper, _config = make_client(tmp_path, monkeypatch, [portal])
+
+    response = client.post("/jobs/move", data={"portal_slug": "move", "confirm_move": "confirm"})
+
+    assert response.status_code == 409
+    assert "move mode is disabled" in response.text
+    assert helper.requests == []

@@ -34,7 +34,14 @@ uvicorn transferportal.app:create_app --factory --reload
 - The helper accepts structured JSON only and dispatches to an allowlisted
   command table.
 - Generated rsync commands are arrays, not editable shell strings.
-- Move mode is two-phase: copy, verify with dry-run, then delete only when the
-  portal allows source deletion and the user has confirmed the operation.
-- The default queue admits one active transfer job.
-
+- The root-owned helper uses a compiled policy rather than trusting the
+  service-user-writable application configuration.
+- Rsync launch requires one allowlisted command shape, exact source/destination
+  endpoints for the same portal, active bind mounts, and constrained log paths.
+- Move mode is disabled until its copy, verification, and separately confirmed
+  source-deletion phases are connected to the production job lifecycle.
+- Destination deletion and `--inplace` are disabled until destructive
+  permissions are sourced from a root-owned portal policy.
+- Preview commands always include `--dry-run` and cannot be retried as live jobs.
+- Active-job admission is an atomic database reservation; abandoned queued jobs
+  are failed on service startup.
