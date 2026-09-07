@@ -3,7 +3,7 @@ title: Household, Workshop and Operations Product Roadmap
 description: Phased roadmap for daily household workflows, workshop operations, diagnostics, resilience, and VentSys commissioning
 tags: [roadmap, household, workshop, monitoring, resilience, ventsys]
 created: 2026-09-05
-modified: 2026-09-06
+modified: 2026-09-07
 type: product-roadmap
 status: active
 ---

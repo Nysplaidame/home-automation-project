@@ -4,7 +4,7 @@ description: Fire safety ventilation, NVR surveillance, secure network, and home
 tags: [home-automation, project-overview]
 aliases: [Project Overview]
 created: 2025-09-15
-modified: 2026-08-25
+modified: 2026-09-07
 type: project-overview
 status: active
 ---
@@ -24,12 +24,12 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 
 | Layer | Status | Notes |
 |---|---|---|
-| Network design | ✅ Complete | 10-segment architecture, all configs written and audited |
+| Network design | ✅ Complete | 11 segments including isolated cloud-IoT VLAN 55; scoped September recovery validated |
 | Router configs | ✅ Live | vlan/firewall/dhcp/wireless deployed through router-deploy first-flight |
 | Router deployment | ✅ Live | GL-MT6000 stable on management IP 192.168.10.1 |
 | Proxmox | ✅ Live | MINISFORUM M1 Pro-125H on 192.168.10.10, Proxmox VE 9 |
 | HA VM | ✅ Live | HAOS VM 100 at 192.168.20.101, native HTTPS with local CA, VentSys packages staged |
-| Frigate | ✅ Three-camera baseline live | CT 111 runs Frigate 0.17.1 with shared-iGPU OpenVINO, MQTT/HA integration, HTTPS UI and three ANNKE C500 cameras; fourth-camera selection and policy tuning remain pending |
+| Frigate | ✅ Service reachable / cameras deferred | CT 111 remains reachable; Zyxel and three ANNKE C500 cameras are intentionally disconnected pending reconnection and acceptance |
 | Docker host | ✅ Live / one network exception | VM 103 uses explicit non-overlapping Compose bridges for every deployed stack except Bambuddy, which remains temporarily on host networking until the P1S/VLAN 35 path is reachable |
 | Local AI | ✅ LXC + local inference live | CT 114 runs GPU-backed llama.cpp, Open WebUI, Whisper, Piper and OpenWakeWord |
 | OMV NAS | ✅ Live | OpenMediaVault at 192.168.40.50 on VLAN 40; Proxmox/HA/Immich storage paths are live, and the old md0 high-water warning was cleared by the 2026-07-05 `omv-backups` check |
@@ -38,7 +38,7 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 | VentSys HA packages | ✅ Written / staged | Package YAML, scripts, automations all written; do not treat VentSys entities as live until hardware is adopted |
 | ESPHome sensor configs | ✅ Written / validation ongoing | Production VentSys files live under `configs/esphome/`; hardware adoption remains gated |
 | VentSys hardware | ⏳ Pending | ESP32 boards, sensors, PrintAirPipe parts not yet purchased |
-| Cameras | ✅ Three live / one pending | Three ANNKE C500 cameras are live at `192.168.30.21`–`.23`; a fourth camera remains to be selected and commissioned |
+| Cameras | ⏳ Three disconnected / one future | Three previously proven cameras retain `.21`–`.23`; reconnection and CCTV acceptance remain owner-gated |
 | MAC addresses | ⏳ Partial | Core VM MACs are recorded; many hardware/device placeholders remain |
 
 ---
@@ -47,11 +47,11 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 
 | Device | Model | Status |
 |---|---|---|
-| Compute | MINISFORUM M1 Pro-125H (Intel Core Ultra 5 125H, 32GB RAM, 1TB NVMe) | ✅ Owned |
+| Compute | MINISFORUM M1 Pro-125H (Intel Core Ultra 5 125H, 64GB installed RAM, 1TB NVMe) | ✅ Owned |
 | Router | GL.iNet GL-MT6000 (OpenWrt, WiFi 6) | ✅ Owned and deployed |
 | NAS | OMV-capable storage host | ✅ Owned and deployed as OMV at 192.168.40.50 |
-| PoE switch | Zyxel GS1900-8HP managed PoE+ | ✅ Deployed; management VLAN 10 and camera access ports on VLAN 30 |
-| IP cameras | ANNKE C500 PoE cameras | ✅ Three deployed; fourth remains future scope |
+| PoE switch | Zyxel GS1900-8HP managed PoE+ | ⏳ Configured but intentionally disconnected |
+| IP cameras | ANNKE C500 PoE cameras | ⏳ Three previously proven, currently disconnected; fourth remains future scope |
 | ESP32 boards | 4× (2× sensor, 1× fan ctrl, 1× valve ctrl) | ⏳ Needed |
 
 ---
@@ -66,7 +66,7 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 - ESPHome on isolated VLAN 50, controlled via MQTT through HA
 - Full dashboard: `dashboards/ventsys-dashboard.html` → deploy to `/config/www/`
 
-### Network security (10 segments)
+### Network security (11 segments)
 | VLAN | Name | Subnet | Internet |
 |---|---|---|---|
 | 1 | LAN (users) | 192.168.1.0/24 | ✅ |
@@ -76,19 +76,20 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 | 35 | Printers | 192.168.35.0/24 | OTA only |
 | 40 | Storage (NAS) | 192.168.40.0/24 | ❌ |
 | 50 | IoT sensors | 192.168.50.0/24 | ❌ |
+| 55 | Cloud IoT (Hive on LAN2) | 192.168.55.0/24 | ✅ WAN only; no internal forwarding |
 | 60 | Monitoring | 192.168.60.0/24 | Limited |
 | 70 | DMZ | 192.168.70.0/24 | Limited |
 | 99 | Guest | 192.168.99.0/24 | ✅ |
 
 ### NVR / Cameras (VLAN 30)
 - Frigate runs on unprivileged CT 111 with shared Intel iGPU acceleration, OpenVINO detection, VA-API decode and HTTPS UI access
-- Three ANNKE C500 cameras are live at `192.168.30.21`–`.23`; a fourth camera remains planned at `.24` after its model is selected
+- Three ANNKE C500 cameras were proven at `192.168.30.21`–`.23` but are deliberately disconnected; a fourth remains planned at `.24`
 - Current recordings write to OMV NFS storage through a Proxmox-host mount and CT 111 bind mount; CT-local storage remains fallback/non-recording media only
-- HA Frigate integration and Advanced Camera Card are live for all three cameras; keep this path active for the near-term camera rollout instead of parking it
+- HA Frigate integration and Advanced Camera Card retain the three-camera configuration; fresh stream and notification acceptance follows physical reconnection
 
 ### Docker host + Bambuddy / P1S printer (VLAN 20 → VLAN 35)
 - Docker host runs on VM 103 at 192.168.20.102; Bambuddy is live on port 8000
-- Monitors Bambu Lab P1S at 192.168.35.200 via MQTT over VLAN 35
+- Intended to monitor P1S at 192.168.35.200 via MQTT over VLAN 35; the printer is not yet commissioned
 - Publishes print state to Mosquitto; HA package in `configs/home-assistant/bambuddy_p1s_package.yaml`
 - Setup guide: `scripts/setup/proxmox/docker_host_setup_guide.md`
 
@@ -127,10 +128,10 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 ### Home Assistant (VLAN 20)
 - HAOS on Proxmox VM 100 at 192.168.20.101
 - Mosquitto MQTT, ESPHome, Terminal & SSH and File Editor add-ons are live; native HTTPS uses the local CA at `https://192.168.20.101:8123`
-- Frigate integration and the CCTV dashboard are live for all three installed cameras; a fourth camera and final detection/zone policy remain near-term follow-up
+- Frigate integration and CCTV dashboard are configured; the three cameras require fresh acceptance after reconnection
 - VentSys packages in `/config/packages/`
-- Treat the broader Frigate camera rollout, OMV recording cutover, and VentSys
-  hardware entities as unbuilt until explicitly revalidated.
+- OMV recording cutover was previously completed; new recording/playback proof
+  awaits camera reconnection. VentSys hardware entities remain unbuilt.
 
 ### Local AI / voice (VLAN 20)
 - CT 114 `llm-host` at 192.168.20.104 runs llama.cpp, Open WebUI, Wyoming
@@ -222,4 +223,4 @@ The older setup guides remain deep-dive appendices for individual systems.
 
 ---
 
-**Updated:** 2026-08-25
+**Updated:** 2026-09-07

@@ -3,8 +3,8 @@
 > **LLM:** Read this file first on every query. Master catalog of all wiki content.
 > Updated after every ingest, query (if filed), or lint pass.
 
-**Stats:** 21 sources - 27 entities - 7 concepts - 8 analyses
-**Last updated:** 2026-08-25
+**Stats:** 21 sources - 28 entities - 7 concepts - 9 analyses
+**Last updated:** 2026-09-07
 
 ---
 
@@ -15,14 +15,14 @@
 
 ### Project overview
 - [[sources/project-readme]] - Project overview; current canonical docs supersede older NAS/VPN, Frigate, VentSys, and monitoring-embedding claims
-- [[sources/project-todo]] - Full task list across phases; current roadmap tracks live monitoring/Grafana/exporter state and keeps OMV/Frigate/VentSys hardware gated
+- [[sources/project-todo]] - Full task list across phases; current roadmap tracks live monitoring/Grafana/exporter state and tracks disconnected cameras, uncommissioned VentSys and outstanding backup/SMART evidence
 - [[sources/hardware-bom]] - Hardware BOM; current NAS direction is OMV
 
 ### Architecture & design
 - [[sources/network-architecture-decision]] - Historical 9-VLAN design; current canonical docs supersede older NAS/VPN direction
 
 ### Configuration files
-- [[sources/openwrt-vlan-firewall-configs]] - DSA bridge, 10 VLANs, WireGuard fallback, firewall rules
+- [[sources/openwrt-vlan-firewall-configs]] - DSA bridge, September VLAN55 extension, WireGuard fallback, firewall rules
 - [[sources/openwrt-dhcp-config]] - DHCP scopes, static reservations, local DNS
 - [[sources/ha-configuration-yaml]] - HA core config; packages, HTTP security, recorder
 
@@ -52,12 +52,12 @@
 ### Hardware
 - [[entities/minisforum-m1-pro-125h]] - Live Proxmox host; Core Ultra 5 125H, 32 GiB, shared iGPU
 - [[entities/minix-neo-z350]] - Superseded early compute plan retained for source history
-- [[entities/gl-mt6000]] - GL.iNet WiFi 6 router; OpenWrt DSA; 10-VLAN core
+- [[entities/gl-mt6000]] - GL.iNet WiFi 6 router; OpenWrt 24.10.3; workstation SSH and HomeAdmin diagnostics
 - [[entities/tplink-ap]] - Planned TP-Link TL-WA801N AP; VLAN 1 switch capacity unresolved
 - [[entities/rpi-displays]] - Pi kiosk displays on VLAN 1
 - [[entities/cctv-camera-fleet]] - Three-camera Frigate fleet on PoE VLAN 30 access ports
 - [[entities/bambu-p1s]] - FDM printer on VLAN 35
-- [[entities/openmediavault-nas]] - Live OMV NAS on VLAN 40 with five-disk SMART monitoring
+- [[entities/openmediavault-nas]] - OMV NAS on router LAN4 / VLAN 40; attachment owner-confirmed 2026-09-04
 - [[entities/raspberry-pi-nas]] - Deprecated historical NAS plan; superseded by OMV
 
 ### Infrastructure
@@ -77,6 +77,7 @@
 - [[entities/household-hub]] - Transcript RAG, confirmed recipe handoff, read-only Grocy, and Markdown/ICS exports on docker-host
 - [[entities/qbittorrent]] - Mullvad/Gluetun-isolated authorised download staging with fail-closed proof
 - [[entities/troubleshooting-dashboard]] - Staged read-only symptom-led diagnostics on management-only VM 103 port 8094
+- [[entities/home-operations-workbench]] - Verified local fixture-driven evidence workbench; not deployed or live-integrated
 - [[entities/ventsys]] - Fire safety ventilation packages/dashboard staged; hardware rollout gated by TLS-path revalidation
 - [[entities/smart-plugs-ventsys]] - VentSys smart plugs
 - [[entities/esphome]] - ESP32 firmware platform; VentSys hardware adoption pending revalidation
@@ -87,7 +88,7 @@
 ## Concepts
 
 - [[concepts/rag-vs-wiki-pattern]] - RAG vs Wiki Pattern
-- [[concepts/vlan-segmentation]] - 10-VLAN architecture
+- [[concepts/vlan-segmentation]] - 11-VLAN architecture including cloud IoT
 - [[concepts/ventsys-architecture]] - ESP32 to MQTT to HA
 - [[concepts/mqtt-tls]] - Local CA and Mosquitto TLS state; VentSys rollout should use `8883`
 - [[concepts/printairpipe]] - 125mm printable ducting and valves
@@ -106,6 +107,7 @@
 - [[analyses/lint-2026-08-09]] - Targeted Household Hub recipe-workflow and ownership-boundary lint
 - [[analyses/lint-2026-08-21]] - Targeted mobile Homepage proxy and Tailscale-access lint
 - [[analyses/lint-2026-08-25]] - Architecture-document reconciliation and targeted wiki drift repair
+- [[analyses/household-workshop-operations-roadmap-2026-09]] - Proposed phased roadmap for household, workshop, diagnostics, recovery and VentSys workflows
 
 ---
 

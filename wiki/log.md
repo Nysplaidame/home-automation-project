@@ -337,3 +337,87 @@
   links from the index, docker-host and canonical source summaries.
 - Confirmed access claims match the canonical service/access matrices and that
   missing Proxmox evidence remains an explicit open gate.
+
+## [2026-09-04] update | Owner-confirmed NAS cabling and pending Hive LAN2
+- Updated [[entities/gl-mt6000]], [[entities/openmediavault-nas]] and [[index]]
+  after correcting the canonical cabling reference and network diagram sources.
+- Owner confirmed OMV on router LAN4 / VLAN 40; GS1900 port 8 is spare storage
+  access. This supersedes the incorrect August reconciliation claim.
+- Recorded fibre-installation outage and pending Hive LAN2 research from
+  [[../main/HANDOFF-2026-07-27-portal-services]]. LAN2 remains management VLAN 10;
+  no live router change or availability verification was performed.
+- Targeted consistency check: router and NAS entity tables agree with the
+  corrected canonical physical map. Historical source/audit entries remain
+  dated evidence. No new wiki page or index-count change was needed.
+
+## [2026-09-04] update | Zen/Openreach WAN restored
+- Updated [[entities/gl-mt6000]] from owner confirmation and LuCI screenshots:
+  logical `wan`, physical `eth1`, PPPoE; Openreach requires no WAN VLAN tag.
+- Canonical live state, cabling table, handoff and task list record the working
+  mapping and the stale deployment-template gap. No credentials were copied.
+- Proxmox restoration, IPv6 and old Wi-Fi-uplink retirement remain unverified.
+
+## [2026-09-04] update | Post-fibre connectivity audit
+- Updated [[entities/gl-mt6000]] and [[entities/docker-host]] against the
+  authenticated router/Proxmox evidence in the canonical current handoff.
+- IPv4 internet, 48 local DNS aliases, production guests and NAS backup
+  storage are accessible. VM 103 has only 1 GiB configured with full swap and
+  several failed app endpoints; all 2.4 GHz APs are down; IPv6 is not up.
+- Hive is on management VLAN 10 pending isolation. Switch/cameras are
+  intentionally disconnected. No live repairs were applied; endpoint replies
+  are not full authenticated workflow or backup-write validation.
+
+## [2026-09-04] update | Router SSH key and authenticated firmware/Wi-Fi check
+- Updated [[entities/gl-mt6000]] and [[index]] from the canonical handoff and
+  [[../main/docs/reference/current-live-state]]. Dedicated workstation key login
+  is verified, with the existing laptop key preserved; no private key entered
+  the vault.
+- Confirmed vanilla OpenWrt 24.10.3/kernel 6.6.104 and live HomeAdmin channel
+  100/HE80, approximately -76 dBm PC signal and 432 Mbps download PHY. Firmware
+  reporting/counter quirks and upgrade candidates are in the canonical handoff.
+- Later observed 2.4 GHz recovery and Hive on cloud-IoT VLAN 55 supersede the
+  earlier audit's state; this task did not implement or accept those repairs.
+- Targeted consistency check: wiki version/key/radio observations match the
+  canonical follow-up; no firmware update or radio tuning was performed.
+
+## 2026-09-04 — Post-fibre repair reconciliation
+
+Updated router, Docker host and segmentation pages after canonical recovery
+records: VM103 6 GiB and services restored; radio0 APs restored; WAN eth1 PPPoE;
+LAN2 cloud VLAN55 / Hive .55.10 with WAN-only forwarding; NAS direct LAN4.
+Targeted consistency review removed stale 1 GiB/current-down and ten-segment
+claims in these pages. Index updated; no new pages or raw sources added.
+Open: Zen IPv6 NoPrefixAvail, Hive app/account status, P1S setup, unplugged
+switch/cameras, weak HomeAdmin radio signal. Sources are current-live-state,
+physical cabling reference, guest inventory and the current portal handoff.
+
+## [2026-09-05] analysis | Household, Workshop and Operations Product Roadmap
+
+- Created [[analyses/household-workshop-operations-roadmap-2026-09]] and
+  updated [[sources/project-todo]] and [[index]].
+- The canonical roadmap starts with read-only evidence, then sequences Today
+  at Home, recovery/diagnostic evidence, food workflow, workshop inventory and
+  hardware-gated VentSys commissioning.
+- It records complementary performance, drift, maintenance, capacity, document,
+  job-state and power-continuity ideas as individually gated work. No service,
+  credential, automation, inventory or safety state changed.
+- Corrected the current summary in [[sources/project-todo]] so live OMV/Frigate
+  foundations and disconnected or uncommissioned physical integrations remain
+  distinct.
+
+## [2026-09-06] create | Home Operations Workbench proof of concept
+
+- Created [[entities/home-operations-workbench]] and updated
+  [[analyses/household-workshop-operations-roadmap-2026-09]] and [[index]].
+- The canonical implementation is `main/apps/home-operations-workbench/`: a
+  local schema-1.0 evidence viewer with Today, possible shared dependencies,
+  recovery evidence, meal availability and a visual-only VentSys checklist.
+- Model tests and desktop/mobile browser smoke checks passed. It has no live
+  connection, deployment, credential, control, persistence or source-system
+  write path; this operation did not change home-automation state.
+
+## [2026-09-07] reconcile | Project health and offline evidence adapters
+
+- Canonical README/current-state/task/update-review and recovery test-card documents reconciled before wiki updates.
+- Updated `pages/sources/project-todo.md`, `pages/entities/home-operations-workbench.md` and index: offline health imports, freshness and restore boundaries, CT114 package-access and Watchtower notification gaps.
+- No live deployment, physical acceptance or fresh Proxmox/OMV proof inferred from historical records.

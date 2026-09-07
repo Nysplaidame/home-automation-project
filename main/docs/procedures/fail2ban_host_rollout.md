@@ -3,7 +3,7 @@ title: Fail2ban Host Rollout
 description: Standard jail policy and per-host deployment procedure for extending Fail2ban beyond docker-host and the Frigate CT
 tags: [security, fail2ban, hardening, ids]
 created: 2026-07-31
-modified: 2026-07-31
+modified: 2026-09-07
 type: procedure
 status: active
 ---

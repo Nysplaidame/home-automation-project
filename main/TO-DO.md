@@ -1,10 +1,10 @@
 ---
 title: Project Tasks
-description: Implementation tasks by phase — updated June 2026
+description: Implementation tasks, operational evidence and owner-gated follow-ups
 tags: [tasks, implementation]
 aliases: [TODO, Tasks]
 created: 2025-09-15
-modified: 2026-08-27
+modified: 2026-09-07
 type: task-list
 status: active
 ---
@@ -16,6 +16,64 @@ status: active
 ---
 
 ## Next project steps
+
+- [x] Reconcile overview and historical planning baselines with September
+  recovery: deliberately disconnected cameras, 64GB Proxmox RAM, VLAN55/Hive,
+  direct LAN4 OMV and PPPoE WAN. See the 2026-09-07 health audit in the current
+  handoff; the household/workshop roadmap already reflects deferred hardware.
+- [x] Review the uncommitted September work in bounded change
+  groups; reconcile the five missing commits on
+  `origin/claude/todo-list-review-6c88a1` against current evidence before
+  integrating branches. Missing Fail2ban sources/runbook and verified Proxmox/
+  CT114 MAC reservations were recovered; newer proxy and September source
+  were retained. Preserve this reviewed work as separate feature-branch commits.
+- [x] Refresh the read-only update/backup evidence available through current
+  access; see the 2026-09-07 update review. VM103 app-data backup succeeded;
+  Proxmox and OMV deny workstation SSH keys, so guest-backup and SMART proof
+  remain explicit gaps rather than completed checks.
+- [ ] Obtain fresh Proxmox guest-backup and OMV SMART evidence through an
+  authorized management route; do not install keys or change authentication
+  merely to clear this evidence gate.
+- [ ] Restore CT114's approved package path in a bounded maintenance change:
+  no APT proxy, TCP3142 timeout and direct Debian HTTP failure confirmed
+  2026-09-07; cached security/update metadata dates to June19. Then re-evaluate
+  candidates and complete the deferred Fail2ban rollout.
+- [ ] Repair Watchtower-to-ntfy notification delivery: monitor-only scans
+  succeed but September6/7 notifications fail with attachment-policy error40014.
+  Prove payload/template formatting locally before a separately authorized
+  notification acceptance test; retain the existing no-attachments policy.
+- [ ] Complete and review the VentSys authenticated card/page bridge contract
+  before any dashboard deployment. Local startup error is fixed and five
+  browser tests pass; public credentials remain prohibited and the page stays
+  offline. The draft card is not connected to the page and is not accepted.
+
+- [x] Restore HomeGuest 2.4 GHz broadcast after its UCI section type was
+  invalid; `phy0-ap4` and SSID activation validated after a wireless reload
+  (2026-09-05). See the current handoff.
+- [ ] Investigate HomeAdmin Wi-Fi throughput after fibre cutover: workstation
+  measured 172 Mbps HTTPS versus 558-699 Mbps from the wired monitoring VM.
+  Authenticated 2026-09-04 checks show OpenWrt 24.10.3, auto channel selecting
+  100/HE80, PC signal around -76 dBm and current download PHY 432 Mbps. Compare
+  local wired/Wi-Fi throughput and evaluate the AX210 driver update; plan the
+  OpenWrt 25.12 upgrade separately and verify full WAN speed with a wired Zen test.
+  See the current handoff for measurements and test limitations.
+- [x] Install dedicated workstation router SSH key and verify root access via
+  `home-router-lan`, preserving the existing laptop key (2026-09-04).
+- [x] Post-fibre VM103 recovery: restore 6144 MiB RAM, graceful restart,
+  recover Homepage/AdGuard/Immich/Dozzle and verify NFS/container health.
+- [x] Retire disconnected Zyxel Wi-Fi uplink; all five 2.4 GHz APs restored.
+- [x] Repair WAN6 device mapping and required IPv6 control-traffic firewall.
+- [ ] Ask Zen to confirm/enable IPv6 allocation: live DHCPv6 replies are
+  NoAddrsAvail / NoPrefixAvail, including a prefix-only /48 request.
+- [x] Reconcile rebuild WAN with untagged PPPoE on eth1; fail deployment when
+  local PPPoE secrets are missing. Lint, previews and four regression tests pass.
+- [x] OMV verified directly on LAN4; LAN2 moved to isolated cloud IoT VLAN55,
+  Hive reserved at 192.168.55.10 with DHCP/NTP and internet traffic verified.
+- [ ] Resolve Hive's existing app/account offline issue: owner still sees it
+  offline despite established internet connections. Try the vendor's app
+  force-close workaround, then check model/LED and Manage → Devices status.
+- [ ] Set up P1S on HomePrinters when ready; currently not installed (owner).
+- [ ] Reconnect Zyxel and cameras when ready, then rerun CCTV acceptance.
 
 1. [x] Add the Installation Manual Suite v1 canonical entrypoint under `docs/install/START-HERE.md`
 2. [x] Add numbered fresh-rebuild phase manuals under `docs/install/phases/`
@@ -39,9 +97,9 @@ status: active
 10. [ ] Run a full dry-read from `docs/install/START-HERE.md` after the next content expansion pass
     - 2026-08-24 structural dry-read passed 50-document link navigation, 52
       documented placeholders, 311 shell blocks and 66 PowerShell blocks. The
-      full dry-run remains open because all router-deploy profiles still fail
-      `architecture.docker_host_tailscale_egress_rule_present`, and a structural
-      documentation pass is not a blank-hardware rebuild.
+      full dry-run was blocked by a router invariant at that time. September
+      recovery lint and compiler regression tests pass; an actual credentialed
+      full rebuild and blank-hardware acceptance remain unproven.
 11. [x] Deploy and document shared-iGPU CT 111 Frigate and CT 114 local AI architecture
 12. [x] Reconcile the canonical architecture documentation on 2026-08-25:
     update current-state/service/access/name/cabling references, active setup
@@ -78,9 +136,9 @@ Planning baseline until explicitly revalidated:
 - Treat OMV and Proxmox NFS backups as live. On 2026-07-05, Proxmox reported
   `omv-backups` active at 54.21% used, so the old 86-87% md0 high-water warning
   is cleared; keep normal monthly backup and SMART checks.
-- Treat Frigate as live with three ANNKE C500 cameras on CT 111; keep the
-  fourth-camera choice, detection/zone tuning and notification acceptance as
-  the remaining camera work.
+- Treat Frigate CT 111 as reachable with three previously proven cameras
+  deliberately disconnected. Reconnect the Zyxel/cameras and rerun stream,
+  recording/playback and notification acceptance before calling CCTV live.
 - Treat Home Assistant native HTTPS as live at
   `https://192.168.20.101:8123` with the local `Home Local CA`. HTTP on
   port `8123` is no longer the active HA UI.
@@ -163,6 +221,20 @@ Planning baseline until explicitly revalidated:
 ---
 
 ## Docker-host app roadmap
+
+### Household, workshop and operations product roadmap
+
+- [ ] Deliver the phased [[docs/procedures/household-workshop-operations-roadmap|Household, Workshop and Operations Product Roadmap]]. Begin with the read-only evidence contract, then Today at Home and the recovery/troubleshooting extension. Keep system-of-record ownership, confirmation gates and VentSys safety boundaries intact.
+  - [x] Build and verify the local, import-only [[apps/home-operations-workbench/README|Home Operations Workbench]] proof of concept for Today, diagnostics, recovery, meal availability and VentSys commissioning. It has no live integration or deployment path yet.
+  - [x] Add offline Windows/Proxmox health-snapshot adapters with explicit
+    timestamp/freshness handling, unknown missing checks and separate
+    backup/integrity/restore evidence; unit and desktop/mobile browser tests
+    pass on 2026-09-07. No service credentials or live collection added.
+  - [x] Record the September recovery tabletop review in
+    [[docs/audits/2026-07-full-system-audit/08-resilience-test-cards]] for major
+    host, network, storage, application, monitoring and credential-loss scenarios.
+    This is paper review; live drills and owner-selected RPO/RTO remain gated.
+  - [ ] Collect a fresh read-only Proxmox health snapshot, validate it with [[scripts/monitoring/validate_proxmox_snapshot.py]], and import it into the staged Troubleshooting Dashboard to accept its mount and backup-freshness evidence.
 
 ### Tier 1 - near-term core
 

@@ -3,7 +3,7 @@ title: "OpenMediaVault NAS"
 category: entity
 tags: [storage, nas, omv, openmediavault, backups]
 created: 2026-05-23
-updated: 2026-08-25
+updated: 2026-09-04
 sources: [project-readme, project-todo]
 status: active
 ---
@@ -27,8 +27,9 @@ on [[entities/docker-host]] under `/opt/stacks/<service>/`.
 
 - IP: `192.168.40.50`
 - VLAN: 40 (Storage)
-- Physical path: GS1900 switch port 8, untagged VLAN 40/PVID 40; router `lan4`
-  is the normally unplugged storage-recovery port
+- Physical path: router `lan4`, untagged VLAN 40/PVID 40; owner confirmed
+  2026-09-04. GS1900 port 8 is spare storage access. See
+  [[../../../main/docs/reference/physical-port-and-cabling]].
 - DNS names: `omv-nas.home.local`, `omv.home.local`, `nas.home.local`
 - Shares: `ha-backups`, `frigate`, `immich`, `configs`
 - Dedicated `media` NFS export to docker-host with qBittorrent
@@ -52,6 +53,10 @@ on [[entities/docker-host]] under `/opt/stacks/<service>/`.
 - [ ] Continue monthly SMART health checks.
 
 ## Change Log
+
+- 2026-09-04: Corrected attachment to router LAN4 from owner confirmation.
+  The August switch-port-8 claim below is superseded; devices were unplugged
+  during fibre installation and live availability was not retested.
 
 - 2026-08-25: Recorded the live GS1900 port 8 attachment and corrected the
   SMART heartbeat from staged to live.

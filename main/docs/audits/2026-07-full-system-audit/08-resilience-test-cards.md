@@ -1,12 +1,49 @@
 ---
 title: July 2026 Resilience and Negative Test Cards
 created: 2026-07-10
-modified: 2026-07-11
+modified: 2026-09-07
 type: audit-test-plan
 status: approval-gated
 ---
 
 # Resilience and Negative Test Cards
+
+## September 2026 tabletop review — no failure injected
+
+Reviewed 2026-09-07 against the current live-state inventory and read-only
+health evidence. This is a paper exercise describing expected dependencies,
+not measured recovery performance. The live test cards below keep their
+existing gates. No service was stopped, guest restored, network changed or
+physical output actuated. Target RPO/RTO values remain owner decisions;
+scheduled backup intervals below are policy, not guaranteed recovery points.
+
+| Scenario | Expected impact / what may remain | First read-only evidence and recovery route | Stop boundary / unresolved proof |
+|---|---|---|---|
+| Mini PC / Proxmox loss | HA, VM103 apps/Tailscale routing, monitoring and AI fail together; router and directly connected OMV can remain reachable | From HomeAdmin, check router and `192.168.10.10:8006` separately, then local console; recover host/network before mounting verified OMV storage and restoring guests | No production-ID restore or duplicate rollback VM boot; Proxmox SSH and fresh guest backup/restore proof remain unavailable from this workstation |
+| OMV unavailable | App backups/media and NFS-dependent applications fail or stall; router and guest management can remain | Check LAN4, `192.168.40.50:2049`, client `findmnt` and mount source; restore NAS/export identity before allowing writers to resume | Never force-unmount production, recreate datasets, or allow writes into local fallback directories; direct SMART evidence is access-blocked |
+| Router / PPPoE failure | Inter-VLAN access, DNS and internet may fail; same-host processes can keep running | Use HomeAdmin or LAN5 recovery, inspect link/PPPoE status and saved recovery config; distinguish WAN-only loss from local routing failure | Do not run the retired Wi-Fi uplink helper, reset router, expose secrets or replace the entire config without a tested local recovery route |
+| Home Assistant / MQTT loss | Automations, voice orchestration and MQTT clients degrade; standalone household apps may remain | Check HTTPS8123 and TLS8883 separately, then HA/VM console and backup identity | No restart or retained command replay as a diagnostic; VentSys is uncommissioned and no safety capability is certified |
+| VM103 / Docker failure | Homepage, app services, AdGuard and Tailscale subnet routing degrade; HA/monitoring/OMV can remain | Direct IP checks from HomeAdmin, `docker ps`, `df -h /`, `findmnt`, and `systemctl show docker-host-app-data-backup.service -p Result -p ExecMainExitTimestamp` | Restore mounts and firewall before dependent writers; 2026-09-07 app-data job success is not application restore proof |
+| Frigate failure | NVR service unavailable; current disconnected cameras already provide no live CCTV | Check CT111 SSH/UI and recording mount separately; preserve current config and recordings | Do not enable legacy VM101 alongside CT111; camera reconnection and new recording/playback acceptance require physical work |
+| CT114 / inference loss | Local model/STT/TTS paths fail; HA built-in conversation and other standalone apps may remain | Check API8081 and service/CT health; inspect package proxy policy before updates | CT114 cache TCP3142 and direct HTTP fail; no blind firewall expansion, model replacement or legacy VM104 boot |
+| Monitoring VM loss | Kuma/Grafana telemetry and alerts may disappear even while services run | Check HA's independent monitoring health sensors and direct service endpoints; inspect VM102 separately | Missing telemetry is unknown, not healthy; verify alert recovery after any later approved restart |
+| Tailscale outage / lost remote access | Remote management fails while local HomeAdmin may work | Return to trusted local management; inspect peer/host-route state and distinguish route loss from service failure | Do not activate dormant WireGuard or broaden ACLs during discovery; owner access/MFA and an alternate route are prerequisites |
+| Local CA loss or expiry | HTTPS clients can reject otherwise reachable services | Read certificate expiry/chain and locate the protected CA backup through its runbook; validate from a trusted client | Never replace the CA, dump private keys into the vault or treat `curl -k` as trust acceptance |
+| Credential loss | Administrative recovery may be blocked even with healthy hosts | Inventory which existing keys/accounts still work, then password-manager recovery and local console routes | Owner-controlled Vaultwarden onboarding/2FA/recovery remains gated; never revoke the last working credential |
+
+**Recovery order for a combined outage:** trusted physical access and router
+management; Proxmox host management plus direct OMV storage; validated VLAN/NFS
+paths; HA and monitoring; VM103 firewall/mounts and dependent databases/apps;
+Frigate/local AI as applicable; Tailscale and client DNS/TLS acceptance. Verify
+each dependency before promoting its consumers. Avoid starting apps against
+empty local mountpoints. Do not attach restored guests to production networks
+until identities, MACs, scheduled jobs and outbound writes are contained.
+
+**Exit evidence for a future drill:** named scenario, approved scope and maximum
+outage, backup timestamp plus separate integrity/restore evidence, original
+configuration identifiers, tested management route, observed downtime, rollback
+owner and exact restoration checks. Today only endpoint reachability and the
+docker-host backup service result are fresh; no September RTO is measured.
 
 No card below was executed during discovery. Each requires a named operator,
 rollback owner, fresh timestamped approval, current backup proof, monitoring

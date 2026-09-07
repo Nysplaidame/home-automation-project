@@ -3,7 +3,7 @@ title: IDS IPS Progression Plan
 description: Practical phased plan for host hardening, log-driven blocking, and optional network IDS/IPS
 tags: [security, ids, ips, fail2ban, crowdsec, suricata, monitoring]
 created: 2026-05-28
-modified: 2026-05-30
+modified: 2026-09-07
 type: procedure
 status: active
 ---

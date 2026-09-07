@@ -2,12 +2,527 @@
 title: Portal, Monitoring and Household Services Handoff
 description: Live Homepage/monitoring state and the next decision-gated service work
 created: 2026-07-27
-modified: 2026-08-27
+modified: 2026-09-07
 type: handoff
 status: current
 ---
 
 # Handoff — Portal, Monitoring and Household Services (2026-07-27)
+
+## 2026-09-07 audit follow-through
+
+Owner authorized all four no-input follow-ups. Completed local work and
+read-only collection; no live configuration/deployment, account/credential
+change, notification send, package update, physical actuation or restore drill.
+
+- Reconciled README, current-state/task baselines, router WAN guidance and
+  main-tree AGENTS checkout path with K: canonical authority, 64GB RAM,
+  VLAN55/Hive, LAN4 OMV and deliberately disconnected cameras. September
+  tabletop reasoning extends the existing July resilience test cards rather
+  than creating a competing recovery manual.
+- Recovered six missing Fail2ban jail/filter/runbook files from `6bee788`.
+  The five old branch commits were reviewed semantically: retained newer
+  Homepage proxy/DHCP/docs; preserved the deferred Proxmox web-UI jail decision;
+  restored Proxmox and CT114 MAC reservations only after router neighbors
+  freshly matched `38:05:25:31:55:D3` and `BC:24:11:CE:B9:E5`. Source-only;
+  no router deployment. Historical branch ancestry is not merged wholesale.
+- VM102 Fail2ban `sshd` active, zero bans; VM103 active. CT114 inactive, no
+  APT proxy, cache TCP3142 timeout and direct Debian HTTP failure. Its 56
+  cached candidates rely on June19 security/update metadata. Proxmox and OMV
+  deny available workstation SSH keys, so SMART and fresh guest archives/
+  integrity/restores remain unknown. No access policy was changed to bypass this.
+- Updated maintenance log with current cached VM103/VM102 package candidates,
+  backup/timer results and capacity. Watchtower's monitor-only setting is
+  confirmed, but September6/7 ntfy notification delivery fails with attachment
+  error40014. Healthy container state does not establish working alert delivery.
+- Added Windows/Proxmox offline health adapters, browser import and a CLI that
+  refuses existing output. Known statuses only; raw collector detail discarded;
+  missing evidence unknown; 36-hour freshness and explicit legacy timezone;
+  backups never imply integrity/restore proof. A fresh Windows snapshot was
+  converted successfully outside Git. Workbench remains local/import-only.
+- Tightened Proxmox snapshot `--require-pass` to reject stale, future, invalid
+  or timezone-ambiguous observations. Legacy timestamps require the collector's
+  actual `--timestamp-offset`. Direct Proxmox snapshot acceptance stays open.
+- Full Transfer Portal pytest in an isolated temporary Python3.13 venv:
+  48 passed / 2 skipped (Windows symlink privilege). Local dependencies were
+  installed in that venv only. Linux privileged-helper acceptance is still open.
+- Workbench syntax +10 tests, Troubleshooting model9, snapshot validator6,
+  router recovery4 and source lint pass. All11 canonical diagrams match generated viewer data and
+  pass browser Mermaid parsing. Both compiler profiles' placeholder
+  previews pass in temporary directories without reading deployment secrets.
+  Workbench and Troubleshooting desktop/mobile browser smoke pass; Workbench
+  screenshots inspected. All five VentSys browser/mock tests pass after fixing
+  an undefined startup helper. Recomp JS syntax passes and both app/service-worker
+  SHA256 hashes match VM103. No new Recomp write-flow acceptance was performed.
+- VentSys public credential removal left an incomplete card/page bridge. The
+  startup fix keeps the page honestly offline; `dashboards/ventsys-card-status.md`
+  marks draft state and acceptance work. Do not deploy it as a working bridge.
+- `git diff --check` passes. A targeted private-key/JWT/GitHub-token marker
+  scan of changed/untracked files found no matches; this is not a full security
+  certification. Existing changes are preserved in separate feature-branch commits:
+  `e47f8bb` network recovery; `5907eea` transfer safety; `364eaf0` Recomp;
+  `699073e` VentSys draft; `d4fad16` Fail2ban; `bf8ecf8` offline workbench.
+  Reconciled documentation/wiki is the final follow-through commit. Push this
+  feature branch normally; main remains unchanged and should not receive the
+  unaccepted VentSys bridge as a deployment-ready change.
+
+## 2026-09-07 project health audit
+
+Scope: canonical K: checkout, fetched origin refs, targeted documentation and
+local checks, plus read-only management-workstation and docker-host probes.
+No live configuration, deployment, commit, push or branch merge was performed.
+
+- Git at audit start: `codex/portal-refinement` / `19f16a9` matches its fetched
+  upstream (zero ahead/behind). There are 47 modified tracked files and 19
+  untracked files, spanning network recovery, Transfer Portal safety changes,
+  Recomp UI, VentSys dashboard/card, Home Operations Workbench, snapshot
+  validation, roadmap and wiki. These working files are not protected by a Git
+  push. The tracked diff is 1,834 insertions / 407 deletions before this entry.
+- `origin/main` remains `ab81a70` (2026-07-16), 34 commits behind this branch.
+  Those 34 commits are already pushed to the feature branch, not merged to main.
+- `origin/claude/todo-list-review-6c88a1` has five commits absent here, ending
+  at `6bee788` (2026-08-01). They record Proxmox/VM102 Fail2ban deployment,
+  CT114's APT-path gap and task cleanup. Reconcile deliberately against current
+  source/live evidence; do not redeploy or mark their historical claims current
+  merely because the remote branch contains them. Two other local-only commits
+  (`ceacc16`, `9416865`) concern stale Excalidraw artifact cleanup on old branches.
+- Fresh `health_check.ps1 -Full -Json` at 22:28 BST: 12 PASS / 1 FAIL.
+  Camera 1 RTSP is the sole failure, consistent with the documented deliberately
+  disconnected cameras. Router, HA HTTPS, Frigate SSH/UI port, docker-host,
+  Homepage, Bambuddy, MQTT TLS, Grafana, Kuma, llama.cpp and OMV NFS pass.
+  HTTP checks relax certificate validation; these are reachability checks, not
+  certificate, camera-stream, inference or end-to-end functional acceptance.
+- Authenticated docker-host read: all 38 running containers are Up; all
+  configured container health checks are healthy. App-data backup service
+  reports success / exit 0 on 2026-09-07 at 03:50:33 BST, with its next timer
+  scheduled for 2026-09-08 03:45. Root disk is 75% used (16G available);
+  `/mnt/omv/immich` is 60% used (5.8T available). This does not prove Proxmox
+  guest-backup freshness, NAS SMART health or a new restore test.
+- Local checks: Workbench syntax + 6 model tests, Troubleshooting syntax + 9
+  model tests, snapshot validator 4 tests, router recovery 4 tests and router
+  lint all pass. `git diff --check` passes. Transfer Portal targeted safety/store
+  tests: 29 passed, 2 skipped. Full pytest collection is blocked by missing
+  `itsdangerous` in the workstation Python environment. Browser smoke, Linux
+  root-helper acceptance and complete deployment/source parity were not rerun.
+- Roadmap verdict: the September household/workshop roadmap correctly labels
+  the Workbench local/import-only and hardware deferred. Older overview/task
+  sections remain stale: README says three cameras live, 32GB RAM and ten
+  segments without VLAN55; TO-DO's planning baseline still says cameras live;
+  router README still describes temporary Wi-Fi WAN. Latest update-review log
+  entry is 2026-08-01 (37 days ago), despite a weekly review policy. Proxmox
+  snapshot acceptance remains open. Historical backup dates are not fresh proof.
+
+Recommended no-input work order: reconcile roadmap/status documentation and
+the missing branch evidence; validate and organize existing changes into
+reviewable groups; refresh read-only backup/SMART/update evidence through
+existing authorized access; then develop offline evidence adapters and recovery
+tabletop documentation. Keep live publishing, physical commissioning, owner
+accounts, retention choices and disruptive maintenance at their existing gates.
+
+## 2026-09-05 HomeGuest broadcast repair
+
+Owner reported that `HomeGuest` was absent from Wi-Fi scans. Authenticated
+inspection found `wireless.guest_2g` had an invalid section type rather than
+`wifi-iface`; `ubus` omitted it and `phy0-ap4` did not exist. The SSID, guest
+network attachment, WPA2 security, client isolation and saved password option
+were otherwise present. A backup of `/etc/config/wireless` was saved on the
+router at `/tmp/wireless-before-homeguest-repair-1788632657`.
+
+Restored only the section type to `wifi-iface`, committed wireless UCI and ran
+`wifi reload`. This may have briefly reconnected 2.4 GHz clients. Validation:
+`ubus` reports `phy0-ap4`; `iw` reports `HomeGuest` active; its SSID and WPA2
+mode remain intact. The guest password was neither recorded here nor changed.
+No firewall, VLAN, DHCP or 5 GHz setting changed.
+
+## 2026-09-04 post-fibre recovery (supersedes the audit below)
+
+Owner authorized repair of the audit findings. Live changes and acceptance:
+
+- VM 103: backed up its Proxmox config locally, restored memory from 1024 to
+  6144 MiB, performed a graceful shutdown (task OK) and started it. Guest now
+  sees 5.8 GiB usable; after nine minutes load was 0.03/0.23/0.21, available
+  RAM 1.7 GiB and swap 46 MiB instead of 2 GiB full. QEMU guest agent is active.
+  All containers are running; all defined Docker health checks are healthy.
+  Three OMV NFS mounts are present (backups, Immich, media). Root disk 75% used.
+- Homepage HTTPS/HTTP, AdGuard UI and upstream DNS, Immich and Dozzle recovered
+  without application reconfiguration. Final HTTP checks returned 200 for all
+  five, plus OMV, Open WebUI and Frigate HTTPS. The core health script passed
+  11/12 checks; its sole failure is the deliberately unplugged camera.
+  All 48 authoritative home.local aliases passed validation again.
+- Disabled the disconnected `wireless.router_uplink` Zyxel station and reloaded
+  radio0. All five 2.4 GHz APs started, and a HomeIoT station joined. The 5 GHz
+  APs remained available. Live radio0 is configured channel 5/HE40 (effective
+  20 MHz); radio1 auto/HE80 selected channel 100. Source channel preferences
+  are aligned with these live values. P1S is not yet set up, owner-confirmed;
+  its absence is not a remaining router fault.
+- LAN2 now exclusively accesses `cloud_iot`, VLAN 55, 192.168.55.0/24.
+  Hive MAC `00:1c:2b:b1:02:20` received reserved `192.168.55.10` after the
+  owner power-cycled it. Ethernet negotiates 100 Mbps full duplex. Router
+  DHCP/DNS/NTP work; conntrack shows bidirectional established internet TCP
+  443 and router NTP. The owner still sees Hive offline in the app and reports
+  older unresolved issues: application/account acceptance remains OPEN.
+- Cloud IoT firewall: router input REJECT except IPv4 DHCP/DNS/NTP, forwarding
+  REJECT except WAN; external DNS ports 53/853 rejected before WAN forwarding.
+  No forwarding to internal zones. Runtime nftables and `fw4 check` pass.
+  This was configuration/ruleset verification, not an active penetration test
+  from the Hive device. Hive was observed using external UDP 9953: blocking
+  standard DNS ports does not prevent all encrypted/nonstandard DNS.
+  No VLAN 50 safety-device internet permission was added.
+- WAN stays untagged Zen/Openreach PPPoE on `eth1`. Explicit WAN6 now uses
+  `@wan`, with `wan.ipv6=1`, DHCPv6 and required scoped WAN ICMPv6 input/error
+  forwarding rules. Packet capture proves Zen returns **NoAddrsAvail** and
+  **NoPrefixAvail**. A temporary prefix-only /48 request also received
+  NoPrefixAvail; reverted to reqaddress=try, reqprefix=auto. IPv6 remains
+  unavailable; owner is unsure whether Zen enabled it. Ask Zen to check IPv6
+  provisioning/allocation, quoting those server responses. IPv4 continues
+  working with zero loss in the bounded ping check.
+- HomeAdmin PC signal measured from the router: about -77 dBm, two spatial
+  streams, 80 MHz, about 432 Mbps current PHY rate. This supports investigating
+  antennas/placement and a wired comparison for the reported ~200 Mbps Wi-Fi
+  throughput. No rate cap found; full 900 Mbps service acceptance remains open.
+
+Backups: router `/root/recovery-20260904/` contains original network, firewall,
+DHCP and wireless configs. A delayed network rollback was armed with
+`start-stop-daemon` and cancelled by the verified `network-accepted` marker.
+The initial `nohup` launch was unsupported; connectivity and firewall were
+subsequently verified before cancelling the working watchdog. VM config backup:
+`C:/Users/Admin/AppData/Local/Temp/vm103-before-recovery-20260904.json`.
+No router, Proxmox or PPPoE password is recorded in tracked files.
+
+Saved rebuild source now includes PPPoE/eth1, logical WAN6, cloud VLAN55,
+Hive DHCP and firewall policies. Both compile preview profiles and lint pass;
+four offline regression tests cover missing/unsafe credentials and WAN/LAN2
+mapping regressions. Both actual deploy profiles refuse absent PPPoE secrets;
+provide them only through ignored `tools/router-deploy/keys/router_secrets.json`.
+All 11 Mermaid diagrams passed a headless browser parse. Updated diagram-data.js
+was deployed atomically to the live viewer on port8092 and verified byte-for-byte
+over HTTP; the previous data file is backed up beside its dist directory.
+Both the scoped repair script and full firewall source pass router sh -n.
+
+Full generated configuration was NOT redeployed: the scoped repair script
+preserved existing application rules and live secrets. Preview artifacts are
+not a deployment-ready credentialed configuration.
+
+Hive's current service page acknowledges false offline status and recommends
+force-closing/reopening the app without logout. This is a possible explanation,
+not proof of this hub's problem. Remaining diagnostic input: hub model/light
+pattern and status under Manage → Devices after restarting the app.
+Sources checked 2026-09-04:
+- https://status.hivehome.com/
+- https://support.hivehome.com/portal/app/portlets/results/viewsolution.jsp?solutionid=022433716182024
+- https://docs.opnsense.org/manual/how-tos/IPv6_ZenUK.html
+
+## 2026-09-04 HomeAdmin throughput investigation
+
+Owner reports approximately 200 Mbps over HomeAdmin after the Zen 900 Mbps
+fibre installation. Read-only checks and bounded download tests found:
+
+- Management workstation `192.168.10.116` uses its Intel AX210 Wi-Fi adapter
+  with a reported link rate of **576 Mbps**; Ethernet is disconnected and
+  Mullvad reports disconnected. The default active path is `192.168.10.1`.
+  Driver settings allow automatic 5 GHz channel width, 802.11ax, highest
+  transmit power and no MIMO power saving. Windows denied detailed WLAN
+  telemetry because location permission is unavailable; signal/channel were
+  not measured and no privacy setting was changed.
+- Source configuration places HomeAdmin on 5 GHz `radio1`, channel 36,
+  `HE80`. The separate HomeAdmin-2G radio issue below does not establish the
+  cause of this 5 GHz slowdown. No intentional 200 Mbps limiter was found
+  in the targeted tracked router configuration; live shaping/offload settings
+  remain uninspected because this session's router SSH key was rejected.
+- Sequential HTTPS downloads from `fsn1-speed.hetzner.com`, discarded without
+  writing payloads to disk: wired monitoring VM `192.168.60.10` downloaded
+  100 MiB in 1.503 s (**558 Mbps**) and 1 GiB in 12.297 s (**699 Mbps**).
+  The workstation downloaded the same 100 MiB file in 4.878 s (**172 Mbps**),
+  with its reported Wi-Fi link still at 576 Mbps afterward.
+- Monitoring VM name resolution initially timed out. Tests used curl
+  `--resolve` with an A record obtained from the workstation, retaining
+  normal HTTPS hostname/certificate verification and changing no DNS settings.
+  Cloudflare returned HTTP 403, and a later parallel Hetzner attempt hit
+  HTTP 429; neither is a valid throughput measurement and neither was retried.
+
+Conclusion: there is no general 200 Mbps ceiling on the fibre path; the
+workstation's wireless path underperforms the wired VM. The exact client,
+radio or router-forwarding cause is not established. These single-file
+results do **not** establish maximum WAN throughput or full 900 Mbps delivery.
+Next: check workstation antenna attachment/placement and a close-range client
+comparison, then inspect live HomeAdmin signal/rates/retries and channel use.
+Use a proper wired speed test against Zen to verify the service ceiling.
+No router/client configuration, service restarts or package installs occurred.
+
+### Firmware research and SSH-key preparation
+
+The owner confirmed the result is from this PC and its external antenna is a
+single cabled unit. A subsequent link-rate sample was 432 Mbps. The installed
+AX210 driver is `23.150.0.4` (driver date 2025-06-12); Intel currently lists
+`24.60.0.3` for AX210 in package 24.60.0. This is an update candidate, not a
+proven fix. [Intel driver source](https://www.intel.com/content/www/us/en/download/19351/intel-wireless-wi-fi-drivers-for-windows-10-and-windows-11.html)
+
+- GL.iNet's table lists MT6000 stock `4.9.1` (MediaTek SDK/OpenWrt 21.02)
+  and separate `4.9.0-op24` (OpenWrt 24.10). The stock release metadata dates
+  4.9.1 to 2026-08-05 and lists no explicit Wi-Fi/PPPoE throughput fix.
+  [Firmware table](https://www.gl-inet.com/pages/firmware-versions),
+  [download centre](https://dl.gl-inet.com/router/mt6000/stable).
+- Similar firsthand GL reports include unresolved approximately 500 Mbps
+  PPPoE on 4.7.4 and 500-650 Mbps WAN-to-Wi-Fi with AX210 on 4.7.4 beta despite
+  gigabit wired/local-Wi-Fi results. These are differing configurations and
+  do not establish a universal defect or a cause here.
+  [PPPoE report](https://forum.gl-inet.com/t/flint-2-only-getting-500-mbps-over-pppoe-instead-of-1-gbps/57230),
+  [AX210/Wi-Fi report](https://forum.gl-inet.com/t/flint-2-wi-fi-download-speed-issue/54668).
+- A May 2026 Zen 900 owner reported 180 Mbps and variable 230-700 Mbps tests
+  including Windows PPPoE; no cause was established. Use Zen's recommended
+  wired Speedtest.net test with the Zen Internet server for the WAN baseline.
+  [Zen customer report](https://forums.thinkbroadband.com/unhappiness/4787671-zen-900-fttp.html?page=34&sb=9),
+  [Zen test instructions](https://www.zen.co.uk/help-support/check-your-speed).
+
+Installed router firmware was subsequently authenticated through LuCI and SSH:
+**vanilla OpenWrt 24.10.3 `r28872-daca7c049b`, kernel 6.6.104**, with mt76
+`2025.09.15~6467af3b`. GL.iNet stock 4.x release numbers and proprietary-driver
+reports do not directly apply to this installed firmware.
+
+Owner requested a dedicated SSH key. Created workstation-only Ed25519 key
+`~/.ssh/home_router_desktop_ed25519` and SSH alias `home-router-lan`, using
+the existing pinned router host key and strict host-key checking. Public-key
+fingerprint: `SHA256:gSwXaFqLJK2YINlWQesU1rDE0SlQZH/VC7m2dnC7IIQ`.
+**Complete at approximately 16:48 BST:** owner logged into LuCI; installed the
+public key and verified `ssh -o BatchMode=yes home-router-lan` authenticates as
+root. `/etc/dropbear/authorized_keys` is root-owned mode 600 and contains one
+new `home-router-desktop` entry and the preserved `router-deploy@laptop` entry.
+The private key stays in the workstation's protected `.ssh` directory outside
+the vault. No password, SSH listener or firewall change was made.
+
+### Authenticated Wi-Fi findings and upgrade candidates
+
+- Live `radio1` is set to **auto channel**, currently **100 / 5500 MHz**, with
+  **HE80**, country **GB**, and transmit power **23 dBm**. The tracked channel
+  36 setting above is source intent, not the live channel.
+- PC MAC `a4:f9:33:c7:82:33` associates to `phy1-ap1` (HomeAdmin). Ordinary
+  received signal/average is approximately **-76 dBm**, noise **-92 dBm**;
+  AP-to-PC rate is **432.3 Mbps**, HE-MCS 4/NSS 2; PC-to-AP snapshot is
+  **360.3 Mbps**, HE-MCS 7/NSS 1. WMM and protected management frames are on.
+  These support a limited wireless path but do not prove an antenna defect.
+- ACK RSSI around -38 dBm is unreliable here: this exact mt76 revision has
+  an erroneous fourth-chain ACK mask, documented by a later upstream fix.
+  Also, its `tx_failed` includes retries; equal retry/failure counters are
+  **not** a count of that many lost packets. Avoid interpreting these as
+  contradictory strong signal or a measured packet-loss rate.
+  [Driver source](https://github.com/openwrt/mt76/blob/6467af3bcf1154c2ceb032c903d533f0c718bbc2/mt7915/mac.c),
+  [ACK reporting fix](https://www.spinics.net/lists/kernel/msg6141279.html).
+- Software/hardware flow-offload options are absent and no nft flowtable is
+  active; WED is disabled, packet steering is enabled. No SQM configuration
+  or SQM/QoS package was found. This does not establish a CPU throughput
+  limit; only idle CPU/load was measured. WAN still negotiates 2.5 Gb/s full
+  duplex. The sampled log contained no matching mt76 crash/radar/timeout error.
+- OpenWrt **25.12.5** is the current stable upgrade candidate; **24.10.8** is
+  the maintenance branch, with 24.10 EOL projected for September 2026.
+  25.12.5 includes a generic transmit-queue scheduling fix for low throughput,
+  but no verified AX210-specific cure for this case was found. Plan a config
+  and installed-package backup, account for `opkg` to `apk`, and preserve the
+  live PPPoE/VLAN settings rather than deploying the stale source template.
+  [24.10.8 notes](https://github.com/openwrt/openwrt/releases/tag/v24.10.8),
+  [25.12.5 notes](https://github.com/openwrt/openwrt/releases/tag/v25.12.5),
+  [Queue fix](https://github.com/openwrt/mt76/commit/2eb5d1e3cfbf3f08f197b22759be4950d501d3d8).
+
+No radio tuning or firmware/driver update was performed. Next diagnostic is a
+controlled local wired-to-Wi-Fi throughput comparison, followed by deliberate
+client-driver and radio changes with before/after measurements. A proper wired
+Zen speed test remains needed to assess full service delivery.
+
+Separately, the 16:48 overview already shows the old Zyxel station disabled,
+2.4 GHz APs up with three HomeIoT clients, LAN2 in `cloud_iot` VLAN 55 and Hive
+leased at `192.168.55.10`. These supersede the earlier audit's radio/LAN2
+observations below; they were not changed or functionally accepted by this
+SSH-key/throughput task. Full Hive isolation and service repair evidence belongs
+with the task performing those changes.
+
+## 2026-09-04 post-fibre connectivity audit — degraded, not all clear
+
+Read-only checks from the Windows management workstation `192.168.10.116`,
+authenticated router SSH, Proxmox API, monitoring VM and llm-host. Router and
+Proxmox credentials supplied by the owner were used in memory only. No live
+configuration changes, reboots or service restarts were performed. The owner
+confirmed the Zyxel switch is unplugged: switch/camera failures are expected.
+
+### Verified working
+
+- Zen PPPoE is authenticated and up on `eth1` / `pppoe-wan`. It is the only
+  IPv4 default route. Router-bound public ping: 3/3 replies, about 9.5 ms,
+  zero loss. Workstation public HTTPS also returns 200.
+- WAN and Proxmox LAN1 negotiate 2.5 Gb/s full duplex; NAS LAN4 negotiates
+  1 Gb/s full duplex. Live bridge-VLAN membership matches the recorded
+  Proxmox trunk, management LAN2, switch LAN3, storage LAN4 and recovery LAN5.
+  LAN3 and LAN5 have no carrier; LAN1/LAN2/LAN4 are linked.
+- `fw4 check` passes. Running WAN input permits the recorded WireGuard UDP
+  listener and ping, then rejects other traffic; no broad admin allowance
+  was seen. This is configuration inspection, not an external penetration test.
+- All 48 canonical `home.local` aliases pass the repo DNS validator against
+  router `192.168.10.1`; system resolution of Homepage agrees. Router public
+  resolution works through its configured fallback resolvers.
+- Proxmox UI/API is accessible. VMs 100/102/103 and CTs 111/114 are running;
+  rollback VMs 101/104 are stopped. OMV-backed Proxmox storage is active,
+  approximately 60% used. Host local storage is approximately 77% used.
+- Proxmox reports approximately 64 GB installed (62.3 GiB usable) and
+  approximately 37.5 GiB available; older 32 GB hardware notes are stale.
+- HA HTTP 200 and MQTT TLS listener reachable; Frigate HTTPS HTTP 200.
+  Frigate API port 5000 times out from the workstation but returns HTTP 200
+  from the authorized monitoring VM, so it is not an API outage.
+- OMV web and Transfer Portal return HTTP 200; SMB 445 and NFS 2049 accept
+  connections. Monitoring VM reaches OMV NFS too. This does not prove every
+  application's mount or a new backup/recording write.
+- Grafana health, Kuma and InfluxDB health return HTTP 200. Monitoring VM has
+  no failed systemd units.
+- llama.cpp models and Open WebUI return HTTP 200. Piper, Whisper and
+  OpenWakeWord ports are open from monitoring; management-workstation timeouts
+  match llm-host's source-scoped firewall. llm-host has no failed systemd units.
+- Direct responses also received from Bambuddy, Mealie, Grocy, GardenKeeper
+  UI/API, Household Hub, Mermaid Viewer, Gridfinity, Recomp health, Jellyfin
+  health, Calibre-Web, qBittorrent, SearXNG, Whoogle, ntfy health and the
+  Troubleshooting Dashboard. LiveSync/Atsumeru respond with authentication
+  required (401); MediaMTX accepts TCP. These prove listener/UI reachability,
+  not authenticated app workflows, media writes or cloud integrations.
+
+### Actual issues and repair priorities
+
+1. **VM 103 memory is 1024 MiB in Proxmox's live configuration and runtime.**
+   This is not merely ballooning from a larger configured maximum. Four vCPUs
+   are configured. Guest reports 948 MiB usable, essentially all 2 GiB swap
+   used, very heavy swap I/O, and load averages rising from 127 to 206.
+   Canonical inventory previously specified 6 GiB. Host memory is available.
+   SSH works intermittently, then stalls before its banner; guest-agent exec
+   returns `QEMU guest agent is not running`. Restore an appropriate VM memory
+   allocation before diagnosing all application failures as network problems.
+2. **Homepage HTTPS 443, AdGuard 8080 and Immich 2283 refuse connections.**
+   Homepage HTTP 3001 and Dozzle 8081 time out. Router queries to AdGuard DNS
+   at `192.168.20.102:53` are refused too: public fallback keeps DNS working,
+   but filtering is not proven operational. Initial `docker ps` showed the
+   Homepage container healthy while the HTTPS endpoint was absent, and very
+   short uptimes for Mealie/Immich. Full stopped-container/OOM/mount inspection
+   could not complete because SSH and the guest agent are unresponsive.
+3. **All 2.4 GHz AP interfaces are down.** 5 GHz HomeMain/HomeAdmin/HomePrinters
+   are up. The old `router_uplink` station remains enabled for `ZyXEL_F1E9`
+   but is disconnected on the same radio; repeated hostapd probe-send errors
+   appear. This is a likely cause of the unavailable 2.4 GHz SSIDs and needs
+   a controlled retirement of the temporary uplink now that fibre works.
+   P1S `192.168.35.200` is unreachable; do not assume the printer is powered on.
+4. **IPv6 is not established.** Explicit `wan6` points at nonexistent `wan`
+   and reports NO_DEVICE. Dynamic PPPoE `wan_6` is pending on `pppoe-wan`;
+   there is no IPv6 default route. Reconcile the two interfaces and required
+   DHCPv6/ICMPv6 firewall allowances before claiming IPv6 support.
+5. **Hive is connected but not isolated.** `myHivehub` has DHCP lease
+   `192.168.10.124`, MAC `00:1c:2b:b1:02:20`, and a reachable router neighbour
+   entry. LAN2 remains untagged management VLAN 10. The planned cloud-device
+   network is not implemented; Hive cloud/app operation was not tested.
+6. The tracked WAN deployment template still contains old DHCP/`wan` device
+   settings. Do not deploy it over the working PPPoE connection.
+
+TLS limitation: the standard Windows health script skips certificate
+validation. Separate strict Python TLS checks reject the local HA/Frigate CA
+for missing key-usage extension; Windows curl reports unavailable revocation
+checking. Proxmox is not trusted by the Python CA store. These are separate
+certificate-validation findings, not evidence that those HTTPS listeners are down.
+Windows curl with only revocation checking disabled (`--ssl-no-revoke`)
+successfully checks the HA/Frigate certificate chain and name and receives
+HTTP 200 from both; strict-client compatibility remains a follow-up.
+
+Remaining coverage: no end-to-end mobile Tailscale test, guest/IoT client
+isolation probe, authenticated HA/voice/Hive workflow, NAS write/backup proof,
+or camera test while the switch is unplugged. OMV SSH key authentication was
+rejected, so no direct NAS OS/SMART inspection was made.
+
+## 2026-09-04 Zen/Openreach WAN restored (owner-confirmed)
+
+- Physical connection: Openreach ONT directly to GL-MT6000 WAN socket.
+- Working logical interface: `wan`; underlying Ethernet device: **`eth1`**.
+- The owner selected PPPoE and entered Zen broadband credentials in LuCI.
+  LuCI then reported `Network device is not present` because the selected
+  device was the nonexistent `wan`. Selecting Ethernet adapter `eth1`
+  resolved the connection; owner reported "we're up".
+- Zen/Openreach requires no WAN VLAN tag. Access Concentrator and Service
+  Name should be empty. Credentials are not recorded in project files.
+- Hardware mapping reference: [OpenWrt GL-MT6000](https://openwrt.org/toh/gl.inet/gl-mt6000).
+- **Deployment gap:** `configs/openwrt/vlan-config.conf` still specifies
+  `device 'wan'` for WAN/WAN6 and DHCP for WAN. Do not redeploy that template
+  over the working router. Reconcile live network configuration, PPPoE secret
+  handling and IPv6 attachment with the compiler/validation tools first.
+  IPv6 and retirement of the temporary Wi-Fi uplink have not been verified.
+- Evidence is owner confirmation and LuCI screenshots, not an agent SSH
+  inspection. Restoration of Proxmox and its services is not yet confirmed.
+
+## 2026-09-04 fibre outage, NAS correction and Hive LAN2 research
+
+The owner reports Proxmox down and all router-connected devices unplugged
+during fibre installation. **OMV is connected to router `lan4`, VLAN 40**;
+reconnect it there. GS1900 port 8 remains configured as spare VLAN 40 access.
+This owner confirmation supersedes the August documentation reconciliation,
+which incorrectly restored the older port-8 NAS attachment. The July 16
+direct-router cutover in [[HANDOFF-2026-07-01-frigate-first-camera]] was correct.
+
+The owner needs LAN2 for a Hive device and asked for requirements research.
+Assumption: an Ethernet-connected Hive heating/smart-home hub; exact model
+and MAC are still needed. No live router changes or probes were performed.
+
+### Findings and proposed change (not deployed)
+
+- Hive's official router-change guide says to connect the Ethernet hub to the
+  working new router; it should reconnect automatically. No fixed default IP
+  is supplied in that guide. Plan for automatic DHCP and confirm its lease;
+  use a router-side reservation after the actual MAC is known.
+- Hive explicitly warns against 2.5 Gbps router sockets. Use a 10/100/1000
+  socket and verify which physical socket maps to OpenWrt `lan2` before apply.
+  Leave link negotiation automatic initially.
+- LAN2 currently belongs to management VLAN 10 (`lan2:u*`), with DHCP,
+  router administration and broad internal/WAN access. A hub may connect
+  there already, but this is inappropriate privilege for a cloud device.
+- Recommended: a separate `cloud_iot` network/zone for LAN2. VLAN 55 and
+  `192.168.55.0/24` are candidate identifiers, subject to live collision checks.
+  Remove `lan2:u*` from VLAN 10 and add it only to the new VLAN as untagged/PVID.
+  Add router interface, DHCP scope, router DNS/NTP input rules and WAN NAT
+  egress; reject other router services and initiation into all internal zones.
+  No Proxmox trunk or switch-trunk membership is needed for this single port.
+- Keep VLAN 50's offline VentSys policy intact. VLAN 20 has shared service
+  hosts and restricted internet, so neither existing network is a suitable
+  drop-in home for this device. Guest VLAN 99 could provide a simpler initial
+  internet path but would share its layer-2 segment with guest clients.
+- The official pages consulted do not publish a complete model-specific
+  destination/port allowlist. Start with isolated outbound internet access
+  and established return traffic; observe the hub's traffic before narrowing
+  egress. Do not assume HTTPS alone covers registration, time and updates.
+  No inbound WAN port forwards, DMZ-host setting or UPnP are proposed.
+- DNS must work with Proxmox off: tracked dnsmasq has AdGuard first and public
+  Quad9/Cloudflare fallback. Verify fallback on the new segment rather than
+  assuming it works live. DHCP/DNS/gateway must be provided by the GL router.
+- Home Assistant's official Hive integration uses cloud polling and requires
+  Hive account 2FA. That integration does not justify a general LAN2-to-HA
+  firewall opening. Local HomeKit/model-specific features are separate scope.
+
+### Implementation and acceptance sequence
+
+1. Confirm model/MAC and restore a working upstream internet connection.
+2. Verify a management session via HomeAdmin and a working LAN5 recovery
+   path before changing LAN2. Back up live network/firewall/DHCP and inspect
+   actual interface/zone/uplink state; the tracked firewall file is a full
+   rebuild script and must not be run as an incremental change.
+3. Prepare a scoped network/DHCP/firewall patch, update corresponding source
+   and deployment-tool assumptions, validate generated UCI and `fw4 check`,
+   and use rollback protection for the network apply.
+4. Connect Hive on LAN2, verify link/lease/DNS, then the Hive app's online
+   state and a deliberate user-observed functional check. Updates may take
+   15-20 minutes or up to an hour according to Hive's router-change guide.
+5. Confirm the device segment cannot reach router administration, management,
+   NAS, cameras or automation hosts; confirm Proxmox/switch/NAS ports remain
+   correctly assigned. Record deployed subnet, reservation and rules only
+   after acceptance.
+
+### Sources consulted on 2026-09-04
+
+- [Hive: changing broadband providers/router](https://support.hivehome.com/portal/app/portlets/results/viewsolution.jsp?solutionid=240916092445787)
+- [Hive: hub offline and Ethernet compatibility](https://support.hivehome.com/portal/app/portlets/results/viewsolution.jsp?page=1&position=0&q=hub+offline&solutionid=022433716182024)
+- [GL.iNet: GL-MT6000 guide](https://docs.gl-inet.com/router/en/4/user_guide/gl-mt6000/)
+- [GL.iNet: port specifications](https://static.gl-inet.com/www/images/products/datasheet/mt6000_datasheet_20251103.pdf)
+- [Home Assistant: Hive integration](https://www.home-assistant.io/integrations/hive/)
+
+Canonical cabling reference and three network diagram sources were corrected;
+existing router/NAS wiki pages were synchronized. The generated/live Mermaid
+Viewer has not been rebuilt or deployed during the outage.
 
 ## Read first
 

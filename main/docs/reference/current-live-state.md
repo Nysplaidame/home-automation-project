@@ -3,7 +3,7 @@ title: Current Live State
 description: Canonical inventory of deployed hosts, services, and deliberately deferred components
 tags: [reference, current-state, infrastructure]
 created: 2026-06-20
-modified: 2026-08-27
+modified: 2026-09-07
 type: reference
 status: active
 ---
@@ -12,6 +12,50 @@ status: active
 
 This is the canonical current-state inventory. Rebuild manuals describe how to
 build from blank and must link here rather than duplicating live-status claims.
+
+**Read-only health refresh, 2026-09-07:** management workstation 12/13 endpoint
+checks pass; Camera1 RTSP is the sole failure, consistent with intentional
+camera disconnection. VM103 has 38 running containers, all defined health
+checks healthy; app-data backup service reports success at 03:50:33 BST today.
+Root disk is 75% used; Immich NFS is 60%. These are availability/job-result
+observations, not new functional, certificate-trust or restore acceptance.
+VM102 Fail2ban is active; CT114's is inactive and its APT cache/direct-HTTP
+paths fail, with stale June security metadata. Watchtower remains monitor-only
+but its ntfy delivery fails with attachment-policy error40014. Direct Proxmox
+and OMV SSH keys are denied, so guest-backup freshness and SMART remain
+unverified today. See the update review log and current handoff for limits.
+
+**Router follow-up, 2026-09-04 16:48 BST:** authenticated LuCI/SSH confirms
+vanilla OpenWrt **24.10.3**, kernel **6.6.104**. Workstation key access via
+`home-router-lan` is installed and proven; private key remains outside the
+vault. HomeAdmin is live at channel 100/HE80 (auto channel), with PC signal
+around -76 dBm and 432 Mbps download PHY. The old Zyxel station is now disabled,
+2.4 GHz APs are up, and LAN2/Hive appear on cloud-IoT VLAN 55 (`192.168.55.10`).
+Those last changes were observed, not implemented or functionally accepted by
+the throughput task. See the current handoff for measurement limits and the
+separate repair task for service/Hive acceptance.
+
+**Post-fibre recovery, 2026-09-04:** IPv4 internet and core services recovered.
+Zen/Openreach WAN is untagged PPPoE on `eth1`; all 48 local DNS aliases pass.
+VM 103 runs with 6144 MiB after a graceful restart; Homepage, AdGuard, Immich
+and Dozzle respond again and all defined container health checks pass.
+All five 2.4 GHz APs are up after disabling the retired Zyxel Wi-Fi station.
+Proxmox reports 64 GB installed; earlier 32 GB notes are stale.
+
+LAN2 is now untagged **VLAN 55 cloud_iot** with Hive reserved at
+**192.168.55.10**; WAN forwarding only, router DHCP/DNS/NTP, no internal
+forwarding. DHCP, bidirectional internet TLS traffic and router NTP are
+verified. **Hive still appears offline in the owner's app**; prior issues
+remain unresolved and application/account acceptance is pending.
+OMV is directly on **LAN4 / VLAN40**, reachable with active NFS mounts.
+The Zyxel switch/cameras are deliberately unplugged; P1S is not yet set up.
+
+WAN6's device/firewall fault is repaired, but Zen DHCPv6 returns
+`NoAddrsAvail` / `NoPrefixAvail`, including an explicit /48 trial. IPv6 awaits
+provider provisioning confirmation. Saved router source is reconciled for
+PPPoE and VLAN55; compiler refuses missing PPPoE credentials for deployment.
+Preview builds are not deployed. See
+[[../../HANDOFF-2026-07-27-portal-services]] for evidence, backups and limits.
 
 Full state verification: **2026-08-09**. Core endpoint reachability, including
 Recomp Tracker, was rechecked on **2026-08-19**; this does not replace the
@@ -100,11 +144,12 @@ while its replacement LXC is running.
 - CT 111 runs Frigate 0.17.1 live on the shared Intel iGPU.
 - OpenVINO detector process uses the shared Intel iGPU.
 - VA-API is configured and active for camera decoding.
-- Three cameras are live on VLAN 30: Camera 1 at `192.168.30.21` on switch
+- Historical three-camera baseline on VLAN 30 (currently deliberately
+  disconnected): Camera 1 at `192.168.30.21` on switch
   port 2, Gate at `192.168.30.22` on port 4, and Patio at `192.168.30.23` on
   port 3. All three are ANNKE C500 cameras (`I51HJ`, firmware
-  `v5.8.10 build 250917`), use verified RTSP main/substream paths, and sustain
-  approximately `10 fps`.
+  `v5.8.10 build 250917`), with previously verified RTSP main/substream paths
+  sustaining approximately `10 fps`. Repeat that proof after reconnection.
 - Camera RTSP auth required switching the camera from RTSP `Digest` to
   `Digest/Basic`; after that change, Frigate confirmed live ingest at roughly
   `10 fps` on the first bench camera using substream detect and mainstream
@@ -593,7 +638,7 @@ registry mirror and Node-RED remain decision-gated candidates.
 
 ## Not built or not production-ready
 
-- Frigate expansion beyond the three live ANNKE cameras, including any fourth
+- Frigate reconnection/acceptance and expansion beyond the three existing ANNKE cameras, including any fourth
   camera, remaining motion/zone tuning, and later AI-rule decisions.
 - Most VentSys physical hardware, remaining ESPHome adoption and full safety
   acceptance testing.

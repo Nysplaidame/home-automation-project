@@ -4,7 +4,7 @@ description: Master navigation hub for all project documentation
 tags: [index, navigation, home-automation]
 aliases: [Project Index, Documentation Hub]
 created: 2025-09-15
-modified: 2026-08-25
+modified: 2026-09-07
 type: index
 status: active
 ---
@@ -96,6 +96,9 @@ status: active
   troubleshooting service driven by local health-check JSON
 - [[apps/troubleshooting-dashboard/design-system.md]] — operational UI,
   accessibility and no-remediation contract for the POC
+- [[apps/home-operations-workbench/README.md]] — verified local import-only
+  proof of concept for household operations, recovery, meals and VentSys
+  commissioning evidence; it is not deployed or connected to live services
 
 ### OpenMediaVault
 - [[configs/omv/README]] — sanitized NFS contract and root-only OMV config backup automation
@@ -178,6 +181,8 @@ status: active
 | [[docs/procedures/tailscale_remote_access_guide.md]] | Daily remote access through docker-host Tailscale host routes |
 | [[docs/procedures/wireguard_fallback_governance.md]] | Activation/deactivation governance for dormant WireGuard fallback |
 | [[docs/procedures/ids_ips_progression_plan.md]] | Phased IDS/IPS and host hardening progression plan |
+| [[docs/procedures/fail2ban_host_rollout.md]] | Recovered host jail templates, historical rollout and September access-gap evidence |
+| [[docs/audits/2026-07-full-system-audit/08-resilience-test-cards.md]] | September tabletop recovery review plus gated live failure/restore test cards |
 | [[docs/procedures/monitoring_roadmap.md]] | Monitoring stack rollout, direct-link posture, and IDS/IPS progression |
 | [[docs/procedures/proxmox_grafana_metrics.md]] | Native Proxmox metrics into InfluxDB and Grafana dashboard state |
 | [[docs/procedures/grafana_architecture_dashboards.md]] | Architecture-level Grafana dashboards and lightweight Influx exporters |
@@ -188,10 +193,12 @@ status: active
 | [[docs/procedures/update_review_log.md]] | Weekly update-candidate review execution log and follow-up tracking |
 | [[docs/procedures/docker_host_patch_window_runbook.md]] | Command-by-command docker-host package/container patch window |
 | [[docs/procedures/household-services-implementation-plan.md]] | Decision-gated Vaultwarden, media-library and download-automation implementation plan |
+| [[docs/procedures/household-workshop-operations-roadmap.md]] | Phased product roadmap for household, workshop, diagnostics, resilience and VentSys commissioning workflows |
 | [[docs/procedures/garage_admin_pi_setup_guide.md]] | Raspberry Pi setup for a trusted garage admin workstation on HomeAdmin |
 | [[docs/procedures/local_ai_performance_testing.md]] | Baseline, model/context, voice, and upgrade tests for CT 114 local AI |
 | [[scripts/monitoring/health_check.sh]] | Single-command health check and JSON snapshot source for all systems |
 | [[scripts/monitoring/health_check.ps1]] | Windows health check with table or dashboard-compatible `-Json` output |
+| [[scripts/monitoring/validate_proxmox_snapshot.py]] | Offline acceptance validator for the Proxmox backup and mount evidence snapshot |
 | [[scripts/monitoring/export_uptime_kuma_to_influx.py]] | Lightweight Uptime Kuma monitor-state export into InfluxDB |
 | [[scripts/monitoring/export_fail2ban_to_influx.sh]] | Lightweight docker-host Fail2ban counter export into InfluxDB |
 
@@ -239,4 +246,4 @@ status: active
 
 ---
 
-**Updated:** 2026-08-19
+**Updated:** 2026-09-07

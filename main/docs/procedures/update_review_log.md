@@ -3,7 +3,7 @@ title: Weekly Update Review Log
 description: Execution log for weekly update-candidate review and post-check outcomes
 tags: [operations, updates, maintenance, watchtower, docker-host]
 created: 2026-05-28
-modified: 2026-08-01
+modified: 2026-09-07
 type: procedure
 status: active
 ---
@@ -17,14 +17,48 @@ Current planning baseline:
 - Treat OMV as live on VLAN 40 with Proxmox/HA/Immich storage paths active;
   the old md0 high-water warning is cleared by the 2026-07-05 Proxmox check
   showing `omv-backups` active at 54.21% used.
-- Treat Frigate as live on CT 111 with one bench camera and HA integration;
-  broader camera rollout, OMV recording cutover, and new-camera validation remain
-  near-term follow-up when hardware arrives.
+- Treat Frigate CT111 as reachable; three previously proven cameras and the
+  Zyxel are deliberately disconnected. OMV recording cutover was completed;
+  new recording/playback and notification proof follows physical reconnection.
 - Treat VentSys entities as unbuilt.
 
-Do not log tasks here that assume full camera rollout, OMV recording cutover, or
-VentSys hardware acceptance is complete unless baseline is explicitly updated
-first.
+Do not infer current camera or VentSys acceptance from historical deployment.
+
+## 2026-09-07 — Read-only maintenance and backup review
+
+- Operator: Codex on canonical K: checkout; no patch window, restart, pull,
+  credential change, backup execution or restore drill performed.
+- VM103 cached package candidates: containerd `2.2.6` -> `2.3.4`, Docker
+  engine/CLI/rootless `29.7.1` -> `29.8.0`, Buildx `0.36.0` -> `0.37.0`,
+  Compose `5.3.1` -> `5.5.1`, Tailscale `1.98.10` -> `1.102.3`. Docker index
+  dated September 4, Tailscale September 5, Debian security/updates September 6.
+  These are observed APT candidates, not a verified upgrade recommendation.
+- VM102 cached candidates include Docker `29.4.3` -> `29.8.0`, containerd
+  `2.2.3` -> `2.3.4`, Buildx `0.33.0` -> `0.37.0`, Compose `5.1.3` -> `5.5.1`
+  and Python3.13 packages `deb13u3` -> `deb13u4`. Revalidate before patching.
+- CT114: 56 candidates from stale cache, with security/updates InRelease files
+  dated June 19. No APT proxy setting; cache TCP3142 times out and direct Debian
+  HTTP fails. Fail2ban is inactive. This is a confirmed update-access gap;
+  candidate enumeration cannot establish current security coverage.
+- Watchtower has `WATCHTOWER_MONITOR_ONLY=true`. September 6/7 sessions scanned
+  30 images and found Bambuddy plus nginx-unprivileged candidates. Its log field
+  `Updated=2` must not be interpreted as an applied upgrade in monitor-only mode.
+  Both sessions failed ntfy delivery with `attachments not allowed (40014)`.
+  Notification delivery is broken despite healthy container status. Diagnose
+  the notification payload/template against the existing no-attachments policy;
+  no test notification was sent and no ntfy policy was relaxed.
+- VM103: 38 containers Up, all configured health checks healthy. App-data
+  backup result success/exit0 at 03:50:33 BST today; next timer September 8 at
+  03:45. Root filesystem 75% used (16G available), Immich NFS 60% (5.8T free).
+- Direct Proxmox and OMV SSH attempts rejected the available workstation keys.
+  Fresh guest-archive inventory, stream integrity, restore acceptance and SMART
+  results remain unknown. Do not copy old July proof forward as fresh evidence.
+- VM102 Fail2ban `sshd` is active, zero current/total bans; VM103 service active.
+  No ban/unban exercise was performed.
+- Follow-up: restore CT114's approved package path in a bounded change; repair
+  Watchtower notification formatting with local fixtures before live acceptance;
+  refresh denied-host evidence through an authorized route; plan one-host patch
+  windows with current backup proof and post-checks. Monitor VM103 capacity.
 
 ## Entry template
 

@@ -3,7 +3,7 @@ title: "Docker Host (VM 103)"
 category: entity
 tags: [software, docker, proxmox, bambuddy, apt-cache, tailscale, monitoring, fail2ban, mullvad, qbittorrent]
 created: 2026-05-08
-updated: 2026-08-25
+updated: 2026-09-04
 sources: [project-readme, project-todo]
 status: stable
 ---
@@ -11,10 +11,19 @@ status: stable
 # Docker Host (VM 103)
 
 **Type:** integration - trusted Docker host
-**Status:** Live - trusted Docker app host, Tailscale node, metrics collector, and Fail2ban baseline
+**Status:** Recovered 2026-09-04: 6 GiB RAM restored; container and endpoint checks pass.
 **Related:** [[entities/proxmox]], [[entities/bambuddy]], [[entities/home-assistant]], [[concepts/tailscale-remote-access]], [[entities/adguard-home]], [[entities/immich]], [[entities/homepage]], [[entities/dozzle]], [[entities/household-hub]], [[entities/qbittorrent]], [[entities/troubleshooting-dashboard]]
 
 ## Overview
+
+The 2026-09-04 audit found 4 vCPUs / 1024 MiB with full swap and failing
+applications. The authorized repair restored 6144 MiB with a graceful
+shutdown/start. Guest has 5.8 GiB usable, about 1.7 GiB available and only
+46 MiB swap used at the nine-minute check; load 0.03. The guest agent is
+active, all containers run and all defined container health checks pass.
+Homepage, AdGuard, Immich and Dozzle endpoints return HTTP 200; AdGuard DNS
+resolves externally and three OMV NFS mounts are present. Host has 64 GB RAM.
+Evidence: [[../../../main/HANDOFF-2026-07-27-portal-services]].
 
 VM 103 is the central trusted Docker host on VLAN 20. It runs internal services
 that need to communicate with Home Assistant, the automation network, or the
