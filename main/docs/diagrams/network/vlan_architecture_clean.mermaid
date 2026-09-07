@@ -5,11 +5,11 @@ flowchart TB
 
     subgraph Ports["Physical ports"]
         LAN1["LAN1 trunk<br/>Proxmox VLAN trunk"]
-        LAN2["LAN2 management access"]
+        LAN2["LAN2 Hive cloud IoT<br/>VLAN 55 untagged"]
         LAN3["LAN3 managed switch trunk<br/>VLANs 1,10,30,40 tagged"]
-        LAN4["LAN4 storage recovery<br/>VLAN 40 untagged · normally unplugged"]
+        LAN4["LAN4 OMV NAS access<br/>VLAN 40 untagged"]
         LAN5["LAN5 LAN PC / recovery<br/>VLAN 1 untagged"]
-        EdgeSwitch["Zyxel GS1900-8HP<br/>switch mgmt VLAN 10<br/>three cameras + OMV access ports"]
+        EdgeSwitch["Zyxel GS1900-8HP<br/>switch mgmt VLAN 10<br/>three cameras + spare storage port"]
         WiFi["Router Wi-Fi SSIDs"]
     end
 
@@ -29,6 +29,7 @@ flowchart TB
         V35["VLAN 35 Printers<br/>192.168.35.0/24<br/>Bambu P1S, future printers"]
         V40["VLAN 40 Storage<br/>192.168.40.0/24<br/>OMV NAS"]
         V50["VLAN 50 IoT<br/>192.168.50.0/24<br/>ESPHome and VentSys devices"]
+        V55["VLAN 55 Cloud IoT<br/>192.168.55.0/24<br/>Hive: WAN only"]
         V60["VLAN 60 Monitoring<br/>192.168.60.0/24<br/>Kuma, Grafana, InfluxDB"]
         V70["VLAN 70 DMZ<br/>192.168.70.0/24<br/>reserved controlled public edge"]
         V99["VLAN 99 Guest<br/>192.168.99.0/24<br/>guest Wi-Fi"]
@@ -41,6 +42,8 @@ flowchart TB
     Router --- V35
     Router --- V40
     Router --- V50
+    LAN2 --- V55
+    V55 --- Hive["Hive hub .55.10<br/>app issue unresolved"]
     Router --- V60
     Router --- V70
     Router --- V99
@@ -61,7 +64,7 @@ flowchart TB
     Proxmox --- DockerHost
     Proxmox --- LLMHost
     Proxmox --- MonitoringHost
-    EdgeSwitch ---|"port 8 · VLAN 40 access"| OMV
+    LAN4 ---|"VLAN 40 access"| OMV
 
     subgraph Remote["Remote access"]
         Tailnet["Tailscale tailnet<br/>daily access"]

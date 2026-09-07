@@ -1,11 +1,12 @@
 flowchart TB
     Operator["Trusted operator<br/>Management VLAN / mobile Tailscale"]
-    Internet["Internet"]
+    Internet["Zen fibre / Openreach ONT"]
     Router["GL-MT6000 OpenWrt<br/>192.168.10.1<br/>VLAN gateway, firewall, DHCP, DNS, NTP"]
     Switch["Zyxel GS1900-8HP<br/>192.168.10.12<br/>802.1Q trunk + PoE access ports"]
     Proxmox["Proxmox VE 9<br/>MINISFORUM M1 Pro-125H<br/>192.168.10.10"]
 
-    Internet --- Router
+    Internet ---|"eth1 PPPoE"| Router
+    Router ---|"lan2 VLAN55, WAN only"| Hive["Hive .55.10<br/>app status unresolved"]
     Operator --> Router
     Router ---|"lan1 VLAN trunk"| Proxmox
     Router ---|"lan3 VLANs 1/10/30/40"| Switch
@@ -64,7 +65,7 @@ flowchart TB
         OMV["OpenMediaVault NAS<br/>192.168.40.50<br/>NFS · SMB · backups · CCTV · Immich"]
     end
 
-    Switch ---|"port 8 · VLAN 40 access"| OMV
+    Router ---|"lan4 · VLAN 40 access"| OMV
     OMV -->|"HA backups"| HA
     OMV -->|"recordings"| Frigate
     OMV -->|"media + app backups"| DockerHost

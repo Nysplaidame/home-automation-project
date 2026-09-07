@@ -3,7 +3,7 @@ title: Router and Switch Physical Port Layout
 description: Confirmed and reserved physical cabling map for the router, GS1900 switch, OMV, and CCTV rollout
 tags: [network, cabling, ports, switch, cctv]
 created: 2026-07-10
-modified: 2026-08-25
+modified: 2026-09-04
 type: reference
 status: active
 ---
@@ -20,12 +20,17 @@ router or switch changes. Canonical device names are in
 
 ## Physical Inventory
 
+Owner correction, 2026-09-04: OMV connects directly to router `lan4`.
+The August map incorrectly restored the older switch-port-8 attachment.
+LAN2 is now Hive access on VLAN55. The switch/cameras remain deliberately
+disconnected after installation; table entries describe assigned cabling.
+
 | Canonical name | Physical device | Connectivity |
 |---|---|---|
 | `router` | GL.iNet GL-MT6000 | WAN upstream; CAT6 to `proxmox` and `gs1900-switch`; Wi-Fi AP; unplugged recovery access ports |
 | `proxmox` | MINISFORUM M1 Pro-125H mini PC | Router `lan1` tagged trunk; hosts VMs/CTs |
-| `gs1900-switch` | Zyxel GS1900-8HP | Router `lan3` tagged trunk; three PoE cameras; OMV on VLAN 40 access port 8 |
-| `omvnas` | OMV NAS hardware | GS1900 port 8 / VLAN 40 |
+| `gs1900-switch` | Zyxel GS1900-8HP | Router `lan3` tagged trunk; three PoE cameras; port 8 reserved VLAN 40 access |
+| `omvnas` | OMV NAS hardware | Router `lan4` / VLAN 40 |
 | `cam-01-annke-c500` | ANNKE C500 | GS1900 port 2 / VLAN 30 / PoE |
 | `cam-02-gate-annke-c500` | ANNKE C500 gate camera | GS1900 port 4 / VLAN 30 / PoE |
 | `cam-03-patio-annke-c500` | ANNKE C500 patio camera | GS1900 port 3 / VLAN 30 / PoE |
@@ -36,16 +41,15 @@ router or switch changes. Canonical device names are in
 
 | Router port | Cable destination | VLAN posture | State |
 |---|---|---|---|
-| `wan` | Upstream internet router/modem | WAN DHCP | Live |
+| WAN socket (`eth1`; logical interface `wan`) | Openreach ONT | Zen PPPoE; no WAN VLAN tag | Owner-confirmed working 2026-09-04 |
 | `lan1` | MINISFORUM Proxmox host | Tagged trunk: 10, 20, 30, 35, 40, 50, 60, 70 | Live |
-| `lan2` | None connected | Untagged VLAN 10; reserved for a temporary management device | Available, assigned |
-| `lan3` | GS1900-8HP port 1 | Tagged trunk: 1, 10, 30, 40 | Live |
-| `lan4` | None connected | Untagged VLAN 40; reserved storage recovery/access port | Available, assigned |
+| `lan2` | Hive hub | Untagged cloud IoT VLAN 55; WAN only | 100 Mbps full duplex; `192.168.55.10` leased; app offline issue remains |
+| `lan3` | GS1900-8HP port 1 | Tagged trunk: 1, 10, 30, 40 | Assigned; currently unplugged |
+| `lan4` | OMV NAS | Untagged VLAN 40 | Live and verified 2026-09-04 |
 | `lan5` | None connected | Untagged VLAN 1; reserved for a LAN or recovery laptop | Available, assigned |
 
-Every LAN port has a policy assignment. `lan2`, `lan4`, and `lan5` are
-intentionally unplugged until temporary management, storage recovery, or LAN
-recovery access is needed.
+Every LAN port has a policy assignment. `lan2` is Hive/cloud IoT; `lan5`
+is LAN/recovery. Manage the router through HomeAdmin; see [[../../HANDOFF-2026-07-27-portal-services]].
 
 Use `lan5` for a normal LAN device or recovery laptop only. Do not put a
 switch, camera, or NAS there: those devices belong on their assigned router
@@ -67,7 +71,7 @@ camera bench/mounting change.
 | `5` | Camera 4 | Reserve: untagged VLAN 30, PVID 30, PoE; `192.168.30.24` | Future |
 | `6` | Camera 5 | Reserve: untagged VLAN 30, PVID 30, PoE; IP to allocate | Future |
 | `7` | Camera 6 | Reserve: untagged VLAN 30, PVID 30, PoE; IP to allocate | Future |
-| `8` | OMV NAS | Untagged VLAN 40, PVID 40; `192.168.40.50` | Live |
+| `8` | Spare storage access | Untagged VLAN 40, PVID 40 | Reserved; OMV is on router `lan4` |
 
 ## CCTV Connectivity
 
@@ -88,15 +92,15 @@ camera.
 
 ## Capacity Decision
 
-The eight-port switch has three future camera ports and no general-purpose
-access port: port 8 is occupied by OMV. It cannot provide the planned
-TL-WA801N extender port without consuming CCTV capacity or changing the design.
-Do not repurpose a camera or the OMV port for that extender without first
-choosing one of:
+The eight-port switch has three future camera ports and a spare storage
+access port: port 8 remains configured for VLAN 40 even though OMV is on
+router `lan4`. The planned TL-WA801N extender needs VLAN 1; plugging it into
+port 8 as configured would put it on the storage network. Before connecting
+the extender, choose and document one of:
 
 1. Keep the extender disconnected or use a separate suitable access path.
-2. Add a second managed switch for the extender and future non-camera devices.
-3. Replace the GS1900-8HP with a larger managed PoE switch.
+2. Reconfigure spare port 8 to VLAN 1, replacing its storage-recovery role.
+3. Add a second managed switch or replace the GS1900 with a larger switch.
 
 ## Cable Labels
 
@@ -105,7 +109,7 @@ Label both ends of every cable using the exact port pair, for example:
 ```text
 RTR-lan3 <-> SW-p1
 SW-p2 <-> CCTV-01-ANNKE
-SW-p8 <-> OMVNAS
+RTR-lan4 <-> OMVNAS
 RTR-lan1 <-> PROXMOX
 ```
 
