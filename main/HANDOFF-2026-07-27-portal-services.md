@@ -9,6 +9,47 @@ status: current
 
 # Handoff — Portal, Monitoring and Household Services (2026-07-27)
 
+## 2026-09-10 troubleshooting deployment
+
+- Deployed the verified evidence-age/context update from `10db89f` to the
+  existing VM103 stack. Updated app.js, diagnostic-model.js and index.html;
+  built with the already-cached Nginx1.27-alpine image using `--pull=false`,
+  then ran `docker compose up -d --no-build --no-deps troubleshooting-dashboard`.
+  Compose, Nginx config, dependencies and other services were unchanged.
+- New image: `sha256:a85ef04432a6be7975b0280a19c3ed86e5c68a18891d5e81e56f696674ed7e4c`.
+  Local, staged-source and running-container file hashes match:
+  app.js `d6ccac79e5d2b6f1e5dbc5db79a4342d4b5c16ff2a849b09160498b9c60215dc`;
+  model `f47b62c1ab6ac2cf8831abe192152a9ec56b46ab4b2c359545d2674370a1a836`;
+  HTML `2e8916f8b5260db3f1ebb33bd2eeb57b6ca0b5b7080ec8a24e57c7ae24816bfa`.
+- Nginx syntax passed, management HTTP200 and security headers retained,
+  read-only root filesystem retained. Live Playwright desktop/mobile checks
+  passed with actual Windows JSON and synthetic stale/example/age-transition
+  cases; screenshots inspected. Monitoring-source probe returned no HTTP
+  response (000). No new DNS/Homepage placement or public access.
+- Fresh Windows collection at `2026-09-10T11:25:03+01:00`: 12 PASS / 1 FAIL,
+  with only camera_01 failing, consistent with recorded disconnection.
+  Timestamp parses as recent/usable. It is a reachability/HTTP snapshot,
+  not certificate trust, physical acceptance or Proxmox backup proof.
+  This workstation uses the canonical script; no matching scheduled Windows
+  health/automation task was found.
+- Proxmox SSH still returns `Permission denied (publickey)` for root from this
+  workstation. Installed Proxmox collector update and real mount/backup JSON
+  acceptance remain open; no authentication changes were made.
+- IPv4 DOCKER-USER retains VLAN10 RETURN followed by DROP for the exact
+  VM103:8094 destination. Contrary to the August blanket-denial description,
+  IPv6 currently has a pre-existing tailscale0 RETURN for8094 before DROP.
+  The current stack publishes IPv4 only and its bridge reports IPv6=false;
+  record this policy discrepancy for reconciliation before IPv6 publication.
+  No firewall rules changed in this deployment.
+- Rollback copies (including firewall snapshots and prior image ID) are under
+  `/opt/backups/troubleshooting-evidence-20260910/`. The previous image is tagged
+  `troubleshooting-dashboard:rollback-20260910`. To roll back on VM103, restore
+  app.js/model/index.html from that directory into the stack, tag the rollback
+  image as `troubleshooting-dashboard-troubleshooting-dashboard:latest`, then
+  run `docker compose up -d --no-build --no-deps troubleshooting-dashboard`
+  from `/opt/stacks/troubleshooting-dashboard/` and verify HTTP/rendering.
+  The retained image was not removed and rollback was not exercised this pass.
+
 ## 2026-09-10 troubleshooting evidence presentation (local)
 
 - Added a 36-hour evidence-age review window to the read-only dashboard.

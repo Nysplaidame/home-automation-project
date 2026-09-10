@@ -21,10 +21,15 @@ status: active
   preserve recorded observations and show dated planned-offline context.
   Local model/browser verification passed (2026-09-10); collector sources now
   emit timezone-aware timestamps.
-- [ ] Deploy the verified troubleshooting UI update to the existing
-  management-only stack and update installed collectors through their normal
-  maintenance paths. Preserve the Proxmox snapshot acceptance and owner
-  DNS/Homepage gates; the current live version predates the age checks.
+- [x] Deploy troubleshooting evidence-age/context UI to the existing
+  management-only stack (2026-09-10). Live desktop/mobile checks pass, and
+  the updated Windows collector produces a usable timestamp and 12/13 passes.
+- [ ] Update the installed Proxmox collector through an authorized management
+  route; workstation SSH still rejects its key (2026-09-10). Preserve the
+  real backup/mount acceptance and owner DNS/Homepage gates.
+- [ ] Reconcile the pre-existing IPv6 DOCKER-USER Tailscale exception for8094
+  with the dashboard's management-only intent before any IPv6 publication.
+  Current stack binds IPv4 only and its bridge has IPv6 disabled.
 
 
 - [x] Simplify all 11 canonical Mermaid diagrams, preserve dedicated detail

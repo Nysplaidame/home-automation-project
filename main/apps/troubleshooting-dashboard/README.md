@@ -10,6 +10,12 @@ ordered diagnostic sequence. The initial scope follows the five symptoms in
 4. P1S telemetry;
 5. backup freshness.
 
+The [written diagnostic walkthroughs](../../docs/troubleshooting/diagnostic-walkthroughs.md)
+provide the same five investigations as an offline runbook, with execution
+hosts, expected results, evidence limits and links to canonical Mermaid
+diagrams. Keep the [cross-system reference](../../docs/troubleshooting/troubleshooting_reference.md)
+for additional symptoms; the app complements the documentation.
+
 ## Data boundary
 
 The POC does not probe the network or execute commands. Load the JSON produced
@@ -36,7 +42,7 @@ missing Windows signals as a failure or a pass.
 
 ### Evidence age and recorded device state
 
-The local 2026-09-10 update requires an explicit timezone and a snapshot no
+The deployed 2026-09-10 update requires an explicit timezone and a snapshot no
 older than 36 hours before using checks to assess a symptom. The review window
 is a conservative common UI default, not a service uptime guarantee or proof
 of backup integrity. Missing, ambiguous, invalid, future or stale timestamps
@@ -59,8 +65,19 @@ uncommissioned baseline as context. This does not convert a failed check to
 a pass, and does not suppress Frigate, storage, Bambuddy or MQTT failures.
 Confirm current device state before using that recorded context.
 
-This update is verified locally and is not yet deployed to management port8094.
-The existing Proxmox acceptance and DNS/Homepage promotion gates remain open.
+This update is deployed to management port8094 and passed live desktop/mobile
+checks with a fresh Windows snapshot (12 pass, one disconnected camera fail).
+The Windows collector runs from the canonical checkout; no matching Windows
+scheduled collector was found. Proxmox still denies the workstation SSH key,
+so its installed collector has not been updated. The existing Proxmox evidence
+acceptance and DNS/Homepage promotion gates remain open.
+
+Deployment rollback files are in
+`/opt/backups/troubleshooting-evidence-20260910/` on VM103, with the old image
+retained as `troubleshooting-dashboard:rollback-20260910`. The stack still
+publishes only `192.168.20.102:8094`, and its bridge has IPv6 disabled. A
+pre-existing IPv6 DOCKER-USER Tailscale RETURN rule for8094 needs reconciliation
+before any IPv6 publication; this update did not change firewall rules.
 
 ### Proxmox snapshot acceptance
 
