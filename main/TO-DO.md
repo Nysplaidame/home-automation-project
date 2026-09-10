@@ -4,7 +4,7 @@ description: Implementation tasks, operational evidence and owner-gated follow-u
 tags: [tasks, implementation]
 aliases: [TODO, Tasks]
 created: 2025-09-15
-modified: 2026-09-07
+modified: 2026-09-10
 type: task-list
 status: active
 ---
@@ -16,6 +16,10 @@ status: active
 ---
 
 ## Next project steps
+
+- [x] Simplify all 11 canonical Mermaid diagrams, preserve dedicated detail
+  views and explicit deferred states, verify desktop/mobile rendering, and
+  publish the diagram bundle to the existing internal viewer (2026-09-10).
 
 - [x] Reconcile overview and historical planning baselines with September
   recovery: deliberately disconnected cameras, 64GB Proxmox RAM, VLAN55/Hive,

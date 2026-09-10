@@ -1,124 +1,37 @@
+%%{init: {"theme":"base","fontFamily":"Segoe UI, sans-serif","themeVariables":{"primaryColor":"#123044","primaryTextColor":"#eef6ff","primaryBorderColor":"#58b7bf","lineColor":"#9aafc4","clusterBkg":"#0d1c2d","clusterBorder":"#38516b","tertiaryColor":"#0d1c2d","edgeLabelBackground":"#0b1929","fontFamily":"Segoe UI, sans-serif","fontSize":"18px"},"flowchart":{"curve":"linear","nodeSpacing":20,"rankSpacing":28,"padding":12,"subGraphTitleMargin":{"top":8,"bottom":16},"wrappingWidth":380,"useMaxWidth":false}}}%%
 flowchart TB
-    Operator["Trusted operator<br/>Management VLAN / mobile Tailscale"]
-    Internet["Zen fibre / Openreach ONT"]
-    Router["GL-MT6000 OpenWrt<br/>192.168.10.1<br/>VLAN gateway, firewall, DHCP, DNS, NTP"]
-    Switch["Zyxel GS1900-8HP<br/>192.168.10.12<br/>802.1Q trunk + PoE access ports"]
-    Proxmox["Proxmox VE 9<br/>MINISFORUM M1 Pro-125H<br/>192.168.10.10"]
-
-    Internet ---|"eth1 PPPoE"| Router
-    Router ---|"lan2 VLAN55, WAN only"| Hive["Hive .55.10<br/>app status unresolved"]
-    Operator --> Router
-    Router ---|"lan1 VLAN trunk"| Proxmox
-    Router ---|"lan3 VLANs 1/10/30/40"| Switch
-
-    subgraph Compute["Production compute"]
-        HA["VM 100 · Home Assistant OS<br/>192.168.20.101<br/>HTTPS 8123 · MQTT TLS 8883"]
-        Monitoring["VM 102 · Monitoring<br/>192.168.60.10<br/>Grafana · Kuma · InfluxDB"]
-        DockerHost["VM 103 · docker-host<br/>192.168.20.102<br/>Compose · Tailscale routing"]
-        Frigate["CT 111 · Frigate NVR<br/>192.168.30.20<br/>OpenVINO · VA-API · HTTPS 8971"]
-        LLMHost["CT 114 · local AI<br/>192.168.20.104<br/>llama.cpp · Open WebUI · Wyoming"]
-        Rollback["VM 101 / VM 104<br/>powered-off rollback only"]
+    %% Placement overview. Service links, ACLs and cabling have dedicated views.
+    WAN["Zen fibre<br/>Openreach ONT"] -->|"eth1 · PPPoE"| Router["GL-MT6000 · OpenWrt<br/>192.168.10.1<br/>Gateway · firewall · DNS · NTP"]
+    subgraph Compute["PROXMOX · 192.168.10.10 · 64 GiB RAM"]
+        direction TB
+        Home["HOME CONTROL + AI<br/>VM100 Home Assistant · .20.101<br/>CT114 llama.cpp / voice · .20.104"]
+        Apps["HOUSEHOLD SERVICES<br/>VM103 docker-host · .20.102<br/>Apps · Homepage · Tailscale"]
+        Ops["MONITORING + NVR<br/>VM102 monitoring · .60.10<br/>CT111 Frigate · .30.20"]
+        Old["VM101 + VM104<br/>Powered-off rollback only"]
+        Home ~~~ Apps ~~~ Ops ~~~ Old
     end
-
-    Proxmox --- HA
-    Proxmox --- Monitoring
-    Proxmox --- DockerHost
-    Proxmox --- Frigate
-    Proxmox --- LLMHost
-    Proxmox -.-> Rollback
-
-    subgraph HouseholdApps["docker-host household applications"]
-        Immich["Immich<br/>photos and videos"]
-        Mealie["Mealie<br/>recipes and meal plans"]
-        Grocy["Grocy<br/>stock and shopping"]
-        Garden["GardenKeeper<br/>garden state and tasks"]
-        Hub["Household Hub<br/>knowledge and research"]
-        Recomp["Recomp Tracker<br/>habits and workouts"]
-        Bambuddy["Bambuddy<br/>Bambu P1S integration"]
+    subgraph Storage["STORAGE · VLAN40"]
+        direction TB
+        NAS["OMV NAS · 192.168.40.50<br/>NFS + SMB · media + backups"]
+        Consumers["Serves Proxmox, HA and VM103<br/>Frigate recording mount retained<br/>Backup success is not restore proof"]
+        NAS --- Consumers
     end
-
-    subgraph MediaSecurity["docker-host media, download and secure services"]
-        Media["Jellyfin · Calibre-Web · Atsumeru<br/>OMV-backed media libraries"]
-        Vault["Vaultwarden<br/>loopback raw listener · HTTPS proxy"]
-        Download["Mullvad/Gluetun + qBittorrent<br/>fail-closed · OMV payloads"]
+    subgraph Physical["PHYSICAL INTEGRATIONS"]
+        direction TB
+        Hive["LAN2 · VLAN55 · Hive .55.10<br/>Internet verified · app issue open"]
+        CCTV["LAN3 · Zyxel + 3 ANNKE cameras<br/>Intentionally disconnected<br/>Fourth camera remains future work"]
+        Workshop["P1S · VLAN35 · not commissioned<br/>VentSys · VLAN50 · hardware pending"]
+        Hive ~~~ CCTV ~~~ Workshop
     end
+    Router ---|"LAN1 · VLAN trunk"| Compute
+    Router ---|"LAN4 · VLAN40"| Storage
+    Router ---|"See physical cabling view"| Physical
+    class Router,Home,Apps,Ops core
+    class NAS,Consumers store
+    class Old,CCTV,Workshop deferred
+    class Hive policy
 
-    subgraph PlatformApps["docker-host platform and tools"]
-        Homepage["Home Operations portal<br/>HTTPS 443 · fixed proxies 8180-8209"]
-        AdGuard["AdGuard Home"]
-        Dozzle["Dozzle logs"]
-        Search["SearXNG + Whoogle"]
-        Ntfy["ntfy notifications"]
-        LiveSync["Obsidian LiveSync"]
-        Tools["Mermaid Viewer<br/>Gridfinity Layout Tool"]
-        Watch["Watchtower monitor-only<br/>Telegraf · apt-cacher-ng"]
-    end
-
-    DockerHost --- HouseholdApps
-    DockerHost --- MediaSecurity
-    DockerHost --- PlatformApps
-
-    Bridges["Explicit Compose bridges<br/>10.240.x.0/24 allocations<br/>Bambuddy host-mode exception pending P1S path"]
-    DockerHost --- Bridges
-
-    subgraph Storage["Storage VLAN 40"]
-        OMV["OpenMediaVault NAS<br/>192.168.40.50<br/>NFS · SMB · backups · CCTV · Immich"]
-    end
-
-    Router ---|"lan4 · VLAN 40 access"| OMV
-    OMV -->|"HA backups"| HA
-    OMV -->|"recordings"| Frigate
-    OMV -->|"media + app backups"| DockerHost
-    OMV -->|"VM/CT backups"| Proxmox
-
-    subgraph Physical["Physical integrations"]
-        Cameras["Three ANNKE C500 cameras<br/>.21 port 2 · .23 patio port 3 · .22 gate port 4"]
-        FutureCamera["Fourth camera pending<br/>192.168.30.24 · switch ports 5-7 reserved"]
-        Printer["Bambu P1S<br/>192.168.35.200"]
-        VentSys["VentSys ESPHome fleet<br/>VLAN 50 · hardware adoption pending"]
-    end
-
-    Switch -->|"ports 2-4 · VLAN 30 PoE"| Cameras
-    Switch -.-> FutureCamera
-    Cameras -->|"RTSP main/sub streams"| Frigate
-    FutureCamera -.-> Frigate
-    Printer --> Bambuddy
-    VentSys -->|"MQTT / ESPHome"| HA
-
-    HA -->|"Frigate integration"| Frigate
-    HA -->|"conversation + voice"| LLMHost
-    DockerHost -->|"chat + embeddings"| LLMHost
-    Monitoring -.->|"health + metrics"| HA
-    Monitoring -.-> DockerHost
-    Monitoring -.-> Frigate
-    Monitoring -.-> LLMHost
-    Monitoring -.-> OMV
-
-    subgraph Remote["Remote access"]
-        Tailnet["Tailscale tailnet<br/>daily access"]
-        TailRouter["docker-host tailscale0<br/>100.94.122.18"]
-        MobileProxy["OnePlus fixed portal grant<br/>DNS · 443 · 8180-8209<br/>no broad VLAN route"]
-        HostRoutes["Approved narrow routes<br/>HA .101 · Frigate .20 · OMV .50 · Monitoring .10"]
-        WireGuard["WireGuard<br/>dormant split-tunnel fallback"]
-    end
-
-    Operator --> Tailnet --> TailRouter
-    TailRouter --> DockerHost
-    TailRouter --> MobileProxy --> Homepage
-    TailRouter --> HostRoutes
-    HostRoutes --> HA
-    HostRoutes --> Frigate
-    HostRoutes --> OMV
-    HostRoutes --> Monitoring
-    Operator -.-> WireGuard -.-> Router
-
-    classDef edge fill:#f4b860,stroke:#8a5a12,color:#241704
-    classDef compute fill:#78c6a3,stroke:#276749,color:#08251a
-    classDef app fill:#78b7d0,stroke:#245b70,color:#071e27
-    classDef storage fill:#b8a1e3,stroke:#5b4391,color:#1b1230
-    classDef remote fill:#ef9a9a,stroke:#963f3f,color:#350b0b
-    class Router,Switch edge
-    class Proxmox,HA,Monitoring,DockerHost,Frigate,LLMHost compute
-    class Immich,Mealie,Grocy,Garden,Hub,Recomp,Bambuddy,Media,Vault,Download,Homepage,AdGuard,Dozzle,Search,Ntfy,LiveSync,Tools,Watch app
-    class OMV storage
-    class Tailnet,TailRouter,MobileProxy,HostRoutes,WireGuard remote
+    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa
+    classDef store fill:#292745,stroke:#aa99db,color:#f2edff
+    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8
+    classDef deferred fill:#1b2638,stroke:#9dabc1,color:#d3dfef,stroke-dasharray:5 4

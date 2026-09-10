@@ -11,7 +11,7 @@ const distRoot = path.join(appRoot, 'dist');
 const metadata = {
   'infrastructure/docker-host-service-placement.mermaid': {
     title: 'Docker-host Service Placement',
-    summary: 'Live application stacks, operational tooling, data services, storage, and backup boundaries.',
+    summary: 'Service inventory, runtime policy, private data dependencies, and backup boundaries.',
     tags: ['docker', 'services', 'containers', 'placement'],
   },
   'infrastructure/proxmox-guests-and-backups.mermaid': {
@@ -26,7 +26,7 @@ const metadata = {
   },
   'network/current-master-architecture.mermaid': {
     title: 'Logical Architecture',
-    summary: 'Current logical relationships across networking, compute, apps, storage, monitoring, and remote access.',
+    summary: 'Compact placement overview; dedicated views provide network, access, and service detail.',
     tags: ['architecture', 'logical', 'services', 'network'],
   },
   'network/dns-ntp-flow.mermaid': {
@@ -36,7 +36,7 @@ const metadata = {
   },
   'network/physical-port-and-cabling.mermaid': {
     title: 'Physical Ports and Cabling',
-    summary: 'Live router, Proxmox trunk, managed-switch ports, camera, NAS, and Wi-Fi attachment.',
+    summary: 'Router attachments, Wi-Fi, and the disconnected switch and camera baseline.',
     tags: ['physical', 'ports', 'switch', 'cabling'],
   },
   'network/remote-access-flow.mermaid': {
@@ -51,17 +51,17 @@ const metadata = {
   },
   'network/vlan_architecture_clean.mermaid': {
     title: 'VLAN Architecture',
-    summary: 'All network segments, subnets, core hosts, physical trunks, and remote-access placement.',
+    summary: 'Eleven network segments with subnets and host placement; cabling and access have separate views.',
     tags: ['vlan', 'subnet', 'router'],
   },
   'storage/storage-and-backup-flow.mermaid': {
     title: 'Storage and Backup Flow',
-    summary: 'Live OMV-backed recordings, media, guest backups, application data, and restore verification.',
+    summary: 'Live data mounts and backup copies in separate lanes, with recovery acceptance tracked separately.',
     tags: ['storage', 'backup', 'omv', 'restore'],
   },
   'ventsys/ventsys-control-and-safety-flow.mermaid': {
     title: 'VentSys Control and Safety',
-    summary: 'Control, telemetry, airflow, emergency actions, and fail-safe relationships.',
+    summary: 'Planned control, airflow, and safety acceptance; physical commissioning remains pending.',
     tags: ['ventsys', 'safety', 'mqtt', 'esphome'],
   },
 };

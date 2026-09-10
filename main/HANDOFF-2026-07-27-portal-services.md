@@ -2,12 +2,42 @@
 title: Portal, Monitoring and Household Services Handoff
 description: Live Homepage/monitoring state and the next decision-gated service work
 created: 2026-07-27
-modified: 2026-09-07
+modified: 2026-09-10
 type: handoff
 status: current
 ---
 
 # Handoff — Portal, Monitoring and Household Services (2026-07-27)
+
+## 2026-09-10 diagram readability and troubleshooting check
+
+- Reworked all 11 canonical Mermaid sources into purpose-specific grouped
+  views. Master covers placement; network inventory, physical attachments,
+  access policy, service inventory and storage retain their dedicated detail.
+  Disconnected cameras, rollback guests and uncommissioned hardware remain
+  explicit. System claims use the September7 baseline, not a fresh full audit.
+- At the same 1600x1100 browser viewport, master fit rose from 14% to 79%,
+  VLAN from 24% to 89%, and Docker placement from 30% to 73%. Wider labels,
+  straight connectors and title margins remove unnecessary wrapping and
+  heading collisions. Phones still require zoom/pan for detailed reading.
+- All 11 generated sources match canonical files and render without browser
+  errors. Three complex views pass mobile overflow, zoom, 100% and Fit checks.
+  Reusable check: `apps/mermaid-viewer/scripts/verify-diagrams.mjs`.
+- Atomically deployed only `dist/diagram-data.js` to the existing docker-host
+  bind-mounted stack. LAN8092 and fixed HTTPS8195 return SHA256
+  `876395a974946f8f939fb5e2f820561510ff0fad3d2b84c8e150e1e9dfff1f5c`.
+  HTTPS content verification used curl's certificate bypass; it does not
+  establish client trust. Prior data is retained at
+  `/opt/backups/mermaid-layout-20260910/diagram-data.js`; rollback by copying
+  that file to a temporary sibling in the live dist directory and renaming
+  it over `diagram-data.js`. No container restart or access-policy change.
+- Troubleshooting dashboard LAN8094 returns HTTP200 today. September7 source
+  hashes matched the deployed read-only app; no troubleshooting code changed
+  in this pass. It remains management-only, pending fresh Proxmox backup/mount
+  acceptance and an owner DNS/Homepage placement choice. The Home Operations
+  Workbench remains a separate local prototype. Next no-input app work can
+  improve evidence freshness and planned-offline presentation using fixture
+  imports; live evidence and promotion gates remain separate.
 
 ## 2026-09-07 audit follow-through
 

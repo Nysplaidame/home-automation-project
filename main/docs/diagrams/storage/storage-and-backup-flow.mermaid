@@ -1,30 +1,34 @@
+%%{init: {"theme":"base","fontFamily":"Segoe UI, sans-serif","themeVariables":{"primaryColor":"#123044","primaryTextColor":"#eef6ff","primaryBorderColor":"#58b7bf","lineColor":"#9aafc4","clusterBkg":"#0d1c2d","clusterBorder":"#38516b","tertiaryColor":"#0d1c2d","edgeLabelBackground":"#0b1929","fontFamily":"Segoe UI, sans-serif","fontSize":"18px"},"flowchart":{"curve":"linear","nodeSpacing":20,"rankSpacing":28,"padding":12,"subGraphTitleMargin":{"top":8,"bottom":16},"wrappingWidth":380,"useMaxWidth":false}}}%%
 flowchart LR
-    HA["Home Assistant<br/>VM 100"]
-    Frigate["Frigate<br/>CT 111"]
-    DockerHost["docker-host<br/>VM 103"]
-    Immich["Immich<br/>on docker-host"]
-    Apps["Mealie · Grocy · LiveSync · GardenKeeper<br/>Household Hub · Recomp · ntfy · Vaultwarden"]
-    Media["Jellyfin · Calibre-Web · Atsumeru<br/>scoped OMV media roots"]
-    Downloads["Gluetun/qBittorrent<br/>incomplete + complete roots"]
-    OMV["OMV NAS<br/>192.168.40.50<br/>NFS/SMB shares"]
-    Proxmox["Proxmox host<br/>omv-backups NFS storage"]
-    Vault["Project vault<br/>Obsidian repo"]
-    Offsite["Future offsite copy<br/>manual or automated"]
+    %% Parallel lanes distinguish live data mounts from backup copies.
+    HA["HOME ASSISTANT VM100<br/>Daily native backup"] --> HAData
+    Guests["PROXMOX HOST<br/>VM / CT vzdump archives"] --> GuestData
+    Apps["VM103 APPLICATION STATE<br/>Selected apps + DB dumps · daily03:45"] --> AppData
+    Photos["IMMICH ON VM103<br/>Photo / video uploads and library"] --> PhotoData
+    Media["MEDIA + DOWNLOAD APPS<br/>Jellyfin · books/comics · qBittorrent"] --> MediaData
+    Frigate["FRIGATE CT111<br/>Proxmox NFS mount + CT bind mount"] --> CCTV
+    Vault["OBSIDIAN PROJECT VAULT<br/>Guarded robocopy; schedule gated"] -.-> ConfigData
+    subgraph OMV["OMV · 192.168.40.50 · NFS / SMB"]
+        HAData["HA BACKUPS<br/>nas_backups"]
+        GuestData["GUEST BACKUPS<br/>omv-backups · 7 daily + 6 monthly"]
+        AppData["APP-DATA BACKUPS<br/>backups/docker-host"]
+        PhotoData["IMMICH LIVE DATA<br/>Dedicated library / upload export"]
+        MediaData["SCOPED LIBRARY ROOTS<br/>Jellyfin read-only; books/comics writable<br/>Downloads never mount final libraries"]
+        CCTV["CCTV RECORDINGS<br/>Mount retained; cameras disconnected"]
+        ConfigData["CONFIG COPIES<br/>First manual copy + restore proof pending"]
+    end
+    subgraph Evidence["RECOVERY EVIDENCE · SEPARATE FROM DATA FLOW"]
+        direction TB
+        Health["SMART / mount health<br/>Archive age / integrity<br/>Isolated restore + app acceptance"]
+        Offsite["Offsite copy remains future scope<br/>Choose recovery / retention policy first"]
+        Health ~~~ Offsite
+    end
+    OMV ---|"verify each layer"| Evidence
+    class HAData,GuestData,AppData,PhotoData,MediaData,CCTV,ConfigData store
+    class Health policy
+    class Vault,Offsite deferred
 
-    HA -->|"daily HA backups<br/>nas_backups"| OMV
-    Frigate -->|"live NFS recordings<br/>Proxmox host mount + CT bind mount"| OMV
-    Immich -->|"library and upload storage"| OMV
-    Apps -->|"daily 03:45 data/dump copy<br/>backups/docker-host"| OMV
-    Media -->|"read-only or app-specific writable mounts"| OMV
-    Downloads -->|"payload roots only<br/>no final-library mount"| OMV
-    DockerHost -->|"templates and stack configs<br/>Git + app-data plan"| Apps
-    Proxmox -->|"VM/CT vzdump backups<br/>7 daily + 6 monthly"| OMV
-    Vault -.->|"guarded robocopy helper live<br/>schedule pending restore proof"| OMV
-    OMV -.->|"periodic copy after restore plan exists"| Offsite
-
-    SMART["OMV SMART monitoring<br/>disk health alerts"]
-    Restore["Restore drills<br/>HA, Proxmox guests, app data, router configs"]
-
-    OMV --> SMART
-    OMV --> Restore
-    Proxmox --> Restore
+    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa
+    classDef store fill:#292745,stroke:#aa99db,color:#f2edff
+    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8
+    classDef deferred fill:#1b2638,stroke:#9dabc1,color:#d3dfef,stroke-dasharray:5 4

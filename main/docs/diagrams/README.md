@@ -3,7 +3,7 @@ title: Diagram Library
 description: Canonical architecture, install, service, storage, and VentSys diagrams
 tags: [diagrams, architecture, install]
 created: 2026-05-25
-modified: 2026-08-25
+modified: 2026-09-10
 type: index
 status: active
 ---
@@ -19,8 +19,8 @@ project can keep diagrams versioned and reviewable.
 | Diagram | Purpose |
 |---|---|
 | [current-master-architecture.mermaid](network/current-master-architecture.mermaid) | Whole-system placement: router, Proxmox, VMs, docker-host, OMV, services, physical integrations |
-| [vlan_architecture_clean.mermaid](network/vlan_architecture_clean.mermaid) | VLANs, subnets, router role, physical ports, local AI, remote-access placement |
-| [physical-port-and-cabling.mermaid](network/physical-port-and-cabling.mermaid) | Live router, Proxmox trunk, managed-switch ports, camera, NAS, and Wi-Fi cabling |
+| [vlan_architecture_clean.mermaid](network/vlan_architecture_clean.mermaid) | Eleven segments, subnets and host placement; access and cabling are separate views |
+| [physical-port-and-cabling.mermaid](network/physical-port-and-cabling.mermaid) | Router attachments, Wi-Fi and the disconnected switch/camera baseline |
 | [remote-access-flow.mermaid](network/remote-access-flow.mermaid) | Tailscale daily access, fixed Homepage mobile proxies, narrow admin host routes, WireGuard fallback |
 | [dns-ntp-flow.mermaid](network/dns-ntp-flow.mermaid) | Router DNS/NTP authority, AdGuard Home, Quad9-preferred fallback, HA/ESPHome time |
 | [security-access-flow.mermaid](network/security-access-flow.mermaid) | Firewall, ACL, local AI, host firewall, service-auth, and blocked-path intent |
@@ -52,3 +52,22 @@ endpoint retained at `http://192.168.20.102:8092/`.
 | File | Purpose |
 |---|---|
 | [excalibrain.md](mind-map/excalibrain.md) | Obsidian/ExcaliBrain helper view; not part of the rebuild path |
+
+## Layout and interpretation
+
+The 2026-09-10 layout pass uses the September7 recorded system baseline; it
+is not a new whole-system health audit. The master is a placement overview.
+Use the dedicated network, access, service and storage views for detail.
+Each view groups related items and limits connectors to its own purpose.
+
+Teal denotes core services, purple storage, gold policy or acceptance gates,
+and dashed boxes deferred, disconnected or rollback components; read each
+label for its exact state. Solid lines can mean attachment or association,
+so only directional labelled arrows imply a particular flow. Invisible
+Mermaid `~~~` links control layout only. Abbreviated `.20.101`-style addresses
+use the `192.168` prefix. Backup job success does not establish restore proof.
+
+Keep explicit line breaks, adequate wrapping width and subgraph title margins
+when extending a view. Avoid adding every relationship back into the master.
+After edits, rebuild the viewer and run its browser verification script;
+see [viewer verification](../../apps/mermaid-viewer/README.md#verification).

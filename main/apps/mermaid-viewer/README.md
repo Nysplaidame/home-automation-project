@@ -34,3 +34,20 @@ docker compose up -d
 ```
 
 No project secrets are required or included.
+
+## Verification
+
+After building, install the existing smoke-test dependencies with
+`npm ci --prefix main/tools/playwright-smoke` from the repository root if
+needed, then run `node main/apps/mermaid-viewer/scripts/verify-diagrams.mjs`.
+The check serves the local build on loopback, compares all embedded sources
+with canonical files, renders every diagram, checks browser errors, and
+exercises mobile zoom, 100% and Fit on the three largest overview views.
+Screenshots and dimensions go to the temporary `mermaid-diagram-review`
+directory, or the path supplied by `DIAGRAM_SCREENSHOTS`.
+
+The current live stack bind-mounts `dist/` read-only. For diagram-only updates,
+back up the deployed `dist/diagram-data.js`, upload its replacement to a
+sibling temporary file, verify its hash, then rename it into place. No
+container restart is needed. Verify both the LAN endpoint and fixed HTTPS
+proxy return the expected data, then inspect a live render.

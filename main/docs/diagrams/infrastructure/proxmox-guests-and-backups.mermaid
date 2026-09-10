@@ -1,44 +1,35 @@
-flowchart TB
-    Proxmox["Proxmox VE 9<br/>MINISFORUM M1 Pro-125H<br/>192.168.10.10"]
-
-    subgraph Production["Production guests"]
-        HA["VM 100 · home-assistant<br/>VLAN 20 · .101<br/>2 vCPU · 6 GiB · 32 GiB"]
-        Monitor["VM 102 · monitoring<br/>VLAN 60 · .10<br/>2 vCPU · 3 GiB · 32 GiB"]
-        Docker["VM 103 · docker-host<br/>VLAN 20 · .102<br/>2 vCPU · 6 GiB · 64 GiB"]
-        Frigate["CT 111 · frigate-nvr<br/>VLAN 30 · .20<br/>2 vCPU · 6 GiB · 32 GiB"]
-        LLM["CT 114 · llm-host<br/>VLAN 20 · .104<br/>4 vCPU · 20 GiB · 100 GiB"]
+%%{init: {"theme":"base","fontFamily":"Segoe UI, sans-serif","themeVariables":{"primaryColor":"#123044","primaryTextColor":"#eef6ff","primaryBorderColor":"#58b7bf","lineColor":"#9aafc4","clusterBkg":"#0d1c2d","clusterBorder":"#38516b","tertiaryColor":"#0d1c2d","edgeLabelBackground":"#0b1929","fontFamily":"Segoe UI, sans-serif","fontSize":"18px"},"flowchart":{"curve":"linear","nodeSpacing":20,"rankSpacing":28,"padding":12,"subGraphTitleMargin":{"top":8,"bottom":16},"wrappingWidth":380,"useMaxWidth":false}}}%%
+flowchart LR
+    %% Guest membership and backup jobs; no cross-links to application services.
+    subgraph VMs["PROXMOX · PRODUCTION VMS"]
+        direction TB
+        HA["VM100 · HOME ASSISTANT<br/>.20.101 · 2 vCPU · 6 GiB RAM · 32 GiB disk"]
+        Monitor["VM102 · MONITORING<br/>.60.10 · 2 vCPU · 3 GiB RAM · 32 GiB disk"]
+        Docker["VM103 · DOCKER HOST<br/>.20.102 · 2 vCPU · 6 GiB RAM · 64 GiB disk"]
+        HA ~~~ Monitor ~~~ Docker
     end
-
-    subgraph Rollback["Powered-off rollback guests"]
-        OldFrigate["VM 101 · old Frigate"]
-        OldLLM["VM 104 · old llm-host"]
+    subgraph CTs["PROXMOX · PRODUCTION LXCS"]
+        direction TB
+        Frigate["CT111 · FRIGATE<br/>.30.20 · 2 vCPU · 6 GiB RAM · 32 GiB disk"]
+        AI["CT114 · LOCAL AI<br/>.20.104 · 4 vCPU · 20 GiB RAM · 100 GiB disk"]
+        GPU["Shared Intel iGPU device access<br/>renderD128 + card0<br/>No PCI passthrough"]
+        Frigate ~~~ AI ~~~ GPU
     end
+    VMJob["VM JOB · 100 / 102 / 103<br/>Daily02:00 · snapshot · ZSTD"]
+    CTJob["LXC JOB · 111 / 114<br/>Daily04:00 · snapshot · ZSTD<br/>Local temporary data: /var/tmp"]
+    OMV["OMV · 192.168.40.50<br/>omv-backups NFS<br/>7 daily + 6 monthly generations"]
+    Evidence["ACCEPTANCE STATUS<br/>Fresh guest-archive evidence pending<br/>Integrity and restore proof are separate"]
+    Rollback["POWERED-OFF ROLLBACK ONLY<br/>VM101 old Frigate · VM104 old AI<br/>Never start alongside replacement CTs"]
+    VMs --> VMJob --> OMV
+    CTs --> CTJob --> OMV
+    OMV --> Evidence
+    Rollback ~~~ CTs
+    class HA,Monitor,Docker,Frigate,AI core
+    class VMJob,CTJob,OMV store
+    class GPU,Evidence policy
+    class Rollback deferred
 
-    Proxmox --> Production
-    Proxmox -.-> Rollback
-
-    GPU["Shared Intel iGPU<br/>renderD128 + card0<br/>no PCI passthrough"]
-    GPU --> Frigate
-    GPU --> LLM
-
-    VMBackup["VM backup job<br/>100 · 102 · 103<br/>daily 02:00 · snapshot · ZSTD"]
-    CTBackup["LXC backup job<br/>111 · 114<br/>daily 04:00 · snapshot · ZSTD<br/>tmpdir /var/tmp"]
-    Retention["Retention<br/>7 daily + 6 monthly"]
-    OMV["OMV omv-backups NFS<br/>192.168.40.50"]
-    Restore["Restore evidence<br/>guest jobs verified after tmpdir fix"]
-
-    HA --> VMBackup
-    Monitor --> VMBackup
-    Docker --> VMBackup
-    Frigate --> CTBackup
-    LLM --> CTBackup
-    VMBackup --> Retention --> OMV
-    CTBackup --> Retention
-    OMV --> Restore
-
-    classDef guest fill:#78c6a3,stroke:#276749,color:#08251a
-    classDef rollback fill:#334155,stroke:#94a3b8,color:#e2e8f0,stroke-dasharray: 5 5
-    classDef backup fill:#b8a1e3,stroke:#5b4391,color:#1b1230
-    class HA,Monitor,Docker,Frigate,LLM guest
-    class OldFrigate,OldLLM rollback
-    class VMBackup,CTBackup,Retention,OMV,Restore backup
+    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa
+    classDef store fill:#292745,stroke:#aa99db,color:#f2edff
+    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8
+    classDef deferred fill:#1b2638,stroke:#9dabc1,color:#d3dfef,stroke-dasharray:5 4

@@ -1,46 +1,38 @@
+%%{init: {"theme":"base","fontFamily":"Segoe UI, sans-serif","themeVariables":{"primaryColor":"#123044","primaryTextColor":"#eef6ff","primaryBorderColor":"#58b7bf","lineColor":"#9aafc4","clusterBkg":"#0d1c2d","clusterBorder":"#38516b","tertiaryColor":"#0d1c2d","edgeLabelBackground":"#0b1929","fontFamily":"Segoe UI, sans-serif","fontSize":"18px"},"flowchart":{"curve":"linear","nodeSpacing":20,"rankSpacing":28,"padding":12,"subGraphTitleMargin":{"top":8,"bottom":16},"wrappingWidth":380,"useMaxWidth":false}}}%%
 flowchart LR
-    Upstream["Openreach ONT<br/>Zen fibre"] --> WAN
-
-    subgraph Router["GL-MT6000 OpenWrt · 192.168.10.1"]
-        WAN["WAN eth1<br/>untagged PPPoE"]
-        LAN1["lan1<br/>tagged Proxmox trunk"]
-        LAN2["lan2<br/>Hive cloud IoT<br/>VLAN 55 untagged"]
-        LAN3["lan3<br/>tagged switch trunk<br/>VLANs 1/10/30/40"]
-        LAN4["lan4<br/>OMV NAS access<br/>VLAN 40 untagged"]
-        LAN5["lan5<br/>LAN/recovery access"]
-        WiFi["Wi-Fi<br/>HomeMain · HomeAdmin · HomePrinters<br/>HomeIoT · HomeGuest"]
+    %% Physical attachments only. Guest placement has its own Proxmox view.
+    ONT["Openreach ONT<br/>Zen fibre"] --> WAN["WAN · eth1<br/>Untagged PPPoE"]
+    LAN1["LAN1<br/>Tagged Proxmox trunk"] --- Proxmox["MINISFORUM · Proxmox<br/>192.168.10.10<br/>VLAN-aware guest bridge"]
+    LAN2["LAN2<br/>VLAN55 access"] --- Hive["Hive hub · 192.168.55.10<br/>Internet verified · app issue open"]
+    LAN3["LAN3 · configured trunk<br/>Tagged VLANs1 / 10 / 30 / 40"] -.- Switch
+    LAN4["LAN4<br/>VLAN40 access"] --- NAS["OMV NAS<br/>192.168.40.50"]
+    LAN5["LAN5<br/>VLAN1 access"] --- Recovery["LAN PC / recovery route"]
+    subgraph Router["GL-MT6000 · 192.168.10.1"]
+        WAN
+        LAN1
+        LAN2
+        LAN3
+        LAN4
+        LAN5
     end
-
-    LAN2 --> Hive["Hive hub<br/>192.168.55.10<br/>internet traffic verified; app issue open"]
-    LAN1 --> Proxmox["MINISFORUM Proxmox host<br/>192.168.10.10<br/>VLAN-aware guest bridge"]
-    LAN3 --> SW1
-
-    subgraph Switch["Zyxel GS1900-8HP · 192.168.10.12 · currently unplugged"]
-        SW1["Port 1<br/>router trunk"]
-        SW2["Port 2<br/>PoE · VLAN 30 access"]
-        SW3["Port 3<br/>PoE · VLAN 30 access"]
-        SW4["Port 4<br/>PoE · VLAN 30 access"]
-        SW57["Ports 5-7<br/>PoE · VLAN 30 access<br/>spare CCTV ports"]
-        SW8["Port 8<br/>spare VLAN 40 access"]
+    subgraph Switch["ZYXEL GS1900-8HP · .10.12 · DISCONNECTED"]
+        direction TB
+        Ports["Port1 · router trunk<br/>Port2 · Camera1 .30.21<br/>Port3 · Patio .30.23<br/>Port4 · Gate .30.22"]
+        Spare["Ports5–7 · spare VLAN30 PoE<br/>Port8 · spare VLAN40 access<br/>Fourth camera remains future work"]
+        Ports ~~~ Spare
     end
+    subgraph WiFi["ROUTER WI-FI · FIVE SSIDS"]
+        direction TB
+        Trusted["HomeAdmin → VLAN10 admin<br/>HomeMain → VLAN1 household<br/>HomeGuest → VLAN99 guests"]
+        Devices["HomePrinters → VLAN35 · P1S pending<br/>HomeIoT → VLAN50 · VentSys pending"]
+        Trusted ~~~ Devices
+    end
+    Router --- WiFi
+    class WAN,LAN1,LAN2,LAN4,LAN5,Proxmox,NAS,Trusted core
+    class LAN3,Ports,Spare,Devices deferred
+    class Hive policy
 
-    SW2 --> Camera["ANNKE C500 cam-01<br/>192.168.30.21"]
-    SW3 --> PatioCamera["Patio camera cam-03<br/>192.168.30.23"]
-    SW4 --> GateCamera["Gate camera cam-02<br/>192.168.30.22"]
-    SW57 -.-> FutureCameras["Future exterior cameras<br/>VLAN 30"]
-    LAN4 --> OMV["OpenMediaVault NAS<br/>192.168.40.50"]
-    WiFi --> Admin["Admin workstation<br/>HomeAdmin · VLAN 10"]
-    WiFi --> Users["Household devices<br/>HomeMain · VLAN 1"]
-    WiFi --> Printer["Bambu P1S<br/>HomePrinters · VLAN 35<br/>not yet set up"]
-    WiFi -.-> VentSys["Future VentSys devices<br/>HomeIoT · VLAN 50"]
-
-    Proxmox --> HA["VM 100 HA · VLAN 20"]
-    Proxmox --> Monitor["VM 102 monitoring · VLAN 60"]
-    Proxmox --> Docker["VM 103 docker-host · VLAN 20"]
-    Proxmox --> Frigate["CT 111 Frigate · VLAN 30"]
-    Proxmox --> LLM["CT 114 local AI · VLAN 20"]
-
-    classDef live fill:#78c6a3,stroke:#276749,color:#08251a
-    classDef future fill:#334155,stroke:#94a3b8,color:#e2e8f0,stroke-dasharray: 5 5
-    class WAN,LAN1,LAN3,LAN4,WiFi,Proxmox,SW1,SW2,SW3,SW4,Camera,PatioCamera,GateCamera,OMV,Admin,Users,Printer,HA,Monitor,Docker,Frigate,LLM live
-    class SW57,SW8,FutureCameras,VentSys future
+    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa
+    classDef store fill:#292745,stroke:#aa99db,color:#f2edff
+    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8
+    classDef deferred fill:#1b2638,stroke:#9dabc1,color:#d3dfef,stroke-dasharray:5 4
