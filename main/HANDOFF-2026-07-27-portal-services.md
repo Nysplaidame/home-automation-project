@@ -1107,3 +1107,30 @@ Viewer has not been rebuilt or deployed during the outage.
   - `1f7d557 feat(services): finish household rollout`
 - User-owned Obsidian changes may be present under `.obsidian/`; do not stage or
   overwrite them during project work.
+
+
+## 2026-09-10 dashboard readability deployment
+
+- Reworked troubleshooting into a numbered choose/add/check/review journey.
+  Body text is18px, supporting copy and commands16px, with increased contrast.
+  A two-column desktop layout gives the investigation room; evidence follows
+  below. All five problem choices are visible on phones. Checks expand
+  individually and show their execution host, command and expected result.
+- Added collection guidance beside upload: run the Windows collector from
+  the canonical checkout, import health.json, retain failed observations,
+  and use Proxmox collection for mount/backup evidence. Its existing SSH and
+  installed-collector timezone gates remain explicit.
+- Deployed app.js, styles.css and index.html to the existing management stack
+  using cached base image and a scoped Compose recreate. No evidence model,
+  collector, firewall, DNS or Homepage changes in this pass. Live HTTP file
+  bytes match local sources; Nginx syntax,14 model tests, desktop/mobile browser
+  checks and expanded mobile collection-help layout all passed. Screenshots
+  inspected; instructions/commands no longer require tiny text or horizontal
+  scrolling. Updated app design contract and README.
+- Current image: sha256:ff7f534d2f6d41c417a955ae9e673c78a038c5e070f4a62cf37dc9971ccfadd1.
+  Rollback source files are in /opt/backups/troubleshooting-readable-20260910/;
+  prior image is troubleshooting-dashboard:readability-rollback-20260910.
+  Restore those app.js/index.html/styles.css files, tag that image as
+  troubleshooting-dashboard-troubleshooting-dashboard:latest and run
+  docker compose up -d --no-build --no-deps troubleshooting-dashboard from
+  /opt/stacks/troubleshooting-dashboard/. Rollback retained, not exercised.

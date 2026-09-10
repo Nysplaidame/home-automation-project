@@ -140,3 +140,15 @@ policy. It has no DNS, Homepage, LAN, monitoring or Tailscale exposure.
 
 The pre-change live firewall and audit scripts are retained on VM 103 under
 `/opt/backups/troubleshooting-dashboard-20260825T1518Z/`.
+
+## Readability update (2026-09-10)
+
+The interface uses a numbered choose/add/check/review journey, 18px body text,
+16px supporting evidence and wrapped commands. Evidence follows the checks
+instead of squeezing them into a three-column layout. Each check expands to
+show its execution host, command, expected result and interpretation; the
+first is open initially. All five problem choices are visible on phones.
+
+The upload area includes the Windows snapshot command, explains that failed
+checks can still be imported, and names the separate Proxmox collection gate.
+Files stay in the browser; gathering evidence remains an operator-run step.

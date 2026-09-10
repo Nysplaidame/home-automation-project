@@ -82,6 +82,7 @@ function renderSymptoms() {
       state.activeId = symptom.id;
       render();
       byId('active-title').focus({ preventScroll: true });
+      if (matchMedia('(max-width: 760px)').matches) byId('load-evidence').scrollIntoView({ block: 'start' });
     });
     const top = make('span', 'symptom-topline');
     top.append(make('span', 'symptom-order', symptom.order), statusNode(status, true));
@@ -96,7 +97,7 @@ function renderPath(symptom) {
   symptom.path.forEach((node, index) => {
     const status = evaluateKeys(node.keys, state.snapshot);
     const item = make('li', `path-node status-border-${status}`);
-    item.append(make('span', 'path-index', String(index + 1).padStart(2, '0')), make('strong', '', node.label));
+    item.append(make('span', 'path-index', String(index + 1).padStart(2, '0')), make('strong', '', node.label), statusNode(status));
     path.append(item);
   });
 }
@@ -117,12 +118,13 @@ function renderSteps(symptom) {
     });
     const label = document.createElement('label');
     label.htmlFor = input.id;
-    label.textContent = `Mark step ${index + 1} collected`;
+    label.textContent = `Collected check ${index + 1}`;
     checkWrap.append(input, label);
 
-    const body = make('div', 'step-body');
-    const heading = make('div', 'step-heading');
-    heading.append(make('span', 'step-stage', item.stage), make('h4', '', item.title));
+    const body = make('details', 'step-body');
+    body.open = index === 0;
+    const heading = make('summary', 'step-heading');
+    heading.append(make('span', 'step-stage', `Check ${index + 1} · ${item.stage}`), make('strong', '', item.title));
     const context = make('p', 'step-context');
     context.append(make('span', '', 'Run on '), make('strong', '', item.runOn));
     const commandRow = make('div', 'command-row');
@@ -133,8 +135,8 @@ function renderSteps(symptom) {
     commandRow.append(copyButton);
     const interpretation = make('dl', 'interpretation');
     interpretation.append(make('dt', '', 'Expected'), make('dd', '', item.expected), make('dt', '', 'If not'), make('dd', '', item.failure));
-    body.append(heading, context, commandRow, interpretation);
-    row.append(checkWrap, body);
+    body.append(heading, context, commandRow, interpretation, checkWrap);
+    row.append(body);
     list.append(row);
   });
 }
@@ -184,7 +186,7 @@ function renderAssessment(symptom) {
 
 function renderInvestigation() {
   const symptom = activeSymptom();
-  byId('active-order').textContent = `Symptom ${symptom.order}`;
+  byId('active-order').textContent = '3. Follow the checks';
   byId('active-title').textContent = symptom.title;
   byId('active-title').tabIndex = -1;
   byId('active-description').textContent = symptom.description;

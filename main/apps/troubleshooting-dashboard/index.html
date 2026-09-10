@@ -14,8 +14,28 @@
     <div class="brand">
       <p class="eyebrow">Home operations / diagnostics</p>
       <h1>Troubleshooting</h1>
-      <p class="lede">Choose the symptom you can see. The dashboard will order the evidence without running or changing anything.</p>
+      <p class="lede">Choose a problem, add a health snapshot if you have one, then follow the checks. Nothing runs automatically.</p>
     </div>
+  </header>
+
+  <main class="workspace">
+    <nav class="symptom-rail" aria-labelledby="symptom-heading">
+      <div class="region-heading">
+        <p class="eyebrow">Start with what you see</p>
+        <h2 id="symptom-heading">1. Choose a problem</h2>
+        <p class="section-copy">Select what is not working.</p>
+      </div>
+      <div id="symptom-list" class="symptom-list"></div>
+      <div class="rail-note">
+        <strong>You stay in control</strong>
+        <p>Commands are shown for evidence collection. This version cannot execute them.</p>
+      </div>
+    </nav>
+
+    <section id="investigation" class="investigation" aria-labelledby="active-title">
+      <section id="load-evidence" class="load-evidence" aria-labelledby="load-heading">
+        <h2 id="load-heading">2. Add evidence</h2>
+        <p class="section-copy">Load a health JSON file to see recorded results. No file yet? Try an example, or <a href="#sequence-heading">go straight to the checks</a>.</p>
     <div class="snapshot-controls" aria-label="Diagnostic snapshot controls">
       <input id="snapshot-file" type="file" accept="application/json,.json">
       <label class="file-button" for="snapshot-file">Load health JSON</label>
@@ -25,8 +45,15 @@
       </select>
       <button id="clear-snapshot" type="button">Clear</button>
     </div>
-  </header>
 
+        <details class="collection-help">
+          <summary>How do I get a health JSON file?</summary>
+          <p>On your Windows management workstation, open PowerShell in K:\Documents\Obsidian\home-automation-project and run:</p>
+          <code>pwsh -File main/scripts/monitoring/health_check.ps1 -Full -Json &gt; health.json</code>
+          <p>Then choose <strong>Load health JSON</strong> and select health.json in that folder. Failed checks are useful evidence too: you can still load the file. The file stays in this browser.</p>
+          <p>Use a new snapshot for the problem you are investigating. Files older than 36 hours, or without a timezone, cannot establish current health.</p>
+          <p><strong>For backups and recording mounts:</strong> collect JSON on the Proxmox host using the updated health collector. A Windows snapshot cannot supply those checks. The installed Proxmox collector still needs its timezone update; this workstation currently has no accepted Proxmox SSH key.</p>
+        </details>
   <section class="health-strip" aria-label="Snapshot summary">
     <div class="snapshot-identity">
       <span>Snapshot</span>
@@ -40,20 +67,7 @@
     <p id="snapshot-error" class="snapshot-error" role="alert" hidden></p>
   </section>
 
-  <main class="workspace">
-    <nav class="symptom-rail" aria-labelledby="symptom-heading">
-      <div class="region-heading">
-        <p class="eyebrow">Start with what you see</p>
-        <h2 id="symptom-heading">Symptoms</h2>
-      </div>
-      <div id="symptom-list" class="symptom-list"></div>
-      <div class="rail-note">
-        <strong>Read-only POC</strong>
-        <p>Commands are shown for evidence collection. This version cannot execute them.</p>
-      </div>
-    </nav>
-
-    <section id="investigation" class="investigation" aria-labelledby="active-title">
+      </section>
       <header class="investigation-head">
         <div>
           <p id="active-order" class="eyebrow"></p>
@@ -67,8 +81,8 @@
 
       <section class="path-section" aria-labelledby="path-heading">
         <div class="section-title-row">
-          <h3 id="path-heading">Dependency path</h3>
-          <p>Work left to right; stop at the first failed boundary.</p>
+          <h3 id="path-heading">Where the problem could be</h3>
+          <p>These are the systems involved. Labels show what the loaded file can establish.</p>
         </div>
         <div id="evidence-focus" class="evidence-focus status-border-unknown">
           <p id="focus-stage" class="eyebrow">Evidence</p>
@@ -80,17 +94,18 @@
 
       <section class="sequence-section" aria-labelledby="sequence-heading">
         <div class="section-title-row">
-          <h3 id="sequence-heading">Diagnostic sequence</h3>
-          <p>Collect before changing.</p>
+          <h3 id="sequence-heading">Checks to work through</h3>
+          <p>Open a check to see where to run it and how to read the result. Tick Collected after recording it.</p>
         </div>
         <ol id="diagnostic-steps" class="diagnostic-steps"></ol>
       </section>
     </section>
 
-    <aside class="evidence" aria-labelledby="evidence-heading">
+    <aside id="recorded-results" class="evidence" aria-labelledby="evidence-heading">
       <div class="region-heading">
         <p class="eyebrow">Current snapshot</p>
-        <h2 id="evidence-heading">Evidence</h2>
+        <h2 id="evidence-heading">4. Review the recorded results</h2>
+        <p class="section-copy">These observations come from your file, not live monitoring. Missing or old results need fresh evidence.</p>
         <p id="evidence-coverage" class="evidence-coverage">0/0 signals collected</p>
       </div>
       <div id="evidence-list" class="evidence-list"></div>
@@ -101,12 +116,13 @@
       </section>
 
       <section class="references" aria-labelledby="references-heading">
-        <h3 id="references-heading">Open next</h3>
+        <h3 id="references-heading">Related project guides</h3>
+        <p class="section-copy">Choose a guide to copy its path, then open it in your project folder.</p>
         <ul id="reference-list"></ul>
       </section>
 
       <section class="incident-notes" aria-labelledby="notes-heading">
-        <h3 id="notes-heading">Incident notes</h3>
+        <h3 id="notes-heading">Save your findings</h3>
         <label for="notes">Record times and exact errors. Do not paste passwords or tokens.</label>
         <textarea id="notes" rows="5" placeholder="Observed at 14:32…"></textarea>
         <button id="copy-report" type="button">Copy incident report</button>

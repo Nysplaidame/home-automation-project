@@ -5,8 +5,8 @@
 - Product type: read-only operational diagnosis workspace.
 - Primary audience: the system owner diagnosing an incident without specialist
   infrastructure knowledge.
-- Workflow density: compact enough to compare signals, with one symptom and one
-  ordered diagnostic sequence in focus.
+- Workflow density: reading-first, with a numbered journey and one expanded
+  diagnostic check initially.
 - Voice and tone: calm, factual and explicit about uncertainty.
 - The UI must not become a generic status-page card grid, a command runner, or
   an automatic remediation console.
@@ -24,10 +24,10 @@
 - Canvas: `#0b1015`.
 - Surface: `#111922`.
 - Elevated surface: `#17222d`.
-- Border: `#2a3947`.
+- Border: `#354856`.
 - Text primary: `#edf4f7`.
-- Text secondary: `#b8c5cd`.
-- Muted text: `#82939e`.
+- Text secondary: `#c2ced5`.
+- Muted text: `#a5b6c1`.
 - Accent: `#67d5c2`.
 - Success: `#65d68a`.
 - Warning: `#f2bd5b`.
@@ -39,8 +39,15 @@
 - UI font: system sans-serif.
 - Technical/value font: `ui-monospace`, SFMono-Regular, Consolas, monospace.
 - Base spacing unit: 4px.
-- Desktop grid: 280px symptom rail, flexible investigation, 320px evidence.
-- Mobile: one column; symptom controls become a compact horizontal list.
+- Body and instruction text: 18px with 1.6 line height; supporting copy and
+  commands at least 16px; small status/index labels at least 14.4px.
+- Desktop: 300px problem rail and a wide investigation; recorded evidence below
+  the investigation, not in a competing third column. Maximum width 1500px.
+- Mobile: one column with all five problem choices visible. Selecting a problem
+  moves to evidence collection; commands wrap and controls are at least 48px.
+- Numbered sections: choose a problem, add evidence, follow checks, review results.
+- Put collection instructions beside upload, explain missing/old evidence, and
+  expose expected results and execution host inside each expandable check.
 - Values and check counts use tabular numerals.
 
 ## Components

@@ -31,6 +31,15 @@ try {
     .map((element) => element.outerHTML));
   assert.deepEqual(unlabeledControls, []);
 
+  assert.match(await desktop.locator('#symptom-heading').textContent(), /1. Choose a problem/);
+  await desktop.locator('.collection-help summary').click();
+  assert.match(await desktop.locator('.collection-help').textContent(), /health_check.ps1/);
+  await desktop.locator('.collection-help summary').click();
+  assert.equal(await desktop.locator('.step-body[open]').count(), 1);
+  await desktop.locator('.step-heading').nth(1).click();
+  assert.equal(await desktop.locator('.step-body[open]').count(), 2);
+  assert.ok(await desktop.locator('.interpretation dd').first().evaluate(el => parseFloat(getComputedStyle(el).fontSize)) >= 18);
+  assert.ok(await desktop.locator('.evidence-detail').count() === 0);
   if (snapshotPath) {
     await desktop.locator('#snapshot-file').setInputFiles(snapshotPath);
     assert.doesNotMatch(await desktop.locator('#snapshot-time').textContent(), /Not loaded/);
@@ -82,6 +91,9 @@ try {
   assert.match(await desktop.locator('#focus-label').textContent(), /P1S reachable/);
   assert.match(await desktop.locator('.step-context').first().textContent(), /VM 103/);
   await desktop.waitForTimeout(2800);
+  await desktop.locator('#load-evidence').scrollIntoViewIfNeeded();
+  await desktop.screenshot({ path: path.join(outputDir, 'desktop-top.png') });
+  await desktop.locator('.sequence-section').screenshot({ path: path.join(outputDir, 'desktop-checks.png') });
   await desktop.screenshot({ path: path.join(outputDir, 'desktop.png'), fullPage: true });
 
   const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
@@ -96,6 +108,8 @@ try {
   await mobile.waitForTimeout(2800);
   const overflow = await mobile.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   assert.ok(overflow <= 1, `mobile page overflows by ${overflow}px`);
+  await mobile.locator('.load-evidence').screenshot({ path: path.join(outputDir, 'mobile-evidence.png') });
+  await mobile.locator('.sequence-section').screenshot({ path: path.join(outputDir, 'mobile-checks.png') });
   await mobile.screenshot({ path: path.join(outputDir, 'mobile.png'), fullPage: true });
 
   assert.deepEqual(errors, []);
