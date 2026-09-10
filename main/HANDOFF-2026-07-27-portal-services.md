@@ -9,6 +9,30 @@ status: current
 
 # Handoff — Portal, Monitoring and Household Services (2026-07-27)
 
+## 2026-09-10 troubleshooting evidence presentation (local)
+
+- Added a 36-hour evidence-age review window to the read-only dashboard.
+  Missing/ambiguous/invalid/future/stale timestamps cannot produce current
+  Healthy or Action-needed claims; raw observations remain visible and in
+  copied reports. The UI refreshes age every minute without discarding focus,
+  step progress or notes. Import/clear deliberately resets step progress.
+- Built-in examples have an explicit non-live label in the UI and report;
+  external JSON cannot opt itself into the example freshness exemption.
+- Camera and P1S display dated September7 disconnected/uncommissioned context.
+  No device failures are silently suppressed, and related service/storage
+  evidence remains independently visible.
+- Windows collector source now emits an explicit UTC offset and Bash emits
+  UTC Z. Installed collectors are unchanged; legacy timezone-free imports
+  remain visible but require fresh, unambiguous evidence for assessment.
+- Verification: 14 model tests, desktop/mobile browser checks including the
+  live age-boundary transition and focus/notes preservation, six existing
+  Proxmox validator tests, PowerShell parsing and Bash syntax passed.
+  Screenshots were inspected for layout and readable evidence/context text.
+- Source-only change: no dashboard or collector deployment, network collection,
+  notifications, credentials, firewall changes or physical actions in this pass.
+  Next is a bounded update of the existing staged stack and installed collectors.
+  Fresh Proxmox backup/mount acceptance and owner DNS/Homepage choice remain open.
+
 ## 2026-09-10 diagram readability and troubleshooting check
 
 - Reworked all 11 canonical Mermaid sources into purpose-specific grouped

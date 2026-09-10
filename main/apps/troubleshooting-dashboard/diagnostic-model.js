@@ -182,7 +182,7 @@ function boundedText(value, fallback, limit) {
   return (text || fallback).slice(0, limit);
 }
 
-export function normalizeSnapshot(raw) {
+export function normalizeSnapshot(raw, { example = false } = {}) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
     throw new Error('Snapshot must be a JSON object.');
   }
@@ -199,11 +199,47 @@ export function normalizeSnapshot(raw) {
     }
   }
   return {
+    example,
     timestamp: boundedText(raw.timestamp, 'Timestamp not supplied', 100),
     collector: boundedText(raw.collector ?? raw.source, 'Collector not supplied', 100),
     checks,
     details,
   };
+}
+
+// Read-only review window; archive freshness and restore acceptance remain separate.
+export const MAX_EVIDENCE_AGE_MS = 36 * 60 * 60 * 1000;
+
+export function snapshotFreshness(snapshot, now = Date.now()) {
+  if (!snapshot) return { usable: false, label: 'No snapshot loaded' };
+  if (snapshot.example) return { usable: true, label: 'Example only · not live evidence' };
+  const timestamp = snapshot.timestamp;
+  const match = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})(?:\.\d{1,3})?(Z|[+-]\d{2}:\d{2})$/.exec(timestamp);
+  const time = Date.parse(timestamp);
+  if (!match || !Number.isFinite(time)) {
+    return { usable: false, label: 'Age unknown · timestamp with timezone required' };
+  }
+  const [, year, month, day, hour, minute, second, zone] = match;
+  const days = new Date(Date.UTC(Number(year), Number(month), 0)).getUTCDate();
+  if (+month < 1 || +month > 12 || +day < 1 || +day > days || +hour > 23 || +minute > 59 || +second > 59
+      || (zone !== 'Z' && (+zone.slice(1, 3) > 23 || +zone.slice(4) > 59))) {
+    return { usable: false, label: 'Age unknown · invalid timestamp' };
+  }
+  const age = now - time;
+  if (age < 0) return { usable: false, label: 'Future timestamp · check collector clock' };
+  const ageLabel = age < 3600000 ? `${Math.floor(age / 60000)}m old` : `${Math.floor(age / 3600000)}h old`;
+  return age > MAX_EVIDENCE_AGE_MS
+    ? { usable: false, label: `Stale · ${ageLabel} · load a snapshot within 36h` }
+    : { usable: true, label: `Recent · ${ageLabel} · 36h review window` };
+}
+
+export const expectedStates = Object.freeze({
+  camera: 'Recorded 7 September 2026: Zyxel and cameras intentionally disconnected. Confirm this still applies before investigating camera reachability. Frigate and recording-mount checks remain relevant.',
+  p1s: 'Recorded 7 September 2026: P1S not commissioned. An unavailable printer may be expected; confirm its current power and connection state. Bambuddy and HA MQTT checks remain relevant.',
+});
+
+export function checkAssessment(key, snapshot) {
+  return snapshotFreshness(snapshot).usable ? snapshot?.checks[key] ?? 'unknown' : 'unknown';
 }
 
 export function evaluateSymptom(symptom, snapshot) {
@@ -212,7 +248,7 @@ export function evaluateSymptom(symptom, snapshot) {
 
 export function evaluateKeys(keys, snapshot) {
   if (!snapshot || keys.length === 0) return 'unknown';
-  const values = keys.map((key) => snapshot.checks[key] ?? 'unknown');
+  const values = keys.map((key) => checkAssessment(key, snapshot));
   if (values.includes('fail')) return 'fail';
   if (values.includes('warn')) return 'warn';
   if (values.includes('unknown')) return 'unknown';
@@ -228,6 +264,9 @@ export function evidenceFocus(symptom, snapshot) {
       message: 'No diagnostic evidence is loaded, so no boundary can be assessed yet.',
     };
   }
+
+  const freshness = snapshotFreshness(snapshot);
+  if (!freshness.usable) return { status: 'unknown', label: 'Refresh diagnostic evidence', stage: 'Evidence age', message: `${freshness.label}. Recorded observations remain available below; they cannot establish current health.` };
 
   const assessed = symptom.checks.map((item) => ({
     ...item,
@@ -277,8 +316,10 @@ export function buildIncidentReport(symptom, snapshot, notes = '') {
     `Incident: ${symptom.title}`,
     `Assessment: ${statusMeta[status].label}`,
     `Snapshot: ${snapshot?.timestamp ?? 'not loaded'}`,
+    `Evidence age: ${snapshotFreshness(snapshot).label}`,
+    ...(expectedStates[symptom.id] ? [`Recorded context: ${expectedStates[symptom.id]}`] : []),
     '',
-    'Relevant checks:',
+    'Recorded checks (observations at collection time):',
   ];
   for (const item of symptom.checks) {
     lines.push(`- ${item.label}: ${snapshot?.checks[item.key] ?? 'unknown'}`);

@@ -31,10 +31,11 @@
     <div class="snapshot-identity">
       <span>Snapshot</span>
       <strong id="snapshot-time">Not loaded</strong>
+      <small id="snapshot-age">No snapshot loaded</small>
       <small id="snapshot-source">Collector not supplied</small>
     </div>
-    <div><span>Passed</span><strong id="pass-count">0</strong></div>
-    <div><span>Failed</span><strong id="fail-count">0</strong></div>
+    <div><span>Recorded passes</span><strong id="pass-count">0</strong></div>
+    <div><span>Recorded failures</span><strong id="fail-count">0</strong></div>
     <div><span>Needs evidence</span><strong id="unknown-count">5 symptoms</strong></div>
     <p id="snapshot-error" class="snapshot-error" role="alert" hidden></p>
   </section>
@@ -61,6 +62,8 @@
         </div>
         <span id="active-status" class="status-pill"></span>
       </header>
+
+      <p id="expected-state" class="safety-note" hidden></p>
 
       <section class="path-section" aria-labelledby="path-heading">
         <div class="section-title-row">

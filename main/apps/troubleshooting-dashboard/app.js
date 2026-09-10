@@ -1,5 +1,8 @@
 import {
   buildIncidentReport,
+  checkAssessment,
+  expectedStates,
+  snapshotFreshness,
   evidenceCoverage,
   evidenceFocus,
   evaluateKeys,
@@ -59,6 +62,7 @@ async function copyText(text, successMessage) {
 function renderSummary() {
   const summary = snapshotSummary(state.snapshot);
   byId('snapshot-time').textContent = state.snapshot?.timestamp ?? 'Not loaded';
+  byId('snapshot-age').textContent = snapshotFreshness(state.snapshot).label;
   byId('snapshot-source').textContent = state.snapshot?.collector ?? 'Collector not supplied';
   byId('pass-count').textContent = String(summary.pass);
   byId('fail-count').textContent = String(summary.fail);
@@ -139,10 +143,11 @@ function renderEvidence(symptom) {
   const list = byId('evidence-list');
   list.replaceChildren();
   for (const item of symptom.checks) {
-    const status = state.snapshot?.checks[item.key] ?? 'unknown';
+    const status = checkAssessment(item.key, state.snapshot);
     const row = make('div', 'evidence-row');
     const copy = make('div');
     copy.append(make('strong', '', item.label), make('span', 'evidence-stage', item.stage));
+    if (state.snapshot) copy.append(make('span', 'evidence-detail', `Recorded: ${state.snapshot.checks[item.key] ?? 'unknown'}`));
     const detail = state.snapshot?.details[item.key];
     if (detail) copy.append(make('span', 'evidence-detail', detail));
     row.append(copy, statusNode(status));
@@ -164,13 +169,8 @@ function renderReferences(symptom) {
   }
 }
 
-function renderInvestigation() {
-  const symptom = activeSymptom();
+function renderAssessment(symptom) {
   const status = evaluateSymptom(symptom, state.snapshot);
-  byId('active-order').textContent = `Symptom ${symptom.order}`;
-  byId('active-title').textContent = symptom.title;
-  byId('active-title').tabIndex = -1;
-  byId('active-description').textContent = symptom.description;
   const pill = byId('active-status');
   pill.className = `status-pill status-${status}`;
   pill.textContent = `${statusMeta[status].mark} ${statusMeta[status].label}`;
@@ -180,6 +180,17 @@ function renderInvestigation() {
   byId('focus-stage').textContent = focus.stage;
   byId('focus-label').textContent = focus.label;
   byId('focus-message').textContent = focus.message;
+}
+
+function renderInvestigation() {
+  const symptom = activeSymptom();
+  byId('active-order').textContent = `Symptom ${symptom.order}`;
+  byId('active-title').textContent = symptom.title;
+  byId('active-title').tabIndex = -1;
+  byId('active-description').textContent = symptom.description;
+  byId('expected-state').textContent = expectedStates[symptom.id] ?? '';
+  byId('expected-state').hidden = !expectedStates[symptom.id];
+  renderAssessment(symptom);
   const coverage = evidenceCoverage(symptom, state.snapshot);
   byId('evidence-coverage').textContent = `${coverage.collected}/${coverage.total} signals collected`;
   renderPath(symptom);
@@ -194,10 +205,11 @@ function render() {
   renderInvestigation();
 }
 
-function loadSnapshot(raw, message) {
+function loadSnapshot(raw, message, example = false) {
   const error = byId('snapshot-error');
   try {
-    state.snapshot = normalizeSnapshot(raw);
+    state.snapshot = normalizeSnapshot(raw, { example });
+    state.completed.clear();
     error.hidden = true;
     error.textContent = '';
     render();
@@ -218,7 +230,7 @@ function initSamples() {
   }
   select.addEventListener('change', () => {
     if (!select.value) return;
-    loadSnapshot(sampleSnapshots[select.value].value, `Loaded ${sampleSnapshots[select.value].label}.`);
+    loadSnapshot(sampleSnapshots[select.value].value, `Loaded ${sampleSnapshots[select.value].label}.`, true);
   });
 }
 
@@ -232,6 +244,7 @@ byId('snapshot-file').addEventListener('change', async (event) => {
   }
   try {
     const parsed = JSON.parse(await file.text());
+    byId('sample-select').value = '';
     loadSnapshot(parsed, `Loaded ${file.name}.`);
   } catch {
     byId('snapshot-error').textContent = 'The selected file is not valid JSON.';
@@ -241,6 +254,7 @@ byId('snapshot-file').addEventListener('change', async (event) => {
 
 byId('clear-snapshot').addEventListener('click', () => {
   state.snapshot = null;
+  state.completed.clear();
   byId('sample-select').value = '';
   byId('snapshot-file').value = '';
   byId('snapshot-error').hidden = true;
@@ -254,3 +268,17 @@ byId('copy-report').addEventListener('click', () => {
 
 initSamples();
 render();
+
+// Refresh age-sensitive assessments without rebuilding steps or disturbing focus.
+setInterval(() => {
+  renderSummary();
+  const symptom = activeSymptom();
+  renderAssessment(symptom);
+  renderPath(symptom);
+  renderEvidence(symptom);
+  // Preserve keyboard focus in the symptom navigation.
+  for (const [index, button] of [...byId('symptom-list').children].entries()) {
+    const badge = button.querySelector('.status');
+    if (badge) badge.replaceWith(statusNode(evaluateSymptom(symptoms[index], state.snapshot), true));
+  }
+}, 60000);

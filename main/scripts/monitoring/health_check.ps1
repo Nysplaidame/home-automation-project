@@ -71,7 +71,7 @@ if ($Json) {
         }
     }
     [pscustomobject]@{
-        timestamp = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
+        timestamp = [DateTimeOffset]::Now.ToString("yyyy-MM-ddTHH:mm:sszzz")
         collector = "Windows management workstation"
         summary = [ordered]@{ pass = $passed; fail = $failed; total = $results.Count }
         checks = $checks

@@ -221,7 +221,7 @@ check_backup_age() {
 run_checks() {
     pass=0; fail=0; warn=0
     local ts
-    ts=$(date '+%Y-%m-%d %H:%M:%S')
+    ts=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
 
     if [ "$JSON_MODE" -eq 0 ]; then
         echo ""

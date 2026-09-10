@@ -17,6 +17,16 @@ status: active
 
 ## Next project steps
 
+- [x] Add troubleshooting evidence-age checks, visibly separate example data,
+  preserve recorded observations and show dated planned-offline context.
+  Local model/browser verification passed (2026-09-10); collector sources now
+  emit timezone-aware timestamps.
+- [ ] Deploy the verified troubleshooting UI update to the existing
+  management-only stack and update installed collectors through their normal
+  maintenance paths. Preserve the Proxmox snapshot acceptance and owner
+  DNS/Homepage gates; the current live version predates the age checks.
+
+
 - [x] Simplify all 11 canonical Mermaid diagrams, preserve dedicated detail
   views and explicit deferred states, verify desktop/mobile rendering, and
   publish the diagram bundle to the existing internal viewer (2026-09-10).

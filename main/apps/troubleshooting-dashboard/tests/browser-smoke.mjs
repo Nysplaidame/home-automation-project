@@ -18,6 +18,7 @@ try {
     if (message.type() === 'error') errors.push(message.text());
   });
   desktop.on('pageerror', (error) => errors.push(error.message));
+  await desktop.clock.install({ time: new Date('2026-09-10T12:00:00Z') });
   await desktop.goto(baseUrl, { waitUntil: 'networkidle' });
   assert.equal(await desktop.title(), 'Home Operations Troubleshooting');
   assert.equal(await desktop.locator('.symptom-button').count(), 5);
@@ -48,9 +49,32 @@ try {
     assert.match(await desktop.locator('#snapshot-source').textContent(), /Browser smoke collector/);
   }
 
+  await desktop.locator('#snapshot-file').setInputFiles({
+    name: 'stale.json', mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({ timestamp: '2020-01-01T00:00:00Z', checks: { router: 'pass', docker_host: 'pass', homepage: 'pass' } })),
+  });
+  assert.match(await desktop.locator('#snapshot-age').textContent(), /Stale/);
+  assert.match(await desktop.locator('#active-status').textContent(), /Needs evidence/);
+  assert.match(await desktop.locator('#evidence-list').textContent(), /Recorded: pass/);
+  assert.equal(await desktop.locator('#evidence-list .status-pass').count(), 0);
+  await desktop.locator('#snapshot-file').setInputFiles({
+    name: 'recent.json', mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({ timestamp: '2026-09-09T00:00:30Z', checks: { router: 'pass', docker_host: 'pass', homepage: 'pass' } })),
+  });
+  assert.match(await desktop.locator('#active-status').textContent(), /Healthy/);
+  await desktop.locator('#notes').fill('Keep these operator notes');
+  await desktop.locator('#notes').focus();
+  await desktop.clock.fastForward(61000);
+  assert.match(await desktop.locator('#snapshot-age').textContent(), /Stale/);
+  assert.match(await desktop.locator('#active-status').textContent(), /Needs evidence/);
+  assert.equal(await desktop.locator('#notes').inputValue(), 'Keep these operator notes');
+  assert.equal(await desktop.locator('#notes').evaluate(element => element === document.activeElement), true);
+  assert.equal(await desktop.locator('.symptom-topline .status-label').count(), 0);
   await desktop.selectOption('#sample-select', 'p1s');
+  assert.match(await desktop.locator('#snapshot-age').textContent(), /Example only/);
   await desktop.getByRole('button', { name: /P1S telemetry/ }).click();
   assert.match(await desktop.locator('#active-status').textContent(), /Action needed/);
+  assert.match(await desktop.locator('#expected-state').textContent(), /P1S not commissioned/);
   assert.match(await desktop.locator('#evidence-list').textContent(), /P1S reachable/);
   assert.equal(await desktop.locator('#evidence-list .status-fail').count(), 1);
   assert.equal(await desktop.locator('#dependency-path .status-border-fail').count(), 2);

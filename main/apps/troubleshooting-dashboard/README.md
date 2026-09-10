@@ -34,6 +34,34 @@ freshness checks that cannot be established from the management workstation.
 For a backup incident, use the Proxmox JSON snapshot rather than treating the
 missing Windows signals as a failure or a pass.
 
+### Evidence age and recorded device state
+
+The local 2026-09-10 update requires an explicit timezone and a snapshot no
+older than 36 hours before using checks to assess a symptom. The review window
+is a conservative common UI default, not a service uptime guarantee or proof
+of backup integrity. Missing, ambiguous, invalid, future or stale timestamps
+show `Needs evidence`; the original pass/fail observations remain visible and
+are included in incident reports. Age is rechecked every minute while open.
+
+The updated Windows source emits an ISO timestamp with its UTC offset; the
+Proxmox source emits UTC with `Z`. Older installed collectors still omit the
+timezone. Recollect using the updated collector, or establish the actual
+collection timezone before preparing a compatible import; never infer it
+from the browser timezone. Updating these source files does not deploy them.
+
+Only the built-in example selector enables example mode. The UI and copied
+report identify examples as non-live evidence; an imported JSON `example`
+field cannot bypass age checks. Loading or clearing a snapshot resets the
+collected-step checkboxes while retaining operator notes.
+
+Camera and P1S investigations display the dated September7 disconnected /
+uncommissioned baseline as context. This does not convert a failed check to
+a pass, and does not suppress Frigate, storage, Bambuddy or MQTT failures.
+Confirm current device state before using that recorded context.
+
+This update is verified locally and is not yet deployed to management port8094.
+The existing Proxmox acceptance and DNS/Homepage promotion gates remain open.
+
 ### Proxmox snapshot acceptance
 
 The remaining acceptance gate requires a fresh read-only export from the
