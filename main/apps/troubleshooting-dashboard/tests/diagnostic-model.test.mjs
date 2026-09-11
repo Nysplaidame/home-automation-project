@@ -121,3 +121,28 @@ test('planned offline context never masks service and storage failures', () => {
   assert.match(buildIncidentReport(camera, snapshot), /Recording mount: fail/);
   assert.match(buildIncidentReport(camera, snapshot), /Recorded context:/);
 });
+
+
+test('route catalog has unique IDs, complete steps and no duplicate evidence keys', () => {
+  assert.ok(symptoms.length >= 25);
+  assert.equal(new Set(symptoms.map(item => item.id)).size, symptoms.length);
+  for (const item of symptoms) {
+    assert.ok(item.category && item.title && item.description, item.id);
+    assert.ok(item.steps.length >= 3 && item.checks.length >= 3, item.id);
+    assert.equal(new Set(item.checks.map(check => check.key)).size, item.checks.length);
+    for (const step of item.steps) assert.ok(step.runOn && step.command && step.expected && step.failure, item.id);
+  }
+});
+
+test('new routes never infer application health from a reachable shared host', () => {
+  const basic = normalizeSnapshot({ timestamp: new Date().toISOString(), checks: { router: 'pass', docker_host: 'pass', ha_http: 'pass', mqtt: 'pass', nas: 'pass', grafana: 'pass', uptime_kuma: 'pass', llamacpp: 'pass' } });
+  for (const route of symptoms.slice(5)) assert.equal(evaluateSymptom(route, basic), 'unknown', route.id);
+});
+
+test('new routes prioritize actual failure over missing deeper evidence', () => {
+  for (const route of symptoms.slice(5)) {
+    const snapshot = normalizeSnapshot({ timestamp: new Date().toISOString(), checks: { [route.checks[0].key]: 'fail' } });
+    assert.equal(evaluateSymptom(route, snapshot), 'fail', route.id);
+    assert.equal(evidenceFocus(route, snapshot).key, route.checks[0].key);
+  }
+});

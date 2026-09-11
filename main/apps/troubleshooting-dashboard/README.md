@@ -1,20 +1,27 @@
 # Troubleshooting Dashboard POC
 
 Read-only, dependency-free dashboard for turning a visible symptom into an
-ordered diagnostic sequence. The initial scope follows the five symptoms in
-`main/TO-DO.md`:
+ordered diagnostic sequence. The catalog now has **27 routes** in five areas:
 
-1. Homepage access;
-2. Home Assistant availability;
-3. one camera path;
-4. P1S telemetry;
-5. backup freshness.
+- Network and access: portal, Internet/Wi-Fi, DNS, trusted HTTPS and remote access.
+- Hosts and storage: Proxmox guests, shared Docker resources, NAS and two backup layers.
+- Home and devices: HA, automations, cameras, P1S, local AI/voice, VentSys and phone relay.
+- Monitoring and maintenance: missing graphs, notifications and package updates.
+- Applications and data: Immich, media libraries, downloads/VPN, sync, household APIs and vault.
 
-The [written diagnostic walkthroughs](../../docs/troubleshooting/diagnostic-walkthroughs.md)
-provide the same five investigations as an offline runbook, with execution
-hosts, expected results, evidence limits and links to canonical Mermaid
-diagrams. Keep the [cross-system reference](../../docs/troubleshooting/troubleshooting_reference.md)
-for additional symptoms; the app complements the documentation.
+Use search or the area selector; category groups keep the list manageable.
+The [original written walkthroughs](../../docs/troubleshooting/diagnostic-walkthroughs.md)
+and [22 extended routes](../../docs/troubleshooting/extended-app-routes.md) remain
+available in the local vault if the dashboard's own Docker host is down.
+Extended offline routes are generated from `additional-routes.js` with
+`node main/apps/troubleshooting-dashboard/scripts/export-routes.mjs` from the
+repository root. Update that source and regenerate rather than editing both.
+
+The catalog describes potential failures, not a fresh audit of every service.
+Shared host/listener passes never stand in for application or data acceptance.
+The existing collectors cover only some signals; route-specific missing evidence
+requires the manual checks and operator notes. Checking Collected never changes
+an imported status. No new probes, credentials or remediation controls were added.
 
 ## Data boundary
 
@@ -147,8 +154,19 @@ The interface uses a numbered choose/add/check/review journey, 18px body text,
 16px supporting evidence and wrapped commands. Evidence follows the checks
 instead of squeezing them into a three-column layout. Each check expands to
 show its execution host, command, expected result and interpretation; the
-first is open initially. All five problem choices are visible on phones.
+first is open initially. Search and area groups keep problem choices manageable on phones.
 
 The upload area includes the Windows snapshot command, explains that failed
 checks can still be imported, and names the separate Proxmox collection gate.
 Files stay in the browser; gathering evidence remains an operator-run step.
+
+
+## Extended route deployment (2026-09-11)
+
+All 27 routes are deployed on the existing management-only port8094. Verification
+passed 17 model tests, local/live desktop-mobile checks selecting every route,
+search/category/no-match behavior, and live asset parity. The app remains
+import-only; these guided routes do not add network probes or prove that the
+manual-only signals passed. Rollback sources and image ID are retained under
+`/opt/backups/troubleshooting-routes-20260911/`, with image tag
+`troubleshooting-dashboard:routes-rollback-20260911`.

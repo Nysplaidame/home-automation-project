@@ -1,3 +1,5 @@
+import { additionalRoutes } from './additional-routes.js';
+
 export const statusMeta = Object.freeze({
   pass: { label: 'Healthy', mark: 'OK' },
   fail: { label: 'Action needed', mark: '!' },
@@ -167,7 +169,8 @@ export const symptoms = Object.freeze([
       ['OMV cutover runbook', 'docs/procedures/omv_cutover_execution_runbook.md'],
     ],
   },
-]);
+  ...additionalRoutes,
+].map((symptom, index) => ({ ...symptom, order: String(index + 1).padStart(2, '0'), category: symptom.category ?? ({homepage: 'Network and access', backups: 'Hosts and storage'}[symptom.id] ?? 'Home and devices') })));
 
 const acceptedStatuses = new Set(['pass', 'fail', 'warn', 'unknown', 'skipped']);
 

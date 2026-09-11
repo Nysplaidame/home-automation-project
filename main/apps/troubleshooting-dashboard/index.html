@@ -23,7 +23,14 @@
       <div class="region-heading">
         <p class="eyebrow">Start with what you see</p>
         <h2 id="symptom-heading">1. Choose a problem</h2>
-        <p class="section-copy">Select what is not working.</p>
+        <p class="section-copy">Search for what is failing, or open an area below.</p>
+      </div>
+      <div class="route-filters">
+        <label for="route-search">Find a problem or service</label>
+        <input id="route-search" type="search" placeholder="Try DNS, photos, voice…">
+        <label for="route-category">Area</label>
+        <select id="route-category"><option value="">All areas</option></select>
+        <p id="route-count" role="status"></p>
       </div>
       <div id="symptom-list" class="symptom-list"></div>
       <div class="rail-note">
@@ -105,7 +112,7 @@
       <div class="region-heading">
         <p class="eyebrow">Current snapshot</p>
         <h2 id="evidence-heading">4. Review the recorded results</h2>
-        <p class="section-copy">These observations come from your file, not live monitoring. Missing or old results need fresh evidence.</p>
+        <p class="section-copy">These observations come from your file, not live monitoring. The collectors cover basic checks only; route-specific missing results require the manual checks above. Record those findings in your notes. Ticking Collected does not mark a signal healthy.</p>
         <p id="evidence-coverage" class="evidence-coverage">0/0 signals collected</p>
       </div>
       <div id="evidence-list" class="evidence-list"></div>

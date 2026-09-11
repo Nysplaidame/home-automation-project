@@ -1134,3 +1134,37 @@ Viewer has not been rebuilt or deployed during the outage.
   troubleshooting-dashboard-troubleshooting-dashboard:latest and run
   docker compose up -d --no-build --no-deps troubleshooting-dashboard from
   /opt/stacks/troubleshooting-dashboard/. Rollback retained, not exercised.
+
+
+## 2026-09-11 extended diagnostic routes
+
+- Expanded the management-only troubleshooting dashboard from5 to27 routes,
+  grouped into Network/access, Hosts/storage, Home/devices, Monitoring/maintenance
+  and Applications/data. Added search, area filtering and collapsible groups.
+  Covers WAN/Wi-Fi, DNS/TLS/Tailscale, Proxmox, Docker pressure, NAS mounts/capacity,
+  app-data backups, monitoring, local AI/voice, automations, notifications, APT,
+  Immich, media, download containment, LiveSync, household APIs, vault and phone
+  relay, plus the original five and explicit VentSys commissioning boundaries.
+- Routes are failure scenarios grounded in the service inventory/runbooks, not
+  a fresh whole-system audit. Every route names host, observations, expected
+  result and interpretation. Existing collector signals are reused; uncollected
+  application-specific checks remain unknown and require manual evidence/notes.
+  No new collector probes, credentials, notification sends or repair actions.
+- Generated docs/troubleshooting/extended-app-routes.md from additional-routes.js
+  through scripts/export-routes.mjs, giving an offline companion when VM103 or
+  the dashboard is down. Original written walkthroughs remain separate.
+- 17 model tests pass, including route uniqueness and prevention of inferred
+  app health from shared-host passes. Local and live browser checks exercised
+  all27 route selections, filtering/no-match, evidence, expandable steps and
+  mobile layout. Document targets exist; all five live JS/HTML/CSS assets match
+  local bytes. Nginx syntax passed; screenshots inspected.
+- Deployed through the existing cached-base Compose build and scoped recreate;
+  management bind192.168.20.102:8094 retained. Current image:
+  sha256:fe46252a3bc116d3356fb30b3d9ae5f6b837ac7a90d93fba907d49e93a5223b7.
+  Prior sources/image ID: /opt/backups/troubleshooting-routes-20260911/;
+  rollback image: troubleshooting-dashboard:routes-rollback-20260911.
+  Restore saved sources/Dockerfile, tag rollback image as
+  troubleshooting-dashboard-troubleshooting-dashboard:latest, then run
+  docker compose up -d --no-build --no-deps troubleshooting-dashboard from
+  /opt/stacks/troubleshooting-dashboard/. Rollback retained, not exercised.
+  Proxmox SSH/collector acceptance and DNS/Homepage promotion remain open.

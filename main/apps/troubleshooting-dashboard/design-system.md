@@ -43,7 +43,7 @@
   commands at least 16px; small status/index labels at least 14.4px.
 - Desktop: 300px problem rail and a wide investigation; recorded evidence below
   the investigation, not in a competing third column. Maximum width 1500px.
-- Mobile: one column with all five problem choices visible. Selecting a problem
+- Mobile: one column with searchable problem choices grouped by area. Selecting a problem
   moves to evidence collection; commands wrap and controls are at least 48px.
 - Numbered sections: choose a problem, add evidence, follow checks, review results.
 - Put collection instructions beside upload, explain missing/old evidence, and

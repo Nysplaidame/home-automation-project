@@ -73,21 +73,35 @@ function renderSummary() {
 function renderSymptoms() {
   const list = byId('symptom-list');
   list.replaceChildren();
-  for (const symptom of symptoms) {
-    const status = evaluateSymptom(symptom, state.snapshot);
-    const button = make('button', `symptom-button${symptom.id === state.activeId ? ' active' : ''}`);
-    button.type = 'button';
-    button.setAttribute('aria-pressed', String(symptom.id === state.activeId));
-    button.addEventListener('click', () => {
-      state.activeId = symptom.id;
-      render();
-      byId('active-title').focus({ preventScroll: true });
-      if (matchMedia('(max-width: 760px)').matches) byId('load-evidence').scrollIntoView({ block: 'start' });
-    });
-    const top = make('span', 'symptom-topline');
-    top.append(make('span', 'symptom-order', symptom.order), statusNode(status, true));
-    button.append(top, make('strong', '', symptom.title), make('span', 'symptom-short', symptom.short));
-    list.append(button);
+  const search = byId('route-search').value.trim().toLowerCase();
+  const category = byId('route-category').value;
+  const matches = symptoms.filter(item => (!category || item.category === category) &&
+    `${item.title} ${item.short} ${item.description} ${item.checks.map(check => check.label).join(' ')}`.toLowerCase().includes(search));
+  byId('route-count').textContent = `${matches.length} of ${symptoms.length} routes`;
+  if (!matches.length) list.append(make('p', 'empty-routes', 'No matching routes. Try another service name or choose All areas.'));
+  for (const area of [...new Set(matches.map(item => item.category))]) {
+    const group = make('details', 'route-group');
+    group.open = Boolean(search || category || activeSymptom().category === area);
+    const routes = matches.filter(item => item.category === area);
+    group.append(make('summary', '', `${area} (${routes.length})`));
+    for (const symptom of routes) {
+      const status = evaluateSymptom(symptom, state.snapshot);
+      const button = make('button', `symptom-button${symptom.id === state.activeId ? ' active' : ''}`);
+      button.type = 'button';
+      button.dataset.routeId = symptom.id;
+      button.setAttribute('aria-pressed', String(symptom.id === state.activeId));
+      button.addEventListener('click', () => {
+        state.activeId = symptom.id;
+        render();
+        byId('active-title').focus({ preventScroll: true });
+        if (matchMedia('(max-width: 760px)').matches) byId('load-evidence').scrollIntoView({ block: 'start' });
+      });
+      const top = make('span', 'symptom-topline');
+      top.append(make('span', 'symptom-order', symptom.order), statusNode(status, true));
+      button.append(top, make('strong', '', symptom.title), make('span', 'symptom-short', symptom.short));
+      group.append(button);
+    }
+    list.append(group);
   }
 }
 
@@ -268,6 +282,13 @@ byId('copy-report').addEventListener('click', () => {
   copyText(buildIncidentReport(activeSymptom(), state.snapshot, byId('notes').value), 'Incident report copied.');
 });
 
+for (const category of [...new Set(symptoms.map(item => item.category))]) {
+  const option = make('option', '', category);
+  option.value = category;
+  byId('route-category').append(option);
+}
+byId('route-search').addEventListener('input', renderSymptoms);
+byId('route-category').addEventListener('change', renderSymptoms);
 initSamples();
 render();
 
@@ -279,8 +300,8 @@ setInterval(() => {
   renderPath(symptom);
   renderEvidence(symptom);
   // Preserve keyboard focus in the symptom navigation.
-  for (const [index, button] of [...byId('symptom-list').children].entries()) {
+  for (const button of byId('symptom-list').querySelectorAll('.symptom-button')) {
     const badge = button.querySelector('.status');
-    if (badge) badge.replaceWith(statusNode(evaluateSymptom(symptoms[index], state.snapshot), true));
+    if (badge) badge.replaceWith(statusNode(evaluateSymptom(symptoms.find(item => item.id === button.dataset.routeId), state.snapshot), true));
   }
 }, 60000);

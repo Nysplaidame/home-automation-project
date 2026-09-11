@@ -3,7 +3,7 @@ title: "Troubleshooting Dashboard"
 category: entity
 tags: [software, troubleshooting, dashboard, docker-host, diagnostics]
 created: 2026-08-25
-updated: 2026-08-25
+updated: 2026-09-11
 sources: [project-readme, project-todo, troubleshooting-reference]
 status: active
 ---
@@ -17,11 +17,14 @@ status: active
 
 ## Overview
 
-The Troubleshooting Dashboard turns five visible symptoms into ordered,
-architecture-aware evidence sequences: Homepage access, Home Assistant
-availability, one camera path, P1S telemetry and backup freshness. It imports
-health-check JSON locally in the browser and does not probe, upload evidence,
-run commands, restart services, change firewalls or restore backups.
+The Troubleshooting Dashboard provides 27 read-only routes across network/access,
+hosts/storage, home/devices, monitoring/maintenance and applications/data.
+Search and collapsible categories lead to ordered checks with execution hosts,
+expected observations and failure interpretation. It imports health JSON locally;
+manual route evidence remains explicit. It does not probe hosts, upload evidence,
+execute commands or remediate faults. The original five walkthroughs and the
+[[main/docs/troubleshooting/extended-app-routes|22 extended routes]] are available
+offline when the dashboard host fails.
 
 ## Key Properties
 
@@ -53,6 +56,10 @@ run commands, restart services, change firewalls or restore backups.
 - [ ] Decide separately whether DNS and Homepage exposure add enough value.
 
 ## Change Log
+
+- 2026-09-11: Expanded and deployed 27 searchable routes; 17 model tests and
+  live desktop/mobile route checks passed. Offline guide generated from app
+  definitions; no new live probes or remediation. Canonical app/handoff wins.
 
 - 2026-08-25: Staged live on management-only port `8094`; Windows snapshot,
   desktop/mobile flow, access-denial checks and rollback proof passed.

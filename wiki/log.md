@@ -421,3 +421,11 @@ physical cabling reference, guest inventory and the current portal handoff.
 - Canonical README/current-state/task/update-review and recovery test-card documents reconciled before wiki updates.
 - Updated `pages/sources/project-todo.md`, `pages/entities/home-operations-workbench.md` and index: offline health imports, freshness and restore boundaries, CT114 package-access and Watchtower notification gaps.
 - No live deployment, physical acceptance or fresh Proxmox/OMV proof inferred from historical records.
+
+
+## [2026-09-11] update | Extended diagnostic routes
+
+- Updated [[entities/troubleshooting-dashboard]] after canonical app/hand-off
+  recorded 27 deployed routes and their generated offline companion.
+- Targeted consistency check corrected the five-route claim; existing source
+  links retained. No raw changes, new wiki pages or whole-wiki lint.
