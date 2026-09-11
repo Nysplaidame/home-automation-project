@@ -85,6 +85,15 @@
         server: docker-host
         container: mermaid-viewer
 
+- Troubleshooting:
+    - Troubleshooting Dashboard:
+        id: portal-troubleshooting-dashboard
+        icon: mdi-stethoscope
+        href: https://homepage.home.local/portal-preview/troubleshooting/
+        description: Guided checks, evidence and recovery references
+        server: docker-host
+        container: troubleshooting-dashboard
+
 - Search:
     - SearXNG:
         id: portal-searxng

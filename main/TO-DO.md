@@ -26,7 +26,7 @@ status: active
   the updated Windows collector produces a usable timestamp and 12/13 passes.
 - [ ] Update the installed Proxmox collector through an authorized management
   route; workstation SSH still rejects its key (2026-09-10). Preserve the
-  real backup/mount acceptance and owner DNS/Homepage gates.
+  real backup/mount acceptance; Homepage placement approved September 11.
 - [ ] Reconcile the pre-existing IPv6 DOCKER-USER Tailscale exception for8094
   with the dashboard's management-only intent before any IPv6 publication.
   Current stack binds IPv4 only and its bridge has IPv6 disabled.
@@ -139,8 +139,10 @@ status: active
       desktop/mobile browser flow, container hardening, VLAN-10 allow,
       LAN/Tailscale/IPv6 denial and stop/start rollback all passed.
     - Remaining gate: authorize a workstation key on the Proxmox host and
-      accept a real Proxmox JSON snapshot for backup freshness. DNS and
-      Homepage exposure remain a separate owner decision after that proof.
+      accept a real Proxmox JSON snapshot for backup freshness.
+    - 2026-09-11 owner approved and deployed Homepage Tools > Troubleshooting,
+      with Preview/Open tab at `/portal-preview/troubleshooting/` over existing
+      Homepage HTTPS. No new DNS alias or firewall rule; mobile preview passed.
 15. [x] Deploy MediaMTX `1.20.1` on VM 103 as an authenticated RTSP-over-TCP
     relay/recorder for the garage phone stream. The HomeAdmin-only firewall,
     separate publisher/viewer accounts, live relay and OMV recording validation

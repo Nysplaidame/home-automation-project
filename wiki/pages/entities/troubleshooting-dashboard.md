@@ -11,7 +11,7 @@ status: active
 # Troubleshooting Dashboard
 
 **Type:** service - read-only diagnostic guide
-**Status:** Staged live - management-only acceptance path
+**Status:** Live with owner-approved Homepage preview; Proxmox evidence acceptance open
 **Related:** [[entities/docker-host]], [[entities/proxmox]],
 [[entities/monitoring-vm]], [[entities/homepage]]
 
@@ -29,7 +29,9 @@ offline when the dashboard host fails.
 ## Key Properties
 
 - Host: [[entities/docker-host]] VM 103 at `192.168.20.102`.
-- Staged URL: `http://192.168.20.102:8094/`.
+- Homepage URL: `https://homepage.home.local/portal-preview/troubleshooting/`
+  under Tools > Troubleshooting, with Preview and Open tab.
+- Direct management URL: `http://192.168.20.102:8094/`.
 - Stack path: `/opt/stacks/troubleshooting-dashboard/`.
 - Docker network: explicit `10.240.32.0/24` bridge.
 - Access: Management VLAN `192.168.10.0/24` only; LAN, Tailscale, monitoring
@@ -47,13 +49,13 @@ offline when the dashboard host fails.
   `no-new-privileges`.
 - Stop/start rollback removed the listener and network, failed closed, then
   recreated the service with the same access boundaries.
-- No DNS alias or [[entities/homepage]] card is approved.
+- Owner approved the [[entities/homepage]] card on 2026-09-11; no new DNS alias.
 
 ## Open Questions
 
 - [ ] Authorize an appropriate workstation key on [[entities/proxmox]] and
   accept a real Proxmox JSON snapshot for mount and backup-freshness evidence.
-- [ ] Decide separately whether DNS and Homepage exposure add enough value.
+- [x] Owner-approved Homepage preview deployed on 2026-09-11.
 
 ## Change Log
 

@@ -1204,3 +1204,29 @@ Viewer has not been rebuilt or deployed during the outage.
   troubleshooting-dashboard-troubleshooting-dashboard:latest, and use
   docker compose up -d --no-build --no-deps troubleshooting-dashboard in the
   existing stack directory. Rollback retained, not exercised this pass.
+
+
+## Homepage troubleshooting preview (2026-09-11)
+
+Owner approved and deployed Tools > Troubleshooting > Troubleshooting Dashboard,
+using the existing card style, Preview and Open tab controls. The fixed URL is
+`https://homepage.home.local/portal-preview/troubleshooting/`; Nginx proxies only
+to `http://192.168.20.102:8094/`. No new DNS alias, listener or firewall rule.
+The existing Homepage audience can now access the dashboard through HTTPS;
+the direct 8094 management boundary is unchanged. The proxy retains the app's
+CSP restrictions, including `connect-src 'none'`, with explicit Homepage frame
+ancestors. Direct access still disallows framing. Evidence stays browser-local.
+
+Live Nginx validation and desktop/mobile preview checks passed: all 27 routes
+loaded, Open tab points to the fixed URL, and the 390px viewport has no horizontal
+overflow in either Homepage or its frame. Browser checks used an explicit local
+hostname mapping and ignored TLS errors. A separate curl check returned HTTP200
+with certificate validation and revocation checking disabled; this does not
+resolve the workstation's existing DNS/revocation issues. Proxmox evidence
+acceptance remains open.
+
+Rollback: restore services.yaml and settings.yaml to `/opt/stacks/homepage/config/`
+and nginx.conf to `/opt/stacks/homepage/preview-proxy/` from
+`/opt/backups/homepage-troubleshooting-20260911/`. Regenerate the proxy config with
+`docker exec homepage-preview-proxy /docker-entrypoint.d/20-envsubst-on-templates.sh`,
+run `docker exec homepage-preview-proxy nginx -t`, reload Nginx, and restart Homepage.

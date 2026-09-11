@@ -77,7 +77,7 @@ checks with a fresh Windows snapshot (12 pass, one disconnected camera fail).
 The Windows collector runs from the canonical checkout; no matching Windows
 scheduled collector was found. Proxmox still denies the workstation SSH key,
 so its installed collector has not been updated. The existing Proxmox evidence
-acceptance and DNS/Homepage promotion gates remain open.
+acceptance remains open; Homepage placement was approved on 2026-09-11.
 
 Deployment rollback files are in
 `/opt/backups/troubleshooting-evidence-20260910/` on VM103, with the old image
@@ -126,7 +126,8 @@ docker compose config
 Serve the directory with any static server for browser review. The staged
 container binds only `192.168.20.102:8094`, uses reserved explicit bridge
 `10.240.32.0/24`, and requires the tracked management-only `DOCKER-USER`
-policy. It has no DNS, Homepage, LAN, monitoring or Tailscale exposure.
+policy for direct access. The owner-approved Homepage HTTPS path now also
+serves existing Homepage clients; no separate DNS alias was added.
 
 ## Deliberate v1 exclusions
 
@@ -143,7 +144,7 @@ policy. It has no DNS, Homepage, LAN, monitoring or Tailscale exposure.
 - [x] Desktop/mobile acceptance using a real 13/13 Windows snapshot.
 - [x] Stop/start rollback proof and post-rollback access revalidation.
 - [ ] Real Proxmox snapshot acceptance for mount and backup-freshness evidence.
-- [ ] Explicit approval for any DNS name or Homepage placement.
+- [x] Owner-approved Homepage placement (2026-09-11); no new DNS alias.
 
 The pre-change live firewall and audit scripts are retained on VM 103 under
 `/opt/backups/troubleshooting-dashboard-20260825T1518Z/`.
@@ -195,3 +196,23 @@ Run offline collector contract tests with
 They load function definitions only and mock transport/DNS; they do not probe
 real endpoints. Keep live JSON outside the repository and omit private data
 when sharing incident evidence.
+
+
+## Homepage troubleshooting preview (2026-09-11)
+
+Owner approved and deployed Tools > Troubleshooting > Troubleshooting Dashboard,
+using the existing card style, Preview and Open tab controls. The fixed URL is
+`https://homepage.home.local/portal-preview/troubleshooting/`; Nginx proxies only
+to `http://192.168.20.102:8094/`. No new DNS alias, listener or firewall rule.
+The existing Homepage audience can now access the dashboard through HTTPS;
+the direct 8094 management boundary is unchanged. The proxy retains the app's
+CSP restrictions, including `connect-src 'none'`, with explicit Homepage frame
+ancestors. Direct access still disallows framing. Evidence stays browser-local.
+
+Live Nginx validation and desktop/mobile preview checks passed: all 27 routes
+loaded, Open tab points to the fixed URL, and the 390px viewport has no horizontal
+overflow in either Homepage or its frame. Browser checks used an explicit local
+hostname mapping and ignored TLS errors. A separate curl check returned HTTP200
+with certificate validation and revocation checking disabled; this does not
+resolve the workstation's existing DNS/revocation issues. Proxmox evidence
+acceptance remains open.

@@ -429,3 +429,5 @@ physical cabling reference, guest inventory and the current portal handoff.
   recorded 27 deployed routes and their generated offline companion.
 - Targeted consistency check corrected the five-route claim; existing source
   links retained. No raw changes, new wiki pages or whole-wiki lint.
+
+- 2026-09-11: Updated [[entities/troubleshooting-dashboard]] for owner-approved Homepage Tools preview; direct management access and outstanding Proxmox evidence gate retained. Source: portal services handoff.

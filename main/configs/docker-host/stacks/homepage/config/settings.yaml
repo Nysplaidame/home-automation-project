@@ -33,6 +33,10 @@ layout:
     tab: Tools
     style: row
     columns: 4
+  Troubleshooting:
+    tab: Tools
+    style: row
+    columns: 4
   Search:
     tab: Tools
     style: row
