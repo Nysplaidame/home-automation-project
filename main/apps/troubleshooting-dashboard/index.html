@@ -58,6 +58,7 @@
           <p>On your Windows management workstation, open PowerShell in K:\Documents\Obsidian\home-automation-project and run:</p>
           <code>pwsh -File main/scripts/monitoring/health_check.ps1 -Full -Json &gt; health.json</code>
           <p>Then choose <strong>Load health JSON</strong> and select health.json in that folder. Failed checks are useful evidence too: you can still load the file. The file stays in this browser.</p>
+          <p>The full Windows check covers local/public DNS, trusted Homepage/vault HTTPS, Proxmox and APT-cache listeners, and Immich/Open WebUI endpoints, alongside the core checks. It does not log in, test uploads or prove database health.</p>
           <p>Use a new snapshot for the problem you are investigating. Files older than 36 hours, or without a timezone, cannot establish current health.</p>
           <p><strong>For backups and recording mounts:</strong> collect JSON on the Proxmox host using the updated health collector. A Windows snapshot cannot supply those checks. The installed Proxmox collector still needs its timezone update; this workstation currently has no accepted Proxmox SSH key.</p>
         </details>

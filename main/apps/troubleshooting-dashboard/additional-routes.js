@@ -80,7 +80,7 @@ export const additionalRoutes = [
     ], 'scripts/setup/proxmox/monitoring_vm_setup_guide.md'),
   route('local-ai', 'Home and devices', 'Local AI fails or becomes very slow',
     'Separate CT114 reachability, model startup, GPU access and the chat frontend.',
-    [['llamacpp', 'Chat endpoint'], ['ai_model', 'Model ready'], ['ai_capacity', 'Inference resources']], [
+    [['llamacpp', 'Chat endpoint'], ['openwebui', 'Open WebUI listener'], ['ai_model', 'Model ready'], ['ai_capacity', 'Inference resources']], [
       command('Inspect inference and frontend', ai, 'docker compose -f /opt/stacks/local-ai/docker-compose.yml ps', 'The model and intended frontend are running.', 'A working Open WebUI page does not prove inference readiness.'),
       command('Read model startup errors', ai, 'docker logs --tail 80 llama-cpp', 'The configured model loaded and is listening without repeated GPU/allocation errors.', 'Preserve relevant redacted startup lines; do not change model files or GPU mappings during diagnosis.'),
       command('Check resource availability', ai, 'free -h; ls -l /dev/dri; docker stats --no-stream', 'Memory and expected render devices are available.', 'Compare CT configuration and shared-GPU consumers before changing permissions or context size.'),
@@ -108,14 +108,14 @@ export const additionalRoutes = [
     ], 'docs/install/services/ntfy.md'),
   route('updates', 'Monitoring and maintenance', 'Updates fail or package lists are old',
     'Check the approved package path and metadata age without installing or upgrading anything.',
-    [['package_route', 'Approved package path'], ['package_metadata', 'Metadata timestamp'], ['package_cache', 'Cache listener']], [
+    [['package_route', 'Approved package path'], ['package_metadata', 'Metadata timestamp'], ['package_cache', 'Cache listener from workstation']], [
       command('Read the configured APT proxy', 'Affected Debian guest', 'apt-config dump | grep -i proxy', 'Proxy configuration matches the approved cache design.', 'No output means no configured proxy. CT114 previously lacked a proxy and could not reach3142; verify current evidence.'),
       command('Read cached metadata age', 'Affected Debian guest', 'find /var/lib/apt/lists -maxdepth 1 -name "*InRelease" -printf "%TY-%Tm-%Td %TH:%TM %f\\n"', 'Metadata is recent enough to assess candidates.', 'Old candidate lists are not a current security assessment. Do not upgrade to diagnose connectivity.'),
       command('Read cache service state', vm, 'systemctl status apt-cacher-ng --no-pager', 'The intended cache service is active.', 'Separate service failure from guest-to-cache access. Repair the approved path during maintenance before refreshing metadata.'),
     ], 'docs/procedures/apt_cacher_ng_design.md'),
   route('photos', 'Applications and data', 'Immich uploads or thumbnails fail',
     'Separate the photo API, database, background jobs and NAS upload/library mount.',
-    [['docker_host', 'Docker host reachable'], ['nas', 'OMV NFS listener'], ['immich_jobs', 'Upload and job outcome']], [
+    [['docker_host', 'Docker host reachable'], ['nas', 'OMV NFS listener'], ['immich', 'Immich API listener'], ['immich_jobs', 'Upload and job outcome']], [
       command('Read Immich service state', vm, 'docker compose -f /opt/stacks/immich/docker-compose.yml ps', 'Required server and data services run.', 'Separate UI/API errors from database and machine-learning failures.'),
       command('Verify the media filesystem', vm, 'findmnt -T /mnt/omv/immich; df -h /mnt/omv/immich', 'The intended export is mounted with capacity.', 'Stop upload attempts if it falls back to root storage; do not move or delete originals.'),
       command('Inspect one failed upload or job', 'Immich administration UI', 'No command: read job failures and the exact error for one affected item.', 'Uploads and relevant background jobs complete.', 'A failed thumbnail is not proof of a lost original. Preserve originals, database and matching versions before recovery.'),

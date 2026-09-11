@@ -449,7 +449,7 @@ References: [Operating guide](../../scripts/setup/proxmox/monitoring_vm_setup_gu
 
 Separate CT114 reachability, model startup, GPU access and the chat frontend.
 
-Required evidence: Chat endpoint (`llamacpp`); Model ready (`ai_model`); Inference resources (`ai_capacity`).
+Required evidence: Chat endpoint (`llamacpp`); Open WebUI listener (`openwebui`); Model ready (`ai_model`); Inference resources (`ai_capacity`).
 
 ### 1. Inspect inference and frontend
 
@@ -629,7 +629,7 @@ References: [Operating guide](../install/services/ntfy.md) · [Service inventory
 
 Check the approved package path and metadata age without installing or upgrading anything.
 
-Required evidence: Approved package path (`package_route`); Metadata timestamp (`package_metadata`); Cache listener (`package_cache`).
+Required evidence: Approved package path (`package_route`); Metadata timestamp (`package_metadata`); Cache listener from workstation (`package_cache`).
 
 ### 1. Read the configured APT proxy
 
@@ -674,7 +674,7 @@ References: [Operating guide](../procedures/apt_cacher_ng_design.md) · [Service
 
 Separate the photo API, database, background jobs and NAS upload/library mount.
 
-Required evidence: Docker host reachable (`docker_host`); OMV NFS listener (`nas`); Upload and job outcome (`immich_jobs`).
+Required evidence: Docker host reachable (`docker_host`); OMV NFS listener (`nas`); Immich API listener (`immich`); Upload and job outcome (`immich_jobs`).
 
 ### 1. Read Immich service state
 

@@ -170,3 +170,28 @@ import-only; these guided routes do not add network probes or prove that the
 manual-only signals passed. Rollback sources and image ID are retained under
 `/opt/backups/troubleshooting-routes-20260911/`, with image tag
 `troubleshooting-dashboard:routes-rollback-20260911`.
+
+
+## Expanded Windows evidence (2026-09-11)
+
+`health_check.ps1 -Full -Json` now produces21 checks (the default remains12).
+Additional evidence covers the router's exact local DNS A answer and public DNS
+resolution, trusted Homepage/vault HTTPS, Proxmox8006, workstation-to-cache3142,
+Immich's API listener and Open WebUI's health endpoint. A known DNS timeout or
+server error fails; unsupported/tool errors stay unknown. No SSH access, auth,
+message sending, uploads or service changes are performed by these probes.
+
+HTTP probes read headers without following redirects. Existing core checks
+remain reachability-only and say so; the two explicit trust checks use normal
+certificate validation. HTTP401 proves a responding listener, never a successful
+login. Workstation cache reachability does not prove the affected guest's path.
+Application jobs, model readiness, data integrity and restores remain manual.
+The photos and AI routes reuse the collector's specific listener signals while
+retaining the deeper missing-evidence gates. Proxmox collector installation is
+unchanged and still blocked by the existing SSH access gap.
+
+Run offline collector contract tests with
+`pwsh -NoProfile -File main/scripts/monitoring/tests/test_health_check.ps1`.
+They load function definitions only and mock transport/DNS; they do not probe
+real endpoints. Keep live JSON outside the repository and omit private data
+when sharing incident evidence.

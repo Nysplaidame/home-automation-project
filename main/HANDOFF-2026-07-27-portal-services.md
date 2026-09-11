@@ -1168,3 +1168,39 @@ Viewer has not been rebuilt or deployed during the outage.
   docker compose up -d --no-build --no-deps troubleshooting-dashboard from
   /opt/stacks/troubleshooting-dashboard/. Rollback retained, not exercised.
   Proxmox SSH/collector acceptance and DNS/Homepage promotion remain open.
+
+
+## 2026-09-11 expanded Windows evidence
+
+- Expanded health_check.ps1 -Full -Json from13 to21 checks. New signals:
+  dns_local/dns_public against192.168.10.1, trusted Homepage/vault HTTPS,
+  Proxmox8006, workstation-to-cache3142, Immich API and Open WebUI listener.
+  Default mode remains12 core probes. JSON timestamps retain explicit timezone.
+- HTTP reads headers without redirects; core reachability probes explicitly
+  disclaim certificate trust, while tls_trust/vault_tls use normal validation.
+  HTTP401 is listener evidence, not login acceptance. Confirmed DNS timeout/
+  resolver failure codes fail; unsupported/tool errors remain unknown.
+- Offline PowerShell tests load function definitions only and mock HTTP/DNS:
+  11 cases pass without probes.17 app model tests pass; local/live browser checks
+  imported real fresh Windows JSON and exercised all27 routes. Asset parity and
+  Nginx syntax passed. Photos/AI now show their specific listener evidence while
+  retaining manual jobs/model/resource checks; exported offline guide refreshed.
+- Read-only workstation sample at2026-09-11T15:13:34+01:00:16 PASS /5 FAIL.
+  Failed: disconnected camera_01, both direct router DNS queries (ERROR_TIMEOUT),
+  vault_tls, and package_cache3142. A separate curl probe to vault.home.local
+  timed out resolving its name; this is not proof that Vaultwarden is stopped
+  or that its certificate is wrong. Trusted Homepage HTTPS returned200. No
+  resolver, trust-store, firewall, auth, package or service repairs were made.
+- Next diagnosis: compare workstation DNS source/path and allowed router listener,
+  then isolate vault name resolution and cache access. The sample is scoped to
+  this management workstation, not proof of every VLAN/client's access.
+  Proxmox installed collector and backup acceptance remain blocked by SSH.
+- Deployed guidance/routes to existing management-only8094 stack, image
+  sha256:8cdac135ea2c7e84c1ea932a6ecb2880c17ec10394de13645802b70d53373e36.
+  Windows collector runs from the canonical checkout; no Proxmox deployment.
+  Prior app sources/image ID: /opt/backups/troubleshooting-collector-20260911/;
+  image tag troubleshooting-dashboard:collector-rollback-20260911. To roll back,
+  restore saved additional-routes.js/index.html, tag the retained image as
+  troubleshooting-dashboard-troubleshooting-dashboard:latest, and use
+  docker compose up -d --no-build --no-deps troubleshooting-dashboard in the
+  existing stack directory. Rollback retained, not exercised this pass.

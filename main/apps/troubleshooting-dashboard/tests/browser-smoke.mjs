@@ -42,9 +42,11 @@ try {
   assert.ok(await desktop.locator('.interpretation dd').first().evaluate(el => parseFloat(getComputedStyle(el).fontSize)) >= 18);
   assert.ok(await desktop.locator('.evidence-detail').count() === 0);
   if (snapshotPath) {
+    await desktop.clock.setSystemTime(new Date());
     await desktop.locator('#snapshot-file').setInputFiles(snapshotPath);
     assert.doesNotMatch(await desktop.locator('#snapshot-time').textContent(), /Not loaded/);
     assert.doesNotMatch(await desktop.locator('#snapshot-source').textContent(), /not supplied/i);
+    assert.match(await desktop.locator('#snapshot-age').textContent(), /Recent/);
   } else {
     await desktop.locator('#snapshot-file').setInputFiles({
       name: 'health.json',
@@ -59,6 +61,7 @@ try {
     assert.match(await desktop.locator('#snapshot-source').textContent(), /Browser smoke collector/);
   }
 
+  await desktop.clock.setSystemTime(new Date('2026-09-10T12:00:00Z'));
   await desktop.locator('#snapshot-file').setInputFiles({
     name: 'stale.json', mimeType: 'application/json',
     buffer: Buffer.from(JSON.stringify({ timestamp: '2020-01-01T00:00:00Z', checks: { router: 'pass', docker_host: 'pass', homepage: 'pass' } })),
