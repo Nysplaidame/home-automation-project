@@ -27,12 +27,15 @@ export const additionalRoutes = [
     [['router', 'Router reachable'], ['dns_local', 'Local DNS answer'], ['dns_public', 'Public DNS answer']], [
       command('Query the router directly', pc, 'Resolve-DnsName homepage.home.local -Server 192.168.10.1 -DnsOnly', 'HomeAdmin receives 192.168.20.102.', 'Wrong or missing DNS is a separate failure from a server working by IP. Remote split DNS uses a different path.'),
       command('Compare public resolution', pc, 'Resolve-DnsName example.com -Server 192.168.10.1 -DnsOnly', 'A public answer is returned.', 'Local success with public failure narrows the fault to forwarding, upstream DNS or WAN.'),
+      command('Inspect client DNS and VPN context', pc, 'Get-DnsClientServerAddress -AddressFamily IPv4', 'Identify active adapters, DNS servers and any VPN DNS filtering.', 'A VPN can block direct router DNS even with LAN sharing enabled. Compare router-local resolution before changing infrastructure; do not disable leak protection or change the public resolver without an explicit choice.'),
+      command('Compare on the router', 'OpenWrt router', 'nslookup homepage.home.local 127.0.0.1', 'The router itself returns 192.168.20.102.', 'Router-local success plus workstation timeout points to the client/path, not a missing record. It does not prove every VLAN can query DNS.'),
       command('Read AdGuard state', vm, 'docker ps --filter name=adguard', 'AdGuard is running; its query log explains the exact failed domain.', 'Review filtering/upstream errors before changing client DNS. Router remains local-name authority.'),
     ]),
   route('tls', 'Network and access', 'Certificate warning or HTTPS failure',
     'Separate certificate trust, hostname and clock errors from a dead listener.',
     [['router', 'Router reachable'], ['homepage', 'Homepage listener'], ['tls_trust', 'Trusted HTTPS response']], [
       command('Read the actual TLS error', pc, 'curl.exe -I https://homepage.home.local/', 'HTTPS responds without bypassing certificate validation.', 'Record hostname and certificate error. Do not switch to plain HTTP or treat a bypassed check as trust proof.'),
+      command('Isolate DNS while preserving hostname validation', pc, 'curl.exe --resolve homepage.home.local:443:192.168.20.102 -I https://homepage.home.local/', 'The intended hostname selects its certificate and responds.', 'This bypasses DNS only. A wrong certificate can indicate a missing SNI route. CRYPT_E_NO_REVOCATION_CHECK means revocation evidence is unavailable; it is distinct from expiry or an untrusted CA. Do not globally disable certificate checks.'),
       command('Check the client clock', pc, 'Get-Date -Format o', 'Time and timezone match a trusted clock.', 'Clock drift can invalidate certificates and make imported evidence future-dated.'),
       command('Validate the existing proxy config', vm, 'docker compose -f /opt/stacks/homepage/docker-compose.yml exec -T preview-proxy nginx -t', 'The Nginx configuration is valid.', 'Config validity is not certificate acceptance. Check expiry and client CA installation through the TLS guide.'),
     ], 'docs/procedures/ssl_tls_guide.md'),

@@ -208,7 +208,17 @@ workloads matches `docker ps`.
 ## Backup
 
 Back up `/opt/stacks/homepage/config`, `/opt/stacks/homepage/assets`, and
-`/opt/stacks/homepage/docker-compose.yml`.
+`/opt/stacks/homepage/docker-compose.yml`. Include `preview-proxy/` (especially
+activated `optional.d/*.conf`) and protect the live-only `tls/` directory as
+secret-bearing recovery material. Never commit private keys.
+
+Vaultwarden requires the existing `preview-proxy/vaultwarden.conf.example`
+activated as `preview-proxy/optional.d/vaultwarden.conf` after its documented
+certificate/backend prerequisites. September 11 found this directory empty:
+Homepage still worked while vault.home.local received the wrong certificate.
+After recovery, test each SNI hostname with normal certificate validation,
+not just an IP-based HTTP200. A successful `nginx -t` cannot detect a missing
+optional file matched by an empty wildcard.
 
 ## Failure recovery
 

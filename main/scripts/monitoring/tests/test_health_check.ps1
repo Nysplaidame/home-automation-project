@@ -64,3 +64,16 @@ Test-Dns 'timeout' 'Public DNS' 'example.com'
 Assert-Last 'FAIL'
 if ($results[-1].Detail -notmatch 'ERROR_TIMEOUT' -or $results[-1].Detail -match 'Private') { throw 'Timeout classification or redaction failed' }
 Write-Output "PASS: $($results.Count) offline HTTP/DNS cases; no probes executed."
+
+$failureCases = @(
+    @([System.Net.Sockets.SocketException]::new(11001), 'DNS name resolution failed'),
+    @([System.Net.Sockets.SocketException]::new(10061), 'Network connection failed'),
+    @([System.Security.Authentication.AuthenticationException]::new('Private certificate detail'), 'TLS handshake/certificate validation failed'),
+    @([System.Threading.Tasks.TaskCanceledException]::new('Private timeout detail'), 'Request timed out or was cancelled'),
+    @([Exception]::new('Private wrapper', [System.Net.Sockets.SocketException]::new(11001)), 'DNS name resolution failed'),
+    @([Exception]::new('Private unknown detail'), 'HTTP connection/validation failed; inspect client error manually')
+)
+foreach ($case in $failureCases) {
+    if ((Get-HealthHttpFailure $case[0]) -ne $case[1]) { throw 'HTTP failure category incorrect' }
+}
+Write-Output "PASS: $($failureCases.Count) transport classification cases; no exception text exposed."

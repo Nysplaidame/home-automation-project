@@ -65,3 +65,5 @@ offline when the dashboard host fails.
 
 - 2026-08-25: Staged live on management-only port `8094`; Windows snapshot,
   desktop/mobile flow, access-denial checks and rollback proof passed.
+
+- 2026-09-11: Added VPN/client DNS comparison and SNI isolation guidance; Windows collector now distinguishes DNS, connection, TLS and timeout errors. Vault SNI route restored; workstation DNS choice remains open. See canonical portal handoff.

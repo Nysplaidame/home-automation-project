@@ -41,14 +41,36 @@ function Invoke-HealthHttp([string]$Uri, [switch]$VerifyTls) {
     }
 }
 
+# Return a bounded category, never raw exception text or private endpoint data.
+function Get-HealthHttpFailure([Exception]$Exception) {
+    $current = $Exception
+    while ($null -ne $current) {
+        if ($current -is [System.Security.Authentication.AuthenticationException]) { return 'TLS handshake/certificate validation failed' }
+        if ($current -is [System.Net.Sockets.SocketException]) {
+            if ($current.SocketErrorCode -in @('HostNotFound', 'NoData', 'TryAgain')) { return 'DNS name resolution failed' }
+            return 'Network connection failed'
+        }
+        if ($current -is [System.OperationCanceledException]) { return 'Request timed out or was cancelled' }
+        if ($current.PSObject.Properties['HttpRequestError']) {
+            switch ([string]$current.HttpRequestError) {
+                'NameResolutionError' { return 'DNS name resolution failed' }
+                'SecureConnectionError' { return 'TLS handshake/certificate validation failed' }
+                'ConnectionError' { return 'Network connection failed' }
+            }
+        }
+        $current = $current.InnerException
+    }
+    return 'HTTP connection/validation failed; inspect client error manually'
+}
+
 function Test-Http([string]$Key, [string]$Name, [string]$Uri, [switch]$VerifyTls) {
-    $scope = if ($VerifyTls) { 'certificate validation enabled' } else { 'reachability only; certificate trust not assessed' }
+    $scope = if ($VerifyTls) { 'certificate chain/name validation enabled; revocation availability not assessed' } else { 'reachability only; certificate trust not assessed' }
     try {
         $status = Invoke-HealthHttp -Uri $Uri -VerifyTls:$VerifyTls
         $ok = $status -in @(200, 302, 401)
         Add-Result $Key $Name $(if ($ok) { 'PASS' } else { 'FAIL' }) "HTTP $status; $scope; redirects not followed"
     } catch {
-        Add-Result $Key $Name 'FAIL' "HTTP connection/validation failed; $scope"
+        Add-Result $Key $Name 'FAIL' "$(Get-HealthHttpFailure $_.Exception); $scope"
     }
 }
 

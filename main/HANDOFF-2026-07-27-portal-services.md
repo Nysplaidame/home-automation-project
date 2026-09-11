@@ -1230,3 +1230,46 @@ and nginx.conf to `/opt/stacks/homepage/preview-proxy/` from
 `/opt/backups/homepage-troubleshooting-20260911/`. Regenerate the proxy config with
 `docker exec homepage-preview-proxy /docker-entrypoint.d/20-envsubst-on-templates.sh`,
 run `docker exec homepage-preview-proxy nginx -t`, reload Nginx, and restart Homepage.
+
+
+## DNS and TLS fault isolation (2026-09-11)
+
+Router-local DNS resolves homepage.home.local, vault.home.local and example.com.
+The workstation has Mullvad connected with LAN sharing and DNS content blockers;
+custom DNS is disabled. Direct router queries time out; TCP DNS also fails.
+This strongly suggests the VPN/client DNS path, not missing router records.
+No VPN, DNS, trust-store or firewall settings were changed. Choosing local custom
+DNS would change the workstation's DNS privacy/filtering behavior and requires
+an owner choice. Mullvad's official guide describes custom DNS as replacing its
+VPN resolver: https://mullvad.net/en/help/using-mullvad-vpn-app .
+
+A separate live regression was confirmed: Homepage optional.d was empty, so
+vault.home.local received Homepage's certificate and content. Restored the
+existing tracked vaultwarden.conf.example as optional.d/vaultwarden.conf after
+checking the dedicated leaf certificate and loopback8222 health. Nginx validation
+passed. Both sites returned200 with browser TLS validation enabled using explicit
+hostname mapping; vault /alive returned200 with its correct SNI certificate,
+HSTS and no-framing headers. This repairs HTTPS routing, not account onboarding.
+The initial IP-forced200 before repair was Homepage, not proof of Vaultwarden.
+The exact date/cause of the missing optional file is unknown.
+
+Windows curl's strict revocation mode reports CRYPT_E_NO_REVOCATION_CHECK on the
+local CA leaf. curl --ssl-revoke-best-effort passes chain/name validation with
+explicit hostname mapping, but does not establish revocation availability.
+Chromium's normal trust checks pass. No global verification bypass was installed.
+
+HTTP collector failures now categorize DNS, network, TLS and timeout errors without
+exporting raw exception data. Trust-check wording explicitly excludes revocation
+availability. DNS/TLS app guidance now includes VPN/client comparison and SNI
+isolation; the offline extended guide was regenerated. Offline tests:11 HTTP/DNS
+contracts,6 failure categories,17 app model cases. Live desktop/mobile browser smoke passed against the deployed app, including
+all27 routes. Homepage and Vaultwarden both returned200 in Chromium with normal
+TLS verification and explicit DNS mapping.
+
+Vault rollback evidence: /opt/backups/vault-route-repair-20260911/ includes the
+previous empty optional.d and effective config. Removing only the restored
+optional.d/vaultwarden.conf and validating/reloading Nginx reproduces the prior
+broken route; do not use that as routine recovery. App rollback:
+/opt/backups/troubleshooting-dns-tls-20260911/additional-routes.js and image tag
+troubleshooting-dashboard:dns-tls-rollback-20260911. Current image config ID:
+sha256:621fb8011f14485d6c9e6d0791b7e15b739418fd1c96824c508bc7bc3d4c0ad8.

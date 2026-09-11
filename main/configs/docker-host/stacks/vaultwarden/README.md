@@ -16,6 +16,17 @@ SQLite backup, followed by a disposable registered account restored into a
 second temporary container with integrity, exact account count and HTTP health
 checks. All temporary containers, networks and restored data were removed.
 Production sign-ups and the admin endpoint remain disabled. Do not import real
-credentials until live DNS is deployed and the owner account, 2FA, recovery
+credentials until the owner account, 2FA, recovery
 codes and emergency-access policy are completed. Recovery codes and live tokens
 never belong in this directory or Git.
+
+
+## September 11 routing repair
+
+Router-local DNS now resolves vault.home.local to 192.168.20.102. The optional
+SNI config was missing and requests received Homepage's certificate. Restored
+`../homepage/preview-proxy/vaultwarden.conf.example` to the live
+`/opt/stacks/homepage/preview-proxy/optional.d/vaultwarden.conf`, validated and
+reloaded Nginx. Normal browser TLS checks and /alive passed with explicit DNS
+mapping. Workstation VPN/DNS resolution remains a separate gate; onboarding,
+2FA and recovery decisions remain open. Preserve optional.d in proxy recovery.

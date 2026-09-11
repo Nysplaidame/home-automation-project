@@ -115,7 +115,31 @@ Expected: A public answer is returned.
 
 If not: Local success with public failure narrows the fault to forwarding, upstream DNS or WAN.
 
-### 3. Read AdGuard state
+### 3. Inspect client DNS and VPN context
+
+Run on: **Windows HomeAdmin workstation / PowerShell**.
+
+```text
+Get-DnsClientServerAddress -AddressFamily IPv4
+```
+
+Expected: Identify active adapters, DNS servers and any VPN DNS filtering.
+
+If not: A VPN can block direct router DNS even with LAN sharing enabled. Compare router-local resolution before changing infrastructure; do not disable leak protection or change the public resolver without an explicit choice.
+
+### 4. Compare on the router
+
+Run on: **OpenWrt router**.
+
+```text
+nslookup homepage.home.local 127.0.0.1
+```
+
+Expected: The router itself returns 192.168.20.102.
+
+If not: Router-local success plus workstation timeout points to the client/path, not a missing record. It does not prove every VLAN can query DNS.
+
+### 5. Read AdGuard state
 
 Run on: **VM 103 / docker-host**.
 
@@ -148,7 +172,19 @@ Expected: HTTPS responds without bypassing certificate validation.
 
 If not: Record hostname and certificate error. Do not switch to plain HTTP or treat a bypassed check as trust proof.
 
-### 2. Check the client clock
+### 2. Isolate DNS while preserving hostname validation
+
+Run on: **Windows HomeAdmin workstation / PowerShell**.
+
+```text
+curl.exe --resolve homepage.home.local:443:192.168.20.102 -I https://homepage.home.local/
+```
+
+Expected: The intended hostname selects its certificate and responds.
+
+If not: This bypasses DNS only. A wrong certificate can indicate a missing SNI route. CRYPT_E_NO_REVOCATION_CHECK means revocation evidence is unavailable; it is distinct from expiry or an untrusted CA. Do not globally disable certificate checks.
+
+### 3. Check the client clock
 
 Run on: **Windows HomeAdmin workstation / PowerShell**.
 
@@ -160,7 +196,7 @@ Expected: Time and timezone match a trusted clock.
 
 If not: Clock drift can invalidate certificates and make imported evidence future-dated.
 
-### 3. Validate the existing proxy config
+### 4. Validate the existing proxy config
 
 Run on: **VM 103 / docker-host**.
 

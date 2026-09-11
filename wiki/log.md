@@ -431,3 +431,5 @@ physical cabling reference, guest inventory and the current portal handoff.
   links retained. No raw changes, new wiki pages or whole-wiki lint.
 
 - 2026-09-11: Updated [[entities/troubleshooting-dashboard]] for owner-approved Homepage Tools preview; direct management access and outstanding Proxmox evidence gate retained. Source: portal services handoff.
+
+- 2026-09-11: Updated [[entities/troubleshooting-dashboard]] with DNS/TLS findings and bounded collector failure categories; canonical portal handoff records the Vaultwarden routing repair.

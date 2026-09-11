@@ -17,6 +17,15 @@ status: active
 
 ## Next project steps
 
+- [x] Restore missing Vaultwarden SNI route and verify the correct certificate
+  with normal browser validation (2026-09-11; explicit DNS mapping).
+- [ ] Choose workstation DNS behavior with Mullvad: router-local DNS works,
+  direct workstation queries fail while VPN DNS filtering is active. Preserve
+  VPN protection until the owner chooses the DNS/privacy tradeoff.
+- [x] Distinguish DNS/network/TLS/timeout collector failures and add VPN/SNI
+  troubleshooting guidance (2026-09-11). Revocation availability remains separate.
+
+
 - [x] Add troubleshooting evidence-age checks, visibly separate example data,
   preserve recorded observations and show dated planned-offline context.
   Local model/browser verification passed (2026-09-10); collector sources now
