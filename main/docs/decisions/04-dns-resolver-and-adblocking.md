@@ -3,7 +3,7 @@ title: DNS Resolver And Adblocking Strategy
 description: AdGuard Home on docker-host, router DNS enforcement, and resilient public fallback
 tags: [architecture-decision, dns, adblocking, router, docker-host, adguard]
 created: 2026-05-23
-modified: 2026-05-23
+modified: 2026-09-12
 type: decision
 status: active
 ---
@@ -121,3 +121,40 @@ router policy plus docker-host application.
 - [OpenWrt DNS interception guide](https://openwrt.org/docs/guide-user/firewall/fw3_configurations/intercept_dns)
 - [Quad9 service addresses](https://quad9.net/service/service-addresses-and-features/)
 - [Cloudflare resolver addresses](https://developers.cloudflare.com/1.1.1.1/ip-addresses/)
+
+
+## Windows workstation with Mullvad (owner decision, 2026-09-12)
+
+Preserve Mullvad's public DNS, content filtering and VPN protection. Resolve only
+approved local service names separately. Do not switch Mullvad to router custom
+DNS, disconnect the VPN, exclude the browser from the tunnel or disable DNS leak
+protection to make home.local work. This workstation exception does not change
+the network-wide router/AdGuard strategy above.
+
+The initial mechanism is exact Windows hosts entries, not a wildcard or a new
+DNS forwarding service. Homepage already maps to 192.168.20.102 on this PC.
+Add vault.home.local at the same address, verified against router-local DNS.
+Public names keep their existing resolver path. Hosts entries are static and
+must be reviewed when the service IP changes. They do not grant network access,
+work automatically on other devices, or establish a remote/Tailscale path.
+Normal HTTPS hostname/certificate verification remains required.
+
+Implementation: `main/scripts/setup/windows/set-local-vault-name.ps1` previews by
+default. In Administrator PowerShell, run from the canonical checkout:
+
+```powershell
+& 'K:\Documents\Obsidian\home-automation-project\main\scripts\setup\windows\set-local-vault-name.ps1' -Apply
+```
+
+It adds only vault.home.local, preserves other entries, rejects conflicting
+addresses and saves a backup outside Git. Use `-Remove -Apply` to remove only its
+managed entry. Tests on a temporary hosts fixture passed apply, repeat-run
+idempotence and exact rollback. The live change is pending an elevated shell;
+this Codex session is not elevated. No Mullvad settings were changed.
+
+After applying, verify both site names in a fresh browser with normal certificate
+validation, and confirm Mullvad remains connected with custom DNS disabled and
+its existing content filters. Direct `Resolve-DnsName -Server 192.168.10.1
+-NoHostsFile` probes may still fail under VPN protection: a hosts entry does not
+repair or prove that separate DNS transport path. Do not mark those probes passed
+because browser navigation works.

@@ -67,3 +67,5 @@ offline when the dashboard host fails.
   desktop/mobile flow, access-denial checks and rollback proof passed.
 
 - 2026-09-11: Added VPN/client DNS comparison and SNI isolation guidance; Windows collector now distinguishes DNS, connection, TLS and timeout errors. Vault SNI route restored; workstation DNS choice remains open. See canonical portal handoff.
+
+- 2026-09-12: Owner selected unchanged Mullvad public DNS/filtering with separate exact local hosts entries. Vault entry helper is prepared; live application needs Administrator PowerShell. See [[main/docs/decisions/04-dns-resolver-and-adblocking|DNS resolver decision]]. Direct router DNS probes remain separate evidence.

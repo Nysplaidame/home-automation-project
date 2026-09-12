@@ -1273,3 +1273,14 @@ broken route; do not use that as routine recovery. App rollback:
 /opt/backups/troubleshooting-dns-tls-20260911/additional-routes.js and image tag
 troubleshooting-dashboard:dns-tls-rollback-20260911. Current image config ID:
 sha256:621fb8011f14485d6c9e6d0791b7e15b739418fd1c96824c508bc7bc3d4c0ad8.
+
+
+## Mullvad decision (2026-09-12)
+
+Owner chose to preserve Mullvad public DNS/filtering and handle local names
+separately. The DNS resolver decision records the exact-hosts approach, limits,
+validation and rollback. Homepage already has a correct hosts entry. Prepared
+main/scripts/setup/windows/set-local-vault-name.ps1 for the router-verified
+vault.home.local mapping; default preview and fixture apply/idempotence/rollback
+passed. Actual installation awaits Administrator PowerShell; this session is
+not elevated. VPN settings and the live hosts file remain unchanged.
