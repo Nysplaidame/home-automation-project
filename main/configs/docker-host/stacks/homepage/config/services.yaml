@@ -20,10 +20,10 @@
         container: ntfy
 
     - Vaultwarden:
-        id: vaultwarden-direct
+        id: portal-vaultwarden
         icon: vaultwarden.png
         href: https://vault.home.local/
-        description: Passwords and secure notes (opens in its own tab)
+        description: Passwords and secure notes
         server: docker-host
         container: vaultwarden
 

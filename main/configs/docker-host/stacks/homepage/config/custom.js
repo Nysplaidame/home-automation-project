@@ -256,6 +256,19 @@
       card.classList.toggle('portal-status-only', !href);
       if (!href || card.querySelector(`.${PREVIEW_CLASS}`)) return;
 
+      // Vaultwarden forbids framing; share card styling with a direct action.
+      if (card.id === 'portal-vaultwarden') {
+        const link = document.createElement('a');
+        link.className = PREVIEW_CLASS;
+        link.href = href;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = 'Open tab';
+        link.setAttribute('aria-label', `Open ${name} in a new tab`);
+        card.appendChild(link);
+        return;
+      }
+
       const button = document.createElement('button');
       button.type = 'button';
       button.className = PREVIEW_CLASS;

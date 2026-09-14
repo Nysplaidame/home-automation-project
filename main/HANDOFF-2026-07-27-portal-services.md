@@ -1305,3 +1305,13 @@ Proxmox root SSH from this workstation still returns Permission denied (publicke
 The prepared collector and validate_proxmox_snapshot.py remain ready, but no fresh
 Proxmox JSON was obtained. Do not mark mount/backup evidence accepted or change
 server authentication to clear this gate. An authorized Proxmox session is needed.
+
+
+## September 14 Vaultwarden card styling
+
+Vaultwarden now uses the shared portal card styling and a matching Open tab
+action. custom.js explicitly handles portal-vaultwarden as a direct anchor
+with noopener/noreferrer instead of opening an iframe. Browser screenshot and
+accessibility inspection confirmed matching card layout and the direct link.
+Backup: /opt/backups/homepage-vault-style-20260914/ (services.yaml, custom.js).
+Proxmox SSH setup still awaits the owner console key-install step.
