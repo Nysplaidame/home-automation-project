@@ -529,3 +529,5 @@ physical cabling reference, guest inventory and the current portal handoff.
   runbooks and secret-bearing artifacts remain outside the vault.
 
 - 2026-09-14: Homepage Vaultwarden direct card deployed and normal browser HTTPS verified; canonical portal handoff records GardenKeeper success and the persistent Proxmox SSH evidence gate.
+
+- 2026-09-14: Updated [[entities/troubleshooting-dashboard]] from the canonical handoff: Proxmox SSH unblocked and fresh evidence validated; browser import and archive restore remain distinct gates.

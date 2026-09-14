@@ -216,3 +216,13 @@ hostname mapping and ignored TLS errors. A separate curl check returned HTTP200
 with certificate validation and revocation checking disabled; this does not
 resolve the workstation's existing DNS/revocation issues. Proxmox evidence
 acceptance remains open.
+
+
+## Proxmox evidence captured (2026-09-14)
+
+Dedicated workstation SSH now works. The real September14 snapshot passed all
+eight required mount/capacity/backup-age checks and dashboard model validation.
+Visual browser import remains open because file-picker automation timed out.
+Run `/usr/local/sbin/home-automation-dashboard-snapshot --json` on Proxmox for
+fresh evidence; its existing scheduled monitor is unchanged. Fresh archives
+do not establish integrity or restore acceptance. See the current handoff.

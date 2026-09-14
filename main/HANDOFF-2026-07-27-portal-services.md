@@ -1502,3 +1502,27 @@ with noopener/noreferrer instead of opening an iframe. Browser screenshot and
 accessibility inspection confirmed matching card layout and the direct link.
 Backup: /opt/backups/homepage-vault-style-20260914/ (services.yaml, custom.js).
 Proxmox SSH setup still awaits the owner console key-install step.
+
+
+## Proxmox SSH and fresh evidence (2026-09-14)
+
+Owner installed the dedicated workstation public key; strict-host-key,
+BatchMode SSH via proxmox-lan now succeeds as root. Fingerprint:
+SHA256:Y491NOKg52a06rnDH6NCXEbDowiasupWDxhToutQmg0. Private key remains in the
+workstation SSH directory, never Git. Host reports PVE9.1.9/kernel7.0.0-3-pve.
+
+Executed the canonical collector over SSH with LF input. Snapshot timestamp
+2026-09-14T13:13:54Z:27 passes/1 failure, the deliberately disconnected camera.
+validate_proxmox_snapshot.py --require-pass returned ACCEPTANCE READY: ct111_root,
+ct114_root, frigate_mount and all five active guest backup-freshness checks pass.
+The dashboard model accepted the real JSON as recent and all eight signals pass.
+This proves reported capacity/mount-source and archive freshness, not archive
+integrity or successful restore. Browser file chooser automation timed out twice;
+visual import acceptance remains open rather than claimed complete.
+
+Snapshot outside Git: C:/Users/Admin/AppData/Local/Temp/proxmox-health-20260914.json.
+Installed the canonical source as /usr/local/sbin/home-automation-dashboard-snapshot
+(mode0755), with bash syntax validation. Run with --json for future captures.
+The existing timer/service and /usr/local/sbin/home-automation-health-check were
+preserved: its older source has a different probe set, so replacing it would
+also change scheduled camera-failure behavior. No timer or notification change.

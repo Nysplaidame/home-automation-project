@@ -17,10 +17,19 @@ status: active
 
 ## Next project steps
 
+- [x] Verify dedicated Proxmox workstation SSH after owner key installation
+  (2026-09-14); collect fresh snapshot and pass all eight required capacity,
+  mount and backup-freshness checks. Dashboard model acceptance also passed.
+- [ ] Complete visual import of the September14 Proxmox JSON in the dashboard;
+  automated file chooser timed out. Integrity/restore proof remains separate.
+- [x] Install dedicated Proxmox dashboard snapshot command at
+  /usr/local/sbin/home-automation-dashboard-snapshot; preserve scheduled probes.
+
+
 - [x] Add Vaultwarden direct card to Homepage Home & Security (2026-09-14);
   normal browser DNS/TLS verified. No iframe, onboarding or auth changes.
-- [ ] Obtain Proxmox JSON through an authorized host session; September14
-  workstation SSH still rejects the key. Existing validator is ready.
+- [x] Obtain Proxmox JSON through the owner-authorized SSH session; September14
+  dedicated key login and required evidence validation now pass.
 
 
 - [x] Complete the September12–14 recovery batch: GardenKeeper backup repair/

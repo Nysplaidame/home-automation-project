@@ -80,3 +80,5 @@ offline when the dashboard host fails.
 - 2026-09-11: Added VPN/client DNS comparison and SNI isolation guidance; Windows collector now distinguishes DNS, connection, TLS and timeout errors. Vault SNI route restored; workstation DNS choice remains open. See canonical portal handoff.
 
 - 2026-09-12: Owner selected unchanged Mullvad public DNS/filtering with separate exact local hosts entries. Vault entry helper is prepared; live application needs Administrator PowerShell. See [[main/docs/decisions/04-dns-resolver-and-adblocking|DNS resolver decision]]. Direct router DNS probes remain separate evidence.
+
+- 2026-09-14: Owner-installed Proxmox key works; fresh host snapshot passes all eight required capacity/mount/backup-age checks and dashboard model validation. Visual import remains open; freshness is not restore proof. Dedicated snapshot command installed; scheduled monitor preserved.
