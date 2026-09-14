@@ -1284,3 +1284,24 @@ main/scripts/setup/windows/set-local-vault-name.ps1 for the router-verified
 vault.home.local mapping; default preview and fixture apply/idempotence/rollback
 passed. Actual installation awaits Administrator PowerShell; this session is
 not elevated. VPN settings and the live hosts file remain unchanged.
+
+
+## September 14 Homepage vault and follow-up verification
+
+Added Vaultwarden to Home > Home & Security at https://vault.home.local/.
+The card uses a direct-link ID outside the automatic preview selector and opens
+in a new tab; Vaultwarden's no-framing policy remains enforced. Local/live
+services.yaml matched before editing. Backup: /opt/backups/homepage-vaultwarden-20260914/services.yaml.
+Revalidated Homepage with its allowed Host header. Browser verification confirmed
+the card, _blank target, no Preview button and Vaultwarden200/title with normal
+DNS and certificate checks. Both local hosts entries are now present.
+
+GardenKeeper repair/isolated restore acceptance was already completed in newer
+work (see its service manual, September12/rechecked September14); live backup
+service currently reports Result=success and ExecMainStatus=0. No duplicate
+repair or production database restore was performed.
+
+Proxmox root SSH from this workstation still returns Permission denied (publickey).
+The prepared collector and validate_proxmox_snapshot.py remain ready, but no fresh
+Proxmox JSON was obtained. Do not mark mount/backup evidence accepted or change
+server authentication to clear this gate. An authorized Proxmox session is needed.

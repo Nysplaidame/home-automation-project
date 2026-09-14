@@ -435,3 +435,5 @@ physical cabling reference, guest inventory and the current portal handoff.
 - 2026-09-11: Updated [[entities/troubleshooting-dashboard]] with DNS/TLS findings and bounded collector failure categories; canonical portal handoff records the Vaultwarden routing repair.
 
 - 2026-09-12: Recorded owner Mullvad/local-name decision in [[entities/troubleshooting-dashboard]] from the canonical DNS resolver decision; elevated hosts application remains pending.
+
+- 2026-09-14: Homepage Vaultwarden direct card deployed and normal browser HTTPS verified; canonical portal handoff records GardenKeeper success and the persistent Proxmox SSH evidence gate.

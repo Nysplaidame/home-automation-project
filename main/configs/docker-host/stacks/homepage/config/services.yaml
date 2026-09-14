@@ -19,6 +19,14 @@
         server: docker-host
         container: ntfy
 
+    - Vaultwarden:
+        id: vaultwarden-direct
+        icon: vaultwarden.png
+        href: https://vault.home.local/
+        description: Passwords and secure notes (opens in its own tab)
+        server: docker-host
+        container: vaultwarden
+
 - Household:
     - Household Hub:
         id: portal-household-hub

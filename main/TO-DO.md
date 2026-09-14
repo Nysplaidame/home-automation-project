@@ -17,6 +17,12 @@ status: active
 
 ## Next project steps
 
+- [x] Add Vaultwarden direct card to Homepage Home & Security (2026-09-14);
+  normal browser DNS/TLS verified. No iframe, onboarding or auth changes.
+- [ ] Obtain Proxmox JSON through an authorized host session; September14
+  workstation SSH still rejects the key. Existing validator is ready.
+
+
 - [x] Restore missing Vaultwarden SNI route and verify the correct certificate
   with normal browser validation (2026-09-11; explicit DNS mapping).
 - [x] Owner chose to preserve Mullvad DNS/filtering and handle exact local names
