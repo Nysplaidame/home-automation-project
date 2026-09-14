@@ -14,6 +14,11 @@ These diagrams are canonical visual references for the current rebuild-first
 architecture. Prefer these source Mermaid files over exported images so the
 project can keep diagrams versioned and reviewable.
 
+For symptom-led use, the [written diagnostic walkthroughs](../troubleshooting/diagnostic-walkthroughs.md)
+and [troubleshooting reference](../troubleshooting/troubleshooting_reference.md)
+link the relevant view at each investigation. These documents remain available
+when the troubleshooting app or the rendered viewer is unreachable.
+
 ## Architecture and network
 
 | Diagram | Purpose |

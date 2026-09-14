@@ -3,7 +3,7 @@ title: Phase 04 - Frigate
 description: CT 111 creation, Docker, shared iGPU, migration-safe Frigate baseline, cameras, MQTT, HTTPS, storage, HA, and recovery
 tags: [install, frigate, nvr]
 created: 2026-05-24
-modified: 2026-08-09
+modified: 2026-09-10
 type: install-guide
 status: active
 ---
@@ -30,7 +30,8 @@ The safe order is deliberate:
 ## Current-state callout
 
 [current-live-state.md](../../reference/current-live-state.md) records the
-production state: CT 111 runs Frigate 0.17.1 with three ANNKE C500 cameras,
+production state: CT111 retains three ANNKE C500 configurations; cameras are
+deliberately disconnected in the September baseline. The service retains
 OpenVINO/VA-API on the shared iGPU, MQTT TLS, authenticated HTTPS, HA integration,
 and OMV-backed recordings. That evidence does not replace any blank-rebuild
 checkpoint below. The repository's `config-baseline.yml` remains the canonical
@@ -674,6 +675,10 @@ Expected result: the guard prints nothing, exits `0`, and Frigate is healthy.
 Do not place the generated password in the rebuild log.
 
 ## 16. Backup and isolated recovery proof
+
+Return to this step after Phase06 establishes OMV and Phase10 establishes
+backup policy. On a blank build, record it as deferred; do not block the
+no-camera foundation on a NAS which has not yet been installed.
 
 CT 111 joins the Proxmox LXC backup job only after the baseline is stable.
 The OMV-backed job requires `tmpdir=/var/tmp` because the unprivileged backup

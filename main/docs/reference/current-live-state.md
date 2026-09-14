@@ -3,7 +3,7 @@ title: Current Live State
 description: Canonical inventory of deployed hosts, services, and deliberately deferred components
 tags: [reference, current-state, infrastructure]
 created: 2026-06-20
-modified: 2026-09-07
+modified: 2026-09-14
 type: reference
 status: active
 ---
@@ -12,6 +12,13 @@ status: active
 
 This is the canonical current-state inventory. Rebuild manuals describe how to
 build from blank and must link here rather than duplicating live-status claims.
+
+**Scoped update, 2026-09-10:** the troubleshooting dashboard evidence-age update
+is deployed at management port8094, with live desktop/mobile verification and
+a fresh Windows 12-pass/one-disconnected-camera-failure snapshot. This does not
+refresh the whole-system September7 audit below. Proxmox collector deployment
+and real mount/guest-backup acceptance remain blocked by SSH key denial. See
+the current handoff for the deployment and IPv6 policy discrepancy.
 
 **Read-only health refresh, 2026-09-07:** management workstation 12/13 endpoint
 checks pass; Camera1 RTSP is the sole failure, consistent with intentional
@@ -84,6 +91,15 @@ passed all 48 aliases after temporarily disconnecting Mullvad's DNS leak
 protection; Mullvad was reconnected immediately afterward. The now-redundant
 workstation hosts entry for `homeassistant.home.local` was removed with an
 elevated edit on 2026-07-29 and the Windows DNS cache was flushed.
+
+## September 14 backup and recovery verification
+
+GardenKeeper backup failure handling was repaired/deployed September12; the
+latest unit status is success. MediaMTX's separate configuration-backup timer
+is enabled for03:35, and its September14 run succeeded. Recording deletion stays
+disabled per owner choice. September12 isolated source-build/database/API/Qdrant
+proof is recorded in the current handoff; production application containers were
+not replaced. These component tests do not certify full-system recovery.
 
 ## Compute
 
@@ -240,14 +256,19 @@ removed afterward. Automatic recording deletion is disabled pending an owner
 retention decision.
 The read-only Troubleshooting Dashboard is staged at
 `http://192.168.20.102:8094/` on explicit bridge `10.240.32.0/24`. Its host
-bind and `DOCKER-USER` policy allow Management VLAN `192.168.10.0/24` only;
-LAN, Tailscale, monitoring and IPv6 access were denied in live tests. A real
-13/13 Windows snapshot, desktop/mobile browser flow and stop/start rollback
-passed on 2026-08-25. It has no DNS alias or Homepage card. Proxmox-host JSON
-acceptance remains open because the available workstation keys are not
-authorized on the Proxmox host.
+bind and IPv4 `DOCKER-USER` policy allow Management VLAN `192.168.10.0/24` only.
+The September10 deployment verified the evidence-age update with a fresh
+Windows 12-pass/one-disconnected-camera-failure snapshot and live desktop/mobile
+checks. Historical stop/start rollback passed August25; September's prior image
+is retained but that rollback was not exercised. A pre-existing IPv6 Tailscale
+RETURN rule for8094 contradicts the earlier blanket-denial description; the
+current publication is IPv4-only and bridge IPv6 is disabled. Reconcile that
+rule before any IPv6 publication. No DNS alias or Homepage card exists.
+Proxmox-host collector update and JSON acceptance remain open because the
+workstation key is denied. The [written walkthroughs](../troubleshooting/diagnostic-walkthroughs.md)
+retain offline diagnosis and Mermaid links alongside the app.
 Homepage is the central `Home Operations` navigation portal at
-`https://192.168.20.102/`, using a `Home Local CA` certificate. The former
+`https://homepage.home.local/`, using a `Home Local CA` certificate. The former
 `http://192.168.20.102:3001/` endpoint remains live for rollback. Its Home,
 Tools, Infrastructure, Monitoring,
 Storage, Media and Operations tabs cover every user-facing portal and every
@@ -370,7 +391,7 @@ all have Homepage health sources and render a status dot. Frigate, OpenWrt,
 Zyxel, OMV and Transfer Portal were visibly healthy after revalidation;
 Proxmox uses the fixed-target proxy health endpoint because ICMP from the
 Homepage container was not reliable. Docker-host UFW permits the Homepage
-bridge `172.18.0.0/16` to reach only gateway port `8299/tcp` for this check;
+bridge `10.240.1.0/24` to reach only gateway port `8299/tcp` for this check;
 the rebuild rule is tracked in `docker-host-ufw-homepage-previews.sh`. Grafana
 and Uptime Kuma return through HTTPS preview proxy ports `8202` and `8186`
 respectively; their Homepage status dots are healthy.
@@ -389,7 +410,7 @@ The portal uses only non-secret configuration and remains an internal/Tailscale
 surface rather than an authentication boundary.
 Gridfinity Layout Tool (`gridfinity-layout-tool-v4.342.0`) is live at
 `http://192.168.20.102:8093`; its
-`gridfinity.home.local` DNS source is staged but not yet router-deployed. It
+`gridfinity.home.local` is in the deployed 48-alias inventory. It
 serves a pinned externally built static release through Nginx on the fixed
 `172.32.0.0/24` Docker subnet, avoiding the prior overlapping automatic bridge
 allocation. A Windows per-user 09:00 daily autodeploy checks the locally

@@ -3,7 +3,7 @@ title: Phase 06 - OMV NAS
 description: OpenMediaVault installation, preservation gates, filesystems, shares, NFS/SMB, SMART, client mounts, backups, and recovery
 tags: [install, omv, nas, storage]
 created: 2026-05-24
-modified: 2026-08-09
+modified: 2026-09-11
 type: install-guide
 status: active
 ---
@@ -30,11 +30,15 @@ their own runbooks.
 
 ## Current-state callout
 
-[current-live-state.md](../../reference/current-live-state.md) records the live
-system: OMV is on VLAN 40, md0 carries the backup/CCTV hierarchy, HA and Proxmox
-backups are active, docker-host mounts are live, Frigate records to OMV, and all
-five physical disks were SMART-healthy at the last recorded check. This manual
-is still the blank/recovery path; each new rebuild needs fresh evidence.
+[current-live-state.md](../../reference/current-live-state.md) records OMV
+directly on router LAN4/VLAN40. Frigate's recording mount is OMV-backed, but
+new recording/playback proof awaits camera reconnection. September's direct
+OMV/Proxmox SSH denial leaves fresh SMART and guest-backup evidence open;
+historical successful checks do not resolve those gaps. This manual remains
+the blank/recovery path and each rebuild needs fresh evidence.
+
+Diagrams: [physical attachment](../../diagrams/network/physical-port-and-cabling.mermaid)
+and [storage/backup paths](../../diagrams/storage/storage-and-backup-flow.mermaid).
 
 ## Runs on
 
@@ -68,7 +72,7 @@ Stop before installation or storage changes if:
 - a proposed erase/format/RAID-create action includes any existing md0 member or
   data disk;
 - the only copy of needed data is on the disks being changed;
-- the managed-switch VLAN 40 access port and local console path are unknown;
+- router LAN4's VLAN40 access assignment or the local console path is unknown;
 - OMV shared folders are being recreated over existing paths without first
   checking their contents and current OMV database references;
 - NFS access is being broadened to a VLAN when a single host is sufficient;
@@ -84,7 +88,8 @@ does not provide a shell command that wipes or formats a disk.
 
 ## Prerequisites
 
-- Router and managed switch provide an untagged VLAN 40 access port.
+- Router LAN4 provides the direct untagged VLAN40 access port; the disconnected
+  Zyxel is not a prerequisite for the current NAS attachment.
 - OMV host has a separate system/boot disk from all data disks.
 - Phase 00 inventory contains disk serials and the storage recovery decision.
 - `<OMV_ADMIN_PASSWORD>` is stored in the password manager.
@@ -797,5 +802,30 @@ Expected result:
 - [ ] OMV OS recovery tabletop is recorded; any unproven production-array step is explicit.
 - [ ] No unapproved Docker/application platform was added to OMV.
 
-Continue to [Phase 07 - Tier 1 Apps](07-tier1-apps.md) after storage consumers
-and their isolated restore paths are accepted.
+Continue to [Phase 07 - Tier 1 Apps](07-tier1-apps.md) after OMV storage,
+exports and existing-consumer mount boundaries are validated. On a blank build,
+record future app consumers and Phase10 isolated restores as return checkpoints;
+do not require an uncreated Tier1 app to pass before entering its install phase.
+
+## OS recovery and data recovery are separate
+
+Preserve the restricted OMV configuration reference, package/version inventory,
+network settings, disk serials/UUIDs/array membership, mount/export mappings,
+users' numeric IDs, ACLs and protected credential recovery outside the OS disk.
+Do not treat a copied OMV configuration file as a universally importable restore
+across releases. Use a compatible documented release and reconstruct objects
+through its supported UI, comparing them with the saved inventory.
+
+Rehearse OS reconstruction on a disposable host/VM with blank test disks and
+isolated networking. Recreate representative shares/users/exports and test both
+allowed and denied access using disposable content. Never attach production
+array disks writable to a test clone. Actual array recovery requires its own
+verified disk-specific plan; no restore exercise should format or initialize an
+unrecognized existing disk.
+
+NAS-local backups remain vulnerable to loss of the NAS. Inventory which unique
+libraries/recordings/vault data have a verified independent copy, with recovery
+point and destination, before claiming disaster recovery. A test OS rebuild and
+fresh SMART results do not establish that independent data copy. Keep any missing
+copy as an explicit owner decision/work item and retain stopped-writer handling
+when mounts are unavailable.

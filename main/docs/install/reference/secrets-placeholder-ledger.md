@@ -3,7 +3,7 @@ title: Secrets Placeholder Ledger
 description: Central placeholder list for the installation manual suite
 tags: [install, secrets, placeholders]
 created: 2026-05-24
-modified: 2026-08-09
+modified: 2026-09-10
 type: reference
 status: active
 ---
@@ -11,6 +11,27 @@ status: active
 # Secrets Placeholder Ledger
 
 Store real values in the password manager. Never commit real values.
+
+## Router source tokens
+
+The compiler uses literal source tokens as replacement keys, rather than the
+angle-bracket notation used in the manuals. Both profiles require
+`YOUR_ZEN_PPPOE_USERNAME_HERE` and `YOUR_ZEN_PPPOE_PASSWORD_HERE` in ignored
+`main/tools/router-deploy/keys/router_secrets.json` (flat object or nested
+`replacements`). Values come from the owner's Zen account/password-manager
+record. See the [toolkit input contract](../../../tools/router-deploy/README.md#zenopenreach-credentials-2026-09-04).
+Do not replace the tracked placeholders with live credentials.
+
+Other compiler keys are `YOUR_MAIN_WIFI_PASSWORD_HERE`,
+`YOUR_ADMIN_WIFI_PASSWORD_HERE`, `YOUR_PRINTERS_WIFI_PASSWORD_HERE`,
+`YOUR_IOT_WIFI_PASSWORD_HERE`, `YOUR_GUEST_WIFI_PASSWORD_HERE`,
+`YOUR_DMZ_WIFI_PASSWORD_HERE`, `YOUR_PRIVATE_KEY_HERE` (WireGuard server),
+and `CLIENT1_PUBLIC_KEY_HERE` through `CLIENT3_PUBLIC_KEY_HERE`.
+Device MAC placeholders require verified per-device identities, not invented
+values. This router-token reconciliation does not certify an exhaustive
+repository-wide secrets audit.
+
+## Manual placeholders
 
 | Placeholder | Created in | Stored as | Used by |
 |---|---|---|---|
@@ -69,3 +90,21 @@ Store real values in the password manager. Never commit real values.
 | `<LOCAL_AI_EMBED_MODEL_SHA256>` | Approved model publisher/project record | Expected digest, not secret | CT 114 embedding-model verification |
 
 If a guide introduces a new placeholder, add it here before using it elsewhere.
+
+## Media, gateway and tracker environment inputs
+
+These names come from the tracked `.env.example` files; actual values stay on
+the service host and in the approved credential/recovery store.
+
+| Input | Source / meaning | Consumer |
+|---|---|---|
+| `MEDIA_UID`, `MEDIA_GID` | Verified OMV media-service identity; numeric identity, not a password | Media services and qBittorrent |
+| `JELLYFIN_PUBLISHED_URL` | Approved reachable user URL matching the existing access/TLS path | Jellyfin |
+| `WIREGUARD_PRIVATE_KEY`, `WIREGUARD_ADDRESSES` | Owner's Mullvad WireGuard configuration; protect private key | Gluetun; unrelated to router fallback keys |
+| `SERVER_CITIES` | Approved provider filter | Gluetun |
+| `RECOMP_NTFY_TOPIC` | Selected private notification topic | Recomp Tracker |
+| `RECOMP_NTFY_USER`, `RECOMP_NTFY_PASSWORD` | Dedicated publisher limited to that topic | Recomp Tracker |
+| `RECOMP_TIMEZONE` | Operator-approved timezone; currently Europe/London | Recomp scheduler |
+
+An isolated Recomp restore removes real publisher credentials and uses an empty
+application `NTFY_TOPIC`; do not reuse the production Compose unchanged.

@@ -2,12 +2,199 @@
 title: Portal, Monitoring and Household Services Handoff
 description: Live Homepage/monitoring state and the next decision-gated service work
 created: 2026-07-27
-modified: 2026-09-10
+modified: 2026-09-14
 type: handoff
 status: current
 ---
 
 # Handoff — Portal, Monitoring and Household Services (2026-07-27)
+
+
+## 2026-09-14 recovery verification closeout (work executed September12)
+
+- GardenKeeper repaired backup is deployed; seven mock regression tests and
+  live backup passed. September14 service status: success/exit0.
+- SearXNG sanitized snapshot is parsed and loader-tested with the installed
+  virtualenv interpreter. Effective secret matches environment, URL is correct,
+  limiter false and110/280 engine entries enabled. Live config was unchanged.
+- All six GardenKeeper/Hub source builds passed through existing egress after
+  offline builds failed at dependency download; no firewall changes or live
+  image replacement. New image tags are `recovery-<app>-<component>:20260912`.
+- Both PostgreSQL restores and rebuilt API health/authenticated reads/401 denial
+  passed without production networking. Both Hub Qdrant snapshots restored with
+  matching4+1 points. Redis was empty at inspection, not a future queue guarantee.
+- MediaMTX dedicated config backup is enabled daily03:35. First checkpoint
+  `mediamtx-config/20260912T191716Z` on OMV passed hashes/extraction/file comparison;
+  archive mode0600 enforced despite NAS default ACLs. September14 scheduled run
+  succeeded. Owner chose no recording deletion; manual review is documented.
+- Disposable recovery containers were removed. Scripts, logs, dumps and snapshots
+  remain protected under `/root/recovery-verification-20260912`; database dumps
+  and snapshots were also copied to the restricted workstation recovery directory.
+- Audit now36 Written/6 Candidates; documentation coverage is not full-system
+  recovery certification. Upstream Git provenance, offline dependency archives,
+  coordinated cross-store/worker/external/browser/physical proofs remain distinct.
+
+## 2026-09-11 protected source/settings checkpoints
+
+Scoped GardenKeeper/Hub source archives and SearXNG settings now reside at
+`C:/Users/Admin/home-automation-recovery/source-20260911-224938` with inherited
+ACLs removed and only the current administrator/SYSTEM granted access. Remote
+archive staging is `/root/documentation-source-recovery.ODR9yT`. Hashes and
+scope/exclusions are recorded in each service runbook. No archive is in Git.
+These are off-VM local copies, not encrypted/off-site or full data backups.
+Source provenance, build completeness and actual restore remain unproven.
+SearXNG raw settings recovered; semantic/runtime secret precedence and engine
+policy remain open (YAML parser unavailable). No live config/services changed.
+
+## 2026-09-11 application source discovery
+
+Live source exists at `/opt/stacks/gardenkeeper/source` and
+`/opt/stacks/household-hub`. Read-only schema metadata confirms GardenKeeper
+0001–0029 and Hub20260809_0002. Runbooks record source hashes and actual migration
+contracts: GardenKeeper0006/0009 drop/recreate tables; Hub runs Alembic before
+API startup independently of its auto-create-schema flag. No migrations ran,
+no domain records were read, and services were unchanged. Git provenance,
+complete off-host source and real store restore proof remain open.
+
+## 2026-09-11 docker-host SSH access correction
+
+Docker-host access works with the existing workstation key. The earlier raw-IP
+probe failed because it did not select `docker_host_desktop_ed25519`; it was
+not evidence that the configured `docker-host-lan` route was unavailable.
+`ssh -o BatchMode=yes -o StrictHostKeyChecking=yes docker-host-lan` authenticated
+as root and returned hostname `docker-host`. The local SSH config Host pattern
+now includes both `docker-host-lan` and `192.168.20.102`; verified raw-IP and
+alias logins both succeed. Existing identity and host-key verification retained.
+Backup: `C:\Users\Admin\.ssh\config.before-docker-host-ip-20260911222257`.
+No server authorized_keys, passwords, SSH policy or firewall settings changed.
+This correction applies only to VM103, not the separate Proxmox/OMV evidence gaps.
+A read-only search found no `.git` directory within three levels of either
+GardenKeeper or Household Hub stack root; source provenance still needs recovery,
+but workstation SSH access is no longer its blocker.
+
+## 2026-09-11 remaining-row review completed
+
+All nine audit review rows processed. Eight now have written lifecycle recovery
+boundaries; GardenKeeper moved to Missing source because application/migration
+source is absent from the vault. Its dump pipeline can mask pg_dump failure;
+a checked manual checkpoint is documented and script repair is queued.
+Audit now: 32 Written, 0 Review, 4 missing source/configuration, 6 Candidates.
+Bambuddy, Transfer Portal, static tools, exporter, local AI, OMV and apt cache
+now distinguish authoritative state, isolated proof and matched rollback.
+Phase06/08 exit conditions retain future-consumer/Phase10 return checkpoints.
+Existing SSH root access to VM103 was attempted read-only and denied its key;
+no auth changes were made. Source recovery cannot continue via that route.
+115 local paths/anchors and 56 shell blocks passed; no operational commands
+from the manuals were executed. Full sequential/live rebuild proof remains open.
+
+## 2026-09-11 consolidated documentation audit
+
+INSTALL-TO-DO now has one current coverage table for all 42 named service and
+roadmap entries, deduplicating ntfy and grouping internal helpers under parents.
+Disposition: 24 Written, 9 Review, 3 missing source/configuration, 6 Candidates.
+Written means a lifecycle path exists, not every command or current restore is
+certified. Nine explicit review rows broaden the remaining work beyond Hub,
+SearXNG and MediaMTX. Next: Bambuddy/GardenKeeper contradictions, remaining
+review rows, source/settings recovery, sequential dry-read and live rehearsal.
+The app README's September11 routes/collector additions are acknowledged;
+Proxmox collector access/evidence remains open. No live systems changed.
+
+## 2026-09-11 final-phase dependency follow-up
+
+Phase09 no longer claims the app-data job backs up Watchtower configuration;
+its recurring-job checks return after Phase10 setup. Phase11 matches the
+September disconnected-camera/uncommissioned-printer baseline and records
+hardware deferrals separately from failures. Phase12 explicitly scopes partial
+software acceptance; source-validation and flashing examples stop on native
+command failure. Validation passed: 32 shell blocks, 10 PowerShell blocks,
+66 local paths and whitespace checks. No live/hardware actions were executed.
+
+## 2026-09-11 backup-phase follow-up
+
+Phase10 now installs the backup scripts/units and documents its required Kuma
+heartbeat configuration before first-run/timer acceptance. Partial rebuilds
+must reconcile the mandatory dataset inventory rather than fabricate empty
+paths. `latest` is a non-atomic mirror; a completed dated run is the recovery
+source. Restore blocks now stop on failed checks, check VM/CT ID collisions and
+remove every CT network entry. Source validation passed (17 shell blocks,
+2 PowerShell blocks, 15 paths); no live backup, notification or restore ran.
+Remaining full dry-read and live acceptance stay in the install checklist.
+
+## 2026-09-11 rebuild dependency follow-up
+
+Phase07 now separates blank installation from recovery and no longer stops all
+four Tier1 services together. Existing Immich credentials and Homepage TLS keys
+are guarded against replacement. Phase08's monitoring/backup timer dependency
+returns to Phase10 on a blank rebuild; START-HERE records the checkpoint.
+MediaMTX now has a manual protected configuration capture/extraction procedure
+and capacity guidance, but no new recurring backup, encrypted destination or
+retention policy was deployed. Household Hub's August migration/dump evidence
+is linked as a recovery lead, not current restore proof. Full suite dry-read
+and live rehearsal remain open; validation is in INSTALL-TO-DO.
+
+## 2026-09-11 documentation continuation
+
+- Completed source-backed lifecycle guidance for ntfy, Watchtower, SearXNG and
+  Whoogle: pinned configuration, backup boundaries, isolated restore, update,
+  rollback and Mermaid links. No live service changes or notification tests.
+- SearXNG effective settings and a sanitized source template remain missing;
+  repaired its README's reference to a nonexistent `.env.example`.
+- Watchtower scans and notification delivery are separate acceptance gates;
+  September6/7 error40014 remains unresolved. Phone delivery and current full
+  restore rehearsals are not established by these documentation edits.
+- Next documentation dependencies: recover Hub application source/database
+  recovery contract, establish MediaMTX config backup/retention, recover SearXNG
+  settings, and complete the suite-wide sequential dry-read. Validation results
+  are recorded in `docs/install/INSTALL-TO-DO.md`.
+
+## 2026-09-10 documentation continuation
+
+Second continuation:
+- Added download-gateway and Recomp operating manuals, expanded MediaMTX,
+  and documented Household Hub's separate-repository/migration/backup gap.
+- Reviewed the remaining cross-system troubleshooting examples: explicit shell
+  contexts, authenticated dashboard bridge, HA/MQTT address and topic checks,
+  no password-in-command examples, and no automatic reboot/ownership repair.
+- Fixed VM103's circular creation prerequisite and disk-ID assumption;
+  expanded VM102 cloud-image creation; made pre-NAS archive deferrals explicit.
+  CT114 uses the current inventory's 20 GiB limit, VM103 4c/6 GiB/64 GiB.
+- Source validation: 318 local links/76 docs, 393 shell blocks, 72 PowerShell
+  blocks passed before the final MediaMTX/Hub additions; final targeted checks
+  are recorded in the checklist. No live infrastructure commands were executed.
+- Remaining named gaps: Hub application repository and database recovery,
+  MediaMTX configuration-backup/retention coverage, remaining short-service
+  lifecycle review, and credentialed blank-build/restore acceptance.
+
+
+- Reconciled the install entrypoint and operator/router/Proxmox/OMV/final
+  validation phases with September PPPoE, VLAN55, HomeAdmin/LAN5 recovery,
+  direct LAN1 Proxmox trunk and direct LAN4 OMV. Proxmox instructions now
+  establish tagged networking before network-dependent updates and SSH setup.
+- Added `docs/troubleshooting/diagnostic-walkthroughs.md` as the offline written
+  companion to all five app investigations, with execution hosts, expected
+  results, evidence-age rules, recovery references and Mermaid source links.
+  Updated the older cross-system reference and navigation in both directions.
+- Added `docs/install/services/media-libraries.md` for Jellyfin, Calibre-Web and
+  Atsumeru installation, diagnosis, backup, updates and isolated recovery. The
+  ordinary directory copies in the app-data backup job do not themselves prove
+  consistent live database backup or restore; library content needs separate
+  coverage. Linked the media stack READMEs and remaining adjacent service runbooks.
+- Reconciled service/DNS and physical-port wording, replaced stale August
+  compiler-blocker claims, documented literal PPPoE secret-input tokens, and
+  corrected the local PowerShell quoting example in the router toolkit README.
+- Incorporated the separately recorded September10 dashboard deployment as it
+  arrived: freshness UI is deployed, Windows uses canonical collector source,
+  Proxmox collector/access and fresh backup acceptance remain open. Preserved
+  the IPv6 policy discrepancy rather than claiming universal denial.
+- This task changes documentation only. It did not deploy services, collect
+  new live health, modify credentials/firewalls, or run restore/hardware tests.
+  Router source lint and all four compiler recovery regression tests passed.
+  Documentation link and embedded-command validation is recorded in INSTALL-TO-DO.
+- Remaining work is in `docs/install/INSTALL-TO-DO.md`: complete service-by-service
+  lifecycle review (including Recomp/download gateway), remaining legacy-command
+  review, sequential beginner dry-read and a separately evidenced full rebuild.
+  Canonical docs were updated before the related wiki source/entity pages.
+
 
 ## 2026-09-10 troubleshooting deployment
 

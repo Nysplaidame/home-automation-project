@@ -10,3 +10,9 @@ The live deployment uses the dedicated OMV `media-service` identity
 read-only library boundary, HTTP health check and restart proof passed on
 2026-07-29. Keep hardware transcoding disabled until shared-iGPU capacity is
 reviewed.
+
+See the [media operating manual](../../../../docs/install/services/media-libraries.md)
+for installation, diagnosis, backup, updates, rollback and isolated restore.
+Its [storage diagram](../../../../docs/diagrams/storage/storage-and-backup-flow.mermaid)
+shows the application/library boundary. Historical restart checks above do
+not establish a fresh isolated restore proof.

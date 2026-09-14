@@ -67,6 +67,14 @@ sudo systemctl start immich-curated-exporter.service
 sudo systemctl status immich-curated-exporter.service --no-pager
 sudo jq . /opt/stacks/immich-curated-exporter/state/manifest.json
 sudo jq . /opt/stacks/immich-curated-exporter/state/review-queue.json
+```
+
+Keep the timer disabled until the bounded test, no-delete check and protected
+checkpoint above have passed. Only then enable recurrence from docker-host:
+
+Run on: docker-host over SSH, after acceptance.
+
+```sh
 sudo systemctl enable --now immich-curated-exporter.timer
 ```
 
@@ -76,3 +84,35 @@ Disable the timer before correcting an allow-list or API-key problem. Existing
 published files are safe to leave in place; use the review queue and a
 documented approval to decide whether any should be removed. Restore the state
 directory from the docker-host app-data backup before recreating its history.
+
+## Consistent checkpoint and isolated restore
+
+Disable the timer and wait for the running one-shot job to finish before taking
+a matched copy of `state/`, `albums.json`, exporter source, unit/timer files and
+protected `/etc/immich-curated-exporter.env`. Preserve ownership, source revision
+and manifest schema version. The app-data job copies state only when present;
+it does not cover the secret/allow-list or exported media itself. Back up the
+published media separately if its retention requires an independent copy.
+
+Restore copied state/config in a disposable VM with no production credentials,
+no active timer and a disposable mount-backed export root. Verify manifest and
+review-queue JSON/schema and sample recorded hashes against copied exported
+files. Do not rewrite restored history merely to make validation pass. For an
+API exercise use a separate test Immich and scoped test key; `--dry-run` still
+needs an API source and is not a promise of offline execution.
+
+Prove a bounded test export, then remove a test asset from the test album and
+confirm only a review item is created while its published copy remains. Do not
+use production assets for this destructive-input test. Record checkpoint,
+source/schema and outcomes before stopping the isolated job.
+
+## Update and rollback
+
+Review source/manifest compatibility and rehearse on copies before changing the
+installed script. Preserve the prior source, allow-list and matched state while
+the timer is disabled. After update, dry-run and inspect exactly the selected
+albums before a bounded execution and timer re-enable. On failure stop the job,
+preserve failed state and restore the previous generation; reconcile any files
+already exported against hashes before retrying. Rollback must not delete the
+published library or erase pending review items. Use the
+[backup diagram](../../diagrams/storage/storage-and-backup-flow.mermaid).

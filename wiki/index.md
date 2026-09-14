@@ -4,7 +4,7 @@
 > Updated after every ingest, query (if filed), or lint pass.
 
 **Stats:** 21 sources - 28 entities - 7 concepts - 9 analyses
-**Last updated:** 2026-09-07
+**Last updated:** 2026-09-14
 
 ---
 
@@ -43,7 +43,7 @@
 - [[sources/ventsys-phase1-foundation]] - Network validation, CA, initial device TLS
 
 ### Operational reference
-- [[sources/troubleshooting-reference]] - Cross-system diagnostics
+- [[sources/troubleshooting-reference]] - September network/state reconciliation, offline app walkthroughs and Mermaid references
 
 ---
 

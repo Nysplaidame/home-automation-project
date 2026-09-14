@@ -3,7 +3,7 @@ title: Phase 05 - docker-host
 description: Rebuild VM 103 Docker, Compose, firewall, Tailscale host routes, and rollback baseline
 tags: [install, docker-host, tailscale]
 created: 2026-05-24
-modified: 2026-08-09
+modified: 2026-09-10
 type: install-guide
 status: active
 ---
@@ -43,7 +43,9 @@ that live state.
 
 ## Prerequisites
 
-- Phase 02 prepared VM 103 with Debian 13, VLAN 20, static
+- Phase 02 prepared the Proxmox host. Create VM103 using the
+  [cloud-image creation steps](../../../scripts/setup/proxmox/docker_host_setup_guide.md#phase-1---reproduce-vm-103-from-debian-cloud-image)
+  before Step1 below: Debian13, VLAN20, static
   `192.168.20.102/24`, gateway/DNS `192.168.20.1`, and an admin SSH key.
 - Router policy provides bounded TCP `80/443` maintenance egress for only
   `192.168.20.102` during package/image operations.
@@ -70,7 +72,7 @@ Expected result: VM 103 is `running`; name is `docker-host`; VLAN tag is `20`;
 the MAC and storage match the inventory; `onboot` is `1`; startup order is `3`;
 and cloud-init address/gateway are `192.168.20.102/24` and `192.168.20.1`.
 
-Recovery: stop and correct the guest shell in Phase 02 before installing
+Recovery: stop and correct the guest against the linked creation steps before installing
 anything. Do not repair a wrong VLAN by adding a second in-guest address.
 
 ## 2. Establish the Debian and recovery baseline
@@ -106,15 +108,18 @@ Run on: Proxmox host shell.
 
 ```sh
 qm agent 103 ping
-vzdump 103 --mode snapshot --compress zstd --storage omv-backups
 ```
 
-Expected result: agent ping exits silently with `0`; `vzdump` ends with
-`TASK OK`. Record the backup volume ID before continuing.
+Expected result: agent ping exits silently with `0`. Phase06 has not yet
+established `omv-backups` on a blank rebuild. Record this clean baseline and
+retain source/configuration; execute its off-host archive and restore proof
+after Phase06 using Phase10. Do not create an ad-hoc local substitute and
+claim the NAS backup step passed.
 
 Recovery: use the local console for network/package repair. If the baseline
-cannot be recovered safely, restore the new archive as an isolated VM ID and
-validate it before replacing VM 103.
+cannot be recovered safely, use a verified existing archive in an isolated VM
+or recreate only the still-empty guest from the verified image. Do not assume
+a pre-NAS archive exists or discard any application data already present.
 
 ## 3. Install Docker Engine from its signed Debian repository
 

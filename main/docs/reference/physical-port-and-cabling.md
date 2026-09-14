@@ -3,7 +3,7 @@ title: Router and Switch Physical Port Layout
 description: Confirmed and reserved physical cabling map for the router, GS1900 switch, OMV, and CCTV rollout
 tags: [network, cabling, ports, switch, cctv]
 created: 2026-07-10
-modified: 2026-09-04
+modified: 2026-09-10
 type: reference
 status: active
 ---
@@ -64,10 +64,10 @@ camera bench/mounting change.
 
 | Switch port | Cable destination | VLAN / PoE | State |
 |---|---|---|---|
-| `1` | Router `lan3` | Tagged trunk: 1, 10, 30, 40; no camera PoE | Live |
-| `2` | ANNKE C500, camera 1 | Untagged VLAN 30, PVID 30, PoE; `192.168.30.21` | Live |
-| `3` | Patio camera / camera 3 | Untagged VLAN 30, PVID 30, PoE; `192.168.30.23` | Live |
-| `4` | Gate camera / camera 2 | Untagged VLAN 30, PVID 30, PoE; `192.168.30.22` | Live |
+| `1` | Router `lan3` | Tagged trunk: 1, 10, 30, 40; no camera PoE | Assigned; disconnected |
+| `2` | ANNKE C500, camera 1 | Untagged VLAN 30, PVID 30, PoE; `192.168.30.21` | Previously proven; disconnected |
+| `3` | Patio camera / camera 3 | Untagged VLAN 30, PVID 30, PoE; `192.168.30.23` | Previously proven; disconnected |
+| `4` | Gate camera / camera 2 | Untagged VLAN 30, PVID 30, PoE; `192.168.30.22` | Previously proven; disconnected |
 | `5` | Camera 4 | Reserve: untagged VLAN 30, PVID 30, PoE; `192.168.30.24` | Future |
 | `6` | Camera 5 | Reserve: untagged VLAN 30, PVID 30, PoE; IP to allocate | Future |
 | `7` | Camera 6 | Reserve: untagged VLAN 30, PVID 30, PoE; IP to allocate | Future |
@@ -84,7 +84,7 @@ camera -> GS1900 port 2-7 (VLAN 30 access) -> GS1900 port 1
        -> Proxmox -> CT 111 Frigate
 ```
 
-All three live cameras are ANNKE C500 units and use verified RTSP paths
+All three previously proven cameras are ANNKE C500 units and retain RTSP paths
 `/Streaming/Channels/101` (main) and `/Streaming/Channels/102` (substream).
 Camera 1 is `.21` on port 2, Patio is `.23` on port 3, and Gate is `.22` on
 port 4. Ports 5-7 remain the future CCTV block; `.24` is reserved for the next

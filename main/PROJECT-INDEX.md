@@ -4,7 +4,7 @@ description: Master navigation hub for all project documentation
 tags: [index, navigation, home-automation]
 aliases: [Project Index, Documentation Hub]
 created: 2025-09-15
-modified: 2026-09-07
+modified: 2026-09-14
 type: index
 status: active
 ---
@@ -15,20 +15,26 @@ status: active
 
 ---
 
+The [consolidated coverage audit](docs/install/INSTALL-TO-DO.md#consolidated-coverage-audit--september-11) tracks all 42 named service/roadmap
+entries: 36 now have written lifecycle paths and six remain gated candidates.
+The four source/configuration gaps have tested recovery artifacts or configuration
+contracts as of September14; individual workflow and full-system proof remain open.
+Written coverage is not verified rebuild or current restore acceptance.
+
 ## Quick status
 
 | Area | State |
 |---|---|
 | Network configs (router) | ✅ Written, audited, first-flight deployed |
-| Proxmox + VM setup guides | ✅ Complete; Proxmox live |
+| Proxmox + VM setup guides | Written; September direct-trunk guidance reconciled; blank rebuild unproven |
 | HA + Frigate setup guides | ✅ HA live; CT 111 Frigate baseline live |
-| Docker host + Bambuddy workload guide | ✅ Complete |
-| VentSys HA packages + dashboard | ✅ Complete |
+| Docker host + Bambuddy workload guide | Written; P1S commissioning and Bambuddy bridge acceptance remain open |
+| VentSys HA packages + dashboard | Written/staged; hardware acceptance remains open |
 | ESPHome configs | ✅ Written (hardware IDs pending) |
 | OMV NAS setup guide | ✅ Written |
 | Service/ACL reference docs | ✅ Reconciled with deployed architecture on 2026-08-25 |
 | Backup strategy | ✅ Written |
-| Troubleshooting reference | ✅ Current HTTPS, three-camera, fixed-proxy, storage, and Docker-network paths documented |
+| Troubleshooting reference | September network/state corrections and written companions to all five app investigations; Mermaid links included |
 | Network testing guide | ✅ Written |
 | SSL/TLS guide | ✅ Written |
 | Tailscale remote access guide | ✅ Written |
@@ -37,7 +43,7 @@ status: active
 | Physical deployment | ✅ Router, Proxmox trunk, HAOS, and docker-host live |
 | Docker-host service templates | ✅ Written for live VM 103 stacks, host firewall, and app-data backup templates |
 | Local AI / voice inference | ✅ CT 114 live with shared-iGPU llama.cpp and HA voice/search migration pending |
-| Hardware procurement | ⏳ VentSys components and a fourth camera pending; NAS, switch and three cameras are live |
+| Hardware procurement | VentSys and future camera scope pending; NAS live, Zyxel/three cameras deliberately disconnected |
 
 ---
 
@@ -131,16 +137,18 @@ status: active
 ### Fresh rebuild manual suite
 - [[docs/install/START-HERE.md]] — beginner-safe rebuild entrypoint from a blank environment
 - [[docs/install/INSTALL-TO-DO.md]] — comprehensive setup-documentation completion checklist
+- [[docs/troubleshooting/diagnostic-walkthroughs.md]] — offline written companion to the troubleshooting app's five investigations, evidence rules and Mermaid references
 - [[docs/install/garage-pi-desktop-setup-guide.md]] — garage Raspberry Pi 5 desktop, NVMe, OLED, project access, and optional AI readiness
 - [[docs/install/oled-screen-setup-guide.md]] — 52Pi/GeeekPi case OLED setup and `minitower_oled.service`
 - [[docs/diagrams/README.md]] — canonical install and architecture diagram library
-- [[docs/install/services/mermaid-viewer.md]] — draft internal Mermaid diagram browser for canonical `.mermaid` sources
+- [[docs/install/services/mermaid-viewer.md]] — live internal Mermaid diagram browser for canonical `.mermaid` sources
 - [[docs/install/reference/command-location-legend.md]] — where every command runs
 - [[docs/install/reference/secrets-placeholder-ledger.md]] — central placeholder and secret ledger
 - [[docs/install/reference/package-dependency-matrix.md]] — packages, hosts, install commands, verification commands
 - [[docs/install/reference/decision-gates.md]] — required gates for risky or unresolved services
 - [[docs/install/reference/hacs-enhancement-roadmap.md]] — Home Assistant apps, HACS, dashboard, and quality-of-life roadmap
 - [[docs/install/services/README.md]] — Tier 1, Tier 2, and Tier 3 docker-host service manuals
+- [[docs/install/services/media-libraries.md]] — Jellyfin, Calibre-Web and Atsumeru installation, diagnosis, backup, update and isolated restore manual
 
 ### 1. Router
 - [[scripts/setup/router/phase_1_prerequisites.md]] — start of phases 1–8 router setup sequence
@@ -156,6 +164,10 @@ status: active
 - [[scripts/setup/proxmox/igpu_passthrough_guide.md]] — shared Intel render/card device mapping for unprivileged LXCs
 
 ### 3. Storage
+
+- [[docs/install/services/download-gateway.md]] — Gluetun/qBittorrent lifecycle and containment recovery
+- [[docs/install/services/recomp-tracker.md]] — tracker deployment, SQLite backup, notification isolation and rollback
+
 - [[scripts/setup/nas/omv_nas_setup_guide.md]] — OpenMediaVault NAS, NFS/SMB, HA/Frigate/Immich storage
 - [[docs/install/services/immich-curated-exporter.md]] — allow-listed, non-destructive Immich album export into Jellyfin
 - [[docs/install/services/transferportal.md]] — native OMV Transfer Portal service for guarded local rsync jobs
@@ -217,7 +229,7 @@ status: active
 - [[docs/reference/access-matrix.md]] — OpenWrt, Tailscale, host firewall, and service auth access intent
 - [[docs/diagrams/README.md]] — canonical diagram library
 - [[docs/diagrams/network/current-master-architecture.mermaid]] — whole-system architecture and service placement
-- [[docs/diagrams/network/vlan_architecture_clean.mermaid]] — active 10-segment VLAN topology
+- [[docs/diagrams/network/vlan_architecture_clean.mermaid]] — eleven-segment VLAN topology including cloud IoT VLAN55
 - [[docs/diagrams/network/physical-port-and-cabling.mermaid]] — live router, trunks, switch ports, camera, NAS, and Wi-Fi cabling
 - [[docs/diagrams/network/remote-access-flow.mermaid]] — Tailscale daily access and WireGuard fallback flow
 - [[docs/diagrams/network/dns-ntp-flow.mermaid]] — router DNS/NTP, AdGuard, and public fallback flow
@@ -246,4 +258,4 @@ status: active
 
 ---
 
-**Updated:** 2026-09-07
+**Updated:** 2026-09-10

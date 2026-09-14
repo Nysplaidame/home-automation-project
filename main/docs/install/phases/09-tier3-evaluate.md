@@ -3,7 +3,7 @@ title: Phase 09 - Tier 3 Evaluate Apps
 description: Security-gated rebuild and evaluation for Vaultwarden, Portainer, Watchtower, registry mirror, and Node-RED
 tags: [install, docker-host, tier3, evaluate]
 created: 2026-05-24
-modified: 2026-08-09
+modified: 2026-09-11
 type: install-guide
 status: active
 ---
@@ -135,9 +135,17 @@ fire/smoke/ventilation interlocks remain in HA/firmware.
 
 ## 7. Prove live-service backup and recovery state
 
+On a blank rebuild, first follow Phase10's backup inventory, installation and
+heartbeat prerequisites, then return here. Until the recurring job is ready,
+use each installed service's protected manual checkpoint and keep promotion
+pending. Do not create empty dataset directories or enable parked services to
+make the central backup job pass.
+
+
 Run on: docker-host over SSH.
 
 ```bash
+set -euo pipefail
 findmnt -T /mnt/omv/docker-host-backups
 systemctl start docker-host-app-data-backup.service
 systemctl --no-pager --full status docker-host-app-data-backup.service
@@ -145,8 +153,9 @@ journalctl -u docker-host-app-data-backup.service -n 100 --no-pager
 ```
 
 Expected result: the destination is OMV, the job succeeds, and its log identifies
-Vaultwarden's SQLite-consistent staging and Watchtower configuration coverage
-without printing secrets. Retain the documented two isolated Vaultwarden
+Vaultwarden's SQLite-consistent staging without printing secrets. The central
+job does **not** capture Watchtower Compose or its protected `.env`; preserve
+those separately using the [Watchtower manual](../services/watchtower-monitor-only.md). Retain the documented two isolated Vaultwarden
 restore proofs; configuration-only Watchtower recovery must reproduce
 monitor-only behavior before notification checks.
 

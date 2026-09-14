@@ -46,7 +46,7 @@ changes; use the current physical-port reference for the full live topology:
 |---|---|---|
 | `lan5` | Recovery/AP, VLAN 1 untagged | DHCP `192.168.1.x`, gateway/DNS `192.168.1.1`, LuCI reachable |
 | `lan2` | Hive cloud IoT, VLAN 55 untagged | Hive `192.168.55.10`, gateway/DNS `192.168.55.1`; no admin access |
-| `lan3` | NVR, VLAN 30 untagged | DHCP `192.168.30.x`, DNS `192.168.30.1`; router admin blocked by policy |
+| `lan3` | Assigned GS1900 trunk, VLANs 1/10/30/40 tagged; currently disconnected | Historical first-flight access-port behavior is superseded; use the current cabling map |
 | `lan4` | Storage, VLAN 40 untagged | DHCP `192.168.40.x`, DNS `192.168.40.1`; router admin blocked by policy |
 | `lan1` | Proxmox trunk | Tagged VLANs only; test with Proxmox/VLAN-aware client |
 
@@ -109,7 +109,7 @@ hardware identities. Scoped live recovery did not redeploy the full template.
 1. Generate deploy key:
 
 ```powershell
-cd <repo-root>\main\tools\router-deploy
+cd "<repo-root>\main\tools\router-deploy"
 ssh-keygen -t ed25519 -f .\keys\router_deploy -N '""' -C "router-deploy@laptop"
 ```
 
@@ -259,7 +259,7 @@ ls -1 /tmp/router-deploy-snapshots
 5. Restore the newest known-good snapshot, then restart services:
 
 ```sh
-SNAP=/tmp/router-deploy-snapshots/<timestamp>
+SNAP='/tmp/router-deploy-snapshots/<timestamp>'
 cp "$SNAP"/network /etc/config/network
 cp "$SNAP"/dhcp /etc/config/dhcp
 cp "$SNAP"/wireless /etc/config/wireless

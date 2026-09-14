@@ -3,7 +3,7 @@ title: Docker-host Service Manuals
 description: Install entrypoint for Tier 1, Tier 2, and Tier 3 docker-host services
 tags: [install, docker-host, services]
 created: 2026-05-24
-modified: 2026-08-24
+modified: 2026-09-10
 type: install-guide
 status: active
 ---
@@ -97,3 +97,38 @@ service stopped, absent, or parked and continue only with independent phases.
 - [watchtower-monitor-only.md](watchtower-monitor-only.md)
 - [local-registry-mirror.md](local-registry-mirror.md)
 - [node-red.md](node-red.md)
+
+## Additional live stack runbooks
+
+- [Download gateway operations](download-gateway.md): namespace, tunnel,
+  config/payload boundaries, backup, update and isolated restore.
+- [Recomp Tracker operations](recomp-tracker.md): source builds, SQLite backup,
+  notifications, persistence and isolated restore.
+- [MediaMTX](mediamtx.md): authenticated phone relay, recording storage,
+  installation and recovery; configuration-backup coverage remains open.
+- [Household Hub deployment boundary](../../../configs/docker-host/stacks/household-hub/README.md):
+  the tracked Compose mirror lacks the separate application build/migration
+  repository and complete database restore contract.
+
+
+Use the [media operating manual](media-libraries.md) for installation,
+backup, update, rollback and isolated restore of Jellyfin, Calibre-Web and
+Atsumeru.
+
+These services have runbooks beside their Compose source; their absence from
+this directory does not mean there are no instructions. This is navigation,
+not certification that every lifecycle procedure is complete or rehearsed.
+
+| Service | Written runbook | Related diagram |
+|---|---|---|
+| Jellyfin | [Stack runbook](../../../configs/docker-host/stacks/jellyfin/README.md) | [Storage](../../diagrams/storage/storage-and-backup-flow.mermaid) |
+| Calibre-Web | [Stack runbook](../../../configs/docker-host/stacks/calibre-web/README.md) | [Storage](../../diagrams/storage/storage-and-backup-flow.mermaid) |
+| Atsumeru | [Stack runbook](../../../configs/docker-host/stacks/atsumeru/README.md) | [Storage](../../diagrams/storage/storage-and-backup-flow.mermaid) |
+| Download gateway | [Stack runbook](../../../configs/docker-host/stacks/download-gateway/README.md) | [Access policy](../../diagrams/network/security-access-flow.mermaid) |
+| Recomp Tracker | [Stack runbook](../../../configs/docker-host/stacks/recomp-tracker/README.md) | [Service placement](../../diagrams/infrastructure/docker-host-service-placement.mermaid) |
+| Troubleshooting Dashboard | [App record](../../../apps/troubleshooting-dashboard/README.md), [offline walkthroughs](../../troubleshooting/diagnostic-walkthroughs.md) | [Diagram library](../../diagrams/README.md) |
+
+Use the [service matrix](../../reference/service-matrix.md) for addresses,
+ports and exposure and [Current Live State](../../reference/current-live-state.md)
+for dated acceptance. The September 10 app freshness update is deployed;
+Proxmox collector/evidence acceptance and DNS/Homepage promotion remain open.

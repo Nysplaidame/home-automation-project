@@ -3,7 +3,7 @@ title: Phase 11 - Physical Integrations
 description: Labelled bench bring-up for cameras, P1S/Bambuddy, ESPHome, and VentSys safety acceptance
 tags: [install, physical, ventsys, cameras, printers]
 created: 2026-05-24
-modified: 2026-08-09
+modified: 2026-09-11
 type: install-guide
 status: active
 ---
@@ -19,12 +19,18 @@ mechanical result.
 
 ## Current-state callout
 
-[current-live-state.md](../../reference/current-live-state.md) records three
-ANNKE C500 cameras live through Frigate, Bambuddy live on docker-host, and most
-VentSys physical hardware/adoption/full safety acceptance still pending. P1S
-serial/access details and the HA Bambuddy package remain operator work. This
-manual covers both a fresh build and the remaining-device path without claiming
-that repository configuration equals installed hardware.
+[Current Live State](../../reference/current-live-state.md) records the September
+baseline: Frigate CT111 is reachable, but the Zyxel and three ANNKE C500 cameras
+are deliberately disconnected. P1S is uncommissioned; Bambuddy's running
+container does not establish printer integration. VentSys hardware adoption and
+full physical acceptance remain pending. Do not reconnect, flash or energize
+hardware merely to clear a documentation checklist.
+
+For a software-only rebuild, mark the affected physical tests `DEFERRED` with
+the missing device/owner action and continue independent Phase12 checks. For a
+connected device, record actual pass/fail evidence; planned absence is never a
+pass. See the [cabling diagram](../../diagrams/network/physical-port-and-cabling.mermaid)
+and [VentSys control flow](../../diagrams/ventsys/ventsys-control-and-safety-flow.mermaid).
 
 ## Canonical guides
 
@@ -123,11 +129,15 @@ Run on: Admin laptop from the repository checkout.
 ```powershell
 $config = (Resolve-Path -LiteralPath '.\main\configs\esphome\ventsys_garage_air_sensor.yaml').Path
 esphome version
+if ($LASTEXITCODE -ne 0) { throw 'ESPHome is unavailable; stop before flashing.' }
 esphome config $config
+if ($LASTEXITCODE -ne 0) { throw 'Configuration failed; stop before compiling.' }
 esphome compile $config
+if ($LASTEXITCODE -ne 0) { throw 'Compilation failed; stop before flashing.' }
 $serialPort = Read-Host 'Verified USB serial port (for example COM3)'
 if ($serialPort -notmatch '^COM\d+$') { throw 'Expected a Windows COM port.' }
 esphome run $config --device $serialPort
+if ($LASTEXITCODE -ne 0) { throw 'Upload/run failed; retain USB recovery and inspect logs.' }
 ```
 
 Expected result: config/compile succeed, the selected MCU/framework matches the
@@ -363,7 +373,8 @@ ha core info
 Expected result: configuration is valid and Core reports `running` without a
 restart loop.
 
-Run on: Frigate CT 111.
+Run on: Frigate CT111, only after camera reconnection/recording commissioning.
+For the deliberately disconnected baseline, record this stream test as deferred.
 
 ```bash
 docker compose -f /opt/frigate/docker-compose.yml ps

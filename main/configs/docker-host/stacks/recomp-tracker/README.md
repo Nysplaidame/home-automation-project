@@ -171,3 +171,7 @@ saved HIIT defaults and activity, and explicit planned workout-set targets.
 - Internet exposure. The app has no user login and is intentionally limited to
   the trusted LAN/Tailscale firewall scope. Add authentication before exposing
   it through a public reverse proxy.
+
+See the [operating manual](../../../../docs/install/services/recomp-tracker.md) for
+installation, validation, backup, updates, troubleshooting and isolated restore,
+with links to the relevant Mermaid diagrams.

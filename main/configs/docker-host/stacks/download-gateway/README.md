@@ -40,3 +40,7 @@ docker compose up -d --force-recreate qbittorrent
 The permanent Web UI credential is stored in Windows Credential Manager as
 `home-automation/qbittorrent`. Backup run `20260801T144643Z` passed an isolated
 restore check for the credential hash and both download paths.
+
+See the [operating manual](../../../../docs/install/services/download-gateway.md) for
+installation, validation, backup, updates, troubleshooting and isolated restore,
+with links to the relevant Mermaid diagrams.

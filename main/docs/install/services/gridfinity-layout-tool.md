@@ -1,7 +1,7 @@
 ---
 title: Gridfinity Layout Tool
 description: Local Docker-host deployment for the Gridfinity Layout Tool
-modified: 2026-08-01
+modified: 2026-09-11
 type: runbook
 status: live
 ---
@@ -102,3 +102,31 @@ changes in the weekly update review log.
 ## Data and security
 
 This stack has no persistent server-side data or secrets. Do not add OAuth credentials to this stack without a separate design for callback URLs, storage, and access control. Keep it internal to VLAN 20 and do not publish it through WAN or DMZ paths.
+
+## Recovery boundary and isolated artifact check
+
+The release quoted above is historical evidence, not a fresh runtime query.
+Before maintenance, compare the updater's local marker with deployed artifacts
+and the tracked Compose. The source still specifies `172.32.0.0/24`; do not
+silently renumber its bridge during recovery. Record any network-policy review
+separately. Scheduled deployment is specific to this app and does not imply
+Watchtower automatic updates are enabled.
+
+Preserve the deployed complete `dist/`, Nginx/Compose, image digest, source tag,
+update script revision and protected scheduler/key recovery references outside
+the serving VM. A release marker alone cannot reconstruct a missing build.
+Disable the workstation update task during recovery to prevent a concurrent
+release switch; record and restore its prior enabled state after acceptance.
+
+Restore the saved build in a disposable container bound only to an unused
+loopback port with a unique name/network. Verify `/healthz`, planner/3D rendering
+and a disposable STL/3MF download. Use browser-native layout export to preserve
+user work, and test its import in a separate browser profile; server recovery
+does not restore browser storage. Preserve the original browser profile until
+that test succeeds.
+
+Use the documented `-Mode Rollback` only after confirming which prior release
+is retained. If the automatic previous-release slot is missing, restore the
+matched archived build/config/image instead. Verify browser workflows before
+re-enabling the scheduler. No runtime version or task state was queried in this
+source review. See [service placement](../../diagrams/infrastructure/docker-host-service-placement.mermaid).

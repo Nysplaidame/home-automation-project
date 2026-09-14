@@ -3,7 +3,7 @@ title: Watchtower Monitor-only Install Manual
 description: Tier 3 update notification candidate without automatic updates
 tags: [install, docker-host, watchtower, tier3]
 created: 2026-05-24
-modified: 2026-08-09
+modified: 2026-09-11
 type: install-guide
 status: preflight-live
 ---
@@ -29,33 +29,41 @@ docker-host over SSH at `192.168.20.102`.
 
 ## Commands
 
-Copy the source-controlled Compose file, then enter the ntfy password without
-putting it in shell history. Do not substitute an unreviewed upstream Compose
-example: the tracked file pins `1.7.1` and carries the monitor-only invariant.
+Transfer the [tracked Compose](../../../configs/docker-host/stacks/watchtower/docker-compose.yml)
+from the canonical checkout to a staging directory on docker-host. Compare it
+with the live file before installing the reviewed copy at
+`/opt/stacks/watchtower/docker-compose.yml`. It pins version1.7.1 by digest;
+retain `WATCHTOWER_MONITOR_ONLY=true`, Docker API1.40 and no published API port.
 
-Run on: docker-host over SSH.
+Preserve the existing protected `.env`. For a blank installation, create it with
+mode0600 using a protected editor and the approved `WATCHTOWER_NTFY_PASSWORD`;
+use Compose-compatible quoting for the actual value. This is the existing
+ntfy `watchtower` publisher password, not a new independent credential. Avoid
+shell-history entry or printing resolved Compose, which includes the secret.
+Start ntfy first: Watchtower joins its external `local-alerting` network.
+
+Run on: docker-host over SSH, after these prerequisites are met.
 
 ```bash
-install -d -m 0750 /opt/stacks/watchtower
-cp /path/to/repo/main/configs/docker-host/stacks/watchtower/docker-compose.yml \
-  /opt/stacks/watchtower/docker-compose.yml
 cd /opt/stacks/watchtower
-read -r -s -p 'WATCHTOWER_NTFY_PASSWORD from Bitwarden: ' watchtower_ntfy_password
-printf '\n'
-umask 077
-printf 'WATCHTOWER_NTFY_PASSWORD=%s\n' "$watchtower_ntfy_password" >.env
-unset watchtower_ntfy_password
-chmod 0600 .env
-docker compose config --quiet
-docker compose config --format json \
+docker compose config --quiet && \
+  docker compose config --format json \
   | jq -e '.services.watchtower.environment.WATCHTOWER_MONITOR_ONLY == "true"' >/dev/null
-docker compose up -d
+```
+
+Stop if validation fails. Once the reviewed pinned image is available through
+approved registry egress:
+
+```sh
+cd /opt/stacks/watchtower
+docker compose pull watchtower && docker compose up -d watchtower
 docker compose ps
 ```
 
-Expected result: both validation commands exit `0`, Watchtower is `Up`, and no
-HTTP/API port is published. If the JSON assertion fails, do not start/recreate
-the container.
+Expected result: Watchtower stays running without a published port or target
+container recreation. Its schedule is `0 0 4 * * *` (04:00 container time);
+the template has no `TZ`, so verify the actual timezone before assigning a
+Europe/London wall-clock interpretation.
 
 ## Current pre-flight live state
 
@@ -73,10 +81,16 @@ As of 2026-05-27:
   registry egress window unless a future decision allows narrow permanent
   registry access.
 
+September6/7 evidence supersedes any assumption that configured notifications
+are delivered: scans succeed, but ntfy rejects notifications with attachment-policy
+error40014. Repair and acceptance remain open; retain the no-attachments policy.
+
 ## Explanation
 
 `WATCHTOWER_MONITOR_ONLY=true` is the central safety setting. Do not remove it
-without a new decision.
+without a new decision. The Docker socket mount permits privileged daemon
+operations; monitor-only is an application setting, not a security boundary.
+Do not attach a production socket during a recovery rehearsal.
 
 ## Expected result
 
@@ -98,7 +112,52 @@ IDs/start times before and after a scan and prove they are unchanged.
 
 ## Backup
 
-No critical data. Back up the Compose file.
+Preserve Compose, image digest, protected `.env`, schedule/API settings and the
+ntfy publisher account/ACL recovery reference. There is no application database
+in the tracked Watchtower template; the central app-data job does not capture
+its Compose or `.env`. Store the protected checkpoint outside VM103 and retain
+the previous image if registry availability is a recovery dependency.
+
+## Update and rollback
+
+1. Record the current digest, protected configuration and target container
+   IDs/start times. Review the candidate's monitor-only, Docker API and
+   notification compatibility. Keep the existing image and checkpoint.
+2. Rehearse on a disposable Docker VM as below, then change the tracked image
+   digest and validate the monitor-only assertion before production recreation.
+3. During permitted registry egress, pull and recreate only Watchtower. Observe
+   a scheduled scan; confirm target IDs/start times are unchanged, no update
+   actions occur, and distinguish scan success from notification acceptance.
+4. On failure, stop Watchtower, preserve logs, restore its old Compose/image
+   and protected environment, validate monitor-only and recreate it. If another
+   container changed, its own image/data rollback is required; rolling back
+   Watchtower cannot undo another application's migration.
+
+## Isolated restore rehearsal
+
+On a disposable Docker VM with only disposable target containers, restore a copy
+of Compose using the saved image. Remove `container_name`, set `restart: "no"`,
+remove the production `local-alerting` network and notification credentials,
+and remove the notification settings for the initial scan-only test. Confirm
+that the socket path belongs to this disposable VM, never the production host;
+only then mount its local Docker socket. Keep monitor-only/API settings intact.
+
+From the isolated directory run `docker compose -p watchtower-restore config --quiet` and apply the same JSON monitor-only assertion shown
+above. Start with `docker compose -p watchtower-restore up -d`, record disposable
+target IDs/start times, and observe one scheduled scan during permitted registry
+egress. For a shorter test, edit only the test schedule to an explicit bounded
+window; do not remove monitor-only. Confirm target containers remain unchanged.
+
+Notification formatting requires a separate isolated ntfy with no-attachments
+policy and test-only publisher/subscriber accounts. Test the repaired payload
+there before any agreed production delivery test. An error40014 is failure,
+not evidence that the subscriber is offline. Preserve the real production
+credentials solely for eventual recovery; never insert them into this test.
+
+Record saved digest, scan result, unchanged targets and any isolated notification
+outcome, then stop with `docker compose -p watchtower-restore down` from the
+test directory. Restore production using its protected configuration and the
+original network only after ntfy/account recovery and monitor-only validation.
 
 ## Failure recovery
 
@@ -112,3 +171,17 @@ another notification test.
 - [x] Monitor-only setting present.
 - [x] No auto-update policy accepted.
 - [x] Notification path documented.
+- [ ] Repair error40014 and prove notification delivery.
+- [ ] Record an isolated monitor-only restore and next-upgrade acceptance.
+
+## Source and diagrams
+
+Reviewed against the tracked configuration on 2026-09-11; this is a source
+review, not a new live acceptance test. Use the
+[tracked Compose](../../../configs/docker-host/stacks/watchtower/docker-compose.yml)
+for the exact image digest and network settings, and the
+[service matrix](../../reference/service-matrix.md) for access policy.
+The [diagram library](../../diagrams/README.md) links rendered views; Mermaid
+sources show [service placement](../../diagrams/infrastructure/docker-host-service-placement.mermaid),
+[remote access](../../diagrams/network/remote-access-flow.mermaid), and
+[backup dependencies](../../diagrams/storage/storage-and-backup-flow.mermaid).

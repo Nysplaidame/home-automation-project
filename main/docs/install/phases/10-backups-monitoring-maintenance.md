@@ -3,7 +3,7 @@ title: Phase 10 - Backups Monitoring Maintenance
 description: Backup contracts, isolated restore drills, alert proofs, maintenance windows, updates, and rollback
 tags: [install, backup, monitoring, maintenance]
 created: 2026-05-24
-modified: 2026-08-09
+modified: 2026-09-11
 type: install-guide
 status: active
 ---
@@ -21,10 +21,27 @@ requires an isolated restore, application-level validation, and safe cleanup.
 [current-live-state.md](../../reference/current-live-state.md) and the
 [backup strategy](../../../scripts/backup/backup_strategy.md) record the deployed
 state: Proxmox guest archives and HA native backups target OMV; docker-host has a
-daily app-data job with SQLite-consistent handling for ntfy/Vaultwarden; VM 102,
+daily app-data job with SQLite-consistent handling for ntfy/Vaultwarden/Recomp; VM 102,
 multiple app datasets, and Vaultwarden have restore evidence; HA-side external
 monitoring and Uptime Kuma/ntfy alert paths exist. This manual is still the
 blank-to-operational path and does not claim a fresh rebuild passed.
+
+## Entry dependencies
+
+Before the monitoring checks below, create VM102 and its stack using the
+[monitoring setup guide](../../../scripts/setup/proxmox/monitoring_vm_setup_guide.md).
+Use its explicit Debian13 cloud-image creation path and resources from the
+current guest inventory. The creation instructions are source-reviewed, not a
+newly executed guest build; record actual install and monitoring acceptance.
+
+Return here for the deferred CT111/CT114/VM103 backup steps after Phase06 has
+validated OMV. The vault's scheduled backup is still an owner-gated task, not
+an already-proven daily job. Source diagrams:
+[guest backups](../../diagrams/infrastructure/proxmox-guests-and-backups.mermaid)
+and [storage](../../diagrams/storage/storage-and-backup-flow.mermaid).
+
+Service-specific restore paths now include the [media manual](../services/media-libraries.md),
+[download gateway](../services/download-gateway.md) and [Recomp Tracker](../services/recomp-tracker.md).
 
 ## Runs on
 
@@ -62,11 +79,103 @@ Never clear a Proxmox lock until active backup/snapshot processes are disproven.
 | docker-host app data | daily 03:45; 14 runs + `latest` | exact OMV mount, consistent artifacts, service-specific isolated restore | one rotating stateful service monthly; all annually |
 | Frigate recordings/config | continuous retention + CT archive/config | fresh playable MP4, DB/config backup, isolated CT/config restore | monthly sample playback; quarterly recovery |
 | OMV configuration reference | after material change | restricted config/package/disk inventory copied off-host | quarterly tabletop; OS reinstall drill when spare media exists |
-| Project vault/configs | daily additive copy + Git checkpoints | temporary-folder restore and representative hashes/diff | monthly |
+| Project vault/configs | intended daily additive copy; scheduling/first-copy acceptance still open, Git checkpoints separate | temporary-folder restore and representative hashes/diff | monthly |
 
 Record date, source backup ID/path, restore target, isolation method, checks,
 cleanup, operator, and result. Failed drills remain open work; do not relabel
 them as “tabletop complete.”
+
+## 0. Establish the recurring app-data job on a blank host
+
+Complete Phase06's exact OMV backup mount and the VM102/Kuma setup first.
+The [backup script](../../../configs/docker-host/system/docker-host-app-data-backup.sh)
+is an inventory of the deployed system, not a generic backup of every stack.
+It requires ntfy, Vaultwarden, Recomp, Mealie, Grocy, Household Hub exports,
+LiveSync, GardenKeeper dumps, Jellyfin, Calibre-Web, Atsumeru and qBittorrent
+paths. Only the curated-exporter path is optional in this source revision.
+
+A partial rebuild must not create empty directories/databases to satisfy this
+inventory or deploy a parked service just for backup. Keep manual checkpoints
+for installed services until a reviewed inventory-specific backup configuration
+exists or the required services are recovered. GardenKeeper's dumps must already
+be fresh; copying its backup directory does not generate a database dump.
+MediaMTX and SearXNG configuration and Hub's full databases remain separate gaps.
+
+The [service unit](../../../configs/docker-host/system/docker-host-app-data-backup.service)
+runs a [Kuma heartbeat helper](../../../configs/docker-host/system/docker-host-backup-kuma-heartbeat.sh)
+after backup. Prepare its Push monitor on VM102, with an interval/grace matching
+the daily schedule, and recover or create the protected configuration at
+`/etc/default/docker-host-backup-kuma-heartbeat` from the
+[example](../../../configs/docker-host/system/docker-host-backup-kuma-heartbeat.env.example).
+Use a protected editor, mode0600 and root ownership; the Push URL is a secret.
+The helper sources this file as shell code, so only trusted assignments belong
+there. Do not print its value or put it in this vault.
+
+Transfer the four tracked files named below from the canonical checkout to
+`/tmp/docker-host-backup-source/` on docker-host. On an existing host, compare
+and checkpoint installed files first; this is setup, not an instruction to
+replace an already working job on every validation run. Ensure `rsync`,
+`python3` and `curl` are installed through the approved package path.
+
+Run on: docker-host shell as root, after inventory/mount/heartbeat prerequisites.
+
+```bash
+set -euo pipefail
+mountpoint -q /mnt/omv/docker-host-backups
+findmnt -n -o SOURCE,FSTYPE,TARGET -T /mnt/omv/docker-host-backups
+command -v rsync
+command -v python3
+command -v curl
+test -r /etc/default/docker-host-backup-kuma-heartbeat
+for script in docker-host-app-data-backup.sh docker-host-backup-kuma-heartbeat.sh; do
+  install -m 0755 "/tmp/docker-host-backup-source/$script" "/usr/local/sbin/$script"
+done
+for unit in docker-host-app-data-backup.service docker-host-app-data-backup.timer; do
+  install -m 0644 "/tmp/docker-host-backup-source/$unit" "/etc/systemd/system/$unit"
+done
+systemd-analyze verify /etc/systemd/system/docker-host-app-data-backup.service /etc/systemd/system/docker-host-app-data-backup.timer
+systemctl daemon-reload
+```
+
+Expected: the mount's source matches the approved OMV export, dependencies
+exist, both executable scripts are installed and systemd validates the units.
+Stop before running the job if the printed mount is unexpected. A mountpoint
+check alone does not establish the correct server/export.
+
+During the agreed backup/monitor acceptance window, run one manual job, inspect
+its artifacts and confirm the heartbeat on Kuma before enabling recurrence.
+Starting the job sends the configured heartbeat; do not use it as a read-only
+probe. The script's `--dry-run` also creates staging directories/SQLite copies.
+
+Run on: docker-host shell as root, after those checks.
+
+```bash
+set -euo pipefail
+systemctl start docker-host-app-data-backup.service
+systemctl show docker-host-app-data-backup.service -p Result -p ExecMainStatus
+journalctl -u docker-host-app-data-backup.service -n 40 --no-pager
+```
+
+Require `Result=success`, exit status0, a completed dated run and matching Kuma
+receipt. If backup finishes but heartbeat fails, the unit can fail after writing
+artifacts: inspect both outcomes, preserve the files and repair the notification
+path. Do not report success from files alone or remove `ExecStartPost` to hide it.
+Only after the manual artifact and heartbeat checks pass:
+
+Run on: docker-host shell as root.
+
+```bash
+set -euo pipefail
+systemctl enable --now docker-host-app-data-backup.timer
+systemctl list-timers docker-host-app-data-backup.timer
+```
+
+The timer runs at 03:45 in the host's configured timezone and is persistent:
+missed work can run on activation. Verify the clock and next trigger. The script
+retains dated runs for its configured age (default14 days); `latest` is a real
+mirror directory, updated service by service. A failed run can leave mixed-age
+`latest` data. Select a completed dated run plus its successful log for restore;
+never treat `latest` alone as an atomic backup generation.
 
 ## 1. Verify clocks, targets, schedules, and capacity
 
@@ -115,6 +224,7 @@ backup is non-zero on OMV; catalog presence alone is insufficient.
 Run on: Proxmox host shell.
 
 ```bash
+set -euo pipefail
 pvesm list omv-backups --content backup
 for guest in 100 102 103 111 114; do
   latest="$(find /mnt/pve/omv-backups/dump -maxdepth 1 -type f \
@@ -152,9 +262,12 @@ not replace production.
 Run on: Proxmox host shell during the approved restore window.
 
 ```bash
+set -euo pipefail
 read -r -p 'Unused temporary VM ID (for example 9102): ' restore_vmid
 [[ "$restore_vmid" =~ ^[0-9]+$ ]]
-! qm status "$restore_vmid" >/dev/null 2>&1
+test "$restore_vmid" -ge 9000
+# VM and CT IDs share a namespace; reject either kind on every cluster node.
+test -z "$(find /etc/pve/nodes -type f \( -path "*/qemu-server/$restore_vmid.conf" -o -path "*/lxc/$restore_vmid.conf" \) -print)"
 archive="$(find /mnt/pve/omv-backups/dump -maxdepth 1 -type f \
   -name 'vzdump-qemu-102-*.vma.zst' -printf '%T@ %p\n' \
   | sort -nr | head -n1 | cut -d' ' -f2-)"
@@ -187,22 +300,29 @@ cleanup is deliberately not automated here.
 
 ## 4. Isolated Proxmox LXC restore drill
 
-Use a new temporary CT ID and remove `net0` before any start. Do not copy CT 111
+Use a new temporary CT ID and remove every `netN` entry before any start. Do not copy CT 111
 GPU/NFS bind mounts or CT 114 GPU/model mounts into the drill unless an isolated
 equivalent is explicitly prepared.
 
 Run on: Proxmox host shell during the approved restore window.
 
 ```bash
+set -euo pipefail
 read -r -p 'Unused temporary CT ID (for example 9114): ' restore_ctid
 [[ "$restore_ctid" =~ ^[0-9]+$ ]]
-! pct status "$restore_ctid" >/dev/null 2>&1
+test "$restore_ctid" -ge 9000
+test -z "$(find /etc/pve/nodes -type f \( -path "*/qemu-server/$restore_ctid.conf" -o -path "*/lxc/$restore_ctid.conf" \) -print)"
 archive="$(find /mnt/pve/omv-backups/dump -maxdepth 1 -type f \
   -name 'vzdump-lxc-114-*.tar.zst' -printf '%T@ %p\n' \
   | sort -nr | head -n1 | cut -d' ' -f2-)"
 test -n "$archive" && test -s "$archive"
 pct restore "$restore_ctid" "$archive" --storage local-lvm
-pct set "$restore_ctid" --delete net0 2>/dev/null || true
+while pct config "$restore_ctid" | grep -q '^net[0-9]'; do
+  nic="$(pct config "$restore_ctid" | awk -F: '/^net[0-9]+:/{print $1; exit}')"
+  test -n "$nic"
+  pct set "$restore_ctid" --delete "$nic"
+done
+if pct config "$restore_ctid" | grep -q '^net[0-9]'; then exit 1; fi
 pct config "$restore_ctid"
 ```
 
@@ -228,23 +348,25 @@ production address, MQTT client identity, or automation outputs.
 
 ## 6. Rotate docker-host application restore drills
 
-Run a fresh consistent backup first.
+Run a fresh consistent backup first, using the inventory/setup prerequisites
+in section0. A partial rebuild may still require manual per-service checkpoints.
 
 Run on: docker-host over SSH.
 
 ```bash
+set -euo pipefail
 findmnt -T /mnt/omv/docker-host-backups
 systemctl start docker-host-app-data-backup.service
 systemctl --no-pager --full status docker-host-app-data-backup.service
-latest_target="$(readlink -f /mnt/omv/docker-host-backups/latest)"
-test -d "$latest_target"
-find "$latest_target" -maxdepth 3 -type f -printf '%s %p\n' | sort | tail -n 80
+journalctl -u docker-host-app-data-backup.service -n 40 --no-pager
 ```
 
-Expected result: backup succeeds to OMV, `latest` resolves inside the mounted
-backup tree, and expected non-zero artifacts are visible. If `latest` is a real
-directory rather than a symlink in the installed script, record that layout and
-validate the directory instead of forcing a symlink.
+Require a successful unit result and completion line. Select the dated
+`runs/<UTC timestamp>/` directory named by that completed run for the isolated
+restore. Verify the required service files and checkpoint age there. The
+tracked `latest/` is a mutable mirror, not a symlink or atomic generation; a
+partial failure can leave old and new service artifacts together. Preserve
+failed-run evidence and do not relabel it as a completed checkpoint.
 
 Restore one stateful service per month using its manual. Minimum app-level proof:
 

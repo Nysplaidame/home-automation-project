@@ -3,7 +3,7 @@ title: Phase 00 - Operator Basics
 description: Safety, inventory, assumptions, and beginner operating rules before installation
 tags: [install, phase, basics]
 created: 2026-05-24
-modified: 2026-08-09
+modified: 2026-09-10
 type: install-guide
 status: active
 ---
@@ -119,7 +119,7 @@ Example inventory (illustrative values only):
 | Role | Make/model | Serial/asset record | Physical connection | Management path | MAC state | Rollback or recovery path |
 |---|---|---|---|---|---|---|
 | Router | GL.iNet GL-MT6000 | Password manager or asset record | WAN plus labelled LAN ports | Recovery IP/LuCI and physical lan5 | recorded | physical lan5 recovery; saved config backup |
-| Proxmox host | MINISFORUM M1 Pro-125H | asset record | managed-switch trunk | `192.168.10.10` web/SSH | recorded | console access plus known-good backup |
+| Proxmox host | MINISFORUM M1 Pro-125H | asset record | direct router LAN1 tagged trunk | `192.168.10.10` web/SSH | recorded | console access plus known-good backup |
 | NAS | OMV storage host | asset record | VLAN 40 access port | `192.168.40.50` web/SSH | recorded | local console; preserve data disks |
 | Future camera | exact model pending | not purchased | planned PoE VLAN 30 port | planned DHCP reservation | unknown | factory reset and isolated bench port |
 
@@ -189,6 +189,7 @@ it becomes live.
 | 35 | printers | `192.168.35.0/24` | printer reservations |
 | 40 | storage | `192.168.40.0/24` | OMV `.50` |
 | 50 | IoT sensors | `192.168.50.0/24` | ESPHome/MQTT clients |
+| 55 | cloud IoT | `192.168.55.0/24` | Hive `.10` on router LAN2; WAN only |
 | 60 | monitoring | `192.168.60.0/24` | monitoring VM `.10` |
 | 70 | DMZ | `192.168.70.0/24` | explicitly approved services only |
 | 99 | guest | `192.168.99.0/24` | guest DHCP |

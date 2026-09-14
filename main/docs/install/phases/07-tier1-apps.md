@@ -3,7 +3,7 @@ title: Phase 07 - Tier 1 Apps
 description: Ordered rebuild of AdGuard Home, Immich, Homepage, and Dozzle with acceptance and rollback gates
 tags: [install, docker-host, tier1]
 created: 2026-05-24
-modified: 2026-08-09
+modified: 2026-09-11
 type: install-guide
 status: active
 ---
@@ -17,7 +17,9 @@ Deploy the core docker-host services in a controlled order:
 1. AdGuard Home, without removing router DNS fallback;
 2. Immich, only after its OMV mount and matched backup boundary exist;
 3. Homepage, after its links and local-CA TLS material are ready;
-4. Dozzle, last, with a read-only Docker socket and admin-only access.
+4. Dozzle, last, with a read-only Docker socket mount and admin-only access. A read-only
+   socket mount does not restrict Docker API operations; retain the documented
+   application controls and root-equivalent socket-risk boundary.
 
 Phase 12 contains the final outage, denial, monitoring, and recovery drills.
 This phase gets each service from blank source to locally validated without
@@ -89,21 +91,16 @@ to the intended OMV NFS filesystem with adequate space.
 If rebuilding over an existing service, stop it and back up its documented
 state first. Do not overwrite an unexamined `/opt/stacks/<service>` directory.
 
-Run on: docker-host over SSH for an existing deployment.
+For an existing deployment, select **one** service and follow its backup and
+recovery manual. Stop only that service when its consistency method requires
+it; keep the other stacks available. Record whether this is a fresh install,
+configuration-only change, or restore before proceeding.
 
-```sh
-for service in adguard-home immich homepage dozzle; do
-  if [ -f "/opt/stacks/$service/docker-compose.yml" ]; then
-    (cd "/opt/stacks/$service" && docker compose stop)
-  fi
-done
-```
-
-Expected result: each existing stack stops cleanly. Stateful backup/restore
-evidence must already exist before its directory is replaced.
-
-Recovery: restart the unchanged old stack if staging cannot continue. If its
-backup is absent or ambiguous, stop the rebuild and return to Phase 10.
+The template-copy and credential-generation steps below are for a blank stack.
+For recovery, restore its matched configuration, protected `.env`, databases
+and TLS material instead. Never regenerate an Immich database password against
+an existing database or overwrite Homepage keys as part of a routine restart.
+Compare incoming templates in staging and apply only reviewed changes.
 
 ## 2. Stage tracked templates without secrets
 
@@ -121,7 +118,8 @@ Expected result: all four copies finish without error. The remote staging tree
 contains examples and templates but no live `.env`, database, certificate key,
 or application data.
 
-Run on: docker-host over SSH on a blank or approved replacement build.
+Run on: docker-host over SSH on a blank build only. For replacement/recovery,
+use the selected service manual instead of this bulk copy.
 
 ```sh
 for service in adguard-home immich homepage dozzle; do
@@ -145,7 +143,9 @@ details. First create its non-secret node-address environment.
 Run on: docker-host over SSH.
 
 ```sh
-cd /opt/stacks/adguard-home
+cd /opt/stacks/adguard-home || exit 1
+test ! -e .env || exit 1
+umask 077
 DOCKER_HOST_TAILSCALE_IP=$(tailscale ip -4)
 test -n "$DOCKER_HOST_TAILSCALE_IP"
 printf 'DOCKER_HOST_TAILSCALE_IP=%s\n' "$DOCKER_HOST_TAILSCALE_IP" >.env
@@ -209,7 +209,10 @@ findmnt -n -o SOURCE,FSTYPE,TARGET --target /mnt/omv/immich
 test "$(findmnt -n -o FSTYPE --target /mnt/omv/immich)" = nfs4
 touch /mnt/omv/immich/.immich-write-test
 rm /mnt/omv/immich/.immich-write-test
-cd /opt/stacks/immich
+cd /opt/stacks/immich || exit 1
+# Blank-install guard: restore existing credentials instead of replacing them.
+test ! -e .env || exit 1
+umask 077
 cp .env.example .env
 IMMICH_DB_PASSWORD=$(openssl rand -base64 36 | tr -d '\n')
 while IFS= read -r line; do
@@ -265,7 +268,10 @@ on docker-host; only its CSR leaves the host for signing by `Home Local CA`.
 Run on: docker-host over SSH.
 
 ```sh
-cd /opt/stacks/homepage
+cd /opt/stacks/homepage || exit 1
+# Blank-install guard: preserve existing environment and TLS identity.
+test ! -e .env && test ! -e tls/homepage.key || exit 1
+umask 077
 DOCKER_HOST_TAILSCALE_IP=$(tailscale ip -4)
 test -n "$DOCKER_HOST_TAILSCALE_IP"
 printf 'DOCKER_HOST_TAILSCALE_IP=%s\n' "$DOCKER_HOST_TAILSCALE_IP" >.env

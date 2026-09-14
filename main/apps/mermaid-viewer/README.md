@@ -7,7 +7,7 @@ Internal read-only viewer generated from the canonical sources under
 
 ```powershell
 cd main/apps/mermaid-viewer
-npm install
+npm ci
 npm run build
 ```
 
@@ -25,12 +25,18 @@ source display.
 
 ## Deploy
 
-Copy this directory to `/opt/stacks/mermaid-viewer/` on docker-host and run:
+Build on the workstation, then stage the complete `dist/` together with
+`main/configs/docker-host/stacks/mermaid-viewer/docker-compose.yml` and
+`nginx.conf` at `/opt/stacks/mermaid-viewer/` on docker-host. The application
+source directory alone is not the deployment stack. Follow the
+[operating manual](../../docs/install/services/mermaid-viewer.md) for checkpoint,
+atomic diagram-only updates and full-build rollback.
+
+Run on: docker-host over SSH after staging and configuration review:
 
 ```sh
 cd /opt/stacks/mermaid-viewer
-docker compose config
-docker compose up -d
+docker compose config --quiet && docker compose up -d
 ```
 
 No project secrets are required or included.

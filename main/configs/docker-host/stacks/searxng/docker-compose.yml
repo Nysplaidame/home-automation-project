@@ -7,7 +7,7 @@ services:
       - "8087:8080"
     environment:
       SEARXNG_BASE_URL: "http://searxng.home.local:8087/"
-      SEARXNG_SECRET: "${SEARXNG_SECRET}"
+      SEARXNG_SECRET: "${SEARXNG_SECRET:?Set SEARXNG_SECRET in the protected .env}"
     volumes:
       - ./searxng:/etc/searxng
     networks:

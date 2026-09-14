@@ -3,7 +3,7 @@ title: "Project Task List"
 category: source
 tags: [tasks, implementation, phases, todo]
 created: 2026-04-07
-updated: 2026-09-07
+updated: 2026-09-14
 status: stable
 ---
 
@@ -30,6 +30,11 @@ inventory and VentSys commissioning while preserving the established owners of
 live household and safety state.
 
 ## Key Takeaways
+
+- **Documentation:** September10 adds written companions to the app's five
+  investigations, Mermaid links and a shared media-service operating manual.
+  Router/recovery/cabling instructions are reconciled; a complete sequential
+  rebuild and remaining service/legacy-command verification are still open.
 
 - **Physical integration:** The cameras are currently disconnected; P1S setup
   and VentSys hardware adoption remain open despite the live service foundations.
@@ -68,3 +73,79 @@ hardware follow-ups remain explicitly gated.
 ## September7 reconciliation
 
 The canonical audit refreshed reachable-host evidence and recovered missing branch sources. Watchtower is monitor-only but ntfy delivery fails; CT114 package access fails with stale June metadata. Proxmox guest backups and OMV SMART are not freshly verified because workstation SSH access is denied. The [[home-operations-workbench]] accepts saved Windows/Proxmox health JSON with freshness safeguards. Recovery tabletop documentation is paper review, not live-drill acceptance.
+
+## September 10 second documentation pass
+
+The canonical manuals now include download-gateway and Recomp lifecycle
+procedures, expanded MediaMTX recovery, and explicit Household Hub source/
+database-backup gaps. The troubleshooting reference removes public dashboard
+token and password-in-command advice, distinguishes ping/listener/transport
+failures, and names shell contexts. VM103/VM102 creation and pre-NAS return
+checkpoints are explicit; validation is source-only, not live rebuild proof.
+
+## September 11 service lifecycle review
+
+Canonical ntfy, Watchtower, SearXNG and Whoogle manuals now cover update,
+backup, isolated restore and rollback with Mermaid links. The SearXNG effective
+settings/template recovery gap remains open. Watchtower's error40014 and phone
+notification acceptance are unresolved; documented procedures are not live
+restore proof. The canonical install checklist retains the remaining source/backup dependencies.
+
+The next bounded dependency pass separated Phase07 blank credential generation
+from restore and returned Phase08 monitoring/backup-timer acceptance to Phase10.
+MediaMTX has a protected manual configuration checkpoint procedure; off-VM
+capture and retention are still open. Hub's historical migration/dump evidence
+is a recovery lead, not confirmation of current source or backup completeness.
+
+Phase10 now documents backup-unit and Kuma-heartbeat setup, mandatory dataset
+inventory and the non-atomic `latest` mirror. Recovery selects a completed dated
+run. VM/CT restore checks stop on failure and require network isolation; these
+are documentation corrections, not newly executed restore evidence.
+
+The final-phase dependency review corrects Watchtower configuration backup
+coverage and Phase11's obsolete live-camera claim. Uncommissioned hardware
+checks remain deferred while independent software checks proceed; partial
+acceptance does not certify the complete physical installation.
+
+## Consolidated September 11 coverage audit
+
+Canonical INSTALL-TO-DO now classifies 42 named operational/roadmap entries:
+24 written lifecycle paths, nine requiring further review, three missing
+source/configuration coverage, and six gated candidates. This is a planning
+inventory, not a completeness percentage or certification. Bambuddy and
+GardenKeeper are the next documentation reviews; Hub/SearXNG/MediaMTX recovery
+artifacts and actual restore acceptance remain separate dependencies.
+
+The subsequent nine-row review supersedes those initial counts: 32 Written,
+0 Review, 4 missing source/configuration and 6 Candidates. GardenKeeper's
+application/migrations are missing and its dump pipeline can mask upstream
+failure; a checked manual checkpoint is documented, script repair is queued.
+Existing VM103 SSH key access was denied during read-only source discovery.
+No authentication or live deployment changed; recovery evidence remains open.
+
+The later VM103 access check corrected that diagnosis: the raw-IP command did
+not select the existing configured key. `docker-host-lan` succeeded, and the
+workstation SSH configuration now applies the same identity to the IP address.
+Both routes were verified with strict host-key checking; no server authentication
+changed. Source provenance remains open, but VM103 SSH access is available.
+
+Live source discovery then located both application trees. Read-only metadata
+confirmed GardenKeeper0001–0029 and Hub20260809_0002. Canonical runbooks now
+record GardenKeeper's destructive prototype resets and Hub's Alembic startup
+behavior; no migrations ran. Missing source now refers to provenance/off-host
+recovery artifacts, not absence of the live tree.
+
+Protected off-VM source/settings checkpoints now exist on the administrator's
+workstation and have matching hashes. They are scoped recovery copies, not full
+application-data backups or proven builds. SearXNG semantic settings review and
+source provenance remain open; secret-bearing files were kept outside the vault.
+
+## September 14 recovery execution update
+
+The four artifact/configuration gaps now have tested recovery contracts: the
+GardenKeeper backup repair passed seven tests and live execution; all six
+recovered source builds passed, both PostgreSQL/rebuilt-API restores passed,
+and two Hub Qdrant snapshots restored. SearXNG settings were semantically verified.
+MediaMTX config backup is scheduled and verified; owner retained manual recording
+review with deletion disabled. Audit now36 Written/6 Candidates, with full-system
+and remaining workflow proofs explicitly separate. See canonical handoff for paths.

@@ -3,7 +3,7 @@ title: Phase 08 - Tier 2 Apps
 description: Decision-gated installation, recovery, and household rollout for Tier 2 services
 tags: [install, docker-host, tier2]
 created: 2026-05-24
-modified: 2026-08-09
+modified: 2026-09-11
 type: install-guide
 status: active
 ---
@@ -41,7 +41,9 @@ the service's fresh validation and recovery proof.
 ## Prerequisites
 
 - Phase 05 docker-host and Phase 06 OMV storage are validated.
-- Tier 1 monitoring/logging is available.
+- Tier 1 logging is available. VM102 monitoring and recurring app-data backup
+  setup occur in Phase10 on a blank rebuild; record their checks as deferred
+  until then, and keep household promotion gated on those results.
 - `/opt/stacks/` permissions and the Docker maintenance-window procedure are in
   place.
 - Required values exist in the password manager; no secret is pasted into Git,
@@ -82,12 +84,14 @@ docker compose version
 df -hT /opt /mnt/omv/docker-host-backups
 docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}'
 ss -lntp
-systemctl is-active docker-host-app-data-backup.timer
+systemctl is-active docker-host-app-data-backup.timer || true
 ```
 
 Expected result: hostname is the docker host, Docker/Compose versions print,
 `/opt` and the OMV backup mount have safe headroom, existing containers/ports
-are recorded, and the backup timer is active. Stop if a requested port is
+are recorded. An existing configured timer must be active; on a blank build,
+record an absent timer as deferred to Phase10, not as passing backup proof.
+Stop if a requested port is
 already owned or the OMV path is an unmounted local directory.
 
 ## 2. Recreate only approved stack directories
@@ -111,7 +115,7 @@ install -d -m 0750 \
 
 Expected result: only approved stack roots exist; no container starts and no
 candidate becomes live. Copy the matching source-controlled templates using the
-individual manuals, then run `docker compose config` before every `up -d`.
+individual manuals, then run `docker compose config --quiet` before every `up -d`.
 
 ## 3. Rebuild live services sequentially
 
@@ -198,6 +202,14 @@ approved and collision-tested.
 
 ## 8. Prove backup and isolated recovery coverage
 
+On a blank rebuild, first make each service's manual configuration/data
+checkpoint on the verified Phase06 destination. The recurring app-data unit
+below is installed in Phase10; if it does not exist yet, defer this block and
+return after Phase10. Do not create an empty success marker or copy unrelated
+unit files just to satisfy the check. The central job also expects several
+later service paths; reconcile its inventory before enabling the timer.
+
+
 Run on: docker-host over SSH.
 
 ```bash
@@ -281,4 +293,6 @@ before the phase can pass.
 
 Continue to [Phase 09 - Tier 3 / Evaluate Apps](09-tier3-evaluate.md) only after all
 unapproved Tier 2 candidates are confirmed stopped/absent and every live Tier 2
-dependency has recovery evidence.
+dependency has recovery evidence. On a blank build, keep newly configured
+services below Live and record Phase10 backup/monitoring return checkpoints;
+those deferred controls do not prevent independent Phase09 preparation.

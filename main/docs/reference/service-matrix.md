@@ -3,7 +3,7 @@ title: Service Matrix
 description: Central service, port, DNS, backup, monitoring, and runbook reference
 tags: [reference, services, ports, dns, docker-host]
 created: 2026-05-23
-modified: 2026-08-27
+modified: 2026-09-14
 type: reference
 status: active
 ---
@@ -12,6 +12,17 @@ status: active
 
 This matrix is the canonical place to track service placement, ports, URLs,
 remote exposure, backup expectations, monitoring, and runbook coverage.
+
+Dated health and acceptance belong in [Current Live State](current-live-state.md).
+This matrix describes configured paths, not proof that each client can use
+them today. For app-guided or offline diagnosis use the
+[written walkthroughs](../troubleshooting/diagnostic-walkthroughs.md).
+
+September12–14 recovery evidence: GardenKeeper backup failure handling is repaired;
+GardenKeeper/Hub source builds and isolated PostgreSQL/API restore checks passed,
+plus Hub Qdrant snapshots. MediaMTX has a separate daily03:35 protected config
+checkpoint; recordings retain manual review with deletion disabled. See the
+[coverage audit](../install/INSTALL-TO-DO.md) for scope and remaining proofs.
 
 ## Core infrastructure
 
@@ -36,25 +47,25 @@ remote exposure, backup expectations, monitoring, and runbook coverage.
 | Immich | `/opt/stacks/immich/` | 2283/tcp | `immich.home.local` | Via docker-host Tailscale identity / MagicDNS | uploads/library on OMV NFS mount `/mnt/omv/immich`; database local at `/opt/stacks/immich/postgres` | Uptime Kuma HTTP check; docker-host Telegraf disk metric for OMV mount | `docs/install/services/immich.md` |
 | Homepage | `/opt/stacks/homepage/` | 443/tcp HTTPS, 3001/tcp HTTP rollback, 8180-8209/tcp fixed HTTPS proxies | `homepage.home.local` | OnePlus mobile: split DNS plus only tcp/443 and tcp/8180-8209 on docker-host; no broad VLAN route | config directory; live-only TLS key/cert under stack `tls/` | HTTPS check | `docs/install/services/homepage.md` |
 | Dozzle | `/opt/stacks/dozzle/` | 8081/tcp | `dozzle.home.local` | Admin only via Tailscale/Mgmt/LAN policy | no critical data | HTTP check | `docs/install/services/dozzle.md` |
-| Bambuddy | `/opt/stacks/bambuddy/` | 8000/tcp | `bambuddy.home.local` | Fixed Homepage proxy `8181`; direct access remains source-scoped | app data/logs under stack path; currently the sole host-network container, with explicit bridge `10.240.23.0/24` prepared once P1S ports 21/8883 are reachable from VM 103 | HTTP + MQTT status; security audit deliberately reports the bridge exception | `scripts/setup/proxmox/bambuddy_vm_setup_guide.md` |
+| Bambuddy | `/opt/stacks/bambuddy/` | 8000/tcp | `bambuddy.home.local` | Fixed Homepage proxy `8181`; direct access remains source-scoped | app data/logs under stack path; currently a documented host-network workload exception, with explicit bridge `10.240.23.0/24` prepared once P1S ports 21/8883 are reachable from VM 103 | HTTP + MQTT status; security audit deliberately reports the bridge exception | `scripts/setup/proxmox/bambuddy_vm_setup_guide.md` |
 | ntfy | `/opt/stacks/ntfy/` | 8085/tcp internal; 8193/tcp local-CA HTTPS; Tailscale HTTPS 8444 | `https://192.168.20.102:8193/` | `docker-host.tail7012a0.ts.net:8444` for mobile Tailscale clients | config/auth DB under stack path; credentials in Bitwarden | Uptime Kuma HTTP check | `docs/install/services/ntfy.md` |
 | Mealie | `/opt/stacks/mealie/` | 9925/tcp | `mealie.home.local:9925` | Via docker-host Tailscale identity | SQLite data under `/opt/stacks/mealie/data`; include in docker-host app-data backup to OMV `backups/docker-host` | Uptime Kuma HTTP check | `docs/install/services/mealie.md` |
 | Grocy | `/opt/stacks/grocy/` | 9283/tcp | `grocy.home.local:9283` | Via docker-host Tailscale identity | config/database under `/opt/stacks/grocy/config`; base household model seeded; HA Assist has add/list shopping-list API access through dedicated Grocy key; docker-host app-data backup copies it to OMV `backups/docker-host` | Uptime Kuma HTTP check | `docs/install/services/grocy.md` |
 | Obsidian LiveSync | `/opt/stacks/obsidian-livesync/` | 5984/tcp; Tailscale HTTPS 8443 | `obsidian-sync.home.local:5984` | `docker-host.tail7012a0.ts.net:8443` after Serve approval | CouchDB data under `/opt/stacks/obsidian-livesync/data`; Git remains version history; backend/CORS/local plugin ready; docker-host app-data backup copies data to OMV | Uptime Kuma HTTP auth check | `docs/install/services/obsidian-livesync.md` |
 | GardenKeeper | `/opt/stacks/gardenkeeper/` | 8091/tcp UI, 8090/tcp API | `gardenkeeper.home.local:8091` | Via docker-host Tailscale identity | Local Postgres dump timer writes `/opt/stacks/gardenkeeper/backups`; docker-host app-data backup copies dumps to OMV `backups/docker-host` | Uptime Kuma HTTP checks for UI and `/health` | `docs/install/services/gardenkeeper.md` |
-| Household Hub | `/opt/stacks/household-hub/` | 8100/tcp workbench and reverse-proxied API | `household-hub.home.local:8100` | Via docker-host Tailscale identity after ACL approval | PostgreSQL, Redis, and Qdrant volumes; scoped HA read-only credential | API status plus authenticated HA assistant probes | Household Hub repository deployment docs |
+| Household Hub | `/opt/stacks/household-hub/` | 8100/tcp workbench and reverse-proxied API | `household-hub.home.local:8100` | Via docker-host Tailscale identity after ACL approval | PostgreSQL, Redis, and Qdrant volumes; scoped HA read-only credential | API status plus authenticated HA assistant probes | [Deployment boundary and missing recovery requirements](../../configs/docker-host/stacks/household-hub/README.md) |
 | Mermaid Viewer | `/opt/stacks/mermaid-viewer/` | 8092/tcp | `mermaid-viewer.home.local:8092` | Via docker-host Tailscale identity after ACL approval | stateless utility | HTTP check | `docs/install/services/mermaid-viewer.md` |
 | Gridfinity Layout Tool | `/opt/stacks/gridfinity-layout-tool/` | 8093/tcp | `gridfinity.home.local:8093`; fixed Homepage proxy `8196` | Management/LAN direct; Homepage proxy available to the scoped mobile identity | stateless browser-local utility; no server-side data | container health and HTTP `/healthz` check | `docs/install/services/gridfinity-layout-tool.md` |
-| Recomp Tracker | `/opt/stacks/recomp-tracker/` | 8420/tcp; Homepage fixed proxy 8209/tcp HTTPS | `http://192.168.20.102:8420` (direct); `https://homepage.home.local:8209/` (portal) | Management/LAN direct; Homepage proxy available to the scoped mobile identity | persistent service data under the stack path; explicit `10.240.31.0/24` bridge | container health and HTTP `/healthz` check | `configs/docker-host/stacks/recomp-tracker/README.md` |
+| Recomp Tracker | `/opt/stacks/recomp-tracker/` | 8420/tcp; Homepage fixed proxy 8209/tcp HTTPS | `http://192.168.20.102:8420` (direct); `https://homepage.home.local:8209/` (portal) | Management/LAN direct; Homepage proxy available to the scoped mobile identity | persistent service data under the stack path; explicit `10.240.31.0/24` bridge | container health and HTTP `/healthz` check | [Recomp operating manual](../install/services/recomp-tracker.md) |
 | MediaMTX | `/opt/stacks/mediamtx/` | 8554/tcp RTSP-over-TCP | `rtsp://192.168.20.102:8554/garage-phone` with a client-specific account | HomeAdmin/Management VLAN only; no Tailscale or IPv6 exposure | fMP4 recordings on OMV at `/mnt/omv/media/phone-recordings/garage-phone/`; no automatic deletion pending retention decision | container/log/resource check plus authenticated publish/read and recording probe | `docs/install/services/mediamtx.md` |
-| Jellyfin | `/opt/stacks/jellyfin/` | 8096/tcp | `jellyfin.home.local:8096` (DNS source staged) | Management, LAN, monitoring, and docker-host Tailscale identity | config local and backed up to OMV; approved media roots mounted read-only | container health and HTTP redirect | stack README + household implementation plan |
-| Calibre-Web | `/opt/stacks/calibre-web/` | 8083/tcp | `calibre-web.home.local:8083` (DNS source staged) | Management, LAN, monitoring, and docker-host Tailscale identity | config local and backed up to OMV; only dedicated Calibre library writable | container state and HTTP redirect | stack README + household implementation plan |
-| Atsumeru | `/opt/stacks/atsumeru/` | 31337/tcp | `atsumeru.home.local:31337` (DNS source staged) | Management, LAN, monitoring, and docker-host Tailscale identity | config/database local and backed up to OMV; only dedicated comics library writable | container health and authenticated HTTP response | stack README + household implementation plan |
-| Vaultwarden | `/opt/stacks/vaultwarden/` | 127.0.0.1:8222 raw; 443/tcp SNI proxy | `https://vault.home.local` (DNS source staged) | HTTPS only through the fixed proxy; no iframe | SQLite-consistent NAS backup; two isolated restore proofs passed | container health and HTTPS response | `docs/install/services/vaultwarden.md` |
-| Mullvad download gateway + qBittorrent | `/opt/stacks/download-gateway/` | 8084/tcp UI | `qbittorrent.home.local:8084` (DNS source staged) | Management, monitoring, and docker-host Tailscale identity only | payloads on OMV incomplete/complete roots; no quarantine/final-library mount; config in NAS backup | Gluetun health, Mullvad identity, UI response, fail-closed test and isolated config restore all passed 2026-08-01 | stack README + household implementation plan |
+| Jellyfin | `/opt/stacks/jellyfin/` | 8096/tcp | `jellyfin.home.local:8096` | Management, LAN, monitoring, and docker-host Tailscale identity | config local and backed up to OMV; approved media roots mounted read-only | container health and HTTP redirect | [Stack runbook](../../configs/docker-host/stacks/jellyfin/README.md), [household plan](../procedures/household-services-implementation-plan.md) |
+| Calibre-Web | `/opt/stacks/calibre-web/` | 8083/tcp | `calibre-web.home.local:8083` | Management, LAN, monitoring, and docker-host Tailscale identity | config local and backed up to OMV; only dedicated Calibre library writable | container state and HTTP redirect | [Stack runbook](../../configs/docker-host/stacks/calibre-web/README.md), [household plan](../procedures/household-services-implementation-plan.md) |
+| Atsumeru | `/opt/stacks/atsumeru/` | 31337/tcp | `atsumeru.home.local:31337` | Management, LAN, monitoring, and docker-host Tailscale identity | config/database local and backed up to OMV; only dedicated comics library writable | container health and authenticated HTTP response | [Stack runbook](../../configs/docker-host/stacks/atsumeru/README.md), [household plan](../procedures/household-services-implementation-plan.md) |
+| Vaultwarden | `/opt/stacks/vaultwarden/` | 127.0.0.1:8222 raw; 443/tcp SNI proxy | `https://vault.home.local` | HTTPS only through the fixed proxy; no iframe | SQLite-consistent NAS backup; two isolated restore proofs passed | container health and HTTPS response | `docs/install/services/vaultwarden.md` |
+| Mullvad download gateway + qBittorrent | `/opt/stacks/download-gateway/` | 8084/tcp UI | `qbittorrent.home.local:8084` | Management, monitoring, and docker-host Tailscale identity only | payloads on OMV incomplete/complete roots; no quarantine/final-library mount; config in NAS backup | Gluetun health, Mullvad identity, UI response, fail-closed test and isolated config restore all passed 2026-08-01 | [Gateway operating manual](../install/services/download-gateway.md), [household plan](../procedures/household-services-implementation-plan.md) |
 | SearXNG | `/opt/stacks/searxng/` | 8087/tcp | `searxng.home.local:8087` | Via docker-host Tailscale identity after ACL approval | stack config | HTTP/search API check | `docs/install/services/searxng.md` |
 | Whoogle | `/opt/stacks/whoogle/` | 8088/tcp | `whoogle.home.local:8088` | Via docker-host Tailscale identity after ACL approval | stack config | HTTP check | `docs/install/services/whoogle.md` |
-| Watchtower monitor-only | `/opt/stacks/watchtower/` | none | no DNS alias; no user-facing listener | none | no critical data | container state/logs | stack config |
+| Watchtower monitor-only | `/opt/stacks/watchtower/` | none | no DNS alias; no user-facing listener | none | no critical data | container state/logs; September 7 ntfy delivery failure remains open | [Watchtower manual](../install/services/watchtower-monitor-only.md) |
 | apt-cacher-ng | host service | 3142/tcp | `apt-cacher-ng.home.local:3142` | none | package cache | service/listener check | `docs/procedures/apt_cacher_ng_design.md` |
 
 ## Docker-host roadmap
@@ -75,7 +86,9 @@ remote exposure, backup expectations, monitoring, and runbook coverage.
 ## DNS aliases
 
 OpenWrt dnsmasq is authoritative for `home.local`; AdGuard is an upstream
-filtering resolver and intentionally has no local rewrites. Service aliases map
+filtering resolver. The approved Tailscale split-DNS path has a Homepage
+rewrite to docker-host's tailnet address; see the
+[remote-access guide](../procedures/tailscale_remote_access_guide.md). LAN service aliases map
 to hosts, so URLs must retain the listed non-default port. Internal-only
 Compose services such as PostgreSQL, Redis, Qdrant, machine-learning helpers,
 workers, and databases use Compose DNS only and do not receive LAN aliases.
@@ -112,7 +125,7 @@ workers, and databases use Compose DNS only and do not receive LAN aliases.
 | `gardenkeeper.home.local` | `192.168.20.102` | GardenKeeper garden care app |
 | `household-hub.home.local` | `192.168.20.102` | Household Hub workbench/API proxy on 8100 |
 | `mermaid-viewer.home.local` | `192.168.20.102` | Mermaid Viewer on 8092 |
-| `gridfinity.home.local` | `192.168.20.102` | DNS source staged; Gridfinity Layout Tool on 8093 after router DNS deployment |
+| `gridfinity.home.local` | `192.168.20.102` | Gridfinity Layout Tool on 8093; alias included in the deployed 48-name inventory |
 | `llm-host.home.local` | `192.168.20.104` | CT 114 local AI host |
 | `openwebui.home.local` | `192.168.20.104` | Open WebUI host |
 | `llama.home.local` | `192.168.20.104` | llama.cpp chat endpoint on 8081 |

@@ -3,7 +3,7 @@ title: Phase 02 - Proxmox Host
 description: Proxmox ISO verification, host installation, storage, VLAN-aware networking, and guest-shell checkpoints
 tags: [install, proxmox, vm]
 created: 2026-05-24
-modified: 2026-08-09
+modified: 2026-09-10
 type: install-guide
 status: active
 ---
@@ -19,6 +19,15 @@ only the guest shells defined by the current inventory.
 This is a fresh-rebuild path. The current production state is recorded in
 [current-live-state.md](../../reference/current-live-state.md); do not infer a
 blank-install step from a live-state note.
+
+The recorded host has 64 GB installed RAM and connects directly to router
+LAN1, not through the disconnected Zyxel. See the
+[cabling map](../../reference/physical-port-and-cabling.md),
+[cabling diagram](../../diagrams/network/physical-port-and-cabling.mermaid),
+and [guest/backup diagram](../../diagrams/infrastructure/proxmox-guests-and-backups.mermaid).
+For a blank install on the existing tagged trunk, use the local console until
+Step 4 configures `vmbr0.10`; then perform updates and SSH setup in Steps 5
+and 6. Do not repurpose Hive's LAN2 or OMV's LAN4 for installation.
 
 ## Runs on
 
@@ -36,13 +45,12 @@ This phase erases the selected installation disk. Continue only when:
   serial number;
 - anything that must survive has a separate, readable backup;
 - local keyboard/display recovery is available;
-- the managed-switch port can be kept as temporary VLAN 10 access during
-  installation and deliberately changed to the approved trunk afterward;
+- the router LAN1 tagged trunk is available and its assignment is confirmed;
 - the router at `192.168.10.1` and its Phase 01 recovery path are working;
 - the operator accepts the single-NVMe LVM-thin layout described below.
 
 Stop if the installer shows multiple indistinguishable disks, the only backup
-is on the disk being erased, or the switch-port state is unknown.
+is on the disk being erased, or the uplink-port state is unknown.
 
 ## Prerequisites
 
@@ -111,9 +119,10 @@ USB and do not disable verification.
 
 ## 2. Install from local console
 
-Before booting the installer, configure the host's switch port as an untagged
-VLAN 10 access port. This provides a simple initial management path. The port is
-changed to the approved tagged trunk only during the bridge cutover below.
+Keep the existing router LAN1 trunk unchanged. The installer's untagged
+management configuration will not reach VLAN10 through that trunk. Complete
+installation locally, then configure the tagged host management interface in
+Step 4 before attempting updates or remote access.
 
 Run on: Proxmox installer UI.
 
@@ -123,7 +132,7 @@ Run on: Proxmox installer UI.
    storage decision has been approved and documented.
 4. Set country, time zone, keyboard layout, root password, and a monitored admin
    email.
-5. Select the physical Ethernet port connected to the VLAN 10 access port.
+5. Select the physical Ethernet port connected to router LAN1.
 6. Set hostname `proxmox`, address `192.168.10.10/24`, gateway
    `192.168.10.1`, and DNS `192.168.10.1`.
 7. Recheck the summary, especially the destructive target disk, before choosing
@@ -135,8 +144,7 @@ Expected checkpoints:
 - the first boot displays `https://192.168.10.10:8006/` on the console;
 - the console login accepts the root credential;
 - `ip -brief address` shows the temporary management address;
-- the admin laptop can ping the host while its switch port is still VLAN 10
-  access.
+- remote access remains unvalidated until Step 4 establishes tagged VLAN10.
 
 Do not select ZFS merely because it is available. A single-disk ZFS pool adds
 memory and recovery tradeoffs without redundancy. A future storage redesign is
@@ -159,14 +167,125 @@ Expected output characteristics:
 
 - `pveversion` identifies the installed Proxmox VE major release;
 - exactly one intended physical uplink is `UP`;
-- the temporary management path owns `192.168.10.10/24`;
+- the installer configuration records `192.168.10.10/24`; this alone does not
+  prove the tagged management path works;
 - `local` is active for ISO/template/backup-type content;
 - `local-lvm` is active for VM disks and LXC root filesystems.
 
 Record the actual output and install date in the rebuild log. Version numbers
 are evidence, not values to copy blindly into a later rebuild.
 
-## 4. Update the host and install the network dependency
+## 4. Configure the management port to a VLAN-aware trunk
+
+The production host uses unaddressed `vmbr0` over the physical trunk and owns
+its management address on `vmbr0.10`. Guest NICs attach to `vmbr0` with their
+VLAN tags set in Proxmox.
+
+Before editing, identify the physical interface by MAC address and its cable
+to router LAN1. Confirm `ifreload` is installed before editing. If it is
+missing, stop and establish a separately documented provisioning path; do not
+repurpose production access ports or attempt a remote network reload.
+
+Run on: Proxmox host shell at the local console.
+
+```bash
+ip -brief link
+bridge link
+cp -a /etc/network/interfaces "/root/interfaces.pre-vlan-$(date +%Y%m%dT%H%M%S)"
+ls -l /root/interfaces.pre-vlan-*
+```
+
+Expected result: the intended physical interface is identified and a non-empty,
+timestamped backup exists under `/root/`.
+
+Run on: Proxmox host shell at the local console.
+
+```text
+Edit /etc/network/interfaces so the physical NIC is manual, vmbr0 is an
+unaddressed VLAN-aware bridge over that NIC, and vmbr0.10 owns:
+
+    address 192.168.10.10/24
+    gateway 192.168.10.1
+
+Retain the installer-generated loopback and source/include lines.
+```
+
+This is an operator edit, not a copy/paste configuration block: the physical
+interface name must come from the current host. The resulting bridge stanza
+must include `bridge-ports`, `bridge-stp off`, `bridge-fd 0`, and
+`bridge-vlan-aware yes`.
+
+Keep the local console open and retain router LAN1's tagged VLANs
+`10,20,30,35,40,50,60,70`. Management VLAN10 must be tagged. No switch-port
+change is required for the recorded direct connection.
+
+Run on: Proxmox host shell at the local console.
+
+```bash
+ifreload -a --syntax-check
+```
+
+Expected result: the command returns to the prompt with exit code `0` and no
+syntax error. `--syntax-check` parses the interfaces file without applying it;
+it is the documented long form of `ifreload -s`. If the installed command does
+not expose this option in `ifreload --help`, stop and use the Proxmox web UI
+pending-changes validator; do not experiment with an unknown reload option on
+the live interface.
+
+Run on: Proxmox host shell at the local console.
+
+```bash
+ifreload -a
+ip -brief address | grep -E '^(vmbr0|vmbr0\.10)[[:space:]]'
+ping -c 3 192.168.10.1
+```
+
+Expected output characteristics:
+
+- `vmbr0` is up and has no management IPv4 address;
+- `vmbr0.10` owns `192.168.10.10/24`;
+- all three router pings succeed.
+
+Run on: Admin laptop.
+
+```powershell
+Test-Connection -ComputerName 192.168.10.10 -Count 3
+```
+
+Expected result: all three probes return. Step 6 establishes and tests SSH
+key access; keep the console available until that test also passes.
+
+Keep the local console available through the following recovery check.
+
+### Network rollback rehearsal
+
+The rollback path is the local console, not the network that is being changed.
+During the rebuild window, prove the path by keeping the timestamped backup and
+performing this sequence if the remote validation fails:
+
+Run on: Proxmox host shell at the local console.
+
+```bash
+cp -a /root/interfaces.pre-vlan-YYYYMMDDTHHMMSS /etc/network/interfaces
+ifreload -a
+ip -brief address
+ping -c 3 192.168.10.1
+```
+
+Replace the example backup filename with the exact file printed earlier. Return
+to the local console to inspect the restored configuration. A backup made
+before tagged management was configured restores the installer state only:
+router ping and remote access will still fail on the unchanged LAN1 trunk.
+Repair the tagged configuration locally, validate it and save a second,
+known-working backup before rehearsing remote recovery. Do not change LAN1
+or a spare production port to conceal that distinction. Record which backup
+was restored and whether local-only or remote recovery was actually proven.
+
+The production host was documented live on `vmbr0.10` in the canonical task
+state, but this blank-to-trunk rollback rehearsal still requires fresh evidence
+on the next rebuild.
+
+## 5. Update the host and install the network dependency
 
 Use the repository appropriate to the operator's Proxmox subscription. Do not
 silence repository authentication errors by mixing release suites or adding an
@@ -189,10 +308,12 @@ ifupdown2 ready
 ```
 
 Review any kernel or bootloader prompt before accepting it. If a reboot is
-requested, reboot while the simple VLAN 10 access path and local console are
+requested, reboot while the validated tagged VLAN 10 path and local console are
 still available, then rerun the clean-install checkpoint.
 
-## 5. Install the admin SSH public key
+## 6. Install the admin SSH public key
+
+Perform this after Step 4 validates management reachability.
 
 The following command is run from the admin laptop and transmits only the
 approved public key. If `ssh-copy-id` is unavailable on Windows, paste the
@@ -228,111 +349,6 @@ pve-manager/...
 
 Do not disable password authentication until key login has succeeded in a
 second terminal and local console access has been reconfirmed.
-
-## 6. Convert the management port to a VLAN-aware trunk
-
-The production host uses unaddressed `vmbr0` over the physical trunk and owns
-its management address on `vmbr0.10`. Guest NICs attach to `vmbr0` with their
-VLAN tags set in Proxmox.
-
-Before editing, identify the physical interface by MAC address and switch port.
-
-Run on: Proxmox host shell at the local console.
-
-```bash
-ip -brief link
-bridge link
-cp -a /etc/network/interfaces "/root/interfaces.pre-vlan-$(date +%Y%m%dT%H%M%S)"
-ls -l /root/interfaces.pre-vlan-*
-```
-
-Expected result: the intended physical interface is identified and a non-empty,
-timestamped backup exists under `/root/`.
-
-Run on: Proxmox host shell at the local console.
-
-```text
-Edit /etc/network/interfaces so the physical NIC is manual, vmbr0 is an
-unaddressed VLAN-aware bridge over that NIC, and vmbr0.10 owns:
-
-    address 192.168.10.10/24
-    gateway 192.168.10.1
-
-Retain the installer-generated loopback and source/include lines.
-```
-
-This is an operator edit, not a copy/paste configuration block: the physical
-interface name must come from the current host. The resulting bridge stanza
-must include `bridge-ports`, `bridge-stp off`, `bridge-fd 0`, and
-`bridge-vlan-aware yes`.
-
-Keep the local console open. Change the managed-switch port from temporary
-untagged VLAN 10 access to the approved trunk carrying VLANs
-`1,10,20,30,35,40,50,60,70,99`, with management VLAN 10 tagged.
-
-Run on: Proxmox host shell at the local console.
-
-```bash
-ifreload -a --syntax-check
-```
-
-Expected result: the command returns to the prompt with exit code `0` and no
-syntax error. `--syntax-check` parses the interfaces file without applying it;
-it is the documented long form of `ifreload -s`. If the installed command does
-not expose this option in `ifreload --help`, stop and use the Proxmox web UI
-pending-changes validator; do not experiment with an unknown reload option on
-the live interface.
-
-Run on: Proxmox host shell at the local console.
-
-```bash
-ifreload -a
-ip -brief address | grep -E '^(vmbr0|vmbr0\.10)[[:space:]]'
-ping -c 3 192.168.10.1
-```
-
-Expected output characteristics:
-
-- `vmbr0` is up and has no management IPv4 address;
-- `vmbr0.10` owns `192.168.10.10/24`;
-- all three router pings succeed.
-
-Run on: Admin laptop.
-
-```powershell
-Test-Connection -ComputerName 192.168.10.10 -Count 3
-ssh -o BatchMode=yes root@192.168.10.10 "ip -brief address | grep -E '^(vmbr0|vmbr0\\.10)[[:space:]]'"
-```
-
-Expected result: all three probes return and SSH prints the expected bridge
-address lines without prompting for a password.
-
-Only close the local console after both remote checks pass.
-
-### Network rollback rehearsal
-
-The rollback path is the local console, not the network that is being changed.
-During the rebuild window, prove the path by keeping the timestamped backup and
-performing this sequence if the remote validation fails:
-
-Run on: Proxmox host shell at the local console.
-
-```bash
-cp -a /root/interfaces.pre-vlan-YYYYMMDDTHHMMSS /etc/network/interfaces
-ifreload -a
-ip -brief address
-ping -c 3 192.168.10.1
-```
-
-Replace the example backup filename with the exact file printed earlier. Return
-the switch port to the temporary VLAN 10 access state at the same time. Expected
-result: `192.168.10.10/24` returns on the pre-cutover interface/bridge and the
-router ping succeeds. Record the rehearsal result and timestamp. Never claim
-this rollback tested from the existence of a backup file alone.
-
-The production host was documented live on `vmbr0.10` in the canonical task
-state, but this blank-to-trunk rollback rehearsal still requires fresh evidence
-on the next rebuild.
 
 ## 7. Validate storage choices
 
@@ -406,6 +422,11 @@ Expected result: Proxmox version and intended bridge/VLAN state print, required
 storage is `active`, expected guests are listed, and the failed-unit list is
 empty or every entry is explained before continuing.
 
+On a blank host at the end of this phase, later-phase guests need not exist
+yet. `qm list`/`pct list` are inventory checks, not a requirement to loop through
+all later phases before proceeding. Record guest creation/acceptance in each
+guest's own phase and return for the final whole-system inventory in Phase12.
+
 Run on: Admin laptop.
 
 ```powershell
@@ -429,9 +450,9 @@ Expected result:
 |---|---|---|
 | ISO hash mismatch | Delete and redownload the ISO; compare against the official hash for the exact filename. | Hashes match exactly. |
 | Wrong disk is selected | Cancel before installation; identify disks by model/capacity/serial. | Target matches Phase 00 inventory. |
-| Installer cannot reach gateway | Keep switch port as VLAN 10 access; recheck cable, NIC, gateway, and duplicate IP. | Console and admin-laptop ping both pass. |
+| Installer cannot reach gateway | On the unchanged LAN1 trunk, finish local installation and configure tagged management in Step 4. | Console remains usable; tagged management subsequently passes. |
 | Update repository errors | Correct subscription/release repository configuration; do not mix suites. | `apt-get update` completes without repository errors. |
-| VLAN cutover loses remote access | Use local console, restore the timestamped interfaces file, and return the switch port to VLAN 10 access. | Local and remote management checks pass again. |
+| VLAN cutover loses remote access | Use local console to repair the tagged host configuration or restore a previously validated tagged backup; retain LAN1's assignment. | Local and remote management checks pass again. |
 | `local-lvm` missing/inactive | Stop guest creation; inspect `pvesm status`, `lvs`, and installer storage choice. | Expected storage is active with headroom. |
 | Guest has wrong VLAN/resources | Keep it stopped; compare `qm config`/`pct config` with `guest-configs.md`. | Config matches before first boot. |
 | Retired VM conflicts with an LXC | Stop the retired VM and disable `onboot`; confirm the production guest alone owns the address. | Only intended guest responds and inventory is reconciled. |

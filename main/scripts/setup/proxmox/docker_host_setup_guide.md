@@ -35,8 +35,8 @@ deployment.
 | MAC | BC:24:11:BC:B8:1A |
 | Machine | q35 |
 | BIOS | OVMF, pre-enrolled keys disabled |
-| Disk | local-lvm, 32 GiB, SCSI, discard on, SSD emulation |
-| CPU/RAM | 2 cores, 4096 MiB |
+| Disk | local-lvm, 64 GiB, SCSI, discard on, SSD emulation |
+| CPU/RAM | 4 cores, 6144 MiB (September recovery) |
 | Network | vmbr0, VLAN tag 20, VirtIO |
 | Boot | onboot enabled, startup order 3 |
 
@@ -46,16 +46,15 @@ Completed live:
 - Guest hostname set to `docker-host`.
 - `qemu-guest-agent` installed and active.
 - Docker and Docker Compose installed and active.
-- Bambuddy rebuild source is digest-pinned and uses the explicit
-  `10.240.23.0/24` bridge network.
+- Bambuddy rebuild source has the prepared `10.240.23.0/24` bridge; live
+  Bambuddy remains on host networking until its P1S path is accepted.
 - Bambuddy stack staged at `/opt/stacks/bambuddy`.
 - Homepage stack staged at `/opt/stacks/homepage` and live on port `3001`.
 - Dozzle stack staged at `/opt/stacks/dozzle` and live on port `8081`.
 - AdGuard Home stack staged at `/opt/stacks/adguard-home`, with DNS on
   `192.168.20.102:53` and admin UI on `8080`.
-- Immich skeleton stack staged at `/opt/stacks/immich` and live on port `2283`;
-  it uses local placeholder storage only until OMV storage and backup/restore
-  are ready.
+- Immich is live at port `2283` with OMV-backed media. Its application and
+  restore acceptance are recorded in the canonical current-state inventory.
 - ntfy stack staged at `/opt/stacks/ntfy` and live internally on port `8085`,
   with default access denied and credentials stored at `/root/ntfy-credentials.txt`.
 - Watchtower monitor-only stack staged at `/opt/stacks/watchtower`, with
@@ -93,8 +92,8 @@ Completed live:
 Current service direction:
 
 - Bambuddy is the first live workload.
-- Tailscale will run as a host service, not a Compose workload.
-- Tier 1 Compose stack still needing real storage cutover is Immich.
+- Tailscale runs as a host service, not a Compose workload.
+- Immich storage cutover is recorded complete; fresh restore proof remains separate.
 - Tier 2 notification service `ntfy` is pre-flight live for internal alerts.
 - Tier 3 Watchtower is monitor-only and does not update containers.
 - All Compose stacks use `/opt/stacks/<service>/`.
@@ -128,17 +127,33 @@ Do not place these here without a separate architecture review:
 
 ## Phase 1 - Reproduce VM 103 From Debian Cloud Image
 
-These commands are for rebuilding or reproducing the current live VM.
+These commands create an absent VM103. Do not run them over an existing VM.
+The canonical [Phase 05](../../../docs/install/phases/05-docker-host.md) owns
+subsequent host setup; [guest inventory](../../../configs/proxmox/guest-configs.md)
+owns resources. Use local console access and preserve an independent backup.
+
+Download the Debian13 genericcloud image and its official checksum manifest
+from the same release directory. Verify the exact image checksum before the
+commands below; a successful download alone is not verification. Stage the
+verified image at `/var/lib/vz/template/iso/debian-13-genericcloud-amd64.qcow2`
+and the approved admin public key at `/root/proxmox-admin.pub`.
+
+Run on: Proxmox host shell, after image/key verification.
 
 ```bash
-cd /var/lib/vz/template/iso
-wget -O debian-13-genericcloud-amd64.qcow2 \
-  https://cloud.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2
+set -eu
+if qm status 103 >/dev/null 2>&1; then
+  echo 'VM103 already exists; stop and inspect it'
+  exit 1
+fi
+cd /var/lib/vz/template/iso || exit 1
+test -s debian-13-genericcloud-amd64.qcow2 || exit 1
+test -s /root/proxmox-admin.pub || exit 1
 
 qm create 103 \
   --name docker-host \
-  --memory 4096 \
-  --cores 2 \
+  --memory 6144 \
+  --cores 4 \
   --cpu host \
   --machine q35 \
   --bios ovmf \
@@ -151,8 +166,13 @@ qm create 103 \
 qm set 103 --efidisk0 local-lvm:0,efitype=4m,pre-enrolled-keys=0
 qm importdisk 103 debian-13-genericcloud-amd64.qcow2 local-lvm
 qm set 103 --scsihw virtio-scsi-single
-qm set 103 --scsi0 local-lvm:vm-103-disk-0,discard=on,ssd=1,cache=writeback
-qm resize 103 scsi0 32G
+imported_disk="$(qm config 103 | awk '/^unused[0-9]+:/ {print $2}')"
+if [ "$(printf '%s\n' "$imported_disk" | grep -c '^local-lvm:')" -ne 1 ]; then
+  echo 'Expected exactly one imported disk; inspect qm config 103 before proceeding'
+  exit 1
+fi
+qm set 103 --scsi0 "${imported_disk},discard=on,ssd=1,cache=writeback"
+qm resize 103 scsi0 64G
 qm set 103 --boot order=scsi0
 qm set 103 --ide2 local-lvm:cloudinit
 qm set 103 --ciuser root
@@ -163,10 +183,18 @@ qm set 103 --searchdomain home.local
 qm start 103
 ```
 
-After first boot:
+Expected: VM103 starts with the imported OS disk as `scsi0`, an EFI disk and
+cloud-init disk, VLAN20 and the recorded resources. The import volume must be
+read from `unusedN`; EFI allocation can occupy `vm-103-disk-0`, so hard-coding
+that name can attach the wrong disk. If any command fails, stop and inspect
+the partial VM rather than rerunning creation or deleting disks blindly.
+
+After first boot, continue in Phase05. The following checks run inside VM103,
+after the temporary maintenance egress is established.
+
+Run on: docker-host VM103 console or established SSH session.
 
 ```bash
-ssh root@192.168.20.102
 hostnamectl set-hostname docker-host
 apt-get update
 apt-get install -y qemu-guest-agent

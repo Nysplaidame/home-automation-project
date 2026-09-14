@@ -423,6 +423,47 @@ physical cabling reference, guest inventory and the current portal handoff.
 - No live deployment, physical acceptance or fresh Proxmox/OMV proof inferred from historical records.
 
 
+## [2026-09-10] update | Documentation and troubleshooting reconciliation
+
+- Updated [[sources/troubleshooting-reference]], [[sources/project-todo]],
+  [[entities/troubleshooting-dashboard]] and [[index]] after canonical manuals,
+  references, task list and current handoff were updated.
+- Written offline walkthroughs cover the five app symptoms and link canonical
+  Mermaid views. A shared media operating manual distinguishes configuration,
+  libraries, stopped checkpoints and isolated restore proof.
+- Corrected LAN2 recovery, NAS attachment, disconnected-camera/P1S and DHCP
+  assumptions. Incorporated the separately recorded deployed freshness update,
+  Windows evidence, blocked Proxmox collector update and IPv6 discrepancy.
+- Targeted wiki consistency review only: matched these claims to canonical
+  state and app deployment records. No raw sources changed, no new pages,
+  no full-wiki lint or new live-system verification claimed.
+
+
+## [2026-09-10] update | Service lifecycle and rebuild sequencing
+
+- Updated [[sources/troubleshooting-reference]] and [[sources/project-todo]]
+  after canonical gateway/Recomp/MediaMTX manuals and phase dependencies.
+- Household Hub's mirrored Compose is not a complete application build or
+  database recovery source; documented the missing separate-repository contract.
+- Corrected authenticated dashboard guidance and diagnostic interpretation.
+  Targeted source consistency only; no live rebuild, notification or restore.
+
+## [2026-09-11] update | Search and notification lifecycle manuals
+
+- Updated [[sources/project-todo]] and [[sources/troubleshooting-reference]]
+  after canonical ntfy/Watchtower/SearXNG/Whoogle manuals and task/handoff changes.
+- Recorded SearXNG missing settings/template and separate configuration-backup
+  requirement; retained Watchtower notification failure and phone/restore gates.
+- Targeted consistency review against canonical source only; no raw changes,
+  new pages, full-wiki lint or live-service acceptance.
+
+## [2026-09-11] update | Rebuild dependency follow-up
+
+- Updated [[sources/project-todo]] after Phase07/08 and START-HERE sequencing
+  repairs, MediaMTX checkpoint documentation and Hub recovery-lead links.
+- Canonical source consistency checked; no raw changes or live acceptance.
+
+
 ## [2026-09-11] update | Extended diagnostic routes
 
 - Updated [[entities/troubleshooting-dashboard]] after canonical app/hand-off
@@ -430,10 +471,61 @@ physical cabling reference, guest inventory and the current portal handoff.
 - Targeted consistency check corrected the five-route claim; existing source
   links retained. No raw changes, new wiki pages or whole-wiki lint.
 
+## [2026-09-11] update | Backup phase prerequisites and recovery checks
+
+- Updated [[sources/project-todo]] from canonical Phase10/checklist/handoff.
+- Recorded heartbeat installation dependencies, dated-run recovery selection
+  and VM/CT isolation checks. No raw changes or live acceptance claimed.
+
+## [2026-09-11] update | Final-phase dependency review
+
+- Updated [[sources/project-todo]] after canonical Phase09/11/12 corrections.
+- Preserved disconnected-camera and uncommissioned-printer status, separate
+  Watchtower configuration recovery and partial-acceptance limits. No raw changes.
+
+## [2026-09-11] update | Consolidated service documentation audit
+
+- Updated [[sources/project-todo]] after canonical 42-entry coverage table,
+  START-HERE/index navigation and task/handoff updates.
+- Distinguished written procedures, nine review rows, missing artifacts and
+  candidates; no whole-system rebuild or live acceptance claimed. No raw changes.
+
 - 2026-09-11: Updated [[entities/troubleshooting-dashboard]] for owner-approved Homepage Tools preview; direct management access and outstanding Proxmox evidence gate retained. Source: portal services handoff.
+
+## [2026-09-11] update | Nine remaining documentation reviews completed
+
+- Updated [[sources/project-todo]] from canonical service/phase lifecycle changes.
+- Counts now 32 Written, 0 Review, 4 missing source/configuration, 6 Candidates.
+- GardenKeeper source/dump defect and VM103 SSH denial remain explicit;
+  no raw changes, authentication changes or live restore evidence claimed.
+
+## [2026-09-11] update | Docker-host SSH identity correction
+
+- Updated [[sources/project-todo]] to correct the earlier access-blocker claim.
+- Existing alias/key works; local IP pattern now selects it too. Both verified;
+  no server authentication or firewall changes. Source recovery remains open.
 
 - 2026-09-11: Updated [[entities/troubleshooting-dashboard]] with DNS/TLS findings and bounded collector failure categories; canonical portal handoff records the Vaultwarden routing repair.
 
+## [2026-09-11] update | Live application migration contracts
+
+- Updated [[sources/project-todo]] from read-only VM103 source/schema inspection.
+- GardenKeeper reset migrations and Hub startup migration boundary documented;
+  provenance/off-host artifacts and restore proof remain open. No raw changes.
+
+## [2026-09-11] update | Protected source and settings checkpoints
+
+- Updated [[sources/project-todo]] after source/settings hash verification.
+- Recovery files remain outside the vault under restricted workstation ACLs;
+  no live service change or full restore acceptance claimed. No raw changes.
+
 - 2026-09-12: Recorded owner Mullvad/local-name decision in [[entities/troubleshooting-dashboard]] from the canonical DNS resolver decision; elevated hosts application remains pending.
+
+## [2026-09-14] update | Recovery implementation and isolated acceptance
+
+- Updated [[sources/project-todo]] after canonical backup/restore/source-build
+  evidence, SearXNG semantic review and MediaMTX owner retention decision.
+- No raw changes or full-system certification; archive paths stay in canonical
+  runbooks and secret-bearing artifacts remain outside the vault.
 
 - 2026-09-14: Homepage Vaultwarden direct card deployed and normal browser HTTPS verified; canonical portal handoff records GardenKeeper success and the persistent Proxmox SSH evidence gate.

@@ -34,15 +34,22 @@ offline when the dashboard host fails.
 - Direct management URL: `http://192.168.20.102:8094/`.
 - Stack path: `/opt/stacks/troubleshooting-dashboard/`.
 - Docker network: explicit `10.240.32.0/24` bridge.
-- Access: Management VLAN `192.168.10.0/24` only; LAN, Tailscale, monitoring
-  and IPv6 are denied by live policy.
+- Access: the Homepage HTTPS path serves existing Homepage clients. Direct
+  IPv4 publication is Management VLAN `192.168.10.0/24`
+  only. September10 found a pre-existing IPv6 Tailscale RETURN rule requiring
+  reconciliation before IPv6 publication; the current bridge has IPv6 disabled.
 - Data sources: Windows `health_check.ps1 -Full -Json` and Proxmox-host
   `health_check.sh --json`.
-- Missing or skipped evidence remains `Needs evidence`.
+- Missing or skipped evidence remains `Needs evidence`. The deployed September10
+  update also requires timezone-qualified evidence within a 36-hour review
+  window; stale, future or ambiguous timestamps cannot establish current health.
+- Written offline companions in the canonical troubleshooting directory retain
+  the original five investigations with Mermaid links, plus the extended guide; see [[sources/troubleshooting-reference]].
 
 ## Acceptance State
 
-- Real Windows snapshot passed 13/13 checks and imported successfully.
+- August25 Windows snapshot passed 13/13; September10 fresh evidence has
+  12 passes and one camera failure consistent with recorded disconnection.
 - Desktop and mobile browser flows passed against the staged service.
 - Container uses a read-only root filesystem, drops all capabilities before
   adding only Nginx's required identity capabilities, and enables
@@ -62,6 +69,10 @@ offline when the dashboard host fails.
 - 2026-09-11: Expanded and deployed 27 searchable routes; 17 model tests and
   live desktop/mobile route checks passed. Offline guide generated from app
   definitions; no new live probes or remediation. Canonical app/handoff wins.
+
+- 2026-09-10: Reconciled the deployed freshness update, Windows evidence,
+  Proxmox collector/access gap and IPv6 discrepancy against the current
+  handoff; linked the written troubleshooting companion through its source page.
 
 - 2026-08-25: Staged live on management-only port `8094`; Windows snapshot,
   desktop/mobile flow, access-denial checks and rollback proof passed.

@@ -3,7 +3,7 @@ title: Phase 12 - Validation Troubleshooting
 description: End-to-end acceptance and bounded recovery tests after rebuild
 tags: [install, validation, troubleshooting]
 created: 2026-05-24
-modified: 2026-08-09
+modified: 2026-09-11
 type: install-guide
 status: active
 ---
@@ -21,19 +21,21 @@ passing layer and leave the component at `Prepared`, `Installed`, `Configured`,
 or `Validated` until all requirements in the
 [rebuild state matrix](../reference/rebuild-state-matrix.md) pass.
 
-## Current source-validation blockers
+## Current source-validation and acceptance boundaries
 
-The 2026-08-09 workstation audit found two blockers that must be cleared before
-router source can pass final acceptance:
+September recovery supersedes the August Tailscale-invariant failure: source
+lint and compiler regression tests pass. Both deployment profiles intentionally
+reject missing Zen PPPoE credentials; full compilation also requires real
+WireGuard, device-MAC and Wi-Fi inputs. Placeholder-tolerant output is a preview,
+never a deployable acceptance artifact. No complete credentialed blank-hardware
+rebuild is recorded.
 
-- `lint.py` and the `first-flight` compile report the missing architecture
-  invariant `architecture.docker_host_tailscale_egress_rule_present`.
-- The `full` compile reports unresolved WireGuard, device-MAC, and Wi-Fi-secret
-  placeholders in deploy artifacts.
-
-These are recorded deployment-state failures, not reasons to use broader rules
-or invented values. Placeholder-tolerant output may be inspected as a preview,
-but it is never a deployable acceptance artifact.
+Use the [written app walkthroughs](../../troubleshooting/diagnostic-walkthroughs.md)
+for Homepage, HA, cameras, P1S and backup evidence. The app is a read-only aid;
+these manuals remain the operational reference. Relevant Mermaid views:
+[access](../../diagrams/network/security-access-flow.mermaid),
+[cabling](../../diagrams/network/physical-port-and-cabling.mermaid), and
+[storage/backup](../../diagrams/storage/storage-and-backup-flow.mermaid).
 
 ## Runs on
 
@@ -81,7 +83,14 @@ maintenance record. `Blocked` is a result; a blank cell is not.
 
 | Component | Lifecycle state | Positive proof | Denial proof | Backup/restore proof | Monitoring proof | Rollback proof | Result/time |
 |---|---|---|---|---|---|---|---|
-| Example | Validated | command or screenshot | source and denied target | isolated restore ID | monitor/event ID | recovery command/result | PASS/BLOCKED, ISO time |
+| Example only (not evidence) | Validated | command or screenshot | source and denied target | isolated restore ID | monitor/event ID | recovery command/result | PASS/BLOCKED, ISO time |
+
+Use `DEFERRED` for explicitly uncommissioned/disconnected devices, with the
+reason and return dependency. Preserve actual failures separately; do not change
+a failed test to deferred merely because repair is inconvenient. A partial
+software acceptance record must name its tested scope and cannot certify the
+whole installation. The September camera/P1S/VentSys state does not require
+reconnection or actuation just to complete independent software checks.
 
 Secrets, session cookies, full environment output, private addresses belonging
 to remote clients, and signed media URLs must be redacted before evidence is
@@ -93,11 +102,18 @@ Run on: Admin laptop from repository root in PowerShell.
 
 ```powershell
 Push-Location .\main
-python tools/router-deploy/lint.py
-python tools/router-deploy/compile.py --profile first-flight
-python tools/router-deploy/compile.py --profile full
-powershell -NoProfile -File scripts/validation/validate-home-local-dns.ps1 -SkipLive
-Pop-Location
+try {
+    python tools/router-deploy/lint.py
+    if ($LASTEXITCODE -ne 0) { throw 'Router lint failed.' }
+    python tools/router-deploy/compile.py --profile first-flight
+    if ($LASTEXITCODE -ne 0) { throw 'First-flight compilation failed.' }
+    python tools/router-deploy/compile.py --profile full
+    if ($LASTEXITCODE -ne 0) { throw 'Full compilation failed.' }
+    powershell -NoProfile -File scripts/validation/validate-home-local-dns.ps1 -SkipLive
+    if ($LASTEXITCODE -ne 0) { throw 'Source DNS validation failed.' }
+} finally {
+    Pop-Location
+}
 ```
 
 Expected result after the blockers above are resolved:
@@ -318,20 +334,25 @@ order. Do not restart every service in response to a single failed probe.
 Test protocol ports, not just ping, and compare every result with the
 [access matrix](../../reference/access-matrix.md).
 
-Run on: approved Tailscale client in PowerShell.
+Run on: Tailscale admin client with the specific host-route grants below, in PowerShell.
 
 ```powershell
 tailscale status
 Test-NetConnection 192.168.20.101 -Port 8123
-Test-NetConnection 192.168.40.50 -Port 443
+Test-NetConnection 192.168.40.50 -Port 80
 Test-NetConnection 192.168.60.10 -Port 3000
 Test-NetConnection 192.168.60.10 -Port 8086
 Test-NetConnection 192.168.10.1 -Port 443
 ```
 
-Expected result: the three approved host paths succeed. InfluxDB `8086` and
+Expected result for that admin identity: the three approved host paths succeed. InfluxDB `8086` and
 router management `443` fail unless a later, documented matrix decision
 explicitly allows that exact source and target.
+
+The daily OnePlus identity uses Homepage HTTPS and fixed proxy ports instead;
+it is not evidence of failure if it cannot use these admin host routes. Follow
+the [remote-access guide](../../procedures/tailscale_remote_access_guide.md)
+and test the actual identity's grants separately.
 
 Run on: an intentionally unapproved Guest/DMZ client in PowerShell.
 
@@ -483,8 +504,8 @@ requests exit `0` without bypassing TLS on the user-facing endpoint.
 Run on: Admin laptop in PowerShell with `Home Local CA` trusted.
 
 ```powershell
-Invoke-WebRequest https://192.168.20.102/api/services -UseBasicParsing
-Invoke-WebRequest https://192.168.20.102/images/portal-background.svg -UseBasicParsing
+Invoke-WebRequest https://homepage.home.local/api/services -UseBasicParsing
+Invoke-WebRequest https://homepage.home.local/images/portal-background.svg -UseBasicParsing
 ```
 
 Expected result: both requests return `200` with no certificate warning. Check

@@ -4,7 +4,7 @@ description: Implementation tasks, operational evidence and owner-gated follow-u
 tags: [tasks, implementation]
 aliases: [TODO, Tasks]
 created: 2025-09-15
-modified: 2026-09-10
+modified: 2026-09-14
 type: task-list
 status: active
 ---
@@ -23,6 +23,25 @@ status: active
   workstation SSH still rejects the key. Existing validator is ready.
 
 
+- [x] Complete the September12–14 recovery batch: GardenKeeper backup repair/
+  seven tests/live success, SearXNG semantic template verification, six recovered
+  source builds, isolated PostgreSQL/API and Qdrant restores, MediaMTX scheduled
+  configuration checkpoint/restore and owner-selected manual recording review.
+- [ ] Preserve dependency artifacts for offline rebuilds and establish coordinated
+  multi-store/worker/integration recovery where required; run the full system
+  rehearsal separately from the successful component tests.
+
+
+- [x] Capture protected off-VM GardenKeeper/Hub scoped source snapshots and
+  SearXNG settings; verify hashes (2026-09-11). Source provenance, complete build
+  inputs, semantic settings review and isolated restore still remain.
+
+
+- [x] Locate live GardenKeeper/Hub source and inspect migration contracts/schema
+  metadata read-only (2026-09-11). Preserve destructive-reset/startup migration
+  boundaries in runbooks. Provenance/off-host source and restore proof remain.
+
+
 - [x] Restore missing Vaultwarden SNI route and verify the correct certificate
   with normal browser validation (2026-09-11; explicit DNS mapping).
 - [x] Owner chose to preserve Mullvad DNS/filtering and handle exact local names
@@ -32,6 +51,43 @@ status: active
   Script preview and temporary-file apply/idempotence/rollback tests passed.
 - [x] Distinguish DNS/network/TLS/timeout collector failures and add VPN/SNI
   troubleshooting guidance (2026-09-11). Revocation availability remains separate.
+
+
+- [x] Correct VM103 workstation SSH identity selection (2026-09-11): alias and
+  raw-IP access both verified with the existing key and strict host-key checking.
+  Resume GardenKeeper/Hub source discovery; no server authentication changes.
+
+
+- [x] Consolidate all 42 named service/roadmap entries into the installation
+  checklist coverage audit (2026-09-11): now 36 Written, 0 Review, 0 missing
+  source/configuration, 6 Candidates. No percentage or full rebuild certification.
+- [x] Finish the audit's nine review rows: eight now have written lifecycle
+  boundaries; GardenKeeper requires its missing application/migration source.
+- [x] Repair GardenKeeper dump failure handling and prove isolated import/API
+  recovery from the recovered source snapshot. Upstream Git provenance remains
+  unknown; the snapshot hashes identify the tested recovery generation.
+
+
+- [x] Reconcile Phase09/11/12 backup coverage, hardware deferrals and native
+  command failure handling (2026-09-11); independent software acceptance remains
+  distinct from full physical/rebuild proof.
+
+
+- [x] Add Phase10 backup/heartbeat installation prerequisites, dated-run recovery
+  guidance and fail-stopping VM/CT restore checks (2026-09-11 source review).
+  Full rebuild and live backup/restore acceptance remain open.
+
+
+- [x] Repair Phase07/08 blank-build versus recovery sequencing and document
+  MediaMTX protected manual config capture (2026-09-11). Recurring/off-VM backup,
+  retention, Hub source recovery and full rebuild acceptance remain open.
+
+
+- [x] Expand ntfy, Watchtower, SearXNG and Whoogle lifecycle manuals against
+  tracked source, with Mermaid links (2026-09-11). Backup/restore boundaries
+  and notification failures remain explicit; no new live acceptance claimed.
+- [ ] Recover SearXNG effective settings, preserve a sanitized source template
+  and establish protected off-VM configuration backup; see the install checklist.
 
 
 - [x] Add troubleshooting evidence-age checks, visibly separate example data,
@@ -122,6 +178,19 @@ status: active
      `homeassistant.home.local` and flush the Windows DNS cache (completed
      2026-07-29)
 8. [ ] Continue expanding each install phase until every command has expected output examples and every failure mode has a tested recovery path
+   - Second September10 continuation adds download-gateway/Recomp operating
+     manuals and MediaMTX recovery guidance, corrects legacy authentication/
+     host-context advice, and repairs VM103/VM102 creation and pre-NAS phase
+     dependencies. Household Hub source/migration/database restore and MediaMTX
+     configuration-backup coverage remain explicit gaps in INSTALL-TO-DO.
+   - 2026-09-10 continuation: reconciled router, operator, Proxmox, OMV and
+     final-validation instructions with the September network/state records.
+     Added `docs/troubleshooting/diagnostic-walkthroughs.md` for the app's five
+     symptoms with Mermaid links and evidence boundaries, plus
+     `docs/install/services/media-libraries.md` for three media services.
+     Corrected stale recovery ports, disconnected-device claims and DNS wording;
+     incorporated the separate September10 app deployment record. This is a
+     documentation/source pass, not fresh hardware or restore acceptance.
    - 2026-08-24 continuation: expanded Mealie, Grocy and Obsidian LiveSync with
      pre-start/promotion gates, operator flows, consistent backups,
      loopback-only isolated restores, updates and version/data rollback. Added a

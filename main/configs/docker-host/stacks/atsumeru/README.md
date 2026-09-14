@@ -7,3 +7,9 @@ authenticated HTTP response and restart proof passed on 2026-07-29.
 Configuration and database paths are included in the docker-host NAS backup
 job. The upstream server is primarily an API/client backend rather than a full
 browser management UI, so Homepage should describe it accordingly.
+
+See the [media operating manual](../../../../docs/install/services/media-libraries.md)
+for installation, diagnosis, backup, updates, rollback and isolated restore.
+Its [storage diagram](../../../../docs/diagrams/storage/storage-and-backup-flow.mermaid)
+shows the application/library boundary. Historical restart checks above do
+not establish a fresh isolated restore proof.

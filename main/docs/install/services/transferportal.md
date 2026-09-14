@@ -3,7 +3,7 @@ title: OMV Transfer Portal Service
 description: Native OMV-hosted transfer portal for guarded local disk-to-disk rsync jobs
 tags: [omv, nas, rsync, transferportal]
 created: 2026-06-25
-modified: 2026-09-05
+modified: 2026-09-11
 type: service-runbook
 status: active
 ---
@@ -120,3 +120,34 @@ systemctl daemon-reload
 
 Do not remove `/srv/transferportal/*` bind mounts or portal directories while
 an rsync job is active.
+
+## Checkpoint, isolated restore and update
+
+The Rollback section above retires the service; it is not data restoration.
+Before an update, wait for every transfer to finish and verify no helper/rsync
+process is still using a portal. Stop the web service only after this check.
+Preserve a stopped copy of `jobs.sqlite` and any SQLite sidecars, `/etc/transferportal/`
+including protected environment, logs, installed source revision, service unit,
+root helper, sudoers policy and portal mount-unit definitions. Store the matched
+checkpoint outside the OMV OS disk with permissions intact. Job history is not
+backup of either transfer source or destination data.
+
+Restore copies into a disposable VM with no production NAS mounts or routes.
+Keep the service/helper disabled while checking SQLite integrity, schema and
+configuration. Replace every portal path with a disposable source/destination;
+do not restore production mount units or execute queued/retryable jobs. Install
+the saved application/helper/policy together, then verify the read-only job
+history and one disposable preview/copy. Confirm hashes and unchanged source;
+Move/deletion remain disabled. Record job, checkpoint and policy generation.
+
+Test the new generation in that VM before live maintenance, including schema
+compatibility and helper denial behavior. If it fails, keep production unchanged.
+For a failed live update, stop new requests after active transfers are resolved,
+preserve failed state and restore the previous application/helper/policy plus
+matching stopped database/config. Verify current mounts before restarting.
+Never replay historical jobs to simulate recovery. Database rollback does not
+undo a filesystem copy or deletion. September hardening deployment remains a
+separate gate until its live acceptance is recorded.
+
+See [backup flow](../../diagrams/storage/storage-and-backup-flow.mermaid) and
+[access policy](../../diagrams/network/security-access-flow.mermaid).

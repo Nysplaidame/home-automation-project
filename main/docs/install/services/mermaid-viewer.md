@@ -3,7 +3,7 @@ title: Mermaid Diagram Viewer
 description: Internal read-only web viewer for canonical Mermaid diagrams
 tags: [install, docker-host, diagrams, mermaid]
 created: 2026-07-09
-modified: 2026-09-10
+modified: 2026-09-11
 type: install-guide
 status: active
 ---
@@ -83,3 +83,29 @@ runtime internet access.
 - No editing or file write-back is planned.
 - The viewer should stay behind the same internal trust boundary as other
   docker-host apps.
+
+## Versioned recovery and update acceptance
+
+Keep the source commit, lockfile, complete built `dist/` directory, Compose,
+Nginx configuration and deployed image digest together outside VM103. The
+viewer has no authoritative server database: canonical diagram sources in the
+vault are the recovery source, while a retained build permits offline recovery.
+Do not save just HTML and omit `diagram-data.js` or the local vendor runtime.
+
+Use the [app verification procedure](../../../apps/mermaid-viewer/README.md)
+on a fresh build: compare embedded sources against every canonical `.mermaid`
+file, render the entire set and exercise mobile navigation. For a saved-build
+restore, serve a copied `dist` on loopback in a disposable container with unique
+name/network and no production proxy. Confirm diagram count, representative
+deep links, source text and offline rendering without CDN access.
+
+For diagram-only changes follow the app README's hash-checked single-file
+replacement. For a full build, keep the old complete `dist` checkpoint and stop
+the serving container during the reviewed directory replacement; recreate it
+so its bind mount resolves the intended directory. Validate LAN and fixed HTTPS
+proxy content plus a browser render. On failure restore the previous complete
+build/config and image, recreate, and repeat those checks. Do not combine assets
+from different builds. Record source/build hashes and acceptance date.
+
+Diagrams: [library](../../diagrams/README.md) and
+[placement](../../diagrams/infrastructure/docker-host-service-placement.mermaid).

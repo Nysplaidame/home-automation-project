@@ -3,7 +3,7 @@ title: Phase 01 - Router OpenWrt
 description: Fresh OpenWrt, first-flight and full router deployment with recovery proof
 tags: [install, router, openwrt]
 created: 2026-05-24
-modified: 2026-08-09
+modified: 2026-09-10
 type: install-guide
 status: active
 ---
@@ -23,19 +23,25 @@ authentication, Home Assistant apps, monitoring state, or application data.
 
 ## Current-state callout
 
-The physical first-flight layout was deployed and smoke-tested previously,
-including recovery access on `lan5`. The 2026-08-09 source audit is currently
-blocked by the missing invariant
-`architecture.docker_host_tailscale_egress_rule_present`; full compilation also
-contains unresolved WireGuard, MAC-address, and Wi-Fi placeholders. Do not run a
-new deployment until lint and both compile profiles pass from current source.
+Use [Current Live State](../../reference/current-live-state.md) and the
+[physical port map](../../reference/physical-port-and-cabling.md). September
+recovery supersedes the August Tailscale-invariant blocker. Source lint and
+compiler regression checks pass; credentialed deployment and a blank rebuild
+are separate acceptance steps. Both profiles require real Zen PPPoE inputs.
+Full compilation additionally requires the remaining WireGuard, MAC and Wi-Fi
+values. Never deploy a placeholder-tolerant preview.
+
+Visual references: [cabling](../../diagrams/network/physical-port-and-cabling.mermaid),
+[VLANs](../../diagrams/network/vlan_architecture_clean.mermaid), and
+[DNS/NTP](../../diagrams/network/dns-ntp-flow.mermaid).
 
 ## Runs on
 
 - Admin laptop in an elevated PowerShell terminal from the project checkout.
 - GL-MT6000 local recovery UI or console for fresh firmware installation.
 - OpenWrt router over SSH, first at `192.168.1.1` through `lan5`, then at
-  `192.168.10.1` through Management `lan2`.
+  `192.168.10.1` through HomeAdmin once configured and validated. `lan2` is
+  Hive/cloud IoT VLAN55; it is not a management port. Retain `lan5` recovery.
 
 ## Stop conditions
 
@@ -65,6 +71,8 @@ new deployment until lint and both compile profiles pass from current source.
 - `<OPENWRT_IMAGE_PATH>`
 - `<OPENWRT_IMAGE_SHA256>`
 - `<ROUTER_ROOT_PASSWORD>`
+- `YOUR_ZEN_PPPOE_USERNAME_HERE` and `YOUR_ZEN_PPPOE_PASSWORD_HERE`
+  (literal source placeholders; see the ledger and toolkit secret-input rules)
 - `<WIFI_MAIN_PASSWORD>`
 - `<WIFI_IOT_PASSWORD>`
 - `<WIFI_GUEST_PASSWORD>`
@@ -230,13 +238,15 @@ interfaces with placeholder keys. It is a wired bring-up profile, not a shortcut
 to full deployment.
 
 Recovery: fix the first canonical-source or architecture error, rerun lint, and
-then compile. The current missing Docker-host Tailscale egress invariant must be
-resolved in policy/source before any deployment resumes.
+then compile. Missing PPPoE credentials intentionally block either profile;
+consult the [toolkit](../../../tools/router-deploy/README.md) for local secret
+inputs. Do not weaken the invariant checks or commit populated secrets.
 
 ## 7. Deploy first flight with watchdog protection
 
-Keep the laptop on `lan5` throughout the apply. Do not move it to `lan2` until
-the deploy command finishes and recovery snapshots are confirmed.
+Keep the laptop on `lan5` throughout the apply and until recovery snapshots
+are confirmed. LAN2 remains Hive/cloud IoT; use HomeAdmin for subsequent
+management only after its configuration and access are validated.
 
 Run on: Admin laptop from `main/tools/router-deploy/` in PowerShell.
 

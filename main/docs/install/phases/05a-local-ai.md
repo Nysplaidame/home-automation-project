@@ -3,7 +3,7 @@ title: Phase 05A - Local AI Inference
 description: Rebuild CT 114 shared-iGPU llama.cpp, embeddings, Open WebUI, and Home Assistant voice inference
 tags: [install, local-ai, llm, voice, home-assistant]
 created: 2026-06-15
-modified: 2026-08-09
+modified: 2026-09-11
 type: install-guide
 status: active
 ---
@@ -19,7 +19,7 @@ device exclusively to either workload.
 
 ## Current-state callout
 
-CT 114 is live at `192.168.20.104` with 4 vCPU, 10240 MiB RAM, a 100 GiB root
+CT 114 is live at `192.168.20.104` with 4 vCPU, 20480 MiB RAM, a 100 GiB root
 disk, and no swap. Current tracked Compose serves:
 
 - `Qwen3-14B-128K-Q4_K_M.gguf` as `home-assistant-llm` with 65536-token context,
@@ -109,7 +109,7 @@ pct create 114 "local:vztmpl/<DEBIAN_13_LXC_TEMPLATE>" \
   --unprivileged 1 \
   --features nesting=1,keyctl=1 \
   --cores 4 \
-  --memory 10240 \
+  --memory 20480 \
   --swap 0 \
   --rootfs local-lvm:100 \
   --net0 name=eth0,bridge=vmbr0,tag=20,ip=192.168.20.104/24,gw=192.168.20.1 \
@@ -393,6 +393,11 @@ reliability take priority over model size or context length.
 
 ## 11. Prove reboot, backup, and rollback
 
+On a blank build, return to the archive/restore part after Phase06 provides
+`omv-backups` and Phase10 defines the backup job. Reboot recovery can be checked
+now; deferred archive acceptance must remain explicit. Verify host capacity
+against the current guest inventory before assigning CT114 its 20 GiB limit.
+
 Run on: Proxmox host shell during a maintenance window.
 
 ```sh
@@ -400,12 +405,19 @@ pct reboot 114
 sleep 20
 pct status 114
 pct exec 114 -- docker compose -f /opt/stacks/local-ai/docker-compose.yml ps
-vzdump 114 --mode snapshot --compress zstd --storage omv-backups
 ```
 
 Expected result: CT 114 returns `running`, all services recover including
-offline Whisper, and `vzdump` ends in `TASK OK`. Validate the archive with the
-Phase 10 isolated LXC restore drill before calling it restorable.
+offline Whisper. After Phase06, take the archive separately:
+
+Run on: Proxmox host shell after the OMV backup target is validated.
+
+```sh
+vzdump 114 --mode snapshot --compress zstd --storage omv-backups --tmpdir /var/tmp
+```
+
+Expected: `TASK OK`. Validate the archive with the Phase10 isolated LXC restore
+drill before calling it restorable.
 
 Rollback to VM 104 is emergency-only: stop CT 114, disable its autostart,
 confirm its address is no longer present, verify VM 104's NIC and snapshot, then
@@ -469,3 +481,27 @@ record, source-deny rules persist, and no unexplained unit is failed.
 - [ ] Concurrent Frigate/local-AI load meets memory, swap, latency, and reliability gates.
 - [ ] Offline Whisper and firewall policy survive CT/Docker reboot.
 - [ ] Backup has `TASK OK` and an isolated restore proof from Phase 10.
+
+## Application recovery contract
+
+The tracked Compose mounts `models/`, `open-webui/`, `whisper/`, `piper/` and
+`openwakeword/` beneath `/opt/stacks/local-ai`. Preserve these with Compose,
+protected settings, UID/GID mappings and firewall/systemd files. Model/cache
+files need recorded hashes and an approved re-download source or offline copy;
+Open WebUI data includes user/application state and needs a stopped checkpoint.
+Do not assume an LXC archive includes host bind mounts: inspect the actual
+CT configuration and back up each external path independently.
+
+Several tracked image references float (`main`, `latest`, `server-vulkan`).
+Record actual deployed image IDs/digests and retain recoverable images before
+an update; replaying the tag later is not a matched rollback. Review one service
+at a time against copied state. On failure stop the candidate and restore old
+image plus compatible pre-update state; preserve model files and failed data.
+
+Use Phase10's isolated CT restore with no production NIC, host model mounts or
+GPU passthrough until each is reviewed. Validate copied files/hashes and WebUI
+state first. Inference/voice proof may require a separately prepared isolated
+GPU/device environment; a no-GPU boot does not prove inference readiness. Keep
+HA tools, external credentials and automation outputs disabled. Record chat,
+embedding dimension and voice checks only where actually run. CT114's existing
+package-path failure remains an unresolved operational dependency.

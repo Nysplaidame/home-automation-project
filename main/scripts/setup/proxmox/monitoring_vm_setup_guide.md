@@ -15,7 +15,7 @@
 #   - OpenWrt firewall / syslog events         → Telegraf syslog + Grafana
 #
 # Disk: 32GB (thin-provisioned, ~14GB actual at steady state)
-# RAM:  2048 MB
+# RAM:  3072 MiB configured; earlier 2048 MiB is historical
 # CPU:  2 cores
 
 > Live note, 2026-05-08: VM 102 is deployed from the Debian 13 genericcloud
@@ -35,111 +35,78 @@
 
 ## Phase 1 — Create VM 102 in Proxmox
 
-### 1.1 — Preferred path: Debian 13 cloud image
+Use Debian13 genericcloud and the current [guest inventory](../../../configs/proxmox/guest-configs.md):
+2 cores, 3072 MiB configured RAM, 32 GiB disk, VLAN60, startup order3.
+Historical 2048 MiB notes describe earlier running memory, not the rebuild target.
+See the [guest/backup diagram](../../../docs/diagrams/infrastructure/proxmox-guests-and-backups.mermaid).
 
-Use the same local cloud-image workflow as `frigate-nvr` and `docker-host` when
-possible. This is the path already used for the live VM 102 on 2026-05-08.
+### 1.1 — Verify prerequisites
 
-```bash
-ls -lh /var/lib/vz/template/iso/debian-13-genericcloud-amd64.qcow2
-```
+Complete the Proxmox host phase and confirm VM102 is absent. Download the
+Debian13 genericcloud image and official checksum manifest from the same
+release directory; compare the exact image hash before staging it at
+`/var/lib/vz/template/iso/debian-13-genericcloud-amd64.qcow2`. Stage the approved
+admin public key at `/root/proxmox-admin.pub`. Do not install from an old
+Debian12 filename beneath a moving `current` download URL.
 
-If the cloud image is missing, download it or use the older installer path below
-as a fallback.
+### 1.2 — Create and configure the cloud guest
 
-### 1.2 — Fallback path: Debian 12 ISO
-
-```bash
-# On Proxmox shell
-wget -O /var/lib/vz/template/iso/debian-12-netinst-amd64.iso \
-    https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12-netinst-amd64.iso
-```
-
-### 1.3 — Create the VM
-
-Click **Create VM** in Proxmox web UI:
-
-**General**
-| Field | Value |
-|---|---|
-| VM ID | `102` |
-| Name | `monitoring` |
-| Start at boot | ✅ |
-
-**OS** — preferred: Debian 13 cloud image workflow; fallback: Debian 12 ISO → Guest OS: Linux, Version: 6.x
-
-**System**
-| Field | Value |
-|---|---|
-| Machine | `q35` |
-| BIOS | `OVMF (UEFI)` |
-| EFI Storage | `local-lvm` |
-| Pre-enroll keys | untick |
-| TPM | untick |
-| SCSI Controller | `VirtIO SCSI single` |
-
-**Disks** — keep the default disk, resize to **32 GiB**
-Cache: Write back, Discard: ✅, SSD emulation: ✅
-
-**CPU** — Sockets: 1, Cores: 2, Type: host
-
-**Memory** — 2048 MiB, Ballooning: untick
-
-**Network**
-| Field | Value |
-|---|---|
-| Bridge | `vmbr0` |
-| VLAN Tag | `60` |
-| Model | `VirtIO (paravirtualized)` |
-| Firewall | untick |
-
-Click **Finish**.
-
-### 1.4 — Install Debian
-
-If you used the Debian 13 cloud image, cloud-init handles the initial user,
-network, and SSH key setup. Confirm SSH access at `192.168.60.10`, then continue
-to the base Debian configuration.
-
-Start VM 102, open the Console, and run through the installer:
-
-- **Hostname:** `monitoring`
-- **Domain:** `home.local`
-- **Root password:** set and save to Bitwarden as `monitoring-vm`
-- **User account:** create `admin` (non-root, sudo access)
-- **Partitioning:** Guided — use entire disk, all files in one partition
-- **Software selection:** untick everything except `SSH server` and `standard system utilities`
-  (no desktop — headless server only)
-
-After install completes, remove the ISO:
-```bash
-# On Proxmox shell
-qm set 102 --delete ide2
-```
-
-### 1.5 — Note the MAC and update DHCP reservation
+Run on: Proxmox host Bash shell after checksum/public-key verification.
 
 ```bash
-qm config 102 | grep net0
+set -eu
+if qm status 102 >/dev/null 2>&1; then
+  echo 'VM102 exists; stop and inspect it'
+  exit 1
+fi
+cd /var/lib/vz/template/iso || exit 1
+test -s debian-13-genericcloud-amd64.qcow2
+test -s /root/proxmox-admin.pub
+qm create 102 --name monitoring --memory 3072 --cores 2 --cpu host \
+  --machine q35 --bios ovmf --ostype l26 \
+  --net0 virtio,bridge=vmbr0,tag=60,macaddr=BC:24:11:A6:94:95 \
+  --agent enabled=1 --onboot 1 --startup order=3
+qm set 102 --efidisk0 local-lvm:0,efitype=4m,pre-enrolled-keys=0
+qm importdisk 102 debian-13-genericcloud-amd64.qcow2 local-lvm
+imported_disk="$(qm config 102 | awk '/^unused[0-9]+:/ {print $2}')"
+if [ "$(printf '%s\n' "$imported_disk" | grep -c '^local-lvm:')" -ne 1 ]; then
+  echo 'Expected one imported OS disk; inspect the partial VM'
+  exit 1
+fi
+qm set 102 --scsihw virtio-scsi-single
+qm set 102 --scsi0 "${imported_disk},discard=on,ssd=1,cache=writeback"
+qm resize 102 scsi0 32G
+qm set 102 --boot order=scsi0 --ide2 local-lvm:cloudinit
+qm set 102 --ciuser root --sshkeys /root/proxmox-admin.pub
+qm set 102 --ipconfig0 ip=192.168.60.10/24,gw=192.168.60.1
+qm set 102 --nameserver 192.168.60.1 --searchdomain home.local
+qm start 102
 ```
 
-Update `configs/openwrt/dhcp-config.conf` — the monitoring-vm host entry already
-exists with a placeholder MAC at 192.168.60.10. Replace the MAC:
+Expected: VM102 is running with the imported OS disk as `scsi0`, an EFI disk
+and a retained cloud-init disk. Do not hard-code `vm-102-disk-0`: the EFI disk
+may have consumed that allocation. On a failure, inspect the partial guest;
+do not rerun creation or delete disks blindly. Keep the existing reservation
+for the recorded MAC; changing hardware identity requires reconciliation.
 
+### 1.3 — Confirm guest identity and access
+
+Run on: Proxmox host shell.
+
+```sh
+qm status 102
+qm config 102 | grep -E '^(name|memory|cores|net0|scsi0|ide2|ipconfig0|startup):'
 ```
-config host
-    option name 'monitoring-vm'
-    option mac 'XX:XX:XX:XX:XX:XX'    <- replace with real MAC
-    option ip '192.168.60.10'
-```
 
-Re-apply DHCP config to router (`scripts/setup/router/phase_3_dhcp_configuration.md`) then reboot
-VM 102 — it should come up at 192.168.60.10.
+Expected: the planned values above. Open the guest console, then test SSH from
+the management workstation using the approved key. Keep the console available
+until a second authenticated session works. Do not delete `ide2`; it contains
+cloud-init, not the old ISO installer.
 
-### 1.6 — Set startup order
-
-`VM 102 → Options → Start/Shutdown Order`
-Order: 3 (after HA=1, Frigate=2)
+The following phases build `/opt/monitoring`. Their generated credentials stay
+on the guest and in the approved recovery store; do not paste them into this
+vault. Record each phase's actual image versions, backup and acceptance using
+[Phase10](../../../docs/install/phases/10-backups-monitoring-maintenance.md).
 
 ---
 
@@ -168,7 +135,9 @@ sudo sed -i \
     -e 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' \
     -e 's/^#\?PermitRootLogin.*/PermitRootLogin prohibit-password/' \
     /etc/ssh/sshd_config
-sudo systemctl restart sshd
+sudo sshd -t
+# Only after validation and a second working key session:
+sudo systemctl reload ssh
 ```
 
 ---
@@ -663,7 +632,7 @@ tar czf /tmp/monitoring-config-$(date +%Y%m%d).tar.gz \
 **VM 102 — monitoring**
 - [ ] VM created: q35, OVMF, VirtIO SCSI, VLAN 60, 32GB disk, 2GB RAM
 - [ ] Debian 13 installed, SSH only, no desktop
-- [ ] ISO removed after install (`qm set 102 --delete ide2`)
+- [ ] Verified Debian13 cloud image imported; cloud-init disk retained and guest identity checked
 - [ ] Start at boot enabled, startup order: 3
 - [ ] Static IP confirmed at 192.168.60.10
 - [ ] MAC noted and added to dhcp-config.conf (monitoring-vm entry)
