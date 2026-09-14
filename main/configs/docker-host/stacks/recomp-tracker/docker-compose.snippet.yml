@@ -1,0 +1,6 @@
+# Deprecated: use the standalone docker-compose.yml in this directory.
+#
+# This older fragment predates the docker-host's explicit network allocation,
+# self-hosted ntfy authentication, and Europe/London DST handling. Keeping it
+# as a marker prevents a future deployment from accidentally copying its stale
+# public-ntfy configuration into another Compose stack.

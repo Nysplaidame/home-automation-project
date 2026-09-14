@@ -1,271 +1,152 @@
 export const diagrams = [
   {
-    id: 'current-master-architecture',
-    title: 'Logical Architecture',
-    section: 'network',
-    path: 'network/current-master-architecture.mermaid',
-    summary: 'Logical VLANs, Proxmox guests, services, storage, and local/remote access paths.',
-    tags: ['architecture', 'services', 'placement'],
-    source: `flowchart TB
-    Internet["Internet"] --> Router["GL.iNet GL-MT6000 OpenWrt<br/>DHCP, local DNS, firewall, NTP"]
-    Router --> Proxmox["proxmox / MINISFORUM mini PC<br/>192.168.10.10; 8006,22"]
-    Rollback["VM 101 Frigate and VM 104 llm-host<br/>powered off; rollback only"]
-    Proxmox -.-> Rollback
-    LAN["VLAN 1 HomeMain<br/>192.168.1.0/24; HomeMain 2.4/5 GHz"]
-    Admin["VLAN 10 Management<br/>192.168.10.0/24; HomeAdmin / HomeAdmin-2G"]
-    Printers["VLAN 35 Printers<br/>192.168.35.0/24; HomePrinters"]
-    IoT["VLAN 50 HomeIoT<br/>192.168.50.0/24; HomeIoT 2.4 GHz"]
-    DMZ["VLAN 70 DMZ<br/>192.168.70.0/24; HomeDMZ disabled"]
-    Guest["VLAN 99 Guest<br/>192.168.99.0/24; HomeGuest internet-only"]
-    Router --- LAN
-    Router --- Admin
-    Router --- Printers
-    Router --- IoT
-    Router --- DMZ
-    Router --- Guest
-    subgraph Automation["VLAN 20 Automation | 192.168.20.0/24"]
-      HA["home-assistant VM 100<br/>.101:8123 HTTPS, 8883 MQTT"]
-      Docker["docker-host VM 103<br/>.102"]
-      LLM["llm-host CT 114<br/>.104"]
-      OpenWebUI["Open WebUI<br/>.104:3002<br/>openwebui.home.local"]
-      Voice["llama.cpp 8081/8082<br/>Whisper 10200; Piper 10300; OpenWakeWord 10400"]
-    end
-    subgraph NVR["VLAN 30 NVR | 192.168.30.0/24"]
-      Frigate["frigate-nvr CT 111<br/>.20:8971,5000,8554,8555"]
-      Camera["cam-01-annke-c500<br/>.21"]
-    end
-    subgraph Storage["VLAN 40 Storage | 192.168.40.0/24"]
-      OMV["omvnas .50<br/>80,22,445,2049,8088"]
-    end
-    subgraph Monitoring["VLAN 60 Monitoring | 192.168.60.0/24"]
-      Monitor["monitoring VM 102 .10<br/>Grafana 3000; Kuma 3001; InfluxDB 8086"]
-    end
-    Proxmox --> HA
-    Proxmox --> Docker
-    Proxmox --> LLM
-    Proxmox --> Frigate
-    Proxmox --> Monitor
-    Camera -->|"RTSP"| Frigate
-    HA -->|"LLM / voice"| LLM
-    LLM --- OpenWebUI
-    LLM --- Voice
-    OMV -->|"NFS recordings"| Frigate
-    OMV -->|"NFS backups/media"| HA
-    subgraph DockerBox["docker-host containers"]
-      AdGuard["AdGuard Home\n53/8080"]
-      Immich["Immich\n2283"]
-      Homepage["Homepage\n3001"]
-      Dozzle["Dozzle\n8081"]
-      Viewer["Mermaid Viewer\n8092"]
-      Bambuddy["Bambuddy\n8000"]
-      Ntfy["ntfy\n8085"]
-      Mealie["Mealie\n9925"]
-      Grocy["Grocy\n9283"]
-      LiveSync["Obsidian LiveSync\n5984/8443"]
-      Garden["GardenKeeper\n8090/8091"]
-      Search["SearXNG 8087\nWhoogle 8088"]
-      Ops["Watchtower monitor-only\nTelegraf -> 8086"]
-    end
-    Docker --- AdGuard
-    Docker --- Immich
-    Docker --- Homepage
-    Docker --- Dozzle
-    Docker --- Viewer
-    Docker --- Bambuddy
-    Docker --- Ntfy
-    Docker --- Mealie
-    Docker --- Grocy
-    Docker --- LiveSync
-    Docker --- Garden
-    Docker --- Search
-    Docker --- Ops
-    Mobile["Android phone<br/>100.105.216.6 observed"] --> Tailnet["Tailscale overlay<br/>DERP London relay currently"] --> Tail["docker-host tailscale0<br/>100.94.122.18"] --> Docker
-    Tail --> Routes["Approved: HA .101; OMV .50; Monitoring .10<br/>Frigate .20 advertised, approval pending"]
-    Tail -.-> Setup["tailscale up: accept DNS false; hostname docker-host;<br/>advertise only four /32 routes; IP forwarding + ACL/UFW/OpenWrt port rules"]
-    Routes --> HA
-    Routes --> OMV
-    Routes --> Monitor
-    Routes -.->|"HTTPS 8971 only after approval"| Frigate
-    classDef core fill:#e8a349,stroke:#6e4315,color:#1c1c1c
-    classDef compute fill:#81b29a,stroke:#2f6654,color:#102c24
-    classDef app fill:#9ec1cf,stroke:#376a7a,color:#102a32
-    classDef remote fill:#f1a6a6,stroke:#8e3b3b,color:#3d1010
-    class Router core
-    class Proxmox,HA,Docker,LLM,Frigate,Monitor compute
-    class OpenWebUI,Voice,AdGuard,Immich,Homepage,Dozzle,Viewer,Bambuddy,Ntfy,Mealie,Grocy,LiveSync,Garden,Search,Ops app
-    class Mobile,Tailnet,Tail,Routes remote`
+    "id": "docker-host-service-placement",
+    "title": "Docker-host Service Placement",
+    "section": "infrastructure",
+    "path": "infrastructure/docker-host-service-placement.mermaid",
+    "summary": "Service inventory, runtime policy, private data dependencies, and backup boundaries.",
+    "tags": [
+      "docker",
+      "services",
+      "containers",
+      "placement"
+    ],
+    "source": "%%{init: {\"theme\":\"base\",\"fontFamily\":\"Segoe UI, sans-serif\",\"themeVariables\":{\"primaryColor\":\"#123044\",\"primaryTextColor\":\"#eef6ff\",\"primaryBorderColor\":\"#58b7bf\",\"lineColor\":\"#9aafc4\",\"clusterBkg\":\"#0d1c2d\",\"clusterBorder\":\"#38516b\",\"tertiaryColor\":\"#0d1c2d\",\"edgeLabelBackground\":\"#0b1929\",\"fontFamily\":\"Segoe UI, sans-serif\",\"fontSize\":\"18px\"},\"flowchart\":{\"curve\":\"linear\",\"nodeSpacing\":20,\"rankSpacing\":28,\"padding\":12,\"subGraphTitleMargin\":{\"top\":8,\"bottom\":16},\"wrappingWidth\":380,\"useMaxWidth\":false}}}%%\r\nflowchart LR\r\n    %% This is a service inventory, not an all-to-all traffic graph.\r\n    subgraph Runtime[\"VM103 · 192.168.20.102\"]\r\n        direction TB\r\n        Host[\"DOCKER HOST<br/>6 GiB RAM · 64 GiB disk<br/>/opt/stacks/service/\"]\r\n        Network[\"NETWORK BOUNDARY<br/>Explicit 10.240.x.0/24 bridges<br/>Gridfinity: 172.32.0.0/24<br/>Bambuddy: temporary host mode\"]\r\n        Access[\"ACCESS + REBUILD<br/>UFW + DOCKER-USER + app auth<br/>Secrets and live databases off Git<br/>Templates: configs/docker-host/\"]\r\n        Host ~~~ Network ~~~ Access\r\n    end\r\n    subgraph Services[\"APPLICATION GROUPS · OWNERS RETAIN THEIR DATA\"]\r\n        direction TB\r\n        Home[\"HOUSEHOLD<br/>Immich 2283 · Mealie 9925 · Grocy 9283<br/>GardenKeeper 8090/8091<br/>Household Hub 8100/8101 · Recomp 8420\"]\r\n        Media[\"MEDIA + SECURE DATA<br/>Jellyfin 8096 · Calibre-Web 8083<br/>Atsumeru 31337 · qBittorrent/VPN 8084<br/>Vaultwarden: HTTPS; raw8222 loopback\"]\r\n        Portal[\"PORTALS + WORKSHOP<br/>Homepage HTTPS443; rollback3001<br/>Fixed proxies8180–8209<br/>Mermaid8092 · Gridfinity8093 · Bambuddy8000\"]\r\n        NetworkApps[\"NETWORK + KNOWLEDGE<br/>AdGuard DNS53 / admin8080 · ntfy8085<br/>SearXNG8087 · Whoogle8088<br/>LiveSync5984 · Tailscale host service\"]\r\n        Ops[\"OPERATIONS<br/>Dozzle · Telegraf · Watchtower monitor-only<br/>apt-cacher-ng · MediaMTX relay<br/>Troubleshooting8094: management-only\"]\r\n        Home ~~~ Media ~~~ Portal ~~~ NetworkApps ~~~ Ops\r\n    end\r\n    subgraph Data[\"PRIVATE DATA + BACKUPS\"]\r\n        direction TB\r\n        Databases[\"APP DEPENDENCIES<br/>Immich: PostgreSQL / Redis / ML<br/>GardenKeeper: PostgreSQL / Redis / worker<br/>Household Hub: PostgreSQL / Redis / Qdrant\"]\r\n        Mounts[\"OMV MOUNTS<br/>Immich uploads / library<br/>Jellyfin read-only; books/comics writable<br/>Downloads: incomplete / complete only\"]\r\n        Backup[\"DAILY APP-DATA JOB · 03:45<br/>Selected app state + database dumps<br/>OMV backups/docker-host<br/>Job status and restore proof are separate\"]\r\n        Databases ~~~ Mounts ~~~ Backup\r\n    end\r\n    Runtime -->|\"hosts\"| Services\r\n    Services -->|\"scoped dependencies\"| Data\r\n    class Host core\r\n    class Network,Access policy\r\n    class Databases,Mounts,Backup store\r\n\r\n    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa\r\n    classDef store fill:#292745,stroke:#aa99db,color:#f2edff\r\n    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8\r\n    classDef deferred fill:#1b2638,stroke:#9dabc1,color:#d3dfef,stroke-dasharray:5 4"
   },
   {
-    id: 'vlan-architecture-clean',
-    title: 'VLAN Architecture Clean',
-    section: 'network',
-    path: 'network/vlan_architecture_clean.mermaid',
-    summary: 'VLANs, subnets, router role, physical ports, local AI, and remote access placement.',
-    tags: ['vlan', 'router', 'network'],
-    source: `flowchart TB
-    V10["VLAN 10 Management"]
-    V20["VLAN 20 Automation"]
-    V30["VLAN 30 NVR"]
-    V35["VLAN 35 Printers"]
-    V40["VLAN 40 Storage"]
-    V50["VLAN 50 HomeIoT"]
-    V60["VLAN 60 Monitoring"]
-    V70["VLAN 70 DMZ"]
-    V99["VLAN 99 Guest"]`
+    "id": "proxmox-guests-and-backups",
+    "title": "Proxmox Guests and Backups",
+    "section": "infrastructure",
+    "path": "infrastructure/proxmox-guests-and-backups.mermaid",
+    "summary": "Production guests, rollback guests, shared iGPU paths, and OMV backup schedules.",
+    "tags": [
+      "proxmox",
+      "vm",
+      "lxc",
+      "backup",
+      "gpu"
+    ],
+    "source": "%%{init: {\"theme\":\"base\",\"fontFamily\":\"Segoe UI, sans-serif\",\"themeVariables\":{\"primaryColor\":\"#123044\",\"primaryTextColor\":\"#eef6ff\",\"primaryBorderColor\":\"#58b7bf\",\"lineColor\":\"#9aafc4\",\"clusterBkg\":\"#0d1c2d\",\"clusterBorder\":\"#38516b\",\"tertiaryColor\":\"#0d1c2d\",\"edgeLabelBackground\":\"#0b1929\",\"fontFamily\":\"Segoe UI, sans-serif\",\"fontSize\":\"18px\"},\"flowchart\":{\"curve\":\"linear\",\"nodeSpacing\":20,\"rankSpacing\":28,\"padding\":12,\"subGraphTitleMargin\":{\"top\":8,\"bottom\":16},\"wrappingWidth\":380,\"useMaxWidth\":false}}}%%\r\nflowchart LR\r\n    %% Guest membership and backup jobs; no cross-links to application services.\r\n    subgraph VMs[\"PROXMOX · PRODUCTION VMS\"]\r\n        direction TB\r\n        HA[\"VM100 · HOME ASSISTANT<br/>.20.101 · 2 vCPU · 6 GiB RAM · 32 GiB disk\"]\r\n        Monitor[\"VM102 · MONITORING<br/>.60.10 · 2 vCPU · 3 GiB RAM · 32 GiB disk\"]\r\n        Docker[\"VM103 · DOCKER HOST<br/>.20.102 · 2 vCPU · 6 GiB RAM · 64 GiB disk\"]\r\n        HA ~~~ Monitor ~~~ Docker\r\n    end\r\n    subgraph CTs[\"PROXMOX · PRODUCTION LXCS\"]\r\n        direction TB\r\n        Frigate[\"CT111 · FRIGATE<br/>.30.20 · 2 vCPU · 6 GiB RAM · 32 GiB disk\"]\r\n        AI[\"CT114 · LOCAL AI<br/>.20.104 · 4 vCPU · 20 GiB RAM · 100 GiB disk\"]\r\n        GPU[\"Shared Intel iGPU device access<br/>renderD128 + card0<br/>No PCI passthrough\"]\r\n        Frigate ~~~ AI ~~~ GPU\r\n    end\r\n    VMJob[\"VM JOB · 100 / 102 / 103<br/>Daily02:00 · snapshot · ZSTD\"]\r\n    CTJob[\"LXC JOB · 111 / 114<br/>Daily04:00 · snapshot · ZSTD<br/>Local temporary data: /var/tmp\"]\r\n    OMV[\"OMV · 192.168.40.50<br/>omv-backups NFS<br/>7 daily + 6 monthly generations\"]\r\n    Evidence[\"ACCEPTANCE STATUS<br/>Fresh guest-archive evidence pending<br/>Integrity and restore proof are separate\"]\r\n    Rollback[\"POWERED-OFF ROLLBACK ONLY<br/>VM101 old Frigate · VM104 old AI<br/>Never start alongside replacement CTs\"]\r\n    VMs --> VMJob --> OMV\r\n    CTs --> CTJob --> OMV\r\n    OMV --> Evidence\r\n    Rollback ~~~ CTs\r\n    class HA,Monitor,Docker,Frigate,AI core\r\n    class VMJob,CTJob,OMV store\r\n    class GPU,Evidence policy\r\n    class Rollback deferred\r\n\r\n    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa\r\n    classDef store fill:#292745,stroke:#aa99db,color:#f2edff\r\n    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8\r\n    classDef deferred fill:#1b2638,stroke:#9dabc1,color:#d3dfef,stroke-dasharray:5 4"
   },
   {
-    id: 'remote-access-flow',
-    title: 'Remote Access Flow',
-    section: 'network',
-    path: 'network/remote-access-flow.mermaid',
-    summary: 'Tailscale daily access, docker-host host routes, and WireGuard fallback.',
-    tags: ['tailscale', 'wireguard', 'remote access'],
-    source: `flowchart LR
-    Client["Remote client"]
-    Tailscale["Tailscale"]
-    DockerHost["docker-host"]
-    WireGuard["WireGuard fallback"]
-    Client --> Tailscale --> DockerHost
-    Client -.-> WireGuard`
+    "id": "install-sequence",
+    "title": "Install and Recovery Sequence",
+    "section": "install",
+    "path": "install/install-sequence.mermaid",
+    "summary": "Fresh deployment order with validation and safety gates.",
+    "tags": [
+      "install",
+      "recovery",
+      "sequence"
+    ],
+    "source": "%%{init: {\"theme\":\"base\",\"fontFamily\":\"Segoe UI, sans-serif\",\"themeVariables\":{\"primaryColor\":\"#123044\",\"primaryTextColor\":\"#eef6ff\",\"primaryBorderColor\":\"#58b7bf\",\"lineColor\":\"#9aafc4\",\"clusterBkg\":\"#0d1c2d\",\"clusterBorder\":\"#38516b\",\"tertiaryColor\":\"#0d1c2d\",\"edgeLabelBackground\":\"#0b1929\",\"fontFamily\":\"Segoe UI, sans-serif\",\"fontSize\":\"18px\"},\"flowchart\":{\"curve\":\"linear\",\"nodeSpacing\":20,\"rankSpacing\":28,\"padding\":12,\"subGraphTitleMargin\":{\"top\":8,\"bottom\":16},\"wrappingWidth\":380,\"useMaxWidth\":false}}}%%\r\nflowchart LR\r\n    %% Read each column top to bottom, then advance to the next column.\r\n    subgraph Foundation[\"01 · FOUNDATION\"]\r\n        direction TB\r\n        Start[\"START-HERE + PHASE00<br/>Safety model · inventory · command contexts\"]\r\n        Router[\"PHASE01 · OPENWRT<br/>VLANs · DHCP/DNS · firewall · NTP\"]\r\n        RouterGate[\"GATE · router validation passes\"]\r\n        Proxmox[\"PHASE02 · PROXMOX<br/>Host install · bridge · guest foundations\"]\r\n        Start --> Router --> RouterGate --> Proxmox\r\n    end\r\n    subgraph Platforms[\"02 · PLATFORMS\"]\r\n        direction TB\r\n        HA[\"PHASE03 · HOME ASSISTANT<br/>HAOS · MQTT · ESPHome base\"]\r\n        Frigate[\"PHASE04 · FRIGATE<br/>CT111 · first-camera proving\"]\r\n        Docker[\"PHASE05 · DOCKER HOST<br/>Compose policy · Tailscale\"]\r\n        AI[\"PHASE05A · LOCAL AI<br/>CT114 · llama.cpp · Wyoming\"]\r\n        HA --> Frigate --> Docker --> AI\r\n    end\r\n    subgraph Services[\"03 · STORAGE + SERVICES\"]\r\n        direction TB\r\n        NAS[\"PHASE06 · OMV<br/>Shares · users · storage health\"]\r\n        Tier1[\"PHASE07 · CORE APPS<br/>AdGuard · Immich · Homepage · Dozzle\"]\r\n        BackupGate[\"GATE · backup readiness before risky apps<br/>Bring Phase10 safeguards forward\"]\r\n        Tier23[\"PHASE08 / 09 · MORE APPS<br/>Tier2 setup + Tier3 evaluation<br/>Per-service deployment gates apply\"]\r\n        NAS --> Tier1 --> BackupGate --> Tier23\r\n    end\r\n    subgraph Acceptance[\"04 · ACCEPTANCE\"]\r\n        direction TB\r\n        Backup[\"PHASE10 · RESILIENCE<br/>Backups · monitoring · maintenance / restore\"]\r\n        Physical[\"PHASE11 · PHYSICAL INTEGRATION<br/>VentSys · printers · cameras\"]\r\n        Safety[\"GATE · tested safety behavior<br/>Before unattended operation\"]\r\n        Finish[\"PHASE12 · VALIDATION<br/>End-to-end checks + troubleshooting\"]\r\n        Backup --> Physical --> Safety --> Finish\r\n    end\r\n    Foundation --> Platforms --> Services --> Acceptance\r\n    class Start,Proxmox,HA,Docker,AI,NAS,Finish core\r\n    class RouterGate,BackupGate,Safety policy\r\n\r\n    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa\r\n    classDef store fill:#292745,stroke:#aa99db,color:#f2edff\r\n    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8\r\n    classDef deferred fill:#1b2638,stroke:#9dabc1,color:#d3dfef,stroke-dasharray:5 4"
   },
   {
-    id: 'dns-ntp-flow',
-    title: 'DNS and NTP Flow',
-    section: 'network',
-    path: 'network/dns-ntp-flow.mermaid',
-    summary: 'Router DNS/NTP authority, AdGuard Home, fallback resolution, and HA time.',
-    tags: ['dns', 'ntp', 'adguard'],
-    source: `flowchart LR
-    Router["OpenWrt"]
-    AdGuard["AdGuard Home"]
-    Clients["Clients"]
-    Clients --> Router --> AdGuard`
+    "id": "current-master-architecture",
+    "title": "Logical Architecture",
+    "section": "network",
+    "path": "network/current-master-architecture.mermaid",
+    "summary": "Compact placement overview; dedicated views provide network, access, and service detail.",
+    "tags": [
+      "architecture",
+      "logical",
+      "services",
+      "network"
+    ],
+    "source": "%%{init: {\"theme\":\"base\",\"fontFamily\":\"Segoe UI, sans-serif\",\"themeVariables\":{\"primaryColor\":\"#123044\",\"primaryTextColor\":\"#eef6ff\",\"primaryBorderColor\":\"#58b7bf\",\"lineColor\":\"#9aafc4\",\"clusterBkg\":\"#0d1c2d\",\"clusterBorder\":\"#38516b\",\"tertiaryColor\":\"#0d1c2d\",\"edgeLabelBackground\":\"#0b1929\",\"fontFamily\":\"Segoe UI, sans-serif\",\"fontSize\":\"18px\"},\"flowchart\":{\"curve\":\"linear\",\"nodeSpacing\":20,\"rankSpacing\":28,\"padding\":12,\"subGraphTitleMargin\":{\"top\":8,\"bottom\":16},\"wrappingWidth\":380,\"useMaxWidth\":false}}}%%\r\nflowchart TB\r\n    %% Placement overview. Service links, ACLs and cabling have dedicated views.\r\n    WAN[\"Zen fibre<br/>Openreach ONT\"] -->|\"eth1 · PPPoE\"| Router[\"GL-MT6000 · OpenWrt<br/>192.168.10.1<br/>Gateway · firewall · DNS · NTP\"]\r\n    subgraph Compute[\"PROXMOX · 192.168.10.10 · 64 GiB RAM\"]\r\n        direction TB\r\n        Home[\"HOME CONTROL + AI<br/>VM100 Home Assistant · .20.101<br/>CT114 llama.cpp / voice · .20.104\"]\r\n        Apps[\"HOUSEHOLD SERVICES<br/>VM103 docker-host · .20.102<br/>Apps · Homepage · Tailscale\"]\r\n        Ops[\"MONITORING + NVR<br/>VM102 monitoring · .60.10<br/>CT111 Frigate · .30.20\"]\r\n        Old[\"VM101 + VM104<br/>Powered-off rollback only\"]\r\n        Home ~~~ Apps ~~~ Ops ~~~ Old\r\n    end\r\n    subgraph Storage[\"STORAGE · VLAN40\"]\r\n        direction TB\r\n        NAS[\"OMV NAS · 192.168.40.50<br/>NFS + SMB · media + backups\"]\r\n        Consumers[\"Serves Proxmox, HA and VM103<br/>Frigate recording mount retained<br/>Backup success is not restore proof\"]\r\n        NAS --- Consumers\r\n    end\r\n    subgraph Physical[\"PHYSICAL INTEGRATIONS\"]\r\n        direction TB\r\n        Hive[\"LAN2 · VLAN55 · Hive .55.10<br/>Internet verified · app issue open\"]\r\n        CCTV[\"LAN3 · Zyxel + 3 ANNKE cameras<br/>Intentionally disconnected<br/>Fourth camera remains future work\"]\r\n        Workshop[\"P1S · VLAN35 · not commissioned<br/>VentSys · VLAN50 · hardware pending\"]\r\n        Hive ~~~ CCTV ~~~ Workshop\r\n    end\r\n    Router ---|\"LAN1 · VLAN trunk\"| Compute\r\n    Router ---|\"LAN4 · VLAN40\"| Storage\r\n    Router ---|\"See physical cabling view\"| Physical\r\n    class Router,Home,Apps,Ops core\r\n    class NAS,Consumers store\r\n    class Old,CCTV,Workshop deferred\r\n    class Hive policy\r\n\r\n    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa\r\n    classDef store fill:#292745,stroke:#aa99db,color:#f2edff\r\n    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8\r\n    classDef deferred fill:#1b2638,stroke:#9dabc1,color:#d3dfef,stroke-dasharray:5 4"
   },
   {
-    id: 'security-access-flow',
-    title: 'Security Access Flow',
-    section: 'network',
-    path: 'network/security-access-flow.mermaid',
-    summary: 'Firewall, ACL, host firewall, service auth, and blocked path intent.',
-    tags: ['firewall', 'security', 'acl'],
-    source: `flowchart TB
-    LAN --> FW["Firewall rules"]
-    FW --> Services["Internal services"]
-    FW -.-> Blocked["Blocked paths"]`
+    "id": "dns-ntp-flow",
+    "title": "DNS and NTP Flow",
+    "section": "network",
+    "path": "network/dns-ntp-flow.mermaid",
+    "summary": "Router authority, AdGuard filtering, public fallback, and restricted-device time flow.",
+    "tags": [
+      "dns",
+      "ntp",
+      "adguard"
+    ],
+    "source": "%%{init: {\"theme\":\"base\",\"fontFamily\":\"Segoe UI, sans-serif\",\"themeVariables\":{\"primaryColor\":\"#123044\",\"primaryTextColor\":\"#eef6ff\",\"primaryBorderColor\":\"#58b7bf\",\"lineColor\":\"#9aafc4\",\"clusterBkg\":\"#0d1c2d\",\"clusterBorder\":\"#38516b\",\"tertiaryColor\":\"#0d1c2d\",\"edgeLabelBackground\":\"#0b1929\",\"fontFamily\":\"Segoe UI, sans-serif\",\"fontSize\":\"18px\"},\"flowchart\":{\"curve\":\"linear\",\"nodeSpacing\":20,\"rankSpacing\":28,\"padding\":12,\"subGraphTitleMargin\":{\"top\":8,\"bottom\":16},\"wrappingWidth\":380,\"useMaxWidth\":false}}}%%\r\nflowchart LR\r\n    subgraph DNS[\"NAME RESOLUTION\"]\r\n        direction TB\r\n        Clients[\"CLIENTS · INCLUDING RESTRICTED VLANS<br/>Use their router gateway for DNS\"]\r\n        RouterDNS[\"OPENWRT DNSMASQ<br/>Local names + DHCP authority\"]\r\n        AdGuard[\"ADGUARD · VM103<br/>192.168.20.102 · filtering\"]\r\n        Upstream[\"PUBLIC RESOLVERS<br/>Quad9 preferred · Cloudflare secondary<br/>No Google fallback\"]\r\n        Clients --> RouterDNS --> AdGuard --> Upstream\r\n        RouterDNS -.->|\"fallback if AdGuard unavailable\"| Upstream\r\n    end\r\n    subgraph Time[\"TIME SYNCHRONIZATION\"]\r\n        direction TB\r\n        NTP[\"OPENWRT NTP<br/>Per-zone scoped access\"]\r\n        HA[\"HOME ASSISTANT<br/>Router-derived time\"]\r\n        ESP[\"ESPHOME / VENTSYS<br/>Through HA or permitted direct NTP<br/>Hardware adoption remains pending\"]\r\n        NTP --> HA --> ESP\r\n        NTP -.->|\"where allowed\"| ESP\r\n    end\r\n    subgraph Policy[\"CLIENT POLICY\"]\r\n        Rules[\"Router remains local-name authority<br/>Enforced clients cannot bypass DNS53/853<br/>VLAN55 Hive also uses router DNS/NTP<br/>Nonstandard encrypted DNS is not excluded\"]\r\n    end\r\n    DNS ~~~ Time ~~~ Policy\r\n    class RouterDNS,AdGuard,NTP,HA core\r\n    class Rules policy\r\n    class ESP deferred\r\n\r\n    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa\r\n    classDef store fill:#292745,stroke:#aa99db,color:#f2edff\r\n    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8\r\n    classDef deferred fill:#1b2638,stroke:#9dabc1,color:#d3dfef,stroke-dasharray:5 4"
   },
   {
-    id: 'physical-port-and-cabling',
-    title: 'Physical Devices, Ports, and Cabling',
-    section: 'network',
-    path: 'network/physical-port-and-cabling.mermaid',
-    summary: 'Physical device inventory, router/GS1900 port map, Wi-Fi endpoints, and CCTV capacity.',
-    tags: ['ports', 'cabling', 'switch', 'cctv', 'poe'],
-    source: `flowchart LR
-    Upstream["Upstream router/modem"] --> WAN
-    subgraph RouterPorts["router: GL.iNet GL-MT6000"]
-      direction TB
-      WAN["wan: live upstream DHCP"]
-      LAN1["lan1: live tagged trunk"]
-      LAN2["lan2: unconnected VLAN 10"]
-      LAN3["lan3: live tagged trunk"]
-      LAN4["lan4: live OMV NAS VLAN 40"]
-      LAN5["lan5: unconnected VLAN 1"]
-    end
-    LAN1 --> Proxmox["proxmox / MINISFORUM mini PC\n192.168.10.10"]
-    LAN3 --> SW1
-    subgraph SwitchPorts["gs1900-switch: ports top to bottom"]
-      direction TB
-      SW1["1: router trunk"]
-      SW2["2: live PoE camera"]
-      SW3["3-7: future PoE cameras"]
-      SW8["8: spare VLAN 40 storage"]
-    end
-    SW2 --> Camera1["cam-01-annke-c500\n192.168.30.21"]
-    SW3 -.-> Cameras["cam-02 through cam-06"]
-    LAN4 --> OMV["omvnas\n192.168.40.50"]
-    LAN2 -.-> Admin["Admin workstation"]
-    LAN5 -.-> Recovery["Recovery laptop"]`
+    "id": "physical-port-and-cabling",
+    "title": "Physical Ports and Cabling",
+    "section": "network",
+    "path": "network/physical-port-and-cabling.mermaid",
+    "summary": "Router attachments, Wi-Fi, and the disconnected switch and camera baseline.",
+    "tags": [
+      "physical",
+      "ports",
+      "switch",
+      "cabling"
+    ],
+    "source": "%%{init: {\"theme\":\"base\",\"fontFamily\":\"Segoe UI, sans-serif\",\"themeVariables\":{\"primaryColor\":\"#123044\",\"primaryTextColor\":\"#eef6ff\",\"primaryBorderColor\":\"#58b7bf\",\"lineColor\":\"#9aafc4\",\"clusterBkg\":\"#0d1c2d\",\"clusterBorder\":\"#38516b\",\"tertiaryColor\":\"#0d1c2d\",\"edgeLabelBackground\":\"#0b1929\",\"fontFamily\":\"Segoe UI, sans-serif\",\"fontSize\":\"18px\"},\"flowchart\":{\"curve\":\"linear\",\"nodeSpacing\":20,\"rankSpacing\":28,\"padding\":12,\"subGraphTitleMargin\":{\"top\":8,\"bottom\":16},\"wrappingWidth\":380,\"useMaxWidth\":false}}}%%\r\nflowchart LR\r\n    %% Physical attachments only. Guest placement has its own Proxmox view.\r\n    ONT[\"Openreach ONT<br/>Zen fibre\"] --> WAN[\"WAN · eth1<br/>Untagged PPPoE\"]\r\n    LAN1[\"LAN1<br/>Tagged Proxmox trunk\"] --- Proxmox[\"MINISFORUM · Proxmox<br/>192.168.10.10<br/>VLAN-aware guest bridge\"]\r\n    LAN2[\"LAN2<br/>VLAN55 access\"] --- Hive[\"Hive hub · 192.168.55.10<br/>Internet verified · app issue open\"]\r\n    LAN3[\"LAN3 · configured trunk<br/>Tagged VLANs1 / 10 / 30 / 40\"] -.- Switch\r\n    LAN4[\"LAN4<br/>VLAN40 access\"] --- NAS[\"OMV NAS<br/>192.168.40.50\"]\r\n    LAN5[\"LAN5<br/>VLAN1 access\"] --- Recovery[\"LAN PC / recovery route\"]\r\n    subgraph Router[\"GL-MT6000 · 192.168.10.1\"]\r\n        WAN\r\n        LAN1\r\n        LAN2\r\n        LAN3\r\n        LAN4\r\n        LAN5\r\n    end\r\n    subgraph Switch[\"ZYXEL GS1900-8HP · .10.12 · DISCONNECTED\"]\r\n        direction TB\r\n        Ports[\"Port1 · router trunk<br/>Port2 · Camera1 .30.21<br/>Port3 · Patio .30.23<br/>Port4 · Gate .30.22\"]\r\n        Spare[\"Ports5–7 · spare VLAN30 PoE<br/>Port8 · spare VLAN40 access<br/>Fourth camera remains future work\"]\r\n        Ports ~~~ Spare\r\n    end\r\n    subgraph WiFi[\"ROUTER WI-FI · FIVE SSIDS\"]\r\n        direction TB\r\n        Trusted[\"HomeAdmin → VLAN10 admin<br/>HomeMain → VLAN1 household<br/>HomeGuest → VLAN99 guests\"]\r\n        Devices[\"HomePrinters → VLAN35 · P1S pending<br/>HomeIoT → VLAN50 · VentSys pending\"]\r\n        Trusted ~~~ Devices\r\n    end\r\n    Router --- WiFi\r\n    class WAN,LAN1,LAN2,LAN4,LAN5,Proxmox,NAS,Trusted core\r\n    class LAN3,Ports,Spare,Devices deferred\r\n    class Hive policy\r\n\r\n    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa\r\n    classDef store fill:#292745,stroke:#aa99db,color:#f2edff\r\n    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8\r\n    classDef deferred fill:#1b2638,stroke:#9dabc1,color:#d3dfef,stroke-dasharray:5 4"
   },
   {
-    id: 'install-sequence',
-    title: 'Install Sequence',
-    section: 'install',
-    path: 'install/install-sequence.mermaid',
-    summary: 'Fresh rebuild phase order and validation gates.',
-    tags: ['install', 'sequence', 'rebuild'],
-    source: `flowchart LR
-    A["Phase 1"] --> B["Phase 2"] --> C["Phase 3"] --> D["Phase 4"]`
+    "id": "remote-access-flow",
+    "title": "Remote Access Flow",
+    "section": "network",
+    "path": "network/remote-access-flow.mermaid",
+    "summary": "Tailscale daily access, approved host routes, and dormant WireGuard fallback.",
+    "tags": [
+      "tailscale",
+      "wireguard",
+      "remote"
+    ],
+    "source": "%%{init: {\"theme\":\"base\",\"fontFamily\":\"Segoe UI, sans-serif\",\"themeVariables\":{\"primaryColor\":\"#123044\",\"primaryTextColor\":\"#eef6ff\",\"primaryBorderColor\":\"#58b7bf\",\"lineColor\":\"#9aafc4\",\"clusterBkg\":\"#0d1c2d\",\"clusterBorder\":\"#38516b\",\"tertiaryColor\":\"#0d1c2d\",\"edgeLabelBackground\":\"#0b1929\",\"fontFamily\":\"Segoe UI, sans-serif\",\"fontSize\":\"18px\"},\"flowchart\":{\"curve\":\"linear\",\"nodeSpacing\":20,\"rankSpacing\":28,\"padding\":12,\"subGraphTitleMargin\":{\"top\":8,\"bottom\":16},\"wrappingWidth\":380,\"useMaxWidth\":false}}}%%\r\nflowchart TB\r\n    Remote[\"REMOTE OPERATOR<br/>Approved identity + device\"] --> Tailnet[\"TAILSCALE · DAILY PATH<br/>VM103 docker-host · 192.168.20.102\"]\r\n    subgraph Portal[\"DAILY MOBILE PORTAL\"]\r\n        direction TB\r\n        Grant[\"OnePlus grant<br/>Split DNS · HTTPS443 · TCP8180–8209\"]\r\n        Proxy[\"Homepage fixed-target HTTPS proxy<br/>Scoped service destinations only\"]\r\n        PortalLimit[\"No SSH, direct InfluxDB<br/>or broad VLAN access\"]\r\n        Grant --> Proxy\r\n        Proxy --- PortalLimit\r\n    end\r\n    subgraph Admin[\"APPROVED HOST ROUTES\"]\r\n        direction TB\r\n        Routes[\"HA · 192.168.20.101/32<br/>Frigate · 192.168.30.20/32 · HTTPS8971<br/>OMV · 192.168.40.50/32<br/>Monitoring · 192.168.60.10/32 · 3000/3001\"]\r\n        RouteLimit[\"Identity + host firewall still apply<br/>No broad VLAN40 route<br/>No default public app exposure\"]\r\n        Routes --- RouteLimit\r\n    end\r\n    subgraph Fallback[\"DORMANT FALLBACK · NOT DAILY ACCESS\"]\r\n        direction TB\r\n        WG[\"WireGuard client → OpenWrt<br/>Only through approved activation procedure\"]\r\n        WGScope[\"Split tunnel, narrow targets<br/>HA / OMV host access where required<br/>No broad storage subnet\"]\r\n        WG -.-> WGScope\r\n    end\r\n    Tailnet --> Portal\r\n    Tailnet --> Admin\r\n    Remote -.->|\"separate activation gate\"| Fallback\r\n    class Remote,Tailnet,Grant,Proxy,Routes core\r\n    class PortalLimit,RouteLimit policy\r\n    class WG,WGScope deferred\r\n\r\n    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa\r\n    classDef store fill:#292745,stroke:#aa99db,color:#f2edff\r\n    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8\r\n    classDef deferred fill:#1b2638,stroke:#9dabc1,color:#d3dfef,stroke-dasharray:5 4"
   },
   {
-    id: 'docker-host-service-placement',
-    title: 'Docker-host Service Placement',
-    section: 'infrastructure',
-    path: 'infrastructure/docker-host-service-placement.mermaid',
-    summary: 'Docker-host stack layout, tiering, future query-app boundary, and backup placement.',
-    tags: ['docker-host', 'services', 'placement'],
-    source: `flowchart TB
-    DockerHost["docker-host"]
-    Tier1["Tier 1"]
-    Tier2["Tier 2"]
-    Tier3["Tier 3"]`
+    "id": "security-access-flow",
+    "title": "Security Access Flow",
+    "section": "network",
+    "path": "network/security-access-flow.mermaid",
+    "summary": "Zone policy, service authentication, host firewalls, and deliberately blocked paths.",
+    "tags": [
+      "security",
+      "firewall",
+      "acl"
+    ],
+    "source": "%%{init: {\"theme\":\"base\",\"fontFamily\":\"Segoe UI, sans-serif\",\"themeVariables\":{\"primaryColor\":\"#123044\",\"primaryTextColor\":\"#eef6ff\",\"primaryBorderColor\":\"#58b7bf\",\"lineColor\":\"#9aafc4\",\"clusterBkg\":\"#0d1c2d\",\"clusterBorder\":\"#38516b\",\"tertiaryColor\":\"#0d1c2d\",\"edgeLabelBackground\":\"#0b1929\",\"fontFamily\":\"Segoe UI, sans-serif\",\"fontSize\":\"18px\"},\"flowchart\":{\"curve\":\"linear\",\"nodeSpacing\":20,\"rankSpacing\":28,\"padding\":12,\"subGraphTitleMargin\":{\"top\":8,\"bottom\":16},\"wrappingWidth\":380,\"useMaxWidth\":false}}}%%\r\nflowchart LR\r\n    %% Selected access paths; full source/destination rules live in access-matrix.md.\r\n    subgraph Layers[\"01 · EVERY ACCESS PATH IS SCOPED\"]\r\n        direction TB\r\n        Identity[\"TRUSTED ENTRY<br/>Local user / management identity<br/>or approved Tailscale identity\"]\r\n        Router[\"OPENWRT POLICY<br/>VLAN zone + host + port rules<br/>No blanket inter-VLAN permission\"]\r\n        HostFW[\"HOST FIREWALL<br/>UFW / DOCKER-USER<br/>Published ports remain source-scoped\"]\r\n        Auth[\"SERVICE AUTHENTICATION<br/>HA 2FA · app login · API token<br/>Network access is not authorization\"]\r\n        Identity --> Router --> HostFW --> Auth\r\n    end\r\n    subgraph Allowed[\"02 · EXPLICIT EXAMPLES\"]\r\n        direction TB\r\n        HA[\"AUTOMATION → DEVICES<br/>VLAN20 → VLAN50: MQTT / ESPHome<br/>Bambuddy → P1S: TCP21 / 8883 only\"]\r\n        Storage[\"RECORDING / STORAGE PATH<br/>Proxmox NFS → OMV<br/>CT111 bind mount → Frigate recordings\"]\r\n        Monitor[\"MONITORING → SERVICES<br/>Scoped health / metrics checks<br/>HA · NVR · storage · local AI\"]\r\n        AI[\"HA → LOCAL AI<br/>CT114 llama.cpp / Wyoming<br/>Approved HA entities only\"]\r\n        Tail[\"REMOTE ACCESS<br/>Four approved host routes<br/>OnePlus: fixed portal DNS / 443 / 8180–8209\"]\r\n        HA ~~~ Storage ~~~ Monitor ~~~ AI ~~~ Tail\r\n    end\r\n    subgraph Denied[\"03 · ISOLATION RULES\"]\r\n        direction TB\r\n        Guests[\"VLAN99 GUEST<br/>No internal VLAN access\"]\r\n        IoT[\"VLAN50 SAFETY IOT<br/>No broad initiation or internet<br/>VLAN55 CLOUD IOT<br/>WAN only; no internal forwarding\"]\r\n        Restricted[\"VLAN30 NVR / VLAN40 STORAGE<br/>No broad internet<br/>VLAN35 PRINTERS<br/>Only approved OTA/cloud paths\"]\r\n        Mobile[\"MOBILE PORTAL IDENTITY<br/>No broad VLAN or SSH access<br/>Fixed targets only; no arbitrary proxy\"]\r\n        Guests ~~~ IoT ~~~ Restricted ~~~ Mobile\r\n    end\r\n    Layers ~~~ Allowed ~~~ Denied\r\n    class Identity,Router,HostFW,Auth core\r\n    class Guests,IoT,Restricted,Mobile policy\r\n\r\n    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa\r\n    classDef store fill:#292745,stroke:#aa99db,color:#f2edff\r\n    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8\r\n    classDef deferred fill:#1b2638,stroke:#9dabc1,color:#d3dfef,stroke-dasharray:5 4"
   },
   {
-    id: 'proxmox-guests-and-backups',
-    title: 'Proxmox Guests and Backups',
-    section: 'infrastructure',
-    path: 'infrastructure/proxmox-guests-and-backups.mermaid',
-    summary: 'MINISFORUM Proxmox host, all production and rollback guests, shared iGPU, and OMV backup jobs.',
-    tags: ['proxmox', 'vm', 'lxc', 'backup', 'gpu'],
-    source: `flowchart TB
-    Proxmox["proxmox / MINISFORUM M1 Pro<br/>192.168.10.10:8006"]
-    HA["VM 100 home-assistant\nVLAN 20 .101\n2c/6 GiB/32 GiB"]
-    Frigate["CT 111 frigate-nvr\nVLAN 30 .20\n2c/6 GiB/32 GiB"]
-    Monitor["VM 102 monitoring\nVLAN 60 .10\n2c/3 GiB/32 GiB"]
-    Docker["VM 103 docker-host\nVLAN 20 .102\n2c/6 GiB/64 GiB"]
-    LLM["CT 114 llm-host\nVLAN 20 .104\n4c/20 GiB/100 GiB"]
-    Rollback["VM 101 Frigate / VM 104 LLM\npowered off rollback only"]
-    Proxmox --> HA
-    Proxmox --> Frigate
-    Proxmox --> Monitor
-    Proxmox --> Docker
-    Proxmox --> LLM
-    Proxmox -.-> Rollback
-    GPU["Shared Intel iGPU\nrenderD128 + card0"] --> Frigate
-    GPU --> LLM
-    VMBackup["VMs 100,102,103\ndaily 02:00; snapshot + ZSTD\nkeep 7 daily / 6 monthly"]
-    CTBackup["CTs 111,114\ndaily 04:00; snapshot + ZSTD\ntmpdir /var/tmp; same retention"]
-    OMV["omvnas / omv-backups\nNFS on 192.168.40.50"]
-    HA --> VMBackup
-    Monitor --> VMBackup
-    Docker --> VMBackup
-    Frigate --> CTBackup
-    LLM --> CTBackup
-    VMBackup --> OMV
-    CTBackup --> OMV`
+    "id": "vlan_architecture_clean",
+    "title": "VLAN Architecture",
+    "section": "network",
+    "path": "network/vlan_architecture_clean.mermaid",
+    "summary": "Eleven network segments with subnets and host placement; cabling and access have separate views.",
+    "tags": [
+      "vlan",
+      "subnet",
+      "router"
+    ],
+    "source": "%%{init: {\"theme\":\"base\",\"fontFamily\":\"Segoe UI, sans-serif\",\"themeVariables\":{\"primaryColor\":\"#123044\",\"primaryTextColor\":\"#eef6ff\",\"primaryBorderColor\":\"#58b7bf\",\"lineColor\":\"#9aafc4\",\"clusterBkg\":\"#0d1c2d\",\"clusterBorder\":\"#38516b\",\"tertiaryColor\":\"#0d1c2d\",\"edgeLabelBackground\":\"#0b1929\",\"fontFamily\":\"Segoe UI, sans-serif\",\"fontSize\":\"18px\"},\"flowchart\":{\"curve\":\"linear\",\"nodeSpacing\":20,\"rankSpacing\":28,\"padding\":12,\"subGraphTitleMargin\":{\"top\":8,\"bottom\":16},\"wrappingWidth\":380,\"useMaxWidth\":false}}}%%\r\nflowchart TB\r\n    Router[\"OPENWRT SEGMENT MAP · 11 NETWORKS<br/>Every subnet is /24; router gateway is .1<br/>Membership does not imply inter-VLAN permission\"]\r\n    subgraph Trusted[\"PEOPLE + ADMINISTRATION\"]\r\n        direction TB\r\n        V1[\"VLAN1 · LAN<br/>192.168.1.0/24<br/>HomeMain · LAN5 recovery\"]\r\n        V10[\"VLAN10 · MANAGEMENT<br/>192.168.10.0/24 · HomeAdmin<br/>Router .1 · Proxmox .10 · Zyxel .12\"]\r\n        V99[\"VLAN99 · GUEST<br/>192.168.99.0/24 · HomeGuest<br/>Internet only; no internal VLAN access\"]\r\n        V70[\"VLAN70 · DMZ<br/>192.168.70.0/24<br/>Reserved controlled public edge\"]\r\n        V1 ~~~ V10 ~~~ V99 ~~~ V70\r\n    end\r\n    subgraph Services[\"INFRASTRUCTURE SERVICES\"]\r\n        direction TB\r\n        V20[\"VLAN20 · AUTOMATION<br/>192.168.20.0/24<br/>HA .101 · docker-host .102 · AI .104\"]\r\n        V30[\"VLAN30 · NVR<br/>192.168.30.0/24 · Frigate .20<br/>Cameras .21–.23 disconnected; .24 future\"]\r\n        V40[\"VLAN40 · STORAGE<br/>192.168.40.0/24<br/>OMV .50 · direct LAN4 access\"]\r\n        V60[\"VLAN60 · MONITORING<br/>192.168.60.0/24<br/>VM102 .10 · Kuma / Grafana / InfluxDB\"]\r\n        V20 ~~~ V30 ~~~ V40 ~~~ V60\r\n    end\r\n    subgraph Devices[\"PRINTERS + DEVICES\"]\r\n        direction TB\r\n        V35[\"VLAN35 · PRINTERS<br/>192.168.35.0/24 · HomePrinters<br/>P1S .200 · not commissioned\"]\r\n        V50[\"VLAN50 · IOT SENSORS<br/>192.168.50.0/24 · HomeIoT<br/>VentSys hardware pending; no internet\"]\r\n        V55[\"VLAN55 · CLOUD IOT<br/>192.168.55.0/24 · LAN2<br/>Hive .10 · WAN only; app issue open\"]\r\n        V35 ~~~ V50 ~~~ V55\r\n    end\r\n    Router --- Trusted\r\n    Router --- Services\r\n    Router --- Devices\r\n    class Router core\r\n    class V70,V35,V50 deferred\r\n    class V55 policy\r\n\r\n    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa\r\n    classDef store fill:#292745,stroke:#aa99db,color:#f2edff\r\n    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8\r\n    classDef deferred fill:#1b2638,stroke:#9dabc1,color:#d3dfef,stroke-dasharray:5 4"
   },
   {
-    id: 'storage-and-backup-flow',
-    title: 'Storage and Backup Flow',
-    section: 'storage',
-    path: 'storage/storage-and-backup-flow.mermaid',
-    summary: 'OMV shares, HA/Frigate/Immich storage, backups, and restore drills.',
-    tags: ['storage', 'backup', 'omv'],
-    source: `flowchart LR
-    OMV["OMV NAS"]
-    Backups["Backups"]
-    Apps["Apps"]
-    Apps --> OMV --> Backups`
+    "id": "storage-and-backup-flow",
+    "title": "Storage and Backup Flow",
+    "section": "storage",
+    "path": "storage/storage-and-backup-flow.mermaid",
+    "summary": "Live data mounts and backup copies in separate lanes, with recovery acceptance tracked separately.",
+    "tags": [
+      "storage",
+      "backup",
+      "omv",
+      "restore"
+    ],
+    "source": "%%{init: {\"theme\":\"base\",\"fontFamily\":\"Segoe UI, sans-serif\",\"themeVariables\":{\"primaryColor\":\"#123044\",\"primaryTextColor\":\"#eef6ff\",\"primaryBorderColor\":\"#58b7bf\",\"lineColor\":\"#9aafc4\",\"clusterBkg\":\"#0d1c2d\",\"clusterBorder\":\"#38516b\",\"tertiaryColor\":\"#0d1c2d\",\"edgeLabelBackground\":\"#0b1929\",\"fontFamily\":\"Segoe UI, sans-serif\",\"fontSize\":\"18px\"},\"flowchart\":{\"curve\":\"linear\",\"nodeSpacing\":20,\"rankSpacing\":28,\"padding\":12,\"subGraphTitleMargin\":{\"top\":8,\"bottom\":16},\"wrappingWidth\":380,\"useMaxWidth\":false}}}%%\r\nflowchart LR\r\n    %% Parallel lanes distinguish live data mounts from backup copies.\r\n    HA[\"HOME ASSISTANT VM100<br/>Daily native backup\"] --> HAData\r\n    Guests[\"PROXMOX HOST<br/>VM / CT vzdump archives\"] --> GuestData\r\n    Apps[\"VM103 APPLICATION STATE<br/>Selected apps + DB dumps · daily03:45\"] --> AppData\r\n    Photos[\"IMMICH ON VM103<br/>Photo / video uploads and library\"] --> PhotoData\r\n    Media[\"MEDIA + DOWNLOAD APPS<br/>Jellyfin · books/comics · qBittorrent\"] --> MediaData\r\n    Frigate[\"FRIGATE CT111<br/>Proxmox NFS mount + CT bind mount\"] --> CCTV\r\n    Vault[\"OBSIDIAN PROJECT VAULT<br/>Guarded robocopy; schedule gated\"] -.-> ConfigData\r\n    subgraph OMV[\"OMV · 192.168.40.50 · NFS / SMB\"]\r\n        HAData[\"HA BACKUPS<br/>nas_backups\"]\r\n        GuestData[\"GUEST BACKUPS<br/>omv-backups · 7 daily + 6 monthly\"]\r\n        AppData[\"APP-DATA BACKUPS<br/>backups/docker-host\"]\r\n        PhotoData[\"IMMICH LIVE DATA<br/>Dedicated library / upload export\"]\r\n        MediaData[\"SCOPED LIBRARY ROOTS<br/>Jellyfin read-only; books/comics writable<br/>Downloads never mount final libraries\"]\r\n        CCTV[\"CCTV RECORDINGS<br/>Mount retained; cameras disconnected\"]\r\n        ConfigData[\"CONFIG COPIES<br/>First manual copy + restore proof pending\"]\r\n    end\r\n    subgraph Evidence[\"RECOVERY EVIDENCE · SEPARATE FROM DATA FLOW\"]\r\n        direction TB\r\n        Health[\"SMART / mount health<br/>Archive age / integrity<br/>Isolated restore + app acceptance\"]\r\n        Offsite[\"Offsite copy remains future scope<br/>Choose recovery / retention policy first\"]\r\n        Health ~~~ Offsite\r\n    end\r\n    OMV ---|\"verify each layer\"| Evidence\r\n    class HAData,GuestData,AppData,PhotoData,MediaData,CCTV,ConfigData store\r\n    class Health policy\r\n    class Vault,Offsite deferred\r\n\r\n    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa\r\n    classDef store fill:#292745,stroke:#aa99db,color:#f2edff\r\n    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8\r\n    classDef deferred fill:#1b2638,stroke:#9dabc1,color:#d3dfef,stroke-dasharray:5 4"
   },
   {
-    id: 'ventsys-control-and-safety-flow',
-    title: 'VentSys Control and Safety Flow',
-    section: 'ventsys',
-    path: 'ventsys/ventsys-control-and-safety-flow.mermaid',
-    summary: 'VentSys control loop, MQTT/ESPHome path, airflow, and safety behavior.',
-    tags: ['ventsys', 'safety', 'mqtt'],
-    source: `flowchart TB
-    Sensors --> HA["Home Assistant"]
-    HA --> Actuators
-    HA -.-> Safety["Safety state"]`
+    "id": "ventsys-control-and-safety-flow",
+    "title": "VentSys Control and Safety",
+    "section": "ventsys",
+    "path": "ventsys/ventsys-control-and-safety-flow.mermaid",
+    "summary": "Planned control, airflow, and safety acceptance; physical commissioning remains pending.",
+    "tags": [
+      "ventsys",
+      "safety",
+      "mqtt",
+      "esphome"
+    ],
+    "source": "%%{init: {\"theme\":\"base\",\"fontFamily\":\"Segoe UI, sans-serif\",\"themeVariables\":{\"primaryColor\":\"#123044\",\"primaryTextColor\":\"#eef6ff\",\"primaryBorderColor\":\"#58b7bf\",\"lineColor\":\"#9aafc4\",\"clusterBkg\":\"#0d1c2d\",\"clusterBorder\":\"#38516b\",\"tertiaryColor\":\"#0d1c2d\",\"edgeLabelBackground\":\"#0b1929\",\"fontFamily\":\"Segoe UI, sans-serif\",\"fontSize\":\"18px\"},\"flowchart\":{\"curve\":\"linear\",\"nodeSpacing\":20,\"rankSpacing\":28,\"padding\":12,\"subGraphTitleMargin\":{\"top\":8,\"bottom\":16},\"wrappingWidth\":380,\"useMaxWidth\":false}}}%%\r\nflowchart LR\r\n    %% Design intent only; not a commissioned or certified safety system.\r\n    subgraph Control[\"01 · CONTROL + TELEMETRY · PLANNED\"]\r\n        direction TB\r\n        HA[\"HOME ASSISTANT VM100<br/>Reviewed automation authority\"]\r\n        MQTT[\"MOSQUITTO<br/>TLS8883 target · scoped topics\"]\r\n        Devices[\"VLAN50 DEVICE FLEET<br/>Temperature / humidity / VOC / smoke / pressure<br/>Fan / valve controllers · smart plugs\"]\r\n        ESP[\"ESPHOME ADD-ON<br/>Firmware, adoption and device configuration\"]\r\n        HA <-->|\"commands / telemetry\"| MQTT\r\n        MQTT <--> Devices\r\n        ESP -.->|\"adoption\"| Devices\r\n    end\r\n    subgraph Air[\"02 · PHYSICAL AIRFLOW · PLANNED\"]\r\n        direction TB\r\n        Sources[\"FDM enclosure · SLA enclosure<br/>Spray booth\"]\r\n        Duct[\"PrintAirPipe ducting<br/>Branch / enclosure / 360° valves\"]\r\n        Exhaust[\"Inline / booth fans<br/>Window exhaust\"]\r\n        Sources --> Duct --> Exhaust\r\n        Sensors[\"Sensors observe enclosures / duct<br/>Actuators operate fans and valves\"]\r\n        Exhaust ~~~ Sensors\r\n    end\r\n    subgraph Safety[\"03 · SAFETY ACCEPTANCE · HARDWARE GATE\"]\r\n        direction TB\r\n        Trigger[\"Sensor threshold / reviewed HA trigger\"]\r\n        Emergency[\"Emergency sequence<br/>Printer power cutoff + fan / valve response\"]\r\n        Manual[\"Manual override + device failsafe defaults<br/>Verify network / HA loss and cold boot\"]\r\n        Acceptance[\"No commissioned safety claim yet<br/>Physical tests + independent acceptance<br/>No assistant or diagram can actuate devices\"]\r\n        Trigger --> Emergency\r\n        Emergency ~~~ Manual ~~~ Acceptance\r\n    end\r\n    Control ~~~ Air ~~~ Safety\r\n    class HA,MQTT core\r\n    class Trigger,Emergency,Manual,Acceptance policy\r\n    class Devices,ESP,Sources,Duct,Exhaust,Sensors deferred\r\n\r\n    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa\r\n    classDef store fill:#292745,stroke:#aa99db,color:#f2edff\r\n    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8\r\n    classDef deferred fill:#1b2638,stroke:#9dabc1,color:#d3dfef,stroke-dasharray:5 4"
   }
 ];

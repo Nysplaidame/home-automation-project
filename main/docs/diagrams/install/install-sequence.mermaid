@@ -1,30 +1,43 @@
-flowchart TB
-    Start["START-HERE<br/>read safety model and assumptions"]
-    P00["00 Operator basics<br/>inventory, command contexts, secrets"]
-    P01["01 Router/OpenWrt<br/>VLANs, DHCP, DNS, firewall, NTP, WireGuard fallback"]
-    P02["02 Proxmox host<br/>install, bridge, VMs"]
-    P03["03 Home Assistant<br/>HAOS, Mosquitto, ESPHome, VentSys base"]
-    P04["04 Frigate<br/>CT 111, first-camera baseline"]
-    P05["05 Docker-host<br/>Docker, Compose policy, Tailscale"]
-    P05A["05A Local AI<br/>llm-host, llama.cpp, Wyoming voice"]
-    P06["06 OMV NAS<br/>shares, users, storage health"]
-    P07["07 Tier 1 apps<br/>AdGuard, Immich, Homepage, Dozzle"]
-    P08["08 Tier 2 apps<br/>live/setup-pending + candidates"]
-    P09["09 Tier 3/evaluate<br/>risk gates before deploy"]
-    P10["10 Backups/monitoring/maintenance<br/>restore drills"]
-    P11["11 Physical integrations<br/>VentSys, printers, cameras"]
-    P12["12 Validation/troubleshooting<br/>end-to-end checks"]
+%%{init: {"theme":"base","fontFamily":"Segoe UI, sans-serif","themeVariables":{"primaryColor":"#123044","primaryTextColor":"#eef6ff","primaryBorderColor":"#58b7bf","lineColor":"#9aafc4","clusterBkg":"#0d1c2d","clusterBorder":"#38516b","tertiaryColor":"#0d1c2d","edgeLabelBackground":"#0b1929","fontFamily":"Segoe UI, sans-serif","fontSize":"18px"},"flowchart":{"curve":"linear","nodeSpacing":20,"rankSpacing":28,"padding":12,"subGraphTitleMargin":{"top":8,"bottom":16},"wrappingWidth":380,"useMaxWidth":false}}}%%
+flowchart LR
+    %% Read each column top to bottom, then advance to the next column.
+    subgraph Foundation["01 · FOUNDATION"]
+        direction TB
+        Start["START-HERE + PHASE00<br/>Safety model · inventory · command contexts"]
+        Router["PHASE01 · OPENWRT<br/>VLANs · DHCP/DNS · firewall · NTP"]
+        RouterGate["GATE · router validation passes"]
+        Proxmox["PHASE02 · PROXMOX<br/>Host install · bridge · guest foundations"]
+        Start --> Router --> RouterGate --> Proxmox
+    end
+    subgraph Platforms["02 · PLATFORMS"]
+        direction TB
+        HA["PHASE03 · HOME ASSISTANT<br/>HAOS · MQTT · ESPHome base"]
+        Frigate["PHASE04 · FRIGATE<br/>CT111 · first-camera proving"]
+        Docker["PHASE05 · DOCKER HOST<br/>Compose policy · Tailscale"]
+        AI["PHASE05A · LOCAL AI<br/>CT114 · llama.cpp · Wyoming"]
+        HA --> Frigate --> Docker --> AI
+    end
+    subgraph Services["03 · STORAGE + SERVICES"]
+        direction TB
+        NAS["PHASE06 · OMV<br/>Shares · users · storage health"]
+        Tier1["PHASE07 · CORE APPS<br/>AdGuard · Immich · Homepage · Dozzle"]
+        BackupGate["GATE · backup readiness before risky apps<br/>Bring Phase10 safeguards forward"]
+        Tier23["PHASE08 / 09 · MORE APPS<br/>Tier2 setup + Tier3 evaluation<br/>Per-service deployment gates apply"]
+        NAS --> Tier1 --> BackupGate --> Tier23
+    end
+    subgraph Acceptance["04 · ACCEPTANCE"]
+        direction TB
+        Backup["PHASE10 · RESILIENCE<br/>Backups · monitoring · maintenance / restore"]
+        Physical["PHASE11 · PHYSICAL INTEGRATION<br/>VentSys · printers · cameras"]
+        Safety["GATE · tested safety behavior<br/>Before unattended operation"]
+        Finish["PHASE12 · VALIDATION<br/>End-to-end checks + troubleshooting"]
+        Backup --> Physical --> Safety --> Finish
+    end
+    Foundation --> Platforms --> Services --> Acceptance
+    class Start,Proxmox,HA,Docker,AI,NAS,Finish core
+    class RouterGate,BackupGate,Safety policy
 
-    Start --> P00 --> P01 --> P02 --> P03 --> P04 --> P05 --> P05A --> P06 --> P07 --> P08 --> P09 --> P10 --> P11 --> P12
-
-    Gate1["Gate: router validation passes"]
-    Gate2["Gate: backups configured before risky apps"]
-    Gate3["Gate: safety behavior tested before unattended operation"]
-
-    P01 --> Gate1
-    Gate1 --> P02
-    P05A --> P10
-    P07 --> Gate2
-    Gate2 --> P08
-    P11 --> Gate3
-    Gate3 --> P12
+    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa
+    classDef store fill:#292745,stroke:#aa99db,color:#f2edff
+    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8
+    classDef deferred fill:#1b2638,stroke:#9dabc1,color:#d3dfef,stroke-dasharray:5 4

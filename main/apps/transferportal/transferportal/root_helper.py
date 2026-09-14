@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import signal
+import stat
 import subprocess
 import sys
 from pathlib import Path
@@ -10,9 +11,39 @@ from typing import Any, Callable
 
 from .path_safety import MountInfo, PathValidationError, validate_data_path, validate_no_overlap
 from .portals import validate_slug
-from .settings import load_config
+from .settings import AppConfig
 
-SYSTEMD_SYSTEM_DIR = Path(os.environ.get("TRANSFERPORTAL_SYSTEMD_DIR", "/etc/systemd/system"))
+SYSTEMD_SYSTEM_DIR = Path("/etc/systemd/system")
+# This policy is compiled into the root-owned helper. The web-service account
+# may edit its application configuration, but it must never be able to widen
+# the privilege boundary used by this process.
+ROOT_POLICY = AppConfig()
+
+RSYNC_ALLOWED_OPTIONS = frozenset(
+    {
+        "-r",
+        "-p",
+        "-o",
+        "-g",
+        "-H",
+        "-A",
+        "-X",
+        "-t",
+        "-l",
+        "-D",
+        "--numeric-ids",
+        "--info=progress2",
+        "--partial-dir=.rsync-partial",
+        "--dry-run",
+        "--ignore-existing",
+        "--update",
+        "--checksum",
+        "--size-only",
+        "--ignore-times",
+        "--whole-file",
+        "--one-file-system",
+    }
+)
 
 
 class HelperInputError(ValueError):
@@ -64,28 +95,29 @@ def action_list_mounts(params: dict[str, Any]) -> dict[str, Any]:
 
 
 def action_preflight(params: dict[str, Any]) -> dict[str, Any]:
-    config = load_config(params.get("config_path", "/etc/transferportal/config.yaml"))
     source = Path(_required(params, "source_path"))
     destination = Path(_required(params, "destination_path"))
     mounts = load_mounts()
-    safe_source = validate_data_path(source, mounts, config.allowed_mount_prefixes, config.blocked_paths)
-    safe_destination = validate_data_path(destination, mounts, config.allowed_mount_prefixes, config.blocked_paths)
+    safe_source = validate_data_path(source, mounts, ROOT_POLICY.allowed_mount_prefixes, ROOT_POLICY.blocked_paths)
+    safe_destination = validate_data_path(destination, mounts, ROOT_POLICY.allowed_mount_prefixes, ROOT_POLICY.blocked_paths)
     validate_no_overlap(safe_source, safe_destination)
+    for path in (Path(safe_source), Path(safe_destination)):
+        if not path.is_dir():
+            raise HelperInputError(f"{path} is not an existing directory")
     return {"source_path": str(safe_source), "destination_path": str(safe_destination)}
 
 
 def action_browse_path(params: dict[str, Any]) -> dict[str, Any]:
-    config = load_config(params.get("config_path", "/etc/transferportal/config.yaml"))
     requested = str(params.get("path") or "").strip()
     mounts = load_mounts()
     if not requested:
         roots = [
             mount.target
             for mount in mounts
-            if _is_allowed_mount_root(mount.target, config.allowed_mount_prefixes)
+            if _is_allowed_mount_root(mount.target, ROOT_POLICY.allowed_mount_prefixes)
             and str(mount.target) != "/"
-            and not _is_relative_to(mount.target, config.portal_base)
-            and not _is_blocked_path(mount.target, config.blocked_paths)
+            and not _is_relative_to(mount.target, ROOT_POLICY.portal_base)
+            and not _is_blocked_path(mount.target, ROOT_POLICY.blocked_paths)
             and mount.target.is_dir()
         ]
         unique_roots = sorted({str(path): path for path in roots}.values(), key=lambda item: str(item))
@@ -95,13 +127,13 @@ def action_browse_path(params: dict[str, Any]) -> dict[str, Any]:
             "entries": [_browse_entry(path) for path in unique_roots],
         }
 
-    current = Path(str(validate_data_path(Path(requested), mounts, config.allowed_mount_prefixes, config.blocked_paths)))
+    current = Path(str(validate_data_path(Path(requested), mounts, ROOT_POLICY.allowed_mount_prefixes, ROOT_POLICY.blocked_paths)))
     if not current.is_dir():
         raise HelperInputError(f"{current} is not a directory")
 
     parent_value = None
     try:
-        safe_parent = Path(str(validate_data_path(current.parent, mounts, config.allowed_mount_prefixes, config.blocked_paths)))
+        safe_parent = Path(str(validate_data_path(current.parent, mounts, ROOT_POLICY.allowed_mount_prefixes, ROOT_POLICY.blocked_paths)))
         if safe_parent != current:
             parent_value = str(safe_parent)
     except PathValidationError:
@@ -123,13 +155,14 @@ def action_browse_path(params: dict[str, Any]) -> dict[str, Any]:
 
 
 def action_create_portal(params: dict[str, Any]) -> dict[str, Any]:
-    config = load_config(params.get("config_path", "/etc/transferportal/config.yaml"))
     slug = validate_slug(str(_required(params, "slug")))
     source = Path(_required(params, "source_path"))
     destination = Path(_required(params, "destination_path"))
-    action_preflight({"source_path": str(source), "destination_path": str(destination), "config_path": str(params.get("config_path", "/etc/transferportal/config.yaml"))})
+    validated = action_preflight({"source_path": str(source), "destination_path": str(destination)})
+    source = Path(validated["source_path"])
+    destination = Path(validated["destination_path"])
 
-    portal_root = config.portal_base / slug
+    portal_root = ROOT_POLICY.portal_base / slug
     source_mount = portal_root / "source"
     destination_mount = portal_root / "destination"
     source_mount.mkdir(parents=True, exist_ok=True)
@@ -149,9 +182,8 @@ def action_create_portal(params: dict[str, Any]) -> dict[str, Any]:
 
 
 def action_remove_portal(params: dict[str, Any]) -> dict[str, Any]:
-    config = load_config(params.get("config_path", "/etc/transferportal/config.yaml"))
     slug = validate_slug(str(_required(params, "slug")))
-    portal_root = config.portal_base / slug
+    portal_root = ROOT_POLICY.portal_base / slug
     mount_points = [portal_root / "source", portal_root / "destination"]
     units = [_mount_unit_name(path) for path in mount_points]
     removed_symlinks: list[str] = []
@@ -200,9 +232,8 @@ def action_remove_portal(params: dict[str, Any]) -> dict[str, Any]:
 
 
 def action_mount_portal(params: dict[str, Any]) -> dict[str, Any]:
-    config = load_config(params.get("config_path", "/etc/transferportal/config.yaml"))
     slug = validate_slug(str(_required(params, "slug")))
-    portal_root = config.portal_base / slug
+    portal_root = ROOT_POLICY.portal_base / slug
     units = [
         _mount_unit_name(portal_root / "source"),
         _mount_unit_name(portal_root / "destination"),
@@ -213,9 +244,8 @@ def action_mount_portal(params: dict[str, Any]) -> dict[str, Any]:
 
 
 def action_unmount_portal(params: dict[str, Any]) -> dict[str, Any]:
-    config = load_config(params.get("config_path", "/etc/transferportal/config.yaml"))
     slug = validate_slug(str(_required(params, "slug")))
-    portal_root = config.portal_base / slug
+    portal_root = ROOT_POLICY.portal_base / slug
     units = [
         _mount_unit_name(portal_root / "source"),
         _mount_unit_name(portal_root / "destination"),
@@ -226,22 +256,11 @@ def action_unmount_portal(params: dict[str, Any]) -> dict[str, Any]:
 
 
 def action_run_rsync(params: dict[str, Any]) -> dict[str, Any]:
-    config = load_config(params.get("config_path", "/etc/transferportal/config.yaml"))
     command = _required(params, "command")
-    if not isinstance(command, list) or not command or command[0] != "rsync":
-        raise HelperInputError("command must be a non-empty rsync argument array")
-    for arg in command:
-        if not isinstance(arg, str) or "\x00" in arg:
-            raise HelperInputError("command contains an invalid argument")
-    if len(command) < 3:
-        raise HelperInputError("rsync command is missing source and destination")
-    for path_arg in command[-2:]:
-        path = Path(path_arg.rstrip("/")).resolve(strict=False)
-        if not _is_relative_to(path, config.portal_base.resolve(strict=False)):
-            raise HelperInputError("rsync paths must stay under the configured portal base")
-    log_path = Path(_required(params, "log_path"))
-    status_path = Path(_required(params, "status_path"))
-    status_path.parent.mkdir(parents=True, exist_ok=True)
+    source_path, destination_path = _validate_rsync_command(command)
+    _require_active_portal_mounts(source_path, destination_path, load_mounts())
+    log_path = _validated_output_path(_required(params, "log_path"), ".log")
+    status_path = _validated_output_path(_required(params, "status_path"), ".status.json")
     runner_command = [
         sys.executable,
         "-m",
@@ -256,9 +275,18 @@ def action_run_rsync(params: dict[str, Any]) -> dict[str, Any]:
 
 def action_job_status(params: dict[str, Any]) -> dict[str, Any]:
     pid = int(_required(params, "pid"))
-    status_path = Path(_required(params, "status_path"))
+    if pid <= 1:
+        raise HelperInputError("invalid job pid")
+    status_path = _validated_output_path(_required(params, "status_path"), ".status.json")
     if status_path.exists():
-        payload = json.loads(status_path.read_text(encoding="utf-8"))
+        flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+        fd = os.open(status_path, flags)
+        with os.fdopen(fd, "r", encoding="utf-8") as handle:
+            if not stat.S_ISREG(os.fstat(handle.fileno()).st_mode):
+                raise HelperInputError("status path is not a regular file")
+            payload = json.load(handle)
+        if int(payload.get("pid", -1)) != pid:
+            raise HelperInputError("status file does not belong to the requested job")
         if payload.get("state") != "running":
             return {"running": False, **payload}
     return {"running": _pid_exists(pid), "pid": pid, "status_path": str(status_path)}
@@ -294,6 +322,57 @@ Options=bind
 [Install]
 WantedBy=multi-user.target
 """
+
+
+def _validate_rsync_command(command: Any) -> tuple[Path, Path]:
+    if not isinstance(command, list) or len(command) < 4 or command[0] != "rsync":
+        raise HelperInputError("command must be a guarded rsync argument array")
+    if any(not isinstance(arg, str) or "\x00" in arg for arg in command):
+        raise HelperInputError("command contains an invalid argument")
+    invalid_options = [arg for arg in command[1:-2] if arg not in RSYNC_ALLOWED_OPTIONS]
+    if invalid_options:
+        raise HelperInputError(f"rsync option is not allowlisted: {invalid_options[0]}")
+
+    portal_base = ROOT_POLICY.portal_base.resolve(strict=False)
+    endpoints: list[Path] = []
+    endpoint_parts: list[tuple[str, str]] = []
+    for path_arg in command[-2:]:
+        path = Path(path_arg.rstrip("/")).resolve(strict=False)
+        if not _is_relative_to(path, portal_base):
+            raise HelperInputError("rsync paths must stay under the privileged portal base")
+        relative = path.relative_to(portal_base)
+        if len(relative.parts) != 2:
+            raise HelperInputError("rsync path must name an exact portal endpoint")
+        slug, endpoint = relative.parts
+        validate_slug(slug)
+        endpoint_parts.append((slug, endpoint))
+        endpoints.append(path)
+
+    if endpoint_parts[0][0] != endpoint_parts[1][0]:
+        raise HelperInputError("rsync endpoints must belong to the same portal")
+    if endpoint_parts[0][1] != "source" or endpoint_parts[1][1] != "destination":
+        raise HelperInputError("rsync endpoints must be portal source then destination")
+    return endpoints[0], endpoints[1]
+
+
+def _require_active_portal_mounts(source: Path, destination: Path, mounts: list[MountInfo]) -> None:
+    mounted_targets = {mount.target.resolve(strict=False) for mount in mounts}
+    missing = [str(path) for path in (source, destination) if path not in mounted_targets]
+    if missing:
+        raise HelperInputError(f"portal endpoint is not an active mount: {', '.join(missing)}")
+
+
+def _validated_output_path(value: Any, suffix: str) -> Path:
+    path = Path(str(value))
+    if not path.name.endswith(suffix):
+        raise HelperInputError(f"output path must end with {suffix}")
+    if path.is_symlink():
+        raise HelperInputError("job output path cannot be a symlink")
+    resolved = path.resolve(strict=False)
+    log_dir = ROOT_POLICY.log_dir.resolve(strict=False)
+    if resolved.parent != log_dir:
+        raise HelperInputError("job output paths must be direct children of the privileged log directory")
+    return resolved
 
 
 def _is_allowed_mount_root(path: Path, allowed_mount_prefixes: tuple[Path, ...]) -> bool:

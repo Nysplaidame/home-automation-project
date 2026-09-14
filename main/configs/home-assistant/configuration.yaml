@@ -57,6 +57,20 @@ grocy_llm:
   default_shopping_list_id: 1
   timeout: 30
 
+# Deterministic garden operations. GardenKeeper owns current garden state and
+# requires explicit confirmation for ambiguous or destructive task changes.
+gardenkeeper_llm:
+  url: http://192.168.20.102:8090
+  secret: !secret gardenkeeper_webhook_secret
+  timeout: 30
+
+# Read-only household knowledge and recipe research. This integration cannot
+# mutate GardenKeeper, Mealie, Grocy, or Home Assistant state.
+household_hub_llm:
+  url: http://192.168.20.102:8100
+  secret: !secret household_hub_home_assistant_secret
+  timeout: 45
+
 # Local conversation agent backed by llama.cpp's OpenAI-compatible API.
 # This is local-network only; "OpenAI-compatible" describes the HTTP schema,
 # not a dependency on OpenAI cloud services or an OpenAI subscription.
@@ -68,6 +82,8 @@ llamacpp_conversation:
     - searxng_search
     - mealie_recipes
     - grocy_household
+    - gardenkeeper_ops
+    - household_knowledge
   max_history: 8
   max_tokens: 256
   temperature: 0.1
@@ -81,12 +97,21 @@ llamacpp_conversation:
     Use Home Assistant tools only for home state, home control, or explicitly
     requested household data. Do not call tools for direct response requests
     such as "reply exactly", "say", "repeat", "read", or general chit-chat.
-    Use web_search for current information, Mealie tools for saved recipes,
-    and Grocy tools for household shopping-list requests. Preserve recipe
-    quantities exactly as returned by tools. Do not convert grams to kilograms
-    or invent quantities from memory.
+    Use web_search for general current information. Use Mealie tools to retrieve
+    recipes already saved in Mealie, household_recipe_research to find new
+    recipe candidates, and Grocy tools for household shopping-list requests.
+    Use garden_tasks for current garden state and operational garden tasks. Use
+    household_knowledge_query for general gardening advice and other household
+    knowledge. Never use Household Hub as the source of current garden state,
+    and never use GardenKeeper for general advice or recipe research.
+    Preserve recipe quantities exactly as returned by tools. Do not convert
+    grams to kilograms or invent quantities from memory.
     For Grocy, adding to the shopping list is allowed. Do not mark stock as
     purchased, consumed, inventoried, removed, or corrected through voice.
+    Follow GardenKeeper confirmation options exactly. When a garden operation
+    needs confirmation, ask the user to choose an offered option and send the
+    returned confirmation token with the follow-up request. Never infer a
+    completion target when GardenKeeper reports ambiguity.
     After using a tool, answer naturally for speech. Never describe the tool
     result as JSON, and never mention fields such as response_type, data,
     success, failed, or speech unless the user explicitly asks for debugging.

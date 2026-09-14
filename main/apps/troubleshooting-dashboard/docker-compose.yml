@@ -1,0 +1,29 @@
+services:
+  troubleshooting-dashboard:
+    build: .
+    container_name: troubleshooting-dashboard
+    restart: unless-stopped
+    ports:
+      - "192.168.20.102:8094:80"
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    networks:
+      - troubleshooting-dashboard
+
+networks:
+  troubleshooting-dashboard:
+    name: troubleshooting-dashboard
+    ipam:
+      config:
+        - subnet: 10.240.32.0/24

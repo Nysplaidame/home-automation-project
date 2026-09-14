@@ -35,8 +35,8 @@ deployment.
 | MAC | BC:24:11:BC:B8:1A |
 | Machine | q35 |
 | BIOS | OVMF, pre-enrolled keys disabled |
-| Disk | local-lvm, 32 GiB, SCSI, discard on, SSD emulation |
-| CPU/RAM | 2 cores, 4096 MiB |
+| Disk | local-lvm, 64 GiB, SCSI, discard on, SSD emulation |
+| CPU/RAM | 4 cores, 6144 MiB (September recovery) |
 | Network | vmbr0, VLAN tag 20, VirtIO |
 | Boot | onboot enabled, startup order 3 |
 
@@ -46,15 +46,15 @@ Completed live:
 - Guest hostname set to `docker-host`.
 - `qemu-guest-agent` installed and active.
 - Docker and Docker Compose installed and active.
-- Bambuddy image `ghcr.io/maziggy/bambuddy:latest` pulled.
+- Bambuddy rebuild source has the prepared `10.240.23.0/24` bridge; live
+  Bambuddy remains on host networking until its P1S path is accepted.
 - Bambuddy stack staged at `/opt/stacks/bambuddy`.
 - Homepage stack staged at `/opt/stacks/homepage` and live on port `3001`.
 - Dozzle stack staged at `/opt/stacks/dozzle` and live on port `8081`.
 - AdGuard Home stack staged at `/opt/stacks/adguard-home`, with DNS on
   `192.168.20.102:53` and admin UI on `8080`.
-- Immich skeleton stack staged at `/opt/stacks/immich` and live on port `2283`;
-  it uses local placeholder storage only until OMV storage and backup/restore
-  are ready.
+- Immich is live at port `2283` with OMV-backed media. Its application and
+  restore acceptance are recorded in the canonical current-state inventory.
 - ntfy stack staged at `/opt/stacks/ntfy` and live internally on port `8085`,
   with default access denied and credentials stored at `/root/ntfy-credentials.txt`.
 - Watchtower monitor-only stack staged at `/opt/stacks/watchtower`, with
@@ -70,7 +70,7 @@ Completed live:
   admin/DNS ports stay scoped despite Docker DNAT bypassing normal UFW input.
 - Tailscale installed and `tailscaled` active; docker-host is authenticated as
   `100.94.122.18` and advertises only `192.168.20.101/32`,
-  `192.168.40.50/32`, and `192.168.60.10/32`. Stale broad route preference
+  `192.168.30.20/32`, `192.168.40.50/32`, and `192.168.60.10/32`. Stale broad route preference
   `192.168.20.0/24` was removed on 2026-07-02.
 - `/etc/apt/apt.conf.d/01proxy` keeps HTTP apt traffic through apt-cacher-ng and
   sends HTTPS apt traffic direct because apt-cacher-ng rejects HTTPS CONNECT.
@@ -78,7 +78,7 @@ Completed live:
 - VM 103 disk was expanded online to 64 GiB on 2026-06-21.
 - Uptime Kuma notification `ntfy Monitoring` is live and mapped to all active
   monitors through ntfy topic `monitoring`.
-- UFW route rules allow only AdGuard's Docker bridge subnet `172.20.0.0/16`
+- UFW route rules allow only AdGuard's Docker bridge subnet `10.240.2.0/24`
   to reach upstream DNS ports `53/tcp`, `53/udp`, and `853/tcp`; this is
   required because UFW otherwise denies Docker routed traffic.
 - Rebuildable source script for these routed DNS allowances is
@@ -92,8 +92,8 @@ Completed live:
 Current service direction:
 
 - Bambuddy is the first live workload.
-- Tailscale will run as a host service, not a Compose workload.
-- Tier 1 Compose stack still needing real storage cutover is Immich.
+- Tailscale runs as a host service, not a Compose workload.
+- Immich storage cutover is recorded complete; fresh restore proof remains separate.
 - Tier 2 notification service `ntfy` is pre-flight live for internal alerts.
 - Tier 3 Watchtower is monitor-only and does not update containers.
 - All Compose stacks use `/opt/stacks/<service>/`.
@@ -127,17 +127,33 @@ Do not place these here without a separate architecture review:
 
 ## Phase 1 - Reproduce VM 103 From Debian Cloud Image
 
-These commands are for rebuilding or reproducing the current live VM.
+These commands create an absent VM103. Do not run them over an existing VM.
+The canonical [Phase 05](../../../docs/install/phases/05-docker-host.md) owns
+subsequent host setup; [guest inventory](../../../configs/proxmox/guest-configs.md)
+owns resources. Use local console access and preserve an independent backup.
+
+Download the Debian13 genericcloud image and its official checksum manifest
+from the same release directory. Verify the exact image checksum before the
+commands below; a successful download alone is not verification. Stage the
+verified image at `/var/lib/vz/template/iso/debian-13-genericcloud-amd64.qcow2`
+and the approved admin public key at `/root/proxmox-admin.pub`.
+
+Run on: Proxmox host shell, after image/key verification.
 
 ```bash
-cd /var/lib/vz/template/iso
-wget -O debian-13-genericcloud-amd64.qcow2 \
-  https://cloud.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2
+set -eu
+if qm status 103 >/dev/null 2>&1; then
+  echo 'VM103 already exists; stop and inspect it'
+  exit 1
+fi
+cd /var/lib/vz/template/iso || exit 1
+test -s debian-13-genericcloud-amd64.qcow2 || exit 1
+test -s /root/proxmox-admin.pub || exit 1
 
 qm create 103 \
   --name docker-host \
-  --memory 4096 \
-  --cores 2 \
+  --memory 6144 \
+  --cores 4 \
   --cpu host \
   --machine q35 \
   --bios ovmf \
@@ -150,8 +166,13 @@ qm create 103 \
 qm set 103 --efidisk0 local-lvm:0,efitype=4m,pre-enrolled-keys=0
 qm importdisk 103 debian-13-genericcloud-amd64.qcow2 local-lvm
 qm set 103 --scsihw virtio-scsi-single
-qm set 103 --scsi0 local-lvm:vm-103-disk-0,discard=on,ssd=1,cache=writeback
-qm resize 103 scsi0 32G
+imported_disk="$(qm config 103 | awk '/^unused[0-9]+:/ {print $2}')"
+if [ "$(printf '%s\n' "$imported_disk" | grep -c '^local-lvm:')" -ne 1 ]; then
+  echo 'Expected exactly one imported disk; inspect qm config 103 before proceeding'
+  exit 1
+fi
+qm set 103 --scsi0 "${imported_disk},discard=on,ssd=1,cache=writeback"
+qm resize 103 scsi0 64G
 qm set 103 --boot order=scsi0
 qm set 103 --ide2 local-lvm:cloudinit
 qm set 103 --ciuser root
@@ -162,10 +183,18 @@ qm set 103 --searchdomain home.local
 qm start 103
 ```
 
-After first boot:
+Expected: VM103 starts with the imported OS disk as `scsi0`, an EFI disk and
+cloud-init disk, VLAN20 and the recorded resources. The import volume must be
+read from `unusedN`; EFI allocation can occupy `vm-103-disk-0`, so hard-coding
+that name can attach the wrong disk. If any command fails, stop and inspect
+the partial VM rather than rerunning creation or deleting disks blindly.
+
+After first boot, continue in Phase05. The following checks run inside VM103,
+after the temporary maintenance egress is established.
+
+Run on: docker-host VM103 console or established SSH session.
 
 ```bash
-ssh root@192.168.20.102
 hostnamectl set-hostname docker-host
 apt-get update
 apt-get install -y qemu-guest-agent
@@ -258,6 +287,10 @@ ufw allow from 192.168.60.10 to any port 2283 proto tcp comment "Monitoring to I
 ufw allow in on tailscale0 to any port 2283 proto tcp comment "Tailscale Immich"
 ufw allow from 192.168.10.0/24 to any port 3001 proto tcp comment "Management to Homepage"
 ufw allow from 192.168.1.0/24 to any port 3001 proto tcp comment "LAN to Homepage"
+ufw allow from 192.168.10.0/24 to any port 8180:8209 proto tcp comment "Management to Homepage previews"
+ufw allow from 192.168.1.0/24 to any port 8180:8209 proto tcp comment "LAN to Homepage previews"
+ufw allow from 192.168.20.0/24 to any port 8180:8209 proto tcp comment "Automation to Homepage previews"
+ufw allow in on tailscale0 to any port 8180:8209 proto tcp comment "Tailscale Homepage previews"
 ufw allow from 192.168.10.0/24 to any port 8080 proto tcp comment "Management to AdGuard UI"
 ufw allow from 192.168.10.0/24 to any port 8081 proto tcp comment "Management to Dozzle"
 ```
@@ -338,19 +371,29 @@ Bambuddy Compose file:
 services:
   bambuddy:
     container_name: bambuddy
-    image: ghcr.io/maziggy/bambuddy:latest
+    image: ghcr.io/maziggy/bambuddy@sha256:954d93d7aaf98436cd8a31f67246d12453aa401830c34b8b645effc009caa897
     restart: unless-stopped
-    network_mode: host
+    ports:
+      - "8000:8000"
     environment:
-      - TZ=Europe/London
-      - PORT=8000
-      - MQTT_HOST=${MQTT_HOST}
-      - MQTT_PORT=${MQTT_PORT}
-      - MQTT_USER=${MQTT_USER}
-      - MQTT_PASSWORD=${MQTT_PASSWORD}
+      TZ: Europe/London
+      PORT: "8000"
+      MQTT_HOST: "${MQTT_HOST}"
+      MQTT_PORT: "${MQTT_PORT}"
+      MQTT_USER: "${MQTT_USER}"
+      MQTT_PASSWORD: "${MQTT_PASSWORD}"
     volumes:
-      - /opt/stacks/bambuddy/data:/app/data
-      - /opt/stacks/bambuddy/logs:/app/logs
+      - ./data:/app/data
+      - ./logs:/app/logs
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  default:
+    name: bambuddy
+    ipam:
+      config:
+        - subnet: 10.240.23.0/24
 ```
 
 Example environment file:
@@ -370,6 +413,11 @@ Use MQTT port `8883` after Mosquitto TLS is configured and verified. Also enable
 TLS in the Bambuddy application settings so its internal MQTT relay connects
 over TLS.
 
+Before migrating an existing host-network deployment, install and run
+`configs/docker-host/system/docker-host-ufw-route-bambuddy.sh`; it permits only
+the new bridge to Home Assistant and the P1S destinations that Bambuddy needs.
+The matching source-scoped UI policy is in `docker-host-firewall.sh`.
+
 When ready to start the service:
 
 ```bash
@@ -381,13 +429,17 @@ docker compose up -d
 docker compose logs bambuddy -f
 ```
 
+Use the complete tracked template in `configs/docker-host/stacks/bambuddy/`.
+Do not reuse an automatic Docker subnet; the canonical allocation table is
+`configs/docker-host/NETWORK-ALLOCATION.md`.
+
 ### Tier 1 stack paths
 
 | Service | Path | Planned port(s) | Notes |
 |---|---|---|---|
 | AdGuard Home | `/opt/stacks/adguard-home/` | 53/tcp+udp, 3000 initial, 8080 admin target | Router forwards DNS here first; public fallback stays on router |
-| Immich | `/opt/stacks/immich/` | 2283/tcp | Pre-flight live with local placeholder storage; store real media on OMV-backed mount, not the VM disk |
-| Homepage | `/opt/stacks/homepage/` | 3001/tcp | Internal dashboard |
+| Immich | `/opt/stacks/immich/` | 2283/tcp | Live with its media library on the approved OMV-backed mount |
+| Homepage | `/opt/stacks/homepage/` | 443/tcp, 3001 rollback, 8180-8209 fixed HTTPS proxies | Central Home Operations portal |
 | Dozzle | `/opt/stacks/dozzle/` | 8081/tcp | Internal Docker log viewer |
 | SearXNG | `/opt/stacks/searxng/` | 8087/tcp | Direct-access metasearch pre-flight |
 | Whoogle | `/opt/stacks/whoogle/` | 8088/tcp | Direct-access Google search proxy pre-flight |
@@ -404,7 +456,7 @@ Tailscale is installed on the host OS, not inside Docker.
 Target route advertisement:
 
 ```bash
-tailscale up --advertise-routes=192.168.20.101/32,192.168.40.50/32,192.168.60.10/32
+tailscale up --accept-dns=false --hostname=docker-host --advertise-routes=192.168.20.101/32,192.168.30.20/32,192.168.40.50/32,192.168.60.10/32
 ```
 
 Approve each host route in the Tailscale admin console. Do not advertise broad
@@ -414,10 +466,14 @@ VLAN routes such as `192.168.20.0/24`, `192.168.40.0/24`, or
 Remote access model:
 
 - Home Assistant through `192.168.20.101/32`.
+- Frigate authenticated HTTPS through `192.168.30.20/32`; keep internal API
+  port `5000` denied remotely.
 - OMV through `192.168.40.50/32`.
 - Grafana and Uptime Kuma through `192.168.60.10/32`, with only ports `3000`
   and `3001` allowed through docker-host routed firewall policy.
 - Docker-host services through docker-host's Tailscale node identity/MagicDNS.
+- The approved OnePlus daily path uses split DNS plus Homepage `443` and fixed
+  proxy ports `8180-8209`; it does not receive broad routed-subnet access.
 - WireGuard remains dormant fallback, not daily access.
 
 ---

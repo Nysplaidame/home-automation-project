@@ -73,7 +73,7 @@ Post-cutover validations completed:
 - Advanced Camera Card main and substream views were validated through the
   mobile views.
 - Frigate HA integration remained reachable; Frigate API version/stats returned
-  the live first camera.
+  all three live cameras.
 - VentSys dashboard assets served over HA HTTPS and still use relative
   same-origin behavior.
 - Grafana and Uptime Kuma remain direct HTTP links from HA, not embedded mixed

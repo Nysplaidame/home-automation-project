@@ -4,7 +4,7 @@ description: Master navigation hub for all project documentation
 tags: [index, navigation, home-automation]
 aliases: [Project Index, Documentation Hub]
 created: 2025-09-15
-modified: 2026-07-06
+modified: 2026-09-14
 type: index
 status: active
 ---
@@ -15,20 +15,26 @@ status: active
 
 ---
 
+The [consolidated coverage audit](docs/install/INSTALL-TO-DO.md#consolidated-coverage-audit--september-11) tracks all 42 named service/roadmap
+entries: 36 now have written lifecycle paths and six remain gated candidates.
+The four source/configuration gaps have tested recovery artifacts or configuration
+contracts as of September14; individual workflow and full-system proof remain open.
+Written coverage is not verified rebuild or current restore acceptance.
+
 ## Quick status
 
 | Area | State |
 |---|---|
 | Network configs (router) | ✅ Written, audited, first-flight deployed |
-| Proxmox + VM setup guides | ✅ Complete; Proxmox live |
+| Proxmox + VM setup guides | Written; September direct-trunk guidance reconciled; blank rebuild unproven |
 | HA + Frigate setup guides | ✅ HA live; CT 111 Frigate baseline live |
-| Docker host + Bambuddy workload guide | ✅ Complete |
-| VentSys HA packages + dashboard | ✅ Complete |
+| Docker host + Bambuddy workload guide | Written; P1S commissioning and Bambuddy bridge acceptance remain open |
+| VentSys HA packages + dashboard | Written/staged; hardware acceptance remains open |
 | ESPHome configs | ✅ Written (hardware IDs pending) |
 | OMV NAS setup guide | ✅ Written |
-| Service/ACL reference docs | ✅ Written |
+| Service/ACL reference docs | ✅ Reconciled with deployed architecture on 2026-08-25 |
 | Backup strategy | ✅ Written |
-| Troubleshooting reference | ✅ Written |
+| Troubleshooting reference | September network/state corrections and written companions to all five app investigations; Mermaid links included |
 | Network testing guide | ✅ Written |
 | SSL/TLS guide | ✅ Written |
 | Tailscale remote access guide | ✅ Written |
@@ -37,7 +43,7 @@ status: active
 | Physical deployment | ✅ Router, Proxmox trunk, HAOS, and docker-host live |
 | Docker-host service templates | ✅ Written for live VM 103 stacks, host firewall, and app-data backup templates |
 | Local AI / voice inference | ✅ CT 114 live with shared-iGPU llama.cpp and HA voice/search migration pending |
-| Hardware procurement (sensors/cameras/NAS) | ⏳ Pending |
+| Hardware procurement | VentSys and future camera scope pending; NAS live, Zyxel/three cameras deliberately disconnected |
 
 ---
 
@@ -47,6 +53,8 @@ status: active
 - [[configs/openwrt/vlan-config.conf]] — VLAN bridge, logical interfaces, WireGuard
 - [[configs/openwrt/firewall-config.conf]] — zones, inter-VLAN rules, VentSys ports
 - [[configs/openwrt/dhcp-config.conf]] — DHCP scopes, static reservations, DNS
+- [[scripts/validation/validate-home-local-dns.ps1]] — canonical/live
+  `home.local` alias validation against the service matrix
 - [[configs/openwrt/wireless-config.conf]] — SSIDs, channels, WPA3/WPA2
 - [[configs/openwrt/system-config.conf]] — router hostname, timezone, and router-local NTP server intent
 
@@ -64,17 +72,39 @@ status: active
 ### Local AI
 - [[configs/local-ai/docker-compose.yml]] — CT 114 llama.cpp, Open WebUI and Wyoming services
 
+### Monitoring VM
+- [[configs/monitoring/system/monitoring-firewall.sh]] — VM 102 source-scoped
+  `DOCKER-USER` policy for docker-host Homepage access to Grafana and Uptime Kuma
+- [[configs/monitoring/system/monitoring-firewall.service]] — rebuilds the
+  monitoring firewall policy after Docker starts
+
 ### Docker Host
 - [[configs/docker-host/README.md]] — rebuildable source templates for VM 103 Compose stacks and host firewall
+- [[configs/docker-host/NETWORK-ALLOCATION.md]] — canonical explicit Docker bridge allocations and change rules
 - [[configs/docker-host/system/docker-host-firewall.sh]] — canonical `DOCKER-USER` source for docker-host published-port scoping
-- [[configs/docker-host/system/docker-host-app-data-backup.sh]] — planned rsync copy for Mealie, Grocy, LiveSync, and GardenKeeper data/dumps to OMV `backups/docker-host`
+- [[configs/docker-host/system/docker-host-app-data-backup.sh]] — live NAS backup for household application state, including media apps and SQLite-consistent Vaultwarden/ntfy staging
 - [[configs/docker-host/system/docker-host-app-data-backup.service]] — systemd service template for the docker-host app-data backup job
 - [[configs/docker-host/system/docker-host-app-data-backup.timer]] — daily timer template for the docker-host app-data backup job
 - [[configs/docker-host/stacks/]] — non-secret Compose/config templates for live docker-host services
+- [[configs/docker-host/stacks/jellyfin/README.md]] — live read-only OMV media library service
+- [[configs/docker-host/stacks/calibre-web/README.md]] — live dedicated ebook library service
+- [[configs/docker-host/stacks/atsumeru/README.md]] — live dedicated comics/manga backend
+- [[configs/docker-host/stacks/download-gateway/README.md]] — installed Mullvad/Gluetun/qBittorrent containment stack and acceptance gate
+- [[configs/docker-host/stacks/vaultwarden/README.md]] — live HTTPS Vaultwarden foundation and onboarding gate
+
+- [[docs/install/services/gridfinity-layout-tool.md]] — live local Gridfinity Layout Tool portal
+- [[configs/docker-host/stacks/recomp-tracker/README.md]] — live Recomp Tracker service and recovery notes
 
 ### Monitoring / Grafana
 - [[configs/grafana/README.md]] — rebuildable source exports for Grafana dashboards
 - [[configs/grafana/dashboards/]] — architecture dashboard JSON exports
+- [[apps/troubleshooting-dashboard/README.md]] — management-only staged
+  troubleshooting service driven by local health-check JSON
+- [[apps/troubleshooting-dashboard/design-system.md]] — operational UI,
+  accessibility and no-remediation contract for the POC
+- [[apps/home-operations-workbench/README.md]] — verified local import-only
+  proof of concept for household operations, recovery, meals and VentSys
+  commissioning evidence; it is not deployed or connected to live services
 
 ### OpenMediaVault
 - [[configs/omv/README]] — sanitized NFS contract and root-only OMV config backup automation
@@ -107,16 +137,18 @@ status: active
 ### Fresh rebuild manual suite
 - [[docs/install/START-HERE.md]] — beginner-safe rebuild entrypoint from a blank environment
 - [[docs/install/INSTALL-TO-DO.md]] — comprehensive setup-documentation completion checklist
+- [[docs/troubleshooting/diagnostic-walkthroughs.md]] — offline written companion to the troubleshooting app's five investigations, evidence rules and Mermaid references
 - [[docs/install/garage-pi-desktop-setup-guide.md]] — garage Raspberry Pi 5 desktop, NVMe, OLED, project access, and optional AI readiness
 - [[docs/install/oled-screen-setup-guide.md]] — 52Pi/GeeekPi case OLED setup and `minitower_oled.service`
 - [[docs/diagrams/README.md]] — canonical install and architecture diagram library
-- [[docs/install/services/mermaid-viewer.md]] — draft internal Mermaid diagram browser for canonical `.mermaid` sources
+- [[docs/install/services/mermaid-viewer.md]] — live internal Mermaid diagram browser for canonical `.mermaid` sources
 - [[docs/install/reference/command-location-legend.md]] — where every command runs
 - [[docs/install/reference/secrets-placeholder-ledger.md]] — central placeholder and secret ledger
 - [[docs/install/reference/package-dependency-matrix.md]] — packages, hosts, install commands, verification commands
 - [[docs/install/reference/decision-gates.md]] — required gates for risky or unresolved services
 - [[docs/install/reference/hacs-enhancement-roadmap.md]] — Home Assistant apps, HACS, dashboard, and quality-of-life roadmap
 - [[docs/install/services/README.md]] — Tier 1, Tier 2, and Tier 3 docker-host service manuals
+- [[docs/install/services/media-libraries.md]] — Jellyfin, Calibre-Web and Atsumeru installation, diagnosis, backup, update and isolated restore manual
 
 ### 1. Router
 - [[scripts/setup/router/phase_1_prerequisites.md]] — start of phases 1–8 router setup sequence
@@ -132,7 +164,12 @@ status: active
 - [[scripts/setup/proxmox/igpu_passthrough_guide.md]] — shared Intel render/card device mapping for unprivileged LXCs
 
 ### 3. Storage
+
+- [[docs/install/services/download-gateway.md]] — Gluetun/qBittorrent lifecycle and containment recovery
+- [[docs/install/services/recomp-tracker.md]] — tracker deployment, SQLite backup, notification isolation and rollback
+
 - [[scripts/setup/nas/omv_nas_setup_guide.md]] — OpenMediaVault NAS, NFS/SMB, HA/Frigate/Immich storage
+- [[docs/install/services/immich-curated-exporter.md]] — allow-listed, non-destructive Immich album export into Jellyfin
 - [[docs/install/services/transferportal.md]] — native OMV Transfer Portal service for guarded local rsync jobs
 - [[apps/transferportal/README.md]] — FastAPI app, root helper, tests, and packaging source
 
@@ -156,6 +193,8 @@ status: active
 | [[docs/procedures/tailscale_remote_access_guide.md]] | Daily remote access through docker-host Tailscale host routes |
 | [[docs/procedures/wireguard_fallback_governance.md]] | Activation/deactivation governance for dormant WireGuard fallback |
 | [[docs/procedures/ids_ips_progression_plan.md]] | Phased IDS/IPS and host hardening progression plan |
+| [[docs/procedures/fail2ban_host_rollout.md]] | Recovered host jail templates, historical rollout and September access-gap evidence |
+| [[docs/audits/2026-07-full-system-audit/08-resilience-test-cards.md]] | September tabletop recovery review plus gated live failure/restore test cards |
 | [[docs/procedures/monitoring_roadmap.md]] | Monitoring stack rollout, direct-link posture, and IDS/IPS progression |
 | [[docs/procedures/proxmox_grafana_metrics.md]] | Native Proxmox metrics into InfluxDB and Grafana dashboard state |
 | [[docs/procedures/grafana_architecture_dashboards.md]] | Architecture-level Grafana dashboards and lightweight Influx exporters |
@@ -165,9 +204,13 @@ status: active
 | [[docs/procedures/update_maintenance_playbook.md]] | Update windows, caching/offline patterns, and update-monitoring posture |
 | [[docs/procedures/update_review_log.md]] | Weekly update-candidate review execution log and follow-up tracking |
 | [[docs/procedures/docker_host_patch_window_runbook.md]] | Command-by-command docker-host package/container patch window |
+| [[docs/procedures/household-services-implementation-plan.md]] | Decision-gated Vaultwarden, media-library and download-automation implementation plan |
+| [[docs/procedures/household-workshop-operations-roadmap.md]] | Phased product roadmap for household, workshop, diagnostics, resilience and VentSys commissioning workflows |
 | [[docs/procedures/garage_admin_pi_setup_guide.md]] | Raspberry Pi setup for a trusted garage admin workstation on HomeAdmin |
 | [[docs/procedures/local_ai_performance_testing.md]] | Baseline, model/context, voice, and upgrade tests for CT 114 local AI |
-| [[scripts/monitoring/health_check.sh]] | Single-command health check for all systems |
+| [[scripts/monitoring/health_check.sh]] | Single-command health check and JSON snapshot source for all systems |
+| [[scripts/monitoring/health_check.ps1]] | Windows health check with table or dashboard-compatible `-Json` output |
+| [[scripts/monitoring/validate_proxmox_snapshot.py]] | Offline acceptance validator for the Proxmox backup and mount evidence snapshot |
 | [[scripts/monitoring/export_uptime_kuma_to_influx.py]] | Lightweight Uptime Kuma monitor-state export into InfluxDB |
 | [[scripts/monitoring/export_fail2ban_to_influx.sh]] | Lightweight docker-host Fail2ban counter export into InfluxDB |
 
@@ -186,7 +229,8 @@ status: active
 - [[docs/reference/access-matrix.md]] — OpenWrt, Tailscale, host firewall, and service auth access intent
 - [[docs/diagrams/README.md]] — canonical diagram library
 - [[docs/diagrams/network/current-master-architecture.mermaid]] — whole-system architecture and service placement
-- [[docs/diagrams/network/vlan_architecture_clean.mermaid]] — active 10-segment VLAN topology
+- [[docs/diagrams/network/vlan_architecture_clean.mermaid]] — eleven-segment VLAN topology including cloud IoT VLAN55
+- [[docs/diagrams/network/physical-port-and-cabling.mermaid]] — live router, trunks, switch ports, camera, NAS, and Wi-Fi cabling
 - [[docs/diagrams/network/remote-access-flow.mermaid]] — Tailscale daily access and WireGuard fallback flow
 - [[docs/diagrams/network/dns-ntp-flow.mermaid]] — router DNS/NTP, AdGuard, and public fallback flow
 - [[docs/diagrams/network/security-access-flow.mermaid]] — firewall, ACL, host firewall, and service-auth intent
@@ -195,6 +239,8 @@ status: active
 - [[docs/reference/physical-port-and-cabling.md]] — physical port table, cable labels, and CCTV rollout capacity constraint
 - [[docs/reference/canonical-names.md]] — canonical identifiers for physical devices, guests, and live services
 - [[docs/diagrams/infrastructure/docker-host-service-placement.mermaid]] — docker-host stack layout and app tiers
+- [[docs/diagrams/infrastructure/proxmox-guests-and-backups.mermaid]] — production and rollback guests, shared iGPU paths, and backup schedules
+- [[apps/mermaid-viewer/README.md]] — generated live viewer for all canonical Mermaid sources
 - [[docs/diagrams/storage/storage-and-backup-flow.mermaid]] — OMV storage, backups, and restore flow
 - [[docs/diagrams/install/install-sequence.mermaid]] — fresh rebuild phase sequence and gates
 - [[docs/diagrams/ventsys/ventsys-control-and-safety-flow.mermaid]] — VentSys control, airflow, and safety flow
@@ -212,4 +258,4 @@ status: active
 
 ---
 
-**Updated:** July 2026
+**Updated:** 2026-09-10

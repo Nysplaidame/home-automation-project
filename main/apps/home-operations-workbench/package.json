@@ -1,0 +1,11 @@
+{
+  "name": "home-operations-workbench",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "check": "node --check app.js && node --check health-adapter.js && node --check import-health.mjs && node --check models.js && node --check fixtures/demo-operations.js && npm test",
+    "test:browser": "node tests/browser-smoke.mjs"
+  }
+}

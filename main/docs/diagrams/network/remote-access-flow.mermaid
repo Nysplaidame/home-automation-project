@@ -1,36 +1,34 @@
-flowchart LR
-    RemoteUser["Remote operator<br/>laptop or phone"]
-    Tailnet["Tailscale tailnet<br/>daily remote layer"]
-    DockerHost["docker-host VM 103<br/>Tailscale node<br/>192.168.20.102"]
-    HA["Home Assistant<br/>192.168.20.101/32"]
-    OMV["OMV NAS<br/>192.168.40.50/32"]
-    DockerServices["docker-host services<br/>MagicDNS / Tailscale identity"]
-    Router["OpenWrt router<br/>WireGuard server"]
-    WGClient["WireGuard client<br/>dormant fallback"]
+%%{init: {"theme":"base","fontFamily":"Segoe UI, sans-serif","themeVariables":{"primaryColor":"#123044","primaryTextColor":"#eef6ff","primaryBorderColor":"#58b7bf","lineColor":"#9aafc4","clusterBkg":"#0d1c2d","clusterBorder":"#38516b","tertiaryColor":"#0d1c2d","edgeLabelBackground":"#0b1929","fontFamily":"Segoe UI, sans-serif","fontSize":"18px"},"flowchart":{"curve":"linear","nodeSpacing":20,"rankSpacing":28,"padding":12,"subGraphTitleMargin":{"top":8,"bottom":16},"wrappingWidth":380,"useMaxWidth":false}}}%%
+flowchart TB
+    Remote["REMOTE OPERATOR<br/>Approved identity + device"] --> Tailnet["TAILSCALE · DAILY PATH<br/>VM103 docker-host · 192.168.20.102"]
+    subgraph Portal["DAILY MOBILE PORTAL"]
+        direction TB
+        Grant["OnePlus grant<br/>Split DNS · HTTPS443 · TCP8180–8209"]
+        Proxy["Homepage fixed-target HTTPS proxy<br/>Scoped service destinations only"]
+        PortalLimit["No SSH, direct InfluxDB<br/>or broad VLAN access"]
+        Grant --> Proxy
+        Proxy --- PortalLimit
+    end
+    subgraph Admin["APPROVED HOST ROUTES"]
+        direction TB
+        Routes["HA · 192.168.20.101/32<br/>Frigate · 192.168.30.20/32 · HTTPS8971<br/>OMV · 192.168.40.50/32<br/>Monitoring · 192.168.60.10/32 · 3000/3001"]
+        RouteLimit["Identity + host firewall still apply<br/>No broad VLAN40 route<br/>No default public app exposure"]
+        Routes --- RouteLimit
+    end
+    subgraph Fallback["DORMANT FALLBACK · NOT DAILY ACCESS"]
+        direction TB
+        WG["WireGuard client → OpenWrt<br/>Only through approved activation procedure"]
+        WGScope["Split tunnel, narrow targets<br/>HA / OMV host access where required<br/>No broad storage subnet"]
+        WG -.-> WGScope
+    end
+    Tailnet --> Portal
+    Tailnet --> Admin
+    Remote -.->|"separate activation gate"| Fallback
+    class Remote,Tailnet,Grant,Proxy,Routes core
+    class PortalLimit,RouteLimit policy
+    class WG,WGScope deferred
 
-    RemoteUser --> Tailnet
-    Tailnet --> DockerHost
-    DockerHost --> DockerServices
-    DockerHost -.->|"advertised host route"| HA
-    DockerHost -.->|"advertised host route"| OMV
-
-    RemoteUser -.->|"only if Tailscale unavailable"| WGClient
-    WGClient -.->|"split tunnel fallback"| Router
-    Router -.->|"limited fallback access"| HA
-    Router -.->|"OMV host access only where needed"| OMV
-
-    Blocked1["No broad VLAN 40 route"]
-    Blocked2["No daily WireGuard dependency"]
-    Blocked3["No direct public app exposure by default"]
-
-    DockerHost -.->|"blocked by policy"| Blocked1
-    Router -.->|"blocked by policy"| Blocked2
-    DockerServices -.->|"blocked by policy"| Blocked3
-
-    classDef allowed fill:#e8f7ee,stroke:#2f855a,stroke-width:1px
-    classDef fallback fill:#fff7e6,stroke:#b7791f,stroke-width:1px
-    classDef blocked fill:#ffe8e8,stroke:#c53030,stroke-width:1px
-
-    class RemoteUser,Tailnet,DockerHost,HA,OMV,DockerServices allowed
-    class Router,WGClient fallback
-    class Blocked1,Blocked2,Blocked3 blocked
+    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa
+    classDef store fill:#292745,stroke:#aa99db,color:#f2edff
+    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8
+    classDef deferred fill:#1b2638,stroke:#9dabc1,color:#d3dfef,stroke-dasharray:5 4

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Read-only household, recovery and VentSys commissioning evidence workbench">
+  <title>Home Operations Workbench</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#workbench">Skip to workbench</a>
+  <header class="topbar">
+    <div class="brand">
+      <p class="eyebrow">Home operations / evidence</p>
+      <h1>Operations workbench</h1>
+      <p class="lede">Read daily household work, operational evidence and VentSys commissioning records without changing a source system.</p>
+    </div>
+    <div class="data-controls" aria-label="Evidence controls">
+      <input id="evidence-file" class="visually-hidden" type="file" accept="application/json,.json">
+      <label class="button" for="evidence-file">Load evidence JSON</label>
+      <button id="load-demo" type="button">Load demonstration</button>
+      <button id="clear-evidence" type="button">Clear</button>
+    </div>
+  </header>
+
+  <section class="evidence-strip" aria-label="Evidence summary">
+    <div class="evidence-identity">
+      <span>Evidence</span>
+      <strong id="evidence-time">Not loaded</strong>
+      <small id="evidence-source">Load a fixture to begin.</small>
+    </div>
+    <div><span>Healthy</span><strong id="healthy-count">0</strong></div>
+    <div><span>Needs review</span><strong id="review-count">0</strong></div>
+    <div><span>Needs evidence</span><strong id="unknown-count">0</strong></div>
+    <p id="data-error" class="data-error" role="alert" hidden></p>
+  </section>
+
+  <main id="workbench" class="workbench">
+    <nav id="tabs" class="tab-list" aria-label="Workbench sections" role="tablist">
+      <button id="tab-today" class="tab active" type="button" role="tab" aria-selected="true" aria-controls="panel" data-tab="today">Today</button>
+      <button id="tab-incidents" class="tab" type="button" role="tab" aria-selected="false" aria-controls="panel" data-tab="incidents">Incidents</button>
+      <button id="tab-recovery" class="tab" type="button" role="tab" aria-selected="false" aria-controls="panel" data-tab="recovery">Recovery</button>
+      <button id="tab-cook" class="tab" type="button" role="tab" aria-selected="false" aria-controls="panel" data-tab="cook">Cook</button>
+      <button id="tab-commissioning" class="tab" type="button" role="tab" aria-selected="false" aria-controls="panel" data-tab="commissioning">Commissioning</button>
+    </nav>
+
+    <section id="panel" class="panel" role="tabpanel" aria-live="polite" aria-labelledby="tab-today" tabindex="-1"></section>
+  </main>
+
+  <footer class="footer-note">
+    This workbench imports evidence into the current browser tab. It has no live API connection, credentials, shell execution, automation controls or persistence.
+  </footer>
+  <div id="live-message" class="live-message" role="status" aria-live="polite"></div>
+</body>
+</html>

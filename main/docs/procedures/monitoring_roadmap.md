@@ -3,7 +3,7 @@ title: Monitoring and Logging Roadmap
 description: Deployment order for health checks, uptime monitoring, metrics, alerts, and syslog
 tags: [monitoring, logging, grafana, influxdb, telegraf, uptime-kuma]
 created: 2026-05-08
-modified: 2026-06-20
+modified: 2026-08-25
 type: procedure
 status: active
 ---
@@ -26,7 +26,8 @@ status: active
 ### Alert routing
 
 - Centralized ntfy routing is deployed for configured Uptime Kuma monitors.
-- Grafana threshold/trend alerts remain incremental follow-up work.
+- Grafana's authenticated ntfy contact point and default notification policy
+  are live, with initial docker-host disk and Proxmox storage alerts.
 
 ### Live monitoring VM notes
 
@@ -49,11 +50,15 @@ status: active
 - Grafana dashboards `Service Availability`, `Network DNS`, and `Security Posture` are live for architecture-level monitoring
 - Uptime Kuma monitor snapshots are exported to InfluxDB bucket `uptimekuma` by `uptime-kuma-influx-export.timer`
 - docker-host Fail2ban counters are exported to InfluxDB bucket `dockerhost` by `fail2ban-influx-export.timer`
-- Grafana dashboard shell `NAS Resource Overview` is present but planned only; do not treat NAS metrics as live until the NAS is built
+- Grafana dashboard shell `NAS Resource Overview` is present but remains a
+  dashboard follow-up; OMV itself is live and monitored by web, NFS and SMART
+  checks plus docker-host mount metrics.
 - CT 114 `llm-host` is live. Uptime Kuma checks cover llama.cpp, Open WebUI,
   Wyoming Whisper, Piper and OpenWakeWord and are exported to InfluxDB.
-- CT 111 Frigate baseline is live and the API/UI are healthy. Camera-specific
-  checks remain deferred until cameras are installed.
+- CT 111 Frigate is live and the API/UI are healthy. Direct Kuma reachability
+  checks and HA offline/recovery alerts cover all three installed cameras.
+- OMV SMART and docker-host app-data backup freshness report through Kuma push
+  monitors; both paths have accepted live heartbeats.
 - Home Assistant has a storage-managed `Monitoring` dashboard at `/monitoring/overview` with direct links to Grafana and Uptime Kuma
 - Embedded Grafana and Uptime Kuma views in HA remain intentionally parked until a same-origin HTTPS/reverse-proxy path is implemented and validated
 - Uptime Kuma direct iframe embedding is blocked by its `SAMEORIGIN` frame header; integrate it later through a same-origin reverse proxy/HTTPS route or use API/notification integration instead
@@ -122,7 +127,7 @@ Live state:
 - Network DNS URL: `http://192.168.60.10:3000/d/network-dns-overview/network-dns`
 - Security Posture URL: `http://192.168.60.10:3000/d/security-posture-overview/security-posture`
 - NAS dashboard shell URL: `http://192.168.60.10:3000/d/nas-resource-overview/nas-resource-overview`
-- Home Assistant monitoring dashboard: `http://192.168.20.101:8123/monitoring/overview`
+- Home Assistant monitoring dashboard: `https://192.168.20.101:8123/monitoring/overview`
 - Docker-host/container metrics are folded into the Proxmox dashboard for now
   rather than creating a third dashboard, preserving the two-dashboard model:
   live infrastructure now, NAS-focused dashboard later.
@@ -155,9 +160,10 @@ Live collectors:
 
 Preferred progression:
 
-1. Uptime Kuma notifications for core outages
-2. Grafana alerts for thresholds / trends
-3. optional `ntfy` for self-hosted push notifications
+1. Uptime Kuma notifications for core outages — live
+2. Grafana alerts for selected thresholds / trends — initial rules live
+3. authenticated self-hosted `ntfy` delivery — live; expand only with an
+   explicit severity and routing policy
 
 ## Logging plan
 
@@ -175,7 +181,7 @@ Preferred progression:
 ### Docker-host
 
 - use container logs locally first
-- add `Dozzle` as the simplest internal log viewer if desired
+- use the deployed internal Dozzle service for container-log inspection
 
 ## Recommended near-term stack choices
 
@@ -215,13 +221,16 @@ Reference plan: `docs/procedures/ids_ips_progression_plan.md`
 
 ## Current answer
 
-As of May 30, 2026:
+As of August 25, 2026:
 
 - true IDS: not deployed
 - true IPS: not deployed
 - host-based banning: docker-host and CT 111 Frigate SSH baselines are deployed;
   CT 114 should be reviewed for the same baseline
-- security foundations: segmentation, firewall rules, Tailscale daily access, dormant WireGuard fallback, selective logging, Grafana/Kuma visibility
+- security foundations: segmentation, OpenWrt/host/Docker firewall rules,
+  explicit Compose bridge allocations, scoped Tailscale access, dormant
+  WireGuard fallback, selective logging, Grafana/Kuma visibility and ntfy alert
+  delivery
 
 ## Success criteria
 

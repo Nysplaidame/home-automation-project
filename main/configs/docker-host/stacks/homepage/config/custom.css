@@ -1,0 +1,701 @@
+:root {
+  --portal-glass: rgb(6 78 78 / 0.5);
+  --portal-glass-strong: rgb(5 67 69 / 0.72);
+  --portal-edge: rgb(94 234 212 / 0.3);
+  --portal-highlight: rgb(236 253 245 / 0.18);
+  --portal-accent: rgb(153 246 228);
+  --portal-copy: rgb(204 251 241);
+  --portal-muted: rgb(153 246 228 / 0.78);
+  --portal-ui-font-size: 1rem;
+  --portal-secondary-font-size: 0.9rem;
+}
+
+/* Header: brand, search, runtime resources and time share one calm control bar. */
+#widgets-wrap {
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  flex-wrap: nowrap !important;
+  gap: 0.55rem;
+  padding: 0.55rem;
+  border: 1px solid rgb(94 234 212 / 0.24);
+  border-radius: 1rem;
+  background: rgb(4 58 61 / 0.56);
+  box-shadow: inset 0 1px 0 rgb(236 253 245 / 0.12), 0 4px 12px rgb(2 44 45 / 0.22);
+  backdrop-filter: blur(18px) saturate(130%);
+}
+
+.portal-brand {
+  display: grid;
+  flex: 0 1 auto;
+  gap: 0.08rem;
+  min-width: 10.8rem;
+  min-height: 4.5rem;
+  height: 4.5rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--portal-edge);
+  border-radius: 0.8rem;
+  background: var(--portal-glass);
+  box-shadow: inset 0 1px 0 var(--portal-highlight), 0 3px 9px rgb(2 44 45 / 0.2);
+  backdrop-filter: blur(16px) saturate(125%);
+}
+
+.portal-brand strong {
+  color: var(--portal-copy);
+  font-size: var(--portal-ui-font-size);
+  letter-spacing: -0.02em;
+}
+
+.portal-brand-kicker,
+.portal-preview-kicker {
+  color: var(--portal-accent);
+  font-size: 0.62rem;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+#information-widgets-right {
+  display: flex !important;
+  flex: 1 1 0;
+  min-width: 0;
+  flex-wrap: nowrap !important;
+  align-items: center;
+  justify-content: flex-end !important;
+  gap: 0.45rem;
+  margin: 0 0 0 auto !important;
+}
+
+#information-widgets-right > * {
+  flex: 0 0 auto;
+  height: 4.5rem;
+  min-height: 4.5rem;
+  margin: 0 !important;
+  box-sizing: border-box;
+}
+
+#information-widgets-right .information-widget-search {
+  display: flex;
+  flex: 1 1 14rem;
+  min-width: 0;
+  min-height: 4.5rem;
+  align-items: center;
+  margin: 0 !important;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--portal-edge);
+  border-radius: 0.75rem;
+  background: var(--portal-glass);
+  box-shadow: inset 0 1px 0 var(--portal-highlight), 0 3px 9px rgb(2 44 45 / 0.2);
+  backdrop-filter: blur(16px) saturate(125%);
+}
+
+#information-widgets-right .information-widget-search > div {
+  width: 100%;
+  margin: 0.15rem 0;
+}
+
+#information-widgets-right > :not(.information-widget-search) {
+  min-height: 4.5rem;
+  border: 1px solid var(--portal-edge);
+  border-radius: 0.8rem;
+  background: var(--portal-glass);
+  box-shadow: inset 0 1px 0 var(--portal-highlight), 0 3px 9px rgb(2 44 45 / 0.2);
+  backdrop-filter: blur(16px) saturate(125%);
+}
+
+#information-widgets-right .information-widget-search,
+#information-widgets-right > :not(.information-widget-search),
+.portal-brand {
+  color: var(--portal-copy);
+}
+
+/* 50% translucent, elevated cards with a pronounced but contained glass depth. */
+[id^="portal-"] {
+  position: relative;
+  min-width: 0;
+  height: 100%;
+  container-type: inline-size;
+}
+
+[id^="portal-"] .service-card {
+  height: 100%;
+  min-height: 5.25rem;
+  overflow: hidden;
+  padding-right: 7.6rem;
+  border: 1px solid rgb(153 246 228 / 0.44);
+  background:
+    linear-gradient(142deg, rgb(236 253 245 / 0.16), transparent 28%),
+    linear-gradient(320deg, rgb(45 212 191 / 0.11), transparent 52%),
+    var(--portal-glass) !important;
+  box-shadow:
+    inset 0 1px 0 rgb(236 253 245 / 0.34),
+    inset 0 -1px 0 rgb(2 44 45 / 0.38),
+    inset 1px 0 0 rgb(153 246 228 / 0.12),
+    0 0 0 1px rgb(45 212 191 / 0.12),
+    0 7px 15px rgb(2 44 45 / 0.3);
+  backdrop-filter: blur(17px) saturate(145%);
+  transform: translateZ(0);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease, background-color 180ms ease;
+}
+
+[id^="portal-"] .service-title {
+  min-width: 0;
+  min-height: 100%;
+  align-items: center;
+}
+
+[id^="portal-"] .service-title-text,
+[id^="portal-"] .service-name {
+  min-width: 0;
+}
+
+[id^="portal-"] .service-card::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background: linear-gradient(118deg, rgb(255 255 255 / 0.12), transparent 26%, transparent 70%, rgb(94 234 212 / 0.05));
+}
+
+[id^="portal-"] .service-card:hover {
+  border-color: rgb(94 234 212 / 0.56);
+  background: rgb(7 92 92 / 0.56) !important;
+  box-shadow:
+    inset 0 1px 0 rgb(236 253 245 / 0.42),
+    inset 0 -1px 0 rgb(2 44 45 / 0.38),
+    0 0 0 2px rgb(94 234 212 / 0.15),
+    0 9px 18px rgb(2 44 45 / 0.34);
+  transform: translateY(-2px);
+}
+
+[id^="portal-"] .service-card :is(a, p, span, h1, h2, h3, h4) {
+  color: var(--portal-copy);
+}
+
+/* One readable type scale across every portal card. Labels use the shared
+   primary size; explanatory copy keeps a consistent, slightly smaller level. */
+[id^="portal-"] .service-name,
+[id^="portal-"] .service-title-text,
+.portal-reference-links .bookmark > a,
+#myTab button[role="tab"],
+.portal-preview-actions :is(button, a) {
+  font-size: var(--portal-ui-font-size) !important;
+}
+
+[id^="portal-"] .service-description,
+[id^="portal-"] .service-subtitle,
+.portal-reference-links .bookmark > a :is(span, div:last-child) {
+  font-size: var(--portal-secondary-font-size);
+}
+
+[id^="portal-"] .service-card :is(.service-description, .service-subtitle, .text-theme-500) {
+  color: var(--portal-muted) !important;
+}
+
+/* Reference links are navigation cards too: match the service grid instead of
+   leaving a narrow, uneven strip at the top of Home. */
+.portal-reference-links ul {
+  width: 100%;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  column-gap: 0.65rem !important;
+  row-gap: 0.65rem !important;
+}
+
+.portal-reference-links .bookmark {
+  min-width: 0;
+  min-height: 5.25rem;
+  margin: 0 !important;
+}
+
+.portal-reference-links .bookmark > a {
+  display: flex;
+  min-height: 5.25rem;
+  border: 1px solid rgb(153 246 228 / 0.44) !important;
+  border-radius: 0.7rem;
+  background:
+    linear-gradient(142deg, rgb(236 253 245 / 0.16), transparent 28%),
+    linear-gradient(320deg, rgb(45 212 191 / 0.11), transparent 52%),
+    var(--portal-glass) !important;
+  box-shadow: inset 0 1px 0 rgb(236 253 245 / 0.34), 0 0 0 1px rgb(45 212 191 / 0.12), 0 7px 15px rgb(2 44 45 / 0.3);
+  backdrop-filter: blur(17px) saturate(145%);
+}
+
+.portal-reference-links .bookmark > a:hover {
+  border-color: rgb(94 234 212 / 0.56) !important;
+  background: rgb(7 92 92 / 0.56) !important;
+}
+
+/* Back-end and collector workloads have no portal destination. Keep the card
+   geometry identical, but make that absence deliberate rather than reserving
+   empty space for a Preview action. */
+[id^="portal-"].portal-status-only .service-card {
+  padding-right: 1.15rem;
+  border-color: rgb(148 163 184 / 0.38);
+  background:
+    linear-gradient(142deg, rgb(226 232 240 / 0.1), transparent 28%),
+    linear-gradient(320deg, rgb(100 116 139 / 0.13), transparent 52%),
+    rgb(51 65 85 / 0.52) !important;
+  box-shadow:
+    inset 0 1px 0 rgb(241 245 249 / 0.2),
+    inset 0 -1px 0 rgb(15 23 42 / 0.34),
+    0 0 0 1px rgb(148 163 184 / 0.1),
+    0 6px 13px rgb(15 23 42 / 0.24);
+}
+
+[id^="portal-"].portal-status-only .service-card:hover {
+  border-color: rgb(203 213 225 / 0.56);
+  background: rgb(71 85 105 / 0.58) !important;
+  box-shadow:
+    inset 0 1px 0 rgb(241 245 249 / 0.28),
+    0 0 0 1px rgb(203 213 225 / 0.12),
+    0 7px 15px rgb(15 23 42 / 0.28);
+}
+
+.portal-preview-trigger {
+  position: absolute;
+  z-index: 20;
+  top: 0.55rem;
+  right: 2.25rem;
+  bottom: 0.55rem;
+  display: inline-flex;
+  min-height: 0;
+  align-items: center;
+  gap: 0.32rem;
+  padding: 0.35rem 0.62rem;
+  border: 1px solid var(--portal-edge);
+  border-radius: 0.52rem;
+  background: rgb(5 76 78 / 0.72);
+  box-shadow: inset 0 1px 0 rgb(236 253 245 / 0.3), 0 4px 9px rgb(2 44 45 / 0.32);
+  color: var(--portal-copy);
+  font-size: var(--portal-secondary-font-size);
+  font-weight: 650;
+  line-height: 1;
+  opacity: 0.96;
+  backdrop-filter: blur(10px);
+  transform: none;
+  transition: border-color 150ms ease, color 150ms ease, background-color 150ms ease, transform 150ms ease;
+}
+
+.portal-preview-trigger:hover,
+.portal-preview-trigger:focus-visible,
+.portal-preview-actions :is(button, a):hover {
+  border-color: rgb(45 212 191 / 0.8);
+  background: rgb(20 64 77 / 0.78);
+  color: var(--portal-accent);
+  transform: translateY(-1px);
+}
+
+.portal-preview-trigger:hover,
+.portal-preview-trigger:focus-visible {
+  transform: none !important;
+}
+
+.portal-preview-trigger:focus-visible,
+.portal-preview-actions :is(button, a):focus-visible {
+  outline: 2px solid var(--portal-accent);
+  outline-offset: 2px;
+}
+
+.portal-preview-trigger svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+/* The preview is an inline work card below the active portal cards, not a modal. */
+.portal-preview-dock[hidden] {
+  display: none;
+}
+
+.portal-preview-dock {
+  position: relative;
+  z-index: 20;
+  flex: 0 0 auto;
+  height: auto;
+  width: calc(100% - clamp(1rem, 2.25vw, 2.75rem));
+  margin: 1rem auto 1.25rem;
+  border: 1px solid rgb(94 234 212 / 0.34);
+  border-radius: 1rem;
+  background: var(--portal-glass-strong);
+  box-shadow: inset 0 1px 0 rgb(236 253 245 / 0.18), 0 5px 14px rgb(2 44 45 / 0.26);
+  backdrop-filter: blur(20px) saturate(135%);
+  overflow: hidden;
+}
+
+.portal-preview-shell {
+  display: grid;
+  height: min(136vh, 1560px);
+  min-height: 56rem;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.portal-preview-toolbar {
+  display: flex;
+  min-height: 3.85rem;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.65rem 0.9rem;
+  border-bottom: 1px solid rgb(94 234 212 / 0.2);
+  background: linear-gradient(120deg, rgb(6 94 94 / 0.78), rgb(4 58 61 / 0.66));
+}
+
+.portal-preview-heading {
+  display: grid;
+  min-width: 11rem;
+}
+
+.portal-preview-hint {
+  flex: 1;
+  color: var(--portal-muted);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.portal-preview-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.portal-preview-actions :is(button, a) {
+  display: inline-flex;
+  min-height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--portal-edge);
+  border-radius: 0.55rem;
+  background: rgb(5 76 78 / 0.72);
+  box-shadow: inset 0 1px 0 var(--portal-highlight), 0 3px 8px rgb(2 44 45 / 0.22);
+  color: var(--portal-copy);
+  font: inherit;
+  font-size: var(--portal-ui-font-size);
+  text-decoration: none;
+  transition: border-color 150ms ease, color 150ms ease, background-color 150ms ease, transform 150ms ease;
+}
+
+.portal-preview-frame-wrap {
+  position: relative;
+  min-height: 0;
+  background: rgb(2 44 45);
+}
+
+.portal-preview-frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: white;
+}
+
+/* qBittorrent's classic ExtJS interface has a desktop-width layout contract.
+   Give its embedded canvas room to initialise, with deliberate horizontal
+   scrolling on a narrow portal rather than letting its transfer panel collapse
+   below the toolbar. */
+.portal-preview-dock.portal-preview-qbittorrent .portal-preview-frame-wrap {
+  overflow: auto;
+}
+
+.portal-preview-dock.portal-preview-qbittorrent .portal-preview-frame {
+  display: block;
+  min-width: 64rem;
+}
+
+.portal-preview-loading {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  display: none;
+  pointer-events: none;
+  align-content: center;
+  justify-items: center;
+  gap: 0.35rem;
+  padding: 1rem;
+  text-align: center;
+  place-items: center;
+  color: var(--portal-muted);
+  background: rgb(2 44 45);
+}
+
+.portal-preview-loading span {
+  max-width: 34rem;
+  color: var(--portal-muted);
+  font-size: 0.82rem;
+}
+
+.portal-preview-dock.is-loading .portal-preview-loading {
+  display: grid;
+}
+
+.portal-preview-dock.preview-load-slow .portal-preview-loading {
+  inset: auto 1rem 1rem;
+  display: grid;
+  border: 1px solid rgb(94 234 212 / 0.36);
+  border-radius: 0.75rem;
+  background: rgb(2 44 45 / 0.88);
+  box-shadow: inset 0 1px 0 rgb(236 253 245 / 0.18), 0 5px 14px rgb(2 44 45 / 0.32);
+}
+
+/* Use the available desktop width before wrapping a service category. */
+@media (min-width: 721px) {
+  .services-list {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)) !important;
+  }
+}
+
+/* Narrow cards grow vertically and give the action its own bottom row. */
+@container (max-width: 330px) {
+  [id^="portal-"] .service-card {
+    min-height: 8.75rem;
+    padding-right: 0.25rem;
+    padding-bottom: 3.35rem;
+  }
+
+  [id^="portal-"] .service-title {
+    min-height: auto;
+    align-items: flex-start;
+  }
+
+  [id^="portal-"] .service-name {
+    padding-right: 1.35rem;
+  }
+
+  .portal-preview-trigger {
+    top: auto;
+    right: 0.55rem;
+    bottom: 0.55rem;
+    left: 0.55rem;
+    height: 2.35rem;
+    min-height: 2.35rem;
+    justify-content: center;
+  }
+}
+
+/* Navigation uses the same raised teal-glass language as the service cards. */
+#myTab {
+  gap: 0.42rem;
+  padding: 0.42rem;
+  border: 1px solid rgb(94 234 212 / 0.28);
+  border-radius: 0.9rem;
+  background: rgb(4 58 61 / 0.54) !important;
+  box-shadow: inset 0 1px 0 rgb(236 253 245 / 0.18), 0 5px 13px rgb(2 44 45 / 0.28);
+}
+
+#myTab > li {
+  height: 3rem;
+}
+
+#myTab button[role="tab"] {
+  margin: 0 !important;
+  border: 1px solid rgb(94 234 212 / 0.25);
+  border-radius: 0.66rem;
+  background: linear-gradient(150deg, rgb(13 105 105 / 0.58), rgb(4 58 61 / 0.62)) !important;
+  box-shadow: inset 0 1px 0 rgb(236 253 245 / 0.2), 0 3px 8px rgb(2 44 45 / 0.24);
+  color: var(--portal-copy) !important;
+  font-weight: 650;
+  transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+#myTab button[role="tab"]:hover,
+#myTab button[role="tab"]:focus-visible {
+  border-color: rgb(153 246 228 / 0.64);
+  background: linear-gradient(150deg, rgb(20 134 132 / 0.7), rgb(5 76 78 / 0.72)) !important;
+  box-shadow: inset 0 1px 0 rgb(236 253 245 / 0.28), 0 5px 11px rgb(2 44 45 / 0.3);
+}
+
+#myTab button[role="tab"][aria-selected="true"] {
+  border-color: rgb(153 246 228 / 0.78);
+  background: linear-gradient(145deg, rgb(20 184 166 / 0.48), rgb(6 95 91 / 0.8)) !important;
+  box-shadow: inset 0 1px 0 rgb(236 253 245 / 0.36), 0 0 0 1px rgb(45 212 191 / 0.14), 0 5px 12px rgb(2 44 45 / 0.34);
+  color: rgb(236 253 245) !important;
+}
+
+/* Keep the network artwork calm, but make its ambient light visibly alive. */
+@media (prefers-reduced-motion: no-preference) {
+  #background {
+    overflow: hidden;
+    background-size: auto, 120% auto !important;
+    animation: portal-background-drift 30s ease-in-out infinite alternate;
+    will-change: background-position;
+  }
+
+  #background::after {
+    position: absolute;
+    inset: -18%;
+    content: "";
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 20% 34%, rgb(45 212 191 / 0.16), transparent 26%),
+      radial-gradient(circle at 76% 68%, rgb(56 189 248 / 0.14), transparent 29%);
+    filter: blur(10px);
+    animation: portal-ambient-drift 18s ease-in-out infinite alternate;
+    will-change: transform, opacity;
+  }
+
+  @keyframes portal-background-drift {
+    from { background-position: center, 42% 46%; }
+    to { background-position: center, 58% 54%; }
+  }
+
+  @keyframes portal-ambient-drift {
+    from { opacity: 0.4; transform: translate3d(-2.5%, -1.5%, 0) scale(1); }
+    to { opacity: 0.9; transform: translate3d(2.5%, 1.5%, 0) scale(1.05); }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #background,
+  #background::after {
+    animation: none !important;
+    background-position: center, center !important;
+  }
+}
+
+/* The desktop header needs nearly the full 1280 px canvas. Reflow it before
+   search/resources can compress into the brand card at intermediate widths. */
+@media (max-width: 1230px) {
+  #widgets-wrap {
+    display: grid !important;
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 0.65rem;
+    overflow: hidden;
+  }
+
+  .portal-brand {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 4rem;
+  }
+
+  #information-widgets-right {
+    display: grid !important;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+    justify-content: stretch !important;
+    gap: 0.55rem;
+    margin: 0 !important;
+  }
+
+  #information-widgets-right > * {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100%;
+    height: auto;
+    min-height: 4.25rem;
+  }
+
+  #information-widgets-right .information-widget-search {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+
+  #information-widgets-right .widget-container:not(.information-widget-datetime) > div:first-child {
+    display: grid !important;
+    width: 100% !important;
+    min-width: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.25rem;
+  }
+
+  #information-widgets-right .information-widget-resource {
+    min-width: 0;
+    justify-content: center;
+    margin-right: 0 !important;
+  }
+
+  #information-widgets-right .widget-container:not(.information-widget-datetime) > div:last-child {
+    width: 100% !important;
+    min-width: 0;
+    margin-left: 0 !important;
+  }
+
+}
+
+@media (max-width: 900px) {
+
+  #myTab {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+
+  #myTab > li {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+  }
+
+  #myTab button[role="tab"] {
+    width: 100%;
+    min-width: 0;
+    min-height: 3rem;
+    padding-right: 0.55rem !important;
+    padding-left: 0.55rem !important;
+    white-space: normal;
+  }
+
+  /* Retain the dark network artwork without the expanding mobile glow band. */
+  #background::after {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .portal-reference-links ul {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  #information-widgets-right {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #information-widgets-right .information-widget-search {
+    grid-column: auto;
+  }
+
+  #myTab {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .services-list {
+    grid-template-columns: minmax(0, 1fr) !important;
+    row-gap: 0.65rem !important;
+  }
+
+  .portal-preview-shell {
+    height: 128dvh;
+    min-height: 44rem;
+  }
+
+  .portal-preview-toolbar {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .portal-preview-dock.portal-preview-qbittorrent .portal-preview-frame {
+    min-width: 62rem;
+  }
+
+  .portal-preview-hint {
+    display: none;
+  }
+
+  .portal-preview-actions {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 350px) {
+  #myTab {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

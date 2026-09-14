@@ -148,7 +148,7 @@ ip addr show wg0     # should show 10.0.0.x
 # Or on mobile, the VPN status shows the tunnel IP
 
 # Test access to Home Assistant
-curl http://192.168.20.101:8123
+curl -k https://192.168.20.101:8123
 # Should return HA login page HTML
 
 # Test host-only fallback access to OMV

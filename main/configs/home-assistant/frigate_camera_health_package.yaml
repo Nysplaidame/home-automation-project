@@ -1,0 +1,131 @@
+# Frigate camera-health monitoring.
+# Deploy to /config/packages/frigate_camera_health_package.yaml on Home Assistant.
+#
+# Frigate publishes camera FPS in its MQTT stats payload. A camera is considered
+# offline only after three continuous minutes below 1 fps, avoiding alerts for
+# brief restarts or stream renegotiation. MQTT sensors expire if Frigate itself
+# stops publishing, so the same alert path covers NVR outages.
+
+mqtt:
+  sensor:
+    - name: "CCTV Cam 01 Camera FPS"
+      unique_id: cctv_cam_01_camera_fps
+      state_topic: frigate/stats
+      value_template: "{{ value_json.cameras.cam_01_annke_c500.camera_fps | float(0) }}"
+      unit_of_measurement: "fps"
+      state_class: measurement
+      expire_after: 120
+
+    - name: "CCTV Gate Camera FPS"
+      unique_id: cctv_gate_camera_fps
+      state_topic: frigate/stats
+      value_template: "{{ value_json.cameras.cam_02_gate.camera_fps | float(0) }}"
+      unit_of_measurement: "fps"
+      state_class: measurement
+      expire_after: 120
+
+    - name: "CCTV Patio Camera FPS"
+      unique_id: cctv_patio_camera_fps
+      state_topic: frigate/stats
+      value_template: "{{ value_json.cameras.cam_03_patio.camera_fps | float(0) }}"
+      unit_of_measurement: "fps"
+      state_class: measurement
+      expire_after: 120
+
+template:
+  - binary_sensor:
+      - name: "CCTV Cam 01 Online"
+        unique_id: cctv_cam_01_online
+        device_class: connectivity
+        state: "{{ states('sensor.cctv_cam_01_camera_fps') | float(0) >= 1 }}"
+        delay_off: "00:03:00"
+
+      - name: "CCTV Gate Online"
+        unique_id: cctv_gate_online
+        device_class: connectivity
+        state: "{{ states('sensor.cctv_gate_camera_fps') | float(0) >= 1 }}"
+        delay_off: "00:03:00"
+
+      - name: "CCTV Patio Online"
+        unique_id: cctv_patio_online
+        device_class: connectivity
+        state: "{{ states('sensor.cctv_patio_camera_fps') | float(0) >= 1 }}"
+        delay_off: "00:03:00"
+
+automation:
+  - id: cctv_camera_offline_alert
+    alias: "CCTV - Camera offline"
+    mode: parallel
+    max: 3
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.cctv_cam_01_online
+        to: "off"
+      - trigger: state
+        entity_id: binary_sensor.cctv_gate_online
+        to: "off"
+      - trigger: state
+        entity_id: binary_sensor.cctv_patio_online
+        to: "off"
+    variables:
+      camera_key: >-
+        {{ trigger.entity_id | replace('binary_sensor.cctv_', '') | replace('_online', '') }}
+      camera_name: >-
+        {{ {
+          'binary_sensor.cctv_cam_01_online': 'Camera 1',
+          'binary_sensor.cctv_gate_online': 'Gate camera',
+          'binary_sensor.cctv_patio_online': 'Patio camera'
+        }.get(trigger.entity_id, trigger.to_state.name) }}
+    actions:
+      - action: persistent_notification.create
+        data:
+          notification_id: "cctv_camera_offline_{{ camera_key }}"
+          title: "CCTV camera offline"
+          message: >-
+            {{ camera_name }} has delivered less than 1 fps for three minutes.
+            Check its PoE port, VLAN 30 connectivity, and Frigate RTSP ingest.
+      - action: notify.mobile_app_mai_foenn
+        data:
+          title: "CCTV camera offline"
+          message: "{{ camera_name }} has been offline for three minutes."
+          data:
+            tag: "cctv-camera-{{ camera_key }}"
+            channel: CCTV
+
+  - id: cctv_camera_recovered_alert
+    alias: "CCTV - Camera recovered"
+    mode: parallel
+    max: 3
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.cctv_cam_01_online
+        from: "off"
+        to: "on"
+      - trigger: state
+        entity_id: binary_sensor.cctv_gate_online
+        from: "off"
+        to: "on"
+      - trigger: state
+        entity_id: binary_sensor.cctv_patio_online
+        from: "off"
+        to: "on"
+    variables:
+      camera_key: >-
+        {{ trigger.entity_id | replace('binary_sensor.cctv_', '') | replace('_online', '') }}
+      camera_name: >-
+        {{ {
+          'binary_sensor.cctv_cam_01_online': 'Camera 1',
+          'binary_sensor.cctv_gate_online': 'Gate camera',
+          'binary_sensor.cctv_patio_online': 'Patio camera'
+        }.get(trigger.entity_id, trigger.to_state.name) }}
+    actions:
+      - action: persistent_notification.dismiss
+        data:
+          notification_id: "cctv_camera_offline_{{ camera_key }}"
+      - action: notify.mobile_app_mai_foenn
+        data:
+          title: "CCTV camera recovered"
+          message: "{{ camera_name }} is streaming normally again."
+          data:
+            tag: "cctv-camera-{{ camera_key }}"
+            channel: CCTV

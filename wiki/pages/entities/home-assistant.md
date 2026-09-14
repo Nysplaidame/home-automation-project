@@ -3,7 +3,7 @@ title: "Home Assistant (HAOS)"
 category: entity
 tags: [software, home-assistant, automation, mqtt, esphome]
 created: 2026-04-07
-updated: 2026-06-20
+updated: 2026-08-09
 sources: [project-readme, ha-vm-setup-guide, ha-configuration-yaml]
 status: stable
 ---
@@ -12,7 +12,7 @@ status: stable
 
 **Type:** integration — home automation platform
 **Status:** ✅ Live — HAOS core 2026.6.3
-**Related:** [[entities/proxmox]], [[entities/mosquitto-mqtt]], [[entities/esphome]], [[entities/frigate]], [[entities/ventsys]], [[entities/bambuddy]], [[entities/monitoring-vm]]
+**Related:** [[entities/proxmox]], [[entities/mosquitto-mqtt]], [[entities/esphome]], [[entities/frigate]], [[entities/ventsys]], [[entities/bambuddy]], [[entities/monitoring-vm]], [[entities/household-hub]]
 
 ## Overview
 
@@ -20,8 +20,8 @@ Home Assistant OS runs on Proxmox VM 100 at `192.168.20.101`. It is the
 central automation hub: brokering MQTT, hosting the ESPHome add-on, staging
 VentSys packages/dashboard assets, monitoring the Bambu P1S through Bambuddy
 when printer details are available, and exporting state history to InfluxDB on
-the monitoring VM. Frigate integration remains planned until cameras, RTSP
-details, HTTPS, and audio requirements are ready.
+the monitoring VM. The Frigate integration and three-camera CCTV views are
+live.
 
 Mosquitto TLS is live on port `8883`. Plain MQTT `1883` is deprecated and must
 not be reintroduced through router policy for VentSys; the 2026-05-28 parity
@@ -48,8 +48,9 @@ on TLS, and remaining Frigate/VentSys paths should use the TLS migration plan.
 - **File Editor** — config file management.
 
 Home and Overwatch Assist pipelines are live through [[entities/llm-host]].
-Overwatch can perform bounded read-only SearXNG searches. It cannot currently
-save recipes to Obsidian or Mealie.
+Overwatch has authenticated read-only Household Hub knowledge and recipe
+research tools. Live Mealie import remains an explicit owner-reviewed Household
+Hub workflow rather than an unrestricted voice action.
 
 ## Live Config on HA
 
@@ -60,6 +61,8 @@ save recipes to Obsidian or Mealie.
 - `/config/www/ventsys-config.js` ✅ live-only token/config file; do not commit.
 - `/config/www/ventsys-card-wrapper.html` ✅ deployed for Lovelace iframe/card use.
 - `/config/packages/monitoring_external_health_package.yaml` ✅ deployed for monitoring-stack external health visibility.
+- `/config/packages/frigate_camera_health_package.yaml` deployed with MQTT FPS
+  sensors and debounced offline/recovery notifications for all three cameras.
 
 ## VentSys Entities
 
@@ -82,8 +85,10 @@ present and tested.
 
 ## Pending
 
-- Finish MQTT TLS migration for remaining Frigate/VentSys clients without reintroducing broad or source-specific plain-MQTT router access.
-- Frigate integration — pending camera hardware, Frigate `.env`, and Frigate start.
+- Finish MQTT TLS migration for any remaining VentSys clients without
+  reintroducing broad or source-specific plain-MQTT router access; Frigate is
+  already live on TLS.
+- Tune Frigate zones, masks, and object-alert rules for the final exterior views.
 - HA HTTPS/reverse proxy path — needed before treating Grafana/Kuma embedding as stable.
 - Apply `configs/home-assistant/lovelace/monitoring-grafana-links.yaml` to the storage-managed Monitoring dashboard through the HA UI.
 
@@ -96,6 +101,10 @@ present and tested.
 
 ## Change Log
 
+- 2026-08-09: Linked the live Household Hub read-only research boundary and its
+  separate confirmation-gated Mealie workflow.
+- 2026-07-28: Added live three-camera Frigate integration state and deployed
+  camera FPS/offline/recovery monitoring with persistent and mobile alerts.
 - 2026-06-20: Added live local LLM/Wyoming Assist and bounded SearXNG tool state;
   verified HA 2026.6.3 configuration.
 

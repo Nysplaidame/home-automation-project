@@ -1,0 +1,8 @@
+{
+  "domain": "household_hub_llm",
+  "name": "Household Hub LLM Tools",
+  "version": "0.1.0",
+  "documentation": "https://www.home-assistant.io/integrations/conversation/",
+  "dependencies": ["conversation"],
+  "codeowners": []
+}

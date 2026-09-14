@@ -3,7 +3,7 @@ title: "Bambu Lab P1S (3D Printer)"
 category: entity
 tags: [hardware, 3d-printer, bambulab, p1s]
 created: 2026-04-07
-updated: 2026-04-07
+updated: 2026-08-25
 sources: [project-readme, troubleshooting-reference]
 status: active
 ---
@@ -11,17 +11,20 @@ status: active
 # Bambu Lab P1S
 
 **Type:** device — FDM 3D printer
-**Status:** ✅ Owned (assumed) / operational on VLAN 1
+**Status:** Deployed on printer VLAN 35; currently unreachable from VM 103
 **Related:** [[entities/bambuddy]], [[entities/home-assistant]], [[entities/ventsys]]
 
 ## Overview
 
-Bambu Lab P1S FDM printer monitored via [[entities/bambuddy]] bridge. Lives on VLAN 1 (LAN) at a static IP. Requires Developer Mode enabled for MQTT access. The P1S is one of the two printers whose enclosure is managed by [[entities/ventsys]].
+Bambu Lab P1S FDM printer monitored via [[entities/bambuddy]]. It belongs on the
+isolated HomePrinters/VLAN 35 network and requires Developer Mode for local
+MQTT. The current architecture remains valid, but the printer or VLAN path must
+be restored before Bambuddy can leave host networking.
 
 ## Key Properties
 
-- Network: VLAN 1 (LAN — 192.168.1.0/24)
-- Static IP: `192.168.1.200` (DHCP reservation by MAC)
+- Network: VLAN 35 (Printers — `192.168.35.0/24`), HomePrinters Wi-Fi
+- Static IP: `192.168.35.200`
 - Protocol: Bambu Lab proprietary MQTT (port 8883 on printer)
 - Developer Mode: required — enable via Settings → Network on printer touchscreen
 
@@ -32,7 +35,8 @@ Bambu Lab P1S FDM printer monitored via [[entities/bambuddy]] bridge. Lives on V
 
 ## Firewall Rule
 
-- `Bambuddy to P1S`: Frigate VM (192.168.30.20, VLAN 30) → P1S (192.168.1.200, port 8883)
+- `Bambuddy to P1S`: docker-host VM 103 (`192.168.20.102`, VLAN 20) → P1S
+  (`192.168.35.200`) on TCP `21` and `8883` only
 
 ## Open Questions
 
@@ -42,4 +46,6 @@ Bambu Lab P1S FDM printer monitored via [[entities/bambuddy]] bridge. Lives on V
 
 ## Change Log
 
+- 2026-08-25: Corrected the stale VLAN 1/Frigate placement to the live VLAN 35
+  and docker-host architecture; recorded the current reachability blocker.
 - 2026-04-07: Page created from project-wide ingest

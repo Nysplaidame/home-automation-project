@@ -3,7 +3,7 @@ title: Grafana Architecture Dashboards
 description: Full-architecture Grafana dashboard set, exporters, and Home Assistant link posture
 tags: [grafana, monitoring, dashboards, home-assistant, uptime-kuma, fail2ban]
 created: 2026-05-29
-modified: 2026-05-31
+modified: 2026-08-25
 type: procedure
 status: active
 ---
@@ -145,8 +145,8 @@ and auth/cookie behavior are intentionally tested.
 - OMV/NAS metrics have a first live signal through docker-host Telegraf exposing
   the OMV-backed Immich mount, and Proxmox now reports `omv-backups` capacity.
   Full NAS host SMART/resource panels remain follow-up work.
-- Frigate app telemetry is partially live through HA/Kuma/API checks for the
-  first bench camera. Broader camera telemetry remains near-term follow-up when
-  the new cameras arrive and the full camera set is validated.
+- Frigate app telemetry is live through HA/Kuma/API checks for all three
+  installed cameras. Broader per-camera performance and event-quality
+  telemetry remains follow-up work alongside the fourth-camera rollout.
 - VentSys entity dashboards remain hardware-dependent until the devices are
   built, adopted, and explicitly revalidated.

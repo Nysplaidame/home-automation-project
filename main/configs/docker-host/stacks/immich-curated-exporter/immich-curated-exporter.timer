@@ -1,0 +1,10 @@
+[Unit]
+Description=Run the Immich curated exporter every six hours
+
+[Timer]
+OnCalendar=*-*-* 00,06,12,18:17:00
+Persistent=true
+Unit=immich-curated-exporter.service
+
+[Install]
+WantedBy=timers.target

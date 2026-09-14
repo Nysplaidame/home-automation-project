@@ -1,10 +1,10 @@
 ---
 title: Project Tasks
-description: Implementation tasks by phase — updated June 2026
+description: Implementation tasks, operational evidence and owner-gated follow-ups
 tags: [tasks, implementation]
 aliases: [TODO, Tasks]
 created: 2025-09-15
-modified: 2026-07-07
+modified: 2026-09-14
 type: task-list
 status: active
 ---
@@ -17,25 +17,244 @@ status: active
 
 ## Next project steps
 
+- [x] Verify dedicated Proxmox workstation SSH after owner key installation
+  (2026-09-14); collect fresh snapshot and pass all eight required capacity,
+  mount and backup-freshness checks. Dashboard model acceptance also passed.
+- [ ] Complete visual import of the September14 Proxmox JSON in the dashboard;
+  automated file chooser timed out. Integrity/restore proof remains separate.
+- [x] Install dedicated Proxmox dashboard snapshot command at
+  /usr/local/sbin/home-automation-dashboard-snapshot; preserve scheduled probes.
+
+
+- [x] Add Vaultwarden direct card to Homepage Home & Security (2026-09-14);
+  normal browser DNS/TLS verified. No iframe, onboarding or auth changes.
+- [x] Obtain Proxmox JSON through the owner-authorized SSH session; September14
+  dedicated key login and required evidence validation now pass.
+
+
+- [x] Complete the September12–14 recovery batch: GardenKeeper backup repair/
+  seven tests/live success, SearXNG semantic template verification, six recovered
+  source builds, isolated PostgreSQL/API and Qdrant restores, MediaMTX scheduled
+  configuration checkpoint/restore and owner-selected manual recording review.
+- [ ] Preserve dependency artifacts for offline rebuilds and establish coordinated
+  multi-store/worker/integration recovery where required; run the full system
+  rehearsal separately from the successful component tests.
+
+
+- [x] Capture protected off-VM GardenKeeper/Hub scoped source snapshots and
+  SearXNG settings; verify hashes (2026-09-11). Source provenance, complete build
+  inputs, semantic settings review and isolated restore still remain.
+
+
+- [x] Locate live GardenKeeper/Hub source and inspect migration contracts/schema
+  metadata read-only (2026-09-11). Preserve destructive-reset/startup migration
+  boundaries in runbooks. Provenance/off-host source and restore proof remain.
+
+
+- [x] Restore missing Vaultwarden SNI route and verify the correct certificate
+  with normal browser validation (2026-09-11; explicit DNS mapping).
+- [x] Owner chose to preserve Mullvad DNS/filtering and handle exact local names
+  separately (2026-09-12); see DNS resolver decision.
+- [ ] Apply the prepared local Vaultwarden hosts entry in Administrator PowerShell,
+  then verify normal browser HTTPS and unchanged Mullvad DNS/filter settings.
+  Script preview and temporary-file apply/idempotence/rollback tests passed.
+- [x] Distinguish DNS/network/TLS/timeout collector failures and add VPN/SNI
+  troubleshooting guidance (2026-09-11). Revocation availability remains separate.
+
+
+- [x] Correct VM103 workstation SSH identity selection (2026-09-11): alias and
+  raw-IP access both verified with the existing key and strict host-key checking.
+  Resume GardenKeeper/Hub source discovery; no server authentication changes.
+
+
+- [x] Consolidate all 42 named service/roadmap entries into the installation
+  checklist coverage audit (2026-09-11): now 36 Written, 0 Review, 0 missing
+  source/configuration, 6 Candidates. No percentage or full rebuild certification.
+- [x] Finish the audit's nine review rows: eight now have written lifecycle
+  boundaries; GardenKeeper requires its missing application/migration source.
+- [x] Repair GardenKeeper dump failure handling and prove isolated import/API
+  recovery from the recovered source snapshot. Upstream Git provenance remains
+  unknown; the snapshot hashes identify the tested recovery generation.
+
+
+- [x] Reconcile Phase09/11/12 backup coverage, hardware deferrals and native
+  command failure handling (2026-09-11); independent software acceptance remains
+  distinct from full physical/rebuild proof.
+
+
+- [x] Add Phase10 backup/heartbeat installation prerequisites, dated-run recovery
+  guidance and fail-stopping VM/CT restore checks (2026-09-11 source review).
+  Full rebuild and live backup/restore acceptance remain open.
+
+
+- [x] Repair Phase07/08 blank-build versus recovery sequencing and document
+  MediaMTX protected manual config capture (2026-09-11). Recurring/off-VM backup,
+  retention, Hub source recovery and full rebuild acceptance remain open.
+
+
+- [x] Expand ntfy, Watchtower, SearXNG and Whoogle lifecycle manuals against
+  tracked source, with Mermaid links (2026-09-11). Backup/restore boundaries
+  and notification failures remain explicit; no new live acceptance claimed.
+- [ ] Recover SearXNG effective settings, preserve a sanitized source template
+  and establish protected off-VM configuration backup; see the install checklist.
+
+
+- [x] Add troubleshooting evidence-age checks, visibly separate example data,
+  preserve recorded observations and show dated planned-offline context.
+  Local model/browser verification passed (2026-09-10); collector sources now
+  emit timezone-aware timestamps.
+- [x] Deploy troubleshooting evidence-age/context UI to the existing
+  management-only stack (2026-09-10). Live desktop/mobile checks pass, and
+  the updated Windows collector produces a usable timestamp and 12/13 passes.
+- [ ] Update the installed Proxmox collector through an authorized management
+  route; workstation SSH still rejects its key (2026-09-10). Preserve the
+  real backup/mount acceptance; Homepage placement approved September 11.
+- [ ] Reconcile the pre-existing IPv6 DOCKER-USER Tailscale exception for8094
+  with the dashboard's management-only intent before any IPv6 publication.
+  Current stack binds IPv4 only and its bridge has IPv6 disabled.
+
+
+- [x] Simplify all 11 canonical Mermaid diagrams, preserve dedicated detail
+  views and explicit deferred states, verify desktop/mobile rendering, and
+  publish the diagram bundle to the existing internal viewer (2026-09-10).
+
+- [x] Reconcile overview and historical planning baselines with September
+  recovery: deliberately disconnected cameras, 64GB Proxmox RAM, VLAN55/Hive,
+  direct LAN4 OMV and PPPoE WAN. See the 2026-09-07 health audit in the current
+  handoff; the household/workshop roadmap already reflects deferred hardware.
+- [x] Review the uncommitted September work in bounded change
+  groups; reconcile the five missing commits on
+  `origin/claude/todo-list-review-6c88a1` against current evidence before
+  integrating branches. Missing Fail2ban sources/runbook and verified Proxmox/
+  CT114 MAC reservations were recovered; newer proxy and September source
+  were retained. Preserve this reviewed work as separate feature-branch commits.
+- [x] Refresh the read-only update/backup evidence available through current
+  access; see the 2026-09-07 update review. VM103 app-data backup succeeded;
+  Proxmox and OMV deny workstation SSH keys, so guest-backup and SMART proof
+  remain explicit gaps rather than completed checks.
+- [ ] Obtain fresh Proxmox guest-backup and OMV SMART evidence through an
+  authorized management route; do not install keys or change authentication
+  merely to clear this evidence gate.
+- [ ] Restore CT114's approved package path in a bounded maintenance change:
+  no APT proxy, TCP3142 timeout and direct Debian HTTP failure confirmed
+  2026-09-07; cached security/update metadata dates to June19. Then re-evaluate
+  candidates and complete the deferred Fail2ban rollout.
+- [ ] Repair Watchtower-to-ntfy notification delivery: monitor-only scans
+  succeed but September6/7 notifications fail with attachment-policy error40014.
+  Prove payload/template formatting locally before a separately authorized
+  notification acceptance test; retain the existing no-attachments policy.
+- [ ] Complete and review the VentSys authenticated card/page bridge contract
+  before any dashboard deployment. Local startup error is fixed and five
+  browser tests pass; public credentials remain prohibited and the page stays
+  offline. The draft card is not connected to the page and is not accepted.
+
+- [x] Restore HomeGuest 2.4 GHz broadcast after its UCI section type was
+  invalid; `phy0-ap4` and SSID activation validated after a wireless reload
+  (2026-09-05). See the current handoff.
+- [ ] Investigate HomeAdmin Wi-Fi throughput after fibre cutover: workstation
+  measured 172 Mbps HTTPS versus 558-699 Mbps from the wired monitoring VM.
+  Authenticated 2026-09-04 checks show OpenWrt 24.10.3, auto channel selecting
+  100/HE80, PC signal around -76 dBm and current download PHY 432 Mbps. Compare
+  local wired/Wi-Fi throughput and evaluate the AX210 driver update; plan the
+  OpenWrt 25.12 upgrade separately and verify full WAN speed with a wired Zen test.
+  See the current handoff for measurements and test limitations.
+- [x] Install dedicated workstation router SSH key and verify root access via
+  `home-router-lan`, preserving the existing laptop key (2026-09-04).
+- [x] Post-fibre VM103 recovery: restore 6144 MiB RAM, graceful restart,
+  recover Homepage/AdGuard/Immich/Dozzle and verify NFS/container health.
+- [x] Retire disconnected Zyxel Wi-Fi uplink; all five 2.4 GHz APs restored.
+- [x] Repair WAN6 device mapping and required IPv6 control-traffic firewall.
+- [ ] Ask Zen to confirm/enable IPv6 allocation: live DHCPv6 replies are
+  NoAddrsAvail / NoPrefixAvail, including a prefix-only /48 request.
+- [x] Reconcile rebuild WAN with untagged PPPoE on eth1; fail deployment when
+  local PPPoE secrets are missing. Lint, previews and four regression tests pass.
+- [x] OMV verified directly on LAN4; LAN2 moved to isolated cloud IoT VLAN55,
+  Hive reserved at 192.168.55.10 with DHCP/NTP and internet traffic verified.
+- [ ] Resolve Hive's existing app/account offline issue: owner still sees it
+  offline despite established internet connections. Try the vendor's app
+  force-close workaround, then check model/LED and Manage → Devices status.
+- [ ] Set up P1S on HomePrinters when ready; currently not installed (owner).
+- [ ] Reconnect Zyxel and cameras when ready, then rerun CCTV acceptance.
+
 1. [x] Add the Installation Manual Suite v1 canonical entrypoint under `docs/install/START-HERE.md`
 2. [x] Add numbered fresh-rebuild phase manuals under `docs/install/phases/`
 3. [x] Add central install references for command locations, state, secrets, dependencies, versions, and decision gates
 4. [x] Add draft docker-host service manuals for Tier 1, Tier 2, and Tier 3/evaluate services
 5. [x] Add the companion setup-documentation checklist at `docs/install/INSTALL-TO-DO.md`
 6. [x] Replace stale static diagrams with canonical Mermaid sources for architecture, install sequence, DNS/NTP, access, storage, docker-host services, and VentSys safety flow
-7. [ ] Continue expanding each install phase until every command has expected output examples and every failure mode has a tested recovery path
-8. [ ] Work through the comprehensive checklist in `docs/install/INSTALL-TO-DO.md`
-9. [ ] Run a full dry-read from `docs/install/START-HERE.md` after the next content expansion pass
-10. [x] Deploy and document shared-iGPU CT 111 Frigate and CT 114 local AI architecture
+7. [x] Deploy the reconciled 48-entry `home.local` domain inventory from `configs/openwrt/dhcp-config.conf` to live OpenWrt, restart dnsmasq, and pass `scripts/validation/validate-home-local-dns.ps1` against `192.168.10.1` (completed 2026-07-29)
+   - [x] Remove the now-redundant workstation hosts entry for
+     `homeassistant.home.local` and flush the Windows DNS cache (completed
+     2026-07-29)
+8. [ ] Continue expanding each install phase until every command has expected output examples and every failure mode has a tested recovery path
+   - Second September10 continuation adds download-gateway/Recomp operating
+     manuals and MediaMTX recovery guidance, corrects legacy authentication/
+     host-context advice, and repairs VM103/VM102 creation and pre-NAS phase
+     dependencies. Household Hub source/migration/database restore and MediaMTX
+     configuration-backup coverage remain explicit gaps in INSTALL-TO-DO.
+   - 2026-09-10 continuation: reconciled router, operator, Proxmox, OMV and
+     final-validation instructions with the September network/state records.
+     Added `docs/troubleshooting/diagnostic-walkthroughs.md` for the app's five
+     symptoms with Mermaid links and evidence boundaries, plus
+     `docs/install/services/media-libraries.md` for three media services.
+     Corrected stale recovery ports, disconnected-device claims and DNS wording;
+     incorporated the separate September10 app deployment record. This is a
+     documentation/source pass, not fresh hardware or restore acceptance.
+   - 2026-08-24 continuation: expanded Mealie, Grocy and Obsidian LiveSync with
+     pre-start/promotion gates, operator flows, consistent backups,
+     loopback-only isolated restores, updates and version/data rollback. Added a
+     last-safe-stop matrix for all 23 service manuals.
+9. [ ] Work through the comprehensive checklist in `docs/install/INSTALL-TO-DO.md`
+   - 2026-08-24 pass closed package/dependency, volatile-version,
+     decision-gate, placeholder, command-label and per-service promotion-boundary
+     coverage. Service/access-matrix review and live acceptance gates remain.
+10. [ ] Run a full dry-read from `docs/install/START-HERE.md` after the next content expansion pass
+    - 2026-08-24 structural dry-read passed 50-document link navigation, 52
+      documented placeholders, 311 shell blocks and 66 PowerShell blocks. The
+      full dry-run was blocked by a router invariant at that time. September
+      recovery lint and compiler regression tests pass; an actual credentialed
+      full rebuild and blank-hardware acceptance remain unproven.
+11. [x] Deploy and document shared-iGPU CT 111 Frigate and CT 114 local AI architecture
+12. [x] Reconcile the canonical architecture documentation on 2026-08-25:
+    update current-state/service/access/name/cabling references, active setup
+    guides, troubleshooting, monitoring and all affected Mermaid sources;
+    rebuild the Mermaid Viewer and pass all 11 browser-side Mermaid parses.
+13. [x] Build the read-only troubleshooting-dashboard proof of concept around
+    five initial symptoms: Homepage access, Home Assistant availability, one
+    camera path, P1S telemetry and backup freshness. Keep arbitrary shell and
+    automatic remediation out of v1. Completed locally on 2026-08-25 with
+    health-JSON import, honest unknown states, guided evidence collection,
+    incident-report copy, nine model tests and desktop/mobile browser smoke.
+14. [ ] Promote the troubleshooting dashboard from POC to a controlled live
+    service: review the diagnostic wording, add collector-side backup detail to
+    Windows if needed, approve DNS/Homepage exposure, deploy on staged port
+    `8094`, and complete operator acceptance before calling it operational.
+    - 2026-08-25 staged live on VM 103 at management-only
+      `http://192.168.20.102:8094/`. Real Windows 13/13 snapshot import,
+      desktop/mobile browser flow, container hardening, VLAN-10 allow,
+      LAN/Tailscale/IPv6 denial and stop/start rollback all passed.
+    - Remaining gate: authorize a workstation key on the Proxmox host and
+      accept a real Proxmox JSON snapshot for backup freshness.
+    - 2026-09-11 owner approved and deployed Homepage Tools > Troubleshooting,
+      with Preview/Open tab at `/portal-preview/troubleshooting/` over existing
+      Homepage HTTPS. No new DNS alias or firewall rule; mobile preview passed.
+15. [x] Deploy MediaMTX `1.20.1` on VM 103 as an authenticated RTSP-over-TCP
+    relay/recorder for the garage phone stream. The HomeAdmin-only firewall,
+    separate publisher/viewer accounts, live relay and OMV recording validation
+    passed on 2026-08-27.
+    - [ ] Configure Larix on the OnePlus and the garage Pi player, then accept a
+      real 30-minute session.
+    - [ ] Choose a recording retention period before unattended/frequent use;
+      automatic deletion is deliberately disabled meanwhile.
 
 Planning baseline until explicitly revalidated:
 
 - Treat OMV and Proxmox NFS backups as live. On 2026-07-05, Proxmox reported
   `omv-backups` active at 54.21% used, so the old 86-87% md0 high-water warning
   is cleared; keep normal monthly backup and SMART checks.
-- Treat Frigate as live with one bench camera ingest on CT 111; keep HA
-  integration, source cleanup, and broader camera rollout as the remaining
-  work.
+- Treat Frigate CT 111 as reachable with three previously proven cameras
+  deliberately disconnected. Reconnect the Zyxel/cameras and rerun stream,
+  recording/playback and notification acceptance before calling CCTV live.
 - Treat Home Assistant native HTTPS as live at
   `https://192.168.20.101:8123` with the local `Home Local CA`. HTTP on
   port `8123` is no longer the active HA UI.
@@ -91,7 +310,10 @@ Planning baseline until explicitly revalidated:
 35. [x] Apply `configs/home-assistant/lovelace/monitoring-grafana-links.yaml` to the live HA Monitoring dashboard through the HA UI; confirmed visible in a dashboard tab on 2026-06-01
 36. [x] Approve and retest mobile Tailscale monitoring access: docker-host now advertises `192.168.60.10/32` and has routed UFW allowances for Grafana `3000` and Uptime Kuma `3001`; route approved in Tailscale admin and mobile access to HA/Grafana/Kuma confirmed working on 2026-05-31
 37. [x] Re-export `Proxmox Resource Overview` and apply explicit labels (`Guest RAM`, `RAM Pressure`, `Root Disk`) to live/source panels; 2026-05-31 datasource check found high HA/docker-host/monitoring percentages are guest-memory values, not CPU/disk saturation
-38. [ ] Schedule controlled docker-host patch window for Docker engine/component and kernel package candidates from `docs/procedures/update_review_log.md`
+38. [x] Complete the controlled docker-host patch window for Docker/containerd,
+    Compose/Buildx, Python 3.13 and Tailscale candidates; completed 2026-08-01
+    with fresh pre/post NAS backups, no reboot required, no pending upgrades and
+    all 33 existing containers/endpoints healthy
 39. [x] Add first NAS telemetry using existing docker-host Telegraf -> InfluxDB -> Grafana pattern by exposing the OMV-backed Immich mount to Telegraf
 40. [x] Build CT 114 `llm-host` after confirming Proxmox RAM pressure was healthy enough for the local-AI workload
 41. [x] Deploy llama.cpp, Open WebUI, Wyoming Whisper, Wyoming Piper, and OpenWakeWord on CT 114 per `scripts/setup/proxmox/llm_host_setup_guide.md`
@@ -102,16 +324,33 @@ Planning baseline until explicitly revalidated:
 45. [ ] Keep Hermes Agent roadmap-only until local LLM, STT, TTS, monitoring, and safety gates are stable
 46. [ ] Keep future YouTube transcript/query app architecture undecided; VM 103 is only the expected target for future containerized query apps
 47. [x] Add Frigate camera/PoE switch pre-flight checklist at `docs/procedures/frigate_camera_preflight_checklist.md`
-48. [x] Configure Zyxel GS1900-8HP managed switch baseline: router `lan3` tagged trunk for VLANs 1/10/30/40, switch management on VLAN 10 (`192.168.10.12`), camera ports untagged VLAN 30, and switch port 8 retained as spare untagged VLAN 40; OMV now connects directly to router `lan4` on VLAN 40. TL-WA801N VLAN 1 access port remains future work
+48. [x] Configure Zyxel GS1900-8HP managed switch baseline: router `lan3` tagged trunk for VLANs 1/10/30/40, switch management on VLAN 10 (`192.168.10.12`), first camera on untagged VLAN 30, and OMV on switch port 8 untagged VLAN 40; TL-WA801N VLAN 1 access port remains future work
 49. [x] Enable Home Assistant native HTTPS with the local CA on 2026-07-02; validate browser, Companion App, CCTV mobile views, Frigate integration, VentSys static assets, Grafana/Kuma direct links, and rollback path
 50. [ ] Optional only if mobile access becomes flaky: improve Tailscale direct connectivity for off-WiFi mobile access by adding explicit UDP `41641` forwarding through the upstream router and GL-MT6000 to docker-host; current user validation on 2026-07-03 found CCTV feeds working on both home WiFi and mobile data with Tailscale
-51. [x] Restore OMV/VLAN 40 reachability, recreate the HA Supervisor backup mount `nas_backups`, and confirm Proxmox storage `omv-backups` is active again; the 2026-07-03 switch port 8 cutover restored service, then OMV moved to direct router `lan4` untagged VLAN 40 on 2026-07-16 and was revalidated
-52. [ ] Approve and validate the new Tailscale `192.168.30.20/32` Frigate host route for off-WiFi Frigate PWA access; docker-host route advertisement, docker-host UFW routed allow, and OpenWrt docker-host-to-Frigate HTTPS rule were staged on 2026-07-05
-53. [x] Add an internal web-based Mermaid diagram viewer for `docs/diagrams/` so the canonical `.mermaid` sources can be browsed without opening the Obsidian desktop vault; keep it read-only and internal-only
+51. [x] Restore OMV/VLAN 40 reachability, recreate the HA Supervisor backup mount `nas_backups`, and confirm Proxmox storage `omv-backups` is active again; fixed by moving OMV to GS1900 port 8 untagged VLAN 40 and converting router `lan3` to the planned trunk on 2026-07-03
+52. [x] Approve and validate the Tailscale `192.168.30.20/32` Frigate host route
+    for off-WiFi Frigate PWA access. On 2026-07-29 the route appeared in
+    docker-host `PrimaryRoutes`/`AllowedIPs`, the authenticated HTTPS path
+    returned the expected `401`, the unauthenticated API on `5000` remained
+    blocked, and the workstation Tailscale state was restored after testing.
 
 ---
 
 ## Docker-host app roadmap
+
+### Household, workshop and operations product roadmap
+
+- [ ] Deliver the phased [[docs/procedures/household-workshop-operations-roadmap|Household, Workshop and Operations Product Roadmap]]. Begin with the read-only evidence contract, then Today at Home and the recovery/troubleshooting extension. Keep system-of-record ownership, confirmation gates and VentSys safety boundaries intact.
+  - [x] Build and verify the local, import-only [[apps/home-operations-workbench/README|Home Operations Workbench]] proof of concept for Today, diagnostics, recovery, meal availability and VentSys commissioning. It has no live integration or deployment path yet.
+  - [x] Add offline Windows/Proxmox health-snapshot adapters with explicit
+    timestamp/freshness handling, unknown missing checks and separate
+    backup/integrity/restore evidence; unit and desktop/mobile browser tests
+    pass on 2026-09-07. No service credentials or live collection added.
+  - [x] Record the September recovery tabletop review in
+    [[docs/audits/2026-07-full-system-audit/08-resilience-test-cards]] for major
+    host, network, storage, application, monitoring and credential-loss scenarios.
+    This is paper review; live drills and owner-selected RPO/RTO remain gated.
+  - [ ] Collect a fresh read-only Proxmox health snapshot, validate it with [[scripts/monitoring/validate_proxmox_snapshot.py]], and import it into the staged Troubleshooting Dashboard to accept its mount and backup-freshness evidence.
 
 ### Tier 1 - near-term core
 
@@ -119,6 +358,141 @@ Planning baseline until explicitly revalidated:
 - [x] Deploy AdGuard Home under `/opt/stacks/adguard-home/`
 - [x] Deploy Immich under `/opt/stacks/immich/` with OMV-backed upload/library storage at `/mnt/omv/immich`
 - [x] Deploy Homepage under `/opt/stacks/homepage/`
+- [x] Upgrade Homepage into the `Home Operations` portal with Home, Tools,
+  Infrastructure, Monitoring, Storage, Media and Operations tabs; all
+  user-facing services, live Docker workload status, reference links, quick
+  search, header resource status, responsive layout, local visual assets and
+  explicit host validation are deployed and desktop/mobile verified on
+  2026-07-24
+- [x] Add visible portal-card preview controls and an inline embedded workspace
+  below the active tab's portal cards, with a contained split/work area and an
+  `Open tab` fallback; deployed and refined 2026-07-25
+- [x] Repair Homepage preview toolbar delegation, use a real external link,
+  stop the MutationObserver from continuously detaching/re-appending the iframe,
+  make narrow cards grow into a dedicated Preview action row, and strengthen
+  tab navigation states; Household Hub and Mermaid Viewer visibly rendered and
+  Reload/Close live-verified 2026-07-26
+- [x] Close the embedded workspace before Homepage tab changes and place it as
+  a sibling after the complete active card grid; live-verified on Home, Tools
+  and Infrastructure 2026-07-26
+- [x] Double the responsive embedded-workspace height on desktop and mobile so
+  framed applications have a larger scrollable work area; deployed and
+  live-verified 2026-07-26
+- [x] Deploy trusted local-CA HTTPS for Homepage on `443`, retain HTTP `3001` as
+  rollback, convert fixed preview listeners to HTTPS, add mixed-content-safe
+  wrappers for every configured HTTP portal, and add Home Assistant on `8188`;
+  HA login screen, GardenKeeper, Mermaid Viewer, Reload and Close were
+  live-verified on 2026-07-26. The first HA login on the distinct `8188` origin
+  remains a normal one-time user authentication step.
+- [x] Repair Homepage narrow/intermediate viewport layout using explicit `320`, `350`,
+  `375`, `390`, `430`, `480` and tablet-width visual checks: make the title, search,
+  resource and date/time cards reflow into a clean header without overlap or
+  edge contact; add consistent gaps between stacked navigation buttons; keep
+  text and controls inside every header, navigation and service card with equal
+  left/right padding; preserve readable service-card spacing; and remove the
+  light teal/blue background band or glow that expands downward as the viewport
+  narrows while retaining the intended dark network artwork. Recheck desktop
+  widths after the mobile correction. Deployed and visually verified at all
+  listed widths plus `768`, `900`, and `1280` px on 2026-07-29; the 390 px
+  embedded-workspace controls were also exercised successfully. Follow-up at
+  the reported `956` px and `489` px widths confirmed no title/search overlap
+  and measured `10.4` px vertical gaps between stacked service cards.
+- [x] Confirm `https://homepage.home.local/` from mobile data after reconnecting
+  the OnePlus to Tailscale; split DNS, the enabled AdGuard rewrite, tailnet
+  HTTPS/DNS grants, explicit listeners, and host firewall rules were deployed
+  and user-validated on 2026-07-29
+- [x] Add a fixed-target, UFW-scoped Homepage preview proxy and restore framed
+  GardenKeeper, Bambuddy and Whoogle views; upgraded to HTTPS and expanded to
+  all configured preview targets on 2026-07-26
+- [x] Deploy narrow OpenWrt rules for docker-host preview/status access to
+  Proxmox `8006`, router/switch HTTP, Frigate API `5000`, monitoring
+  `3000/3001`, and OMV/Transfer `80/8088`; Proxmox/OpenWrt/Zyxel/Frigate/OMV/
+  Transfer paths and proxy ports `8183`/`8184`/`8185`/`8187` verified live on
+  2026-07-26
+- [x] Permit docker-host `192.168.20.102` to reach Grafana `3000/tcp` and Uptime
+  Kuma `3001/tcp` in the monitoring VM host firewall, then verify proxy `8186`
+  and both Homepage status dots. On 2026-07-26 the source-scoped UFW and
+  `DOCKER-USER` rules were verified from docker-host (`200` Grafana, `302` Kuma;
+  HTTPS proxy `8202=200`, `8186=302`) and made reboot-persistent with
+  `monitoring-firewall.service`.
+- [x] Replace Mermaid Viewer placeholders with all 11 canonical sources and add
+  search, deep links, pan, zoom, fit, 100% view and fullscreen; deployed and
+  render-verified 2026-07-24
+- [x] Apply subject-specific, code-native backgrounds to the custom portal,
+  Mermaid Viewer, GardenKeeper and Household Hub; portal motion respects
+  reduced-motion preferences, deployed 2026-07-24
+- [ ] Deploy the prepared Transfer Portal transfer-grid canvas through the OMV
+  native-service deployment route once OMV management access is available
+- [x] Deploy Vaultwarden behind its dedicated local-CA HTTPS hostname with a
+  loopback-only raw listener, disabled sign-ups/admin endpoint, source-scoped
+  access and two isolated SQLite restore proofs (including a disposable account);
+  completed 2026-07-29. Do not embed it or expose its raw HTTP port.
+- [ ] Complete Vaultwarden owner onboarding after live `vault.home.local` DNS is
+  deployed: temporarily enable sign-up for the owner account only, disable it
+  immediately afterward, then record the 2FA/recovery-code and owner-controlled
+  emergency-access policy outside Git.
+- [x] Audit every portal for both direct navigation and embedded-preview
+  behaviour. Record service health, HTTPS/mixed-content, authentication and
+  `X-Frame-Options`/CSP framing results; fix reachability or use the normal
+  link rather than weakening a service's frame protections. Mermaid Viewer and
+  Household Hub are confirmed directly embeddable after repairing the portal's
+  iframe re-parent loop. GardenKeeper, Bambuddy, Whoogle, Proxmox, OpenWrt,
+  Zyxel and OMV are confirmed via the fixed-target proxy. Continue with the
+  monitoring VM host-firewall exception, then test the remaining portals. The
+  audit was completed on 2026-07-26; direct navigation remains the fallback when
+  a service's own framing policy prevents embedding.
+- [x] Repair qBittorrent's embedded preview and direct HTTPS entry after its
+  legacy WebUI failed inside a port-based iframe. It now uses Homepage's
+  same-origin `/portal-preview/qbittorrent/` route plus a minimal parent-window
+  compatibility bridge; the authenticated Transfers view rendered with no new
+  console errors on 2026-08-01.
+- [x] Create and prove the dedicated OMV media export, then deploy source-scoped
+  Jellyfin (read-only libraries), Calibre-Web and Atsumeru foundations with
+  explicit non-overlapping Docker IPAM, restart proofs and NAS-backed app-data
+  backup; completed 2026-07-29.
+- [ ] Resolve the 14 TB SMB case-collision using an explicit, reversible
+  recovery plan: server-side inspection on 2026-08-02 proved `Media` is the
+  populated canonical library and `media` is a distinct, empty wrapper created
+  eight minutes earlier that contains only `media/Media`. Windows SMB
+  case-insensitive lookup aliases both spellings to the populated `Media`
+  object, causing intermittent Explorer failures. OMV proved `/export/media`
+  correctly bind-mounts only the canonical `Media` path, and no active
+  NFS/systemd/fstab configuration references the stray wrapper. Do not delete
+  or rename either path until a rollback path is documented and approved.
+- [ ] Implement the allow-listed Immich album exporter into
+  `jellyfin/immich-curated` with a manifest and review queue. Immich remains the
+  photo system of record; do not mount its live library into Jellyfin. The
+  non-destructive source, service/timer templates and contract tests are staged;
+  a selected test album plus live Jellyfin/review/backup proof remain required.
+- [x] Complete the prepared Mullvad/Gluetun/qBittorrent gateway: securely install
+  the generated WireGuard private key/address, start the stack, set separate
+  incomplete/complete paths, rotate the qBittorrent Web UI credential, prove
+  tunnel egress and the fail-closed kill switch, then prove NAS config backup and
+  restore. Quarantine promotion remains a manual host-side step; qBittorrent has
+  no final-library mount. Completed 2026-08-01; optional allow-listed Autobrr
+  dispatch follows only after this proof. NZBGet and aria2 remain separate
+  decisions.
+- [x] Repair the AdGuard/Tailscale reboot race with an enabled systemd Compose
+  gate that waits for the Tailscale address and force-recreates the stack; local
+  and Tailscale DNS port bindings were revalidated on 2026-07-29.
+- [ ] Apply the 2026-08-11 docker-host network/firewall remediation in a
+  maintenance window: migrate automatic bridges to the explicit CIDR map,
+  recreate the shared alerting network only with all dependants stopped, move
+  Bambuddy from host networking to its scoped bridge, load the IPv6/8000
+  firewall policy, and prove each service/denial path. Source and a preflight
+  allocation table are ready. Live execution on 2026-08-21 completed every
+  explicit bridge recreation, including Household Hub's shared dependency
+  networks and `local-alerting`; Compose, health, HTTP, storage, dependency,
+  VPN-egress, allowed/denied and firewall-persistence checks passed. Bambuddy
+  alone remains on host networking because the P1S ports are unreachable from
+  VM 103 itself. Restore that path, migrate Bambuddy to `10.240.23.0/24`, and
+  obtain a zero-exit security audit before checking off this parent item.
+- [ ] Add Homepage service widgets where an approved, least-privilege credential
+  path exists. Prioritise already deployed Home Assistant, Frigate, Immich,
+  Mealie, Grocy, AdGuard Home, Grafana, Uptime Kuma, Proxmox, OpenWrt and
+  Tailscale; evaluate complementary Beszel/Netdata, APC UPS, Scrutiny,
+  Speedtest Tracker, Authentik and Backrest only if their supporting services
+  are deliberately adopted.
 - [x] Deploy Dozzle under `/opt/stacks/dozzle/`
 - [x] Add docker-host `DOCKER-USER` guard so Dozzle is management-only despite Docker published-port forwarding
 - [x] Add Uptime Kuma checks for Homepage and Dozzle
@@ -135,6 +509,10 @@ Planning baseline until explicitly revalidated:
 - [x] Deploy Grocy for pantry/fridge/freezer stock and expiry tracking
 - [x] Seed Grocy household data model with core locations, quantity units, and product groups; service health reconfirmed on 2026-07-07 (`HTTP/1.1 302 Found` login redirect), database checkpoint created, and OMV app-data backup run `20260707T125454Z` captured the change
 - [x] Add Grocy voice shopping-list support to Home Assistant Assist with add/list-only LLM tools, dedicated Grocy API key, HA/dockerd firewall allowances, direct HA-to-Grocy API proof, and OMV app-data backup run `20260707T132647Z`
+- [x] Add Household Hub's separate-key, read-only Grocy overview for locations, stock/expiry and the active shopping list; live API/UI verified 2026-08-09 with all five seeded locations and no mutation routes
+- [x] Activate Household Hub's persistent, confirmation-gated Obsidian Markdown staging outbox without writing into LiveSync CouchDB; valid export smoke completed, disposable note removed, and an unconfirmed live write rejected without a file on 2026-08-09
+- [x] Add the Household Hub Markdown outbox to the docker-host NAS app-data job; dry-run and real backup `20260809T130054Z` passed
+- [x] Add downloadable `.ics` fallback for Household Hub Nextcloud CalDAV dry-runs; live upload remains gated on an actual Nextcloud deployment and app credential
 - [ ] Parked: Self-hosted LiveSync client rollout; backend/client prep exists, but Obsidian is no longer part of the near-term path
 - [x] Install and prove docker-host app-data backup to OMV `backups/docker-host` covers Mealie, Grocy, Obsidian LiveSync, and GardenKeeper dumps; completed on 2026-07-07 after deploying the live OpenWrt `Docker Host to OMV NFS` rule, mounting `/mnt/omv/docker-host-backups`, running backup `20260706T231304Z`, restore-smoking to `/tmp`, and enabling the daily `03:45` systemd timer
 - [x] Deploy ntfy internal-only under `/opt/stacks/ntfy/`
@@ -146,7 +524,10 @@ Planning baseline until explicitly revalidated:
 
 ### Tier 3 - evaluate carefully
 
-- [ ] Evaluate Vaultwarden only after a backup/security review
+- [x] Evaluate and deploy Vaultwarden only after a backup/security review.
+  Vaultwarden is live behind dedicated local-CA HTTPS with raw HTTP bound to
+  loopback only; two isolated SQLite restore proofs passed on 2026-07-29.
+  Owner onboarding remains separately gated on live `vault.home.local` DNS.
 - [ ] Evaluate Portainer only if its convenience beats the added admin surface
 - [x] Deploy Watchtower in monitor-only mode only
 - [ ] Revisit local registry mirror after more Compose workloads exist
@@ -192,6 +573,30 @@ must work without HACS.
 - [ ] Evaluate Scheduler Card / scheduler-component if native schedules feel awkward
 - [ ] Evaluate Adaptive Lighting only if smart lighting enters project scope
 - [ ] Revisit Bambu Lab / printer HACS integrations only after P1S details are confirmed and Bambuddy overlap is understood
+
+### P1S expansion (after Bambuddy baseline)
+
+- [ ] Evaluate [BambUI](https://github.com/fidoriel/BambUI) as a docker-host
+  (`/opt/stacks/bambui/`) LAN-only, mobile-friendly P1S console after Bambuddy
+  telemetry, MQTT TLS and the HA package have passed their baseline checks.
+  Keep Bambuddy/HA as the safety and automation authority; verify that the two
+  direct printer clients remain stable before retaining BambUI, use Tailscale
+  for remote access, and add its data/backup, firewall and Uptime Kuma design
+  before deployment.
+- [ ] Evaluate [BambuHelper](https://github.com/Keralots/BambuHelper) as an
+  optional physical ESP32 status display beside the P1S. Scope its Wi-Fi/VLAN
+  placement and least-privilege path to the printer first; use it for local
+  read-only status and optionally local smart-plug energy display, with any
+  power control disabled until the VentSys and emergency-cutoff safety policy
+  explicitly permits it.
+- [ ] Research [bambu-printer-mcp](https://github.com/DMontgomery40/bambu-printer-mcp)
+  for a future operator-assist workflow only. Confirm current P1S firmware,
+  LAN-only/Developer Mode and Bambu access-code requirements; assess the
+  project's maintenance, MQTT/FTPS command surface, file-storage permissions,
+  network rules and secret handling. Design confirmation-gated, auditable
+  print/pause/cancel actions with read-only status as the default. Do not
+  deploy it, give an LLM autonomous printer control, or connect it to a safety
+  or emergency-power path without an approved threat model and live test plan.
 
 ### Risk-gated automation candidates
 
@@ -438,24 +843,40 @@ must work without HACS.
 - [x] Keep Frigate "live" recordings on MINISFORUM local storage first during first-camera proving; superseded by the 2026-07-07 OMV recording cutover
 - [x] Mount OMV Frigate export on Proxmox, bind-mount it into CT 111 at `/mnt/nas/frigate`, update docker-compose.yml volume, add the required UID `100000` ACL for the unprivileged CT root mapping, recreate Frigate, and verify fresh recordings write to OMV
 - [x] Add OMV as HA network storage → verify backup writes successfully
-- [ ] Configure robocopy or rsync scheduled task for vault backup to NAS
-- [ ] Enable SMART monitoring on NAS drives
+- [x] Add a guarded, dry-run-by-default robocopy helper for the vault at
+  `scripts/backup/backup_vault_to_nas.ps1`; source/destination and boundary
+  checks passed against the live `NAS\configs` path on 2026-07-29
+- [ ] Configure the scheduled vault backup only after an explicit approval,
+  first manual `-Execute` copy, and restore-to-temporary-folder proof
+- [x] Verify SMART monitoring on NAS drives: global polling is enabled every
+  1,800 seconds with 5 C change/55 C maximum alerts; all five physical disks
+  are individually monitored and reported `Good` at 33-44 C on 2026-07-29. No
+  new SMART self-test schedule was added.
 
 ---
 
 ## Phase 5 — NVR / Cameras ⏳
 
-- [ ] Select PoE IP camera models (H.265, RTSP, compatible with Frigate)
-- [ ] Purchase 4× cameras and PoE switch
+- [ ] Select the model and requirements for the remaining camera rollout.
+  Three ANNKE C500 cameras are already proven with Frigate; keep H.265, RTSP,
+  PoE budget and Frigate compatibility as selection gates.
+- [ ] Purchase and commission the remaining fourth camera when its model is
+  selected; the GS1900 PoE switch and three ANNKE C500 cameras are live.
 - [ ] Record sourced camera and smart PoE switch model numbers, firmware lines, RTSP/substream paths, PoE budget, management VLAN behavior, and reset procedures in `docs/procedures/frigate_camera_preflight_checklist.md`
 - [ ] Bench-test one camera at a time using `docs/procedures/frigate_camera_preflight_checklist.md` before permanent mounting
 - [x] Bench-test first camera on the Zyxel switch: ANNKE C500 (`I51HJ`, firmware `v5.8.10 build 250917`) now reserved at `192.168.30.21`, with verified RTSP `/Streaming/Channels/101` and `/Streaming/Channels/102`, router-local NTP, and cloud access disabled
 - [x] Deploy router `lan3` as the managed-switch trunk after the GS1900 baseline was configured; keep future switch access-port changes gated and labelled
-- [ ] Mount cameras, run CAT6 to PoE switch access ports on VLAN 30
-- [x] Assign camera DHCP reservations: bench camera at `192.168.30.21`, Gate at `192.168.30.22`, Patio at `192.168.30.23`; reserve `.24` for a future camera
-- [x] Configure verified ANNKE RTSP main/sub paths in `configs/frigate/config.yml` for Gate and Patio
-- [x] Restart Frigate and confirm Gate and Patio main/sub streams ingest at about `10 fps` (2026-07-14); the bench camera is temporarily disconnected from port 2
-- [x] Add Gate and Patio as go2rtc-backed Frigate live cards to the HA CCTV dashboard's `Mobile Balanced` view
+- [x] Mount the first three cameras and run CAT6 to PoE switch access ports on
+  VLAN 30; retain ports 5-7 for the remaining/future camera rollout
+- [x] Assign live camera addresses and switch ports: Camera 1 is
+  `192.168.30.21`/port 2, Gate is `192.168.30.22`/port 4, and Patio is
+  `192.168.30.23`/port 3; `192.168.30.24` remains planned for the next camera
+- [x] Standardize Zyxel ports 2-7 as saved PoE VLAN 30 access ports and add
+  debounced HA offline/recovery alerts for the three live cameras
+- [x] Mirror the three live main/sub RTSP paths and go2rtc streams in
+  `configs/frigate/config.yml`
+- [x] Confirm all three installed camera streams are visible and sustaining
+  approximately `10 fps` in Frigate; fourth camera remains future scope
 - [ ] Test person detection notifications in HA
 
 ---
@@ -464,7 +885,9 @@ must work without HACS.
 
 - [x] Set up MQTT TLS (8883) — broker listener live, CA/broker certs installed, authenticated TLS pub/sub verified
 - [x] Keep router source TLS-oriented for MQTT: no valve-specific `1883` exception exists, and remaining clients should migrate to `8883` without reintroducing plain-MQTT router rules
-- [ ] Enable HTTPS on HA — follow `ssl_tls_guide.md` (choose Option A/B/C)
+- [x] Enable Home Assistant native HTTPS with the local `Home Local CA` on
+  2026-07-02; browser, Companion App, CCTV, Frigate integration, VentSys
+  assets, monitoring links and the rollback path were validated.
 - [x] Configure Fail2ban on docker-host (`sshd` jail baseline live at `/etc/fail2ban/jail.d/docker-host-sshd.local`)
 - [x] Configure Fail2ban on Frigate VM (`sshd` jail baseline live at `/etc/fail2ban/jail.d/frigate-nvr-sshd.local`)
 - [x] Deploy monitoring VM on VLAN 60 (Uptime Kuma, InfluxDB, Grafana, Telegraf)
@@ -480,7 +903,46 @@ must work without HACS.
 - [x] Export docker-host Fail2ban counters to InfluxDB bucket `dockerhost`
 - [x] Add HA Monitoring page/sidebar entry with direct links to Grafana and Kuma
 - [x] Deploy internal ntfy notification service for future HA/Kuma/Grafana alerts
-- [x] Prepare HA HTTPS certificate files without enabling HTTPS cutover
+- [x] Repair stale Uptime Kuma checks on 2026-07-29: Home Assistant now checks
+  native HTTPS with the private-CA error ignored, and the retired Ollama
+  `11434/api/tags` check now targets llama.cpp `8081/v1/models`; both returned
+  `200 OK` immediately after save
+- [x] Set Uptime Kuma's primary base URL to
+  `http://uptime-kuma.home.local:3001` and create the initial `core`, `network`,
+  `storage`, `security`, `ai`, and `apps` tag taxonomy
+- [x] Add host-scoped OpenWrt rules from monitoring VM `192.168.60.10` to
+  Frigate API TCP `5000`, OMV web/NFS TCP `80`/`2049`, and ICMP for the three
+  camera addresses. `fw4 check` passed before restart and live nft counters
+  confirmed every new rule was exercised on 2026-07-29.
+- [x] Add direct Kuma checks for OMV web, OMV NFS, and all three live camera
+  hosts with the ntfy notification channel enabled; every check returned `Up`
+  after the narrow OpenWrt rules were deployed.
+- [x] Allow Frigate API TCP `5000` from `192.168.60.10` in CT 111's host
+  firewall and revalidate Kuma monitor 28. The host rule was applied on
+  2026-08-01; a monitoring-VM probe returned HTTP `200` and the re-enabled
+  `Frigate API Health` monitor returned `200 - OK`.
+- [x] Finish the OMV SMART push heartbeat: monitor 34, the OMV
+  `smartctl -H` producer, host-only token file, 30-minute systemd timer, narrow
+  OpenWrt rule, and VM 102 `DOCKER-USER` exception are live. The first accepted
+  heartbeat on 2026-07-29 reported all five physical disks healthy.
+- [x] Add a docker-host app-data backup-freshness push heartbeat: Kuma monitor
+  36 expects a heartbeat within 25 hours, and the backup service sends it only
+  through `ExecStartPost` after a successful run. Its first live `Up` heartbeat
+  was accepted on 2026-08-01.
+- [x] Create a read-only ntfy `mobile-monitoring` subscriber for `monitoring`
+  and `watchtower`, store its generated password in Windows Credential Manager,
+  and validate authenticated subscription from docker-host. A real Android
+  notification over Tailscale remains the final phone-side acceptance check.
+- [x] Add the authenticated Grafana `ntfy Monitoring` contact point, make it the
+  default notification policy, and add initial 85%/10-minute metric alerts for
+  docker-host root disk and Proxmox root storage. Both rules evaluated `Normal`
+  and Grafana's test notification reached ntfy on 2026-07-29. SMART is routed
+  through Kuma monitor 34 and backup freshness through Kuma monitor 36.
+- [x] Deploy and restore-smoke the repo's SQLite-consistent ntfy addition to the
+  docker-host app-data backup job. A fresh NAS run completed on 2026-07-29 and
+  restored copies of both `user.db` and `cache.db` passed SQLite integrity checks.
+- [x] Retain the HA HTTPS certificate and rollback artefacts for renewal and
+  recovery; the native HTTPS cutover is live.
 - [x] Keep monitoring operational posture as direct-link access from HA, with embedding intentionally parked for now
 - [ ] Re-open Grafana/Uptime Kuma embedding work only after same-origin HTTPS/reverse-proxy path and auth model are approved
 - [ ] Add Uptime Kuma dashboard view into Home Assistant after same-origin reverse proxy/HTTPS path exists
@@ -491,12 +953,13 @@ must work without HACS.
 - [x] Add/validate router DNS enforcement rules for filtering coverage and public fallback
 - [x] Add monitoring for the DNS filtering service before making it the only resolver path
 - [x] Verify historical pre-NAS Proxmox local backup job for VMs 100/101/102/103; current recurring guest backups now use OMV `omv-backups`
-- [ ] Extend `Fail2ban` from docker-host baseline to Frigate and other applicable Linux service hosts
+- [ ] Extend `Fail2ban` beyond the live docker-host and Frigate SSH baselines
+  to other applicable Linux service hosts
 - [ ] Execute IDS/IPS progression Phase A (`docs/procedures/ids_ips_progression_plan.md`): monitor Fail2ban jails/bans and tune policy after live observation
 - [ ] After at least 30 days of baseline security-event data, decide CrowdSec pilot vs defer and document the decision
 - [ ] Add a scoped internal penetration-testing pass after hardening + update governance stabilize; record findings and remediation evidence
 - [ ] Set up WireGuard DDNS if ISP IP changes frequently
-- [x] Run staged core health baseline and deploy the expanded canonical check; the 2026-07-11 hardened systemd run passed `28/28` and JSON passed `26/26`, covering active core apps, CT root capacity, the Frigate recording mount, and five guest archive-age checks while hardware-dependent VentSys/P1S checks remain skipped
+- [x] Run staged core health baseline and confirm required live services are green (`health_check.sh --json`: PASS=11/FAIL=0; hardware-dependent checks skipped/unknown until devices exist)
 
 ---
 
@@ -524,5 +987,5 @@ must work without HACS.
 - [ ] Next patch window: update docker-host packages from the current candidate list, reboot if kernel package changes, and rerun router/health/Grafana checks
 - [ ] After any config change: `git add -A && git commit && git push`
 - [ ] When hardware arrives: update MAC addresses in `dhcp-config.conf`
-- [x] Update RTSP URLs in `configs/frigate/config.yml` for the confirmed Gate and Patio cameras
+- [ ] When cameras confirmed: update RTSP URLs in `configs/frigate/config.yml`
 - [ ] When sensors connected: update DS18B20 addresses in ESPHome YAML

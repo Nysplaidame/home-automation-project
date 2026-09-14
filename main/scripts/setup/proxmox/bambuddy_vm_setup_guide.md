@@ -16,39 +16,14 @@ Bambuddy remains the first workload on VM 103:
 | HA package | `configs/home-assistant/bambuddy_p1s_package.yaml` |
 | Canonical deployment guide | `scripts/setup/proxmox/docker_host_setup_guide.md` |
 
-## Operator Checklist
+## Operator path
 
-1. Follow `scripts/setup/proxmox/docker_host_setup_guide.md` to manage VM 103
-   and the `/opt/stacks/bambuddy` Compose workload.
-2. Create `/opt/stacks/bambuddy/.env` from `.env.example` and set the real MQTT
-   password from Bitwarden.
-3. Start Bambuddy with `docker compose up -d` from `/opt/stacks/bambuddy`.
-4. Configure Bambuddy in the web UI with the P1S serial number, LAN access code,
-   and Home Assistant long-lived token.
-5. Deploy `configs/home-assistant/bambuddy_p1s_package.yaml` to
-   `/config/packages/` on Home Assistant after replacing `<P1S_SERIAL>`.
+This historical shim does not override the September host-network exception or
+uncommissioned P1S state. Use the [stack lifecycle runbook](../../../configs/docker-host/stacks/bambuddy/README.md)
+for backup, update and isolated restore, and the linked docker-host guide for
+VM creation. Do not replace existing credentials during recovery.
 
-## Quick Verification
-
-From VM 103:
-
-```bash
-hostname
-cd /opt/stacks/bambuddy && docker compose config
-nc -zv 192.168.35.200 8883
-nc -zv 192.168.35.200 21
-nc -zv 192.168.20.101 8883
-nc -zv 192.168.20.101 8123
-```
-
-From Home Assistant:
-
-```bash
-mosquitto_sub -h 192.168.20.101 -p 8883 --cafile /ssl/ca.crt \
-  -u mqtt -P '<password>' -t 'bambuddy/#' -v
-```
-
-Bambuddy should use MQTT TLS on port `8883`. Plaintext `1883` is only for a
-documented temporary recovery/bootstrap exception; do not leave Bambuddy on it.
-Confirm retained `bambuddy/status` arrives over TLS before treating the workload
-as ready.
+For MQTT acceptance, use Home Assistant's authenticated MQTT integration topic
+listener with `bambuddy/#`; do not put the MQTT password in a shell command.
+Use idle printer status only after commissioning is authorized. MQTT TLS8883
+remains required outside a documented temporary recovery exception.

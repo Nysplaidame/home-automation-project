@@ -3,7 +3,7 @@ title: Docker Host Patch Window Runbook
 description: Command-by-command patch window for VM 103 docker-host package and container updates
 tags: [operations, updates, docker-host, maintenance, runbook]
 created: 2026-05-30
-modified: 2026-05-30
+modified: 2026-08-01
 type: procedure
 status: active
 ---
@@ -16,7 +16,7 @@ state, cameras, or VentSys hardware are live.
 
 ## Scope
 
-Current package candidates from `docs/procedures/update_review_log.md`:
+The 2026-08-01 window completed this package set:
 
 - `containerd.io`
 - `docker-buildx-plugin`
@@ -24,10 +24,14 @@ Current package candidates from `docs/procedures/update_review_log.md`:
 - `docker-ce-rootless-extras`
 - `docker-ce`
 - `docker-compose-plugin`
-- `linux-image-cloud-amd64`
+- Python `3.13.5-2+deb13u4` runtime/minimal packages
+- `tailscale` `1.98.10`
 
-Watchtower monitor-only also reported a newer `ghcr.io/maziggy/bambuddy:latest`
-image. Treat that as a candidate, not automatic approval.
+Installed results were Docker CE/CLI/rootless `29.7.1`, containerd `2.2.6`,
+Buildx `0.36.0`, Compose `5.3.1`, Python `3.13.5-2+deb13u4`, and Tailscale
+`1.98.10`. The running kernel remained `6.12.96+deb13-cloud-amd64`; no reboot
+was requested. Recheck the candidate list immediately before every future
+window; do not reuse this completed package list.
 
 ## Preconditions
 
@@ -45,8 +49,11 @@ Run from the management laptop unless a line says otherwise.
    Test-NetConnection 192.168.20.102 -Port 22
    Test-NetConnection 192.168.20.102 -Port 8000
    Test-NetConnection 192.168.20.102 -Port 8080
-   Test-NetConnection 192.168.20.102 -Port 3001
+   Test-NetConnection 192.168.20.102 -Port 443
    Test-NetConnection 192.168.20.102 -Port 8081
+   Test-NetConnection 192.168.20.102 -Port 8083
+   Test-NetConnection 192.168.20.102 -Port 8096
+   Test-NetConnection 192.168.20.102 -Port 31337
    ```
 
 3. Confirm router access is available for a temporary update rule:
@@ -58,7 +65,7 @@ Run from the management laptop unless a line says otherwise.
 4. Record a quick package/container baseline:
 
    ```powershell
-   ssh -i $env:USERPROFILE\.ssh\proxmox_admin_ed25519 root@192.168.20.102 'hostname; uptime; df -h /; docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"; fail2ban-client status sshd'
+   ssh docker-host-lan 'hostname; uptime; df -h /; findmnt /mnt/omv/media; findmnt /mnt/omv/docker-host-backups; docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"; sudo fail2ban-client status sshd'
    ```
 
 ## Open The Temporary Update Window
@@ -83,7 +90,7 @@ uci commit firewall
 Verify from docker-host:
 
 ```powershell
-ssh -i $env:USERPROFILE\.ssh\proxmox_admin_ed25519 root@192.168.20.102 'apt-get update'
+ssh docker-host-lan 'sudo apt-get update'
 ```
 
 ## Patch Host Packages
@@ -91,10 +98,10 @@ ssh -i $env:USERPROFILE\.ssh\proxmox_admin_ed25519 root@192.168.20.102 'apt-get 
 Run on docker-host:
 
 ```powershell
-ssh -i $env:USERPROFILE\.ssh\proxmox_admin_ed25519 root@192.168.20.102 @'
+ssh docker-host-lan @'
 set -eu
 apt list --upgradable
-apt-get upgrade -y containerd.io docker-buildx-plugin docker-ce-cli docker-ce-rootless-extras docker-ce docker-compose-plugin linux-image-cloud-amd64
+sudo apt-get upgrade -y containerd.io docker-buildx-plugin docker-ce-cli docker-ce-rootless-extras docker-ce docker-compose-plugin libpython3.13-minimal libpython3.13-stdlib python3.13-minimal python3.13 tailscale
 docker version
 docker compose version
 '@
@@ -106,7 +113,7 @@ If `apt-get upgrade` proposes extra packages, stop and record them in
 If a kernel package changed, reboot docker-host:
 
 ```powershell
-ssh -i $env:USERPROFILE\.ssh\proxmox_admin_ed25519 root@192.168.20.102 'systemctl reboot'
+ssh docker-host-lan 'sudo systemctl reboot'
 ```
 
 Wait for SSH to return:
@@ -166,18 +173,23 @@ Run from the management laptop:
 Test-NetConnection 192.168.20.102 -Port 22
 Test-NetConnection 192.168.20.102 -Port 8000
 Test-NetConnection 192.168.20.102 -Port 8080
-Test-NetConnection 192.168.20.102 -Port 3001
-Test-NetConnection 192.168.20.102 -Port 8081
+   Test-NetConnection 192.168.20.102 -Port 443
+   Test-NetConnection 192.168.20.102 -Port 8081
+   Test-NetConnection 192.168.20.102 -Port 8083
+   Test-NetConnection 192.168.20.102 -Port 8096
+   Test-NetConnection 192.168.20.102 -Port 31337
 ```
 
 Run on docker-host:
 
 ```powershell
-ssh -i $env:USERPROFILE\.ssh\proxmox_admin_ed25519 root@192.168.20.102 @'
+ssh docker-host-lan @'
 set -eu
 docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-systemctl is-active fail2ban
-fail2ban-client status sshd
+systemctl is-active fail2ban adguard-home-compose.service
+sudo fail2ban-client status sshd
+findmnt /mnt/omv/media
+findmnt /mnt/omv/docker-host-backups
 apt list --upgradable
 '@
 ```
