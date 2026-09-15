@@ -143,3 +143,60 @@ component checkpoints, not a coordinated cross-store transaction. Future changes
 that span PostgreSQL/Qdrant/Redis require a quiesced matched recovery point.
 Worker delivery, external integrations and every browser workflow were not
 exercised; do not promote those as newly verified.
+
+## September 15 coordinated recovery checkpoint
+
+A one-off coordinated backup now exists on the NAS at
+`/mnt/omv/docker-host-backups/household-hub-coordinated/20260915T142413Z`.
+Web/API were stopped before all three stores; with all writers stopped, cold
+volume archives captured PostgreSQL, Redis and Qdrant together. The checkpoint
+also includes `.env`, `infra/docker` and `data/obsidian-exports`. No worker is
+running in this deployment; the recovered worker source is a placeholder loop.
+The original five containers were restarted and production API health returned200.
+This operation briefly interrupts Hub availability; it is not a scheduled job.
+
+The owner-only checkpoint contains `manifest.json`, `SHA256SUMS`, `COMPLETE`,
+three volume archives and `deployment-and-exports.tar.gz`. Treat it as secret and
+household data. Require COMPLETE and verify every checksum before restore.
+Incomplete directories must never be selected merely because they are newest.
+
+A disposable restore extracted copies to a protected directory, used the exact
+store images, and shared only a network-disabled namespace. PostgreSQL ledger
+20260809_0002, Redis zero-key count, Qdrant collections with1 and4 points, API
+health/authenticated transcript read and anonymous401 all passed. Configuration
+and exports also extracted successfully. Original backup archives were untouched;
+test containers were removed. Scripts and restored copies remain protected under
+`/root/recovery-verification-20260915/`.
+
+For recovery, restore each volume into a new empty destination using the manifest
+mapping and matching image; never extract over an active database. Restore the
+configuration/exports privately and preserve numeric file ownership. Start stores
+before API/web. During isolated validation, omit production networks/integrations,
+use a test token and override API startup to bypass automatic Alembic migration.
+Read-only API checks do not prove external integrations or every browser workflow.
+For live recovery, review integration destinations and schema/image compatibility
+before allowing writes or restoring the original API entrypoint.
+
+## Offline image recovery, September 15
+
+The NAS directory `/mnt/omv/docker-host-backups/offline-app-images/20260915`
+contains `images.tar`, image/content identity manifest, checksums and both dated
+source archives. It preserves the six recovered API/worker/web images plus the
+GardenKeeper PostgreSQL and Hub PostgreSQL/Redis/Qdrant images (ten total).
+Installed dependencies are embedded in these images; independent offline builds
+from source still require a package/base-image dependency bundle.
+
+Verify `SHA256SUMS` and `SOURCE-SHA256SUMS` in this protected directory, then use
+`docker image load -i images.tar` on the recovery host. Application tags are
+`recovery-<gardenkeeper|household-hub>-<api|worker|web>:20260912`.
+Store images saved by ID may load untagged: inspect `docker image ls -a` and match
+architecture, RootFS layers and configuration to the manifest before selecting
+one. Different Docker image-store backends can report different image IDs for
+identical content; an ID string alone is insufficient across backends.
+
+The archive was loaded into an initially empty, separate Docker daemon. All ten
+image configurations/layer sets matched; both API dependency imports, both web
+nginx executables and both worker Python executables ran with no networking and
+`--pull never`. The temporary daemon and its10GB working store were removed,
+returning host free space to14GB. This proves image availability and executable
+checks, not full offline worker/application integration or source rebuilds.

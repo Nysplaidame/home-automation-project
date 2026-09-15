@@ -3,7 +3,7 @@ title: GardenKeeper Install Manual
 description: Internal garden care, task, calendar, and map app on docker-host
 tags: [install, docker-host, gardenkeeper]
 created: 2026-06-29
-modified: 2026-09-14
+modified: 2026-09-15
 type: install-guide
 status: live
 ---
@@ -348,3 +348,12 @@ Worker delivery, every UI workflow and any container-local uploads were outside
 this test. Protected logs/scripts/dumps remain under
 `/root/recovery-verification-20260912/`; an off-VM dump copy is alongside the
 source archive in the restricted workstation recovery directory.
+
+## September 15 offline recovery images
+
+The recovered API/worker/web images and matching live PostgreSQL image are now
+included in the NAS offline image bundle. An empty Docker image-store load and
+network-disabled executable/dependency checks passed. See the
+[shared image recovery procedure](../../../configs/docker-host/stacks/household-hub/README.md#offline-image-recovery-september-15).
+This preserves installed dependencies; an independent offline source rebuild
+and container-local upload recovery remain separate gaps.

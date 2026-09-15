@@ -8,6 +8,10 @@ services:
       WATCHTOWER_MONITOR_ONLY: "true"
       WATCHTOWER_SCHEDULE: "0 0 4 * * *"
       WATCHTOWER_NOTIFICATIONS: "shoutrrr"
+      WATCHTOWER_NOTIFICATION_REPORT: "true"
+      # Bound payload size: full scan logs can exceed ntfy's text limit.
+      WATCHTOWER_NOTIFICATION_TEMPLATE: >-
+        {{if .Report}}{{with .Report}}Watchtower monitor-only: {{len .Scanned}} scanned, {{len .Updated}} updates available, {{len .Failed}} failed. No containers updated. Review docker logs watchtower for details.{{end}}{{else}}Watchtower monitor-only service event. Review docker logs watchtower for details.{{end}}
       WATCHTOWER_NOTIFICATION_URL: "ntfy://watchtower:${WATCHTOWER_NTFY_PASSWORD}@ntfy/watchtower?scheme=http"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock

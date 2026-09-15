@@ -3,7 +3,7 @@ title: Watchtower Monitor-only Install Manual
 description: Tier 3 update notification candidate without automatic updates
 tags: [install, docker-host, watchtower, tier3]
 created: 2026-05-24
-modified: 2026-09-11
+modified: 2026-09-15
 type: install-guide
 status: preflight-live
 ---
@@ -171,7 +171,8 @@ another notification test.
 - [x] Monitor-only setting present.
 - [x] No auto-update policy accepted.
 - [x] Notification path documented.
-- [ ] Repair error40014 and prove notification delivery.
+- [x] Repair error40014 and prove server acceptance (September15).
+- [ ] Confirm phone receipt and next scheduled scan delivery.
 - [ ] Record an isolated monitor-only restore and next-upgrade acceptance.
 
 ## Source and diagrams
@@ -185,3 +186,27 @@ The [diagram library](../../diagrams/README.md) links rendered views; Mermaid
 sources show [service placement](../../diagrams/infrastructure/docker-host-service-placement.mermaid),
 [remote access](../../diagrams/network/remote-access-flow.mermaid), and
 [backup dependencies](../../diagrams/storage/storage-and-backup-flow.mermaid).
+
+## September 15 notification repair
+
+The existing `watchtower` publisher has write-only access to its topic, and
+`mobile-monitoring` has read-only access. No account or ACL change was required.
+An isolated ntfy instance reproduced error40014 with a 5,000-byte text body.
+The real pinned Watchtower image then completed a scan against a fake Docker
+API with no production socket and delivered the bounded report successfully.
+
+The tracked Compose now uses a compact report template with counts and a log
+reference. It was deployed by recreating only Watchtower, retaining monitor-only,
+image pin, schedule, network and protected credentials. The startup service-event
+message was accepted and found in ntfy's cache at15:23 BST. Phone receipt and the
+next scheduled real scan remain separate acceptance checks. A service-event
+message directs the operator to logs; it does not certify a successful scan.
+
+The current schedule is04:00 UTC (05:00 BST). Detailed scan warnings remain in
+`docker logs watchtower`; ntfy attachment support remains disabled. Report count
+`Updated` represents updates available in this monitor-only configuration.
+Rollback configuration is protected at
+`/root/recovery-verification-20260915/watchtower-compose-before.yml`.
+
+References: [Watchtower report templates](https://containrrr.dev/watchtower/notifications/)
+and [ntfy message-size behavior](https://docs.ntfy.sh/publish/#attachments).

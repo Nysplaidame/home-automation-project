@@ -3,7 +3,7 @@ title: ntfy Install Manual
 description: Notification service installation, backup, update and recovery
 tags: [install, docker-host, ntfy, notifications]
 created: 2026-05-24
-modified: 2026-09-11
+modified: 2026-09-15
 type: install-guide
 status: preflight-live
 ---
@@ -250,7 +250,9 @@ before changing firewall exposure.
 - [x] HTTPS browser and private Tailscale endpoints documented; public exposure
   is outside the accepted scope.
 - [ ] Record phone-side delivery acceptance.
-- [ ] Resolve Watchtower error40014 and record a separately agreed delivery test.
+- [x] Resolve Watchtower error40014: bounded report deployed September15;
+  isolated reproduction/test and production cache acceptance passed. Phone
+  receipt remains open; see [Watchtower](watchtower-monitor-only.md#september-15-notification-repair).
 - [ ] Record a full isolated account/ACL restore rehearsal for the current image.
 
 ## Source and diagrams
