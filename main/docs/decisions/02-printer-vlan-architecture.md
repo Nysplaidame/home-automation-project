@@ -207,3 +207,15 @@ Deploy these changes in this order to avoid a broken intermediate state:
 - [[scripts/setup/proxmox/bambuddy_vm_setup_guide|Bambuddy Workload Setup Guide]] — compatibility shim
 - [[configs/openwrt/firewall-config.conf|Firewall Config]] — full rule set
 - [[docs/troubleshooting/troubleshooting_reference|Troubleshooting Reference]] — updated Bambuddy section
+
+## 2026-09-04 additive cloud IoT decision
+
+Authorized post-fibre recovery adds an eleventh segment, VLAN55 cloud_iot,
+192.168.55.0/24, solely on router LAN2 (untagged). Hive is reserved at .55.10.
+Cloud devices need internet but must not inherit management access or weaken
+VLAN50 safety isolation. Cloud zone rejects router input except DHCP/DNS/NTP
+and rejects forwarding except WAN. Standard external DNS ports53/853 are
+blocked; this is not comprehensive encrypted-DNS prevention. No cloud SSID or
+Proxmox trunk membership was added. LAN5 remains recovery, NAS remains LAN4.
+Live DHCP/TLS/NTP and ruleset checks passed; Hive app/account acceptance is
+still open. See [[../reference/current-live-state]] and the current handoff.

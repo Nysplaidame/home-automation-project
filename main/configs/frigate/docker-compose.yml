@@ -77,7 +77,7 @@ services:
 #   The OMV export must allow the CT root-mapped host UID 100000 to write.
 #
 # PORTS (host networking):
-#   8971  — Frigate UI/API (0.14+)
-#   5000  — Frigate API (legacy <0.14)
+#   8971  — authenticated Frigate UI/API; project TLS is enabled
+#   5000  — internal unauthenticated API; expose only to approved HA/monitoring sources
 #   8554  — RTSP restream
 #   8555  — WebRTC

@@ -247,3 +247,35 @@ After deployment:
 - Cache Debian package updates first
 - Keep Docker image updates separate
 - Keep temporary WAN access as the fallback and cache warm-up mechanism
+
+## Reinstall, configuration recovery and rollback
+
+September source review: this is a native package service, not a Compose stack.
+Before maintenance record the installed package version, `/etc/apt-cacher-ng/`,
+service overrides, scoped firewall rules and each client's APT proxy file.
+Protect settings that contain upstream credentials. The package cache is
+reconstructible; it is not an authoritative backup of installed packages or
+proof that upstream repositories will remain available.
+
+Preserve the configuration and approved installer/package artifacts off-host.
+On a blank host use its approved package path to install the selected Debian
+package, restore reviewed compatible settings/ownership and service overrides,
+then validate the listener before reconnecting clients. Do not rely on the
+failed cache itself as the only means to install its replacement.
+
+For isolated proof, use a disposable VM on an isolated test network with a
+separate APT client. Restore copied config after replacing production bind/
+upstream settings with the test policy. Check service startup and an approved
+small package request from that client; workstation TCP3142 alone does not
+prove the affected guest's package route. Do not point production clients at
+the test instance.
+
+Upgrade only after retaining the prior package/configuration. On failure stop
+the candidate, restore a compatible old package/config or disable the proxy
+on one affected client using its saved file under the approved direct-update
+policy. Do not globally broaden egress to hide a cache failure. Restore the
+client's intended proxy after the positive package test. CT114's September
+package-path failure remains open until checked from CT114 itself.
+
+See [service placement](../diagrams/infrastructure/docker-host-service-placement.mermaid)
+and [access flow](../diagrams/network/security-access-flow.mermaid).

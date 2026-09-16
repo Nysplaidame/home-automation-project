@@ -1,41 +1,59 @@
----
-title: Mermaid Diagram Viewer
-description: Internal read-only web viewer for canonical Mermaid diagrams
-tags: [apps, diagrams, mermaid, internal]
-created: 2026-07-09
-modified: 2026-07-09
-type: app-spec
-status: draft
----
+# Mermaid Viewer
 
-# Mermaid Diagram Viewer
+Internal read-only viewer generated from the canonical sources under
+`main/docs/diagrams/`.
 
-Read-only internal web UI for browsing the canonical Mermaid sources under
-`docs/diagrams/`.
+## Build
 
-## Goals
-
-- Browse the diagram library by section and title.
-- Search across titles, descriptions, and tags.
-- Open a diagram in-place with Mermaid rendering.
-- Copy a Markdown link or relative file path.
-- Stay internal-only and read-only.
-
-## Proposed shape
-
-- Static frontend served from docker-host.
-- Manifest file listing the canonical `.mermaid` sources.
-- Mermaid rendering in the browser from the source text.
-- No edit, upload, or write-back path.
-
-## Suggested path
-
-```text
-/opt/stacks/mermaid-viewer/
+```powershell
+cd main/apps/mermaid-viewer
+npm ci
+npm run build
 ```
 
-## Suggested exposure
+The build:
 
-- Internal LAN / Tailscale only.
-- No public exposure.
-- No auth beyond the existing internal network boundary unless later required.
+1. discovers every canonical `.mermaid` file;
+2. embeds the complete source in `dist/diagram-data.js`;
+3. copies the local Mermaid runtime;
+4. emits a static Nginx-ready `dist/` directory.
+
+The UI uses the full available viewport and adapts its sidebar and diagram
+canvas across desktop, embedded and mobile layouts. It supports full-text
+filtering, deep links, fit, 100% view, zoom, pan, fullscreen, and optional
+source display.
+
+## Deploy
+
+Build on the workstation, then stage the complete `dist/` together with
+`main/configs/docker-host/stacks/mermaid-viewer/docker-compose.yml` and
+`nginx.conf` at `/opt/stacks/mermaid-viewer/` on docker-host. The application
+source directory alone is not the deployment stack. Follow the
+[operating manual](../../docs/install/services/mermaid-viewer.md) for checkpoint,
+atomic diagram-only updates and full-build rollback.
+
+Run on: docker-host over SSH after staging and configuration review:
+
+```sh
+cd /opt/stacks/mermaid-viewer
+docker compose config --quiet && docker compose up -d
+```
+
+No project secrets are required or included.
+
+## Verification
+
+After building, install the existing smoke-test dependencies with
+`npm ci --prefix main/tools/playwright-smoke` from the repository root if
+needed, then run `node main/apps/mermaid-viewer/scripts/verify-diagrams.mjs`.
+The check serves the local build on loopback, compares all embedded sources
+with canonical files, renders every diagram, checks browser errors, and
+exercises mobile zoom, 100% and Fit on the three largest overview views.
+Screenshots and dimensions go to the temporary `mermaid-diagram-review`
+directory, or the path supplied by `DIAGRAM_SCREENSHOTS`.
+
+The current live stack bind-mounts `dist/` read-only. For diagram-only updates,
+back up the deployed `dist/diagram-data.js`, upload its replacement to a
+sibling temporary file, verify its hash, then rename it into place. No
+container restart is needed. Verify both the LAN endpoint and fixed HTTPS
+proxy return the expected data, then inspect a live render.

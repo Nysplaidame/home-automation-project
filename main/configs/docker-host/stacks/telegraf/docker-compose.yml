@@ -1,6 +1,6 @@
 services:
   telegraf:
-    image: telegraf:latest
+    image: telegraf@sha256:386b2d4fdd4265d9e5b6a20131dbfe2b6bc277a4d53972962e5a4a3d16f180ef
     container_name: docker-host-telegraf
     restart: unless-stopped
     user: telegraf:998
@@ -18,3 +18,12 @@ services:
       HOST_RUN: /hostfs/run
       HOST_MOUNT_PREFIX: /hostfs
       INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
+    networks:
+      - docker-host-telegraf
+
+networks:
+  docker-host-telegraf:
+    name: docker-host-telegraf
+    ipam:
+      config:
+        - subnet: 10.240.22.0/24

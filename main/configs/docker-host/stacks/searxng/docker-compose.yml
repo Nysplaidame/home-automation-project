@@ -1,12 +1,21 @@
 services:
   searxng:
-    image: searxng/searxng:latest
+    image: searxng/searxng@sha256:cd22dbf7fac8b25d5e39e65af53a4b47009df5ad3162e270c477fd5b30ce03f2
     container_name: searxng
     restart: unless-stopped
     ports:
       - "8087:8080"
     environment:
       SEARXNG_BASE_URL: "http://searxng.home.local:8087/"
-      SEARXNG_SECRET: "${SEARXNG_SECRET}"
+      SEARXNG_SECRET: "${SEARXNG_SECRET:?Set SEARXNG_SECRET in the protected .env}"
     volumes:
       - ./searxng:/etc/searxng
+    networks:
+      - searxng
+
+networks:
+  searxng:
+    name: searxng
+    ipam:
+      config:
+        - subnet: 10.240.8.0/24

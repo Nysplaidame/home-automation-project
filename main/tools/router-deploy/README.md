@@ -39,14 +39,14 @@ router-deploy side limited to DNS, DHCP, firewall, NTP, and validation support.
 
 ## Current First-Flight State
 
-As of 2026-05-07, first-flight has been applied to the GL-MT6000 and the
-physical recovery/access ports have been smoke-tested:
+First-flight was applied on 2026-05-07. The table includes September recovery
+changes; use the current physical-port reference for the full live topology:
 
 | Port | Role | Verified client behavior |
 |---|---|---|
 | `lan5` | Recovery/AP, VLAN 1 untagged | DHCP `192.168.1.x`, gateway/DNS `192.168.1.1`, LuCI reachable |
-| `lan2` | Management, VLAN 10 untagged | DHCP `192.168.10.x`, gateway/DNS `192.168.10.1` |
-| `lan3` | NVR, VLAN 30 untagged | DHCP `192.168.30.x`, DNS `192.168.30.1`; router admin blocked by policy |
+| `lan2` | Hive cloud IoT, VLAN 55 untagged | Hive `192.168.55.10`, gateway/DNS `192.168.55.1`; no admin access |
+| `lan3` | Assigned GS1900 trunk, VLANs 1/10/30/40 tagged; currently disconnected | Historical first-flight access-port behavior is superseded; use the current cabling map |
 | `lan4` | Storage, VLAN 40 untagged | DHCP `192.168.40.x`, DNS `192.168.40.1`; router admin blocked by policy |
 | `lan1` | Proxmox trunk | Tagged VLANs only; test with Proxmox/VLAN-aware client |
 
@@ -59,11 +59,9 @@ Router-deploy also owns the router-local NTP server intent. It enables
 `system.ntp.enable_server='1'` without replacing the whole OpenWrt
 `/etc/config/system` file, so board-specific system sections remain intact.
 
-Current staging internet: `uplink.ps1` may be used to attach the GL-MT6000 to
-the existing home router over WiFi while Proxmox/Home Assistant need package
-downloads. This is not the final WAN architecture: the GL-MT6000 is intended to
-replace the existing home router later. Keep this uplink as an explicit
-temporary staging path, and disable it when testing isolated local behavior.
+Current internet uses untagged Zen/Openreach PPPoE on `eth1`. The old Wi-Fi
+uplink is retired and disabled. `uplink.ps1` is a historical recovery utility;
+do not enable it on the working fibre connection. See the September handoff.
 
 ## Files
 
@@ -91,12 +89,27 @@ ssh root@192.168.1.1 "echo OK; exit"
 
 Expected recovery network path: laptop has `192.168.1.x`, router is `192.168.1.1`.
 
+## Zen/Openreach credentials (2026-09-04)
+
+WAN uses untagged PPPoE on `eth1`; WAN6 uses `@wan`. Every deploy profile
+requires `YOUR_ZEN_PPPOE_USERNAME_HERE` and `YOUR_ZEN_PPPOE_PASSWORD_HERE`
+entries in ignored `keys/router_secrets.json` (flat JSON object or under
+`replacements`). Enter the real values locally; never commit them. Single
+quotes, line breaks and NUL in those values fail validation. An explicit
+`--allow-placeholders` permits offline previews only, not deployment.
+LAN2 now belongs to cloud IoT VLAN55; use HomeAdmin for management or LAN5
+for the existing recovery path. Never use the retired Zyxel uplink helper on
+a working fibre connection: its disconnected station prevented radio0 APs
+from starting. Live IPv6 currently awaits Zen allocation (NoPrefixAvail).
+The full profile still requires other existing deployment secrets and
+hardware identities. Scoped live recovery did not redeploy the full template.
+
 ## First Run
 
 1. Generate deploy key:
 
 ```powershell
-cd <repo-root>\main\tools\router-deploy
+cd "<repo-root>\main\tools\router-deploy"
 ssh-keygen -t ed25519 -f .\keys\router_deploy -N '""' -C "router-deploy@laptop"
 ```
 
@@ -246,7 +259,7 @@ ls -1 /tmp/router-deploy-snapshots
 5. Restore the newest known-good snapshot, then restart services:
 
 ```sh
-SNAP=/tmp/router-deploy-snapshots/<timestamp>
+SNAP='/tmp/router-deploy-snapshots/<timestamp>'
 cp "$SNAP"/network /etc/config/network
 cp "$SNAP"/dhcp /etc/config/dhcp
 cp "$SNAP"/wireless /etc/config/wireless
@@ -256,7 +269,7 @@ cp "$SNAP"/firewall /etc/config/firewall
 /etc/init.d/firewall restart
 ```
 
-6. Return to management access on `lan2` / `192.168.10.1` and rerun both test
+6. Return to management access on HomeAdmin / `192.168.10.1` and rerun both test
    scripts before attempting another deploy.
 
 ## Optional Temporary Uplink Phase

@@ -3,7 +3,7 @@ title: "RAG vs Wiki Pattern"
 category: concept
 tags: [knowledge-management, methodology, llm]
 created: 2026-04-07
-updated: 2026-04-07
+updated: 2026-08-25
 sources: [llm-wiki-idea-file]
 status: active
 ---
@@ -33,7 +33,8 @@ This wiki operates on the Wiki Pattern. Every source ingested into `raw/` is pro
 
 - Wiki pattern requires disciplined ingest workflow.
 - Works best when sources are added incrementally (one at a time with review).
-- At scale (100+ sources), a search tool like `[[qmd]]` supplements the index.
+- At scale (100+ sources), a search tool such as `qmd` can supplement the index;
+  it is not currently represented by a dedicated wiki entity page.
 - The wiki can go stale if sources are added without running ingest properly.
 
 ## Sources

@@ -40,7 +40,10 @@ PLACEHOLDER_PATTERNS = (
     "XX:XX:XX:XX:XX:XX",
 )
 
+WAN_SECRET_KEYS = ("YOUR_ZEN_PPPOE_USERNAME_HERE", "YOUR_ZEN_PPPOE_PASSWORD_HERE")
+
 SECRET_KEYS = (
+    *WAN_SECRET_KEYS,
     "YOUR_MAIN_WIFI_PASSWORD_HERE",
     "YOUR_ADMIN_WIFI_PASSWORD_HERE",
     "YOUR_PRINTERS_WIFI_PASSWORD_HERE",
@@ -87,6 +90,10 @@ def _validate_invariants(vlan_sections: list) -> dict:
     lan_gateway_expected = lan_gateway_ip == "192.168.1.1"
 
     return {
+        "wan_pppoe_on_eth1": bool(interfaces.get("wan") and interfaces["wan"].get("device") == "eth1" and interfaces["wan"].get("proto") == "pppoe"),
+        "wan6_on_logical_wan": bool(interfaces.get("wan6") and interfaces["wan6"].get("device") == "@wan"),
+        "lan2_only_cloud_vlan": [bv.get("vlan") for bv in bridge_vlans if any(p.split(":")[0] == "lan2" for p in bv.get_list("ports"))] == ["55"],
+        "cloud_interface_on_vlan55": bool(interfaces.get("cloud_iot") and interfaces["cloud_iot"].get("device") == "br-lan.55"),
         "lan5_vlan1_untagged": lan5_vlan1_untagged,
         "lan5_pvid_intact_after_transforms": lan5_vlan1_untagged,
         "lan_on_br_lan_1": lan_on_br_lan_1,
@@ -119,7 +126,7 @@ def _validate_architecture_invariants(dhcp_sections: list, fw_sections: list, sy
     }
     required_rules = {
         "Docker Host AdGuard Upstream DNS",
-        "Docker Host Tailscale Egress",
+        "Docker Host VPN Egress",
         "Docker Host to InfluxDB",
         "LAN to Docker Host App UIs",
         "VPN to OMV NAS",
@@ -131,10 +138,16 @@ def _validate_architecture_invariants(dhcp_sections: list, fw_sections: list, sy
         "Printers to Router NTP",
         "IoT to Router NTP",
     }
+    cloud = get_zones(fw_sections).get("cloud_iot")
+    cloud_routes = [r.get("dest") for r in get_sections(fw_sections, "forwarding") if r.get("src") == "cloud_iot"]
+    cloud_rules = [r for r in get_rules(fw_sections) if r.get("src") == "cloud_iot" and r.get("dest") and r.get("target") == "ACCEPT"]
     vpn_omv = rule_names.get("VPN to OMV NAS")
     block_vpn_storage = rule_names.get("Block VPN to Storage")
 
     return {
+        "cloud_default_deny": bool(cloud and cloud.get("input") == "REJECT" and cloud.get("forward") == "REJECT"),
+        "cloud_only_wan_forwarding": cloud_routes == ["wan"] and all(r.get("dest") == "wan" for r in cloud_rules),
+        "cloud_dhcp_present": "cloud_iot" in dhcp_scopes,
         "adguard_dns_first": bool(dns_servers and dns_servers[0] == "192.168.20.102#53"),
         "quad9_public_fallback_present": "9.9.9.9" in dns_servers,
         "google_public_dns_absent": no_google_dns,
@@ -142,7 +155,7 @@ def _validate_architecture_invariants(dhcp_sections: list, fw_sections: list, sy
         "iot_sensors_dhcp_option_42_absent": no_iot_ntp_option,
         "tier1_service_aliases_present": all(domains.get(name) == ip for name, ip in required_domains.items()),
         "docker_host_adguard_upstream_rule_present": "Docker Host AdGuard Upstream DNS" in rule_names,
-        "docker_host_tailscale_egress_rule_present": "Docker Host Tailscale Egress" in rule_names,
+        "docker_host_vpn_egress_rule_present": "Docker Host VPN Egress" in rule_names,
         "docker_host_app_ui_rule_present": "LAN to Docker Host App UIs" in rule_names,
         "ntp_firewall_rules_present": all(rule in rule_names for rule in required_rules if "NTP" in rule),
         "router_ntp_server_enabled": bool(ntp and ntp.get("enabled") == "1" and ntp.get("enable_server") == "1"),
@@ -372,6 +385,8 @@ def _load_secret_replacements() -> dict[str, str]:
             continue
         if not isinstance(value, str):
             raise ValueError(f"{SECRETS_PATH}: value for {key} must be a string")
+        if key in WAN_SECRET_KEYS and any(char in value for char in "'\r\n\x00"):
+            raise ValueError(f"Unsupported UCI quoting/control character in {key}")
         clean[key] = value
     return clean
 
@@ -449,6 +464,12 @@ def compile_artifacts(profile: str = "full", allow_placeholders: bool = False) -
 
     # Strip TEMP-prefixed firewall rules unconditionally — these are never safe to deploy.
     artifacts["firewall.sh"], stripped_temp_rules = _strip_temp_firewall_rules(artifacts["firewall.sh"])
+
+    # WAN cannot be safely stubbed in first-flight like Wi-Fi/WireGuard.
+    if not allow_placeholders and any(key in artifacts["network.uci"] for key in WAN_SECRET_KEYS):
+        print("[ERROR] Zen PPPoE credentials required in ignored keys/router_secrets.json for every deploy profile.")
+        print("        Use --allow-placeholders only for offline preview.")
+        return 1
 
     effective_allow_placeholders = allow_placeholders or profile == "first-flight"
     placeholder_hits = _find_placeholders(artifacts)
@@ -532,7 +553,7 @@ def compile_artifacts(profile: str = "full", allow_placeholders: bool = False) -
         _write(OUT_DIR / name, content)
     _write(OUT_DIR / "summary.json", json.dumps(summary, indent=2) + "\n")
 
-    if placeholder_hits and profile == "first-flight":
+    if placeholder_hits and profile == "first-flight" and not allow_placeholders:
         print("[WARN] Placeholder values remain but are contained by first-flight transforms.")
     elif placeholder_hits:
         print("[WARN] Placeholder values were allowed for preview-only generation.")

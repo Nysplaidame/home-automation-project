@@ -47,6 +47,11 @@ Create storage in OMV using the web UI:
 3. `Storage -> File Systems`: create or mount the data filesystem.
 4. `Storage -> Shared Folders`: create:
 
+Live verification on 2026-07-29 found global SMART polling enabled every 1,800
+seconds with a 5 C change threshold and 55 C maximum alert. All five physical
+disks (`/dev/sda` through `/dev/sde`) have per-device monitoring enabled and
+reported `Good` at 33-44 C. No additional SMART self-test schedule was created.
+
 | Shared folder | Purpose |
 |---|---|
 | `ha-backups` | Home Assistant network backup target |
@@ -173,6 +178,18 @@ Minimum monitoring targets:
 - NFS reachability from HA, Frigate, and docker-host
 - successful HA backup writes
 
+The source-controlled Kuma SMART heartbeat is under
+`configs/omv/system/omv-smart-kuma-heartbeat.*`. It runs `smartctl -H` against
+every disk returned by `smartctl --scan-open` and reports aggregate state to a
+monitor-specific Kuma push URL stored only in
+`/etc/default/omv-smart-kuma-heartbeat` with mode `0600`. The timer cadence is
+30 minutes and the corresponding Kuma interval is 2,100 seconds.
+
+As of 2026-07-29, the files and secret are installed on OMV but the timer and
+Kuma monitor 34 are deliberately disabled/paused. Enable them only after the
+OMV-to-Kuma exception in `configs/monitoring/system/monitoring-firewall.sh` is
+deployed and a manual service run reports all five disks healthy.
+
 ---
 
 ## Transfer Portal Runbook
@@ -252,7 +269,7 @@ without errors, the transfer is complete.
 - [ ] OMV installed and hostname set to `omv-nas`.
 - [ ] Static IP set to `192.168.40.50/24`.
 - [ ] MAC added to `configs/openwrt/dhcp-config.conf`.
-- [ ] `omv-nas.home.local`, `omv.home.local`, and `nas.home.local` resolve.
+- [x] `omv-nas.home.local`, `omv.home.local`, and `nas.home.local` resolve.
 - [ ] Data filesystem mounted.
 - [ ] Shared folders created: `ha-backups`, `frigate`, `immich`, `configs`.
 - [ ] Service users created with least-needed permissions.
@@ -261,7 +278,8 @@ without errors, the transfer is complete.
 - [ ] HA network storage configured and backup test completed.
 - [ ] Frigate mount tested but not made primary until cameras are live.
 - [ ] Immich storage path documented before deployment.
-- [ ] SMART and disk usage monitoring enabled.
+- [x] SMART monitoring enabled on all five physical disks.
+- [ ] Confirm the intended disk-usage alert thresholds and notification path.
 
 ## Quick Reference
 

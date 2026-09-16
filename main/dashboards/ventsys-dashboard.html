@@ -1339,16 +1339,10 @@
   <button class="sub-btn" onclick="applyMode('sla-purge')" id="btn-sla-purge">PURGE</button>
 </div>
 
-<!-- 2026-05-13: Load deployment-local config (token + any per-install overrides).
-     File must exist at /config/www/ventsys-config.js on the HA host.
-     Defines window.VENTSYS_CONFIG which is merged into HA_CONFIG below.
-     This file is NOT in the repo by design — keeps the production token
-     out of source-controlled HTML. Use ventsys-config.js.example as a template.
-     If the file is missing, the dashboard falls back to demo mode. -->
+<!-- Optional public deployment configuration. Files under /config/www are
+     unauthenticated, so this file must contain entity/topic/display settings
+     only—never credentials. Use ventsys-config.js.example as a template. -->
 <script>
-  // Home Assistant serves /local assets with a 31-day cache. The deployment
-  // config contains the revocable HA token, so it must be revalidated on every
-  // dashboard load instead of being allowed to remain stale on remote clients.
   document.write(
     '<script src="ventsys-config.js?v=' + Date.now() + '" ' +
     'onerror="console.warn(\'[HA] ventsys-config.js not found — running with HTML defaults only.\')"><\/script>'
@@ -2186,7 +2180,9 @@
   function updateModeDisplay() {
     let modeText = '';
     
-    if (activeModes.size === 0) {
+    if (!window._haConnected) {
+      modeText = 'OFFLINE';
+    } else if (activeModes.size === 0) {
       modeText = 'MANUAL';
     } else if (activeModes.has('purge')) {
       modeText = 'PURGE ALL';
@@ -2213,8 +2209,7 @@
     document.getElementById('current-mode').textContent = modeText;
   }
 
-  // Initialize in SEALED mode
-  activeModes.add('sealed');
+  // Actuator state is unknown until Home Assistant supplies authoritative data.
   updateModeButtons();
   updateModeDisplay();
   hideAllFlows();
@@ -2324,20 +2319,7 @@
   // =====================================================================
   // HOME ASSISTANT INTEGRATION FOR WIRED DASHBOARD
   // =====================================================================
-  function defaultHaWsUrl() {
-    const host = window.location.host || '192.168.20.101:8123';
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    return `${protocol}//${host}/api/websocket`;
-  }
-
   const HA_CONFIG = {
-    // 2026-05-13: This file is the SOURCE-OF-TRUTH copy. Token MUST stay as the
-    // placeholder here. The real production token lives in /config/www/ventsys-config.js
-    // on the HA host (NOT in this repo) and is merged into HA_CONFIG at runtime
-    // by the block immediately below this object literal. See file header for setup.
-    wsUrl: defaultHaWsUrl(),
-    token: '__SET_HA_TOKEN__',
-
     // IAQ source mode:
     // - 'gas_resistance_kohm' for BME680 gas resistance values
     // - 'iaq_index' for precomputed IAQ index where lower is better
@@ -2454,68 +2436,28 @@
   };
 
   // ───────────────────────────────────────────────────────────────────────
-  // Merge deployment-local overrides from /config/www/ventsys-config.js
+  // Merge non-secret deployment overrides from /config/www/ventsys-config.js
   // (loaded by the <script src=...> tag earlier in the document).
   //
-  // The external file should look like:
-  //   window.VENTSYS_CONFIG = {
-  //     token: 'eyJ0eXAiOiJKV1Q...your-long-lived-token...',
-  //     // Optional: wsUrl, httpUrl, entities, etc.
-  //   };
-  //
-  // Shallow merge: top-level keys in VENTSYS_CONFIG replace those in HA_CONFIG.
+  // Shallow merge: approved keys in VENTSYS_CONFIG replace those in HA_CONFIG.
   // For nested objects (entities, cfmPerRps, scripts, topics), the entire
   // nested object is replaced — so a per-install entities override needs to
-  // include every entity key it intends to use. If you only want to set the
-  // token (the common case), just set `token:` and leave everything else.
+  // include every entity key it intends to use.
   // ───────────────────────────────────────────────────────────────────────
   const _localHaConfig = (typeof window.VENTSYS_CONFIG === 'object' && window.VENTSYS_CONFIG !== null)
     ? window.VENTSYS_CONFIG
     : null;
 
   if (_localHaConfig) {
-    Object.assign(HA_CONFIG, _localHaConfig);
-    console.log('[HA] Merged ventsys-config.js overrides:',
-                Object.keys(_localHaConfig).join(', '));
+    const publicConfigKeys = ['iaqMode', 'airflowDisplay', 'cfmPerRps', 'valveOpenPosition', 'entities', 'topics', 'scripts', 'nodes'];
+    const appliedKeys = publicConfigKeys.filter(key => Object.prototype.hasOwnProperty.call(_localHaConfig, key));
+    appliedKeys.forEach(key => { HA_CONFIG[key] = _localHaConfig[key]; });
+    if (Object.prototype.hasOwnProperty.call(_localHaConfig, 'token')) {
+      console.error('[HA] Ignoring token from public ventsys-config.js; deploy the authenticated Lovelace card bridge.');
+    }
+    console.log('[HA] Merged public ventsys-config.js overrides:', appliedKeys.join(', '));
   } else {
-    console.warn('[HA] No window.VENTSYS_CONFIG found — using inline defaults. ' +
-                 'Token will be the placeholder unless ventsys-config.js is present.');
-  }
-
-  function httpUrlToWsUrl(rawUrl) {
-    try {
-      const url = new URL(rawUrl);
-      url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
-      url.pathname = '/api/websocket';
-      url.search = '';
-      url.hash = '';
-      return url.toString();
-    } catch (e) {
-      console.warn('[HA] Invalid haUrl/httpUrl in VENTSYS_CONFIG:', rawUrl);
-      return HA_CONFIG.wsUrl;
-    }
-  }
-
-  function normalizeHaConfig() {
-    HA_CONFIG.token = String(HA_CONFIG.token || '').trim();
-    HA_CONFIG.wsUrl = String(HA_CONFIG.wsUrl || '').trim() || defaultHaWsUrl();
-
-    if (_localHaConfig && !_localHaConfig.wsUrl && (_localHaConfig.httpUrl || _localHaConfig.haUrl)) {
-      HA_CONFIG.wsUrl = httpUrlToWsUrl(_localHaConfig.httpUrl || _localHaConfig.haUrl);
-    }
-  }
-
-  normalizeHaConfig();
-
-  function isPlaceholderHaToken(token) {
-    const value = String(token || '').trim();
-    return !value ||
-      value.length < 40 ||
-      value === '__SET_HA_TOKEN__' ||
-      value === 'PASTE_YOUR_LONG_LIVED_TOKEN_HERE' ||
-      value === 'YOUR_LONG_LIVED_TOKEN_HERE' ||
-      /placeholder|replace|paste|token_here|your_/i.test(value) ||
-      /\byour[-_ ]long[-_ ]lived[-_ ]token\b/i.test(value);
+    console.warn('[HA] No window.VENTSYS_CONFIG found — using inline public defaults.');
   }
 
   function valveOpenPosition() {
@@ -3036,14 +2978,20 @@
       if (fanRunning !== isOn) _origToggleFan();
       if (isFiniteNumber(pct)) {
         const slider = document.getElementById('main-fan-speed-slider');
-        if (slider) slider.value = pct;
+        if (slider) {
+          slider.value = pct;
+          slider.dataset.confirmedValue = String(pct);
+        }
         _origUpdateFanSpeed('main', pct);
       }
     } else {
       if (sprayFanRunning !== isOn) _origToggleSprayFan();
       if (isFiniteNumber(pct)) {
         const slider = document.getElementById('spray-fan-speed-slider');
-        if (slider) slider.value = pct;
+        if (slider) {
+          slider.value = pct;
+          slider.dataset.confirmedValue = String(pct);
+        }
         _origUpdateFanSpeed('spray', pct);
       }
     }
@@ -3053,16 +3001,27 @@
   function applyValveState(domId, sliderId, value) {
     const v = Math.max(0, Math.min(valveOpenPosition(), Math.round(value)));
     const slider = document.getElementById(sliderId);
-    if (slider) slider.value = v;
+    if (slider) {
+      slider.value = v;
+      slider.dataset.confirmedValue = String(v);
+    }
     _origUpdateValveVisual(domId, v);
+    updateFlowVisibility();
+    updateFlowRates();
+    scheduleWarningCheck();
   }
 
   function applyIntakeState(enclosure, sliderId, value) {
     const v = Math.max(0, Math.min(valveOpenPosition(), Math.round(value)));
     const slider = document.getElementById(sliderId);
-    if (slider) slider.value = v;
+    if (slider) {
+      slider.value = v;
+      slider.dataset.confirmedValue = String(v);
+    }
     _origUpdateIntakeVisual(enclosure, v);
+    updateFlowVisibility();
     updateFlowRates();
+    scheduleWarningCheck();
   }
 
   function haSend(payload) {
@@ -3079,24 +3038,65 @@
   }
 
   function haPublish(topic, payload, retain = false) {
-    if (!window._haConnected) return;
-    haSend({
+    if (!window._haConnected) return Promise.reject(new Error('HA is offline'));
+    return haSend({
       type: 'call_service',
       domain: 'mqtt',
       service: 'publish',
       service_data: { topic, payload: String(payload), retain },
-    }).catch((e) => console.warn('[HA] mqtt.publish failed:', e));
+    });
   }
 
   function haCallScript(entityId) {
-    if (!window._haConnected || !entityId) return;
+    if (!window._haConnected || !entityId) return Promise.reject(new Error('HA is offline'));
     const [domain] = entityId.split('.');
-    haSend({
+    return haSend({
       type: 'call_service',
       domain,
       service: 'turn_on',
       target: { entity_id: entityId },
-    }).catch((e) => console.warn('[HA] script call failed:', e));
+    });
+  }
+
+  function reconcileSafetyModesFromHa() {
+    const E = HA_CONFIG.entities;
+    const fanStates = [E.fan_main, E.fan_spray].map(id => _haEntityStateById.get(id));
+    const valveStates = [
+      E.valve_main1,
+      E.valve_main2,
+      E.valve_fdm_branch,
+      E.valve_fdm_print,
+      E.valve_fdm_360,
+      E.valve_sla_branch,
+      E.valve_sla_print,
+      E.valve_sla_360,
+    ].map(id => _haEntityStateById.get(id));
+    const isKnown = state => state && !['unknown', 'unavailable'].includes(String(state.state).toLowerCase());
+    const knownFans = fanStates.filter(isKnown);
+    const knownValves = valveStates.filter(isKnown).map(parseStateNumber).filter(isFiniteNumber);
+    const allKnown = knownFans.length === fanStates.length && knownValves.length === valveStates.length;
+    const allFansOff = allKnown && knownFans.every(state => String(state.state).toLowerCase() === 'off');
+    const allFansOn = allKnown && knownFans.every(state => String(state.state).toLowerCase() === 'on');
+    const allValvesClosed = allKnown && knownValves.every(value => value <= 0);
+    const allValvesOpen = allKnown && knownValves.every(value => value >= valveOpenPosition());
+    const before = Array.from(activeModes).sort().join('|');
+
+    if (allFansOff && allValvesClosed) {
+      activeModes.clear();
+      activeModes.add('sealed');
+    } else if (allFansOn && allValvesOpen) {
+      activeModes.clear();
+      activeModes.add('purge');
+    } else {
+      activeModes.delete('sealed');
+      activeModes.delete('purge');
+    }
+
+    if (before !== Array.from(activeModes).sort().join('|')) {
+      updateModeButtons();
+      updateModeDisplay();
+      scheduleWarningCheck();
+    }
   }
 
   function haApplyState(entityId, stateObj) {
@@ -3104,6 +3104,7 @@
     _haEntityStateById.set(entityId, stateObj);
     _lastEntityState.set(entityId, stateObj?.state);
     refreshNodeStatus();
+    reconcileSafetyModesFromHa();
     if (!stateObj || stateObj.state === 'unavailable' || stateObj.state === 'unknown') return;
     const E = HA_CONFIG.entities;
     const n = parseStateNumber(stateObj);
@@ -3270,10 +3271,12 @@
   }
 
   function haConnect() {
-    if (isPlaceholderHaToken(HA_CONFIG.token)) {
-      console.warn('[HA] No real token set in HA_CONFIG.token. Set /config/www/ventsys-config.js with a Home Assistant long-lived access token.');
+    // Public assets intentionally contain no credentials. The card bridge is
+    // not yet wired into this page; stay offline until its contract is accepted.
+    if (!HA_CONFIG.token || !HA_CONFIG.wsUrl) {
+      console.warn('[HA] Authenticated bridge is not connected. Keep tokens out of public dashboard assets.');
       updateConnectionBadge(false);
-      pushSystemEvent({ key: 'ha.config', label: 'HA TOKEN NOT SET', severity: 'warn', cooldownMs: 10000 });
+      pushSystemEvent({ key: 'ha.config', label: 'HA BRIDGE NOT CONNECTED', severity: 'warn', cooldownMs: 10000 });
       return;
     }
 
@@ -3297,6 +3300,7 @@
       if (msg.type === 'auth_ok') {
         window._haConnected = true;
         updateConnectionBadge(true);
+        updateModeDisplay();
         refreshNodeStatus();
         pushSystemEvent({ key: 'ha.conn', label: 'HA CONNECTION LIVE', severity: 'ok', cooldownMs: 4000 });
         haSubscribeStates();
@@ -3326,6 +3330,9 @@
     _haWs.onclose = () => {
       window._haConnected = false;
       updateConnectionBadge(false);
+      activeModes.clear();
+      updateModeButtons();
+      updateModeDisplay();
       refreshNodeStatus();
       if (_haAuthFailed) return;
       pushSystemEvent({ key: 'ha.conn', label: 'HA CONNECTION LOST', severity: 'warn', cooldownMs: 4000 });
@@ -3333,22 +3340,61 @@
     };
   }
 
-  // Local controls remain instant; these hooks mirror writes into MQTT/HA.
+  function haControlReady(label) {
+    if (window._haConnected && _haWs && _haWs.readyState === WebSocket.OPEN) return true;
+    updateConnectionBadge(false);
+    pushSystemEvent({
+      key: 'ha.control.blocked',
+      label: `${label} BLOCKED — HA OFFLINE`,
+      severity: 'alarm',
+      cooldownMs: 2000,
+    });
+    return false;
+  }
+
+  function reportHaControlFailure(key, label, error) {
+    console.warn(`[HA] ${label} failed:`, error);
+    pushSystemEvent({ key, label: `${label} FAILED`, severity: 'alarm', cooldownMs: 2000 });
+  }
+
+  function restoreFanControl(which) {
+    const entityId = which === 'main' ? HA_CONFIG.entities.fan_main : HA_CONFIG.entities.fan_spray;
+    const stateObj = _haEntityStateById.get(entityId);
+    if (stateObj) {
+      applyFanState(which, stateObj);
+      return;
+    }
+    const sliderId = which === 'main' ? 'main-fan-speed-slider' : 'spray-fan-speed-slider';
+    const slider = document.getElementById(sliderId);
+    if (!slider) return;
+    const confirmed = Number(slider.dataset.confirmedValue ?? slider.defaultValue ?? 0);
+    slider.value = String(confirmed);
+    _origUpdateFanSpeed(which, confirmed);
+  }
+
+  // Controls submit requests, then wait for HA state events before changing the
+  // dashboard. This prevents an offline or failed command from appearing live.
   window.toggleFan = function() {
-    _origToggleFan();
-    haPublish(HA_CONFIG.topics.fan_control, fanRunning ? 'on' : 'off');
+    if (!haControlReady('MAIN FAN')) return;
+    const requested = fanRunning ? 'off' : 'on';
+    haPublish(HA_CONFIG.topics.fan_control, requested)
+      .catch((error) => reportHaControlFailure('ha.control.fan.main', 'MAIN FAN COMMAND', error));
   };
 
   window.toggleSprayFan = function() {
-    _origToggleSprayFan();
-    haPublish(HA_CONFIG.topics.spray_control, sprayFanRunning ? 'on' : 'off');
+    if (!haControlReady('SPRAY FAN')) return;
+    const requested = sprayFanRunning ? 'off' : 'on';
+    haPublish(HA_CONFIG.topics.spray_control, requested)
+      .catch((error) => reportHaControlFailure('ha.control.fan.spray', 'SPRAY FAN COMMAND', error));
   };
 
   window.updateFanSpeed = function(fan, speed) {
-    _origUpdateFanSpeed(fan, speed);
-    if (fan === 'main') haPublish(HA_CONFIG.topics.fan_speed, speed);
-    if (fan === 'spray') haPublish(HA_CONFIG.topics.spray_speed, speed);
-    updateFanPct();
+    const requested = Math.max(0, Math.min(100, Math.round(Number(speed))));
+    restoreFanControl(fan);
+    if (!haControlReady(`${fan.toUpperCase()} FAN SPEED`)) return;
+    const topic = fan === 'main' ? HA_CONFIG.topics.fan_speed : HA_CONFIG.topics.spray_speed;
+    haPublish(topic, requested)
+      .catch((error) => reportHaControlFailure(`ha.control.speed.${fan}`, `${fan.toUpperCase()} FAN SPEED`, error));
   };
 
   const _valveTopicMap = {
@@ -3359,28 +3405,68 @@
     'valve-enc2-vert': HA_CONFIG.topics.valve_sla_branch,
     'valve-enc2-print': HA_CONFIG.topics.valve_sla_print,
   };
+  const _valveEntityMap = {
+    'valve-main-1': HA_CONFIG.entities.valve_main1,
+    'valve-main-2': HA_CONFIG.entities.valve_main2,
+    'valve-enc1-vert': HA_CONFIG.entities.valve_fdm_branch,
+    'valve-enc1-print': HA_CONFIG.entities.valve_fdm_print,
+    'valve-enc2-vert': HA_CONFIG.entities.valve_sla_branch,
+    'valve-enc2-print': HA_CONFIG.entities.valve_sla_print,
+  };
+  const _valveSliderMap = {
+    'valve-main-1': 'valve-main-1-slider',
+    'valve-main-2': 'valve-main-2-slider',
+    'valve-enc1-vert': 'valve-enc1-vert-slider',
+    'valve-enc1-print': 'valve-enc1-print-slider',
+    'valve-enc2-vert': 'valve-enc2-vert-slider',
+    'valve-enc2-print': 'valve-enc2-print-slider',
+  };
 
   window.updateValveVisual = function(id, position) {
     const v = Math.max(0, Math.min(valveOpenPosition(), Math.round(Number(position))));
-    _origUpdateValveVisual(id, v);
     const topic = _valveTopicMap[id];
-    if (topic) haPublish(topic, String(v));
+    const state = _haEntityStateById.get(_valveEntityMap[id]);
+    const confirmed = parseStateNumber(state);
+    if (isFiniteNumber(confirmed)) {
+      applyValveState(id, _valveSliderMap[id], confirmed);
+    } else {
+      const slider = document.getElementById(_valveSliderMap[id]);
+      const fallback = Number(slider?.dataset.confirmedValue ?? slider?.defaultValue ?? 0);
+      if (slider) slider.value = String(fallback);
+      _origUpdateValveVisual(id, fallback);
+    }
+    if (!topic || !haControlReady(`${id.toUpperCase()} VALVE`)) return;
+    haPublish(topic, String(v))
+      .catch((error) => reportHaControlFailure(`ha.control.${id}`, `${id.toUpperCase()} VALVE`, error));
   };
 
   window.updateIntakeVisual = function(enclosure, position) {
     const v = Math.max(0, Math.min(valveOpenPosition(), Math.round(Number(position))));
-    _origUpdateIntakeVisual(enclosure, v);
     const topic = enclosure === 1 ? HA_CONFIG.topics.valve_fdm_360 : HA_CONFIG.topics.valve_sla_360;
-    haPublish(topic, String(v));
+    const entityId = enclosure === 1 ? HA_CONFIG.entities.valve_fdm_360 : HA_CONFIG.entities.valve_sla_360;
+    const state = _haEntityStateById.get(entityId);
+    const confirmed = parseStateNumber(state);
+    if (isFiniteNumber(confirmed)) {
+      applyIntakeState(enclosure, `intake${enclosure}-slider`, confirmed);
+    } else {
+      const slider = document.getElementById(`intake${enclosure}-slider`);
+      const fallback = Number(slider?.dataset.confirmedValue ?? slider?.defaultValue ?? 0);
+      if (slider) slider.value = String(fallback);
+      _origUpdateIntakeVisual(enclosure, fallback);
+    }
+    if (!haControlReady(`ENC${enclosure} INTAKE`)) return;
+    haPublish(topic, String(v))
+      .catch((error) => reportHaControlFailure(`ha.control.intake.${enclosure}`, `ENC${enclosure} INTAKE`, error));
   };
 
   window.applyMode = function(mode) {
-    _origApplyMode(mode);
     const scriptId = HA_CONFIG.scripts[mode];
-    if (scriptId) haCallScript(scriptId);
+    if (!scriptId || !haControlReady(`MODE ${mode.replace(/-/g, ' ').toUpperCase()}`)) return;
+    haCallScript(scriptId)
+      .catch((error) => reportHaControlFailure(`ha.control.mode.${mode}`, `MODE ${mode.replace(/-/g, ' ').toUpperCase()}`, error));
     pushSystemEvent({
-      key: 'mode.change',
-      label: `MODE ${mode.replace(/-/g, ' ').toUpperCase()}`,
+      key: 'mode.request',
+      label: `MODE ${mode.replace(/-/g, ' ').toUpperCase()} REQUESTED`,
       severity: 'info',
       cooldownMs: 1500,
     });

@@ -3,7 +3,15 @@
 ## Project Shape
 
 - This repository root is an Obsidian wrapper.
-- In this Codex desktop environment, the active checkout is `E:\home-automation-project`; older `G:\home-automation-project` context is stale.
+- This project is worked on from multiple devices/checkouts. The canonical
+  checkout is `K:\Documents\Obsidian\home-automation-project` — it is the
+  Obsidian vault and the source of truth.
+- Other devices have their own separate checkouts (e.g. `E:\home-automation-project`
+  in a Codex desktop environment) which may lag behind or diverge from K:.
+  Treat non-K: paths as local working copies, not canonical, unless told
+  otherwise. Older `G:\home-automation-project` context is stale.
+- If it is unclear which device or checkout is in play, ask rather than
+  assume — do not silently treat a non-canonical path as authoritative.
 - Active project work lives under `main/`.
 - The project also contains a separate LLM-maintained wiki under `wiki/`.
 

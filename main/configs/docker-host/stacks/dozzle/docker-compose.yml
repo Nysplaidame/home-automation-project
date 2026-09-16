@@ -1,9 +1,18 @@
 services:
   dozzle:
-    image: amir20/dozzle:latest
+    image: amir20/dozzle@sha256:a8441e9d2928cc7b30d0023f5eedbb87ef6e234d87f3be02662bd8f417955b8b
     container_name: dozzle
     restart: unless-stopped
     ports:
       - "8081:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - dozzle
+
+networks:
+  dozzle:
+    name: dozzle
+    ipam:
+      config:
+        - subnet: 10.240.3.0/24

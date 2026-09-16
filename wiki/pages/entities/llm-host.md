@@ -3,7 +3,7 @@ title: "Local AI Host"
 category: entity
 tags: [software, local-ai, llama-cpp, wyoming, lxc, igpu]
 created: 2026-06-20
-updated: 2026-06-20
+updated: 2026-08-09
 sources: [project-readme, project-todo]
 status: active
 ---
@@ -12,7 +12,7 @@ status: active
 
 **Type:** service host
 **Status:** Operational on CT 114
-**Related:** [[entities/proxmox]], [[entities/home-assistant]], [[entities/frigate]]
+**Related:** [[entities/proxmox]], [[entities/home-assistant]], [[entities/frigate]], [[entities/household-hub]]
 
 ## Overview
 
@@ -31,6 +31,7 @@ Intel iGPU with Frigate CT 111.
 
 ## Open Questions
 
-- [ ] Decide whether Overwatch recipes should save to Mealie or a protected
-  Obsidian ingestion service.
+- Household Hub now owns recipe research/provenance and confirmation-gated
+  Mealie handoff. Obsidian remains an optional export target, not the recipe
+  system of record.
 - [ ] Revisit larger models only after a host RAM upgrade and repeat benchmarks.

@@ -187,12 +187,351 @@
 - Pages updated: [[entities/gl-mt6000]], [[entities/frigate]], [[entities/mosquitto-mqtt]], [[index]]
 - Notes: Router wiki now matches the managed-switch port topology; Frigate wiki records the `mqtt.enabled: false` / `cameras: {}` baseline; MQTT wiki treats plaintext `1883` as a documented temporary recovery/bootstrap exception only.
 
-## [2026-07-10] update | VLAN 50 router source/live reconciliation
-- Canonical router source now uses the live internal `iot_sensors` identifier for VLAN 50 while preserving the public `HomeIoT` SSID.
-- Pages updated: [[entities/gl-mt6000]]
-- Notes: Full-profile read-only router validation passed; no router deployment occurred.
+## [2026-07-28] update | Three-camera CCTV fleet and health alerts
+- Pages created: [[entities/cctv-camera-fleet]]
+- Pages updated: [[entities/frigate]], [[entities/home-assistant]], [[concepts/vlan-segmentation]], [[index]]
+- Notes: Synced the wiki to canonical three-camera Frigate state, confirmed all three as ANNKE C500 `I51HJ` on firmware `v5.8.10 build 250917`, saved Zyxel ports 2-7 as CCTV VLAN 30 access ports, and recorded Home Assistant FPS-based offline/recovery alerts.
 
-## [2026-07-10] update | Docker published-port enforcement
-- Docker-host and monitoring Docker-published ports now use persistent, source-scoped `DOCKER-USER` policies with rollback snapshots and representative allow/deny proofs.
-- Pages updated: [[entities/docker-host]], [[entities/monitoring-vm]]
-- Notes: Tailscale identity/ACL proof remains owner-supervised; no broad port exposure was introduced.
+## [2026-07-28] lint | CCTV and Frigate state sync
+- Report: [[analyses/lint-2026-07-28]]
+- Pages repaired: [[entities/mosquitto-mqtt]] and the active CCTV/Frigate/HA entity set
+- Notes: Historical source summaries remain historical; active entity pages now match canonical live state.
+
+## [2026-07-29] update | DNS, Homepage, remote Frigate, and NAS operations
+- Canonical project state now has all 48 `home.local` aliases deployed and validated on OpenWrt.
+- Homepage exact-width regressions were repaired at 956 px and 489 px.
+- Off-WiFi Frigate HTTPS access was validated through the narrow Tailscale host route while port 5000 remained blocked.
+- OMV SMART monitoring was verified globally and on all five physical disks; the vault backup helper remains dry-run-only and no schedule was created.
+- Pages updated: [[entities/gl-mt6000]], [[entities/homepage]], [[entities/openmediavault-nas]], [[index]].
+
+## [2026-07-29] update | Homepage split-horizon mobile DNS
+- Added an identity-gated AdGuard listener on docker-host's Tailscale address and an enabled rewrite for `homepage.home.local`.
+- Added Tailscale split DNS for `home.local` plus phone-only DNS and HTTPS grants, preserving OpenWrt's LAN answer while using the tailnet answer remotely.
+- The user confirmed the same `https://homepage.home.local/` bookmark works on mobile data and home WiFi.
+- Pages updated: [[entities/adguard-home]], [[entities/homepage]], [[concepts/tailscale-remote-access]].
+
+## [2026-07-29] update | Kuma storage and CCTV monitoring expansion
+- Canonical state updated first in `main/TO-DO.md`, OpenWrt firewall source, and the current live-state reference.
+- Pages updated: [[entities/monitoring-vm]], [[entities/openmediavault-nas]], [[entities/cctv-camera-fleet]], [[index]].
+- Notes: Added host-scoped VLAN 60 paths and live ntfy-enabled checks for OMV web/NFS and all three cameras; recorded the remaining Frigate host-firewall, Grafana alerting, and ntfy mobile-subscriber gaps.
+- Staged the OMV aggregate SMART push service and Kuma monitor without enabling
+  either; VM 102's narrow host-firewall exception remains the activation gate.
+
+## [2026-07-29] update | Monitoring alerting and ntfy backup completion
+- Activated the OMV SMART push heartbeat and confirmed all five disks healthy.
+- Added and live-tested Grafana's authenticated ntfy contact point, default
+  policy, and initial docker-host/Proxmox disk-pressure alerts.
+- Created the read-only ntfy mobile subscriber and validated authenticated
+  polling; Android notification acceptance remains user-side.
+- Deployed the SQLite-consistent ntfy app-data backup, completed a fresh NAS
+  run, and passed a temporary restore/integrity smoke for both databases.
+- Pages updated: [[entities/monitoring-vm]], [[entities/docker-host]].
+
+## [2026-08-01] update | Docker-host maintenance and Mullvad download gateway
+- Completed the controlled Docker/containerd/Compose/Python/Tailscale package
+  window with no reboot required and all existing services healthy.
+- Activated qBittorrent behind Gluetun/Mullvad, proved tunnel identity and
+  interface-drop/full-provider-stop fail-closed behavior, and restored its
+  configuration from the NAS backup in isolation.
+- Pages created: [[entities/qbittorrent]].
+- Pages updated: [[entities/docker-host]], [[entities/homepage]],
+  [[entities/gl-mt6000]], [[entities/openmediavault-nas]], [[index]].
+
+## [2026-08-01] lint | Maintenance and download-gateway state sync
+- Report: [[analyses/lint-2026-08-01]].
+- No stale stopped/gated Mullvad state or superseded VPN-rule name remained.
+- Corrected the pre-existing index source count from 25 to the actual 21 and
+  refreshed the analysis count to 5.
+
+## [2026-08-01] update | Docker-host backup freshness monitoring
+- Pages updated: [[entities/docker-host]], [[entities/monitoring-vm]].
+- Notes: Kuma monitor 36 now receives the docker-host app-data backup heartbeat
+  only after the existing backup service completes successfully; its first live
+  delivery was accepted.
+
+## [2026-08-01] update | Frigate API monitoring recovery
+- Pages updated: [[entities/monitoring-vm]].
+- Notes: CT 111 accepted the narrow monitoring-VM TCP 5000 exception; Kuma
+  monitor 28 was re-enabled and returned `200 - OK`.
+
+## [2026-08-09] update | Household Hub recipe workflow
+- Created [[entities/household-hub]] for the live transcript RAG, recipe
+  research and persisted confirmation-gated Mealie workflow.
+- Updated [[entities/docker-host]], [[entities/llm-host]] and
+  [[entities/home-assistant]] to reflect current service and ownership
+  relationships.
+- Updated [[index]] to 25 entities.
+
+## [2026-08-09] lint | Household Hub state sync
+- Report: [[analyses/lint-2026-08-09]].
+- Confirmed the new Household Hub entity has inbound links and current ownership
+  claims match canonical project state.
+- Updated [[index]] to 6 analyses.
+
+## [2026-08-09] update | Household Hub household integrations
+- Added a dedicated-key, read-only Grocy overview and recorded its five-location
+  live proof with empty stock and shopping-list state.
+- Activated the persistent Obsidian Markdown staging outbox without writing raw
+  LiveSync CouchDB documents.
+- Required a matching persisted confirmation UUID for every Markdown write and
+  proved an unconfirmed live request cannot create a file.
+- Added downloadable `.ics` output for Nextcloud-compatible dry-runs while
+  keeping live CalDAV upload disabled because Nextcloud is not deployed.
+- Extended the NAS app-data job and completed backup run `20260809T130054Z` for
+  the new Grocy key state and persistent Markdown outbox.
+- Pages updated: [[entities/household-hub]], [[entities/docker-host]],
+  [[analyses/lint-2026-08-09]], [[index]].
+- Targeted changed-page links and index counts passed; the lint report records
+  older unresolved knowledge-tool links for a later full-wiki cleanup.
+
+## [2026-08-21] update | Homepage mobile fixed-proxy access
+- Pages updated: [[entities/homepage]], [[entities/docker-host]],
+  [[concepts/tailscale-remote-access]], [[index]].
+- Notes: All user-facing Homepage cards now use fixed HTTPS proxy routes;
+  Recomp Tracker was added at `8209`; the approved OnePlus identity receives
+  only DNS, `tcp:443`, and `tcp:8180-8209` to docker-host.
+
+## [2026-08-21] lint | Mobile Homepage proxy and Tailscale access
+- Report: [[analyses/lint-2026-08-21]].
+- Confirmed the updated Homepage, docker-host, and Tailscale pages agree with
+  the canonical access matrix and retain the no-broad-subnet boundary.
+
+## [2026-08-21] update | Mobile Homepage acceptance completed
+- Phone-side mobile-data acceptance passed after reconnecting Tailscale and
+  opening cards from every Homepage tab.
+- Updated [[analyses/lint-2026-08-21]] so the completed acceptance is no longer
+  reported as an open follow-up.
+
+## [2026-08-21] update | Docker-host explicit network remediation
+- Recreated every project Docker bridge at its canonical explicit allocation,
+  including Household Hub's shared dependency networks and `local-alerting`.
+- Application, storage, dependency, VPN-egress, allowed/denied and firewall
+  checks passed. Bambuddy remains the only exception because the P1S path is
+  unreachable from VM 103; its scoped bridge and firewall rules are prepared.
+- Page updated: [[entities/docker-host]].
+
+## [2026-08-25] lint | Architecture documentation reconciliation
+- Report: [[analyses/lint-2026-08-25]].
+- Repaired current topology, Tailscale routes, P1S/Bambuddy placement, OMV
+  SMART/physical state, Immich storage and docker-host workload claims.
+- Pages updated: [[entities/docker-host]], [[entities/openmediavault-nas]],
+  [[entities/gl-mt6000]], [[entities/bambu-p1s]], [[entities/bambuddy]],
+  [[entities/immich]], [[entities/homepage]], [[entities/tplink-ap]],
+  [[entities/rpi-displays]], [[entities/minisforum-m1-pro-125h]],
+  [[entities/minix-neo-z350]], [[entities/proxmox]],
+  [[concepts/vlan-segmentation]], [[concepts/rag-vs-wiki-pattern]], [[sources/project-readme]],
+  [[sources/proxmox-setup-guide]], [[sources/igpu-passthrough-guide]], [[index]].
+- Notes: Historical sources/audits remain dated evidence; active wiki pages now
+  match the canonical project references reconciled on 2026-08-25.
+
+## [2026-08-25] update | Troubleshooting Dashboard staged acceptance
+- Created [[entities/troubleshooting-dashboard]] and updated
+  [[entities/docker-host]], [[sources/project-readme]], [[sources/project-todo]]
+  and [[index]].
+- Notes: Management-only port `8094`, explicit Docker network, real Windows
+  snapshot, desktop/mobile flow and rollback proof are live; Proxmox backup
+  snapshot acceptance and DNS/Homepage exposure remain open.
+
+## [2026-08-25] lint | Troubleshooting Dashboard state sync
+- Updated [[analyses/lint-2026-08-25]] and confirmed the new entity has inbound
+  links from the index, docker-host and canonical source summaries.
+- Confirmed access claims match the canonical service/access matrices and that
+  missing Proxmox evidence remains an explicit open gate.
+
+## [2026-09-04] update | Owner-confirmed NAS cabling and pending Hive LAN2
+- Updated [[entities/gl-mt6000]], [[entities/openmediavault-nas]] and [[index]]
+  after correcting the canonical cabling reference and network diagram sources.
+- Owner confirmed OMV on router LAN4 / VLAN 40; GS1900 port 8 is spare storage
+  access. This supersedes the incorrect August reconciliation claim.
+- Recorded fibre-installation outage and pending Hive LAN2 research from
+  [[../main/HANDOFF-2026-07-27-portal-services]]. LAN2 remains management VLAN 10;
+  no live router change or availability verification was performed.
+- Targeted consistency check: router and NAS entity tables agree with the
+  corrected canonical physical map. Historical source/audit entries remain
+  dated evidence. No new wiki page or index-count change was needed.
+
+## [2026-09-04] update | Zen/Openreach WAN restored
+- Updated [[entities/gl-mt6000]] from owner confirmation and LuCI screenshots:
+  logical `wan`, physical `eth1`, PPPoE; Openreach requires no WAN VLAN tag.
+- Canonical live state, cabling table, handoff and task list record the working
+  mapping and the stale deployment-template gap. No credentials were copied.
+- Proxmox restoration, IPv6 and old Wi-Fi-uplink retirement remain unverified.
+
+## [2026-09-04] update | Post-fibre connectivity audit
+- Updated [[entities/gl-mt6000]] and [[entities/docker-host]] against the
+  authenticated router/Proxmox evidence in the canonical current handoff.
+- IPv4 internet, 48 local DNS aliases, production guests and NAS backup
+  storage are accessible. VM 103 has only 1 GiB configured with full swap and
+  several failed app endpoints; all 2.4 GHz APs are down; IPv6 is not up.
+- Hive is on management VLAN 10 pending isolation. Switch/cameras are
+  intentionally disconnected. No live repairs were applied; endpoint replies
+  are not full authenticated workflow or backup-write validation.
+
+## [2026-09-04] update | Router SSH key and authenticated firmware/Wi-Fi check
+- Updated [[entities/gl-mt6000]] and [[index]] from the canonical handoff and
+  [[../main/docs/reference/current-live-state]]. Dedicated workstation key login
+  is verified, with the existing laptop key preserved; no private key entered
+  the vault.
+- Confirmed vanilla OpenWrt 24.10.3/kernel 6.6.104 and live HomeAdmin channel
+  100/HE80, approximately -76 dBm PC signal and 432 Mbps download PHY. Firmware
+  reporting/counter quirks and upgrade candidates are in the canonical handoff.
+- Later observed 2.4 GHz recovery and Hive on cloud-IoT VLAN 55 supersede the
+  earlier audit's state; this task did not implement or accept those repairs.
+- Targeted consistency check: wiki version/key/radio observations match the
+  canonical follow-up; no firmware update or radio tuning was performed.
+
+## 2026-09-04 — Post-fibre repair reconciliation
+
+Updated router, Docker host and segmentation pages after canonical recovery
+records: VM103 6 GiB and services restored; radio0 APs restored; WAN eth1 PPPoE;
+LAN2 cloud VLAN55 / Hive .55.10 with WAN-only forwarding; NAS direct LAN4.
+Targeted consistency review removed stale 1 GiB/current-down and ten-segment
+claims in these pages. Index updated; no new pages or raw sources added.
+Open: Zen IPv6 NoPrefixAvail, Hive app/account status, P1S setup, unplugged
+switch/cameras, weak HomeAdmin radio signal. Sources are current-live-state,
+physical cabling reference, guest inventory and the current portal handoff.
+
+## [2026-09-05] analysis | Household, Workshop and Operations Product Roadmap
+
+- Created [[analyses/household-workshop-operations-roadmap-2026-09]] and
+  updated [[sources/project-todo]] and [[index]].
+- The canonical roadmap starts with read-only evidence, then sequences Today
+  at Home, recovery/diagnostic evidence, food workflow, workshop inventory and
+  hardware-gated VentSys commissioning.
+- It records complementary performance, drift, maintenance, capacity, document,
+  job-state and power-continuity ideas as individually gated work. No service,
+  credential, automation, inventory or safety state changed.
+- Corrected the current summary in [[sources/project-todo]] so live OMV/Frigate
+  foundations and disconnected or uncommissioned physical integrations remain
+  distinct.
+
+## [2026-09-06] create | Home Operations Workbench proof of concept
+
+- Created [[entities/home-operations-workbench]] and updated
+  [[analyses/household-workshop-operations-roadmap-2026-09]] and [[index]].
+- The canonical implementation is `main/apps/home-operations-workbench/`: a
+  local schema-1.0 evidence viewer with Today, possible shared dependencies,
+  recovery evidence, meal availability and a visual-only VentSys checklist.
+- Model tests and desktop/mobile browser smoke checks passed. It has no live
+  connection, deployment, credential, control, persistence or source-system
+  write path; this operation did not change home-automation state.
+
+## [2026-09-07] reconcile | Project health and offline evidence adapters
+
+- Canonical README/current-state/task/update-review and recovery test-card documents reconciled before wiki updates.
+- Updated `pages/sources/project-todo.md`, `pages/entities/home-operations-workbench.md` and index: offline health imports, freshness and restore boundaries, CT114 package-access and Watchtower notification gaps.
+- No live deployment, physical acceptance or fresh Proxmox/OMV proof inferred from historical records.
+
+
+## [2026-09-10] update | Documentation and troubleshooting reconciliation
+
+- Updated [[sources/troubleshooting-reference]], [[sources/project-todo]],
+  [[entities/troubleshooting-dashboard]] and [[index]] after canonical manuals,
+  references, task list and current handoff were updated.
+- Written offline walkthroughs cover the five app symptoms and link canonical
+  Mermaid views. A shared media operating manual distinguishes configuration,
+  libraries, stopped checkpoints and isolated restore proof.
+- Corrected LAN2 recovery, NAS attachment, disconnected-camera/P1S and DHCP
+  assumptions. Incorporated the separately recorded deployed freshness update,
+  Windows evidence, blocked Proxmox collector update and IPv6 discrepancy.
+- Targeted wiki consistency review only: matched these claims to canonical
+  state and app deployment records. No raw sources changed, no new pages,
+  no full-wiki lint or new live-system verification claimed.
+
+
+## [2026-09-10] update | Service lifecycle and rebuild sequencing
+
+- Updated [[sources/troubleshooting-reference]] and [[sources/project-todo]]
+  after canonical gateway/Recomp/MediaMTX manuals and phase dependencies.
+- Household Hub's mirrored Compose is not a complete application build or
+  database recovery source; documented the missing separate-repository contract.
+- Corrected authenticated dashboard guidance and diagnostic interpretation.
+  Targeted source consistency only; no live rebuild, notification or restore.
+
+## [2026-09-11] update | Search and notification lifecycle manuals
+
+- Updated [[sources/project-todo]] and [[sources/troubleshooting-reference]]
+  after canonical ntfy/Watchtower/SearXNG/Whoogle manuals and task/handoff changes.
+- Recorded SearXNG missing settings/template and separate configuration-backup
+  requirement; retained Watchtower notification failure and phone/restore gates.
+- Targeted consistency review against canonical source only; no raw changes,
+  new pages, full-wiki lint or live-service acceptance.
+
+## [2026-09-11] update | Rebuild dependency follow-up
+
+- Updated [[sources/project-todo]] after Phase07/08 and START-HERE sequencing
+  repairs, MediaMTX checkpoint documentation and Hub recovery-lead links.
+- Canonical source consistency checked; no raw changes or live acceptance.
+
+
+## [2026-09-11] update | Extended diagnostic routes
+
+- Updated [[entities/troubleshooting-dashboard]] after canonical app/hand-off
+  recorded 27 deployed routes and their generated offline companion.
+- Targeted consistency check corrected the five-route claim; existing source
+  links retained. No raw changes, new wiki pages or whole-wiki lint.
+
+## [2026-09-11] update | Backup phase prerequisites and recovery checks
+
+- Updated [[sources/project-todo]] from canonical Phase10/checklist/handoff.
+- Recorded heartbeat installation dependencies, dated-run recovery selection
+  and VM/CT isolation checks. No raw changes or live acceptance claimed.
+
+## [2026-09-11] update | Final-phase dependency review
+
+- Updated [[sources/project-todo]] after canonical Phase09/11/12 corrections.
+- Preserved disconnected-camera and uncommissioned-printer status, separate
+  Watchtower configuration recovery and partial-acceptance limits. No raw changes.
+
+## [2026-09-11] update | Consolidated service documentation audit
+
+- Updated [[sources/project-todo]] after canonical 42-entry coverage table,
+  START-HERE/index navigation and task/handoff updates.
+- Distinguished written procedures, nine review rows, missing artifacts and
+  candidates; no whole-system rebuild or live acceptance claimed. No raw changes.
+
+- 2026-09-11: Updated [[entities/troubleshooting-dashboard]] for owner-approved Homepage Tools preview; direct management access and outstanding Proxmox evidence gate retained. Source: portal services handoff.
+
+## [2026-09-11] update | Nine remaining documentation reviews completed
+
+- Updated [[sources/project-todo]] from canonical service/phase lifecycle changes.
+- Counts now 32 Written, 0 Review, 4 missing source/configuration, 6 Candidates.
+- GardenKeeper source/dump defect and VM103 SSH denial remain explicit;
+  no raw changes, authentication changes or live restore evidence claimed.
+
+## [2026-09-11] update | Docker-host SSH identity correction
+
+- Updated [[sources/project-todo]] to correct the earlier access-blocker claim.
+- Existing alias/key works; local IP pattern now selects it too. Both verified;
+  no server authentication or firewall changes. Source recovery remains open.
+
+- 2026-09-11: Updated [[entities/troubleshooting-dashboard]] with DNS/TLS findings and bounded collector failure categories; canonical portal handoff records the Vaultwarden routing repair.
+
+## [2026-09-11] update | Live application migration contracts
+
+- Updated [[sources/project-todo]] from read-only VM103 source/schema inspection.
+- GardenKeeper reset migrations and Hub startup migration boundary documented;
+  provenance/off-host artifacts and restore proof remain open. No raw changes.
+
+## [2026-09-11] update | Protected source and settings checkpoints
+
+- Updated [[sources/project-todo]] after source/settings hash verification.
+- Recovery files remain outside the vault under restricted workstation ACLs;
+  no live service change or full restore acceptance claimed. No raw changes.
+
+- 2026-09-12: Recorded owner Mullvad/local-name decision in [[entities/troubleshooting-dashboard]] from the canonical DNS resolver decision; elevated hosts application remains pending.
+
+## [2026-09-14] update | Recovery implementation and isolated acceptance
+
+- Updated [[sources/project-todo]] after canonical backup/restore/source-build
+  evidence, SearXNG semantic review and MediaMTX owner retention decision.
+- No raw changes or full-system certification; archive paths stay in canonical
+  runbooks and secret-bearing artifacts remain outside the vault.
+
+- 2026-09-14: Homepage Vaultwarden direct card deployed and normal browser HTTPS verified; canonical portal handoff records GardenKeeper success and the persistent Proxmox SSH evidence gate.
+
+- 2026-09-14: Updated [[entities/troubleshooting-dashboard]] from the canonical handoff: Proxmox SSH unblocked and fresh evidence validated; browser import and archive restore remain distinct gates.
+
+- 2026-09-15: Reconciled [[entities/troubleshooting-dashboard]] and canonical task/app records with successful real Proxmox JSON browser import. VM102 isolated restore preflight documented separately.
+
+- 2026-09-16: Recorded all five September15 Proxmox archive verification passes in the canonical handoff/task list. CT114 recheck exit0 is retained on-host; isolated guest restore remains open.

@@ -1,0 +1,30 @@
+services:
+  mediamtx:
+    image: bluenviron/mediamtx@sha256:1b029d11049be75630e9b73bb0d5f47b08a7db4eaee89a80bf8f53bc40e56414
+    container_name: mediamtx
+    restart: unless-stopped
+    user: "1007:100"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    cpus: "1.0"
+    mem_limit: 256m
+    environment:
+      MTX_AUTHINTERNALUSERS_0_PASS: ${MEDIAMTX_PUBLISH_PASSWORD:?set MEDIAMTX_PUBLISH_PASSWORD in .env}
+      MTX_AUTHINTERNALUSERS_1_PASS: ${MEDIAMTX_VIEW_PASSWORD:?set MEDIAMTX_VIEW_PASSWORD in .env}
+    ports:
+      - "192.168.20.102:8554:8554/tcp"
+    volumes:
+      - ./mediamtx.yml:/mediamtx.yml:ro
+      - /mnt/omv/media/phone-recordings:/recordings
+    networks:
+      - mediamtx
+
+networks:
+  mediamtx:
+    name: mediamtx
+    ipam:
+      config:
+        - subnet: 10.240.16.0/24
