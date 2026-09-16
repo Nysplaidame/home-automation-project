@@ -172,7 +172,8 @@ another notification test.
 - [x] No auto-update policy accepted.
 - [x] Notification path documented.
 - [x] Repair error40014 and prove server acceptance (September15).
-- [ ] Confirm phone receipt and next scheduled scan delivery.
+- [x] Confirm September16 scheduled scan delivery to ntfy.
+- [ ] Confirm phone receipt and corrected counts on the next scheduled scan.
 - [ ] Record an isolated monitor-only restore and next-upgrade acceptance.
 
 ## Source and diagrams
@@ -203,10 +204,27 @@ next scheduled real scan remain separate acceptance checks. A service-event
 message directs the operator to logs; it does not certify a successful scan.
 
 The current schedule is04:00 UTC (05:00 BST). Detailed scan warnings remain in
-`docker logs watchtower`; ntfy attachment support remains disabled. Report count
-`Updated` represents updates available in this monitor-only configuration.
+`docker logs watchtower`; ntfy attachment support remains disabled. The report uses `Stale` for available updates and `Updated` for actual updates.
+These are distinct in monitor-only mode.
 Rollback configuration is protected at
 `/root/recovery-verification-20260915/watchtower-compose-before.yml`.
 
 References: [Watchtower report templates](https://containrrr.dev/watchtower/notifications/)
 and [ntfy message-size behavior](https://docs.ntfy.sh/publish/#attachments).
+
+## September 16 scheduled delivery and count correction
+
+At04:02:47 UTC the scheduled scan finished (31 scanned, two newer images found)
+and ntfy cached its compact report without error40014. This proves scheduled
+server delivery, not phone receipt. The first compact template incorrectly read
+`Updated` as the available-update count and consequently said zero available.
+
+The pinned version's [report implementation](https://github.com/containrrr/watchtower/blob/v1.7.1/pkg/session/report.go)
+places newer images that were not applied in `Stale`. The corrected template
+reports Stale/Updated/Failed/Skipped separately and no longer hardcodes the claim
+that nothing was updated. An isolated fake Docker API supplied one stale image;
+the real Watchtower/Shoutrrr stack delivered `1 updates available, 0 updated`.
+The correction was deployed September16, retaining monitor-only and the schedule.
+Protected regression evidence and rollback Compose are in
+`/root/recovery-verification-20260916/`. Check the next scheduled report for the
+corrected counts; do not interpret the September16 zero as no updates available.

@@ -355,5 +355,7 @@ The recovered API/worker/web images and matching live PostgreSQL image are now
 included in the NAS offline image bundle. An empty Docker image-store load and
 network-disabled executable/dependency checks passed. See the
 [shared image recovery procedure](../../../configs/docker-host/stacks/household-hub/README.md#offline-image-recovery-september-15).
-This preserves installed dependencies; an independent offline source rebuild
-and container-local upload recovery remain separate gaps.
+September16 adds the shared offline source-build bundle: GardenKeeper API, worker
+and web rebuilt with networking disabled and build-cache reuse off. See the
+[offline rebuild procedure](../../../configs/docker-host/stacks/household-hub/README.md#offline-source-rebuild-procedure).
+Container-local upload recovery remains a separate gap.

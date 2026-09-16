@@ -183,8 +183,8 @@ The NAS directory `/mnt/omv/docker-host-backups/offline-app-images/20260915`
 contains `images.tar`, image/content identity manifest, checksums and both dated
 source archives. It preserves the six recovered API/worker/web images plus the
 GardenKeeper PostgreSQL and Hub PostgreSQL/Redis/Qdrant images (ten total).
-Installed dependencies are embedded in these images; independent offline builds
-from source still require a package/base-image dependency bundle.
+Installed dependencies are embedded in these images. The September16 source-build
+bundle below now supplies the additional packages and base images for offline builds.
 
 Verify `SHA256SUMS` and `SOURCE-SHA256SUMS` in this protected directory, then use
 `docker image load -i images.tar` on the recovery host. Application tags are
@@ -200,3 +200,41 @@ nginx executables and both worker Python executables ran with no networking and
 `--pull never`. The temporary daemon and its10GB working store were removed,
 returning host free space to14GB. This proves image availability and executable
 checks, not full offline worker/application integration or source rebuilds.
+
+## Offline source rebuild procedure
+
+The September16 bundle at
+`/mnt/omv/docker-host-backups/offline-source-builds/20260916` extends the earlier
+image-only checkpoint. It targets **Linux amd64 / Python3.13 / Node22** and contains
+base images, both source trees, frozen Python requirements and wheel files, npm
+cache, separate offline Dockerfiles, and build logs. No live source was edited.
+The original Python base digest was recovered from the September12 build log;
+all three base images are preserved under dated `offline-*` tags.
+
+On a recovery Docker host with enough free working space, copy the private bundle,
+require its COMPLETE marker, and check `sha256sum -c SHA256SUMS` before use.
+Load `base-images.tar`. Extract each `*-offline-source.tar.gz` into a separate
+empty private directory and work from that directory. For each of `api`, `worker`
+and `web`, run the corresponding build, for example:
+
+```sh
+docker build --network none --no-cache --pull=false \
+  -f Dockerfile.offline.api -t recovered-household-hub-api:20260916 .
+```
+
+The recipes install Python from local wheels with `--no-index` and validate with
+`pip check`; npm uses its saved cache with `--offline`. Both original app source
+and separate offline recipes are included. Review the dated locks when intentionally
+upgrading; this bundle is a recovery generation, not an automatic dependency update.
+A failed checksum, absent wheel/cache entry or attempted network dependency must
+stop recovery rather than silently switching to online installation.
+
+Rebuilding images does not restore data or authorize migrations. Follow the
+coordinated restore procedure above, including the isolated API entrypoint override.
+This bundle does not include Docker/OS installation media or cross-architecture
+packages; full blank-host recovery and external integration checks remain separate.
+
+September16 acceptance: all six API/worker/web source builds passed with
+`--network none --no-cache --pull=false`. Both source archives were readable,
+all bundle checksums passed and saved base images loaded successfully. Production
+application images were not replaced. Docker-host root had12GB free afterward.
