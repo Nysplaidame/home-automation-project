@@ -11,7 +11,7 @@ status: active
 # Troubleshooting Dashboard
 
 **Type:** service - read-only diagnostic guide
-**Status:** Live with owner-approved Homepage preview; Proxmox evidence acceptance open
+**Status:** Live with owner-approved Homepage preview; Proxmox snapshot acceptance passed September15
 **Related:** [[entities/docker-host]], [[entities/proxmox]],
 [[entities/monitoring-vm]], [[entities/homepage]]
 
@@ -60,8 +60,8 @@ offline when the dashboard host fails.
 
 ## Open Questions
 
-- [ ] Authorize an appropriate workstation key on [[entities/proxmox]] and
-  accept a real Proxmox JSON snapshot for mount and backup-freshness evidence.
+- [x] Authorize the workstation key on [[entities/proxmox]] and accept real
+  mount/backup-age JSON through the dashboard browser flow (September15).
 - [x] Owner-approved Homepage preview deployed on 2026-09-11.
 
 ## Change Log
@@ -82,3 +82,5 @@ offline when the dashboard host fails.
 - 2026-09-12: Owner selected unchanged Mullvad public DNS/filtering with separate exact local hosts entries. Vault entry helper is prepared; live application needs Administrator PowerShell. See [[main/docs/decisions/04-dns-resolver-and-adblocking|DNS resolver decision]]. Direct router DNS probes remain separate evidence.
 
 - 2026-09-14: Owner-installed Proxmox key works; fresh host snapshot passes all eight required capacity/mount/backup-age checks and dashboard model validation. Visual import remains open; freshness is not restore proof. Dedicated snapshot command installed; scheduled monitor preserved.
+
+- 2026-09-15: Fresh Proxmox evidence passed required validator checks and real-file import through the live desktop/mobile browser smoke suite. Earlier file-picker acceptance gap is closed; archive integrity and isolated restore remain separate proof.

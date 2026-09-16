@@ -81,7 +81,7 @@ checkpoint; recordings retain manual review with deletion disabled. See the
 | Tier 3 | local registry mirror | `/opt/stacks/registry-mirror/` | proposed trusted HTTPS 5001 | `docs/install/services/local-registry-mirror.md`; quota/TLS/client-rollback gate |
 | Tier 3 | Node-RED | `/opt/stacks/node-red/` | 1880 loopback raw; proposed Tailscale HTTPS 8447 | `docs/install/services/node-red.md`; safe-mode/auth/HA-overlap gate |
 | Future | AI-adjacent query apps | `/opt/stacks/<service>/` | TBD | VM 103 is the expected target for future containerized query apps; define app-specific API, egress, storage, monitoring, and firewall rules before deployment |
-| Staged | Troubleshooting Dashboard | `/opt/stacks/troubleshooting-dashboard/` | `192.168.20.102:8094` (Management direct); owner-approved `https://homepage.home.local/portal-preview/troubleshooting/` for existing Homepage clients; no new DNS alias | Static read-only UI imports local health-check JSON in the browser; explicit `10.240.32.0/24` bridge; Windows/browser/rollback acceptance passed, Proxmox backup-evidence acceptance open |
+| Staged | Troubleshooting Dashboard | `/opt/stacks/troubleshooting-dashboard/` | `192.168.20.102:8094` (Management direct); owner-approved `https://homepage.home.local/portal-preview/troubleshooting/` for existing Homepage clients; no new DNS alias | Static read-only UI imports local health-check JSON in the browser; explicit `10.240.32.0/24` bridge; Windows/browser/rollback acceptance passed; Proxmox mount/backup-age snapshot and browser import accepted September15; full guest restore remains separate |
 
 ## DNS aliases
 

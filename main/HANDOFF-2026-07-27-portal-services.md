@@ -1526,3 +1526,44 @@ Installed the canonical source as /usr/local/sbin/home-automation-dashboard-snap
 The existing timer/service and /usr/local/sbin/home-automation-health-check were
 preserved: its older source has a different probe set, so replacing it would
 also change scheduled camera-failure behavior. No timer or notification change.
+
+
+## September 15 evidence acceptance and backup inspection
+
+Fresh Proxmox snapshot saved outside Git at
+C:/Users/Admin/AppData/Local/Temp/proxmox-health-20260915.json. Required validator
+checks all pass. The existing browser-smoke.mjs suite ran against the live
+Homepage HTTPS troubleshooting path with SNAPSHOT_PATH pointing to that file:
+real-file import, fresh source/time display, route checks and desktop/mobile
+regressions passed with normal certificate validation. The prior interactive
+file-chooser blocker is closed through the app's automated browser test harness.
+
+Read-only Proxmox inspection: both backup jobs enabled (VMs100/102/103 at02:00,
+CTs111/114 at04:00); all five latest logs report Finished Backup without matched
+ERROR lines. omv-backups is mounted and about62.3% used; local root about76.6%.
+All required backup ages and recording mount/capacity checks pass. These are
+observations, not a new backup, retention change or restore.
+
+Sequential integrity inspection runs at nice19/ionice idle against the latest
+September15 files. For VMs, zstd decompression feeds vma verify with pipefail;
+for CTs, zstd decompression feeds a full tar listing discarded to /dev/null with
+pipefail. No extracted data, restored disks or guest configuration changes.
+VM100 (02_00_01), VM102 (02_02_55), VM103 (02_06_37) and CT111 (04_02_08) passed.
+CT114 (04_20_52) final output was lost when the September15 session ended.
+September16 rechecked only that archive: full decompression/tar traversal
+completed with EXIT=0 at10:33:26+01:00. Durable log and exit marker are
+/root/backup-verification-20260916/ct114.log and ct114.exit. All five selected
+September15 archives passed their respective verification checks.
+Decompression/tar structure is not per-file application consistency, and even
+VMA verification is not proof of a bootable, application-healthy recovery.
+
+The maintenance manual records a concrete first restore candidate: VM102 into
+unused-at-inspection ID9102 on local-lvm,3GiB RAM/2cores/32GiB disk. No restore
+was run. Recheck ID/headroom before use, remove NICs and inherited startup/onboot,
+review cloud-init/passthrough/hooks, then console-only validation and stop.
+Source VM102 has onboot=1/startup order3; isolation review must cover both.
+
+Reconciled current task/app/wiki claims with September14 SSH and September15
+browser evidence. Local Homepage/Vaultwarden hosts entries remain present;
+Mullvad custom DNS is disabled with its existing content filters unchanged.
+OMV SMART and full guest restore acceptance remain separate open work.

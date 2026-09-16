@@ -545,3 +545,27 @@ health; the restore and alert evidence above remains required.
 
 Continue to [Phase 11 - Physical Integrations](11-physical-integrations.md) only
 after recovery evidence and maintenance ownership are accepted.
+
+
+## September 15 read-only restore preflight
+
+Proposed first guest: monitoring VM102, archive
+`vzdump-qemu-102-2026_09_15-02_02_55.vma.zst` (about3.29GiB compressed).
+Temporary ID9102 was unused at inspection; recheck the cluster-wide VM/CT
+namespace immediately before restoring. The existing production VM has2 cores,
+3GiB RAM, a32GiB disk, EFI disk and cloud-init media. Host memory showed about29GiB
+available; local-lvm had about605GiB free. These are dated observations, not a
+reservation. Root storage is about77% occupied; restore disks to local-lvm.
+
+Use the existing VM restore procedure above, keeping the restored guest stopped.
+Before boot: remove every NIC, set `onboot=0`, remove the inherited startup order,
+review cloud-init and remove its copied media if unnecessary, and inspect the
+actual restored configuration for host passthrough, hooks and external paths.
+The source has onboot=1 and startup order3; never leave those on the temporary VM.
+No production network, guest replacement, HA enrollment or backup-job inclusion.
+
+After isolation review, boot and use the console/guest agent to check OS startup,
+filesystem access and monitoring-service data locally. Keep outbound delivery
+unavailable. Stop after checks and record evidence. Do not destroy the temporary
+guest until its identity and cleanup are confirmed. No restore or boot was
+performed during this preflight; production guests remain unchanged.

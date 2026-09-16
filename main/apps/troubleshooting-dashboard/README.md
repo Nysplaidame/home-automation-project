@@ -75,9 +75,9 @@ Confirm current device state before using that recorded context.
 This update is deployed to management port8094 and passed live desktop/mobile
 checks with a fresh Windows snapshot (12 pass, one disconnected camera fail).
 The Windows collector runs from the canonical checkout; no matching Windows
-scheduled collector was found. Proxmox still denies the workstation SSH key,
-so its installed collector has not been updated. The existing Proxmox evidence
-acceptance remains open; Homepage placement was approved on 2026-09-11.
+scheduled collector was found. The September10 Proxmox SSH gap was closed on
+September14; a dedicated snapshot collector is installed and September15 real
+evidence import passed. Homepage placement was approved on 2026-09-11.
 
 Deployment rollback files are in
 `/opt/backups/troubleshooting-evidence-20260910/` on VM103, with the old image
@@ -143,7 +143,8 @@ serves existing Homepage clients; no separate DNS alias was added.
 - [x] Staged deployment on management-only port `8094`.
 - [x] Desktop/mobile acceptance using a real 13/13 Windows snapshot.
 - [x] Stop/start rollback proof and post-rollback access revalidation.
-- [ ] Real Proxmox snapshot acceptance for mount and backup-freshness evidence.
+- [x] Real Proxmox snapshot acceptance for mount and backup-freshness evidence
+  (September15 live browser import; archive restore remains separate).
 - [x] Owner-approved Homepage placement (2026-09-11); no new DNS alias.
 
 The pre-change live firewall and audit scripts are retained on VM 103 under
@@ -189,7 +190,8 @@ login. Workstation cache reachability does not prove the affected guest's path.
 Application jobs, model readiness, data integrity and restores remain manual.
 The photos and AI routes reuse the collector's specific listener signals while
 retaining the deeper missing-evidence gates. Proxmox collector installation is
-unchanged and still blocked by the existing SSH access gap.
+historically unchanged at that point; September14 dedicated collector deployment
+and September15 evidence acceptance close that SSH/evidence gap.
 
 Run offline collector contract tests with
 `pwsh -NoProfile -File main/scripts/monitoring/tests/test_health_check.ps1`.
@@ -214,15 +216,16 @@ loaded, Open tab points to the fixed URL, and the 390px viewport has no horizont
 overflow in either Homepage or its frame. Browser checks used an explicit local
 hostname mapping and ignored TLS errors. A separate curl check returned HTTP200
 with certificate validation and revocation checking disabled; this does not
-resolve the workstation's existing DNS/revocation issues. Proxmox evidence
-acceptance remains open.
+resolve the workstation's existing DNS/revocation issues. Subsequent local-name
+verification and September15 Proxmox evidence acceptance are recorded below.
 
 
 ## Proxmox evidence captured (2026-09-14)
 
 Dedicated workstation SSH now works. The real September14 snapshot passed all
 eight required mount/capacity/backup-age checks and dashboard model validation.
-Visual browser import remains open because file-picker automation timed out.
+September15 live browser smoke imported fresh real Proxmox JSON successfully
+and passed desktop/mobile checks; the earlier file-picker blocker is closed.
 Run `/usr/local/sbin/home-automation-dashboard-snapshot --json` on Proxmox for
 fresh evidence; its existing scheduled monitor is unchanged. Fresh archives
 do not establish integrity or restore acceptance. See the current handoff.

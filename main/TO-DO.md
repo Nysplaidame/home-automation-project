@@ -17,11 +17,19 @@ status: active
 
 ## Next project steps
 
+- [x] Verify September15 archives: VM100/102/103 decompression plus VMA verify,
+  CT111/114 decompression plus tar traversal. Last result durably recorded
+  September16. These checks do not establish application-consistent recovery.
+- [ ] Execute the documented isolated monitoring VM102 restore drill using a
+  freshly checked unused ID, no NICs, onboot disabled and console-only checks.
+  September15/16 preflight passed; no restore has been performed in this batch.
+
+
 - [x] Verify dedicated Proxmox workstation SSH after owner key installation
   (2026-09-14); collect fresh snapshot and pass all eight required capacity,
   mount and backup-freshness checks. Dashboard model acceptance also passed.
-- [ ] Complete visual import of the September14 Proxmox JSON in the dashboard;
-  automated file chooser timed out. Integrity/restore proof remains separate.
+- [x] Complete browser import using fresh September15 Proxmox JSON through the
+  existing live desktop/mobile smoke suite. Integrity/restore proof is separate.
 - [x] Install dedicated Proxmox dashboard snapshot command at
   /usr/local/sbin/home-automation-dashboard-snapshot; preserve scheduled probes.
 
@@ -55,9 +63,9 @@ status: active
   with normal browser validation (2026-09-11; explicit DNS mapping).
 - [x] Owner chose to preserve Mullvad DNS/filtering and handle exact local names
   separately (2026-09-12); see DNS resolver decision.
-- [ ] Apply the prepared local Vaultwarden hosts entry in Administrator PowerShell,
-  then verify normal browser HTTPS and unchanged Mullvad DNS/filter settings.
-  Script preview and temporary-file apply/idempotence/rollback tests passed.
+- [x] Apply local Vaultwarden hosts entry and verify normal browser HTTPS
+  (September14). September15 confirms Mullvad custom DNS remains disabled
+  with the same content filters; public DNS behavior was preserved.
 - [x] Distinguish DNS/network/TLS/timeout collector failures and add VPN/SNI
   troubleshooting guidance (2026-09-11). Revocation availability remains separate.
 
@@ -106,9 +114,9 @@ status: active
 - [x] Deploy troubleshooting evidence-age/context UI to the existing
   management-only stack (2026-09-10). Live desktop/mobile checks pass, and
   the updated Windows collector produces a usable timestamp and 12/13 passes.
-- [ ] Update the installed Proxmox collector through an authorized management
-  route; workstation SSH still rejects its key (2026-09-10). Preserve the
-  real backup/mount acceptance; Homepage placement approved September 11.
+- [x] Install dedicated Proxmox dashboard collector through authorized SSH
+  (September14); fresh mount/backup evidence and browser import pass September15.
+  Preserve the original scheduled monitor and its different probe set.
 - [ ] Reconcile the pre-existing IPv6 DOCKER-USER Tailscale exception for8094
   with the dashboard's management-only intent before any IPv6 publication.
   Current stack binds IPv4 only and its bridge has IPv6 disabled.
@@ -130,11 +138,11 @@ status: active
   were retained. Preserve this reviewed work as separate feature-branch commits.
 - [x] Refresh the read-only update/backup evidence available through current
   access; see the 2026-09-07 update review. VM103 app-data backup succeeded;
-  Proxmox and OMV deny workstation SSH keys, so guest-backup and SMART proof
-  remain explicit gaps rather than completed checks.
-- [ ] Obtain fresh Proxmox guest-backup and OMV SMART evidence through an
-  authorized management route; do not install keys or change authentication
-  merely to clear this evidence gate.
+  The September7 access gap was historical: Proxmox SSH and fresh guest-backup
+  evidence now pass; OMV SMART proof remains separate.
+- [x] Obtain fresh Proxmox guest-backup evidence through owner-authorized SSH.
+- [ ] Obtain OMV SMART evidence through an authorized management route; retain
+  the separate storage-health gate.
 - [ ] Restore CT114's approved package path in a bounded maintenance change:
   no APT proxy, TCP3142 timeout and direct Debian HTTP failure confirmed
   2026-09-07; cached security/update metadata dates to June19. Then re-evaluate

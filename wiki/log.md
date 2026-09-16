@@ -531,3 +531,7 @@ physical cabling reference, guest inventory and the current portal handoff.
 - 2026-09-14: Homepage Vaultwarden direct card deployed and normal browser HTTPS verified; canonical portal handoff records GardenKeeper success and the persistent Proxmox SSH evidence gate.
 
 - 2026-09-14: Updated [[entities/troubleshooting-dashboard]] from the canonical handoff: Proxmox SSH unblocked and fresh evidence validated; browser import and archive restore remain distinct gates.
+
+- 2026-09-15: Reconciled [[entities/troubleshooting-dashboard]] and canonical task/app records with successful real Proxmox JSON browser import. VM102 isolated restore preflight documented separately.
+
+- 2026-09-16: Recorded all five September15 Proxmox archive verification passes in the canonical handoff/task list. CT114 recheck exit0 is retained on-host; isolated guest restore remains open.

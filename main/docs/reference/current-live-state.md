@@ -263,9 +263,11 @@ checks. Historical stop/start rollback passed August25; September's prior image
 is retained but that rollback was not exercised. A pre-existing IPv6 Tailscale
 RETURN rule for8094 contradicts the earlier blanket-denial description; the
 current publication is IPv4-only and bridge IPv6 is disabled. Reconcile that
-rule before any IPv6 publication. No DNS alias or Homepage card exists.
-Proxmox-host collector update and JSON acceptance remain open because the
-workstation key is denied. The [written walkthroughs](../troubleshooting/diagnostic-walkthroughs.md)
+rule before any IPv6 publication. Owner-approved Homepage Tools placement is
+live at `https://homepage.home.local/portal-preview/troubleshooting/`; existing
+Homepage clients can use the fixed HTTPS path without a new DNS alias. Proxmox
+SSH was authorized September14; a dedicated snapshot collector is installed,
+and September15 required evidence validation and real-file browser import passed. The [written walkthroughs](../troubleshooting/diagnostic-walkthroughs.md)
 retain offline diagnosis and Mermaid links alongside the app.
 Homepage is the central `Home Operations` navigation portal at
 `https://homepage.home.local/`, using a `Home Local CA` certificate. The former
