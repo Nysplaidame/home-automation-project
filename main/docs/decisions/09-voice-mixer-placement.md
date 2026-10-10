@@ -5,7 +5,7 @@ tags: [architecture-decision, local-ai, voice, tts, ct-114, docker]
 created: 2026-10-10
 modified: 2026-10-10
 type: decision
-status: proposed
+status: active
 ---
 
 # Decision: Host the Voice Mixer on CT 114 `llm-host`
@@ -17,8 +17,12 @@ The Voice Mixer (`apps/voice-mixer`) runs as its own Compose stack on CT 114
 `7860`, CPU only, with Homepage linking to it. The desktop (RTX 5070 Ti) remains
 the development and fast-RVC environment, running the same code from the repo.
 
-Status: **proposed**. The app is built and tested on the desktop; the CT 114
-deployment, firewall rules and Homepage entry are not live yet.
+Status: **approved 2026-10-10** (including a Tailscale host route for
+`192.168.20.104/32`). Deployment state is tracked in
+`docs/install/services/voice-mixer.md` and `docs/reference/current-live-state.md`.
+
+Pre-deploy check (2026-10-10): CT 114 had 16.5 of 28 GiB in use with no memory
+pressure, so the 4 GiB mixer cap fits alongside Qwen3-14B.
 
 ## Why CT 114
 
@@ -49,11 +53,13 @@ deployment, firewall rules and Homepage entry are not live yet.
   subprocess when a new Piper→RVC clip is requested, and results are cached.
 - Unprivileged container user `1000:1000`; models, clips and the Piper voice
   are mounted read-only; writes go to `/opt/stacks/voice-mixer/data` only.
-- No authentication in the app. Port `7860` is scoped by CT 114 UFW and the
-  persistent `DOCKER-USER` policy to the same sources as Open WebUI `3002`
-  (management `192.168.10.0/24`, LAN `192.168.1.0/24`, monitoring
-  `192.168.60.10`). No public or Tailscale exposure is implied; Tailscale
-  currently advertises no route to `192.168.20.104`.
+- No authentication in the app. Port `7860` is scoped by the persistent
+  `DOCKER-USER` policy (`configs/local-ai/system/llm-host-firewall.sh`) to the
+  same sources as Open WebUI `3002`: docker-host `192.168.20.102` (Homepage and
+  Tailscale subnet-router traffic, which is SNATed), management
+  `192.168.10.0/24`, LAN `192.168.1.0/24` and monitoring `192.168.60.10`.
+- Remote access is via Tailscale only: docker-host advertises the
+  `192.168.20.104/32` host route (approved with this decision). No public exposure.
 - Batch mode can only read folders under configured roots and only writes
   under `data/outputs`.
 - Not safety-relevant: like the rest of local AI it is advisory/non-critical.
@@ -64,10 +70,12 @@ deployment, firewall rules and Homepage entry are not live yet.
   the desktop GPU. Acceptable because source clips are generated rarely and
   cached; heavy RVC work (dataset generation) stays on the desktop.
 - The image must be built off-VLAN and transferred (`docker save` / `docker load`).
-- CT 114 memory headroom must be checked before enabling RVC there
-  (Qwen3-14B 64k context already uses most of the guest's memory).
+- Advertising `192.168.20.104/32` also makes the other CT 114 published ports
+  reachable from tailnet clients where `DOCKER-USER` allows docker-host
+  (`8081`, `8082`, `3002`, `3333`, `7860`); the Wyoming ports stay HA/monitoring only.
 
 ## Rollback
 
-`docker compose down` in `/opt/stacks/voice-mixer`, remove the `7860` UFW and
-`DOCKER-USER` entries and the Homepage link. Nothing else depends on it.
+`docker compose down` in `/opt/stacks/voice-mixer`, remove the `7860` block
+from `llm-host-firewall.sh`, the Homepage link and (if nothing else needs it)
+the `192.168.20.104/32` Tailscale route. Nothing else depends on it.

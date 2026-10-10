@@ -26,7 +26,10 @@ RUN if [ "$WITH_RVC" = "1" ]; then \
       apt-get update && apt-get install -y --no-install-recommends build-essential git ffmpeg \
       && pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu \
       && pip install -r requirements-rvc.txt "numpy==1.23.5" \
-      && apt-get purge -y build-essential git && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*; \
+      && apt-get purge -y build-essential git && apt-get autoremove -y && rm -rf /var/lib/apt/lists/* \
+      # rvc-python fetches hubert/rmvpe base models on first use; bake them in (runtime is offline)
+      && python -c "import os, rvc_python; from rvc_python.download_model import download_rvc_models; download_rvc_models(os.path.dirname(rvc_python.__file__))" \
+      && ls -la /usr/local/lib/python3.10/site-packages/rvc_python/base_model; \
     fi
 
 COPY voicefx ./voicefx
@@ -35,7 +38,11 @@ COPY presets ./presets
 COPY radio_fx.py ./
 COPY packaging/config.container.json ./packaging/config.container.json
 
-RUN useradd --uid 1000 --create-home mixer && mkdir -p /data && chown mixer:mixer /data
+RUN useradd --uid 1000 --create-home mixer && mkdir -p /data && chown mixer:mixer /data \
+ # rvc-python rewrites its own config JSONs and modules/train/preprocess.py on every CPU start,
+ # so the mixer user must own that one package (nothing else in site-packages)
+ && if [ -d /usr/local/lib/python3.10/site-packages/rvc_python ]; then \
+      chown -R mixer:mixer /usr/local/lib/python3.10/site-packages/rvc_python; fi
 USER mixer
 VOLUME ["/data"]
 EXPOSE 7860

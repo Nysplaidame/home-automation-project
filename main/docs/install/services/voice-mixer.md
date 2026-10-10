@@ -66,16 +66,31 @@ Piper-only image on CT 114 and generate RVC clips on the desktop.
 
 ## 3. Firewall (CT 114)
 
-Mirror the Open WebUI `3002` scoping for `7860`:
+Published container ports on CT 114 are governed by the `DOCKER-USER` chain,
+rebuilt by `/usr/local/sbin/llm-host-firewall.sh` whenever Docker starts
+(`docker.service.d/firewall.conf`). The repo copy
+`configs/local-ai/system/llm-host-firewall.sh` contains the `7860` block
+(docker-host, management, LAN, monitoring; DROP for everyone else).
 
 ```sh
-ufw allow from 192.168.10.0/24 to any port 7860 proto tcp comment "Management to Voice Mixer"
-ufw allow from 192.168.1.0/24  to any port 7860 proto tcp comment "LAN to Voice Mixer"
-ufw allow from 192.168.60.10   to any port 7860 proto tcp comment "Monitoring to Voice Mixer"
+cp /usr/local/sbin/llm-host-firewall.sh /usr/local/sbin/llm-host-firewall.sh.bak-$(date +%Y%m%d-%H%M%S)-pre-voice-mixer
+install -m 0755 llm-host-firewall.sh /usr/local/sbin/llm-host-firewall.sh   # repo copy
+/usr/local/sbin/llm-host-firewall.sh
+iptables -S DOCKER-USER | grep 7860       # 4 RETURN rules + 1 DROP
 ```
 
-Add the matching rules to CT 114's persistent `DOCKER-USER` policy (same
-pattern as port 3002: RETURN for those three sources, then DROP for 7860).
+## 3b. Tailscale route (docker-host)
+
+```sh
+tailscale set --advertise-routes=192.168.20.101/32,192.168.30.20/32,192.168.40.50/32,192.168.60.10/32,192.168.20.104/32
+```
+
+Approve the new `192.168.20.104/32` route for `docker-host` in the Tailscale
+admin console, then confirm on docker-host:
+
+```sh
+tailscale status --json | python3 -c "import json,sys; print(json.load(sys.stdin)['Self'].get('PrimaryRoutes'))"
+```
 
 ## 4. Start and verify
 
