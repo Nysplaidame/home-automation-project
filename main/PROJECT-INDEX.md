@@ -184,7 +184,7 @@ status: active
 - [[docs/decisions/04-dns-resolver-and-adblocking.md]] — non-Google DNS and network-wide filtering strategy
 - [[docs/decisions/05-self-hosted-services-remote-access.md]] — OMV, docker-host apps, Tailscale host routes, WireGuard fallback
 - [[docs/decisions/07-shared-igpu-lxc-infrastructure.md]] — deployed CT 111/114 shared-iGPU architecture and rollback boundary
-- [[docs/decisions/09-voice-mixer-placement.md]] — proposed: Voice Mixer on CT 114 (CPU, port 7860, Homepage link)
+- [[docs/decisions/09-voice-mixer-placement.md]] — approved: Voice Mixer on CT 114 (CPU, port 7860, Homepage portal link); staged, not yet running
 - [[docs/reference/service-matrix.md]] — service, port, DNS, backup, monitoring, and runbook matrix
 - [[docs/reference/access-matrix.md]] — OpenWrt, Tailscale, host firewall, and service auth access intent
 - [[docs/diagrams/README.md]] — canonical diagram library

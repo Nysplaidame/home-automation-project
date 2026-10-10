@@ -11,10 +11,6 @@
     - Uptime Kuma:
         href: http://192.168.60.10:3001/
         description: Service health
-- Local AI:
-    - Voice Mixer:
-        href: http://192.168.20.104:7860/
-        description: Metrocop voice tuning pre-flight (CT 114)
 - Docker Host:
     - Bambuddy:
         href: http://192.168.20.102:8000/

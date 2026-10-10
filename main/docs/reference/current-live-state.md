@@ -153,6 +153,19 @@ while its replacement LXC is running.
 - SearXNG web search is reachable at docker-host port 8087, including from Home
   Assistant after the 2026-07-07 HA Supervisor-network docker-host firewall
   update.
+- Voice Mixer (decision 09) is **staged, not running** as of 2026-10-10:
+  `/opt/stacks/voice-mixer` holds the compose file, RVC model/index, 325
+  metropolice clips and the 697-clip dataset; the `7860` `DOCKER-USER` block is
+  live in `/usr/local/sbin/llm-host-firewall.sh` (backup
+  `*.bak-20261010-*-pre-voice-mixer`). The image transfer was aborted because
+  of the CT 111 I/O incident below; no container is running and nothing listens
+  on 7860.
+- **Incident 2026-10-10 (open):** CT 111 Frigate's main process reached ~5.3 GB
+  RSS inside the 6 GiB CT limit (2 OOM kills), leaving ~60 MB page cache. The
+  CT re-reads its own files constantly: ~1,000 reads/s on the shared NVMe, CT
+  I/O pressure ~99%, host load ~100 with ~78 D-state tasks in
+  `dm_thin_find_block`. NVMe SMART is healthy (0 media errors, 1% used); thin
+  pool 26% data / 1% metadata. Hung-task warnings date from 2026-10-08.
 
 ## Docker host
 
