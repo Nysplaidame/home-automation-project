@@ -264,7 +264,7 @@ must work without HACS.
 - [ ] **Urgent:** fix CT 111 Frigate memory exhaustion (main process ~5.3 GB in a 6 GiB CT, OOM kills, host-wide I/O thrash since ~2026-10-08; see `docs/reference/current-live-state.md` incident note): restart Frigate and/or raise CT 111 memory, then find the leak
 - [x] Decision 09 approved; CT 114 headroom checked (16.5/28 GiB), image built and verified offline (`--network none`: Piper 3.2 s, CPU RVC 29.6 s), stack assets + compose staged in `/opt/stacks/voice-mixer`, `7860` `DOCKER-USER` block live (2026-10-10)
 - [ ] After the CT 111 fix: load the `voice-mixer:local` image into CT 114, `docker compose up -d`, verify from LAN; add docker-host Tailscale route `192.168.20.104/32` and approve it; add the live Homepage portal entry (preview-proxy `listen 8210` → `192.168.20.104:7860` + `services.yaml` item) per `docs/install/services/voice-mixer.md`
-- [ ] Resync the stale repo Homepage template (`configs/docker-host/stacks/homepage/`) with the live portal on VM 103 (services.yaml, preview-proxy nginx.conf)
+- [x] Resync the stale repo Homepage template (`configs/docker-host/stacks/homepage/`) with the live portal on VM 103: compose, config, custom CSS/JS, preview-proxy; secrets/TLS excluded (2026-10-10)
 - [ ] Design the Metrocop Wyoming playback wrapper (Piper → voicefx preset → HA) on CT 114, reusing `voicefx` and mixer preset JSON
 
 ### Home Assistant VM (VM 100)

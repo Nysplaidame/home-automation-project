@@ -119,9 +119,9 @@ dataset clip, move a Radio slider and confirm it re-renders, then try
 
 ## 5. Homepage
 
-The live portal on VM 103 differs from the repo template
-(`configs/docker-host/stacks/homepage/` is stale), so edit the live files in
-place, with backups, following the Open WebUI pattern (`8200` → CT 114 `3002`):
+The portal source is `configs/docker-host/stacks/homepage/` (synced with live
+2026-10-10). Edit live and repo together, with backups, following the Open
+WebUI pattern (`8200` → CT 114 `3002`):
 
 1. `/opt/stacks/homepage/preview-proxy/nginx.conf`, next free port `8210`:
 

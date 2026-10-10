@@ -1,0 +1,20 @@
+- search:
+    provider: duckduckgo
+    focus: false
+    showSearchSuggestions: false
+    target: _blank
+
+- resources:
+    label: Portal runtime
+    cpu: true
+    memory: true
+    disk: /app/config
+    uptime: true
+    refresh: 5000
+- datetime:
+    text_size: xl
+    locale: en-GB
+    format:
+      dateStyle: medium
+      timeStyle: short
+      hourCycle: h23
