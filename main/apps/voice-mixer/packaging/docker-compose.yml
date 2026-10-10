@@ -1,0 +1,28 @@
+# Voice Mixer — CT 114 / llm-host (192.168.20.104, VLAN 20)
+# Deploy to: /opt/stacks/voice-mixer/docker-compose.yml   (separate from /opt/stacks/local-ai so
+# rebuilding the mixer never touches llama.cpp or the Wyoming services)
+# See docs/install/services/voice-mixer.md for layout, firewall and Homepage steps.
+
+services:
+  voice-mixer:
+    image: voice-mixer:local          # built off-VLAN and loaded with `docker load`
+    container_name: voice-mixer
+    restart: unless-stopped
+    user: "1000:1000"
+    ports:
+      - "7860:7860"                   # scoped by UFW + DOCKER-USER like Open WebUI 3002
+    environment:
+      - VOICE_MIXER_CONFIG=/data/config.json
+      - VOICE_MIXER_HOST=0.0.0.0
+    volumes:
+      - ./data:/data                                   # config.json, presets, cache, outputs
+      - ./models:/models:ro                            # combine_soldierv2.pth + .index
+      - ./clips:/clips:ro                              # clips/vo = metropolice bleeps/game clips
+      - ./dataset:/dataset:ro                          # optional: dataset/wav + metadata.csv
+      - /opt/stacks/local-ai/piper:/voices:ro          # reuse wyoming-piper's en_GB-alba-medium files
+    # Keep inference headroom for llama.cpp: RVC on CPU is bursty.
+    cpus: "2.0"
+    mem_limit: 4g
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }

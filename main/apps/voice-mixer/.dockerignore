@@ -1,0 +1,7 @@
+config.json
+cache/
+outputs/
+tests/
+**/__pycache__/
+.pytest_cache/
+*.wav

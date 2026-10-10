@@ -260,6 +260,9 @@ must work without HACS.
 - [x] Keep `llm-host` and `openwebui` DNS aliases on 192.168.20.104
 - [x] After the 64GB RAM upgrade, resize CT 114 and move `home-assistant-llm` to Qwen3-14B-128K Q4_K_M with a 64k context; API smoke test passed on 2026-07-07
 - [ ] Run full CT 114 post-upgrade validation for the Qwen3-14B 64k profile: Home Assistant Assist text/voice, SearXNG search, Mealie recipe save/display/readout workflow, Open WebUI, host swap, and Frigate concurrency
+- [x] Build the Metrocop Voice Mixer (`apps/voice-mixer`: voicefx library, Gradio UI, presets, CLI, 37 tests) and verify it on the desktop with dataset, Piper and Piper→RVC sources (2026-10-10)
+- [ ] Approve [[docs/decisions/09-voice-mixer-placement|Decision 09]] (Voice Mixer on CT 114), then check CT 114 memory headroom, build/load the image, add `7860` UFW + `DOCKER-USER` scoping, start `/opt/stacks/voice-mixer`, and deploy the Homepage **Local AI** link per `docs/install/services/voice-mixer.md`
+- [ ] Design the Metrocop Wyoming playback wrapper (Piper → voicefx preset → HA) on CT 114, reusing `voicefx` and mixer preset JSON
 
 ### Home Assistant VM (VM 100)
 - [x] Start VM 100, complete HAOS onboarding wizard
