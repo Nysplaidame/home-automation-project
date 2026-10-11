@@ -3,7 +3,7 @@ title: "Frigate NVR"
 category: entity
 tags: [software, frigate, cctv, docker, nvr]
 created: 2026-04-07
-updated: 2026-06-29
+updated: 2026-10-11
 sources: [project-readme, frigate-vm-setup-guide, igpu-passthrough-guide]
 status: active
 ---
@@ -50,6 +50,7 @@ RTSP credentials and final production configuration exist.
 
 ## Change Log
 
+- 2026-10-11: Incident note: Frigate's main process grew to ~5.3 GB RSS in CT 111's 6 GiB limit (3 cameras live), causing page-cache thrash and host-wide I/O pressure 2026-10-08 → 10. Relieved by a temporary 12 GiB limit and a Frigate restart; CT back at 6 GiB with ~1 GB used. Root cause open. This page predates the multi-camera rollout and needs a fuller refresh from `docs/reference/current-live-state.md`.
 - 2026-06-29: Source config was cleaned to the documented migration-safe baseline: `mqtt.enabled: false` and `cameras: {}` until camera hardware and final integrations are ready.
 - 2026-06-20: Migrated production identity from VM 101 to CT 111; OpenVINO and
   VA-API share the host iGPU with CT 114. VM 101 is rollback-only.

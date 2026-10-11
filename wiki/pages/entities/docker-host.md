@@ -3,7 +3,7 @@ title: "Docker Host (VM 103)"
 category: entity
 tags: [software, docker, proxmox, bambuddy, apt-cache, tailscale, monitoring, fail2ban]
 created: 2026-05-08
-updated: 2026-07-10
+updated: 2026-10-11
 sources: [project-readme, project-todo]
 status: stable
 ---
@@ -36,8 +36,9 @@ maintenance window.
 - OS: Debian GNU/Linux 13
 - Docker and Docker Compose: installed
 - Stack path convention: `/opt/stacks/<service>/`
-- Tailscale routes: live `192.168.20.101/32`, `192.168.40.50/32`,
-  `192.168.60.10/32` for Grafana/Kuma mobile access only
+- Tailscale routes (approved, 2026-10-11): `192.168.20.101/32`,
+  `192.168.20.104/32` (llm-host), `192.168.30.20/32` (Frigate 8971),
+  `192.168.40.50/32`, `192.168.60.10/32` (Grafana/Kuma)
 - Metrics: Docker-host Telegraf writes to InfluxDB bucket `dockerhost`
 - Host hardening: Fail2ban `sshd` jail at `/etc/fail2ban/jail.d/docker-host-sshd.local`
 
@@ -64,9 +65,10 @@ docker-host is the live Tailscale daily-access node. It advertises host routes
 only:
 
 - `192.168.20.101/32` for Home Assistant
+- `192.168.20.104/32` for [[entities/llm-host]] ([[entities/voice-mixer]], Open WebUI)
+- `192.168.30.20/32` for Frigate HTTPS `8971` only
 - `192.168.40.50/32` for OMV
-- `192.168.60.10/32` for monitoring VM UIs; approve in Tailscale admin if
-  still pending
+- `192.168.60.10/32` for monitoring VM UIs
 
 Docker-host services should be reached by docker-host Tailscale identity/MagicDNS.
 Grafana and Uptime Kuma should use routed access to the monitoring VM on ports

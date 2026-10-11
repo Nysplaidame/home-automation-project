@@ -3,7 +3,7 @@ title: ACL And Access Matrix
 description: Canonical OpenWrt, Tailscale, host firewall, and service-auth access intent
 tags: [reference, acl, firewall, tailscale, access-control]
 created: 2026-05-23
-modified: 2026-07-07
+modified: 2026-10-11
 type: reference
 status: active
 ---
@@ -18,7 +18,7 @@ in the tailnet admin console.
 
 | Path | Allowed target | Denied target | Enforcement |
 |---|---|---|---|
-| Tailscale daily access | docker-host node services, HA `192.168.20.101/32`, OMV `192.168.40.50/32`, Grafana/Kuma host `192.168.60.10/32` on ports `3000`/`3001` | broad VLAN routes, monitoring InfluxDB `8086` | Tailscale route approval + ACLs + docker-host UFW + narrow OpenWrt allow rules |
+| Tailscale daily access | docker-host node services, HA `192.168.20.101/32`, llm-host `192.168.20.104/32` (Voice Mixer `7860`, Open WebUI `3002`), Frigate `192.168.30.20/32` (`8971`), OMV `192.168.40.50/32`, Grafana/Kuma host `192.168.60.10/32` on ports `3000`/`3001` | broad VLAN routes, monitoring InfluxDB `8086` | Tailscale route approval + ACLs + docker-host UFW + narrow OpenWrt allow rules |
 | WireGuard dormant fallback | LAN, HA host, OMV host, DMZ fallback | Management, NVR, Printers, IoT, broad Storage VLAN | OpenWrt `vpn_clients` firewall zone |
 | Management VLAN | all local admin targets | WAN-exposed admin | OpenWrt + service auth |
 | Guest VLAN | internet only through router DNS | all internal VLANs | OpenWrt |
@@ -36,7 +36,7 @@ management interface should use `192.168.10.12` once its MAC address is known.
 | Admin devices | tailnet admin group | `192.168.60.10/32` | 3000, 3001 | Grafana and Uptime Kuma only |
 | Household mobile devices | approved user/device tags | docker-host service UI ports | 2283, 3001, selected apps | No Management/NVR/IoT/Printers |
 | Household mobile devices | approved user/device tags | `192.168.60.10/32` | 3000, 3001 | Monitoring dashboards only if desired for daily mobile use |
-| Admin devices | tailnet admin group | `192.168.20.104/32` | 3002, 8081, 10200, 10300, 10400 | Local AI admin/testing only if explicitly approved; embedding port 8082 is source-scoped to docker-host |
+| Admin devices | tailnet admin group | `192.168.20.104/32` | 7860, 3002, 8081 | Route advertised since 2026-10-11 for the Voice Mixer. Tailnet traffic arrives SNATed from docker-host, so CT 114 `DOCKER-USER` admits the docker-host-allowed ports (7860, 3002, 8081, 8082, 3333); Wyoming 10200/10300/10400 stay HA/monitoring only |
 | Unknown devices | any | any routed subnet | none | Require explicit approval |
 
 Do not advertise or allow `192.168.10.0/24`, `192.168.30.0/24`,
@@ -61,8 +61,9 @@ WireGuard fallback activation/deactivation governance is defined in
 | HA | docker-host | 8090, 9283/tcp | GardenKeeper Assist/task API and Grocy voice shopping-list API |
 | HA Supervisor network `172.30.32.0/23` | docker-host | 8087, 9283, 9925/tcp | SearXNG, Grocy, and Mealie LLM/API tools used by Overwatch/Assist; added to docker-host `DOCKER-USER` on 2026-07-07 |
 | docker-host | llm-host | 8081, 8082, 3002/tcp | Household Hub assistant/API integration path and dedicated embedding endpoint |
-| LAN / Management | llm-host | 3002/tcp; 8081/tcp for local LLM testing | Open WebUI and local LLM test access |
-| Monitoring | llm-host | 8081, 3002, 10200, 10300, 10400/tcp | Uptime Kuma checks and service health |
+| docker-host | llm-host | 7860/tcp | Voice Mixer: Homepage portal proxy `8210` and Tailscale-routed clients |
+| LAN / Management | llm-host | 3002/tcp; 7860/tcp; 8081/tcp for local LLM testing | Open WebUI, Voice Mixer and local LLM test access |
+| Monitoring | llm-host | 8081, 3002, 7860, 10200, 10300, 10400/tcp | Uptime Kuma checks and service health |
 | llm-host | docker-host | future approved query-app ports only | Pattern reserved for future containerized query apps; no app-specific rule exists yet |
 | docker-host | Monitoring VM | 8086/tcp | Telegraf metrics export to InfluxDB bucket `dockerhost` |
 | docker-host | Monitoring VM | 3000, 3001/tcp | Tailscale-routed mobile access to Grafana and Uptime Kuma only |
@@ -80,7 +81,7 @@ WireGuard fallback activation/deactivation governance is defined in
 | Host | Firewall intent |
 |---|---|
 | docker-host | default deny incoming; allow Management/LAN/Tailscale to approved service ports; allow Tailscale interface; avoid broad routed forwarding except approved host routes |
-| llm-host | default deny incoming; allow HA to llama.cpp/Wyoming ports; allow Management/LAN to Open WebUI and approved LLM testing; allow Monitoring checks; block Guest, DMZ, NVR, Printers, and IoT |
+| llm-host | default deny incoming; allow HA to llama.cpp/Wyoming ports; allow Management/LAN to Open WebUI, Voice Mixer and approved LLM testing; allow docker-host to 7860/3002/8081/8082/3333; allow Monitoring checks; block Guest, DMZ, NVR, Printers, and IoT |
 | OMV | allow Management, HA, Frigate, docker-host, and Tailscale-routed admin/device access only to required ports |
 | Frigate | allow HA and Management; no user/LAN direct path until cameras are configured |
 | Home Assistant | allow LAN, Management, Tailscale-routed admin/mobile, and required service integrations |
@@ -98,6 +99,7 @@ WireGuard fallback activation/deactivation governance is defined in
 | SearXNG | internal-only pre-flight; direct HTTP until reverse proxy/HTTPS pass |
 | Whoogle | internal-only pre-flight; direct HTTP until reverse proxy/HTTPS pass |
 | Watchtower | monitor-only; no automatic updates |
+| Voice Mixer | internal-only; no app auth (relies on `DOCKER-USER` scoping and Tailscale ACLs); batch reads only configured roots and writes only `data/outputs` |
 | Local AI / Open WebUI | internal-only; admin account required; HA exposes only approved entities; no safety-critical direct control by default |
 | Hermes Agent candidate | advisory/tooling-only until separate sandbox, credentials, logging, and tool allowlist are approved |
 | OMV | unique admin and service-user credentials |

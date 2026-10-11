@@ -60,6 +60,11 @@ Run on: Home Assistant UI.
 2. Add Wyoming Piper at `192.168.20.104:10200`.
 3. Add Wyoming Whisper at `192.168.20.104:10300`.
 4. Add Wyoming OpenWakeWord at `192.168.20.104:10400`.
+
+Optional: the Metrocop Voice Mixer runs as a separate stack on this CT
+(`/opt/stacks/voice-mixer`, port `7860`); see
+[[docs/install/services/voice-mixer|voice-mixer install guide]] and
+[[docs/decisions/09-voice-mixer-placement|decision 09]].
 5. Point any local LLM Assist pipeline at `llamacpp_conversation`.
 6. Do not install a second LLM runtime; llama.cpp is the supported CT 114
    backend.

@@ -196,3 +196,10 @@
 - Docker-host and monitoring Docker-published ports now use persistent, source-scoped `DOCKER-USER` policies with rollback snapshots and representative allow/deny proofs.
 - Pages updated: [[entities/docker-host]], [[entities/monitoring-vm]]
 - Notes: Tailscale identity/ACL proof remains owner-supervised; no broad port exposure was introduced.
+
+## [2026-10-11] update | Voice Mixer on CT 114, Tailscale llm-host route, Homepage portal
+- Voice Mixer (decision 09) is live on CT 114 `:7860` with Homepage portal `8210`; docker-host Tailscale now advertises and has approved `192.168.20.104/32` (five host routes total).
+- Pages created: [[entities/voice-mixer]]
+- Pages updated: [[entities/llm-host]], [[entities/homepage]], [[entities/docker-host]], [[concepts/tailscale-remote-access]], [[entities/frigate]], [[index]]
+- Corrections: llm-host resources were stale (now 6c / 28 GiB, embeddings 8082 added); the Frigate Tailscale route was still described as pending; the Homepage page lacked the TLS portal model.
+- Notes: Frigate page still predates the multi-camera rollout and needs a fuller refresh; CT 111 memory incident recorded there.

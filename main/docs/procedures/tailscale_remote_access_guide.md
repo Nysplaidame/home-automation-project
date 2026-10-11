@@ -3,7 +3,7 @@ title: Tailscale Remote Access Guide
 description: Daily remote access through docker-host host routes, with WireGuard as fallback
 tags: [tailscale, remote-access, docker-host, vpn]
 created: 2026-05-23
-modified: 2026-07-02
+modified: 2026-10-11
 type: procedure
 status: active
 ---
@@ -18,13 +18,25 @@ dormant fallback.
 docker-host joins the tailnet and advertises host routes only:
 
 ```bash
-tailscale up --accept-dns=false --hostname=docker-host --advertise-routes=192.168.20.101/32,192.168.30.20/32,192.168.40.50/32,192.168.60.10/32
+tailscale up --accept-dns=false --hostname=docker-host --advertise-routes=192.168.20.101/32,192.168.20.104/32,192.168.30.20/32,192.168.40.50/32,192.168.60.10/32
 ```
 
 Routes must be approved in the Tailscale admin console before clients can use
 them.
 
 Do not advertise broad VLAN or RFC1918 ranges.
+
+Live state, 2026-10-11:
+
+- Tailscale `1.98.10` on docker-host advertises five host routes, all approved
+  and active (`PrimaryRoutes` verified 2026-10-11): `192.168.20.101/32`,
+  `192.168.20.104/32`, `192.168.30.20/32`, `192.168.40.50/32`, `192.168.60.10/32`.
+- `192.168.20.104/32` (CT 114 `llm-host`) was added for the Voice Mixer
+  ([[docs/decisions/09-voice-mixer-placement|decision 09]]). Routed traffic is
+  SNATed, so CT 114 sees `192.168.20.102`; its `DOCKER-USER` policy then admits
+  `7860`, `3002`, `8081`, `8082` and `3333` from docker-host, while the Wyoming
+  ports `10200`/`10300`/`10400` stay HA/monitoring only.
+- The Frigate `192.168.30.20/32` route noted as pending below has since been approved.
 
 Live state, 2026-07-02:
 
@@ -100,6 +112,7 @@ Validation note, 2026-07-05:
 | docker-host services | docker-host Tailscale node / MagicDNS name |
 | Home Assistant | `192.168.20.101/32` routed through docker-host |
 | Frigate PWA | `192.168.30.20/32` routed through docker-host; expose only authenticated HTTPS port `8971` |
+| llm-host (CT 114) | `192.168.20.104/32` routed through docker-host; Voice Mixer `7860`, Open WebUI `3002` (`DOCKER-USER` scoped) |
 | OMV | `192.168.40.50/32` routed through docker-host |
 | Grafana and Uptime Kuma | `192.168.60.10/32` routed through docker-host; expose only ports `3000` and `3001` |
 

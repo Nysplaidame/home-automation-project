@@ -161,14 +161,16 @@ while its replacement LXC is running.
   the `DOCKER-USER` block in `/usr/local/sbin/llm-host-firewall.sh` (backup
   `*.bak-20261010-*-pre-voice-mixer`). Piper→RVC on CPU takes ~30 s per sentence;
   the container idles at ~155 MB and peaked at ~0.5 GB. Homepage portal:
-  `https://homepage.home.local:8210/`.
+  `https://homepage.home.local:8210/` (docker-host UFW `8210`). docker-host
+  Tailscale advertises `192.168.20.104/32`, approved and active 2026-10-11.
 - Incident 2026-10-08 → 2026-10-10 (resolved): CT 111 Frigate's main process
   reached ~5.3 GB RSS inside the 6 GiB CT limit (2 OOM kills), leaving ~60 MB
   page cache, so the CT re-read its own files constantly (~1,000 reads/s on the
   shared NVMe, CT I/O pressure ~99%, host load ~100 with ~78 D-state tasks in
   `dm_thin_find_block`). NVMe SMART healthy; thin pool 26% data / 1% metadata.
-  The owner raised CT 111 to 12 GiB; on 2026-10-11 host load was ~1–2 with no
-  D-state tasks. The Frigate memory growth itself is still unexplained.
+  CT 111 was temporarily raised to 12 GiB and Frigate restarted; on 2026-10-11
+  the CT is back at its configured 6 GiB with ~1 GB in use, host load ~1–2 and no
+  D-state tasks. The Frigate memory growth is unexplained and may recur.
 
 ## Docker host
 

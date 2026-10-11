@@ -7,7 +7,7 @@ flowchart TB
         Frigate["CT 111: frigate-nvr<br/>VLAN 30 | 192.168.30.20<br/>2c / 6 GiB / 32 GiB<br/>onboot order 2"]
         Monitoring["VM 102: monitoring<br/>VLAN 60 | 192.168.60.10<br/>2c / 3 GiB / 32 GiB<br/>onboot order 3"]
         Docker["VM 103: docker-host<br/>VLAN 20 | 192.168.20.102<br/>2c / 6 GiB / 64 GiB<br/>onboot"]
-        LLM["CT 114: llm-host<br/>VLAN 20 | 192.168.20.104<br/>4c / 20 GiB / 100 GiB<br/>onboot order 4"]
+        LLM["CT 114: llm-host<br/>VLAN 20 | 192.168.20.104<br/>6c / 28 GiB / 100 GiB<br/>onboot order 4"]
     end
 
     subgraph Rollback["Powered-off rollback guests: do not start alongside replacements"]

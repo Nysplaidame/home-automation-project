@@ -10,7 +10,7 @@ Verified 2026-07-07. Use `qm config` for VMs and `pct config` for LXCs.
 | 103 | VM | docker-host | 20 / 192.168.20.102 | 2c / 6 GiB configured, 4 GiB until guest restart / 64 GiB | onboot | live |
 | 104 | VM | llm-host | disconnected rollback identity | 4c / 10 GiB / 160 GiB | off | rollback only |
 | 111 | LXC | frigate-nvr | 30 / 192.168.30.20 | 2c / 6 GiB / 32 GiB | order 2, onboot | live |
-| 114 | LXC | llm-host | 20 / 192.168.20.104 | 4c / 20 GiB / 100 GiB | order 4, onboot | live |
+| 114 | LXC | llm-host | 20 / 192.168.20.104 | 6c / 28 GiB / 100 GiB | order 4, onboot | live |
 
 ## Shared GPU entries
 

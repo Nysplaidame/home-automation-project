@@ -60,7 +60,8 @@ pressure, so the 4 GiB mixer cap fits alongside Qwen3-14B.
   Tailscale subnet-router traffic, which is SNATed), management
   `192.168.10.0/24`, LAN `192.168.1.0/24` and monitoring `192.168.60.10`.
 - Remote access is via Tailscale only: docker-host advertises the
-  `192.168.20.104/32` host route (approved with this decision). No public exposure.
+  `192.168.20.104/32` host route (approved and active since 2026-10-11) and the
+  portal `https://homepage.home.local:8210/` works over Tailscale too. No public exposure.
 - Batch mode can only read folders under configured roots and only writes
   under `data/outputs`.
 - Not safety-relevant: like the rest of local AI it is advisory/non-critical.

@@ -13,8 +13,8 @@ status: draft
 App source and usage: [[apps/voice-mixer/README|apps/voice-mixer]].
 Placement rationale: [[docs/decisions/09-voice-mixer-placement|Decision 09]].
 
-> Status 2026-10-11: **live.** Steps 1–5 done except 3b (Tailscale route,
-> pending owner action). Verified: LAN access to `:7860`, Piper→RVC on CPU
+> Status 2026-10-11: **live.** Steps 1–5 done, including 3b (Tailscale route
+> approved and active). Verified: LAN access to `:7860`, Piper→RVC on CPU
 > (~30 s, container ~0.5 GB), portal `https://homepage.home.local:8210/` and the
 > Homepage status check. The first image load (2026-10-10) was aborted during
 > the CT 111 I/O incident; the retry took 88 s with negligible host I/O pressure.
@@ -98,7 +98,8 @@ tailscale set --advertise-routes=192.168.20.101/32,192.168.30.20/32,192.168.40.5
 ```
 
 Approve the new `192.168.20.104/32` route for `docker-host` in the Tailscale
-admin console, then confirm on docker-host:
+admin console (and make sure the tailnet policy lets the intended devices reach
+`192.168.20.104:7860`; the policy is device-scoped), then confirm on docker-host:
 
 ```sh
 tailscale status --json | python3 -c "import json,sys; print(json.load(sys.stdin)['Self'].get('PrimaryRoutes'))"

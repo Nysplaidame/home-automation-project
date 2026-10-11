@@ -100,7 +100,7 @@ Canonical details: [[docs/reference/current-live-state|Current Live State]].
 - Tier 2/Tier 3 services with live baselines include Mealie, Grocy, Obsidian LiveSync/CouchDB, ntfy internal alerts, Watchtower monitor-only, SearXNG and Whoogle
 - Rebuildable docker-host templates live in `configs/docker-host/`; live secrets and app databases stay on VM 103, not in git
 - Tailscale is daily remote access through docker-host with host routes only:
-  `192.168.20.101/32`, `192.168.30.20/32`, `192.168.40.50/32`, and `192.168.60.10/32`
+  `192.168.20.101/32`, `192.168.20.104/32`, `192.168.30.20/32`, `192.168.40.50/32`, and `192.168.60.10/32`
 - WireGuard remains configured as a dormant split-tunnel fallback
 
 ### Monitoring and dashboards (VLAN 60)

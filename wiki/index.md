@@ -66,11 +66,12 @@
 ### Software / integrations
 - [[entities/home-assistant]] - HAOS on VM 100; VentSys packages/dashboard staged and Frigate integration planned
 - [[entities/frigate]] - CT 111 Frigate baseline live with shared-iGPU OpenVINO; cameras/MQTT pending
-- [[entities/llm-host]] - CT 114 llama.cpp/Open WebUI/Wyoming host with shared-iGPU Vulkan
+- [[entities/llm-host]] - CT 114 llama.cpp/Open WebUI/Wyoming host with shared-iGPU Vulkan; also runs the Voice Mixer
+- [[entities/voice-mixer]] - Metrocop radio voice tuning app (Piper/RVC/voicefx) on CT 114, portal 8210
 - [[entities/bambuddy]] - Bambu P1S bridge on docker-host
 - [[entities/adguard-home]] - Live DNS filtering/adblocking service on docker-host
 - [[entities/immich]] - Live skeleton gallery/photos service; real imports blocked until OMV/backup readiness
-- [[entities/homepage]] - Live internal dashboard on docker-host
+- [[entities/homepage]] - Live internal portal on docker-host (TLS ports 8180–8210 via preview proxy)
 - [[entities/dozzle]] - Live Docker log viewer on docker-host
 - [[entities/ventsys]] - Fire safety ventilation packages/dashboard staged; hardware rollout gated by TLS-path revalidation
 - [[entities/smart-plugs-ventsys]] - VentSys smart plugs
