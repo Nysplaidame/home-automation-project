@@ -261,9 +261,12 @@ must work without HACS.
 - [x] After the 64GB RAM upgrade, resize CT 114 and move `home-assistant-llm` to Qwen3-14B-128K Q4_K_M with a 64k context; API smoke test passed on 2026-07-07
 - [ ] Run full CT 114 post-upgrade validation for the Qwen3-14B 64k profile: Home Assistant Assist text/voice, SearXNG search, Mealie recipe save/display/readout workflow, Open WebUI, host swap, and Frigate concurrency
 - [x] Build the Metrocop Voice Mixer (`apps/voice-mixer`: voicefx library, Gradio UI, presets, CLI, 37 tests) and verify it on the desktop with dataset, Piper and Piper→RVC sources (2026-10-10)
-- [ ] **Urgent:** fix CT 111 Frigate memory exhaustion (main process ~5.3 GB in a 6 GiB CT, OOM kills, host-wide I/O thrash since ~2026-10-08; see `docs/reference/current-live-state.md` incident note): restart Frigate and/or raise CT 111 memory, then find the leak
+- [x] Relieve CT 111 Frigate memory exhaustion (host-wide I/O thrash 2026-10-08 → 10): CT 111 raised to 12 GiB by the owner; host load back to ~1–2
+- [ ] Find why Frigate's main process grew to ~5.3 GB RSS (3 cameras); watch CT 111 memory, and add a Grafana/Kuma alert on CT memory near its limit and on host I/O pressure
 - [x] Decision 09 approved; CT 114 headroom checked (16.5/28 GiB), image built and verified offline (`--network none`: Piper 3.2 s, CPU RVC 29.6 s), stack assets + compose staged in `/opt/stacks/voice-mixer`, `7860` `DOCKER-USER` block live (2026-10-10)
-- [ ] After the CT 111 fix: load the `voice-mixer:local` image into CT 114, `docker compose up -d`, verify from LAN; add docker-host Tailscale route `192.168.20.104/32` and approve it; add the live Homepage portal entry (preview-proxy `listen 8210` → `192.168.20.104:7860` + `services.yaml` item) per `docs/install/services/voice-mixer.md`
+- [x] Voice Mixer live on CT 114 `:7860` (LAN + CPU RVC verified) with Homepage portal entry `https://homepage.home.local:8210/` (preview-proxy, `services.yaml`, docker-host UFW `8210`) (2026-10-11)
+- [ ] Owner: advertise docker-host Tailscale route `192.168.20.104/32` and approve it in the Tailscale admin console (`docs/install/services/voice-mixer.md` step 3b)
+- [ ] Reconcile `configs/openwrt/firewall-config.conf` with the live router: the repo LAN → docker-host rule lists no Homepage portal ports (`8180`–`8210`)
 - [x] Resync the stale repo Homepage template (`configs/docker-host/stacks/homepage/`) with the live portal on VM 103: compose, config, custom CSS/JS, preview-proxy; secrets/TLS excluded (2026-10-10)
 - [ ] Design the Metrocop Wyoming playback wrapper (Piper → voicefx preset → HA) on CT 114, reusing `voicefx` and mixer preset JSON
 

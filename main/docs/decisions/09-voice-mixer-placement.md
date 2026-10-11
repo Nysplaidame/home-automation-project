@@ -18,7 +18,8 @@ The Voice Mixer (`apps/voice-mixer`) runs as its own Compose stack on CT 114
 the development and fast-RVC environment, running the same code from the repo.
 
 Status: **approved 2026-10-10** (including a Tailscale host route for
-`192.168.20.104/32`). Deployment state is tracked in
+`192.168.20.104/32`); **live 2026-10-11**, linked from the Homepage portal as
+`https://homepage.home.local:8210/`. Deployment state is tracked in
 `docs/install/services/voice-mixer.md` and `docs/reference/current-live-state.md`.
 
 Pre-deploy check (2026-10-10): CT 114 had 16.5 of 28 GiB in use with no memory

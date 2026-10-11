@@ -13,18 +13,18 @@ status: draft
 App source and usage: [[apps/voice-mixer/README|apps/voice-mixer]].
 Placement rationale: [[docs/decisions/09-voice-mixer-placement|Decision 09]].
 
-> Status 2026-10-10: steps 1 (build, verified offline), 2 (layout + assets) and
-> 3 (firewall) done. Image load, start (4), Tailscale route (3b) and Homepage
-> (5) pending: the image load was aborted while CT 111 was saturating the shared
-> NVMe (see current-live-state incident note). Do the load in a quiet period;
-> it writes ~3.6 GB.
+> Status 2026-10-11: **live.** Steps 1–5 done except 3b (Tailscale route,
+> pending owner action). Verified: LAN access to `:7860`, Piper→RVC on CPU
+> (~30 s, container ~0.5 GB), portal `https://homepage.home.local:8210/` and the
+> Homepage status check. The first image load (2026-10-10) was aborted during
+> the CT 111 I/O incident; the retry took 88 s with negligible host I/O pressure.
 
 ## Placement
 
 - Host: CT 114 `llm-host`, `192.168.20.104`, VLAN 20.
 - Stack: `/opt/stacks/voice-mixer/` (separate from `/opt/stacks/local-ai`).
 - Port: `7860/tcp`, internal only.
-- Homepage: link from VM 103 Homepage, group **Local AI**.
+- Homepage: portal `https://homepage.home.local:8210/`, group **Workshop & Knowledge**.
 
 ## 1. Build the image (desktop / any machine with internet)
 
@@ -130,9 +130,10 @@ WebUI pattern (`8200` → CT 114 `3002`):
    ```
 
    `proxy-common.conf` already sets HTTP/1.1, Upgrade headers and
-   `proxy_buffering off`, which Gradio's streaming needs. Reload with
-   `docker exec homepage-preview-proxy nginx -t && docker exec homepage-preview-proxy nginx -s reload`.
-   The proxy reaches CT 114 from `192.168.20.102`, which step 3 allows.
+   `proxy_buffering off`, which Gradio's streaming needs. `nginx.conf` is a
+   single-file bind mount rendered from a template at start, so apply with
+   `docker restart homepage-preview-proxy` (a reload alone keeps the old
+   config). The proxy reaches CT 114 from `192.168.20.102`, which step 3 allows.
 2. `/opt/stacks/homepage/config/services.yaml`, group **Workshop & Knowledge**:
 
    ```yaml
@@ -144,8 +145,17 @@ WebUI pattern (`8200` → CT 114 `3002`):
            siteMonitor: http://192.168.20.104:7860/
    ```
 
-3. Confirm docker-host's host firewall admits `8210` from the same clients as
-   the other portal ports (`8180`–`8209`).
+3. Docker-host UFW only covers `8180:8209`, so `8210` needs its own rules
+   with the same sources:
+
+   ```sh
+   ufw allow from 192.168.10.0/24 to any port 8210 proto tcp comment "Management to Homepage previews"
+   ufw allow from 192.168.1.0/24  to any port 8210 proto tcp comment "LAN to Homepage previews"
+   ufw allow from 192.168.20.0/24 to any port 8210 proto tcp comment "Automation to Homepage previews"
+   ufw allow in on tailscale0 to any port 8210 proto tcp comment "Tailscale Homepage previews"
+   ```
+
+Done 2026-10-11 (live backups `*.bak-20261011-132811-pre-voice-mixer`).
 
 ## Backups
 
@@ -159,4 +169,6 @@ in the repo when they become canonical.
 cd /opt/stacks/voice-mixer && docker compose down
 ```
 
-Remove the `7860` UFW/DOCKER-USER rules and the Homepage entry.
+Remove the `7860` block from `llm-host-firewall.sh` (re-run it), the portal
+`8210` server line, the `services.yaml` item, the four `8210` UFW rules on
+docker-host and, if unused, the Tailscale route.
