@@ -18,3 +18,6 @@ whoami.txt
 
 # Google Drive transient upload staging
 .tmp.driveupload/
+
+# Home Assistant long-lived access token (local only)
+.ha-token
