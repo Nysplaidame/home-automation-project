@@ -184,7 +184,12 @@ def st_bleeps(a, p, ctx):
     pre, post = p["bleeps.gap_pre_ms"] / 1000, p["bleeps.gap_post_ms"] / 1000
     ctx["lead"] = len(on) + int(SR * pre)
     ctx["bleeps_used"] = (on_name, off_name)
-    return dsp.wrap(a, on, off, pre, post)
+    fill = None
+    if p.get("bleeps.gap_static") and p["radio.on"] and p["radio.noise"]:
+        # keep the carrier open between bleep and speech: a hard digital-silence hole sounds like a dropout
+        grng = np.random.default_rng(p["bleeps.seed"] + 7919)
+        fill = lambda n: dsp.coloured_noise(grng, n, p["radio.noise"], p["radio.noise_colour"])
+    return dsp.wrap(a, on, off, pre, post, fill)
 
 
 def st_output(a, p, ctx):

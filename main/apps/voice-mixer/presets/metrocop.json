@@ -1,7 +1,7 @@
 {
   "schema": "voicefx.preset/1",
   "name": "metrocop",
-  "description": "mid plus the Metrocop bleep set: overwatch on3 start, random end blip, 200/120 ms gaps, bleeps at speech level. Use with bleep_dir = bleepset_metrocop.",
+  "description": "mid plus the Metrocop bleep set: overwatch on3 start, random end blip, 80/120 ms static-filled gaps, bleeps at speech level. Use with bleep_dir = bleepset_metrocop.",
   "params": {
     "pitch": {
       "semitones": -2.5,
@@ -67,8 +67,9 @@
       "off_clip": "random",
       "seed": 1,
       "level_db": 0.0,
-      "gap_pre_ms": 200.0,
+      "gap_pre_ms": 80.0,
       "gap_post_ms": 120.0,
+      "gap_static": true,
       "pitch_st": 0.0,
       "speed": 1.0,
       "radio": false

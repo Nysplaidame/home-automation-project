@@ -270,6 +270,11 @@ must work without HACS.
 - [ ] Reconcile `configs/openwrt/firewall-config.conf` with the live router: the repo LAN → docker-host rule lists no Homepage portal ports (`8180`–`8210`)
 - [x] Resync the stale repo Homepage template (`configs/docker-host/stacks/homepage/`) with the live portal on VM 103: compose, config, custom CSS/JS, preview-proxy; secrets/TLS excluded (2026-10-10)
 - [ ] Design the Metrocop Wyoming playback wrapper (Piper → voicefx preset → HA) on CT 114, reusing `voicefx` and mixer preset JSON
+- [x] Metrocop Piper voice v2 trained (northern-English source, `-pi -1`, 2,459 clips, 400 epochs; best `epoch=387 val_mel=0.3386`) → `voice/tools/out/en_GB-metrocop2-medium.onnx`; approved by listening (2026-11-05)
+- [x] Voice Mixer: `bleeps.gap_static` fills bleep gaps with radio static (no digital-silence dropout); metrocop preset `gap_pre_ms` 200 → 80 (2026-11-05)
+- [ ] Install `en_GB-metrocop2-medium` on CT 114 Wyoming Piper and select it in the Overwatch pipeline; redeploy the Voice Mixer image with the gap fix
+- [ ] HA: reload the Wyoming openWakeWord integration and set the Overwatch pipeline wake word to `overwatch` (custom model live on CT 114)
+- [ ] Garage voice satellite: buy a Home Assistant Voice Preview Edition (chosen over the Waveshare ESP32-S3-AUDIO-Board for its XMOS echo cancellation and noise suppression, line out and official support); feed a wired powered speaker from its 3.5 mm line out (avoids Bluetooth wake-up clipping); keep the `overwatch` wake word, either by streaming to HA openWakeWord or by training a microWakeWord model; add an optional ~0.5 s output lead-in only if the final speaker clips
 
 ### Home Assistant VM (VM 100)
 - [x] Start VM 100, complete HAOS onboarding wizard

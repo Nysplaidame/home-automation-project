@@ -104,8 +104,9 @@ def normalise(a, peak=0.89):
     return a * (peak / m)
 
 
-def wrap(speech, on, off, gap_pre=0.04, gap_post=0.06):
-    z = lambda s: np.zeros(int(SR * s), np.float32)
+def wrap(speech, on, off, gap_pre=0.04, gap_post=0.06, fill=None):
+    """on + gap + speech + gap + off. fill(n) supplies gap samples (e.g. the radio static) instead of digital silence."""
+    z = lambda s: (fill(int(SR * s)) if fill else np.zeros(int(SR * s))).astype(np.float32)
     return np.concatenate([on, z(gap_pre), speech, z(gap_post), off])
 
 

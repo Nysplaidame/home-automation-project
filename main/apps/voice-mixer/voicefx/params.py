@@ -114,6 +114,8 @@ PARAMS = [
     P("bleeps.level_db", "Bleep level vs speech (dB)", -2.09, -24, 12, 0.1, "Legacy = -2.09 (0.70 vs 0.89 peak)."),
     P("bleeps.gap_pre_ms", "Gap before speech (ms)", 40.0, 0, 500, 5, ""),
     P("bleeps.gap_post_ms", "Gap after speech (ms)", 60.0, 0, 500, 5, ""),
+    P("bleeps.gap_static", "Static in gaps", False, kind="bool",
+      info="Fill the bleep gaps with the radio static instead of digital silence (avoids a dropout feel)."),
     P("bleeps.pitch_st", "Bleep pitch (semitones)", 0.0, -12, 12, 0.1, "Varispeed: also changes bleep length."),
     P("bleeps.speed", "Bleep speed", 1.0, 0.5, 2, 0.01, ""),
     P("bleeps.radio", "Radio-filter the bleeps", False, kind="bool"),
