@@ -19,3 +19,11 @@ Before starting live:
 - Generate a real `SEARXNG_SECRET`.
 - Keep `.env` out of git.
 - Review egress/rate-limit policy before household use.
+
+## Engine health (2026-11-05)
+
+Voice-assistant search returned 0 results: Brave was rate-limited ("too many requests") and
+DuckDuckGo/Startpage were CAPTCHA-blocked, while Google returned nothing. Bing (and Yandex) still
+answered, so `bing` was enabled in the live `/opt/stacks/searxng/searxng/settings.yml`
+(`disabled: false`; backup `settings.yml.bak-20261105`). Probe an engine with
+`/search?q=test&format=json&engines=<name>` and check `unresponsive_engines`.
