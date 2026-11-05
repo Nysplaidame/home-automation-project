@@ -26,3 +26,27 @@ services:
     logging:
       driver: json-file
       options: { max-size: "10m", max-file: "3" }
+
+  # Wyoming TTS for Home Assistant: Piper metrocop2 voice -> voicefx metrocop preset (no RVC).
+  # HA: Settings > Devices & services > Add Wyoming Protocol > 192.168.20.104 : 10201
+  metrocop-tts:
+    image: voice-mixer:local
+    container_name: metrocop-tts
+    restart: unless-stopped
+    user: "1000:1000"
+    entrypoint: ["python", "-m", "voice_mixer.wyoming_tts"]
+    command: ["--voice", "/voices/en_GB-metrocop2-medium.onnx",
+              "--preset", "/data/tts/metrocop.json", "--bleep-dir", "/clips/bleeps"]
+    ports:
+      - "10201:10201"                 # scoped by UFW + DOCKER-USER to HA and monitoring, like 10200
+    volumes:
+      - ./data/tts:/data/tts:ro                        # TTS preset (separate from the mixer's editable presets)
+      - ./clips:/clips:ro
+      - /opt/stacks/local-ai/piper:/voices:ro
+    healthcheck:
+      disable: true                   # the image's check probes the mixer web UI on 7860
+    cpus: "1.0"
+    mem_limit: 1g
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }

@@ -47,7 +47,8 @@ done
 iptables -A DOCKER-USER -p tcp -m conntrack \
   --ctorigdst 192.168.20.104 --ctorigdstport 3333 -j DROP
 
-for port in 10200 10300 10400; do
+# 10201 = Metrocop Wyoming TTS (voice-mixer stack)
+for port in 10200 10201 10300 10400; do
   for source in 192.168.20.101/32 192.168.60.10/32; do
     iptables -A DOCKER-USER -s "$source" -p tcp -m conntrack \
       --ctorigdst 192.168.20.104 --ctorigdstport "$port" -j RETURN
