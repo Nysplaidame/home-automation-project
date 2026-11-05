@@ -17,7 +17,7 @@ services:
     volumes:
       - ./data:/data                                   # config.json, presets, cache, outputs
       - ./models:/models:ro                            # combine_soldierv2.pth + .index
-      - ./clips:/clips:ro                              # clips/vo = metropolice bleeps/game clips
+      - ./clips:/clips:ro                              # clips/bleeps = Metrocop bleep set; clips/vo = game clips
       - ./dataset:/dataset:ro                          # optional: dataset/wav + metadata.csv
       - /opt/stacks/local-ai/piper:/voices:ro          # reuse wyoming-piper's en_GB-alba-medium files
     # Keep inference headroom for llama.cpp: RVC on CPU is bursty.

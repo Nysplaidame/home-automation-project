@@ -163,6 +163,16 @@ while its replacement LXC is running.
   the container idles at ~155 MB and peaked at ~0.5 GB. Homepage portal:
   `https://homepage.home.local:8210/` (docker-host UFW `8210`). docker-host
   Tailscale advertises `192.168.20.104/32`, approved and active 2026-10-11.
+  Since 2026-11-05 the mixer uses the Metrocop bleep set at `clips/bleeps`
+  (overwatch `on3` start; random end blip from three cuts of
+  `prison_soldier_bunker1.wav` plus overwatch `off2`) and ships a `metrocop`
+  preset (mid + 200/120 ms gaps, bleeps at speech level). Live config backup:
+  `data/config.json.bak-20261105-pre-bleepset`.
+- Custom wake word: `wyoming-openwakeword` runs with `--custom-model-dir /custom`
+  and loads `/opt/stacks/local-ai/openwakeword/overwatch.tflite` (trained
+  2026-11-05, see `voice/wakeword/README.md`; threshold 0.5). Compose backup:
+  `docker-compose.yml.bak-20261105-pre-overwatch-wakeword`. HA pipeline
+  assignment is done in the UI.
 - Incident 2026-10-08 → 2026-10-10 (resolved): CT 111 Frigate's main process
   reached ~5.3 GB RSS inside the 6 GiB CT limit (2 OOM kills), leaving ~60 MB
   page cache, so the CT re-read its own files constantly (~1,000 reads/s on the

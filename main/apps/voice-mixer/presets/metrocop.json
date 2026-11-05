@@ -1,0 +1,86 @@
+{
+  "schema": "voicefx.preset/1",
+  "name": "metrocop",
+  "description": "mid plus the Metrocop bleep set: overwatch on3 start, random end blip, 200/120 ms gaps, bleeps at speech level. Use with bleep_dir = bleepset_metrocop.",
+  "params": {
+    "pitch": {
+      "semitones": -2.5,
+      "speed": 0.94,
+      "method": "resample"
+    },
+    "formant": {
+      "shift_st": 0.0
+    },
+    "eq": {
+      "treble_db": 12.0,
+      "treble_from_hz": 800.0,
+      "presence_db": 3.0,
+      "presence_hz": 2800.0,
+      "presence_q": 0.9,
+      "low_db": 3.23,
+      "low_hz": 250.0,
+      "hp_hz": 0.0,
+      "lp_hz": 0.0,
+      "b1_db": 0.0,
+      "b1_hz": 250.0,
+      "b1_q": 1.0,
+      "b2_db": 0.0,
+      "b2_hz": 1000.0,
+      "b2_q": 1.0,
+      "b3_db": 0.0,
+      "b3_hz": 4000.0,
+      "b3_q": 1.0
+    },
+    "dynamics": {
+      "gate_db": -90.0,
+      "comp_on": false,
+      "comp_threshold_db": -18.0,
+      "comp_ratio": 3.0,
+      "comp_attack_ms": 5.0,
+      "comp_release_ms": 120.0,
+      "comp_makeup_db": 0.0,
+      "limiter_db": 0.0
+    },
+    "radio": {
+      "on": true,
+      "band_low": 200.0,
+      "band_high": 3800.0,
+      "band_order": 4,
+      "drive": 2.0,
+      "bits": 16,
+      "rate_hz": 22050,
+      "noise": 0.003,
+      "noise_colour": "white",
+      "crackle": 0.0,
+      "ring_mix": 0.0,
+      "ring_hz": 300.0,
+      "trem_depth": 0.0,
+      "trem_hz": 6.0,
+      "room_mix": 0.0,
+      "room_s": 0.3,
+      "squelch_ms": 0.0,
+      "squelch_db": -18.0
+    },
+    "bleeps": {
+      "on": true,
+      "on_clip": "random",
+      "off_clip": "random",
+      "seed": 1,
+      "level_db": 0.0,
+      "gap_pre_ms": 200.0,
+      "gap_post_ms": 120.0,
+      "pitch_st": 0.0,
+      "speed": 1.0,
+      "radio": false
+    },
+    "output": {
+      "mode": "peak",
+      "peak_db": -1.01,
+      "rms_db": -20.0,
+      "trim": false,
+      "trim_db": -40.0,
+      "fade_in_ms": 0.0,
+      "fade_out_ms": 0.0
+    }
+  }
+}

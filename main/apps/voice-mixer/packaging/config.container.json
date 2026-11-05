@@ -10,7 +10,7 @@
   "rvc_device": "cpu",
   "rvc_method": "rmvpe",
   "rvc_timeout_s": 900,
-  "bleep_dir": "/clips/vo",
+  "bleep_dir": "/clips/bleeps",
   "game_clips_dir": "/clips/vo",
   "dataset_dir": "/dataset",
   "presets_dir": "/data/presets",
