@@ -68,12 +68,20 @@ def build(cfg):
         f = presets_dir / f"{name}.json"
         if not f.exists():
             P.save_preset(f, name, flat, P.DESCRIPTIONS.get(name, ""))
+    shipped = Path(__file__).resolve().parent.parent / "presets"
+    if shipped.resolve() != presets_dir.resolve():  # also seed extra shipped presets (e.g. metrocop)
+        for src in shipped.glob("*.json"):
+            if not (presets_dir / src.name).exists():
+                (presets_dir / src.name).write_bytes(src.read_bytes())
     ds_items, game_items = sources.dataset_items(cfg), sources.game_items(cfg)
 
     def preset_names():
         return sorted(p.stem for p in presets_dir.glob("*.json"))
 
-    start_flat, _, _ = P.load_preset(presets_dir / "mid.json") if (presets_dir / "mid.json").exists() else (P.BUILTIN["mid"], None, None)
+    default_preset = cfg.get("default_preset") or "metrocop"
+    if not (presets_dir / f"{default_preset}.json").exists():
+        default_preset = "mid"
+    start_flat, _, _ = P.load_preset(presets_dir / f"{default_preset}.json")
 
     # ------------------------------------------------------------------ core callbacks
     def vals_to_flat(vals):
@@ -171,7 +179,7 @@ def build(cfg):
         if f.exists():
             f.unlink()
         names = preset_names()
-        return gr.update(choices=names, value="mid" if "mid" in names else (names[0] if names else None)), f"Deleted **{n}**"
+        return gr.update(choices=names, value=default_preset if default_preset in names else "mid" if "mid" in names else (names[0] if names else None)), f"Deleted **{n}**"
 
     def cli_text(name, *vals):
         flat = vals_to_flat(vals)
@@ -310,7 +318,7 @@ def build(cfg):
                         img_out = gr.Image(label="Result", type="numpy", interactive=False, height=180)
                         with gr.Accordion("Presets, CLI and export", open=True):
                             with gr.Row():
-                                preset = gr.Dropdown(choices=preset_names(), value="mid", label="Preset", scale=3)
+                                preset = gr.Dropdown(choices=preset_names(), value=default_preset, label="Preset", scale=3)
                                 p_load = gr.Button("Load", size="sm", scale=1)
                                 p_del = gr.Button("Delete", size="sm", scale=1, variant="stop")
                             with gr.Row():

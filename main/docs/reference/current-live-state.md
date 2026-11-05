@@ -166,8 +166,13 @@ while its replacement LXC is running.
   Since 2026-11-05 the mixer uses the Metrocop bleep set at `clips/bleeps`
   (overwatch `on3` start; random end blip from three cuts of
   `prison_soldier_bunker1.wav` plus overwatch `off2`) and ships a `metrocop`
-  preset (mid + 200/120 ms gaps, bleeps at speech level). Live config backup:
-  `data/config.json.bak-20261105-pre-bleepset`.
+  preset (mid + 200/120 ms gaps, bleeps at speech level), which is the default
+  preset (`default_preset`). Live config backup:
+  `data/config.json.bak-20261105-pre-bleepset`. The running image
+  `voice-mixer:local` was patched in place on CT 114 (files copied in and
+  `docker commit`) because Docker Desktop is no longer installed on the desktop;
+  the previous image is tagged `voice-mixer:pre-default-preset`. The next full
+  rebuild from the repo supersedes the patch.
 - Custom wake word: `wyoming-openwakeword` runs with `--custom-model-dir /custom`
   and loads `/opt/stacks/local-ai/openwakeword/overwatch.tflite` (trained
   2026-11-05, see `voice/wakeword/README.md`; threshold 0.5). Compose backup:

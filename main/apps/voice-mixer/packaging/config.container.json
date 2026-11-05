@@ -16,5 +16,6 @@
   "presets_dir": "/data/presets",
   "cache_dir": "/data/cache",
   "output_dir": "/data/outputs",
+  "default_preset": "metrocop",
   "batch_roots": []
 }
