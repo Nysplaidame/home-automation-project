@@ -11,7 +11,13 @@ from typing import Any, Literal
 
 import aiohttp
 import voluptuous as vol
-from voluptuous_openapi import convert
+try:  # HA <= 2026.10 bundled voluptuous-openapi
+    from voluptuous_openapi import convert
+except ImportError:  # HA 2026.11+ replaced voluptuous with probatio (to_openapi mirrors convert)
+    import probatio
+
+    def convert(schema, custom_serializer=None):
+        return probatio.to_openapi(schema, custom_serializer=custom_serializer)
 
 from homeassistant.components import conversation
 from homeassistant.components.conversation.agent_manager import get_agent_manager
