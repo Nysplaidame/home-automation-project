@@ -357,12 +357,17 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
                     web_answer = _maybe_direct_web_search_answer(_tool_result)
                     if web_answer:
                         self._remember_web_search(_tool_result)
+                        summary = await self._async_summarize_web_search(
+                            session, user_text, _tool_result
+                        )
                         chat_log.async_add_assistant_content_without_tools(
                             conversation.AssistantContent(
                                 agent_id=agent_id,
-                                content=_normalize_assistant_text(web_answer),
+                                content=_normalize_assistant_text(summary or web_answer),
                                 native={
-                                    "source": "web_search_tool_direct",
+                                    "source": "web_search_summary"
+                                    if summary
+                                    else "web_search_tool_direct",
                                     "tool_name": getattr(_tool_result, "tool_name", None),
                                 },
                             )
@@ -434,6 +439,64 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
             raise HomeAssistantError("llama.cpp returned no response content")
 
         raise HomeAssistantError("llama.cpp exceeded the Home Assistant tool loop limit")
+
+    async def _async_summarize_web_search(
+        self,
+        session: aiohttp.ClientSession,
+        user_text: str,
+        tool_result_content: Any,
+    ) -> str | None:
+        """Answer the question in one or two spoken sentences from the top results.
+
+        Falls back (returns None) to the numbered result list on any failure.
+        """
+        tool_result = getattr(tool_result_content, "tool_result", None) or {}
+        # CPU llama.cpp generates ~5 tokens/s, so keep input to 3 short snippets and the
+        # answer to one sentence (adds ~5-8 s to a search reply).
+        results = [r for r in tool_result.get("results") or [] if isinstance(r, dict)][:3]
+        if not results:
+            return None
+        sources = "\n".join(
+            f"[{i}] {_clean_spoken_title(r.get('title')) or ''}: "
+            f"{(_clean_spoken_snippet(r.get('snippet')) or '')[:200]}"
+            for i, r in enumerate(results, start=1)
+        )
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    "You turn web search snippets into a spoken answer for a voice assistant. "
+                    "Answer the user's question in ONE short sentence using only facts in the "
+                    "snippets, with concrete values (numbers, units, ranges) when present. "
+                    "No lists, URLs, markdown or source numbers. If the snippets do not answer "
+                    "it, say so briefly. /no_think"
+                ),
+            },
+            {"role": "user", "content": f"Question: {user_text}\n\nSnippets:\n{sources}"},
+        ]
+        payload: dict[str, Any] = {
+            "model": self._model,
+            "messages": messages,
+            "stream": False,
+            "temperature": 0.1,
+            "max_tokens": 60,
+            "chat_template_kwargs": {"enable_thinking": False},
+        }
+        try:
+            async with session.post(
+                f"{self._url}/chat/completions",
+                json=payload,
+                timeout=aiohttp.ClientTimeout(total=min(30, self._settings[CONF_TIMEOUT])),
+            ) as response:
+                response.raise_for_status()
+                data = await response.json(content_type=None)
+            text = data["choices"][0]["message"].get("content") or ""
+        except (aiohttp.ClientError, TimeoutError, ValueError, KeyError, IndexError) as err:
+            _LOGGER.warning("web search summary failed, reading results instead: %r", err)
+            return None
+        text = re.sub(r"<think>.*?</think>", "", text, flags=re.S).strip()
+        text = re.sub(r"\[\d+\]", "", text).replace("**", "").strip()
+        return text or None
 
     async def _async_chat_completion(
         self,
