@@ -143,7 +143,9 @@ while its replacement LXC is running.
   Hub.
 - Live llama.cpp image digest:
   `ghcr.io/ggml-org/llama.cpp@sha256:4e784358f638549d95bd22fb814c1afeed1af71fbd4b70c25f23eae01caaa6af`.
-- Whisper starts offline from persistent model/tokenizer data.
+- Wyoming STT (`wyoming-whisper`, port 10300) runs NVIDIA Parakeet TDT 0.6B v2 int8 via sherpa-onnx since 2026-11-05 (~0.2 s/command; faster-whisper `base-int8` kept for rollback), starting offline from model data pre-placed in `./whisper`.
+- Metrocop Wyoming TTS `metrocop-tts` on port 10201 (voice-mixer stack); Piper also serves `en_GB-metrocop2-medium`.
+- SearXNG: Brave/DuckDuckGo/Startpage are blocked upstream; Bing + Yandex enabled (2026-11-05).
 - HA can reach ports 8081, 10200, 10300 and 10400 through source-scoped
   host and Docker firewall policy. HA uses `192.168.20.104:8081/v1` for the
   llama.cpp conversation agent.

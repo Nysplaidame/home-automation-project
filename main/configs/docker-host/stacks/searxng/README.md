@@ -24,6 +24,6 @@ Before starting live:
 
 Voice-assistant search returned 0 results: Brave was rate-limited ("too many requests") and
 DuckDuckGo/Startpage were CAPTCHA-blocked, while Google returned nothing. Bing (and Yandex) still
-answered, so `bing` was enabled in the live `/opt/stacks/searxng/searxng/settings.yml`
-(`disabled: false`; backup `settings.yml.bak-20261105`). Probe an engine with
+answered, so `bing` and `yandex` (backup) were enabled in the live `/opt/stacks/searxng/searxng/settings.yml`
+(`disabled: false`; backups `settings.yml.bak-20261105`, `.bak-20261105-pre-yandex`). Probe an engine with
 `/search?q=test&format=json&engines=<name>` and check `unresponsive_engines`.
