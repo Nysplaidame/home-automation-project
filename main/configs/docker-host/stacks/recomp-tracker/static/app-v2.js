@@ -125,7 +125,7 @@
       if (key === 'class') node.className = value;
       else if (key === 'text') node.textContent = value;
       else if (key === 'html') node.innerHTML = value;
-      else if (key.startsWith('on')) node.addEventListener(key.slice(2), value);
+      else if (key.startsWith('on')) node.addEventListener(key.slice(2), key === 'onclick' ? guardedAction(value) : value);
       else if (value !== undefined && value !== null) node.setAttribute(key, value);
     });
     children.flat().filter(Boolean).forEach(child => node.append(child));
@@ -134,9 +134,21 @@
 function slug(value) {
   return String(value).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
-  const isoToday = () => new Date().toISOString().slice(0, 10);
+  const localDate = (value = new Date()) => `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
+  const isoToday = () => localDate();
   const monthKey = () => isoToday().slice(0, 7);
   const clone = value => JSON.parse(JSON.stringify(value));
+  function workoutUuid() {
+    const cryptoApi = typeof globalThis !== 'undefined' ? globalThis.crypto : null;
+    if (typeof cryptoApi?.randomUUID === 'function') return cryptoApi.randomUUID();
+    const bytes = new Uint8Array(16);
+    if (typeof cryptoApi?.getRandomValues === 'function') cryptoApi.getRandomValues(bytes);
+    else for (let index = 0; index < bytes.length; index++) bytes[index] = Math.floor(Math.random() * 256);
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    const hex = Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+  }
   const byDate = (a, b) => String(a.date).localeCompare(String(b.date));
   const esc = value => String(value || '');
   function targetFor(name) {
@@ -183,7 +195,7 @@ function slug(value) {
 
   async function read(key, fallback) {
     const response = await fetch('/api/kv/' + encodeURIComponent(key));
-    if (response.status === 404) return clone(fallback);
+    if (response.status === 404) { VERSIONS[key] = null; return clone(fallback); }
     if (!response.ok) throw new Error('Could not load ' + key);
     const payload = await response.json();
     VERSIONS[key] = payload.version;
@@ -195,13 +207,12 @@ function slug(value) {
       body: JSON.stringify({ value: JSON.stringify(value), expectedVersion: VERSIONS[key] ?? null })
     });
     if (response.status === 409) {
-      await loadAll(); render();
-      throw new Error('This data changed on another device. Your view was refreshed; make the edit again.');
+      throw new Error('This data changed on another device. Your unsaved work is still here. Export it before reloading to reconcile changes.');
     }
     if (!response.ok) throw new Error('Save failed');
     VERSIONS[key] = (await response.json()).version;
   }
-  async function save(part) { await write(KEY[part], state[part]); }
+  async function save(part) { await saveParts({ [part]: clone(state[part]) }); }
   async function loadAll() {
     const [health, workouts, routines, library, settings, reviews, reminders, active, reminderCatalog, diet, foods, dietSettings, mealTemplates, programme, exerciseCatalog] = await Promise.all([
       read(KEY.health, { entries: {} }), read(KEY.workouts, { sessions: [] }), read(KEY.routines, { items: [] }),
@@ -231,7 +242,7 @@ function slug(value) {
     migrate();
   }
   function migrate() {
-    let dietMigrated = false, libraryMigrated = false, routinesMigrated = false, settingsMigrated = false;
+    let dietMigrated = false, dietSettingsMigrated = false, libraryMigrated = false, routinesMigrated = false, settingsMigrated = false, workoutsMigrated = false;
     if (!state.library.items.length) state.library.items = clone(state.exerciseCatalog.length ? state.exerciseCatalog : DEFAULT_EXERCISES);
     state.library.items.forEach(item => { item.id ||= slug(item.name); item.target ||= targetFor(item.name); item.tip ||= 'Use a controlled, pain-free range of motion.'; item.instructions ||= ['Set a stable start position.', 'Move through a controlled, pain-free range.', 'Stop the set when position or tempo breaks down.']; item.visual ||= 'general'; item.archived ||= false; if (!item.progression) { item.progression = defaultProgression(item); libraryMigrated = true; } });
     if (!Array.isArray(state.routines.templates)) { state.routines.templates = []; routinesMigrated = true; }
@@ -248,30 +259,58 @@ function slug(value) {
       };
     }
     state.dietSettings.targetSchedule ||= { 0: 'rest', 1: 'training', 2: 'training', 3: 'standard', 4: 'training', 5: 'standard', 6: 'training' };
-    state.dietSettings.constants.forEach(item => { item.id ||= slug(item.name); item.archived ||= false; });
+    state.dietSettings.constants.forEach(item => {
+      const before = JSON.stringify(item); item.id ||= slug(item.name); item.archived ||= false;
+      if (item.sourceMode !== 'per100' && item.sourceMode !== 'legacy-portion') item.sourceMode = !item.foodId && !item.foodSnapshot ? 'legacy-portion' : 'per100';
+      item.quantity = Math.min(100000, Math.max(.1, Number(item.quantity) || 100)); item.per100 = item.sourceMode === 'per100';
+      item.basis = item.basis === '100ml' ? '100ml' : '100g';
+      if (item.foodId !== undefined && item.foodId !== null && typeof item.foodId !== 'string') item.foodId = null;
+      if (item.foodSnapshot && typeof item.foodSnapshot !== 'object') item.foodSnapshot = null;
+      ['calories', 'protein', 'carbs', 'fat'].forEach(key => item[key] = Math.max(0, Number(item[key]) || 0));
+      if (before !== JSON.stringify(item)) dietSettingsMigrated = true;
+    });
     Object.values(state.diet.days).forEach(day => {
       if (!day.constantSnapshots) { day.constantSnapshots = {}; dietMigrated = true; }
+      if (!day.constantQuantities) { day.constantQuantities = {}; dietMigrated = true; }
+      if (!Array.isArray(day.oneTimeMeals)) { day.oneTimeMeals = []; dietMigrated = true; }
+      const validOneTimeMeals = day.oneTimeMeals.filter(entry => entry && typeof entry === 'object');
+      if (validOneTimeMeals.length !== day.oneTimeMeals.length) dietMigrated = true;
+      day.oneTimeMeals = validOneTimeMeals.map(entry => {
+        const before = JSON.stringify(entry);
+        entry.id = typeof entry.id === 'string' && entry.id ? entry.id.slice(0, 160) : oneTimeMealId();
+        entry.name = typeof entry.name === 'string' ? entry.name.slice(0, 140) : '';
+        entry.checked = entry.checked !== false;
+        ['calories', 'protein', 'carbs', 'fat'].forEach(key => entry[key] = oneTimeMealValue(entry[key]));
+        if (before !== JSON.stringify(entry)) dietMigrated = true;
+        return entry;
+      });
       Object.values(day.meals || {}).forEach(rows => rows.forEach(entry => {
         const food = state.foods.items.find(item => item.id === entry.foodId) || foodByName(entry.name, true);
         if (food) { if (!entry.foodId || !entry.foodSnapshot) dietMigrated = true; entry.foodId ||= food.id; entry.foodSnapshot ||= snapshotFood(food); }
       }));
       Object.entries(day.constants || {}).forEach(([id, checked]) => {
         const constant = state.dietSettings.constants.find(item => item.id === id);
-        if (checked && constant && !day.constantSnapshots[id]) { day.constantSnapshots[id] = snapshotFood(constant); dietMigrated = true; }
+        if (constant?.sourceMode === 'legacy-portion' && day.constantSnapshots?.[id]?.per100) { day.constantSnapshots[id].per100 = false; delete day.constantSnapshots[id].quantity; dietMigrated = true; }
+        if (checked && constant && !day.constantSnapshots[id]) { const quantity = constantQuantity(day, constant); day.constantQuantities[id] = quantity; day.constantSnapshots[id] = snapshotConstant(constant, quantity); dietMigrated = true; }
       });
     });
-    state._migratedDiet = dietMigrated;
+    state._migratedDiet = dietMigrated; state._migratedDietSettings = dietSettingsMigrated;
     state._migratedLibrary = libraryMigrated; state._migratedRoutines = routinesMigrated;
     Object.values(state.health.entries).forEach(entry => { entry.createdAt ||= entry.updatedAt || new Date().toISOString(); entry.updatedAt ||= entry.createdAt; });
+    if (!Array.isArray(state.workouts.sessions)) throw new Error('Workout history is malformed. Restore a validated backup.');
+    const validWorkoutSessions = state.workouts.sessions.filter(session => session !== null);
+    if (validWorkoutSessions.length !== state.workouts.sessions.length) { state.workouts.sessions = validWorkoutSessions; workoutsMigrated = true; }
     state.workouts.sessions.forEach(session => { session.id ||= session.date + '-' + Math.random().toString(36).slice(2); session.createdAt ||= new Date().toISOString(); session.updatedAt ||= session.createdAt; });
+    state._migratedWorkouts = workoutsMigrated;
+    state.workouts.trash ||= [];
     state.settings.compactWorkout = state.settings.compactWorkout === true;
     if (!state.settings.equipment) { state.settings.equipment = { loadIncrement: 2.5, barWeight: 20, platePairs: [25, 25, 20, 20, 15, 10, 5, 2.5, 1.25, 0.5] }; settingsMigrated = true; }
     state.settings.equipment.loadIncrement = Math.max(0.1, Number(state.settings.equipment.loadIncrement) || 2.5); state.settings.equipment.barWeight = Math.max(0, Number(state.settings.equipment.barWeight) || 20); if (!Array.isArray(state.settings.equipment.platePairs)) { state.settings.equipment.platePairs = [25, 25, 20, 20, 15, 10, 5, 2.5, 1.25, 0.5]; settingsMigrated = true; }
     if (!Array.isArray(state.settings.exerciseGoals)) { state.settings.exerciseGoals = []; settingsMigrated = true; }
     state.settings.exerciseGoals.forEach(goal => { goal.id ||= 'exercise-goal-' + Math.random().toString(36).slice(2); goal.metric = ['reps', 'seconds', 'load'].includes(goal.metric) ? goal.metric : 'reps'; goal.target = Math.max(0.1, Number(goal.target) || 1); goal.archived = goal.archived === true; goal.createdAt ||= new Date().toISOString(); });
     const defaultHiitActivity = libraryExercise('Skipping - Freestyle')?.id || libraryExercise('Bike - Static HIIT')?.id || '';
-    if (!state.settings.hiit || typeof state.settings.hiit !== 'object') { state.settings.hiit = { workSeconds: 40, restSeconds: 20, rounds: 10, prepareSeconds: 10, sound: true, activityId: defaultHiitActivity }; settingsMigrated = true; }
-    const hiit = state.settings.hiit; const normalHiit = { workSeconds: Math.min(3600, Math.max(1, Number(hiit.workSeconds) || 40)), restSeconds: Math.min(3600, Math.max(0, Number(hiit.restSeconds) || 0)), rounds: Math.min(100, Math.max(1, Number(hiit.rounds) || 10)), prepareSeconds: Math.min(600, Math.max(0, Number(hiit.prepareSeconds) || 0)), sound: hiit.sound !== false, activityId: state.library.items.some(item => item.id === hiit.activityId && !item.archived) ? hiit.activityId : defaultHiitActivity }; if (JSON.stringify(hiit) !== JSON.stringify(normalHiit)) { state.settings.hiit = normalHiit; settingsMigrated = true; }
+    if (!state.settings.hiit || typeof state.settings.hiit !== 'object') { state.settings.hiit = { workSeconds: 40, restSeconds: 20, rounds: 10, sets: 5, setRestSeconds: 120, prepareSeconds: 10, sound: true, activityId: defaultHiitActivity }; settingsMigrated = true; }
+    const hiit = state.settings.hiit; const normalHiit = { workSeconds: Math.min(3600, Math.max(1, Number(hiit.workSeconds) || 40)), restSeconds: Math.min(3600, Math.max(0, Number(hiit.restSeconds) || 0)), rounds: Math.min(100, Math.max(1, Number(hiit.rounds) || 10)), sets: Math.min(50, Math.max(1, Number(hiit.sets) || 5)), setRestSeconds: Math.min(3600, Math.max(0, Number(hiit.setRestSeconds) || 120)), prepareSeconds: Math.min(600, Math.max(0, Number(hiit.prepareSeconds) || 0)), sound: hiit.sound !== false, alarmStyle: ['school', 'dive'].includes(hiit.alarmStyle) ? hiit.alarmStyle : 'school', volume: Number.isFinite(Number(hiit.volume)) ? Math.min(1, Math.max(0, Number(hiit.volume))) : .85, activityId: state.library.items.some(item => item.id === hiit.activityId && !item.archived) ? hiit.activityId : defaultHiitActivity }; if (JSON.stringify(hiit) !== JSON.stringify(normalHiit)) { state.settings.hiit = normalHiit; settingsMigrated = true; }
     if (state.active) { state.active.autoRest = state.active.autoRest !== false; state.active.restEndsAt ||= null; state.active.exercises ||= []; state.active.exercises.forEach(exercise => { exercise.programming = normaliseProgramming(exercise.programming || defaultProgram(exercise)); exercise.sets ||= plannedSets(exercise); exercise.quickNotes ||= { pain: '', failed: false, note: '' }; }); }
     state.programme.currentPhase ||= 'phase-0'; state.programme.currentWeek = Math.max(1, Number(state.programme.currentWeek) || 1);
     state.programme.skillStages ||= { muscleUp: 1, hspu: 1, planche: 1 }; state.programme.prerequisites ||= {}; state.programme.weeklyChecks ||= {}; state.programme.tests ||= []; state.programme.stageHistory ||= [];
@@ -281,13 +320,17 @@ function slug(value) {
   function styles() {
     if ($('#v2-style')) return;
     const css = `
+      [hidden]{display:none!important} :root{--ink-faint:#565e53;--ink-soft:#404a40}
+      body{font-size:16px} nav[role=tablist]{grid-template-columns:repeat(4,minmax(0,1fr))}
+      .v2-app-status{font-size:13px;color:#405744;margin:12px 0}.v2-more{margin:10px 0 20px}.v2-more summary,.v2-hiit-section>summary{cursor:pointer;padding:12px;font-size:16px;color:#24523b}.v2-secondary{display:flex;flex-wrap:wrap;gap:8px;padding:10px 0}.v2-secondary .v2-tab{min-height:42px;margin:0;padding:8px 11px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:500 13px 'Work Sans',sans-serif;line-height:1.2;cursor:pointer}.v2-secondary .v2-tab[aria-selected=true]{color:var(--forest);border-color:var(--forest);background:var(--forest-dim);box-shadow:inset 0 0 0 1px #2f6b4f22}.v2-secondary .v2-tab:focus-visible{outline:3px solid #9fc6af;outline-offset:2px}.v2-hiit-section{margin:14px 0}.v2-toolbar{flex-wrap:wrap}
+
       .v2-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:14px 0}
       .v2-btn{min-height:38px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--forest);padding:8px 12px;font:500 13px 'Work Sans',sans-serif;cursor:pointer}
       .v2-btn.primary{background:var(--forest);color:#fff;border-color:var(--forest)}.v2-btn.danger{color:var(--danger)}.v2-btn:disabled{opacity:.55;cursor:not-allowed}
       .v2-btn:focus-visible,#tab-dashboard input:focus-visible,#tab-dashboard select:focus-visible,#tab-routines input:focus-visible,#tab-workout input:focus-visible,#tab-review input:focus-visible,#tab-diet input:focus-visible,#tab-foods input:focus-visible,#tab-programme input:focus-visible,#tab-routines textarea:focus-visible,#tab-workout textarea:focus-visible,#tab-review textarea:focus-visible,#tab-diet textarea:focus-visible,#tab-foods textarea:focus-visible,#tab-programme textarea:focus-visible{outline:3px solid #9fc6af;outline-offset:2px}
       .v2-banner{background:#fff4d6;border:1px solid #e8c66b;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:13px}
       .v2-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:14px}.v2-grid.one{grid-template-columns:1fr}
-      .v2-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid var(--line)}.v2-row:last-child{border-bottom:0}.v2-row .grow{flex:1;min-width:160px}.v2-meta{font-size:12px;color:var(--ink-faint)}.v2-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.v2-list{display:flex;flex-direction:column}
+      .v2-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid var(--line)}.v2-row:last-child{border-bottom:0}.v2-row .grow{flex:1;min-width:160px;overflow-wrap:anywhere}.v2-meta{font-size:12px;color:var(--ink-faint);overflow-wrap:anywhere}.v2-muted{overflow-wrap:anywhere}.v2-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.v2-list{display:flex;flex-direction:column}
       .v2-set{display:grid;grid-template-columns:28px 82px minmax(0,1fr) minmax(0,1fr) 72px 74px;gap:8px;align-items:center;margin:8px 0}.v2-set input,.v2-set select{min-width:0}.v2-set-actions{display:flex;gap:4px}.v2-set-actions .v2-btn{min-width:32px;padding:5px}.v2-set.done{background:#edf5ef;border-radius:7px;padding:4px}
       .v2-exercise{border:1px solid var(--line);border-radius:8px;padding:14px;margin:12px 0;background:#fff}.v2-exercise.skipped{opacity:.68;background:var(--card)}.v2-tip{font-size:12px;color:var(--ink-soft);margin:7px 0}.v2-timer{font:600 28px 'IBM Plex Mono',monospace;color:var(--forest);letter-spacing:-1px}
       .v2-exercise-guide{display:grid;grid-template-columns:120px minmax(0,1fr);gap:14px;align-items:start;margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--forest-dim)}.v2-exercise-guide ol{margin:7px 0 0;padding-left:20px;font-size:13px}.v2-exercise-guide li+li{margin-top:5px}.v2-exercise-visual{margin:0;text-align:center}.v2-exercise-visual svg{display:block;width:100%;max-width:112px;aspect-ratio:1;border-radius:8px;background:#fff;stroke:var(--forest);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;fill:none}.v2-exercise-visual svg circle{fill:#fff}.v2-exercise-visual .v2-ground{stroke:var(--line);stroke-width:2}.v2-exercise-visual .v2-apparatus{stroke:var(--ink-soft);stroke-width:3}.v2-exercise-visual figcaption{font-size:10px;color:var(--ink-faint);margin-top:4px}.v2-programme-task{align-items:flex-start}.v2-programme-task>.v2-check{padding-top:12px}.v2-programme-session{border:1px solid var(--line);border-radius:8px;padding:12px;margin:12px 0}.v2-programme-progress{font-weight:600;color:var(--forest)}
@@ -295,26 +338,54 @@ function slug(value) {
       .v2-check{display:flex;gap:8px;align-items:center;font-size:13px;margin:0}.v2-check input{width:18px;height:18px}.v2-toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:20;background:#20352a;color:#fff;border-radius:8px;padding:10px 14px;font-size:13px;box-shadow:0 4px 18px #0003}.v2-toast button{margin-left:10px;border:0;background:transparent;color:#fff;text-decoration:underline;cursor:pointer}.v2-muted{color:var(--ink-faint);font-size:13px}.v2-summary{font-size:13px;background:var(--forest-dim);border-radius:7px;padding:9px}.v2-chip{border:1px solid var(--line);border-radius:14px;padding:4px 9px;font-size:12px;background:#fff}
       #tab-dashboard input:not([type=checkbox]),#tab-dashboard select,#tab-routines input:not([type=checkbox]),#tab-workout input:not([type=checkbox]),#tab-review input:not([type=checkbox]),#tab-diet input:not([type=checkbox]),#tab-foods input:not([type=checkbox]),#tab-programme input:not([type=checkbox]),#tab-routines textarea,#tab-workout textarea,#tab-review textarea,#tab-diet textarea,#tab-foods textarea,#tab-programme textarea,#tab-routines select,#tab-workout select,#tab-review select,#tab-diet select,#tab-foods select,#tab-programme select{width:100%;font-family:'IBM Plex Mono',monospace;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink)}
       #tab-routines textarea,#tab-workout textarea,#tab-review textarea,#tab-diet textarea,#tab-foods textarea,#tab-programme textarea{font-family:'Work Sans',sans-serif}.v2-routine-form{display:flex;flex-direction:column;gap:14px}.v2-field{display:flex;flex-direction:column;gap:5px}.v2-field label{margin:0}.v2-library{max-height:255px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#fff}.v2-library label{display:flex;align-items:center;gap:8px;padding:8px 4px;margin:0;font-size:13px}.v2-custom-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}.v2-custom-row input{flex:1;min-width:200px}.v2-session-head{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.v2-progress{font-size:12px;color:var(--ink-soft)}.v2-reminder-copy{display:flex;flex-direction:column;gap:2px}.v2-data-actions{align-items:center}.v2-food-filter{margin-bottom:4px}.v2-food-filter input,.v2-food-filter select{width:auto!important;flex:1;min-width:180px}
-      .v2-macro-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.v2-macro{background:#fff;border:1px solid var(--line);border-radius:8px;padding:9px 10px}.v2-macro strong{display:block;font:500 17px 'IBM Plex Mono',monospace}.v2-macro span{display:block;font-size:10px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.04em}.v2-diet-section{margin-top:16px}.v2-diet-section h3{font-family:'Fraunces',serif;font-size:16px;font-weight:500;margin:0 0 4px}.v2-diet-row{display:grid;grid-template-columns:26px minmax(0,1fr) 76px 70px;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}.v2-diet-row:last-child{border-bottom:0}.v2-diet-row input[type=checkbox]{width:18px;height:18px}.v2-serving-select{grid-column:2 / -1}.v2-diet-macros{grid-column:2 / -1;min-width:0;font:12px/1.45 'IBM Plex Mono',monospace;color:var(--ink-soft);overflow-wrap:anywhere}.v2-constant-row{grid-template-columns:26px minmax(0,1fr) auto}.v2-diet-actions{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}.v2-btn.compact{min-height:30px;padding:5px 8px;font-size:12px}.v2-diet-note{font-size:12px;color:var(--ink-faint);margin:0 0 10px}.v2-diet-history{margin-top:14px}.v2-library-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}.v2-library-row:last-child{border-bottom:0}.v2-recipe-row{display:grid;grid-template-columns:minmax(0,1fr) 100px auto;gap:8px;align-items:center;margin:8px 0}.v2-bar-chart{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:7px;align-items:end;height:150px;padding:12px 0 24px}.v2-bar{min-height:2px;background:var(--forest);border-radius:5px 5px 0 0;position:relative}.v2-bar span{position:absolute;bottom:-21px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--ink-faint);white-space:nowrap}.v2-pr-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.v2-pr{border:1px solid var(--line);border-radius:8px;padding:10px;background:#fff}.v2-routine-program{border:1px solid var(--line);border-radius:8px;padding:12px;background:#fff}.v2-routine-program[draggable=true]{cursor:grab}.v2-routine-program.dragging{opacity:.45}.v2-routine-program-head{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px}.v2-routine-program-head strong{overflow-wrap:anywhere}.v2-group-fields{padding:10px;margin-top:10px;background:var(--forest-dim);border-radius:8px}.v2-workout-group{border:2px solid #b8c9bf;border-radius:10px;padding:0 12px 4px;margin:16px 0;background:var(--forest-dim)}.v2-workout-group>.v2-group-head{padding:12px 2px 0}.v2-workout-group .v2-exercise{margin:10px 0}.v2-chain{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.v2-substitute{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin:10px 0}.v2-badge{display:inline-block;border-radius:12px;padding:3px 8px;background:var(--forest-dim);color:var(--forest);font-size:11px;font-weight:600}
+      .v2-macro-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.v2-macro{background:#fff;border:1px solid var(--line);border-radius:8px;padding:9px 10px}.v2-macro strong{display:block;font:500 17px 'IBM Plex Mono',monospace}.v2-macro span{display:block;font-size:10px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.04em}.v2-diet-section{margin-top:16px}.v2-diet-section h3{font-family:'Fraunces',serif;font-size:16px;font-weight:500;margin:0 0 4px}.v2-diet-row{display:grid;grid-template-columns:26px minmax(0,1fr) 76px 70px;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}.v2-diet-row:last-child{border-bottom:0}.v2-diet-row input[type=checkbox]{width:18px;height:18px}.v2-serving-select{grid-column:2 / -1}.v2-diet-macros{grid-column:2 / -1;min-width:0;font:12px/1.45 'IBM Plex Mono',monospace;color:var(--ink-soft);overflow-wrap:anywhere}.v2-constant-row{grid-template-columns:26px minmax(0,1fr) 96px auto}.v2-constant-quantity{min-width:0}.v2-constant-quantity input{min-width:0;width:100%}.v2-diet-actions{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}.v2-btn.compact{min-height:30px;padding:5px 8px;font-size:12px}.v2-diet-note{font-size:12px;color:var(--ink-faint);margin:0 0 10px}.v2-diet-history{margin-top:14px}.v2-library-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}.v2-library-row:last-child{border-bottom:0}.v2-recipe-row{display:grid;grid-template-columns:minmax(0,1fr) 100px auto;gap:8px;align-items:center;margin:8px 0}.v2-bar-chart{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:7px;align-items:end;height:150px;padding:12px 0 24px}.v2-bar{min-height:2px;background:var(--forest);border-radius:5px 5px 0 0;position:relative}.v2-bar span{position:absolute;bottom:-21px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--ink-faint);white-space:nowrap}.v2-pr-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.v2-pr{border:1px solid var(--line);border-radius:8px;padding:10px;background:#fff}.v2-routine-program{border:1px solid var(--line);border-radius:8px;padding:12px;background:#fff}.v2-routine-program[draggable=true]{cursor:grab}.v2-routine-program.dragging{opacity:.45}.v2-routine-program-head{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px}.v2-routine-program-head strong{overflow-wrap:anywhere}.v2-group-fields{padding:10px;margin-top:10px;background:var(--forest-dim);border-radius:8px}.v2-workout-group{border:2px solid #b8c9bf;border-radius:10px;padding:0 12px 4px;margin:16px 0;background:var(--forest-dim)}.v2-workout-group>.v2-group-head{padding:12px 2px 0}.v2-workout-group .v2-exercise{margin:10px 0}.v2-chain{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.v2-substitute{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin:10px 0}.v2-badge{display:inline-block;border-radius:12px;padding:3px 8px;background:var(--forest-dim);color:var(--forest);font-size:11px;font-weight:600}
+      .v2-collapsible>.v2-section-summary{cursor:pointer;min-height:44px;padding:8px 0;color:var(--forest)}.v2-section-title{display:inline;font-size:19px;line-height:1.4;margin:0;color:var(--ink)}.v2-section-content{padding-top:8px}.v2-collapsible:not([open]){padding-top:8px;padding-bottom:8px}.v2-section-summary:focus-visible{outline:2px solid var(--forest);outline-offset:4px;border-radius:4px}.v2-section-summary::marker{color:var(--forest)}
       .v2-diet-balance{position:sticky;top:8px;z-index:8;box-shadow:0 6px 20px #20352a18}.v2-diet-balance .v2-macro strong{font-size:15px}#tab-diet .card{scroll-margin-top:160px}.v2-food-shortcuts{display:flex;gap:7px;flex-wrap:wrap}.v2-food-shortcuts .v2-btn{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.v2-profile{border-top:1px solid var(--line);padding-top:12px;margin-top:12px}.v2-week-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}.v2-week-grid .v2-field{min-width:0}.v2-record-summary{margin-bottom:14px}.v2-programme-stage{padding:10px 0;border-bottom:1px solid var(--line)}.v2-programme-stage.current{background:var(--forest-dim);border-radius:8px;padding:10px}.v2-programme-stage:last-child{border-bottom:0}.v2-programme-stage strong{display:block}.v2-programme-skill summary{cursor:pointer;font-family:'Fraunces',serif;font-size:17px;padding:8px 0}.v2-programme-skill[open] summary{margin-bottom:6px}.v2-session-check{align-items:flex-start}.v2-session-check input{margin-top:2px}.v2-warning{border-left:4px solid #c28b2c;padding-left:12px}.v2-workout-controls{position:sticky;top:5px;z-index:10;box-shadow:0 7px 22px #20352a24}.v2-control-strip{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.v2-control-strip .v2-toolbar{margin:4px 0}.v2-save-status{font:12px 'IBM Plex Mono',monospace;color:var(--ink-faint)}.v2-save-status.saving{color:#9a6c12}.v2-save-status.error{color:var(--danger)}.v2-workout-details{margin:10px 0}.v2-workout-details summary{cursor:pointer;color:var(--forest);font-weight:600;font-size:13px;padding:7px 0}.v2-workout-compact .v2-workout-details:not([open]){margin:2px 0}.v2-quick-notes{margin:10px 0;padding:10px;background:var(--forest-dim);border-radius:8px}.v2-round-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:9px}.v2-manage-exercises{margin-top:10px;border-top:1px solid var(--line);padding-top:9px}.v2-manage-exercises summary{cursor:pointer;font-weight:600;color:var(--forest)}.v2-manage-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-top:9px}.v2-exercise-position{font:11px 'IBM Plex Mono',monospace;color:var(--ink-faint)}
       .v2-training-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}.v2-training-day{border:1px solid var(--line);border-radius:8px;padding:9px;background:#fff;min-width:0}.v2-training-day.today{border-color:var(--forest);background:var(--forest-dim)}.v2-training-day>strong{display:block;margin-bottom:7px}.v2-calendar-item{border-top:1px solid var(--line);padding:7px 0}.v2-calendar-item:first-of-type{border-top:0}.v2-calendar-item .v2-actions{margin-top:6px}.v2-status{display:inline-block;border-radius:12px;padding:2px 7px;font-size:10px;font-weight:600;background:var(--card);color:var(--ink-soft)}.v2-status.completed{background:#dcecdf;color:var(--forest)}.v2-status.missed{background:#f7e3df;color:var(--danger)}.v2-status.moved{background:#fff0ca;color:#845f13}.v2-progression-box{border-left:4px solid var(--forest);background:var(--forest-dim);padding:9px 11px;margin:10px 0;border-radius:0 8px 8px 0}.v2-progression-box.warning{border-left-color:#c28b2c;background:#fff8e7}.v2-progression-box strong{display:block}.v2-mini-chart{display:flex;align-items:flex-end;gap:6px;height:92px;padding:8px 0 20px}.v2-mini-bar{flex:1;min-width:12px;max-width:45px;background:var(--forest);border-radius:4px 4px 0 0;position:relative}.v2-mini-bar span{position:absolute;bottom:-17px;left:50%;transform:translateX(-50%);font-size:8px;color:var(--ink-faint);white-space:nowrap}.v2-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.v2-session-summary{border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--forest-dim)}.v2-plate-result{font:13px/1.5 'IBM Plex Mono',monospace;background:#fff;border:1px solid var(--line);border-radius:7px;padding:9px;overflow-wrap:anywhere}.v2-routine-history summary,.v2-exercise-history summary,.v2-load-tools summary{cursor:pointer;color:var(--forest);font-weight:600;font-size:13px;padding:7px 0}.v2-day-checks{display:flex;gap:8px;flex-wrap:wrap}.v2-day-checks .v2-check{border:1px solid var(--line);border-radius:7px;padding:7px 9px;background:#fff}
       .v2-goal{border:1px solid var(--line);border-radius:8px;padding:11px;margin:10px 0;background:#fff}.v2-goal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}.v2-goal-progress{height:10px;border-radius:999px;background:var(--card);overflow:hidden;margin:9px 0}.v2-goal-progress>span{display:block;height:100%;background:var(--forest);border-radius:inherit}.v2-goal.achieved .v2-goal-progress>span{background:#4f8b61}.v2-dashboard-signal{padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}.v2-dashboard-signal:last-child{border-bottom:0}
       .v2-hiit{border-color:#b8c9bf}.v2-hiit-display{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;background:var(--forest-dim);border-radius:10px;padding:14px;margin:12px 0}.v2-hiit-phase{font:600 18px 'Work Sans',sans-serif;color:var(--forest)}.v2-hiit-clock{font:600 46px 'IBM Plex Mono',monospace;color:var(--forest);line-height:1}.v2-hiit-round{font:12px 'IBM Plex Mono',monospace;color:var(--ink-faint);margin-top:4px}.v2-hiit-progress{height:10px;border-radius:999px;background:#fff;overflow:hidden;margin-top:10px}.v2-hiit-progress>span{display:block;height:100%;background:var(--forest);border-radius:inherit;transition:width .2s linear}.v2-hiit-presets{display:flex;gap:7px;flex-wrap:wrap}.v2-hiit.running .v2-hiit-display{box-shadow:inset 4px 0 0 var(--forest)}.v2-hiit.rest .v2-hiit-display{background:#fff4d6}.v2-hiit.complete .v2-hiit-display{background:#dcecdf}
       .v2-picker{position:relative}.v2-picker-list{position:absolute;top:100%;left:0;right:0;z-index:18;max-height:280px;overflow:auto;border:1px solid var(--line);border-radius:8px;background:#fff;box-shadow:0 10px 24px #20352a24;padding:5px}.v2-picker-list[hidden]{display:none}.v2-picker-option{display:flex;width:100%;justify-content:space-between;align-items:center;gap:10px;text-align:left;border:0;border-radius:6px;background:#fff;color:var(--ink);padding:9px 10px;cursor:pointer;font:13px 'Work Sans',sans-serif}.v2-picker-option:hover,.v2-picker-option:focus-visible,.v2-picker-option[aria-selected=true]{background:var(--forest-dim);outline:none}.v2-picker-option span{font-size:11px;color:var(--ink-faint);white-space:nowrap}.v2-picker-empty{padding:10px;color:var(--ink-faint);font-size:13px}.v2-target-plan{display:flex;gap:7px;flex-wrap:wrap;padding:9px 10px;margin:8px 0;background:#fff;border:1px dashed #b8c9bf;border-radius:8px}.v2-target-plan span{font:11px 'IBM Plex Mono',monospace;color:var(--ink-soft)}.v2-body-signal{border-left:4px solid var(--forest);background:var(--forest-dim);padding:10px 12px;border-radius:0 8px 8px 0;margin:10px 0}.v2-relative-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.v2-relative-item{border:1px solid var(--line);border-radius:8px;padding:10px;background:#fff}.v2-relative-item strong,.v2-relative-item span{display:block}.v2-relative-item .ratio{font:600 18px 'IBM Plex Mono',monospace;color:var(--forest);margin:4px 0}
+      .v2-one-time-list{display:flex;flex-direction:column}.v2-one-time-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:end;padding:12px 0;border-top:1px solid var(--line)}.v2-one-time-list>.v2-one-time-row:first-child{border-top:0}.v2-one-time-include{align-self:center;white-space:nowrap}.v2-one-time-description{min-width:0}.v2-one-time-macros{grid-column:2 / -1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.v2-one-time-macros input{min-width:0}
       @media(max-width:700px){.v2-week-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
       @media(max-width:900px){.v2-training-week{grid-template-columns:repeat(2,minmax(0,1fr))}}
-      @media(max-width:560px){nav[role=tablist]{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}nav[role=tablist] .v2-tab{font-size:12px;padding:8px 5px}.v2-grid{grid-template-columns:1fr}.v2-set{grid-template-columns:26px 68px minmax(0,1fr) minmax(0,1fr) 54px 68px;gap:4px;font-size:12px}.v2-set select{padding-left:4px;padding-right:2px}.v2-set-actions{gap:2px}.v2-set-actions .v2-btn{min-height:38px;min-width:31px;padding:4px}.v2-btn{min-height:42px}.v2-timer{font-size:24px}.v2-hiit-display{grid-template-columns:1fr;text-align:center}.v2-hiit-clock{font-size:40px}.v2-row .grow{min-width:0}.v2-actions{width:100%}.v2-actions .v2-btn{flex:1}.v2-custom-row{align-items:stretch}.v2-custom-row input{min-width:0;flex-basis:100%}.v2-macro-grid,.v2-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.v2-diet-row{grid-template-columns:24px minmax(0,1fr) 68px 62px;gap:6px}.v2-constant-row{grid-template-columns:24px minmax(0,1fr)}.v2-constant-row .v2-diet-actions{grid-column:2 / -1;justify-content:flex-start}.v2-library-row{grid-template-columns:1fr}.v2-library-row .v2-actions{width:auto}.v2-diet-balance{top:4px}.v2-week-grid,.v2-training-week{grid-template-columns:1fr}.v2-exercise-guide{grid-template-columns:1fr}.v2-exercise-visual svg{max-width:100px}.v2-recipe-row{grid-template-columns:minmax(0,1fr) 75px}.v2-recipe-row .v2-btn{grid-column:1/-1}.v2-pr-list,.v2-relative-list{grid-template-columns:1fr}.v2-substitute{grid-template-columns:1fr}.v2-workout-group{padding:0 8px 3px}.v2-workout-controls{top:3px;padding:10px}.v2-control-strip{align-items:flex-start}.v2-manage-row{grid-template-columns:1fr}.v2-manage-row .v2-btn{width:100%}.v2-picker-option{align-items:flex-start;flex-direction:column}.v2-picker-option span{white-space:normal}}
+      @media(max-width:560px){nav[role=tablist]{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}nav[role=tablist] .v2-tab{font-size:12px;padding:8px 5px}.v2-grid{grid-template-columns:1fr}.v2-set{grid-template-columns:26px 68px minmax(0,1fr) minmax(0,1fr) 54px 68px;gap:4px;font-size:12px}.v2-set select{padding-left:4px;padding-right:2px}.v2-set-actions{gap:2px}.v2-set-actions .v2-btn{min-height:38px;min-width:31px;padding:4px}.v2-btn{min-height:42px}.v2-timer{font-size:24px}.v2-hiit-display{grid-template-columns:1fr;text-align:center}.v2-hiit-clock{font-size:40px}.v2-row .grow{min-width:0}.v2-actions{width:100%}.v2-actions .v2-btn{flex:1}.v2-custom-row{align-items:stretch}.v2-custom-row input{min-width:0;flex-basis:100%}.v2-macro-grid,.v2-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.v2-diet-row{grid-template-columns:24px minmax(0,1fr) 68px 62px;gap:6px}.v2-constant-row{grid-template-columns:24px minmax(0,1fr)}.v2-constant-row .v2-constant-quantity,.v2-constant-row .v2-diet-actions{grid-column:2 / -1}.v2-constant-row .v2-diet-actions{justify-content:flex-start}.v2-library-row{grid-template-columns:1fr}.v2-library-row .v2-actions{width:auto}.v2-diet-balance{top:4px;padding:7px 8px}.v2-diet-balance .v2-macro-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}.v2-diet-balance .v2-macro{min-width:0;padding:5px 4px;border-radius:6px}.v2-diet-balance .v2-macro strong{font-size:11px;line-height:1.15;letter-spacing:-.04em;overflow-wrap:anywhere}.v2-diet-balance .v2-macro span{font-size:9px!important;line-height:1.15;letter-spacing:0}.v2-diet-balance .v2-macro span:last-child,.v2-diet-balance .v2-diet-note{display:none}.v2-week-grid,.v2-training-week{grid-template-columns:1fr}.v2-exercise-guide{grid-template-columns:1fr}.v2-exercise-visual svg{max-width:100px}.v2-recipe-row{grid-template-columns:minmax(0,1fr) 75px}.v2-recipe-row .v2-btn{grid-column:1/-1}.v2-pr-list,.v2-relative-list{grid-template-columns:1fr}.v2-substitute{grid-template-columns:1fr}.v2-workout-group{padding:0 8px 3px}.v2-workout-controls{top:3px;padding:10px}.v2-control-strip{align-items:flex-start}.v2-manage-row{grid-template-columns:1fr}.v2-manage-row .v2-btn{width:100%}.v2-picker-option{align-items:flex-start;flex-direction:column}.v2-picker-option span{white-space:normal}}
+      @media(max-width:560px){.v2-one-time-row{grid-template-columns:minmax(0,1fr) auto}.v2-one-time-include{grid-column:1;grid-row:1}.v2-one-time-row>.v2-btn{grid-column:2;grid-row:1;justify-self:end}.v2-one-time-description{grid-column:1 / -1;grid-row:2}.v2-one-time-macros{grid-column:1 / -1;grid-template-columns:repeat(2,minmax(0,1fr))}}
     `;
-    document.head.append(el('style', { id: 'v2-style', text: css }));
+    document.head.append(el('style', { id: 'v2-style', text: css + '\n.v2-muted,.v2-meta,.v2-tip,.v2-diet-note{font-size:14px!important;line-height:1.5;color:#4d594e!important}.v2-btn{font-size:14px;min-height:44px}.v2-macro span{font-size:12px!important;color:#4d594e!important}input,select,textarea{font-size:16px!important}.v2-more summary:focus-visible,.v2-hiit-section summary:focus-visible{outline:3px solid #2f6b4f}.v2-row{flex-wrap:wrap}' }));
   }
   function toast(message, undo) {
     $('.v2-toast')?.remove();
     const box = el('div', { class: 'v2-toast', role: 'status', 'aria-live': 'polite', text: message });
-    if (undo) box.append(el('button', { text: 'Undo', onclick: undo }));
+    if (undo) box.append(el('button', { text: 'Undo', onclick: async () => { await undo(); } }));
     document.body.append(box); setTimeout(() => box.remove(), 10000);
   }
   function clear(node) { node.replaceChildren(); return node; }
   function button(text, fn, className = '') { return el('button', { type: 'button', class: 'v2-btn ' + className, text, onclick: fn }); }
+  const sectionChoices = new Map();
+  function sectionIsOpen(key, fallback) {
+    if (!sectionChoices.has(key)) {
+      let value = null;
+      try { value = window.localStorage.getItem('recomp-section:' + key); } catch { /* Storage-disabled browsers still work. */ }
+      sectionChoices.set(key, value === 'open' ? true : value === 'closed' ? false : fallback);
+    }
+    return sectionChoices.get(key);
+  }
+  function rememberSection(key, open) {
+    sectionChoices.set(key, open);
+    try { window.localStorage.setItem('recomp-section:' + key, open ? 'open' : 'closed'); } catch { /* Keep the choice for this session. */ }
+  }
+  function collapsibleCard(card, key, defaultOpen = true, forceOpen = false) {
+    const heading = card.querySelector(':scope > h2, :scope > h3');
+    if (!heading) return card;
+    const section = el('details', { class: card.className + ' v2-collapsible', 'data-section': key });
+    const summary = el('summary', { class: 'v2-section-summary' }); heading.classList.add('v2-section-title'); summary.append(heading);
+    const content = el('div', { class: 'v2-section-content' }); content.append(...card.childNodes);
+    section.append(summary, content); section.open = forceOpen || sectionIsOpen(key, defaultOpen);
+    summary.addEventListener('click', () => rememberSection(key, !section.open));
+    let previous = section.open;
+    section.addEventListener('toggle', () => { if (previous !== section.open) { previous = section.open; rememberSection(key, section.open); } });
+    return section;
+  }
   function input(label, type, value, onChange, props = {}) {
     const field = el('div'); const id = 'v2-' + Math.random().toString(36).slice(2);
     field.append(el('label', { for: id, text: label }));
@@ -335,11 +406,12 @@ function slug(value) {
   function buildShell() {
     styles();
     const nav = $('nav'); clear(nav); nav.setAttribute('role', 'tablist');
-    [['today', 'Today'], ['dashboard', 'Dashboard'], ['diet', 'Diet'], ['workout', 'Workout'], ['programme', 'Programme'], ['habits', 'Habits & Trends'], ['records', 'Records'], ['routines', 'Routines'], ['foods', 'Food library'], ['review', 'Review'], ['guide', 'Guide']].forEach(([id, label], index) => {
+    [['today', 'Today'], ['diet', 'Diet'], ['workout', 'Workout'], ['records', 'Records'], ['dashboard', 'Dashboard'], ['programme', 'Programme'], ['habits', 'Habits & Trends'], ['routines', 'Routines'], ['foods', 'Food library'], ['review', 'Settings & backup'], ['guide', 'Guide']].forEach(([id, label], index) => {
       const tab = el('button', { id: 'nav-' + id, class: 'v2-tab' + (index === 0 ? ' active' : ''), role: 'tab', 'aria-controls': 'tab-' + id, 'aria-selected': index === 0 ? 'true' : 'false', tabindex: index === 0 ? '0' : '-1', 'data-tab': id, text: label,
         onclick: () => selectTab(id) }); nav.append(tab);
     });
-    const tabs = [...nav.querySelectorAll('.v2-tab')];
+    const more = el('details', { class: 'v2-more' }, [el('summary', { text: 'More · planning, libraries & settings' })]); const secondary = el('div', { class: 'v2-secondary', role: 'tablist', 'aria-label': 'Planning, libraries and settings' }); [...nav.children].slice(4).forEach(tab => secondary.append(tab)); more.append(secondary); nav.after(more);
+    const tabs = [...document.querySelectorAll('.v2-tab')];
     tabs.forEach((tab, index) => tab.addEventListener('keydown', event => {
       const next = event.key === 'ArrowRight' ? (index + 1) % tabs.length : event.key === 'ArrowLeft' ? (index - 1 + tabs.length) % tabs.length : event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : null;
       if (next === null) return; event.preventDefault(); selectTab(tabs[next].dataset.tab); tabs[next].focus();
@@ -362,10 +434,14 @@ function slug(value) {
     $('#tab-workouts').hidden = true;
     syncLegacyHealth();
     $('#summary-cards').hidden = true; $('#photo-reminder').hidden = true;
+    nav.before(el('div', { class: 'v2-app-status', role: 'status', 'aria-live': 'polite', text: 'Recomp · 2026.09.17 · Checking connection…' })); updateConnection();
   }
   function selectTab(id) {
+    if (currentTab !== id && (dirtyPanels.has(currentTab) || currentTab === 'workout' && dirtyPanels.has('hiit')) && !confirm('You have unsaved changes on this page. Leave this page?')) return;
+    if (currentTab !== id) { dirtyPanels.delete(currentTab); if (currentTab === 'workout') dirtyPanels.delete('hiit'); }
+    currentTab = id;
     ['today', 'dashboard', 'diet', 'foods', 'trends', 'habits', 'records', 'routines', 'workout', 'programme', 'review', 'guide', 'workouts'].forEach(name => { const panel = $('#tab-' + name); if (panel) panel.hidden = name !== id; });
-    $('nav').querySelectorAll('button').forEach(btn => { const selected = btn.dataset.tab === id; btn.classList.toggle('active', selected); btn.setAttribute('aria-selected', String(selected)); btn.tabIndex = selected ? 0 : -1; });
+    document.querySelectorAll('.v2-tab').forEach(btn => { const selected = btn.dataset.tab === id; btn.classList.toggle('active', selected); btn.setAttribute('aria-selected', String(selected)); btn.tabIndex = selected ? 0 : -1; });
     if (id === 'today') renderToday();
     if (id === 'dashboard') renderDashboard();
     if (id === 'workout') renderWorkout();
@@ -384,7 +460,7 @@ function slug(value) {
 
   function renderToday() {
     const panel = clear($('#tab-today')); const entries = state.health.entries; const currentDate = panel.dataset.editDate || isoToday(); const current = entries[currentDate] || {};
-    const snapshot = todaySnapshotCard(currentDate); if (snapshot) panel.append(snapshot, todayTrainingCard(currentDate), trainingCalendarCard(currentDate));
+    const snapshot = todaySnapshotCard(currentDate); if (snapshot) panel.append(snapshot, todayTrainingCard(currentDate));
     const card = el('div', { class: 'card' }); card.append(el('h2', { text: currentDate in entries ? 'Edit daily entry' : 'Log daily entry' }));
     const form = el('form'); form.addEventListener('submit', async event => {
       event.preventDefault(); const fd = new FormData(form); const date = fd.get('date'); const old = entries[date] || {};
@@ -397,7 +473,7 @@ function slug(value) {
     form.append(grid, el('label', { text: 'Notes (symptoms, cravings, energy)' })); const notes = el('textarea', { name: 'notes', rows: '3' }); notes.value = current.notes || ''; form.append(notes);
     form.append(el('h2', { text: 'Readiness' })); const readiness = el('div', { class: 'v2-grid' }); [['Energy', 'energy'], ['Hunger', 'hunger'], ['Soreness', 'soreness'], ['Sleep quality', 'sleepQuality']].forEach(([label, key]) => readiness.append(input(label + ' (1–5)', 'number', current[key], () => {}, { name: key, min: '1', max: '5', step: '1' }))); form.append(readiness, el('h2', { text: 'Habits' }));
     HABITS.forEach(([key, label]) => { const check = el('input', { type: 'checkbox', name: key }); check.checked = current[key] === true; form.append(el('label', { class: 'v2-check' }, [check, document.createTextNode(label)])); });
-    form.append(button('Save entry', null, 'primary')); form.querySelector('button').type = 'submit'; card.append(form); panel.append(card, dailyHistory());
+    form.append(button('Save entry', null, 'primary')); form.querySelector('button').type = 'submit'; card.append(form); panel.append(card, dailyHistory(), trainingCalendarCard(currentDate));
   }
   const numberOrNull = value => value === '' || value === null ? null : Number(value);
   function todaySnapshotCard(date) {
@@ -406,10 +482,10 @@ function slug(value) {
     const card = el('div', { class: 'card' }); card.append(el('h2', { text: 'Today at a glance' }));
     const grid = el('div', { class: 'v2-macro-grid' });
     [['Diet', total ? `${Math.round(total.total.calories)} kcal` : 'Not logged', total ? `${Math.round(total.total.protein)}g protein` : 'Open Diet'], ['Training', sessions ? `${sessions} saved` : state.active ? 'In progress' : 'Not logged', sessions ? 'Completed session' : 'Open Workout'], ['Habits', Object.values(state.health.entries[date] || {}).filter(value => value === true).length + '/' + HABITS.length, 'Daily habits'], ['Review', state.settings.goalWeight ? `${state.settings.goalWeight} kg goal` : 'Set a goal', 'Open Review']].forEach(([label, value, note]) => grid.append(el('div', { class: 'v2-macro' }, [el('span', { text: label }), el('strong', { text: value }), el('span', { text: note })])));
-    return card;
+    card.append(grid); return card;
   }
   const TRAINING_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  function datePlus(date, days) { const value = new Date(date + 'T12:00:00'); value.setDate(value.getDate() + days); return value.toISOString().slice(0, 10); }
+  function datePlus(date, days) { const value = new Date(date + 'T12:00:00'); value.setDate(value.getDate() + days); return localDate(value); }
   function trainingDayIndex(date) { const day = new Date(date + 'T12:00:00').getDay(); return day === 0 ? 6 : day - 1; }
   function scheduledPlans(date, includeMovedOut = false) {
     const overrides = state.routines.scheduleOverrides || {}; const plans = [];
@@ -469,20 +545,23 @@ function slug(value) {
   }
   async function deleteDaily(date) {
     if (!confirm('Delete the entry for ' + date + '? You can undo for 10 seconds.')) return;
-    const removed = state.health.entries[date]; delete state.health.entries[date];
-    try { await save('health'); render(); toast('Entry deleted.', async () => { state.health.entries[date] = removed; await save('health'); render(); toast('Entry restored.'); }); } catch (error) { state.health.entries[date] = removed; toast(error.message); }
+    const removed = state.health.entries[date]; if (!removed) return; delete state.health.entries[date];
+    try { await save('health'); render(); toast('Entry deleted.', async () => { if (state.health.entries[date]) return toast('This date already has an entry.'); state.health.entries[date] = removed; await save('health'); render(); toast('Entry restored.'); }); } catch (error) { state.health.entries[date] = removed; toast(error.message); }
   }
 
   const MEALS = [['breakfast', 'Breakfast'], ['lunch', 'Lunch'], ['dinner', 'Dinner'], ['snacks', 'Snacks / extras']];
   function mealSections() { return (state.dietSettings.sections || MEALS.map(([id, label]) => ({ id, label, archived: false }))).filter(section => !section.archived); }
   const emptyFoodRows = () => Array.from({ length: 3 }, () => ({ name: '', grams: '', checked: false }));
+  const oneTimeMealId = () => 'estimate-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+  const oneTimeMealValue = value => Math.min(100000, Math.max(0, Number(value) || 0));
+  const emptyOneTimeMeal = () => ({ id: oneTimeMealId(), name: '', checked: true, calories: 0, protein: 0, carbs: 0, fat: 0 });
   const zeroMacros = () => ({ calories: 0, protein: 0, carbs: 0, fat: 0 });
   const addMacros = (total, item) => ['calories', 'protein', 'carbs', 'fat'].forEach(key => total[key] += Number(item[key]) || 0);
   const displayMacros = macros => `${Math.round(macros.calories)} kcal · P ${macros.protein.toFixed(1)}g · C ${macros.carbs.toFixed(1)}g · F ${macros.fat.toFixed(1)}g`;
   function dietDay(date) {
-    if (!state.diet.days[date]) state.diet.days[date] = { constants: {}, meals: Object.fromEntries(mealSections().map(section => [section.id, emptyFoodRows()])), createdAt: new Date().toISOString(), updatedAt: null };
+    if (!state.diet.days[date]) state.diet.days[date] = { constants: {}, constantQuantities: {}, meals: Object.fromEntries(mealSections().map(section => [section.id, emptyFoodRows()])), oneTimeMeals: [], createdAt: new Date().toISOString(), updatedAt: null };
     const day = state.diet.days[date];
-    day.constants ||= {}; day.meals ||= {};
+    day.constants ||= {}; day.constantQuantities ||= {}; day.meals ||= {}; day.oneTimeMeals ||= [];
     mealSections().forEach(section => { const id = section.id; day.meals[id] ||= emptyFoodRows(); while (day.meals[id].length < 3) day.meals[id].push({ name: '', grams: '', checked: false }); });
     return day;
   }
@@ -493,6 +572,12 @@ function slug(value) {
     const query = String(name || '').trim().toLowerCase();
     return state.foods.items.find(food => (includeArchived || !food.archived) && (food.name.toLowerCase() === query || (food.aliases || []).some(alias => alias.toLowerCase() === query)));
   }
+  function constantSource(constant) { return state.foods.items.find(food => food.id === constant.foodId) || constant.foodSnapshot || constant; }
+  function isQuantityConstant(constant) { return constant?.sourceMode !== 'legacy-portion'; }
+  function constantQuantity(day, constant) { if (!isQuantityConstant(constant)) return 1; const snapshot = day?.constantSnapshots?.[constant.id]; const fallback = Number(constant.quantity); if (snapshot && !snapshot.per100) return fallback > 0 ? fallback : 100; const saved = Number(day?.constantQuantities?.[constant.id]); const snap = Number(snapshot?.quantity); return saved > 0 ? saved : snap > 0 ? snap : fallback > 0 ? fallback : 100; }
+  function snapshotConstant(constant, quantity) { if (!isQuantityConstant(constant)) return { ...snapshotFood(constantSource(constant)), per100: false }; return { ...snapshotFood(constantSource(constant)), per100: true, quantity: Math.max(.1, Number(quantity) || Number(constant.quantity) || 100) }; }
+  function snapshotMacros(day, id, snapshot, fallbackQuantity = 100) { if (!snapshot?.per100) return snapshot || zeroMacros(); const quantity = Number(day?.constantQuantities?.[id]) || Number(snapshot.quantity) || Number(fallbackQuantity) || 100; return scaledMacros(snapshot, quantity); }
+  function constantMacros(day, constant) { const snapshot = day.constantSnapshots?.[constant.id]; if (snapshot) return snapshotMacros(day, constant.id, snapshot, constant.quantity); return isQuantityConstant(constant) ? scaledMacros(constantSource(constant), constantQuantity(day, constant)) : constant; }
   function foodSearchText(food) { return [food.name, ...(food.aliases || [])].join(' ').toLowerCase(); }
   function parseServings(value) {
     return String(value || '').split('\n').map(line => line.trim()).filter(Boolean).map((line, index) => {
@@ -515,8 +600,8 @@ function slug(value) {
     const found = []; const seen = new Set(); Object.entries(state.diet.days).sort((a, b) => b[0].localeCompare(a[0])).forEach(([, day]) => { (day.meals?.[sectionId] || []).forEach(entry => { const food = state.foods.items.find(item => !item.archived && item.id === entry.foodId) || foodByName(entry.name); if (food && !seen.has(food.id)) { seen.add(food.id); found.push(food); } }); }); return found.slice(0, limit);
   }
   function captureDietSnapshots(day) {
-    day.constantSnapshots ||= {};
-    state.dietSettings.constants.forEach(constant => { if (day.constants[constant.id]) day.constantSnapshots[constant.id] ||= snapshotFood(constant); });
+    day.constantSnapshots ||= {}; day.constantQuantities ||= {};
+    state.dietSettings.constants.forEach(constant => { if (day.constants[constant.id]) { const quantity = constantQuantity(day, constant); day.constantQuantities[constant.id] = quantity; day.constantSnapshots[constant.id] ||= snapshotConstant(constant, quantity); } });
     Object.values(day.meals || {}).forEach(rows => rows.forEach(entry => {
       const food = state.foods.items.find(item => item.id === entry.foodId) || foodByName(entry.name, true);
       if (food) { entry.foodId = food.id; entry.foodSnapshot = snapshotFood(food); entry.name = food.name; }
@@ -526,19 +611,30 @@ function slug(value) {
     const scale = Math.max(0, Number(grams) || 0) / 100;
     return { calories: (Number(food?.calories) || 0) * scale, protein: (Number(food?.protein) || 0) * scale, carbs: (Number(food?.carbs) || 0) * scale, fat: (Number(food?.fat) || 0) * scale };
   }
+  function hasOneTimeMealDetails(entry) { return !!String(entry?.name || '').trim() || ['calories', 'protein', 'carbs', 'fat'].some(key => oneTimeMealValue(entry?.[key]) > 0); }
+  function oneTimeMealMacros(entry) { return Object.fromEntries(['calories', 'protein', 'carbs', 'fat'].map(key => [key, oneTimeMealValue(entry?.[key])])); }
+  function archivedConstantEntries(day) {
+    const constantsById = new Map(state.dietSettings.constants.map(constant => [constant.id, constant]));
+    return Object.entries(day.constants || {}).flatMap(([id, checked]) => {
+      const constant = constantsById.get(id); const snapshot = day.constantSnapshots?.[id];
+      if (!checked || !snapshot || (constant && !constant.archived)) return [];
+      return [{ id, name: constant?.name || 'Removed daily constant', macros: snapshotMacros(day, id, snapshot, constant?.quantity) }];
+    });
+  }
   function dietTotals(day) {
     const total = zeroMacros(); let completed = 0; let trackable = 0;
-    const activeConstantIds = new Set();
-    state.dietSettings.constants.filter(constant => !constant.archived).forEach(constant => { activeConstantIds.add(constant.id); trackable++; if (day.constants[constant.id]) { completed++; addMacros(total, day.constantSnapshots?.[constant.id] || constant); } });
-    Object.entries(day.constants || {}).forEach(([id, checked]) => {
-      if (!checked || activeConstantIds.has(id) || !day.constantSnapshots?.[id]) return;
-      trackable++; completed++; addMacros(total, day.constantSnapshots[id]);
-    });
+    state.dietSettings.constants.filter(constant => !constant.archived).forEach(constant => { trackable++; if (day.constants[constant.id]) { completed++; addMacros(total, constantMacros(day, constant)); } });
+    archivedConstantEntries(day).forEach(entry => { trackable++; completed++; addMacros(total, entry.macros); });
     Object.values(day.meals || {}).forEach(rows => rows.forEach(entry => {
       if (!entry.name || !entry.grams) return;
       trackable++;
       if (entry.checked) { completed++; addMacros(total, scaledMacros(foodForEntry(entry), entry.grams)); }
     }));
+    (day.oneTimeMeals || []).forEach(entry => {
+      if (!hasOneTimeMealDetails(entry)) return;
+      trackable++;
+      if (entry.checked) { completed++; addMacros(total, oneTimeMealMacros(entry)); }
+    });
     return { total, completed, trackable };
   }
   function targetProfileForDate(date) {
@@ -559,21 +655,27 @@ function slug(value) {
   }
   function renderDiet() {
     const panel = clear($('#tab-diet')); const date = panel.dataset.dietDate || isoToday(); const day = dietDay(date);
-    const titleCard = el('div', { class: 'card' }); titleCard.append(el('h2', { text: 'Daily diet' }), el('p', { class: 'v2-muted', text: 'Tick constants and foods when taken/eaten. Totals include ticked entries only; food values use the 100g or 100ml basis shown in the library, so check brand labels.' }));
+    const titleCard = el('div', { class: 'card' }); titleCard.append(el('h2', { text: 'Daily diet' }), el('p', { class: 'v2-muted', text: 'Tick constants, foods and custom estimates when taken/eaten. Totals include ticked entries only; food values use the 100g or 100ml basis shown in the library, so check brand labels.' }));
     const dateInput = el('input', { type: 'date', 'aria-label': 'Diet date' }); dateInput.value = date; dateInput.addEventListener('change', () => { panel.dataset.dietDate = dateInput.value; renderDiet(); });
     const copyYesterday = button('Copy previous diet', () => {
       const previous = Object.keys(state.diet.days).filter(item => item < date).sort().at(-1);
       if (!previous) return toast('No earlier diet entry to copy.');
-      state.diet.days[date] = { ...clone(state.diet.days[previous]), createdAt: day.createdAt, updatedAt: null };
-      renderDiet(); toast('Previous diet copied. Review it, then save.');
+      const copied = clone(state.diet.days[previous]); copied.oneTimeMeals = [];
+      state.diet.days[date] = { ...copied, createdAt: day.createdAt, updatedAt: null };
+      renderDiet(); toast('Previous diet copied without its one-time meal estimates. Review it, then save.');
     });
     titleCard.append(el('div', { class: 'v2-toolbar' }, [dateInput, copyYesterday]));
     const summary = el('div', { class: 'card v2-diet-balance' }); renderDietSummary(summary, day, date); panel.append(titleCard, summary);
     const optionList = el('datalist', { id: 'diet-food-options' }); state.foods.items.filter(food => !food.archived).slice().sort((a, b) => a.name.localeCompare(b.name)).forEach(food => { optionList.append(el('option', { value: food.name })); (food.aliases || []).forEach(alias => optionList.append(el('option', { value: alias, label: food.name }))); }); panel.append(optionList);
     const constantsCard = el('div', { class: 'card v2-constants-card' }); constantsCard.append(el('h2', { text: 'Daily constants' }));
     state.dietSettings.constants.filter(constant => !constant.archived).forEach(constant => {
-      const checked = el('input', { type: 'checkbox', 'aria-label': 'Mark ' + constant.name + ' taken' }); checked.checked = !!day.constants[constant.id];
-      checked.addEventListener('change', () => { day.constants[constant.id] = checked.checked; if (checked.checked) { day.constantSnapshots ||= {}; day.constantSnapshots[constant.id] = snapshotFood(constant); } renderDietSummary(summary, day); });
+      const source = constantSource(constant); const recordedLegacy = !!day.constantSnapshots?.[constant.id] && !day.constantSnapshots[constant.id].per100; const usesQuantity = isQuantityConstant(constant) && !recordedLegacy; const unit = foodUnit(source); const checked = el('input', { type: 'checkbox', 'aria-label': 'Mark ' + constant.name + ' taken' }); checked.checked = !!day.constants[constant.id];
+      const quantity = usesQuantity ? el('input', { type: 'number', min: '.1', max: '100000', step: '.1', 'aria-label': constant.name + ' quantity in ' + unit }) : null; if (quantity) quantity.value = constantQuantity(day, constant);
+      const sourceLabel = recordedLegacy ? (constant.foodId ? `Recorded legacy portion · linked: ${source.name}` : 'Recorded legacy fixed portion') : usesQuantity ? (constant.foodId ? `${source.name} · per ${foodBasis(source)}` : `Manual values · per ${foodBasis(constant)}`) : 'Legacy fixed portion';
+      const macros = el('span', { class: 'v2-diet-macros' });
+      const refreshConstant = () => { macros.textContent = usesQuantity ? `${displayMacros(constantMacros(day, constant))} for ${constantQuantity(day, constant)}${unit} · ${sourceLabel}` : recordedLegacy ? `${displayMacros(constantMacros(day, constant))} · ${sourceLabel}. ${constant.foodId ? `Untick and re-tick to use ${source.name} at ${constant.quantity}${unit} today.` : 'Edit and link a food or recipe to calculate by g/ml.'}` : `${displayMacros(constantMacros(day, constant))} · ${sourceLabel}. Edit and link a food or recipe to calculate by g/ml.`; };
+      checked.addEventListener('change', () => { day.constants[constant.id] = checked.checked; if (checked.checked) { day.constantSnapshots ||= {}; day.constantQuantities ||= {}; const amount = constantQuantity(day, constant); day.constantQuantities[constant.id] = amount; day.constantSnapshots[constant.id] = snapshotConstant(constant, amount); if (recordedLegacy) return renderDiet(); } refreshConstant(); renderDietSummary(summary, day); });
+      if (quantity) quantity.addEventListener('input', () => { const amount = Number(quantity.value); day.constantQuantities ||= {}; day.constantQuantities[constant.id] = amount > 0 ? Math.min(100000, amount) : constant.quantity; if (day.constants[constant.id]) { day.constantSnapshots ||= {}; day.constantSnapshots[constant.id] = snapshotConstant(constant, day.constantQuantities[constant.id]); } refreshConstant(); renderDietSummary(summary, day); });
       const actions = el('div', { class: 'v2-diet-actions' }, [
         button('Edit', () => { state.editConstant = constant.id; renderDiet(); }, 'compact'),
         button('Delete', async () => {
@@ -582,14 +684,60 @@ function slug(value) {
           try { await save('dietSettings'); renderDiet(); toast('Daily constant archived.'); } catch (error) { constant.archived = false; toast(error.message); }
         }, 'compact danger')
       ]);
-      constantsCard.append(el('div', { class: 'v2-diet-row v2-constant-row' }, [checked, el('div', {}, [el('strong', { text: constant.name })]), actions, el('span', { class: 'v2-diet-macros', text: displayMacros(constant) })]));
+      const quantityField = usesQuantity ? el('div', { class: 'v2-field v2-constant-quantity' }, [el('label', { text: 'Qty (' + unit + ')' }), quantity]) : el('div', { class: 'v2-constant-quantity v2-meta', text: recordedLegacy && constant.foodId ? `Linked: ${constant.quantity}${unit} next` : 'Link a source to set g/ml' });
+      refreshConstant();
+      constantsCard.append(el('div', { class: 'v2-diet-row v2-constant-row' }, [checked, el('div', {}, [el('strong', { text: constant.name }), el('div', { class: 'v2-meta', text: sourceLabel })]), quantityField, actions, macros]));
     });
-    panel.append(foodShortcutsCard(day), constantsCard);
-    mealSections().forEach(section => panel.append(dietMealCard(section.id, section.label, day, summary)));
-    panel.append(dietTargetsCard(), mealSectionsCard(), addConstantCard(), savedMealsCard(day, summary));
+    const archived = archivedConstantsCard(day, date);
+    panel.append(collapsibleCard(foodShortcutsCard(day), 'diet-quick-foods'), collapsibleCard(constantsCard, 'diet-constants'));
+    if (archived) panel.append(archived);
+    panel.append(collapsibleCard(oneTimeMealsCard(day, summary), 'diet-one-time-meals'));
+    mealSections().forEach(section => panel.append(collapsibleCard(dietMealCard(section.id, section.label, day, summary), 'diet-meal-' + section.id)));
+    panel.append(collapsibleCard(dietTargetsCard(), 'diet-targets', false), collapsibleCard(mealSectionsCard(), 'diet-meal-settings', false, !!state.editMealSection), collapsibleCard(addConstantCard(), 'diet-constant-editor', false, !!state.editConstant), collapsibleCard(savedMealsCard(day, summary), 'diet-saved-meals', false));
     const actions = el('div', { class: 'card' });
     actions.append(el('h2', { text: 'Record this diet' }), el('p', { class: 'v2-muted', text: 'Save the selected date when you have checked what you actually ate/took.' }), button('Save daily diet', async () => { captureDietSnapshots(day); day.updatedAt = new Date().toISOString(); try { await save('diet'); renderDiet(); toast('Daily diet saved.'); } catch (error) { toast(error.message); } }, 'primary'));
     panel.append(actions);
+  }
+  function archivedConstantsCard(day, date) {
+    const entries = archivedConstantEntries(day); if (!entries.length) return null;
+    const card = el('div', { class: 'card v2-warning' });
+    card.append(el('h2', { text: `Archived constants still included (${entries.length})` }), el('p', { class: 'v2-muted', text: 'These were recorded before being archived and still count toward this day. Remove only the entries that were not actually taken/eaten.' }));
+    entries.forEach(entry => card.append(el('div', { class: 'v2-library-row' }, [el('div', {}, [el('strong', { text: entry.name }), el('div', { class: 'v2-meta', text: displayMacros(entry.macros) })]), button('Remove from this day', () => { day.constants[entry.id] = false; renderDiet(); toast(`${entry.name} removed from ${date}. Save daily diet to keep this change.`); }, 'compact danger')])));
+    return card;
+  }
+  function oneTimeMealsCard(day, summary) {
+    const card = el('div', { class: 'card v2-one-time-meals' });
+    card.append(el('h2', { text: 'Custom one-time meals' }), el('p', { class: 'v2-diet-note', text: 'Use an estimate for a meal or snack you do not want in your Food Library. It belongs only to this date and counts toward the daily totals when included.' }));
+    const rows = el('div', { class: 'v2-one-time-list' }); const refresh = () => renderDietSummary(summary, day);
+    const renderRows = () => {
+      clear(rows);
+      if (!day.oneTimeMeals.length) rows.append(el('p', { class: 'v2-muted', text: 'No one-time meals added yet.' }));
+      day.oneTimeMeals.forEach((entry, index) => {
+        const checked = el('input', { type: 'checkbox', 'aria-label': `Include one-time meal ${index + 1}` }); checked.checked = entry.checked !== false;
+        const include = el('label', { class: 'v2-check v2-one-time-include' }, [checked, el('span', { text: 'Include' })]);
+        const description = el('input', { type: 'text', maxLength: '140', placeholder: 'e.g. Restaurant lunch estimate', 'aria-label': `One-time meal ${index + 1} description` }); description.value = entry.name || '';
+        const inputs = {};
+        const macroField = (label, key, unit, step) => {
+          const control = el('input', { type: 'number', min: '0', max: '100000', step, placeholder: '0', 'aria-label': `One-time meal ${index + 1} ${label.toLowerCase()}` });
+          control.value = entry[key] || '';
+          inputs[key] = control;
+          return el('div', { class: 'v2-field' }, [el('label', { text: `${label} (${unit})` }), control]);
+        };
+        const macros = el('div', { class: 'v2-one-time-macros' }, [macroField('Calories', 'calories', 'kcal', '1'), macroField('Protein', 'protein', 'g', '.1'), macroField('Carbs', 'carbs', 'g', '.1'), macroField('Fat', 'fat', 'g', '.1')]);
+        const update = () => {
+          entry.checked = checked.checked;
+          entry.name = description.value.slice(0, 140);
+          Object.keys(inputs).forEach(key => entry[key] = oneTimeMealValue(inputs[key].value));
+          refresh();
+        };
+        checked.addEventListener('change', update); description.addEventListener('input', update); Object.values(inputs).forEach(control => control.addEventListener('input', update));
+        const remove = button('Remove', () => { day.oneTimeMeals.splice(index, 1); renderRows(); refresh(); }, 'compact danger');
+        rows.append(el('div', { class: 'v2-one-time-row' }, [include, el('div', { class: 'v2-field v2-one-time-description' }, [el('label', { text: 'Description' }), description]), remove, macros]));
+      });
+    };
+    renderRows();
+    card.append(rows, button('+ Add one-time meal', () => { day.oneTimeMeals.push(emptyOneTimeMeal()); renderRows(); }, ''));
+    return card;
   }
   function foodShortcutsCard(day) {
     const favourites = state.foods.items.filter(food => !food.archived && food.favourite).sort((a, b) => a.name.localeCompare(b.name));
@@ -598,7 +746,7 @@ function slug(value) {
     const target = el('select', { 'aria-label': 'Meal section for quick-added food' }); mealSections().forEach(section => target.append(el('option', { value: section.id, text: section.label })));
     const add = food => {
       const rows = day.meals[target.value]; const entry = rows.find(row => !row.name) || (rows.push({ name: '', grams: '', checked: false }), rows.at(-1));
-      Object.assign(entry, { foodId: food.id, foodSnapshot: snapshotFood(food), name: food.name, grams: '', checked: false }); renderDiet(); toast(`${food.name} added to ${target.options[target.selectedIndex].text}.`);
+      Object.assign(entry, { foodId: food.id, foodSnapshot: snapshotFood(food), name: food.name, grams: '', checked: false }); rememberSection('diet-meal-' + target.value, true); renderDiet(); toast(`${food.name} added to ${target.options[target.selectedIndex].text}.`);
     };
     const shortcuts = el('div', { class: 'v2-food-shortcuts' });
     favourites.slice(0, 10).forEach(food => shortcuts.append(button('★ ' + food.name, () => add(food), 'compact')));
@@ -632,8 +780,6 @@ function slug(value) {
   }
   function dietTargetsCard() {
     const card = el('div', { class: 'card' }); card.append(el('h2', { text: 'Weekly target plan' }), el('p', { class: 'v2-diet-note', text: 'Maintain separate Standard, Training day and Rest day targets, then assign one to each weekday. Initial values match your existing target until you change them.' }));
-    card.append(button(state.showTargetEditor ? 'Hide target editor' : 'Manage target profiles and weekday schedule', () => { state.showTargetEditor = !state.showTargetEditor; renderDiet(); }));
-    if (!state.showTargetEditor) return card;
     const form = el('form');
     Object.entries(state.dietSettings.targetProfiles).forEach(([id, profile]) => {
       const grid = el('div', { class: 'v2-macro-grid' });
@@ -665,15 +811,25 @@ function slug(value) {
   }
   function addConstantCard() {
     const editing = state.dietSettings.constants.find(item => item.id === state.editConstant);
-    const card = el('div', { class: 'card' }); card.append(el('h2', { text: editing ? 'Edit daily constant' : 'Add daily constant' }), el('p', { class: 'v2-diet-note', text: 'Use the nutrition label for the usual daily amount — this becomes a tickable item each day.' }));
-    const form = el('form'); const name = el('input', { type: 'text', required: 'true', placeholder: 'e.g. Vitamin D' }); name.value = editing?.name || '';
-    const grid = el('div', { class: 'v2-grid' }); [['Calories', 'calories'], ['Protein', 'protein'], ['Carbs', 'carbs'], ['Fat', 'fat']].forEach(([label, key]) => grid.append(input(label + ' per daily amount', 'number', editing?.[key] ?? 0, () => {}, { name: key, min: '0', step: '0.1' })));
+    const legacyFixed = editing?.sourceMode === 'legacy-portion';
+    const card = el('div', { class: 'card' }); card.append(el('h2', { text: editing ? 'Edit daily constant' : 'Add daily constant' }), el('p', { class: 'v2-diet-note', text: legacyFixed ? 'This legacy entry retains its original fixed portion. Choose a food or calculated recipe below to convert it to a per-100g/ml quantity calculation.' : 'Choose a food or calculated recipe to use its per-100g/ml nutrition against a daily quantity. For supplements not in the library, leave the source blank and enter manual per-100g/ml values.' }));
+    const form = el('form'); const name = el('input', { type: 'text', required: 'true', placeholder: 'e.g. Bedtime yogurt' }); name.value = editing?.name || '';
+    const sourceOptions = el('datalist', { id: 'constant-food-options' }); state.foods.items.filter(food => !food.archived).slice().sort((a, b) => a.name.localeCompare(b.name)).forEach(food => sourceOptions.append(el('option', { value: food.name, label: food.isRecipe ? 'Recipe' : foodBasis(food) })));
+    const source = el('input', { type: 'text', list: 'constant-food-options', placeholder: 'Search saved food or recipe', 'aria-label': 'Food or recipe source' }); const editingSource = editing?.foodId ? state.foods.items.find(food => food.id === editing.foodId) || editing.foodSnapshot : null; source.value = editingSource?.name || '';
+    const quantity = el('input', { type: 'number', min: '.1', max: '100000', step: '.1', required: 'true', 'aria-label': 'Daily constant quantity' }); quantity.value = legacyFixed ? 100 : editing?.quantity || 100;
+    const basis = el('select', { 'aria-label': 'Manual nutrition basis' }, [el('option', { value: '100g', text: 'Per 100g' }), el('option', { value: '100ml', text: 'Per 100ml' })]); basis.value = editing?.basis === '100ml' ? '100ml' : '100g';
+    const grid = el('div', { class: 'v2-grid' }); const macroInputs = {}; [['Calories', 'calories'], ['Protein', 'protein'], ['Carbs', 'carbs'], ['Fat', 'fat']].forEach(([label, key]) => { const control = el('input', { type: 'number', min: '0', step: '.1', name: key, 'aria-label': label + ' per 100' }); control.value = editing?.[key] ?? 0; macroInputs[key] = control; grid.append(el('div', { class: 'v2-field' }, [el('label', { text: label + ' per 100g/ml' }), control])); });
+    const preview = el('p', { class: 'v2-summary' });
+    const selectedSource = () => source.value.trim() ? foodByName(source.value) : null;
+    const updateSource = () => { const selected = selectedSource(); const hasTypedSource = !!source.value.trim(); basis.disabled = !!selected; Object.values(macroInputs).forEach(control => control.disabled = !!selected); if (selected) { basis.value = foodBasis(selected); Object.keys(macroInputs).forEach(key => macroInputs[key].value = Number(selected[key]) || 0); source.value = selected.name; } const previewSource = selected || { calories: Number(macroInputs.calories.value) || 0, protein: Number(macroInputs.protein.value) || 0, carbs: Number(macroInputs.carbs.value) || 0, fat: Number(macroInputs.fat.value) || 0, basis: basis.value }; const unit = foodUnit(previewSource); preview.textContent = legacyFixed && !selected && !hasTypedSource ? `Legacy fixed portion · ${displayMacros(editing)}. Select a source to convert it.` : hasTypedSource && !selected ? 'Choose a food or recipe from the library, or clear this field for manual values.' : `${selected ? selected.name + ' · ' : 'Manual values · '}${displayMacros(scaledMacros(previewSource, quantity.value))} for ${Number(quantity.value) || 0}${unit}.`; return selected; };
+    source.addEventListener('input', updateSource); source.addEventListener('change', updateSource); quantity.addEventListener('input', updateSource); basis.addEventListener('change', updateSource); Object.values(macroInputs).forEach(control => control.addEventListener('input', updateSource)); updateSource();
     const submit = button(editing ? 'Save constant' : 'Add constant', null, 'primary'); submit.type = 'submit';
     const cancel = editing ? button('Cancel', () => { state.editConstant = null; renderDiet(); }) : null;
-    form.append(el('div', { class: 'v2-field' }, [el('label', { text: 'Name' }), name]), grid, el('div', { class: 'v2-toolbar' }, [submit, cancel]));
+    form.append(el('div', { class: 'v2-grid' }, [el('div', { class: 'v2-field' }, [el('label', { text: 'Checklist label' }), name]), el('div', { class: 'v2-field' }, [el('label', { text: 'Food or recipe source' }), source])]), sourceOptions, el('div', { class: 'v2-grid' }, [el('div', { class: 'v2-field' }, [el('label', { text: 'Daily quantity (g/ml)' }), quantity]), el('div', { class: 'v2-field' }, [el('label', { text: 'Manual nutrition basis' }), basis])]), grid, preview, el('div', { class: 'v2-toolbar' }, [submit, cancel]));
     form.addEventListener('submit', async event => {
       event.preventDefault(); const data = new FormData(form); const constantName = name.value.trim(); if (!constantName) return;
-      const next = { id: editing?.id || slug(constantName) + '-' + Date.now(), name: constantName, calories: numberOrNull(data.get('calories')) || 0, protein: numberOrNull(data.get('protein')) || 0, carbs: numberOrNull(data.get('carbs')) || 0, fat: numberOrNull(data.get('fat')) || 0 };
+      const selected = updateSource(); if (source.value.trim() && !selected) return toast('Choose a saved food or recipe, or clear the source field for manual nutrition.'); if (legacyFixed && !selected) return toast('Choose a food or recipe to convert this legacy fixed portion.'); const amount = Number(quantity.value); if (!Number.isFinite(amount) || amount <= 0) return toast('Enter a positive daily quantity.');
+      const next = { id: editing?.id || slug(constantName) + '-' + Date.now(), name: constantName, sourceMode: 'per100', foodId: selected?.id || null, foodSnapshot: selected ? snapshotFood(selected) : null, quantity: Math.min(100000, amount), per100: true, basis: selected ? foodBasis(selected) : basis.value, calories: selected ? Number(selected.calories) || 0 : numberOrNull(data.get('calories')) || 0, protein: selected ? Number(selected.protein) || 0 : numberOrNull(data.get('protein')) || 0, carbs: selected ? Number(selected.carbs) || 0 : numberOrNull(data.get('carbs')) || 0, fat: selected ? Number(selected.fat) || 0 : numberOrNull(data.get('fat')) || 0, archived: editing?.archived === true };
       if (editing) state.dietSettings.constants[state.dietSettings.constants.findIndex(item => item.id === editing.id)] = next; else state.dietSettings.constants.push(next);
       try { await save('dietSettings'); state.editConstant = null; renderDiet(); toast(editing ? 'Daily constant updated.' : 'Daily constant added.'); } catch (error) { toast(error.message); }
     });
@@ -686,9 +842,9 @@ function slug(value) {
     const aliases = el('input', { type: 'text', 'aria-label': 'Food aliases', placeholder: 'e.g. courgette, zucchini' }); aliases.value = (editing?.aliases || []).join(', ');
     const servings = el('textarea', { rows: '3', 'aria-label': 'Serving presets', placeholder: '1 scoop = 30\n1 tablespoon = 15' }); servings.value = (editing?.servings || []).map(item => `${item.label} = ${item.amount}`).join('\n');
     const basis = el('select', { name: 'basis', 'aria-label': 'Nutrition basis' }, [el('option', { value: '100g', text: 'Per 100g' }), el('option', { value: '100ml', text: 'Per 100ml' })]); basis.value = foodBasis(editing);
-    const grid = el('div', { class: 'v2-grid' }); [['Calories', 'calories'], ['Protein', 'protein'], ['Carbs', 'carbs'], ['Fat', 'fat']].forEach(([label, key]) => grid.append(input(label, 'number', editing?.[key] ?? 0, () => {}, { name: key, min: '0', step: '0.1' })));
+    const grid = el('div', { class: 'v2-grid' }); [['Calories', 'calories'], ['Protein', 'protein'], ['Carbs', 'carbs'], ['Fat', 'fat']].forEach(([label, key]) => grid.append(input(label, 'number', editing?.[key] ?? 0, () => {}, { name: key, min: '0', step: 'any' })));
     const submit = button(editing ? 'Save food' : 'Add food', null, 'primary'); submit.type = 'submit'; const cancel = editing ? button('Cancel', () => { state.editFood = null; renderFoods(); }) : null;
-    form.append(el('div', { class: 'v2-grid' }, [el('div', { class: 'v2-field' }, [el('label', { text: 'Food name' }), name]), el('div', { class: 'v2-field' }, [el('label', { text: 'Nutrition basis' }), basis])]), el('div', { class: 'v2-field' }, [el('label', { text: 'Search aliases — comma separated' }), aliases]), grid, el('div', { class: 'v2-field' }, [el('label', { text: 'Serving presets — one per line as label = amount' }), servings]), el('div', { class: 'v2-toolbar' }, [submit, cancel])); form.addEventListener('submit', async event => { event.preventDefault(); const data = new FormData(form); const foodName = name.value.trim(); const aliasList = aliases.value.split(',').map(value => value.trim()).filter(Boolean); const identities = new Set([foodName, ...aliasList].map(value => value.toLowerCase())); const duplicate = state.foods.items.find(item => item.id !== editing?.id && [item.name, ...(item.aliases || [])].some(value => identities.has(value.toLowerCase()))); if (!foodName || duplicate) return toast(foodName ? `That name or alias is already used by ${duplicate.name}.` : 'Enter a food name.'); const next = { ...(editing || {}), id: editing?.id || slug(foodName) + '-' + Date.now(), name: foodName, aliases: aliasList, servings: parseServings(servings.value), calories: numberOrNull(data.get('calories')) || 0, protein: numberOrNull(data.get('protein')) || 0, carbs: numberOrNull(data.get('carbs')) || 0, fat: numberOrNull(data.get('fat')) || 0, basis: data.get('basis') === '100ml' ? '100ml' : '100g', archived: false, favourite: editing?.favourite === true }; if (editing) state.foods.items[state.foods.items.findIndex(item => item.id === editing.id)] = next; else state.foods.items.push(next); try { await save('foods'); state.editFood = null; renderFoods(); toast(editing ? 'Food updated.' : 'Food added to the library.'); } catch (error) { toast(error.message); } }); card.append(form); return card;
+    form.append(el('div', { class: 'v2-grid' }, [el('div', { class: 'v2-field' }, [el('label', { text: 'Food name' }), name]), el('div', { class: 'v2-field' }, [el('label', { text: 'Nutrition basis' }), basis])]), el('div', { class: 'v2-field' }, [el('label', { text: 'Search aliases — comma separated' }), aliases]), grid, el('div', { class: 'v2-field' }, [el('label', { text: 'Serving presets — one per line as label = amount' }), servings]), el('div', { class: 'v2-toolbar' }, [submit, cancel])); form.addEventListener('submit', async event => { event.preventDefault(); const data = new FormData(form); const foodName = name.value.trim(); const aliasList = aliases.value.split(',').map(value => value.trim()).filter(Boolean); const identities = new Set([foodName, ...aliasList].map(value => value.toLowerCase())); const duplicate = state.foods.items.find(item => item.id !== editing?.id && [item.name, ...(item.aliases || [])].some(value => identities.has(value.toLowerCase()))); if (!foodName || duplicate) return toast(foodName ? `That name or alias is already used by ${duplicate.name}.` : 'Enter a food name.'); const next = { ...(editing || {}), id: editing?.id || slug(foodName) + '-' + Date.now(), name: foodName, aliases: aliasList, servings: parseServings(servings.value), calories: numberOrNull(data.get('calories')) || 0, protein: numberOrNull(data.get('protein')) || 0, carbs: numberOrNull(data.get('carbs')) || 0, fat: numberOrNull(data.get('fat')) || 0, basis: data.get('basis') === '100ml' ? '100ml' : '100g', archived: false, favourite: editing?.favourite === true }; if (editing) state.foods.items[state.foods.items.findIndex(item => item.id === editing.id)] = next; else state.foods.items.push(next); try { await save('foods'); state.editFood = null; renderFoods(); toast(editing ? 'Food updated.' : 'Food added to the library.'); } catch (error) { toast(error.message); } }); card.append(window.NutritionOCR.attach(form, basis), form); return card;
   }
   function foodLibraryCard() {
     const card = el('div', { class: 'card' }); card.append(el('h2', { text: 'Food library' }), el('p', { class: 'v2-diet-note', text: 'Edit, archive, or reuse foods. Archive removes a food from new entries without altering recorded days.' }));
@@ -783,7 +939,7 @@ function slug(value) {
     const panel = clear($('#tab-foods'));
     const intro = el('div', { class: 'card' });
     intro.append(el('h2', { text: 'Food library' }), el('p', { class: 'v2-muted', text: 'Manage reusable foods separately from the daily diary. Generic foods use official UK composition data; packaged and recipe foods should follow their own labels.' }));
-    panel.append(intro, addFoodCard(), recipeBuilderCard(), foodManagementCard(), archivedFoodsCard());
+    panel.append(intro, collapsibleCard(addFoodCard(), 'foods-editor', true, !!state.editFood), collapsibleCard(recipeBuilderCard(), 'foods-recipes', false, !!state.editRecipe), collapsibleCard(foodManagementCard(), 'foods-library'), collapsibleCard(archivedFoodsCard(), 'foods-archived', false));
   }
   function savedMealsCard(day, summary) {
     const card = el('div', { class: 'card' }); card.append(el('h2', { text: 'Saved meals' }), el('p', { class: 'v2-diet-note', text: 'Save a meal section as a reusable template, then load it into any section on another day.' }));
@@ -793,7 +949,7 @@ function slug(value) {
     card.append(form); const active = state.mealTemplates.items.filter(item => !item.archived).slice().sort((a, b) => a.name.localeCompare(b.name)); if (!active.length) return card;
     const target = el('select'); mealSections().forEach(section => target.append(el('option', { value: section.id, text: section.label })));
     card.append(el('div', { class: 'v2-field' }, [el('label', { text: 'Load into' }), target]));
-    active.forEach(template => card.append(el('div', { class: 'v2-library-row' }, [el('div', {}, [el('strong', { text: template.name }), el('div', { class: 'v2-meta', text: template.entries.map(entry => entry.name).join(' · ') })]), el('div', { class: 'v2-actions' }, [button('Load', () => { if (!confirm(`Replace ${target.options[target.selectedIndex].text} with “${template.name}”?`)) return; day.meals[target.value] = clone(template.entries); renderDiet(); renderDietSummary(summary, day); toast('Saved meal loaded. Save the day when ready.'); }, 'compact'), button('Archive', async () => { template.archived = true; try { await save('mealTemplates'); renderDiet(); toast('Saved meal archived.'); } catch (error) { template.archived = false; toast(error.message); } }, 'compact danger')])])));
+    active.forEach(template => card.append(el('div', { class: 'v2-library-row' }, [el('div', {}, [el('strong', { text: template.name }), el('div', { class: 'v2-meta', text: template.entries.map(entry => entry.name).join(' · ') })]), el('div', { class: 'v2-actions' }, [button('Load', () => { if (!confirm(`Replace ${target.options[target.selectedIndex].text} with “${template.name}”?`)) return; day.meals[target.value] = clone(template.entries); rememberSection('diet-meal-' + target.value, true); renderDiet(); renderDietSummary(summary, day); toast('Saved meal loaded. Save the day when ready.'); }, 'compact'), button('Archive', async () => { template.archived = true; try { await save('mealTemplates'); renderDiet(); toast('Saved meal archived.'); } catch (error) { template.archived = false; toast(error.message); } }, 'compact danger')])])));
     return card;
   }
   function dietHistoryCard(currentDate) {
@@ -807,13 +963,14 @@ function slug(value) {
     const card = el('div', { class: 'card v2-diet-history' });
     card.append(el('h2', { text: 'Meal history' }), el('p', { class: 'v2-muted', text: 'Saved daily diet records. Open one to make a correction in Diet.' }));
     if (!dates.length) card.append(el('p', { class: 'v2-muted', text: 'No saved diet days yet.' }));
-    dates.slice(0, 60).forEach(date => {
+    dates.slice(0, state.dietHistoryLimit || 60).forEach(date => {
       const totals = dietTotals(state.diet.days[date]).total;
       card.append(el('div', { class: 'v2-row' }, [
         el('div', { class: 'grow' }, [el('strong', { text: date }), el('div', { class: 'v2-meta', text: displayMacros(totals) })]),
         button('Edit in Diet', () => { $('#tab-diet').dataset.dietDate = date; selectTab('diet'); })
       ]));
     });
+    if (dates.length > (state.dietHistoryLimit || 60)) card.append(button('Show 60 more meal days', () => { state.dietHistoryLimit = (state.dietHistoryLimit || 60) + 60; renderRecords(); }));
     return card;
   }
   function recordsFilterCard() {
@@ -825,7 +982,7 @@ function slug(value) {
     [...new Set(state.workouts.sessions.map(session => session.routineName || 'Ad hoc workout'))].sort().forEach(name => routine.append(el('option', { value: name, text: name }))); routine.value = filter.routine;
     const apply = () => { filter.type = type.value; filter.from = from.value; filter.to = to.value; filter.routine = routine.value; renderRecords(); };
     type.addEventListener('change', apply); from.addEventListener('change', apply); to.addEventListener('change', apply); routine.addEventListener('change', apply);
-    const preset = days => { const end = new Date(); const start = new Date(); start.setDate(start.getDate() - days + 1); filter.from = start.toISOString().slice(0, 10); filter.to = end.toISOString().slice(0, 10); renderRecords(); };
+    const preset = days => { const end = new Date(); const start = new Date(); start.setDate(start.getDate() - days + 1); filter.from = localDate(start); filter.to = localDate(end); renderRecords(); };
     card.append(el('div', { class: 'v2-grid' }, [el('div', { class: 'v2-field' }, [el('label', { text: 'Record type' }), type]), el('div', { class: 'v2-field' }, [el('label', { text: 'Routine' }), routine]), el('div', { class: 'v2-field' }, [el('label', { text: 'From' }), from]), el('div', { class: 'v2-field' }, [el('label', { text: 'To' }), to])]), el('div', { class: 'v2-toolbar' }, [button('Last 7 days', () => preset(7), 'compact'), button('Last 30 days', () => preset(30), 'compact'), button('Last 90 days', () => preset(90), 'compact'), button('All time', () => { filter.from = ''; filter.to = ''; renderRecords(); }, 'compact')]));
     return card;
   }
@@ -876,9 +1033,9 @@ function slug(value) {
   function recordsPersonalBestsCard(sessions) {
     const card = el('div', { class: 'card' }); card.append(el('h2', { text: 'Personal records' }), el('p', { class: 'v2-muted', text: 'Historical exercise names are reconciled with their current exercise and variation, so renamed records contribute to one progression history. Bodyweight and band descriptions are not guessed as kilograms.' })); const search = el('input', { type: 'search', placeholder: 'Filter personal records', 'aria-label': 'Filter personal records' }); const list = el('div', { class: 'v2-pr-list' }); const items = personalBests(sessions); const redraw = () => { clear(list); const query = search.value.trim().toLowerCase(); const visible = items.filter(item => !query || item.name.toLowerCase().includes(query) || [...item.aliases].some(alias => alias.toLowerCase().includes(query))).slice(0, 30); visible.forEach(item => list.append(el('div', { class: 'v2-pr' }, [el('strong', { text: item.name }), el('div', { class: 'v2-meta', text: `Best ${item.best} ${item.unit}${item.load === null ? '' : ` · max numeric load ${item.load} kg`}${item.volume ? ` · best loaded volume ${Math.round(item.volume)}` : ''}` }), el('div', { class: 'v2-meta', text: 'Latest best performance: ' + item.date }), item.aliases.size ? el('div', { class: 'v2-meta', text: 'Includes earlier names: ' + [...item.aliases].join(', ') }) : null]))); if (!visible.length) list.append(el('p', { class: 'v2-muted', text: 'No matching logged performance yet.' })); }; search.addEventListener('input', redraw); card.append(search, list); redraw(); return card;
   }
-  function mondayOf(date) { const value = new Date(date + 'T12:00:00'); const day = value.getDay() || 7; value.setDate(value.getDate() - day + 1); return value.toISOString().slice(0, 10); }
+  function mondayOf(date) { const value = new Date(date + 'T12:00:00'); const day = value.getDay() || 7; value.setDate(value.getDate() - day + 1); return localDate(value); }
   function recordsTrainingLoadCard(sessions) {
-    const weeks = []; const current = new Date(isoToday() + 'T12:00:00'); const currentDay = current.getDay() || 7; current.setDate(current.getDate() - currentDay + 1); for (let offset = 7; offset >= 0; offset--) { const start = new Date(current); start.setDate(start.getDate() - offset * 7); weeks.push({ key: start.toISOString().slice(0, 10), sets: 0, work: 0, loadedVolume: 0 }); } const lookup = Object.fromEntries(weeks.map(item => [item.key, item])); sessions.forEach(session => { const week = lookup[mondayOf(session.date)]; if (!week) return; session.exercises.forEach(exercise => exercise.sets.forEach(set => { if (!(set.done || set.reps)) return; const performance = Number(set.reps) || 0; week.sets++; week.work += performance; const load = numericLoad(set.load); if (load !== null) week.loadedVolume += performance * load; })); }); const max = Math.max(1, ...weeks.map(item => item.work)); const card = el('div', { class: 'card' }); card.append(el('h2', { text: 'Eight-week training load' }), el('p', { class: 'v2-muted', text: 'Total logged reps or hold-seconds. Numeric loaded volume is reported separately; the chart does not invent a bodyweight load.' })); const chart = el('div', { class: 'v2-bar-chart', role: 'img', 'aria-label': 'Eight week training work chart' }); weeks.forEach(item => { const bar = el('div', { class: 'v2-bar', title: `${item.key}: ${item.work} reps/seconds across ${item.sets} sets`, style: `height:${Math.max(2, item.work / max * 100)}%` }, [el('span', { text: item.key.slice(5) })]); chart.append(bar); }); const latest = weeks.at(-1); card.append(chart, el('p', { class: 'v2-summary', text: `Current week: ${latest.sets} completed sets · ${Math.round(latest.work)} reps/seconds · ${Math.round(latest.loadedVolume)} numeric loaded volume.` })); return card;
+    const weeks = []; const current = new Date(isoToday() + 'T12:00:00'); const currentDay = current.getDay() || 7; current.setDate(current.getDate() - currentDay + 1); for (let offset = 7; offset >= 0; offset--) { const start = new Date(current); start.setDate(start.getDate() - offset * 7); weeks.push({ key: localDate(start), sets: 0, work: 0, loadedVolume: 0 }); } const lookup = Object.fromEntries(weeks.map(item => [item.key, item])); sessions.forEach(session => { const week = lookup[mondayOf(session.date)]; if (!week) return; session.exercises.forEach(exercise => exercise.sets.forEach(set => { if (!(set.done || set.reps)) return; const performance = Number(set.reps) || 0; week.sets++; week.work += performance; const load = numericLoad(set.load); if (load !== null) week.loadedVolume += performance * load; })); }); const max = Math.max(1, ...weeks.map(item => item.work)); const card = el('div', { class: 'card' }); card.append(el('h2', { text: 'Eight-week training load' }), el('p', { class: 'v2-muted', text: 'Total logged reps or hold-seconds. Numeric loaded volume is reported separately; the chart does not invent a bodyweight load.' })); const chart = el('div', { class: 'v2-bar-chart', role: 'img', 'aria-label': 'Eight week training work chart' }); weeks.forEach(item => { const bar = el('div', { class: 'v2-bar', title: `${item.key}: ${item.work} reps/seconds across ${item.sets} sets`, style: `height:${Math.max(2, item.work / max * 100)}%` }, [el('span', { text: item.key.slice(5) })]); chart.append(bar); }); const latest = weeks.at(-1); card.append(chart, el('p', { class: 'v2-summary', text: `Current week: ${latest.sets} completed sets · ${Math.round(latest.work)} reps/seconds · ${Math.round(latest.loadedVolume)} numeric loaded volume.` })); return card;
   }
   function recordsProgrammeAnalyticsCard() {
     const card = el('div', { class: 'card' }); card.append(el('h2', { text: 'Programme progression' })); const weekEntries = Object.entries(state.programme.weeklyChecks).sort((a, b) => Number(a[0]) - Number(b[0])); const tasksPerWeek = PROGRAMME_SESSIONS.reduce((sum, session) => sum + programmeSessionItems(session[0]).length, 0); const completed = weekEntries.reduce((sum, [, week]) => sum + Object.values(week.items || {}).filter(Boolean).length, 0); const possible = weekEntries.length * tasksPerWeek; const avgAdherence = possible ? completed / possible * 100 : 0; const discomfort = weekEntries.filter(([, item]) => item.jointComfort !== '' && item.jointComfort !== null && item.jointComfort !== undefined).map(([week, item]) => ({ week, value: Number(item.jointComfort) })).filter(item => Number.isFinite(item.value)); const recentNeedsWork = state.workouts.sessions.filter(session => session.programme && session.date >= new Date(Date.now() - 28 * 86400000).toISOString().slice(0, 10)).flatMap(session => session.exercises).filter(exercise => exercise.formQuality === 'needs-work').length; const grid = el('div', { class: 'v2-macro-grid' }); [['Tracked weeks', String(weekEntries.length), `${completed}/${possible || 0} checklist items`], ['Average adherence', possible ? Math.round(avgAdherence) + '%' : '—', 'Individually ticked programme tasks'], ['Stage changes', String(state.programme.stageHistory.length), 'Recorded from this release onward'], ['Latest discomfort', discomfort.length ? discomfort.at(-1).value + '/10' : '—', discomfort.length ? `Programme week ${discomfort.at(-1).week}` : 'No weekly score']].forEach(([label, value, note]) => grid.append(el('div', { class: 'v2-macro' }, [el('span', { text: label }), el('strong', { text: value }), el('span', { text: note })]))); card.append(grid);
@@ -892,20 +1049,20 @@ function slug(value) {
     const dates = Object.keys(state.diet.days).filter(date => state.diet.days[date].updatedAt && recordDateVisible(date)).sort().reverse();
     const sessions = state.workouts.sessions.filter(session => recordDateVisible(session.date) && (!state.recordsFilters.routine || (session.routineName || 'Ad hoc workout') === state.recordsFilters.routine)).slice().sort(byDate).reverse();
     panel.append(intro); const latestSummary = state.workouts.sessions.find(session => session.id === state.lastWorkoutId); if (latestSummary) panel.append(workoutSummaryCard(latestSummary, 'Just completed')); panel.append(recordsFilterCard(), recordsSummaryCard(state.recordsFilters.type === 'workouts' ? [] : dates, state.recordsFilters.type === 'diet' ? [] : sessions));
-    if (state.recordsFilters.type !== 'diet') panel.append(recordsTrainingLoadCard(sessions), recordsPersonalBestsCard(sessions), recordsProgrammeAnalyticsCard());
-    if (state.recordsFilters.type !== 'workouts') panel.append(recordsDietHistoryCard(dates));
     if (state.recordsFilters.type !== 'diet') panel.append(workoutHistoryCard(sessions));
+    if (state.recordsFilters.type !== 'workouts') panel.append(recordsDietHistoryCard(dates));
+    if (state.recordsFilters.type !== 'diet') panel.append(el('details', {}, [el('summary', { text: 'Training analysis, personal records & programme progress' }), recordsTrainingLoadCard(sessions), recordsPersonalBestsCard(sessions), recordsProgrammeAnalyticsCard()]));
   }
 
   function trendValues(field) { return Object.entries(state.health.entries).sort((a, b) => a[0].localeCompare(b[0])).map(([date, entry]) => ({ date, value: entry[field] })).filter(point => Number.isFinite(point.value)); }
   function average(values) { return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null; }
   function pointsInWindow(points, days, anchor = points.at(-1)?.date) { if (!anchor) return []; const end = Date.parse(anchor); const start = end - (Math.max(1, Number(days)) - 1) * 86400000; return points.filter(point => { const time = Date.parse(point.date); return time >= start && time <= end; }); }
   function rollingAverageSeries(points, days = 7) { return points.map(point => ({ date: point.date, value: average(pointsInWindow(points.filter(candidate => candidate.date <= point.date), days, point.date).map(candidate => Number(candidate.value))) })).filter(point => point.value !== null); }
-  function measurementRate(points, days = 28, minPoints = 3, minSpanDays = 14) { const recent = pointsInWindow(points, days); if (recent.length < minPoints) return null; const origin = Date.parse(recent[0].date); const xs = recent.map(point => (Date.parse(point.date) - origin) / 86400000); const span = xs.at(-1) - xs[0]; if (span < minSpanDays) return null; const xMean = average(xs); const yMean = average(recent.map(point => Number(point.value))); const denominator = xs.reduce((sum, value) => sum + (value - xMean) ** 2, 0); if (!denominator) return null; const slope = recent.reduce((sum, point, index) => sum + (xs[index] - xMean) * (Number(point.value) - yMean), 0) / denominator; return { perWeek: slope * 7, spanDays: span, count: recent.length };
+  function measurementRate(points, days = 29, minPoints = 3, minSpanDays = 14) { const recent = pointsInWindow(points, days); if (recent.length < minPoints) return null; const origin = Date.parse(recent[0].date); const xs = recent.map(point => (Date.parse(point.date) - origin) / 86400000); const span = xs.at(-1) - xs[0]; if (span < minSpanDays) return null; const xMean = average(xs); const yMean = average(recent.map(point => Number(point.value))); const denominator = xs.reduce((sum, value) => sum + (value - xMean) ** 2, 0); if (!denominator) return null; const slope = recent.reduce((sum, point, index) => sum + (xs[index] - xMean) * (Number(point.value) - yMean), 0) / denominator; return { perWeek: slope * 7, spanDays: span, count: recent.length };
   }
   function recentWeightForDate(date) { const weights = trendValues('weight'); const prior = weights.filter(point => point.date <= date).at(-1); if (prior && (Date.parse(date) - Date.parse(prior.date)) / 86400000 <= 30) return Number(prior.value); const nearby = weights.map(point => ({ ...point, distance: Math.abs(Date.parse(point.date) - Date.parse(date)) / 86400000 })).sort((a, b) => a.distance - b.distance)[0]; return nearby?.distance <= 14 ? Number(nearby.value) : null; }
   function relativeStrengthItems() { const bodyweightPattern = /^(pull-up|chin-up|dip|push-up|muscle-up|hang|row - rings)/i; const records = new Map(); state.workouts.sessions.slice().sort(byDate).forEach(session => (session.exercises || []).forEach(exercise => { const performance = exercisePerformance(exercise); const bodyweight = recentWeightForDate(session.date); if (performance.maxLoad === null || !bodyweight) return; const identity = canonicalExerciseIdentity(exercise); const bodyweightMovement = bodyweightPattern.test(identity.name); const ratio = bodyweightMovement ? (bodyweight + performance.maxLoad) / bodyweight : performance.maxLoad / bodyweight; const record = records.get(identity.key) || { name: identity.name, bodyweightMovement, points: [] }; record.points.push({ date: session.date, ratio, load: performance.maxLoad, bodyweight }); records.set(identity.key, record); })); return [...records.values()].filter(item => item.points.length).sort((a, b) => b.points.length - a.points.length || b.points.at(-1).ratio - a.points.at(-1).ratio).slice(0, 6); }
-  function bodyCompositionModel() { const weights = trendValues('weight'); const waists = trendValues('waist'); const rollingWeight = rollingAverageSeries(weights, 7); const recentWeight = pointsInWindow(weights, 7); const baselineWeight = weights.length ? pointsInWindow(weights, 7, weights[0].date) : []; const weightAverage = average(recentWeight.map(point => Number(point.value))); const baselineAverage = average(baselineWeight.map(point => Number(point.value))); const weightRate = measurementRate(weights); const waistRate = measurementRate(waists); const relative = relativeStrengthItems(); const relativeChanges = relative.filter(item => item.points.length > 1).map(item => item.points.at(-1).ratio - item.points[0].ratio); const strengthChange = relativeChanges.length ? average(relativeChanges) : null; let signal = 'Keep logging weight and waist measurements; at least three readings across 14 days are needed for a directional recomp signal.';
+  function bodyCompositionModel() { const weights = trendValues('weight'); const waists = trendValues('waist'); const rollingWeight = rollingAverageSeries(weights, 7); const recentWeight = pointsInWindow(weights, 7, isoToday()); const baselineWeight = weights.length ? pointsInWindow(weights, 7, datePlus(weights[0].date, 6)) : []; const weightAverage = average(recentWeight.map(point => Number(point.value))); const baselineAverage = average(baselineWeight.map(point => Number(point.value))); const weightRate = measurementRate(weights); const waistRate = measurementRate(waists); const relative = relativeStrengthItems(); const relativeChanges = relative.filter(item => item.points.length > 1).map(item => item.points.at(-1).ratio - item.points[0].ratio); const strengthChange = relativeChanges.length ? average(relativeChanges) : null; let signal = 'Keep logging weight and waist measurements; at least three readings across 14 days are needed for a directional recomp signal.';
     if (weightRate && waistRate) { const weightStable = Math.abs(weightRate.perWeek) <= .35; const waistFalling = waistRate.perWeek <= -.15; const strengthHeld = strengthChange === null || strengthChange >= -.02; if (weightStable && waistFalling && strengthHeld) signal = 'Possible recomp pattern: scale weight is broadly stable while waist is trending down and recorded relative strength is maintained.'; else if (weightRate.perWeek < -.35 && waistRate.perWeek < 0) signal = 'Weight and waist are both trending down. Check performance and recovery before deciding whether the rate is sustainable.'; else if (waistRate.perWeek > .15 && weightRate.perWeek > .1) signal = 'Weight and waist are both trending upward. Review the longer trend and logged intake rather than reacting to one measurement.'; else signal = 'The current weight, waist and strength signals are mixed; continue the plan and collect more consistent measurements before changing course.'; }
     const energyEquivalent = weightRate && weightRate.spanDays >= 28 && Math.abs(weightRate.perWeek) <= 1 ? Math.round(weightRate.perWeek * 7700 / 7) : null; return { weights, waists, rollingWeight, recentWeight, weightAverage, baselineAverage, weightRate, waistRate, relative, strengthChange, energyEquivalent, signal };
   }
@@ -920,7 +1077,7 @@ function slug(value) {
   }
   function renderHabits() {
     const panel = clear($('#tab-habits')); appendTrendCards(panel); const card = el('div', { class: 'card' }); card.append(el('h2', { text: 'Calendar-true streaks' })); const grid = el('div', { class: 'streak-grid' });
-    HABITS.forEach(([key, label]) => { let count = 0; const cursor = new Date(isoToday() + 'T12:00:00'); while (state.health.entries[cursor.toISOString().slice(0, 10)]?.[key] === true) { count++; cursor.setDate(cursor.getDate() - 1); } grid.append(el('div', { class: 'streak-card' }, [el('div', { class: 'n', text: String(count) }), el('div', { class: 'lbl', text: label })])); }); card.append(grid); panel.append(card);
+    HABITS.forEach(([key, label]) => { let count = 0; const cursor = new Date(isoToday() + 'T12:00:00'); while (state.health.entries[localDate(cursor)]?.[key] === true) { count++; cursor.setDate(cursor.getDate() - 1); } grid.append(el('div', { class: 'streak-card' }, [el('div', { class: 'n', text: String(count) }), el('div', { class: 'lbl', text: label })])); }); card.append(grid); panel.append(card);
     const recent = Object.entries(state.health.entries).sort((a, b) => b[0].localeCompare(a[0])).slice(0, 14);
     const history = el('div', { class: 'card' }); history.append(el('h2', { text: 'Last 14 logged days' }));
     recent.forEach(([date, entry]) => {
@@ -956,7 +1113,7 @@ function slug(value) {
   async function restoreRoutineVersion(id, versionNumber) { const routine = state.routines.items.find(item => item.id === id); const version = routine?.versions?.find(item => item.version === versionNumber); if (!routine || !version || !confirm(`Restore version ${versionNumber} of ${routine.name} as a new current version?`)) return; const current = routineVersionSnapshot(routine); routine.versions = [...routine.versions, current].slice(-20); routine.version = (Number(routine.version) || 1) + 1; routine.name = version.name; routine.exercises = clone(version.exercises); routine.scheduleDays = clone(version.scheduleDays || []); routine.updatedAt = new Date().toISOString(); try { await save('routines'); render(); toast(`Restored as version ${routine.version}.`); } catch (error) { toast(error.message); } }
   async function duplicateRoutine(id) { const source = state.routines.items.find(item => item.id === id); if (!source) return; const copy = clone(source); copy.id = 'routine-' + Date.now(); copy.name = source.name + ' — Copy'; copy.version = 1; copy.versions = []; copy.createdAt = new Date().toISOString(); copy.updatedAt = copy.createdAt; state.routines.items.push(copy); try { await save('routines'); renderRoutines(); toast('Routine duplicated.'); } catch (error) { state.routines.items.pop(); toast(error.message); } }
   async function saveRoutineTemplate(routine, kind) { const exercises = routine.exercises.filter(exercise => exercise.programming?.setType === kind).map(clone); if (!exercises.length) return toast(`This routine has no ${kind} exercises.`); const base = `${routine.name} ${kind}`; let name = base; let suffix = 2; while (state.routines.templates.some(item => item.name.toLowerCase() === name.toLowerCase())) name = `${base} ${suffix++}`; state.routines.templates.push({ id: 'routine-template-' + Date.now(), name, kind, exercises, updatedAt: new Date().toISOString() }); try { await save('routines'); renderRoutines(); toast(`${kind === 'warm-up' ? 'Warm-up' : 'Cooldown'} template saved.`); } catch (error) { state.routines.templates.pop(); toast(error.message); } }
-  async function deleteRoutineTemplate(id) { if (!confirm('Delete this reusable routine template?')) return; const index = state.routines.templates.findIndex(item => item.id === id); const removed = state.routines.templates.splice(index, 1)[0]; try { await save('routines'); renderRoutines(); toast('Template deleted.'); } catch (error) { state.routines.templates.splice(index, 0, removed); toast(error.message); } }
+  async function deleteRoutineTemplate(id) { if (!confirm('Delete this reusable routine template?')) return; const index = state.routines.templates.findIndex(item => item.id === id); if (index < 0) return; const removed = state.routines.templates.splice(index, 1)[0]; try { await save('routines'); renderRoutines(); toast('Template deleted.'); } catch (error) { state.routines.templates.splice(index, 0, removed); toast(error.message); } }
   function routineBuilder() {
     const editing = state.routines.items.find(item => item.id === state.selectedRoutine);
     const card = el('div', { class: 'card' });
@@ -1070,23 +1227,21 @@ function slug(value) {
     const card = el('div', { class: 'card' }); card.append(el('h2', { text: 'Workout history' }));
     const sessions = filteredSessions || state.workouts.sessions.slice().sort(byDate).reverse();
     if (!sessions.length) card.append(el('p', { class: 'v2-muted', text: 'No completed workouts yet.' }));
-    sessions.slice(0, 60).forEach(session => {
+    card.append(workoutSelectionToolbar(sessions));
+    sessions.slice(0, state.workoutHistoryLimit || 60).forEach(session => {
       const detail = session.exercises.map(exercise => exercise.name + ': ' + exercise.sets.map(set => `${set.reps || '—'} @ ${set.load || 'BW'}`).join(', ')).join(' · ');
       const summary = session.summary || buildWorkoutSummary(session); const summaryDetails = el('details', { class: 'v2-exercise-history' }); summaryDetails.append(el('summary', { text: 'Session summary' }), el('div', { class: 'v2-meta', text: `${summary.completedSets}/${summary.plannedSets} sets${summary.targetSets ? ` · ${summary.targetsMet}/${summary.targetSets} targets met` : ''} · ${Math.round(summary.work)} reps/seconds · ${Math.round(summary.loadedVolume)} numeric volume · ${timeDisplay(session.elapsedSeconds || 0)} · ${summary.prs} PR signal${summary.prs === 1 ? '' : 's'} · discomfort ${summary.discomfort}/10${summary.avgRpe === null ? '' : ` · avg RPE ${summary.avgRpe.toFixed(1)}`}` }));
-      card.append(el('div', { class: 'v2-row' }, [el('div', { class: 'grow' }, [el('strong', { text: session.date + (session.routineName ? ' — ' + session.routineName : '') + (session.routineVersion ? ` (v${session.routineVersion})` : '') }), el('div', { class: 'v2-meta', text: detail || 'No sets' }), summaryDetails, session.notes ? el('div', { class: 'v2-meta', text: session.notes }) : null]), el('div', { class: 'v2-actions' }, [button('Edit', () => editWorkout(session.id)), button('Delete', () => deleteWorkout(session.id), 'danger')])]));
+      card.append(el('div', { class: 'v2-row' }, [workoutSelectionCheckbox(session), el('div', { class: 'grow' }, [el('strong', { text: session.date + (session.routineName ? ' — ' + session.routineName : '') + (session.routineVersion ? ` (v${session.routineVersion})` : '') }), el('div', { class: 'v2-meta', text: detail || 'No sets' }), summaryDetails, session.notes ? el('div', { class: 'v2-meta', text: session.notes }) : null]), el('div', { class: 'v2-actions' }, [button('Edit', () => editWorkout(session.id)), button('Delete', () => deleteWorkout(session.id), 'danger')])]));
     });
-    return card;
+    if (sessions.length > (state.workoutHistoryLimit || 60)) card.append(button('Show 60 more workouts', () => { state.workoutHistoryLimit = (state.workoutHistoryLimit || 60) + 60; renderRecords(); }));
+    card.append(recentlyDeletedCard()); return card;
   }
   async function editWorkout(id) {
     if (state.active && !confirm('Replace the current live workout draft with this saved workout?')) return;
     const session = state.workouts.sessions.find(item => item.id === id); if (!session) return;
     await startRoutine(session.routineId, { ...clone(session), startedAt: null, elapsedSeconds: session.elapsedSeconds || 0 });
   }
-  async function deleteWorkout(id) {
-    if (!confirm('Delete this completed workout? You can undo for 10 seconds.')) return;
-    const index = state.workouts.sessions.findIndex(item => item.id === id); const removed = state.workouts.sessions[index]; state.workouts.sessions.splice(index, 1);
-    try { await save('workouts'); renderRecords(); toast('Workout deleted.', async () => { state.workouts.sessions.splice(index, 0, removed); await save('workouts'); renderRecords(); toast('Workout restored.'); }); } catch (error) { state.workouts.sessions.splice(index, 0, removed); toast(error.message); }
-  }
+  async function deleteWorkout(id) { return deleteWorkouts([id]); }
 
   async function startRoutine(id, draft = null, plan = null) {
     const routine = state.routines.items.find(item => item.id === id); if (!routine && !draft) return; if (state.active && !draft && !confirm('Replace the current live workout draft with this routine?')) return;
@@ -1111,29 +1266,93 @@ function slug(value) {
   async function syncProgrammeTask(exercise) {
     if (!state.active?.programme || !exercise.programmeTaskKey) return; const week = programmeWeekRecord(state.active.programme.week); const complete = exercise.sets.length > 0 && exercise.sets.every(set => set.done); if (!!week.items[exercise.programmeTaskKey] === complete) return; week.items[exercise.programmeTaskKey] = complete; try { await save('programme'); } catch (error) { toast(error.message); }
   }
-  const hiitRuntime = { status: 'idle', phase: 'ready', round: 0, endAt: null, pausedMs: null, config: null, savedWorkoutId: null };
+  const hiitRuntime = { status: 'idle', phase: 'ready', set: 0, round: 0, endAt: null, pausedMs: null, config: null, savedWorkoutId: null };
   let hiitTicker = null, hiitAudio = null, hiitWakeLock = null;
-  function hiitConfigFromControls(controls) { return { workSeconds: Math.min(3600, Math.max(1, Number(controls.work.value) || 40)), restSeconds: Math.min(3600, Math.max(0, Number(controls.rest.value) || 0)), rounds: Math.min(100, Math.max(1, Number(controls.rounds.value) || 10)), prepareSeconds: Math.min(600, Math.max(0, Number(controls.prepare.value) || 0)), sound: controls.sound.checked, activityId: controls.activity.getValue() || state.settings.hiit.activityId || '' }; }
-  async function saveHiitConfig(config) { const previous = clone(state.settings.hiit); state.settings.hiit = clone(config); try { await save('settings'); return true; } catch (error) { state.settings.hiit = previous; toast(error.message); return false; } }
+  function hiitConfigFromControls(controls) { return { workSeconds: Math.min(3600, Math.max(1, Number(controls.work.value) || 40)), restSeconds: Math.min(3600, Math.max(0, Number(controls.rest.value) || 0)), rounds: Math.min(100, Math.max(1, Number(controls.rounds.value) || 10)), sets: Math.min(50, Math.max(1, Number(controls.sets.value) || 5)), setRestSeconds: Math.min(3600, Math.max(0, Number(controls.setRest.value) || 120)), prepareSeconds: Math.min(600, Math.max(0, Number(controls.prepare.value) || 0)), sound: controls.sound.checked, alarmStyle: controls.alarmStyle.value, volume: Number(controls.volume.value) / 100, activityId: controls.activity.getValue() || state.settings.hiit.activityId || '' }; }
+  async function saveHiitConfig(config) { const previous = clone(state.settings.hiit); state.settings.hiit = clone(config); try { await save('settings'); dirtyPanels.delete('hiit'); saveLabel = dirtyPanels.size ? 'Unsaved changes' : 'Saved'; updateAppStatus(); return true; } catch (error) { state.settings.hiit = previous; toast(error.message); return false; } }
   async function ensureHiitAudio() { const Audio = window.AudioContext || window.webkitAudioContext; if (!Audio) return false; hiitAudio ||= new Audio(); if (hiitAudio.state === 'suspended') await hiitAudio.resume(); return true; }
-  function hiitTone(frequency, duration = .12, delay = 0) { if (!hiitAudio) return; const start = hiitAudio.currentTime + delay; const oscillator = hiitAudio.createOscillator(); const gain = hiitAudio.createGain(); oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(frequency, start); gain.gain.setValueAtTime(.0001, start); gain.gain.exponentialRampToValueAtTime(.22, start + .015); gain.gain.exponentialRampToValueAtTime(.0001, start + duration); oscillator.connect(gain).connect(hiitAudio.destination); oscillator.start(start); oscillator.stop(start + duration + .02); }
-  async function hiitAlarm(phase, force = false) { if (!force && !hiitRuntime.config?.sound) return; if (!await ensureHiitAudio()) return; if (phase === 'work') { hiitTone(880, .1); hiitTone(1100, .13, .14); } else if (phase === 'rest') hiitTone(440, .22); else if (phase === 'complete') { hiitTone(880, .12); hiitTone(1100, .12, .16); hiitTone(1320, .2, .32); } else hiitTone(660, .14); }
+  let alarmNodes = [];
+  function stopHiitAlarm() { alarmNodes.forEach(node => { try { node.stop(); } catch {} try { node.disconnect(); } catch {} }); alarmNodes = []; }
+  async function hiitAlarm(phase, force = false, preview = null) {
+    const config = preview || hiitRuntime.config || state.settings.hiit;
+    if (!force && !config?.sound) return;
+    if (!await ensureHiitAudio()) return toast('Audio is unavailable on this device.');
+    stopHiitAlarm();
+    const start = hiitAudio.currentTime; const volume = Math.max(0, Math.min(1, Number(config.volume ?? .85)));
+    const duration = phase === 'complete' ? 3.2 : phase === 'rest' ? 1.6 : 2.4;
+    const master = hiitAudio.createGain(); master.gain.value = volume;
+    const limiter = hiitAudio.createDynamicsCompressor(); limiter.threshold.value = -8; limiter.knee.value = 6; limiter.ratio.value = 12; limiter.attack.value = .003; limiter.release.value = .12;
+    master.connect(limiter).connect(hiitAudio.destination); alarmNodes.push(master, limiter);
+    if (config.alarmStyle === 'dive') {
+      const oscillator = hiitAudio.createOscillator(); const envelope = hiitAudio.createGain(); oscillator.type = 'sawtooth';
+      const base = phase === 'rest' ? 230 : 330;
+      oscillator.frequency.setValueAtTime(base, start);
+      for (let t = 0; t < duration; t += .8) { oscillator.frequency.linearRampToValueAtTime(base * 2.8, start + t + .35); oscillator.frequency.linearRampToValueAtTime(base, start + t + .8); }
+      envelope.gain.setValueAtTime(0, start); envelope.gain.linearRampToValueAtTime(.65, start + .025); envelope.gain.setValueAtTime(.65, start + duration - .06); envelope.gain.linearRampToValueAtTime(0, start + duration);
+      oscillator.connect(envelope).connect(master); oscillator.start(start); oscillator.stop(start + duration); alarmNodes.push(oscillator, envelope);
+    } else {
+      // Repeated metallic strikes: inharmonic partials evoke a mechanical school bell.
+      for (let strike = 0; strike < duration; strike += .13) {
+        [1, 2.71, 4.07].forEach((ratio, index) => { const oscillator = hiitAudio.createOscillator(); const envelope = hiitAudio.createGain(); const at = start + strike;
+          oscillator.type = 'sine'; oscillator.frequency.value = (phase === 'rest' ? 680 : 860) * ratio;
+          envelope.gain.setValueAtTime(.0001, at); envelope.gain.exponentialRampToValueAtTime(.34 / (index + 1), at + .006); envelope.gain.exponentialRampToValueAtTime(.0001, at + .28);
+          oscillator.connect(envelope).connect(master); oscillator.start(at); oscillator.stop(at + .3); alarmNodes.push(oscillator, envelope);
+        });
+      }
+    }
+    setTimeout(() => { master.disconnect(); limiter.disconnect(); }, (duration + .5) * 1000);
+  }
   async function requestHiitWakeLock() { if (!('wakeLock' in navigator) || document.visibilityState !== 'visible' || hiitRuntime.status !== 'running') return; try { hiitWakeLock = await navigator.wakeLock.request('screen'); hiitWakeLock.addEventListener('release', () => { hiitWakeLock = null; }); } catch { hiitWakeLock = null; } }
   async function releaseHiitWakeLock() { if (!hiitWakeLock) return; try { await hiitWakeLock.release(); } catch { /* Already released by the browser. */ } hiitWakeLock = null; }
-  function hiitPhaseDuration() { const config = hiitRuntime.config || state.settings.hiit; return hiitRuntime.phase === 'prepare' ? config.prepareSeconds : hiitRuntime.phase === 'work' ? config.workSeconds : hiitRuntime.phase === 'rest' ? config.restSeconds : 0; }
+  function hiitPhaseDuration() {
+    const config = hiitRuntime.config || state.settings.hiit;
+    return hiitRuntime.phase === 'prepare' ? config.prepareSeconds : hiitRuntime.phase === 'work' ? config.workSeconds : hiitRuntime.phase === 'round-rest' ? config.restSeconds : hiitRuntime.phase === 'set-rest' ? config.setRestSeconds : 0;
+  }
   function hiitRemainingSeconds() { if (hiitRuntime.status === 'paused') return Math.max(0, Math.ceil(Number(hiitRuntime.pausedMs) / 1000)); if (hiitRuntime.status !== 'running') return hiitRuntime.status === 'complete' ? 0 : Number(state.settings.hiit.prepareSeconds || state.settings.hiit.workSeconds); return Math.max(0, Math.ceil((Number(hiitRuntime.endAt) - Date.now()) / 1000)); }
-  function hiitPhaseLabel() { return hiitRuntime.phase === 'prepare' ? 'Get ready' : hiitRuntime.phase === 'work' ? 'Work' : hiitRuntime.phase === 'rest' ? 'Rest' : hiitRuntime.phase === 'complete' ? 'Complete' : 'Ready'; }
-  function updateHiitDisplays() { const remaining = hiitRemainingSeconds(); const duration = Math.max(1, hiitPhaseDuration()); const percent = hiitRuntime.status === 'idle' ? 0 : hiitRuntime.status === 'complete' ? 100 : Math.min(100, Math.max(0, (duration - remaining) / duration * 100)); document.querySelectorAll('.v2-hiit').forEach(card => { card.classList.toggle('running', hiitRuntime.status === 'running'); card.classList.toggle('rest', hiitRuntime.phase === 'rest'); card.classList.toggle('complete', hiitRuntime.status === 'complete'); }); document.querySelectorAll('.v2-hiit-phase').forEach(node => node.textContent = hiitPhaseLabel()); document.querySelectorAll('.v2-hiit-clock').forEach(node => node.textContent = String(remaining).padStart(2, '0')); document.querySelectorAll('.v2-hiit-round').forEach(node => node.textContent = hiitRuntime.status === 'idle' ? `${state.settings.hiit.rounds} rounds configured` : `Round ${Math.min(hiitRuntime.round || 1, hiitRuntime.config?.rounds || 1)} of ${hiitRuntime.config?.rounds || state.settings.hiit.rounds}`); document.querySelectorAll('.v2-hiit-progress>span').forEach(node => node.style.width = percent + '%'); }
+  function hiitPhaseLabel() { return hiitRuntime.phase === 'prepare' ? 'Get ready' : hiitRuntime.phase === 'work' ? 'Work' : hiitRuntime.phase === 'round-rest' ? 'Rest between rounds' : hiitRuntime.phase === 'set-rest' ? 'Recovery between sets' : hiitRuntime.phase === 'complete' ? 'Complete' : 'Ready'; }
+  function hiitSetRoundLabel(config = hiitRuntime.config || state.settings.hiit) {
+    if (hiitRuntime.status === 'idle') return config.sets + ' sets × ' + config.rounds + ' rounds configured';
+    if (hiitRuntime.status === 'complete') return config.sets + ' sets × ' + config.rounds + ' rounds complete';
+    return 'Set ' + Math.min(hiitRuntime.set || 1, config.sets) + ' of ' + config.sets + ' · round ' + Math.min(hiitRuntime.round || 1, config.rounds) + ' of ' + config.rounds;
+  }
+  function updateHiitDisplays() { const remaining = hiitRemainingSeconds(); const duration = Math.max(1, hiitPhaseDuration()); const percent = hiitRuntime.status === 'idle' ? 0 : hiitRuntime.status === 'complete' ? 100 : Math.min(100, Math.max(0, (duration - remaining) / duration * 100)); document.querySelectorAll('.v2-hiit').forEach(card => { card.classList.toggle('running', hiitRuntime.status === 'running'); card.classList.toggle('rest', ['round-rest', 'set-rest'].includes(hiitRuntime.phase)); card.classList.toggle('complete', hiitRuntime.status === 'complete'); }); document.querySelectorAll('.v2-hiit-phase').forEach(node => node.textContent = hiitPhaseLabel()); document.querySelectorAll('.v2-hiit-clock').forEach(node => node.textContent = String(remaining).padStart(2, '0')); document.querySelectorAll('.v2-hiit-round').forEach(node => node.textContent = hiitSetRoundLabel()); document.querySelectorAll('.v2-hiit-progress>span').forEach(node => node.style.width = percent + '%'); }
   function completeHiit() { hiitRuntime.status = 'complete'; hiitRuntime.phase = 'complete'; hiitRuntime.endAt = null; hiitRuntime.pausedMs = null; clearInterval(hiitTicker); hiitTicker = null; releaseHiitWakeLock(); hiitAlarm('complete'); renderWorkout(); }
-  function advanceHiitPhase() { const config = hiitRuntime.config; if (hiitRuntime.phase === 'prepare') hiitRuntime.phase = 'work'; else if (hiitRuntime.phase === 'work') { if (hiitRuntime.round >= config.rounds) return completeHiit(); hiitRuntime.phase = config.restSeconds > 0 ? 'rest' : 'work'; if (hiitRuntime.phase === 'work') hiitRuntime.round++; } else if (hiitRuntime.phase === 'rest') { hiitRuntime.round++; hiitRuntime.phase = 'work'; } hiitRuntime.endAt += Math.max(0, hiitPhaseDuration()) * 1000; hiitAlarm(hiitRuntime.phase); }
-  function hiitTick() { if (hiitRuntime.status !== 'running') return updateHiitDisplays(); let guard = 0; while (Date.now() >= Number(hiitRuntime.endAt) && hiitRuntime.status === 'running' && guard++ < 205) advanceHiitPhase(); updateHiitDisplays(); }
-  async function startHiit(config) { if (!exerciseById(config.activityId)) return toast('Choose an activity from the exercise search before starting.'); await ensureHiitAudio(); if (!await saveHiitConfig(config)) return; hiitRuntime.config = clone(config); hiitRuntime.savedWorkoutId = null; hiitRuntime.status = 'running'; hiitRuntime.phase = config.prepareSeconds > 0 ? 'prepare' : 'work'; hiitRuntime.round = 1; hiitRuntime.pausedMs = null; hiitRuntime.endAt = Date.now() + hiitPhaseDuration() * 1000; clearInterval(hiitTicker); hiitTicker = setInterval(hiitTick, 200); await requestHiitWakeLock(); hiitAlarm(hiitRuntime.phase); renderWorkout(); toast('HIIT timer started. Keep this app open for transition alarms.'); }
-  async function pauseHiit() { if (hiitRuntime.status !== 'running') return; hiitRuntime.pausedMs = Math.max(0, Number(hiitRuntime.endAt) - Date.now()); hiitRuntime.status = 'paused'; clearInterval(hiitTicker); hiitTicker = null; await releaseHiitWakeLock(); renderWorkout(); }
+  function advanceHiitPhase(silent = false) {
+    const config = hiitRuntime.config;
+    if (hiitRuntime.phase === 'prepare') hiitRuntime.phase = 'work';
+    else if (hiitRuntime.phase === 'work') {
+      if (hiitRuntime.round < config.rounds) hiitRuntime.phase = config.restSeconds > 0 ? 'round-rest' : 'work';
+      else if (hiitRuntime.set < config.sets) hiitRuntime.phase = config.setRestSeconds > 0 ? 'set-rest' : 'work';
+      else return completeHiit();
+      if (hiitRuntime.phase === 'work') { if (hiitRuntime.round < config.rounds) hiitRuntime.round++; else { hiitRuntime.set++; hiitRuntime.round = 1; } }
+    } else if (hiitRuntime.phase === 'round-rest') { hiitRuntime.round++; hiitRuntime.phase = 'work'; }
+    else if (hiitRuntime.phase === 'set-rest') { hiitRuntime.set++; hiitRuntime.round = 1; hiitRuntime.phase = 'work'; }
+    hiitRuntime.endAt += Math.max(0, hiitPhaseDuration()) * 1000; if (!silent) hiitAlarm(hiitRuntime.phase);
+  }
+  function hiitTick() { if (hiitRuntime.status !== 'running') return updateHiitDisplays(); let guard = 0; while (Date.now() >= Number(hiitRuntime.endAt) && hiitRuntime.status === 'running' && guard++ < 5005) advanceHiitPhase(true); if (guard && hiitRuntime.status === 'running') hiitAlarm(hiitRuntime.phase); updateHiitDisplays(); }
+  async function startHiit(config) { if (!exerciseById(config.activityId)) return toast('Choose an activity from the exercise search before starting.'); await ensureHiitAudio(); if (!await saveHiitConfig(config)) return; hiitRuntime.config = clone(config); hiitRuntime.savedWorkoutId = null; hiitRuntime.status = 'running'; hiitRuntime.phase = config.prepareSeconds > 0 ? 'prepare' : 'work'; hiitRuntime.set = 1; hiitRuntime.round = 1; hiitRuntime.pausedMs = null; hiitRuntime.endAt = Date.now() + hiitPhaseDuration() * 1000; clearInterval(hiitTicker); hiitTicker = setInterval(hiitTick, 200); await requestHiitWakeLock(); hiitAlarm(hiitRuntime.phase); renderWorkout(); toast('HIIT timer started. Keep this app open for transition alarms.'); }
+  async function pauseHiit() { stopHiitAlarm(); if (hiitRuntime.status !== 'running') return; hiitRuntime.pausedMs = Math.max(0, Number(hiitRuntime.endAt) - Date.now()); hiitRuntime.status = 'paused'; clearInterval(hiitTicker); hiitTicker = null; await releaseHiitWakeLock(); renderWorkout(); }
   async function resumeHiit() { if (hiitRuntime.status !== 'paused') return; await ensureHiitAudio(); hiitRuntime.status = 'running'; hiitRuntime.endAt = Date.now() + Math.max(0, Number(hiitRuntime.pausedMs)); hiitRuntime.pausedMs = null; hiitTicker = setInterval(hiitTick, 200); await requestHiitWakeLock(); renderWorkout(); }
-  async function resetHiit() { clearInterval(hiitTicker); hiitTicker = null; hiitRuntime.status = 'idle'; hiitRuntime.phase = 'ready'; hiitRuntime.round = 0; hiitRuntime.endAt = null; hiitRuntime.pausedMs = null; hiitRuntime.config = null; hiitRuntime.savedWorkoutId = null; await releaseHiitWakeLock(); renderWorkout(); }
-  async function saveCompletedHiitWorkout() { const config = hiitRuntime.config; const activity = exerciseById(config?.activityId); if (hiitRuntime.status !== 'complete' || !config || !activity) return toast('Complete an interval session with a selected activity before saving it.'); if (hiitRuntime.savedWorkoutId) return toast('This interval session is already saved.'); const id = 'hiit-workout-' + Date.now(); const exercise = exerciseSnapshot(activity, { sets: config.rounds, restSeconds: config.restSeconds, targetRpe: '', setType: 'working', optional: false, group: null, target: { min: config.workSeconds, max: config.workSeconds, unit: 'seconds' } }); exercise.target = { min: config.workSeconds, max: config.workSeconds, unit: 'seconds' }; exercise.sets = Array.from({ length: config.rounds }, () => ({ reps: String(config.workSeconds), load: 'interval', rpe: '', done: true, type: 'working', targetRpe: '', plannedReps: String(config.workSeconds), plannedLoad: '', restSeconds: config.restSeconds })); exercise.quickNotes = { pain: '', failed: false, note: '' }; const elapsedSeconds = config.prepareSeconds + config.rounds * config.workSeconds + Math.max(0, config.rounds - 1) * config.restSeconds; const session = { id, routineId: null, routineName: `HIIT · ${activity.name}`, date: isoToday(), startedAt: null, elapsedSeconds, autoRest: false, restEndsAt: null, exercises: [exercise], notes: `${config.workSeconds}s work / ${config.restSeconds}s rest × ${config.rounds} rounds`, hiit: { ...clone(config), completed: true }, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; session.summary = buildWorkoutSummary(session); state.workouts.sessions.push(session); state.workouts.sessions.sort(byDate); try { await save('workouts'); hiitRuntime.savedWorkoutId = id; state.lastWorkoutId = id; renderWorkout(); toast('Completed HIIT session saved to Records.'); } catch (error) { state.workouts.sessions = state.workouts.sessions.filter(item => item.id !== id); toast(error.message); } }
+  async function resetHiit() { stopHiitAlarm(); clearInterval(hiitTicker); hiitTicker = null; hiitRuntime.status = 'idle'; hiitRuntime.phase = 'ready'; hiitRuntime.set = 0; hiitRuntime.round = 0; hiitRuntime.endAt = null; hiitRuntime.pausedMs = null; hiitRuntime.config = null; hiitRuntime.savedWorkoutId = null; await releaseHiitWakeLock(); renderWorkout(); }
+  async function saveCompletedHiitWorkout() {
+    const config = hiitRuntime.config; const activity = exerciseById(config?.activityId); if (hiitRuntime.status !== 'complete' || !config || !activity) return toast('Complete an interval session with a selected activity before saving it.'); if (hiitRuntime.savedWorkoutId) return toast('This interval session is already saved.');
+    const id = 'hiit-workout-' + Date.now(); const totalIntervals = config.sets * config.rounds; const exercise = exerciseSnapshot(activity, { sets: totalIntervals, restSeconds: config.restSeconds, targetRpe: '', setType: 'working', optional: false, group: null, target: { min: config.workSeconds, max: config.workSeconds, unit: 'seconds' } });
+    exercise.target = { min: config.workSeconds, max: config.workSeconds, unit: 'seconds' }; exercise.sets = Array.from({ length: totalIntervals }, (_, index) => ({ reps: String(config.workSeconds), load: 'set ' + (Math.floor(index / config.rounds) + 1), rpe: '', done: true, type: 'working', targetRpe: '', plannedReps: String(config.workSeconds), plannedLoad: '', restSeconds: index % config.rounds === config.rounds - 1 ? config.setRestSeconds : config.restSeconds })); exercise.quickNotes = { pain: '', failed: false, note: '' };
+    const elapsedSeconds = config.prepareSeconds + totalIntervals * config.workSeconds + config.sets * Math.max(0, config.rounds - 1) * config.restSeconds + Math.max(0, config.sets - 1) * config.setRestSeconds; const notes = config.sets + ' sets × ' + config.rounds + ' rounds · ' + config.workSeconds + 's work / ' + config.restSeconds + 's round rest · ' + config.setRestSeconds + 's between sets';
+    const session = { id, routineId: null, routineName: 'HIIT · ' + activity.name, date: isoToday(), startedAt: null, elapsedSeconds, autoRest: false, restEndsAt: null, exercises: [exercise], notes, hiit: { ...clone(config), completed: true }, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    session.summary = buildWorkoutSummary(session); state.workouts.sessions.push(session); state.workouts.sessions.sort(byDate); try { await save('workouts'); hiitRuntime.savedWorkoutId = id; state.lastWorkoutId = id; renderWorkout(); toast('Completed HIIT session saved to Records.'); } catch (error) { state.workouts.sessions = state.workouts.sessions.filter(item => item.id !== id); toast(error.message); }
+  }
   function hiitTimerCard() {
-    const card = el('div', { class: 'card v2-hiit' }); card.append(el('h2', { text: 'HIIT interval timer' }), el('p', { class: 'v2-muted', text: 'Choose the activity, run custom work/rest rounds with automatic alarms, then optionally save the completed interval session to Records.' })); const config = hiitRuntime.config || state.settings.hiit; const recommendedIds = state.library.items.filter(item => !item.archived && (item.visual === 'cardio' || /skipping|bike|jump|bound|squat/i.test(item.name))).map(item => item.id); const activity = exercisePicker({ label: 'HIIT activity', value: config.activityId || '', placeholder: 'Search activity or exercise…', recommendedIds }); const work = el('input', { type: 'number', min: '1', max: '3600', step: '1', required: 'true', 'aria-label': 'HIIT work seconds' }); work.value = config.workSeconds; const rest = el('input', { type: 'number', min: '0', max: '3600', step: '1', required: 'true', 'aria-label': 'HIIT rest seconds' }); rest.value = config.restSeconds; const rounds = el('input', { type: 'number', min: '1', max: '100', step: '1', required: 'true', 'aria-label': 'HIIT rounds' }); rounds.value = config.rounds; const prepare = el('input', { type: 'number', min: '0', max: '600', step: '1', required: 'true', 'aria-label': 'HIIT preparation seconds' }); prepare.value = config.prepareSeconds; const sound = el('input', { type: 'checkbox', 'aria-label': 'HIIT transition sounds' }); sound.checked = config.sound; const controls = { activity, work, rest, rounds, prepare, sound }; const locked = hiitRuntime.status === 'running' || hiitRuntime.status === 'paused'; [work, rest, rounds, prepare, sound].forEach(control => control.disabled = locked); activity.setDisabled(locked); const grid = el('div', { class: 'v2-grid' }, [activity, el('div', { class: 'v2-field' }, [el('label', { text: 'Work (seconds)' }), work]), el('div', { class: 'v2-field' }, [el('label', { text: 'Rest (seconds)' }), rest]), el('div', { class: 'v2-field' }, [el('label', { text: 'Rounds' }), rounds]), el('div', { class: 'v2-field' }, [el('label', { text: 'Preparation (seconds)' }), prepare])]); const soundLabel = el('label', { class: 'v2-check' }, [sound, document.createTextNode('Play an alarm when the phase changes')]); const display = el('div', { class: 'v2-hiit-display' }, [el('div', {}, [el('div', { class: 'v2-hiit-phase', role: 'status', 'aria-live': 'assertive', text: hiitPhaseLabel() }), el('div', { class: 'v2-hiit-round', text: hiitRuntime.status === 'idle' ? `${config.rounds} rounds configured` : `Round ${hiitRuntime.round} of ${config.rounds}` }), el('div', { class: 'v2-hiit-progress' }, [el('span')])]), el('div', { class: 'v2-hiit-clock', role: 'timer', 'aria-label': 'Interval seconds remaining', text: String(hiitRemainingSeconds()).padStart(2, '0') })]); const applyPreset = preset => { work.value = preset[0]; rest.value = preset[1]; rounds.value = preset[2]; prepare.value = preset[3]; }; const presets = el('div', { class: 'v2-hiit-presets' }, [button('40 / 20 × 10', () => applyPreset([40, 20, 10, 10]), 'compact'), button('30 / 30 × 10', () => applyPreset([30, 30, 10, 10]), 'compact'), button('Tabata 20 / 10 × 8', () => applyPreset([20, 10, 8, 10]), 'compact')]); presets.querySelectorAll('button').forEach(item => item.disabled = locked); const actions = el('div', { class: 'v2-toolbar' }); if (hiitRuntime.status === 'running') actions.append(button('Pause intervals', pauseHiit, 'primary')); else if (hiitRuntime.status === 'paused') actions.append(button('Resume intervals', resumeHiit, 'primary')); else actions.append(button(hiitRuntime.status === 'complete' ? 'Start again' : 'Start intervals', () => startHiit(hiitConfigFromControls(controls)), 'primary')); if (hiitRuntime.status === 'complete') { const saveWorkout = button(hiitRuntime.savedWorkoutId ? 'Saved to Records' : 'Save completed HIIT', saveCompletedHiitWorkout, 'primary'); saveWorkout.disabled = !!hiitRuntime.savedWorkoutId; actions.append(saveWorkout); } actions.append(button('Reset', resetHiit)); if (!locked) actions.append(button('Save defaults', async () => { if (await saveHiitConfig(hiitConfigFromControls(controls))) { renderWorkout(); toast('HIIT defaults saved.'); } }, 'compact')); actions.append(button('Test sound', () => hiitAlarm('work', true), 'compact')); card.append(grid, soundLabel, el('p', { class: 'v2-meta', text: 'Presets' }), presets, display, actions, el('p', { class: 'v2-muted', text: 'The timer requests a screen wake lock while running when supported. Saving is optional and creates one Records workout with a completed set for each work interval. Mobile operating systems may still suppress audio if the app is closed.' })); setTimeout(updateHiitDisplays, 0); return card;
+    const card = el('div', { class: 'card v2-hiit' }); card.append(el('h2', { text: 'HIIT set timer' }), el('p', { class: 'v2-muted', text: 'Each set contains work/rest rounds, then a separate recovery before the next set. Alarms mark every transition.' }));
+    const config = hiitRuntime.config || state.settings.hiit; const recommendedIds = state.library.items.filter(item => !item.archived && (item.visual === 'cardio' || /skipping|bike|jump|bound|squat/i.test(item.name))).map(item => item.id); const activity = exercisePicker({ label: 'HIIT activity', value: config.activityId || '', placeholder: 'Search activity or exercise…', recommendedIds });
+    const work = el('input', { type: 'number', min: '1', max: '3600', step: '1', required: 'true', 'aria-label': 'HIIT work seconds' }); work.value = config.workSeconds; const rest = el('input', { type: 'number', min: '0', max: '3600', step: '1', required: 'true', 'aria-label': 'HIIT rest between rounds seconds' }); rest.value = config.restSeconds; const rounds = el('input', { type: 'number', min: '1', max: '100', step: '1', required: 'true', 'aria-label': 'HIIT rounds per set' }); rounds.value = config.rounds; const sets = el('input', { type: 'number', min: '1', max: '50', step: '1', required: 'true', 'aria-label': 'HIIT sets' }); sets.value = config.sets; const setRest = el('input', { type: 'number', min: '0', max: '3600', step: '1', required: 'true', 'aria-label': 'HIIT recovery between sets seconds' }); setRest.value = config.setRestSeconds; const prepare = el('input', { type: 'number', min: '0', max: '600', step: '1', required: 'true', 'aria-label': 'HIIT preparation seconds' }); prepare.value = config.prepareSeconds;
+    const sound = el('input', { type: 'checkbox', 'aria-label': 'HIIT transition sounds' }); sound.checked = config.sound; const alarmStyle = el('select', { 'aria-label': 'Alarm sound' }, [el('option', { value: 'school', text: 'School alarm bell' }), el('option', { value: 'dive', text: 'Dive alarm siren' })]); alarmStyle.value = config.alarmStyle || 'school'; const volume = el('input', { type: 'range', min: '0', max: '100', step: '5', 'aria-label': 'Alarm volume' }); volume.value = Math.round((config.volume ?? .85) * 100); const volumeValue = el('output', { text: volume.value + '%' }); volume.addEventListener('input', () => volumeValue.textContent = volume.value + '%');
+    const controls = { activity, work, rest, rounds, sets, setRest, prepare, sound, alarmStyle, volume }; const locked = hiitRuntime.status === 'running' || hiitRuntime.status === 'paused'; [work, rest, rounds, sets, setRest, prepare, sound, alarmStyle, volume].forEach(control => control.disabled = locked); activity.setDisabled(locked);
+    const grid = el('div', { class: 'v2-grid' }, [activity, el('div', { class: 'v2-field' }, [el('label', { text: 'Work (seconds)' }), work]), el('div', { class: 'v2-field' }, [el('label', { text: 'Rest between rounds (seconds)' }), rest]), el('div', { class: 'v2-field' }, [el('label', { text: 'Rounds per set' }), rounds]), el('div', { class: 'v2-field' }, [el('label', { text: 'Sets' }), sets]), el('div', { class: 'v2-field' }, [el('label', { text: 'Recovery between sets (seconds)' }), setRest]), el('div', { class: 'v2-field' }, [el('label', { text: 'Preparation (seconds)' }), prepare])]); const soundLabel = el('label', { class: 'v2-check' }, [sound, document.createTextNode('Play an alarm when the phase changes')]);
+    const display = el('div', { class: 'v2-hiit-display' }, [el('div', {}, [el('div', { class: 'v2-hiit-phase', role: 'status', 'aria-live': 'assertive', text: hiitPhaseLabel() }), el('div', { class: 'v2-hiit-round', text: hiitSetRoundLabel(config) }), el('div', { class: 'v2-hiit-progress' }, [el('span')])]), el('div', { class: 'v2-hiit-clock', role: 'timer', 'aria-label': 'Interval seconds remaining', text: String(hiitRemainingSeconds()).padStart(2, '0') })]);
+    const applyPreset = preset => { work.value = preset[0]; rest.value = preset[1]; rounds.value = preset[2]; sets.value = preset[3]; setRest.value = preset[4]; prepare.value = preset[5]; }; const presets = el('div', { class: 'v2-hiit-presets' }, [button('40 / 20 × 10 · 5 sets', () => applyPreset([40, 20, 10, 5, 120, 10]), 'compact'), button('30 / 30 × 10 · 5 sets', () => applyPreset([30, 30, 10, 5, 120, 10]), 'compact'), button('Tabata 20 / 10 × 8 · 5 sets', () => applyPreset([20, 10, 8, 5, 90, 10]), 'compact')]); presets.querySelectorAll('button').forEach(item => item.disabled = locked);
+    const actions = el('div', { class: 'v2-toolbar' }); if (hiitRuntime.status === 'running') actions.append(button('Pause timer', pauseHiit, 'primary')); else if (hiitRuntime.status === 'paused') actions.append(button('Resume timer', resumeHiit, 'primary')); else actions.append(button(hiitRuntime.status === 'complete' ? 'Start again' : 'Start timer', () => startHiit(hiitConfigFromControls(controls)), 'primary')); if (hiitRuntime.status === 'complete') { const saveWorkout = button(hiitRuntime.savedWorkoutId ? 'Saved to Records' : 'Save completed HIIT', saveCompletedHiitWorkout, 'primary'); saveWorkout.disabled = !!hiitRuntime.savedWorkoutId; actions.append(saveWorkout); } actions.append(button('Reset', resetHiit)); if (!locked) actions.append(button('Save defaults', async () => { if (await saveHiitConfig(hiitConfigFromControls(controls))) { renderWorkout(); toast('HIIT defaults saved.'); } }, 'compact')); actions.append(button('Preview alarm', () => hiitAlarm('work', true, hiitConfigFromControls(controls)), 'compact'), button('Stop sound', stopHiitAlarm, 'compact'));
+    const totalWork = config.sets * config.rounds * config.workSeconds; card.append(grid, soundLabel, el('div', { class: 'v2-grid' }, [el('label', { text: 'Alarm sound' }, [alarmStyle]), el('label', { text: 'Alarm volume' }, [volume, volumeValue])]), el('p', { class: 'v2-muted', text: 'Sustained bell or dive siren. Preview at a comfortable device volume; browser volume cannot exceed your speaker volume.' }), el('p', { class: 'v2-meta', text: 'Plan: ' + config.sets + ' sets × ' + config.rounds + ' rounds = ' + (config.sets * config.rounds) + ' work intervals (' + timeDisplay(totalWork) + ' of work, plus rest).' }), el('p', { class: 'v2-meta', text: 'Presets' }), presets, display, actions, el('p', { class: 'v2-muted', text: 'The timer requests a screen wake lock while running when supported. Saving creates one Records workout with every completed work interval, labelled by set. Mobile operating systems may still suppress audio if the app is closed.' })); setTimeout(updateHiitDisplays, 0); return card;
   }
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && hiitRuntime.status === 'running') requestHiitWakeLock(); });
   let timerHandle, restHandle, draftSaveTimer = null, workoutUndo = null, draftSaveQueue = Promise.resolve(true);
@@ -1147,14 +1366,14 @@ function slug(value) {
       const card = el('div', { class: 'card' });
       card.append(el('h2', { text: 'Load a workout routine' }), el('p', { class: 'v2-muted', text: 'Choose a routine to begin. Your live session stays saved if the page closes.' }));
       state.routines.items.forEach(routine => card.append(el('div', { class: 'v2-row' }, [el('strong', { class: 'grow', text: routine.name }), button('Start', () => startRoutine(routine.id), 'primary')])));
-      panel.append(hiitTimerCard(), card); return;
+      panel.append(card, collapsibleHiit()); return;
     }
     const active = state.active; active.autoRest = active.autoRest !== false; active.exercises.forEach(exercise => { exercise.quickNotes ||= { pain: '', failed: false, note: '' }; exercise.programming = normaliseProgramming(exercise.programming || defaultProgram(exercise)); }); panel.classList.toggle('v2-workout-compact', state.settings.compactWorkout === true);
     const top = el('div', { class: 'card v2-workout-controls' }); const elapsed = el('div', { class: 'v2-timer', text: timeDisplay(sessionElapsed(active)) }); timerHandle = setInterval(() => elapsed.textContent = timeDisplay(sessionElapsed(active)), 1000);
     const timerToggle = button(active.startedAt ? 'Pause' : 'Resume', () => toggleSessionTimer(), 'compact'); const compactToggle = button(state.settings.compactWorkout ? 'Full details' : 'Compact mode', () => toggleCompactWorkout(), 'compact');
     top.append(el('div', { class: 'v2-control-strip' }, [el('div', {}, [el('h2', { text: active.id ? 'Edit workout' : active.routineName }), el('div', { class: 'v2-meta', text: `${active.routineVersion ? `Routine version ${active.routineVersion}` : 'Live session'}${active.scheduledDate ? ` · scheduled occurrence ${active.scheduledDate}` : ''}` }), elapsed]), el('div', { class: 'v2-actions' }, [timerToggle, compactToggle, button('Discard draft', () => discardWorkout(), 'danger compact')])]));
     const date = el('input', { type: 'date', 'aria-label': 'Workout date' }); date.value = active.date; date.addEventListener('change', () => { active.date = date.value; persistDraft(); }); const autoRest = el('input', { type: 'checkbox' }); autoRest.checked = active.autoRest; autoRest.addEventListener('change', () => { active.autoRest = autoRest.checked; persistDraft(); }); const undo = button(workoutUndo ? `Undo: ${workoutUndo.label}` : 'Nothing to undo', () => undoWorkoutAction(), 'compact v2-undo-workout'); undo.disabled = !workoutUndo;
-    top.append(el('div', { class: 'v2-control-strip' }, [el('div', { class: 'v2-actions' }, [date, el('label', { class: 'v2-check' }, [autoRest, document.createTextNode('Automatic rest')])]), el('div', { class: 'v2-actions' }, [el('span', { class: 'v2-save-status ' + draftSaveStatus.state, role: 'status', 'aria-live': 'polite', text: draftSaveStatus.text }), undo])])); const readinessSignals = currentReadinessSignals(); if (readinessSignals.length) top.append(el('div', { class: 'v2-summary v2-warning' }, readinessSignals.map(signal => el('div', { text: '• ' + signal })))); top.append(restTimer(), loadTools(), manageActiveExercises()); panel.append(top, hiitTimerCard()); startRestTicker();
+    top.append(el('div', { class: 'v2-control-strip' }, [el('div', { class: 'v2-actions' }, [date, el('label', { class: 'v2-check' }, [autoRest, document.createTextNode('Automatic rest')])]), el('div', { class: 'v2-actions' }, [el('span', { class: 'v2-save-status ' + draftSaveStatus.state, role: 'status', 'aria-live': 'polite', text: draftSaveStatus.text }), undo])])); const readinessSignals = currentReadinessSignals(); if (readinessSignals.length) top.append(el('div', { class: 'v2-summary v2-warning' }, readinessSignals.map(signal => el('div', { text: '• ' + signal })))); top.append(restTimer(), loadTools(), manageActiveExercises()); panel.append(top, collapsibleHiit()); startRestTicker();
     for (let index = 0; index < active.exercises.length;) { const exercise = active.exercises[index]; const group = exercise.programming?.group; if (!group) { panel.append(workoutExercise(exercise, index)); index += 1; continue; } const members = []; let cursor = index; while (cursor < active.exercises.length && active.exercises[cursor].programming?.group?.id === group.id) members.push([active.exercises[cursor], cursor++]); const nextRound = nextIncompleteRound(group, members.map(item => item[0])); const wrapper = el('section', { class: 'v2-workout-group', 'aria-label': `${group.type} ${group.label}` }); const roundButton = button(nextRound === null ? 'All rounds complete' : `Complete round ${nextRound + 1}`, () => completeGroupRound(group, members.map(item => item[0]), nextRound), 'primary compact'); roundButton.disabled = nextRound === null; wrapper.append(el('div', { class: 'v2-group-head' }, [el('span', { class: 'v2-badge', text: `${group.type === 'superset' ? 'Superset' : 'Circuit'} ${group.label}` }), el('div', { class: 'v2-meta', text: `${group.rounds || members[0][0].sets.length} shared rounds · ${group.restSeconds || 0}s rest after each round · complete one set of each exercise per round` }), el('div', { class: 'v2-round-actions' }, [roundButton, el('span', { class: 'v2-meta', text: `${completedRoundCount(group, members.map(item => item[0]))}/${group.rounds || members[0][0].sets.length} rounds complete` })])])); members.forEach(([member, memberIndex]) => wrapper.append(workoutExercise(member, memberIndex))); panel.append(wrapper); index = cursor; }
     const notes = el('textarea', { rows: '3', placeholder: 'Session notes: energy, pain, form, adjustments' }); notes.value = active.notes || ''; notes.addEventListener('input', () => { active.notes = notes.value; scheduleDraftSave(); }); const saveCard = el('div', { class: 'card' }); saveCard.append(el('label', { text: 'Session notes' }), notes, button(active.id ? 'Save corrections' : 'Finish workout', finishWorkout, 'primary')); panel.append(saveCard);
   }
@@ -1198,8 +1417,16 @@ function slug(value) {
   function flushDraftSave() { if (draftSaveTimer) return persistDraft(); return draftSaveQueue; }
   async function discardWorkout() { if (!confirm('Discard this live workout?')) return; clearTimeout(draftSaveTimer); draftSaveTimer = null; await draftSaveQueue.catch(() => {}); const previous = state.active; state.active = null; workoutUndo = null; clearInterval(timerHandle); clearInterval(restHandle); if (!await persistDraft()) { if (!state.active) state.active = previous; } renderWorkout(); }
   function previousExercise(reference, excludeId) { for (const session of state.workouts.sessions.slice().sort(byDate).reverse()) { if (session.id === excludeId) continue; const exercise = session.exercises?.find(item => sameExercise(item, reference) && completedExerciseSets(item).length > 0); if (exercise) return exercise; } return null; }
-  async function finishWorkout() { if (!await flushDraftSave()) return; const active = state.active; if (!active) return; active.elapsedSeconds = sessionElapsed(active); active.startedAt = null; active.restEndsAt = null; active.restLabel = ''; active.updatedAt = new Date().toISOString(); if (!active.exercises.some(exercise => !exercise.skipped && exercise.sets.some(set => set.done || set.reps))) return toast('Log at least one set before saving.'); if (active.programme) { const week = programmeWeekRecord(active.programme.week); active.exercises.forEach(exercise => { if (exercise.programmeTaskKey) week.items[exercise.programmeTaskKey] = exercise.programming?.optional && exercise.skipped ? true : exercise.sets.length > 0 && exercise.sets.every(set => set.done); }); const taskKeys = programmeSessionItems(active.programme.sessionId).map(task => `${active.programme.sessionId}:${task.id}`); week.sessions[active.programme.sessionId] = taskKeys.every(key => week.items[key]); }
-    const completed = clone(active); const index = state.workouts.sessions.findIndex(session => session.id === completed.id); if (index < 0) { completed.id = 'workout-' + Date.now(); completed.createdAt = completed.updatedAt; } completed.summary = buildWorkoutSummary(completed, state.workouts.sessions.filter(session => session.id !== completed.id)); if (index >= 0) state.workouts.sessions[index] = completed; else state.workouts.sessions.push(completed); state.workouts.sessions.sort(byDate); state.active = null; state.lastWorkoutId = completed.id; workoutUndo = null; clearInterval(timerHandle); clearInterval(restHandle); try { if (active.programme) await save('programme'); await save('workouts'); await save('active'); setDraftSaveStatus('saved', 'All changes saved'); render(); selectTab('records'); renderRecords(); toast(index >= 0 ? 'Workout corrections saved.' : 'Workout saved — summary ready.'); } catch (error) { toast(error.message); } }
+  async function finishWorkout() { if (finishingWorkout) return; finishingWorkout = true; try { if (!await flushDraftSave()) return; const active = state.active; if (!active) return; active.elapsedSeconds = sessionElapsed(active); active.startedAt = null; active.restEndsAt = null; active.restLabel = ''; active.updatedAt = new Date().toISOString(); if (!active.exercises.some(exercise => !exercise.skipped && exercise.sets.some(set => set.done || set.reps))) return toast('Log at least one set before saving.'); if (active.programme) { const week = programmeWeekRecord(active.programme.week); active.exercises.forEach(exercise => { if (exercise.programmeTaskKey) week.items[exercise.programmeTaskKey] = exercise.programming?.optional && exercise.skipped ? true : exercise.sets.length > 0 && exercise.sets.every(set => set.done); }); const taskKeys = programmeSessionItems(active.programme.sessionId).map(task => `${active.programme.sessionId}:${task.id}`); week.sessions[active.programme.sessionId] = taskKeys.every(key => week.items[key]); }
+    const completed = clone(active); completed.id ||= 'workout-' + workoutUuid(); completed.createdAt ||= completed.updatedAt;
+    const workouts = clone(state.workouts); const index = workouts.sessions.findIndex(session => session.id === completed.id);
+    completed.summary = buildWorkoutSummary(completed, workouts.sessions.filter(session => session.id !== completed.id));
+    if (index >= 0) workouts.sessions[index] = completed; else workouts.sessions.push(completed); workouts.sessions.sort(byDate);
+    const changes = { workouts, active: null }; if (active.programme) changes.programme = clone(state.programme);
+    try { await saveParts(changes); state.workouts = workouts; state.active = null; state.lastWorkoutId = completed.id; workoutUndo = null; clearInterval(timerHandle); clearInterval(restHandle); dirtyPanels.delete('workout'); render(); selectTab('records'); toast('Workout saved — summary ready.'); }
+    catch (error) { toast(error.message + ' Your workout draft is retained; retry Finish workout.'); }
+    } finally { finishingWorkout = false; }
+  }
 
   function programmeWeek() {
     return programmeWeekRecord(state.programme.currentWeek);
@@ -1278,7 +1505,7 @@ function slug(value) {
       card.append(el('div', { class: 'v2-row' }, [copy, actions]));
     }); return card;
   }
-  async function deleteProgrammeTest(id) { if (!confirm('Delete this four-week test? You can undo for 10 seconds.')) return; const index = state.programme.tests.findIndex(item => item.id === id); const removed = state.programme.tests[index]; state.programme.tests.splice(index, 1); try { await save('programme'); renderProgramme(); toast('Test deleted.', async () => { state.programme.tests.splice(index, 0, removed); await save('programme'); renderProgramme(); toast('Test restored.'); }); } catch (error) { state.programme.tests.splice(index, 0, removed); toast(error.message); } }
+  async function deleteProgrammeTest(id) { if (!confirm('Delete this four-week test? You can undo for 10 seconds.')) return; const index = state.programme.tests.findIndex(item => item.id === id); if (index < 0) return; const removed = state.programme.tests[index]; state.programme.tests.splice(index, 1); try { await save('programme'); renderProgramme(); toast('Test deleted.', async () => { if (state.programme.tests.some(item => item.id === removed.id)) return; state.programme.tests.splice(index, 0, removed); await save('programme'); renderProgramme(); toast('Test restored.'); }); } catch (error) { state.programme.tests.splice(index, 0, removed); toast(error.message); } }
 
   function renderReview() {
     const panel = clear($('#tab-review')); const settings = el('div', { class: 'card' }); settings.append(el('h2', { text: 'Goals and recovery' })); const form = el('form'); const grid = el('div', { class: 'v2-grid' }); grid.append(input('Goal weight (kg)', 'number', state.settings.goalWeight, () => {}, { name: 'goal', min: '20', max: '400', step: '0.1' }), input('Preferred weekly rate (kg)', 'number', state.settings.weeklyRate, () => {}, { name: 'rate', min: '0', max: '1.5', step: '0.05' })); form.append(grid, button('Save goals', null, 'primary')); form.lastChild.type = 'submit'; form.addEventListener('submit', async event => { event.preventDefault(); const fd = new FormData(form); state.settings.goalWeight = numberOrNull(fd.get('goal')); state.settings.weeklyRate = numberOrNull(fd.get('rate')); try { await save('settings'); toast('Goals saved.'); } catch (error) { toast(error.message); } }); settings.append(form); panel.append(weeklyReviewCard(), settings, equipmentSettingsCard(), monthlyReviewCard(), remindersCard(), dataCard());
@@ -1286,7 +1513,7 @@ function slug(value) {
   function equipmentSettingsCard() { const equipment = state.settings.equipment; const card = el('div', { class: 'card' }); card.append(el('h2', { text: 'Equipment and loading' }), el('p', { class: 'v2-muted', text: 'Progression suggestions use the smallest normal load change. For the plate calculator, list each matching pair you have; repeat a size when you own more than one pair.' })); const form = el('form'); const increment = el('input', { type: 'number', min: '0.1', max: '100', step: '0.1', required: 'true' }); increment.value = equipment.loadIncrement; const bar = el('input', { type: 'number', min: '0', max: '100', step: '0.1', required: 'true' }); bar.value = equipment.barWeight; const plates = el('input', { type: 'text', required: 'true', placeholder: '25, 25, 20, 20, 15, 10, 5, 2.5, 1.25' }); plates.value = equipment.platePairs.join(', '); const submit = button('Save equipment settings', null, 'primary'); submit.type = 'submit'; form.append(el('div', { class: 'v2-grid' }, [el('div', { class: 'v2-field' }, [el('label', { text: 'Normal load increment (kg)' }), increment]), el('div', { class: 'v2-field' }, [el('label', { text: 'Bar weight (kg)' }), bar]), el('div', { class: 'v2-field' }, [el('label', { text: 'Available plate pairs (kg)' }), plates])]), submit); form.addEventListener('submit', async event => { event.preventDefault(); const parsed = plates.value.split(',').map(value => Number(value.trim())).filter(value => Number.isFinite(value) && value > 0 && value <= 100); if (!parsed.length || parsed.length > 40) return toast('Enter between 1 and 40 positive plate-pair sizes, separated by commas.'); const previous = clone(equipment); equipment.loadIncrement = Math.max(0.1, Number(increment.value) || 2.5); equipment.barWeight = Math.max(0, Number(bar.value) || 0); equipment.platePairs = parsed.sort((a, b) => b - a); try { await save('settings'); renderReview(); toast('Equipment settings saved.'); } catch (error) { state.settings.equipment = previous; toast(error.message); } }); card.append(form); return card; }
   function weeklyReviewCard() {
     const card = el('div', { class: 'card' }); card.append(el('h2', { text: 'Last 7 days' }), el('p', { class: 'v2-muted', text: 'A transparent summary of recorded data—not an automatic prescription.' }));
-    const days = Array.from({ length: 7 }, (_, index) => { const value = new Date(); value.setDate(value.getDate() - index); return value.toISOString().slice(0, 10); });
+    const days = Array.from({ length: 7 }, (_, index) => { const value = new Date(); value.setDate(value.getDate() - index); return localDate(value); });
     const dietDays = days.filter(date => state.diet.days[date]?.updatedAt).map(date => dietTotals(state.diet.days[date]).total); const healthDays = days.map(date => state.health.entries[date]).filter(Boolean); const workouts = state.workouts.sessions.filter(session => days.includes(session.date));
     const avg = (items, key) => items.length ? items.reduce((sum, item) => sum + (Number(item[key]) || 0), 0) / items.length : null;
     const values = [['Diet days', `${dietDays.length}/7`, dietDays.length >= 4 ? 'Enough for a useful average' : 'Log 4+ days for useful averages'], ['Avg calories', avg(dietDays, 'calories') === null ? '—' : Math.round(avg(dietDays, 'calories')) + ' kcal', 'Saved diet days only'], ['Avg protein', avg(dietDays, 'protein') === null ? '—' : Math.round(avg(dietDays, 'protein')) + ' g', 'Saved diet days only'], ['Workouts', String(workouts.length), 'Completed sessions'], ['Avg sleep', avg(healthDays, 'sleepHours') === null ? '—' : avg(healthDays, 'sleepHours').toFixed(1) + ' h', 'Daily entries']];
@@ -1325,28 +1552,30 @@ function slug(value) {
     const card = el('div', { class: 'card' });
     card.append(el('h2', { text: 'Backup and recovery' }), el('p', { class: 'v2-muted', text: 'Exports include daily logs, diets, libraries, workouts, routines, calisthenics programme progress, settings, reviews, and reminder preferences.' }));
     const output = el('div', { class: 'v2-muted' });
-    const file = el('input', { type: 'file', accept: 'application/json' });
+    const file = el('input', { type: 'file', accept: 'application/json', 'aria-label': 'Backup file' });
     const restore = button('Restore selected backup', async () => {
       const candidate = file._bundle;
       if (!candidate) return;
-      const snapshot = await exportBundle();
+      if (!confirm('Replace the sections listed above with this backup? Your current data will be saved as a recovery snapshot.')) return;
       try {
-        await write(KEY.preImport, snapshot);
-        for (const [part, value] of Object.entries(candidate.data)) if (KEY[part] && value !== null) { state[part] = value; await save(part); }
-        await loadAll(); render(); toast('Backup restored. A pre-import snapshot was saved on the server.');
+        await restoreBundle(candidate);
+        await loadAll(); dirtyPanels.clear(); render(); toast('Backup restored. A pre-import snapshot was saved on the server.');
       } catch (error) { toast(error.message); }
     }, 'primary');
     restore.disabled = true;
     file.addEventListener('change', async () => {
+      restore.disabled = true; file._bundle = null; const chosenFile = file.files[0]; if (!chosenFile) return;
       try {
-        let candidate = JSON.parse(await file.files[0].text());
+        let candidate = JSON.parse(await chosenFile.text());
         if (!candidate?.data) throw new Error('Invalid');
         if (candidate.data['health-log']) candidate = { schemaVersion: 1, data: { health: candidate.data['health-log'], workouts: candidate.data['workout-log'], routines: null, library: null, settings: null, reviews: null, reminders: null } };
-        file._bundle = candidate;
+        const validation = await fetch('/api/backup/validate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(candidate) });
+        if (!validation.ok) throw new Error((await validation.json()).error);
+        if (file.files[0] !== chosenFile) return; file._bundle = candidate;
         const parts = Object.entries(candidate.data).filter(([, value]) => value !== null).map(([part, value]) => `${part}: ${Array.isArray(value?.sessions) ? value.sessions.length + ' sessions' : value?.entries ? Object.keys(value.entries).length + ' entries' : 'present'}`);
         output.textContent = 'Ready to restore — ' + parts.join(', ') + '. A snapshot will be made first.';
         restore.disabled = false;
-      } catch { output.textContent = 'That file is not a valid Recomp Tracker backup.'; restore.disabled = true; }
+      } catch (error) { file._bundle = null; output.textContent = 'Cannot restore: ' + error.message; restore.disabled = true; }
     });
     card.append(
       el('div', { class: 'v2-toolbar v2-data-actions' }, [button('Download backup', async () => downloadJSON(await exportBundle(), 'recomp-tracker-backup-' + isoToday() + '.json'), 'primary')]),
@@ -1356,10 +1585,92 @@ function slug(value) {
     );
     return card;
   }
-  async function restorePreImport() { try { const snapshot = await read(KEY.preImport, null); if (!snapshot?.data) return toast('No pre-import snapshot is available.'); if (!confirm('Restore the most recent pre-import snapshot?')) return; for (const [part, value] of Object.entries(snapshot.data)) if (KEY[part] && value !== null) { state[part] = value; await save(part); } await loadAll(); render(); toast('Pre-import snapshot restored.'); } catch (error) { toast(error.message); } }
-  async function exportBundle() { return { schemaVersion: 11, exportedAt: new Date().toISOString(), data: { health: state.health, diet: state.diet, foods: state.foods, dietSettings: state.dietSettings, mealTemplates: state.mealTemplates, workouts: state.workouts, routines: state.routines, library: state.library, programme: state.programme, settings: state.settings, reviews: state.reviews, reminders: state.reminders } }; }
+  async function restorePreImport() { try { const snapshot = await read(KEY.preImport, null); if (!snapshot?.data) return toast('No pre-import snapshot is available.'); if (!confirm('Restore the most recent pre-import snapshot?')) return; await restoreBundle(snapshot); await loadAll(); dirtyPanels.clear(); render(); toast('Pre-import snapshot restored.'); } catch (error) { toast(error.message); } }
+  async function exportBundle() { return { schemaVersion: 13, exportedAt: new Date().toISOString(), data: { active: state.active, health: state.health, diet: state.diet, foods: state.foods, dietSettings: state.dietSettings, mealTemplates: state.mealTemplates, workouts: state.workouts, routines: state.routines, library: state.library, programme: state.programme, settings: state.settings, reviews: state.reviews, reminders: state.reminders } }; }
   function downloadJSON(value, name) { const url = URL.createObjectURL(new Blob([JSON.stringify(value, null, 2)], { type: 'application/json' })); const link = el('a', { href: url, download: name }); link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
 
-  async function boot() { try { await loadAll(); if (state._migratedDiet) { try { await save('diet'); } catch { /* Existing records remain usable; retry on the next successful save. */ } } if (state._migratedLibrary) { try { await save('library'); } catch { /* Retry on the next successful save. */ } } if (state._migratedRoutines) { try { await save('routines'); } catch { /* Retry on the next successful save. */ } } if (state._migratedSettings) { try { await save('settings'); } catch { /* Retry on the next successful save. */ } } buildShell(); render(); if ('serviceWorker' in navigator) navigator.serviceWorker.register('/static/service-worker.js').catch(() => {}); } catch (error) { document.body.prepend(el('div', { class: 'v2-banner', role: 'alert', text: 'Could not load the tracker. Check the connection and refresh. ' + error.message })); } }
+
+  const BUILD = '2026.10.19-r16';
+  const dirtyPanels = new Set();
+  const selectedWorkouts = new Set();
+  let currentTab = 'today', finishingWorkout = false, recordActionBusy = false, saveQueue = Promise.resolve(), pendingSaves = 0;
+  let saveLabel = 'Saved', connectionLabel = 'Checking connection';
+  function updateAppStatus() { const node = $('.v2-app-status'); if (node) node.textContent = `Recomp ${BUILD} · ${connectionLabel} · ${saveLabel}`; }
+  async function updateConnection() { try { const response = await fetch('/healthz', { cache: 'no-store', signal: AbortSignal.timeout(5000) }); connectionLabel = response.ok ? 'Connected' : 'Server unavailable'; } catch { connectionLabel = 'Offline'; } updateAppStatus(); }
+  function guardedAction(action) {
+    if (typeof action !== 'function') return () => {};
+    return async function(event) { if (this.dataset.busy) return; this.dataset.busy = 'true'; const wasDisabled = this.disabled; this.disabled = true;
+      try { await action.call(this, event); } catch(error) { toast(error.message || 'Action failed. Please retry.'); }
+      finally { delete this.dataset.busy; this.disabled = wasDisabled; }
+    };
+  }
+  async function saveParts(data, snapshot = false) {
+    const payload = clone(data); pendingSaves++; saveLabel = 'Saving…'; updateAppStatus();
+    const operation = saveQueue.catch(() => {}).then(async () => {
+      const versions = Object.fromEntries(Object.keys(payload).map(part => [part, VERSIONS[KEY[part]] ?? null]));
+      const response = await fetch('/api/kv-batch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: payload, versions, snapshot }) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Save failed. Your changes have not been confirmed.');
+      Object.entries(result.versions).forEach(([part, version]) => VERSIONS[KEY[part]] = version);
+      const panels = { health: 'today', diet: 'diet', workouts: 'records', active: 'workout', settings: 'review', routines: 'routines', foods: 'foods', programme: 'programme', reminders: 'review', reviews: 'review', dietSettings: 'diet', mealTemplates: 'diet' };
+      Object.keys(payload).forEach(part => { if (JSON.stringify(state[part]) === JSON.stringify(payload[part])) dirtyPanels.delete(panels[part]); });
+      saveLabel = dirtyPanels.size ? 'Unsaved changes' : 'Saved'; connectionLabel = 'Connected';
+    });
+    saveQueue = operation;
+    try { await operation; } catch(error) { saveLabel = 'Save failed — retry'; throw error; }
+    finally { pendingSaves--; updateAppStatus(); }
+  }
+  async function restoreBundle(bundle) {
+    const response = await fetch('/api/backup/validate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(bundle) });
+    if (!response.ok) throw new Error((await response.json()).error || 'Invalid backup');
+    const parts = Object.fromEntries(Object.entries(bundle.data).filter(([part, value]) => KEY[part] && (value !== null || part === 'active')));
+    await saveParts(parts, true);
+  }
+  document.addEventListener('submit', event => { const form = event.target; if (form.dataset.submitting) { event.preventDefault(); event.stopImmediatePropagation(); return; } form.dataset.submitting = 'true'; queueMicrotask(() => { saveQueue.catch(() => {}).finally(() => { delete form.dataset.submitting; }); }); }, true);
+  document.addEventListener('input', event => { const panel = event.target.closest('[id^="tab-"]'); if (!panel || event.target.type === 'search' || panel.id === 'tab-records') return; dirtyPanels.add(event.target.closest('.v2-hiit') ? 'hiit' : panel.id.slice(4)); saveLabel = 'Unsaved changes'; updateAppStatus(); });
+  window.addEventListener('beforeunload', event => { if (pendingSaves || dirtyPanels.size || draftSaveTimer || ['saving', 'error'].includes(draftSaveStatus.state)) { event.preventDefault(); event.returnValue = ''; } });
+  window.addEventListener('online', updateConnection); window.addEventListener('offline', () => { connectionLabel = 'Offline'; updateAppStatus(); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') updateConnection(); });
+
+  function workoutSelectionCheckbox(session) {
+    const check = el('input', { type: 'checkbox', 'aria-label': `Select ${session.date} ${session.routineName || 'workout'}` }); check.checked = selectedWorkouts.has(session.id);
+    check.addEventListener('change', () => { if (check.checked) selectedWorkouts.add(session.id); else selectedWorkouts.delete(session.id); renderRecords(); }); return check;
+  }
+  function workoutSelectionToolbar(sessions) {
+    const available = new Set(sessions.map(item => item.id)); const selected = [...selectedWorkouts].filter(id => available.has(id));
+    return el('div', { class: 'v2-toolbar' }, [
+      button('Select matching workouts', () => { sessions.forEach(item => selectedWorkouts.add(item.id)); renderRecords(); }),
+      button('Clear selection', () => { selectedWorkouts.clear(); renderRecords(); }),
+      button(`Delete selected (${selected.length})`, () => deleteWorkouts(selected), 'danger')
+    ]);
+  }
+  async function deleteWorkouts(ids) {
+    if (recordActionBusy) return; const wanted = new Set(ids); const removed = state.workouts.sessions.filter(item => wanted.has(item.id));
+    if (!removed.length) return toast('These workouts are already deleted.');
+    if (!confirm(`Move ${removed.length} workout(s) to Recently deleted?\n` + removed.map(item => `${item.date} · ${item.routineName || 'Workout'}`).join('\n'))) return;
+    recordActionBusy = true;
+    try { const next = clone(state.workouts); next.sessions = next.sessions.filter(item => !wanted.has(item.id)); next.trash ||= [];
+      removed.forEach(session => { if (!next.trash.some(item => item.id === session.id)) next.trash.push({ id: session.id, deletedAt: new Date().toISOString(), session: clone(session) }); });
+      await saveParts({ workouts: next }); state.workouts = next; selectedWorkouts.clear(); renderRecords(); toast(`${removed.length} workout(s) moved to Recently deleted.`, () => restoreWorkouts(removed.map(item => item.id)));
+    } finally { recordActionBusy = false; }
+  }
+  async function restoreWorkouts(ids) {
+    if (recordActionBusy) return; recordActionBusy = true;
+    try { const next = clone(state.workouts); const wanted = new Set(ids); const existing = new Set(next.sessions.map(item => item.id));
+      const restored = (next.trash || []).filter(item => wanted.has(item.id));
+      restored.forEach(item => { if (!existing.has(item.id)) { next.sessions.push(item.session); existing.add(item.id); } });
+      if (!restored.length) return toast('These workouts have already been restored.');
+      next.trash = next.trash.filter(item => !wanted.has(item.id)); next.sessions.sort(byDate);
+      await saveParts({ workouts: next }); state.workouts = next; renderRecords(); toast(`${restored.length} workout(s) restored.`);
+    } finally { recordActionBusy = false; }
+  }
+  function recentlyDeletedCard() {
+    const items = state.workouts.trash || []; const details = el('details', {}, [el('summary', { text: `Recently deleted (${items.length})` }), el('p', { class: 'v2-muted', text: 'Deleted workouts stay here until restored. They are included in backups and excluded from your statistics.' })]);
+    items.slice().reverse().forEach(item => details.append(el('div', { class: 'v2-row' }, [el('span', { class: 'grow', text: `${item.session.date} · ${item.session.routineName || 'Workout'}` }), button('Restore', () => restoreWorkouts([item.id]))])));
+    return details;
+  }
+  function collapsibleHiit() { const details = el('details', { class: 'v2-hiit-section' }, [el('summary', { text: 'HIIT interval timer & alarms' }), hiitTimerCard()]); details.open = hiitRuntime.status !== 'idle' || !!state.hiitExpanded; details.addEventListener('toggle', () => state.hiitExpanded = details.open); return details; }
+
+  async function boot() { try { await loadAll(); if (state._migratedDiet) { try { await save('diet'); } catch { /* Existing records remain usable; retry on the next successful save. */ } } if (state._migratedDietSettings) { try { await save('dietSettings'); } catch { /* Existing constants remain usable; retry on the next successful save. */ } } if (state._migratedWorkouts) { try { await save('workouts'); } catch { /* Retry on the next successful save. */ } } if (state._migratedLibrary) { try { await save('library'); } catch { /* Retry on the next successful save. */ } } if (state._migratedRoutines) { try { await save('routines'); } catch { /* Retry on the next successful save. */ } } if (state._migratedSettings) { try { await save('settings'); } catch { /* Retry on the next successful save. */ } } buildShell(); render(); if ('serviceWorker' in navigator) navigator.serviceWorker.register('/service-worker.js').then(async () => { const registrations = await navigator.serviceWorker.getRegistrations(); await Promise.all(registrations.filter(registration => registration.scope === location.origin + '/static/' && (registration.active?.scriptURL || registration.waiting?.scriptURL || registration.installing?.scriptURL) === location.origin + '/static/service-worker.js').map(registration => registration.unregister())); }).catch(() => {}); } catch (error) { document.body.prepend(el('div', { class: 'v2-banner', role: 'alert', text: 'Could not load the tracker. Check the connection and refresh. ' + error.message })); } }
   boot();
 })();

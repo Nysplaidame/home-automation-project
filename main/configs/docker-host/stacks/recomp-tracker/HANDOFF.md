@@ -1,5 +1,117 @@
 # Handoff: recomp-tracker → deploy to docker-host (VM 103)
 
+## OCR speed and calorie fix — deployed 2026-10-10
+
+Current build is r14 (2026.10.10-r14), service-worker v33, superseding r13 below.
+Calorie extraction handles standalone/split kcal lines, Calories on a separate
+line, OCR kcaI/kca1 and explicit kJ/kcal pairs. Labelled kJ-only energy is
+converted with a review warning; ambiguous/malformed values remain blank.
+The active fast English model is 1,984,273 bytes versus 10,923,060 previously
+(about 82% less language download). Opening the scanner prepares the reader;
+repeat scans reuse it. Cancellation, backgrounding, detachment and idle release
+free the worker. Versioned language storage and cache-first OCR assets reduce
+repeat downloads. The root /service-worker.js route fixes the old /static/
+scope, which excluded the app; legacy registration is removed. API responses
+are not cached. No dependency change or database migration.
+
+Checks passed: nine parser tests, existing frontend regressions, JS syntax,
+full fixture browser suite (real split-line OCR, review gates, worker reuse,
+offline asset cache, persistence and 1440/390/320px layouts), and eight isolated
+backend tests. Repeat fixture recognition took about 0.15–0.17 seconds on the
+workstation; phone timing remains unverified. Live direct HTTP and Homepage
+HTTPS checks passed at 390px, including calories=200 from split energy text,
+persisted sections, HTTPS root service-worker control and legacy removal.
+API writes were blocked and none attempted. Live checksums match source,
+container health passed and SQLite integrity is ok. The user's actual label
+has not been reproduced.
+
+Live image: recomp-tracker:release-r14-20261010, manifest
+sha256:7920798d037efe1b95893bba60b7ebc5022b211cae59eb40bb9b137df1ab8dd9.
+Backup/source/checkpoint/old image identity:
+/opt/backups/recomp-tracker-ocr-speed-20261010-143951/.
+Previous image also retained as recomp-tracker:pre-ocr-speed-20261010.
+Built with Dockerfile.runtime from retained r13 runtime, network none.
+Only app.py and static source updated; Compose, environment and records retained.
+Rollback: restore source.tar, tag old-image.txt's image as
+recomp-tracker-recomp-tracker:latest and recreate with
+docker compose up -d --no-build --no-deps recomp-tracker. Do not restore the DB.
+Next check: retry the user's label on their phone after refreshing.
+
+## Nutrition photo OCR and persistent sections — deployed 2026-10-10 (r13, historical)
+
+Food add/edit supports on-device English OCR with camera/gallery inputs,
+rotation and percentage crop, editable recognised text/values, explicit column
+selection, review confirmation and per-serving conversion to 100g/ml. Four
+reviewed values are required before applying; no scan writes automatically.
+Unknown/kJ-only/less-than/duplicate readings stay blank. Scanning controls sit
+outside the food form, so an invalid scan draft cannot block manual food saving.
+Nutrition form inputs accept decimal precision. Diet and Food library cards
+have native keyboard-accessible collapse controls with per-browser saved choices.
+Daily-use sections start open; target planning, meal management, constant editor
+and saved meals start closed. Food recipe/archive sections start closed. Edits
+reveal the editor without overwriting a closed preference; quick-add/load reveals
+the destination meal. Collapse does not discard unsaved values. Storage failure
+falls back to session state. Build `2026.10.10-r13`, service-worker cache v32.
+
+Bundled Tesseract.js 6.0.1/core 6.1.2 and English language data add approximately
+40 MB under `static/ocr`; provenance/licenses/hashes accompany assets. No image
+upload endpoint, Python dependency or database migration. Existing unrelated
+working-tree changes were preserved. Backend and dependency hashes match the
+prior live source; production diet/workout/food records were not modified.
+
+Verification (local fixtures, isolated image and read-only live acceptance):
+
+- `node --check static/nutrition-ocr.js`, `static/app-v2.js` and
+  `static/service-worker.js`.
+- `node --test tools/test_nutrition_ocr.cjs`: six parser tests covering columns,
+  decimals, absent/ambiguous values, kcal/kJ, units, negative values and basis.
+- `node tools/test_frontend.cjs`: existing regression suite.
+- `node tools/test_nutrition_ocr_browser.cjs`: actual bundled OCR on a synthetic
+  label, editable correction, review gate, save payload, serving conversion,
+  column selection, engine failure, cancellation, invalid image and
+  1440/390/320px layouts. Desktop/mobile screenshots inspected from the system
+  temporary `recomp-ocr-browser` directory. Test uses the existing
+  `main/tools/playwright-smoke/node_modules/playwright` installation (or
+  `RECOMP_PLAYWRIGHT` override).
+- Expanded browser checks prove collapse defaults, keyboard toggling,
+  date/tab rerender and reload persistence, unsaved-value retention, blocked
+  storage fallback and automatic editor reveal. The initial runtime smoke
+  health wait was too short; the rerun with a 30-second startup budget passed.
+- The candidate image passed health/scripts plus food save/readback with a
+  new isolated database, network `none` and notifications disabled. Its test
+  container and anonymous volume were removed.
+- Live direct HTTP and Homepage HTTPS browser checks passed at390px: r13,
+  persisted collapse state and actual OCR of a synthetic label. All API writes
+  were blocked during acceptance and none were attempted. HTTPS acceptance used
+  a browser test context allowing the lab certificate; it does not verify a
+  new phone's CA trust. No phone capture, real packaging or notification test.
+
+The healthy live image is `recomp-tracker:release-r13-20261010`, manifest
+`sha256:e140a43c74d35915a68b3a44e34fda5b4ea3d833758b970f866fc34c50ea8e4c`.
+Consistent SQLite checkpoint (`integrity_check=ok`), old image identity and
+source archive are retained at
+`/opt/backups/recomp-tracker-ocr-collapse-20261010-125657/` on VM103. The old
+image is also tagged `recomp-tracker:pre-ocr-collapse-20261010`. Live post-release
+SQLite integrity is `ok`; all frontend and bundled OCR asset hashes match source.
+
+Rebuild used the recorded candidate directory and the existing runtime:
+
+```sh
+docker build --network none --pull=false --provenance=false --build-arg RUNTIME_IMAGE=recomp-tracker:pre-ocr-collapse-20261010 -f Dockerfile.runtime -t recomp-tracker:release-r13-20261010 .
+docker tag recomp-tracker:release-r13-20261010 recomp-tracker-recomp-tracker:latest
+docker compose up -d --no-build --no-deps recomp-tracker
+```
+
+Only `static/` and `templates/` were copied into the live stack. `.env`, Compose,
+backend and data paths were retained. For rollback, restore `source.tar` into
+the stack, tag the image identified by `old-image.txt` as
+`recomp-tracker-recomp-tracker:latest`, and recreate only this service with the
+above no-build/no-deps command. Do not restore the database for this UI rollback.
+
+OCR misread a synthetic decimal before correction. Real packaging accuracy,
+phone camera capture and on-phone latency remain unverified. Next: representative
+label/phone acceptance. This release supersedes the prior r12/v30 live state.
+
 ## What this is
 
 A personal weight-loss/recomposition tracker (daily habits, workouts, a long
@@ -284,7 +396,6 @@ static/manifest.webmanifest PWA metadata
 Dockerfile                 Builds the image
 requirements.txt           Flask, requests
 docker-compose.yml         Canonical standalone Compose stack
-docker-compose.snippet.yml Deprecated marker for the old merge workflow
 README.md                  Current deployment notes
 ```
 
@@ -341,20 +452,22 @@ passed. Phone-side subscription/receipt remains the sole open acceptance item.
    that host uses (see `/opt/stacks/*` for reference — this host already
    runs several other services this way).
 
-2. `cp .env.example .env` if present, or create one — check
-   `docker-compose.snippet.yml` for the required variables:
+2. Copy `.env.example` to `.env` and set its required variables. The canonical
+   standalone `docker-compose.yml` consumes:
    - `RECOMP_NTFY_TOPIC` — a random, unguessable slug. The host already
      runs a self-hosted ntfy instance on a docker network called
      `local-alerting`; join that network and point `NTFY_URL` at
      `http://ntfy` (internal DNS name), not the public ntfy.sh.
-   - `RECOMP_TZ_OFFSET_HOURS` — local UTC offset, so the reminder times
-     (07:15, 12:45, 18:30, etc. — see `REMINDERS` list in `app.py`) fire
-     at the right actual clock time.
+   - `RECOMP_NTFY_USER` and `RECOMP_NTFY_PASSWORD` — the dedicated
+     least-privilege ntfy publisher credentials.
+   - `RECOMP_TIMEZONE` — defaults to `Europe/London`, preserving DST-aware
+     reminder scheduling without a fixed UTC-offset variable.
 
-3. Merge `docker-compose.snippet.yml` into the host's real compose file
-   (or use it standalone) — it already has the provenance-disabled build
-   flag set (see the known issue below for why that matters), the
-   `local-alerting` network join, and a healthcheck hitting `/healthz`.
+3. Use the standalone `docker-compose.yml` without merging fragments. It
+   contains the provenance-disabled build setting, explicit
+   `10.240.31.0/24` service network, external `local-alerting` join,
+   least-privilege container settings, persistent data mount and `/healthz`
+   healthcheck.
 
 4. `docker compose up -d --build`
 
@@ -375,7 +488,7 @@ passed. Phone-side subscription/receipt remains the sole open acceptance item.
 - **`docker compose build` can hang indefinitely at "resolving provenance
   for metadata file."** This is a known BuildKit issue, more likely on
   hosts with restricted outbound access (this one is firewalled by
-  design). Fix already applied in `docker-compose.snippet.yml`
+  design). The fix is present in canonical `docker-compose.yml`
   (`provenance: false` under the build key) — if you're building some
   other way (bare `docker build`), add `--provenance=false` to the command.
 
@@ -418,3 +531,186 @@ passed. Phone-side subscription/receipt remains the sole open acceptance item.
   of similar low-stakes single-user tools already on this host (LAN +
   Tailscale only, no login), that was a deliberate prior decision, not
   an oversight
+
+## Null workout-session recovery — 2026-09-16
+
+- A run of workout deletions left one JSON `null` element in
+  `workout-log.sessions`. The v2 startup migration previously assumed every
+  array element was a session and failed on `session.id`, so the tracker showed
+  “Could not load the tracker … Cannot read properties of null (reading 'id')”.
+- `static/app-v2.js` now filters non-object workout entries during migration
+  and persists that repair through the existing optimistic-versioned workout
+  write. It retains every valid session; it does not alter the remaining
+  session records.
+- A consistent pre-repair SQLite backup and the prior app script are retained
+  at `/opt/backups/recomp-tracker-null-session-20260916/`; the previous image
+  is tagged `recomp-tracker:pre-null-session-20260916`.
+- Live browser startup completed, `workout-log` now contains 15 sessions and
+  zero null entries, `/healthz` is green, and `PRAGMA integrity_check` returned
+  `ok`. The live and stack-source script hashes match.
+- `docker compose build` could not complete because Docker's default `docker0`
+  bridge is missing (`adding interface … to bridge docker0 failed: Device does
+  not exist`). The running container was left up; the validated frontend was
+  copied into it as a scoped hotfix. Once the host Docker bridge is repaired,
+  rebuild/recreate this stack so the image again contains the tracked source.
+
+## Reliability, UI and alarm release — deployed 2026-09-17
+
+Supersedes the hotfix-only deployment above. Live build `2026.09.16-r2` is in a
+recreated healthy container, image `recomp-tracker:release-r2-20260917`, manifest
+`sha256:c861c3265b5bb560c9278580d2242c86536298a5b58b8b3b583d35cc9a35adfb`.
+The compose image `recomp-tracker-recomp-tracker:latest` points to this release.
+
+- Repeated/missing-ID deletes cannot remove another workout or insert null.
+  Bulk delete and persistent Recently deleted recovery are available.
+- Backend validates saved section shapes and handles atomic version-checked
+  batches. Completion saves the workout and clears its draft atomically; backup
+  import validates first and snapshots the previous state in the same transaction.
+- Schema 12 includes active draft and trash. Conflicts retain unsaved work.
+- Fixed local dates, baseline/trend windows, missing Today glance and legacy
+  hidden summary; primary navigation is Today/Diet/Workout/Records with More.
+  Records supports history beyond 60 entries; save/connection/build state and
+  unsaved-edit warnings are visible.
+- HIIT has sustained school-bell/dive-siren alarms, volume, preview and stop.
+  Idle HIIT controls collapse below the workout controls. Device volume still
+  governs physical loudness; background mobile audio is not guaranteed.
+
+Fresh consistent pre-release DB and previous source are retained at
+`/opt/backups/recomp-tracker-r2-20260917/`; an additional SQLite checkpoint is
+`/opt/stacks/recomp-tracker/data/recomp-pre-r2-20260917.db`. Older recovery backup
+and `recomp-tracker:pre-null-session-20260916` image remain available.
+
+Verification: six backend regression tests, frontend race/failure/date/alarm
+tests, validation of all populated production sections, isolated browser
+completion and 65→66-session pagination, all-tab mobile checks, and live HTTPS
+Homepage UI/console/mobile checks passed. Post-deploy integrity is `ok`; all 15
+workout sessions exactly match the pre-release checkpoint. Live app/script/worker
+hashes match canonical source. No live test workouts or notifications were created.
+
+The missing Docker default bridge remains a host follow-up. `Dockerfile.runtime`
+uses an explicitly selected installed runtime without RUN/network steps; the
+requirements SHA256 matched `24157eae2f9b22055d015ba60f28bd844fd281f3a6207456d4400f77e7966a9b`.
+For source-only rebuilds, from the stack directory:
+
+```sh
+docker build --network none --pull=false --provenance=false --build-arg RUNTIME_IMAGE=recomp-tracker:pre-null-session-20260916 -f Dockerfile.runtime -t recomp-tracker:release-r2-20260917 .
+docker tag recomp-tracker:release-r2-20260917 recomp-tracker-recomp-tracker:latest
+docker compose up -d --no-build --no-deps recomp-tracker
+```
+
+Use the normal Dockerfile when requirements change. The build argument has no
+default intentionally; Docker's InvalidDefaultArgInFrom warning is expected.
+For rollback, retain a fresh DB checkpoint first, select the prior image, recreate
+only this service and restore the backed-up hotfix frontend/source consistently
+(the prior image predates that frontend hotfix). Do not restore the old database
+unless explicitly recovering data: it would discard subsequent user entries.
+
+## HIIT sets and recovery — deployed 2026-09-17
+
+Build `2026.09.17-r3` changes HIIT from a flat round loop to sets of rounds.
+It provides `Rounds per set`, `Sets`, and distinct `Recovery between sets`;
+the default is five sets and 120 seconds recovery. Timer state reports both set
+and round, alarms fire at the recovery phase, and saved HIIT history labels each
+work interval by its set while preserving both rest durations in the session.
+Existing HIIT settings migrate safely to the new five-set defaults.
+
+The final container image is `recomp-tracker:release-r5-20260917` (manifest
+`sha256:1f8d0ca6bec822ae35b6374210f8b444e20335d8bde19a9e6b17b43c23b5ec0a`).
+It advances the service-worker cache to v23 so a browser cannot retain an
+older frontend after this release. The live default is School alarm bell at 100%
+volume, with the existing 5-second work/rest, five rounds per set, five sets,
+120-second set recovery and two-second preparation retained.
+
+Visual QA on this release corrected the legacy-looking secondary navigation:
+the More tabs now use the rounded card/forest-selected treatment of primary
+navigation. Long record summaries use safe wrapping. Browser checks found no
+console errors, horizontal overflow or off-viewport inputs, buttons, cards,
+timer panels, metric cards or rows across all 11 screens at 1280×720 and
+390×844.
+
+## Quantity-aware daily constants — deployed 2026-09-17
+
+Live build `2026.09.17-r6` adds schema 13 support for quantity-aware daily
+constants. A new or edited constant can select any saved food, including a
+calculated recipe, and choose its normal daily quantity in g/ml. Its nutrition
+is then calculated from that item's per-100g/per-100ml values. The daily
+checklist also allows an actual quantity for that date, independently of the
+default.
+
+- The selected source and its nutrition are snapshotted when the constant is
+  recorded, so editing a food or recipe later cannot rewrite a completed day.
+  Manual per-100g/per-100ml constants remain available for supplements and
+  other items that are not in the library.
+- Existing constants were deliberately retained as **legacy fixed portions**:
+  their current totals and historical snapshots are unchanged. They explicitly
+  prompt the user to edit and link the appropriate library food/recipe before
+  enabling the g/ml quantity field; a former serving total is never mislabelled
+  as a per-100 value.
+- Eight high-confidence existing-library links have been applied without
+  recreating food records: both Greek-yogurt constants (200g), ground flaxseed
+  (14g), whey protein powder (30g), olive oil (20g and 4.5g), fish oil (4g),
+  and potato starch (25g). Eggs, casein, creatine and the vascular shot remain
+  fixed because their available library values were absent or materially
+  different. Completed days continue to show their original snapshots; users
+  can untick and re-tick a linked item to start using its quantity today.
+- Backend validation rejects invalid constant quantities and source shapes;
+  schema-13 exports preserve the source link, default quantity, per-day
+  quantity and snapshot.
+
+The container is healthy on image `recomp-tracker:release-r10-20260917`,
+manifest `sha256:a3379e2074e08116237d36766d5734c879b02ae99ac33cabfb6c01f840b1e99d`.
+The live browser build is `2026.09.17-r9`, with service-worker cache v28.
+Before deployment, a consistent source/database backup was retained at
+`/opt/backups/recomp-tracker-quantity-20260917/` and the SQLite checkpoint at
+`/opt/stacks/recomp-tracker/data/recomp-pre-quantity-20260917.db`; the
+pre-compatibility checkpoint is
+`/opt/stacks/recomp-tracker/data/recomp-pre-legacy-correction-20260917.db`,
+and the pre-link checkpoint is
+`/opt/stacks/recomp-tracker/data/recomp-pre-constant-source-links-20260917.db`.
+
+Verification passed: frontend quantity/snapshot calculations, seven isolated
+backend reliability tests, live browser source-preview and layout checks,
+no browser console warnings/errors or horizontal overflow, matching
+app/frontend/service-worker hashes, `/healthz`, and SQLite integrity. The
+production database still has 15 workout sessions and 36 diet days; no test
+entries were saved. The live UI confirms a linked 200g Greek-yogurt item
+calculates 106 kcal / 22g protein from its per-100g source.
+
+## Compact mobile Diet summary — deployed 2026-09-17
+
+Build `2026.09.17-r10` makes the sticky Diet macro balance a 74px-tall
+four-metric strip at phone widths. It retains the consumed/target figures for
+calories, protein, carbs and fat, while the secondary remaining/over text and
+target-progress note are omitted only from that sticky mobile presentation.
+Desktop and the rest of the Diet screen are unchanged. The mobile card values
+wrap safely without overflow.
+
+The healthy live container is `recomp-tracker:release-r11-20260917`, manifest
+`sha256:8c5014417c8e34bc6c5d1fd02ff863d154109f9d0977eacb034d2c892dfe0140`,
+with service-worker cache v29. Verification covered the frontend regression
+suite, syntax and whitespace checks, `/healthz`, and a live 390x844 browser
+check: four 79px cards fit without overflow, the sticky summary remains 74px
+tall at a 4px scroll offset, and the normal browser viewport was restored.
+
+## Workout UUID compatibility fix — deployed 2026-09-21
+
+Some browser/WebView runtimes expose `crypto` but not `crypto.randomUUID()`,
+which prevented an otherwise-valid live workout from being saved. Workout
+completion now uses `workoutUuid()`: native `randomUUID()` when available, a
+standards-shaped UUID v4 made with `crypto.getRandomValues()` otherwise, and a
+last-resort random-byte fallback when the Web Crypto API itself is unavailable.
+
+The live container was rebuilt from the retained r11 runtime as
+`recomp-tracker:release-r12-20260921`, manifest
+`sha256:d3cf8b13b9b8cdbeff568552701ae8d236974c4dee9507a2021cc7368d2a66b7`.
+The service-worker cache is v30, so a refresh fetches the new frontend. The
+pre-update frontend files and image identity are in
+`/opt/backups/recomp-tracker-uuid-fallback-20260921/`; a consistent, verified
+SQLite checkpoint is
+`/opt/stacks/recomp-tracker/data/recomp-pre-uuid-fallback-20260921.db`.
+
+Verification passed: JavaScript syntax, the frontend regression suite with a
+simulated `crypto` object that lacks `randomUUID`, matching tracked/live
+frontend hashes, healthy Compose state and `/healthz`, plus SQLite
+`PRAGMA integrity_check = ok`. No workout was created or altered for this
+deployment check.

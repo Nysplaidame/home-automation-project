@@ -6,6 +6,23 @@ your other home automation containers. Data lives in SQLite on a mounted volume
 
 ## What's different from the browser artifact
 
+- Nutrition-label OCR in the add/edit food form (deployed r14, 2026-10-10).
+  Take or choose a photo, rotate/trim it, read the
+  table on-device, correct the recognised text/values, select the column and
+  confirm the basis before applying. Serving values require a known weight or
+  volume and are converted to per 100g/ml. All four values must be reviewed;
+  missing and ambiguous readings are left for manual entry. Labelled kJ-only energy is converted with a review warning. Scanning
+  never saves a food automatically. English OCR assets are bundled locally;
+  photos/text are not uploaded or retained in SQLite. Manual entry remains
+  available. Real packaging and phone-camera acceptance remain pending.
+- Diet and Food library sections can be collapsed using their headings.
+  Choices persist per browser/device across tab changes, rerenders and reloads.
+  Daily constants, meals and quick-add start open; target planning, meal-section
+  management, the constant editor and saved meals start closed. Food-library
+  recipe/archive sections start closed. Editing reveals the relevant editor;
+  quick-added or loaded meals reveal their destination. Collapsing retains
+  unsaved entries. Blocked browser storage falls back to session preferences.
+
 - Server-side SQLite instead of browser storage — accessible from any device on
   your network, not tied to one browser.
 - A routine builder with 135 active exercises, custom exercises, duplication,
@@ -15,7 +32,8 @@ your other home automation containers. Data lives in SQLite on a mounted volume
   three setup/performance steps, and a lightweight in-app position schematic
   shown in the library and live workout.
 - A daily Diet tab with editable/archivable constants and foods, user-managed
-  meal sections, reusable saved meals, weight-based macro/calorie totals,
+  meal sections, reusable saved meals and date-specific custom one-time meal
+  estimates that never create Food Library entries, weight-based macro/calorie totals,
   configurable targets, saved daily records and a copy-previous-day shortcut.
   Completed days retain nutrition snapshots, so later library changes cannot
   rewrite history. The separate Food library tab provides searchable,
@@ -149,6 +167,46 @@ optional exercise flags, reusable routine templates, compact-workout settings
 and live-session rest/quick-note state, weekday schedules and overrides,
 routine versions, equipment/load settings, workout summaries, exercise goals,
 saved HIIT defaults and activity, and explicit planned workout-set targets.
+
+## Reliability and interface release — 2026-09-17
+
+Build `2026.09.16-r2` adds safe single/bulk workout deletion, persistent Recently
+deleted recovery, idempotent restore, and serialized version-checked saves.
+Workout completion and backup import use one database transaction; failed saves
+retain the active draft, and imports validate before replacing data and retain a
+pre-import snapshot. Schema 12 exports include the active draft and workout trash.
+
+Today/Diet/Workout/Records are the primary navigation; planning and settings live
+under More. Records loads additional history in batches of 60. Connection/build/
+save indicators and unsaved-edit warnings make state clearer. Local-date,
+seven-day baseline, 28-day trend-span and hidden-summary bugs are corrected.
+
+Workout → HIIT interval timer & alarms offers sustained School alarm bell and
+Dive alarm siren sounds, volume, Preview alarm and Stop sound. School bell at
+85% is the default. Actual loudness is limited by device volume and speakers;
+mobile operating systems can still suppress background audio.
+
+The HIIT timer is structured as **sets of rounds**: choose work and rest between
+rounds, rounds per set, number of sets, recovery between sets, and preparation.
+It defaults to five sets with 120 seconds of recovery. Saved sessions retain the
+set number for each completed work interval and record both rest types.
+
+Daily constants can link to any saved food or calculated recipe. Their nutrition
+is calculated from the source's per-100g/ml values and a default g/ml quantity;
+the daily checklist permits an actual quantity override. Schema 13 exports retain
+the food/recipe link, nutrition snapshot and recorded quantity, so historical
+totals are not changed when a source recipe is later edited. Existing fixed
+portions remain fixed until explicitly linked to a source, so they are never
+mistakenly treated as per-100g/ml values. If an archived constant remains
+checked on a recorded day, the Diet screen shows it explicitly with its
+recorded contribution and allows it to be removed from that day; quantity-based
+snapshots continue to use their recorded g/ml amount rather than a full 100g
+basis.
+
+Regression checks: `node tools/test_frontend.cjs` and
+`python tools/test_reliability.py` (requires the app dependencies). The browser
+fixture script refuses to run without `RECOMP_ISOLATED_TEST=1`; it replaces data
+on the disposable loopback review service and must never target production.
 
 ## Setup
 
