@@ -1,4 +1,5 @@
 // Offline transformation only: no network, storage, commands or raw-detail copying.
+import { parseObservation } from './evidence-time.js';
 const WINDOWS = {
   router: ['Router management', []],
   ha_http: ['Home Assistant HTTPS', ['router']],
@@ -32,12 +33,7 @@ function observation(value, offset) {
   if (typeof value !== 'string') return null;
   let stamp = value.trim().replace(' ', 'T');
   if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(stamp) && offset) stamp += offset;
-  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/.test(stamp)) return null;
-  const calendar = stamp.slice(0, 10);
-  const calendarDate = new Date(`${calendar}T00:00:00Z`);
-  if (!Number.isFinite(calendarDate.valueOf()) || calendarDate.toISOString().slice(0, 10) !== calendar) return null;
-  const date = new Date(stamp);
-  return Number.isFinite(date.valueOf()) ? date : null;
+  return parseObservation(stamp);
 }
 
 export function adaptHealthSnapshot(snapshot, options = {}) {
@@ -51,7 +47,7 @@ export function adaptHealthSnapshot(snapshot, options = {}) {
   if (!Number.isFinite(now.valueOf()) || !Number.isFinite(maxAgeHours) || maxAgeHours <= 0) throw new Error('Invalid freshness policy.');
   if (offset && !/^[+-](?:(?:0\d|1[0-3]):[0-5]\d|14:00)$/.test(offset)) throw new Error('Timestamp offset must be explicit, such as +01:00.');
   const observed = observation(snapshot.timestamp, offset);
-  const invalidTime = !observed || observed.valueOf() > now.valueOf() + 5 * 60 * 1000;
+  const invalidTime = !observed || observed.valueOf() > now.valueOf();
   const stale = observed && now - observed > maxAgeHours * 3600000;
   const observedAt = invalidTime ? 'Not recorded reliably' : observed.toISOString();
   const dependencies = Object.entries(catalog).map(([key, [label, dependsOn]]) => {

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check app.js && node --check health-adapter.js && node --check import-health.mjs && node --check models.js && node --check fixtures/demo-operations.js && npm test",
-    "test:browser": "node tests/browser-smoke.mjs"
+    "check": "node --check app.js && node --check evidence-time.js && node --check health-adapter.js && node --check import-health.mjs && node --check recomp-adapter.js && node --check household-adapter.js && node --check mealie-adapter.js && node --check garden-adapter.js && node --check grocy-adapter.js && node --check import-grocy.mjs && node --check recovery-pack.mjs && node --check recovery-bundle.mjs && node --check models.js && node --check fixtures/demo-operations.js && npm test",
+    "test:browser": "node tests/browser-smoke.mjs",
+    "test:browser:garden": "node tests/browser-garden.mjs"
   }
 }

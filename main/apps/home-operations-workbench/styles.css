@@ -128,7 +128,7 @@ code, .technical { font-family: var(--font-mono); }
 .section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
 .section-head p { margin-top: 4px; color: var(--text-secondary); }
 .section-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.item-list { display: grid; gap: 1px; overflow: hidden; border: 1px solid var(--border); border-radius: 10px; background: var(--border); }
+.item-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; overflow: hidden; border: 1px solid var(--border); border-radius: 10px; background: var(--border); }
 .item-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

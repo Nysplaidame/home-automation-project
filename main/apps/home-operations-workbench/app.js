@@ -10,6 +10,11 @@ import {
 } from './models.js';
 import { demoOperations } from './fixtures/demo-operations.js';
 import { adaptHealthSnapshot } from './health-adapter.js';
+import { adaptGrocyOverview } from './grocy-adapter.js';
+import { adaptGardenTasks } from './garden-adapter.js';
+import { adaptMealiePlan } from './mealie-adapter.js';
+import { adaptHouseholdSources } from './household-adapter.js';
+import { adaptRecompPlan } from './recomp-adapter.js';
 
 const tabs = ['today', 'incidents', 'recovery', 'cook', 'commissioning'];
 const state = {
@@ -27,6 +32,7 @@ const unknownCount = document.querySelector('#unknown-count');
 const liveMessage = document.querySelector('#live-message');
 const importInput = document.querySelector('#evidence-file');
 let messageTimer;
+let importRevision = 0;
 
 function element(tagName, className, content) {
   const node = document.createElement(tagName);
@@ -398,7 +404,7 @@ function renderEmpty() {
   content.append(element('h2', '', 'Load operational evidence'), element('p', '', 'Use the demonstration data to explore the workflows, or import a schema 1.0 JSON evidence export. Data stays in this browser tab and is cleared when you close it.'));
   const demo = element('button', 'primary-button', 'Load demonstration');
   demo.type = 'button';
-  demo.addEventListener('click', () => loadEvidence(demoOperations, 'Demonstration evidence loaded.'));
+  demo.addEventListener('click', loadDemonstration);
   content.append(demo, note('The demonstration is deliberately disconnected from Home Assistant, household apps, food stock, and VentSys hardware.'));
   panel.replaceChildren(content);
 }
@@ -432,24 +438,47 @@ function loadEvidence(rawEvidence, message) {
 
 async function importEvidence(file) {
   if (!file) return;
+  const revision = ++importRevision;
   if (file.size > 512 * 1024) {
     setLiveMessage('Evidence imports are limited to 512 KB.', true);
+    importInput.value = '';
     return;
   }
   try {
-    const rawEvidence = JSON.parse(await file.text());
-    const evidence = rawEvidence && !rawEvidence.schemaVersion && rawEvidence.collector
-      ? adaptHealthSnapshot(rawEvidence) : rawEvidence;
+    const contents = await file.text();
+    if (revision !== importRevision) return;
+    const rawEvidence = JSON.parse(contents.replace(/^\uFEFF/, ''));
+    const evidence = ['household-sources/1.0', 'household-sources/1.1'].includes(rawEvidence?.schemaVersion)
+      ? adaptHouseholdSources(rawEvidence)
+      : rawEvidence?.schemaVersion === 'grocy-overview/1.0'
+        ? adaptGrocyOverview(rawEvidence)
+      : rawEvidence?.schemaVersion === 'recomp-plan/1.0'
+        ? adaptRecompPlan(rawEvidence)
+      : rawEvidence?.schemaVersion === 'mealie-plan/1.0'
+        ? adaptMealiePlan(rawEvidence)
+      : rawEvidence?.schemaVersion === 'garden-tasks/1.0'
+        ? adaptGardenTasks(rawEvidence)
+      : rawEvidence && !rawEvidence.schemaVersion && rawEvidence.collector
+        ? adaptHealthSnapshot(rawEvidence) : rawEvidence;
     loadEvidence(evidence, `Imported evidence from ${file.name}.`);
   } catch (error) {
+    if (revision !== importRevision) return;
     setLiveMessage(error instanceof SyntaxError ? 'The selected file is not valid JSON.' : 'The evidence file could not be imported.', true);
   } finally {
-    importInput.value = '';
+    if (revision === importRevision) importInput.value = '';
   }
 }
 
-document.querySelector('#load-demo').addEventListener('click', () => loadEvidence(demoOperations, 'Demonstration evidence loaded.'));
+function loadDemonstration() {
+  ++importRevision;
+  importInput.value = '';
+  loadEvidence(demoOperations, 'Demonstration evidence loaded.');
+}
+
+document.querySelector('#load-demo').addEventListener('click', loadDemonstration);
 document.querySelector('#clear-evidence').addEventListener('click', () => {
+  ++importRevision;
+  importInput.value = '';
   state.evidence = null;
   state.selectedScenarioId = '';
   renderPanel();

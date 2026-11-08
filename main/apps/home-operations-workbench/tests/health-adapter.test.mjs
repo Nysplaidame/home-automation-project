@@ -31,3 +31,12 @@ test('rejects unsupported inputs and invalid freshness policy', () => {
   assert.throws(() => adaptHealthSnapshot(snapshot, { maxAgeHours: -1 }));
   assert.throws(() => adaptHealthSnapshot(snapshot, { timestampOffset: 'local' }));
 });
+
+test('invalid clock fields and even slightly future observations cannot certify health or backups', () => {
+  for (const timestamp of ['2026-09-06T24:00:00Z', '2026-09-07T21:30:01Z', '2026-09-07T21:60:00Z', '2026-09-07T21:29:00+14:01', '2026-09-07T21:29:00+23:00']) {
+    const result = adaptHealthSnapshot({ collector: 'Proxmox host', timestamp, checks: { backup_vm100: 'pass', ct111_root: 'pass' } }, { now });
+    assert.ok(result.dependencies.every(row => row.status === 'unknown'));
+    assert.ok(result.recovery.systems.every(row => row.backup.status === 'unknown'));
+    assert.ok(result.dependencies.every(row => row.observedAt === 'Not recorded reliably'));
+  }
+});

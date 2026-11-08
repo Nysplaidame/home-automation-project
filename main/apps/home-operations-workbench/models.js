@@ -56,6 +56,7 @@ function safeUrl(value) {
     if (!['http:', 'https:'].includes(parsed.protocol)) return '';
     if (parsed.username || parsed.password) return '';
     if ([...parsed.searchParams.keys()].some((key) => SENSITIVE_URL_PARAMETER_PATTERN.test(key))) return '';
+    if (SENSITIVE_URL_PARAMETER_PATTERN.test(decodeURIComponent(parsed.hash))) return '';
     return parsed.href;
   } catch {
     return '';
