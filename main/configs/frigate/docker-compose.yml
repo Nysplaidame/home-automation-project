@@ -17,7 +17,8 @@ services:
   # ──────────────────────────────────────────────────────────────────────────
   frigate:
     container_name: frigate
-    image: ghcr.io/blakeblackshear/frigate:stable
+    # October 10 incident recovery: retain the validated image during recreation.
+    image: ghcr.io/blakeblackshear/frigate:0.17.1@sha256:1724960349dad0bd2ae8ec884171a6fd5755a4dc242a0e66cadbda9c0e85c99b
     restart: unless-stopped
     network_mode: host
     shm_size: "256mb"
@@ -27,6 +28,8 @@ services:
       - FRIGATE_PATIO_RTSP_PASSWORD_URLENCODED=${FRIGATE_PATIO_RTSP_PASSWORD_URLENCODED}
       - FRIGATE_MQTT_PASSWORD=${FRIGATE_MQTT_PASSWORD}
     volumes:
+      # Pinned 0.17.1 lifecycle repair; update/retest alongside any image change.
+      - /opt/frigate/patches/config_updater.py:/opt/frigate/frigate/comms/config_updater.py:ro
       - /opt/frigate/config:/config
       - /opt/frigate/storage:/media/frigate
       - /opt/frigate/db:/db

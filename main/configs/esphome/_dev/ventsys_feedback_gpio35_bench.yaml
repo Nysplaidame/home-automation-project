@@ -1,0 +1,25 @@
+# Temporary bench firmware for the currently miswired feedback carrier.
+# Production valve documentation and firmware now use GPIO35/ADC1_CH7.
+esphome:
+  name: ventsys-feedback-gpio35-bench
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+logger:
+  level: DEBUG
+
+sensor:
+  - platform: adc
+    pin: GPIO35
+    name: "Temporary GPIO35 Feedback Voltage"
+    id: feedback_voltage
+    attenuation: auto
+    accuracy_decimals: 3
+    update_interval: 250ms
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("feedback", "GPIO35 ADC: %.3f V", x);

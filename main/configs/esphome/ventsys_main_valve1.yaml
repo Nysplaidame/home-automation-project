@@ -1,11 +1,14 @@
-# VentSys Butterfly Valve Controller - Main Duct Valve 1
-# Production identity/connectivity for VLAN 50, with the working valve behavior
-# from the prototype build, including internal die-temperature monitoring.
+# VentSys Butterfly Valve Controller
+# Adapted from ventsys_butterfly_valve.yaml (known working hardware)
+# Adds MQTT integration for VentSys system control while preserving retained
+# features: LED colour coding, touch toggle, die-temperature alerts, configurable
+# open/close positions, endpoint PWM shutdown, and command/PWM diagnostics.
 #
-# TLS deployment validated on 2026-05-15 against Mosquitto listener 8883.
+# Direct-TLS deployment: keep MQTT on 8883 and trust the local CA from first flash.
 #
 # SECRETS REQUIRED (secrets.yaml):
-#   wifi_ssid, wifi_pass, mqtt_user, mqtt_pass, mqtt_ca_cert, api_key, ota_password
+#   wifi_ssid, wifi_pass, mqtt_user, mqtt_pass, mqtt_ca_cert,
+#   api_key, ota_password
 
 substitutions:
   device_name: ventsys-main-valve-1
@@ -19,6 +22,10 @@ esphome:
   name: ${device_name}
   friendly_name: ${friendly_name}
 
+# Persist commanded position promptly for display after a power interruption.
+preferences:
+  flash_write_interval: 1ms
+
 esp32:
   board: esp32dev
   framework:
@@ -29,9 +36,14 @@ logger:
   logs:
     internal_temperature.esp32: INFO
 
+# Read-only diagnostics for intermittent reset/reconnection investigation.
+debug:
+  update_interval: 30s
+
 api:
   encryption:
     key: !secret api_key
+  reboot_timeout: 0s
 
 ota:
   platform: esphome
@@ -47,7 +59,7 @@ wifi:
     subnet: 255.255.255.0
     dns1: 192.168.50.1
   ap:
-    ssid: "VentSys Valve 1 Fallback"
+    ssid: "VentSys Main Valve 1 Fallback"
     password: !secret ota_password
 
 captive_portal:
@@ -61,117 +73,63 @@ mqtt:
   discover_ip: false
   certificate_authority: !secret mqtt_ca_cert
   on_message:
+    # Receive a finite 0-100 value from the VentSys MQTT number entity.
     - topic: ${mqtt_command_topic}
       qos: 0
       then:
-        - number.set:
-            id: valve_position_direct_control_number
-            value: !lambda 'return (float)atoi(x.c_str());'
+        - if:
+            condition:
+              lambda: |-
+                if (x.empty() || x.size() > 8) return false;
+                char *end = nullptr;
+                const float value = strtof(x.c_str(), &end);
+                return end != x.c_str() && *end == '\0' && std::isfinite(value)
+                    && value >= 0.0f && value <= 100.0f;
+            then:
+              - lambda: 'id(command_source) = 1;'
+              # Route through the number entity so all accepted writes are audited.
+              - number.set:
+                  id: valve_position_direct_control_number
+                  value: !lambda 'return strtof(x.c_str(), nullptr);'
+            else:
+              - lambda: 'ESP_LOGW("valve_audit", "Rejected invalid MQTT position command");'
   on_connect:
+    # The MQTT connect callback can run before the client marks itself ready
+    # to publish. Defer the restored state until the connection is usable.
+    - delay: 1s
     - mqtt.publish:
         topic: ${mqtt_state_topic}
         payload: !lambda 'return to_string((int)id(valve_position_direct_control_number).state);'
         retain: true
 
 globals:
-  - id: pwm_enabled
-    type: bool
-    restore_value: no
-    initial_value: 'true'
-
   - id: temp_alert_level
     type: int
     restore_value: no
     initial_value: '0'
-
-interval:
-  - interval: 1s
-    then:
-      - lambda: |-
-          if (id(temp_alert_level) == 0) {
-            float pos = id(valve_position_direct_control_number).state;
-            float red, green, blue;
-
-            if (pos >= id(valve_opened_position).state) {
-              red = 0.0; green = 1.0; blue = 0.0;
-            } else if (pos > 0.0) {
-              red = 1.0; green = 0.5; blue = 0.0;
-            } else {
-              red = 1.0; green = 0.0; blue = 0.0;
-            }
-
-            id(status_led).turn_on().set_brightness(1.0).set_rgb(red, green, blue).perform();
-          }
-
-  - interval: 200ms
-    then:
-      - lambda: |-
-          float temp = id(internal_temp).state;
-          int alert_level = 0;
-          if (temp >= 80.0) alert_level = 3;
-          else if (temp >= 70.0) alert_level = 2;
-          else if (temp >= 60.0) alert_level = 1;
-
-          int current_global = id(temp_alert_level);
-          if (current_global > 0 && alert_level == 0) alert_level = current_global;
-          else id(temp_alert_level) = alert_level;
-
-          if (alert_level > 0) {
-            static unsigned long last_flash_time = 0;
-            static bool flash_state = false;
-            unsigned long current_time = millis();
-            unsigned long flash_interval = alert_level == 3 ? 300 : alert_level == 2 ? 750 : 1500;
-
-            if (current_time - last_flash_time >= flash_interval) {
-              flash_state = !flash_state;
-              last_flash_time = current_time;
-            }
-
-            if (flash_state) {
-              auto call = id(status_led).turn_on();
-              call.set_brightness(1.0);
-              call.set_rgb(1.0, alert_level == 1 ? 0.25 : 0.0, 0.0);
-              call.perform();
-            } else {
-              id(status_led).turn_off().perform();
-            }
-          }
-
-esp32_touch:
-  setup_mode: false
+  - id: command_source
+    type: int
+    restore_value: no
+    initial_value: '0'  # 0=HA/API, 1=MQTT, 2=touch, 3=open button, 4=close button
+  - id: pwm_expected
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: position_commanded_this_boot
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: last_command_source
+    type: std::string
+    restore_value: no
+    initial_value: '"None since boot"'
 
 time:
   - platform: homeassistant
     id: homeassistant_time
 
-text_sensor:
-  - platform: version
-    name: "ESPHome Version"
-
-  - platform: wifi_info
-    ip_address:
-      name: "IP Address"
-    ssid:
-      name: "SSID"
-    bssid:
-      name: "BSSID"
-    mac_address:
-      name: "WiFi MAC Address"
-    scan_results:
-      name: "Latest WiFi Scan Results"
-
-  - platform: template
-    name: "Temperature Alert Level"
-    id: temp_alert_level_text
-    icon: "mdi:thermometer-alert"
-    update_interval: 1s
-    disabled_by_default: true
-    lambda: |-
-      int level = id(temp_alert_level);
-      if (level == 3) return {"Emergency"};
-      else if (level == 2) return {"Alarm"};
-      else if (level == 1) return {"Notice"};
-      else return {"Normal"};
+esp32_touch:
+  setup_mode: False
 
 output:
   - platform: ledc
@@ -182,8 +140,182 @@ output:
 servo:
   - id: valve_servo
     output: valve_servo_pwm_output
+    restore: false  # Restore displayed command only; keep PWM detached at boot.
+    # Endpoint release is handled by endpoint_pwm_release. Keep 1-99% actively
+    # driven until another command or power loss for the loaded-valve test.
+    auto_detach_time: 0s
+    # Provisional MAIN-1 calibration window copied from E2: 940-2000 us; MAIN-1 stops are unverified.
+    min_level: 4.7%
+    idle_level: 7.5%
+    max_level: 10%
+
+script:
+  - id: endpoint_pwm_release
+    mode: restart
+    then:
+      - delay: 1s
+      - servo.detach: valve_servo
+      - lambda: |-
+          id(pwm_expected) = false;
+          ESP_LOGI("valve_audit", "PWM detached at endpoint; physical position remains unverified");
+
+number:
+  - platform: template
+    name: "Valve Position"
+    id: valve_position_direct_control_number
+    restore_value: true
+    min_value: 0
+    # Restore the last command for HA/MQTT display. Initial 50 is the seed
+    # before the first saved value; setup does not trigger set_action.
+    initial_value: 50
+    max_value: 100
+    step: 1
+    optimistic: true
+    set_action:
+      then:
+        - lambda: |-
+            const char *source = id(command_source) == 1 ? "MQTT" :
+                                 id(command_source) == 2 ? "Touch" :
+                                 id(command_source) == 3 ? "Open button" :
+                                 id(command_source) == 4 ? "Close button" : "HA/API";
+            id(last_command_source) = source;
+            id(position_commanded_this_boot) = true;
+            ESP_LOGI("valve_audit", "Accepted %s command: %.0f%%; enabling PWM", source, x);
+            id(command_source) = 0;
+        # Cancel a pending endpoint detach before any new position command.
+        - script.stop: endpoint_pwm_release
+        - servo.write:
+            id: valve_servo
+            level: !lambda 'return (x / 100.0) * 2.0 - 1.0;'
+        - lambda: 'id(pwm_expected) = true;'
+        - if:
+            condition:
+              lambda: 'return x <= 0.0f || x >= 100.0f;'
+            then:
+              - script.execute: endpoint_pwm_release
+        - lambda: |-
+            float red, green, blue;
+            if (x >= id(valve_opened_position).state) { red=0.0; green=1.0; blue=0.0; }
+            else if (x > 0.0) { red=1.0; green=0.5; blue=0.0; }
+            else { red=1.0; green=0.0; blue=0.0; }
+            id(status_led).turn_on().set_brightness(1.0).set_rgb(red,green,blue).perform();
+        - mqtt.publish:
+            topic: ${mqtt_state_topic}
+            payload: !lambda 'return to_string((int)x);'
+            retain: true
+
+  - platform: template
+    name: "Valve Open Position"
+    id: valve_opened_position
+    restore_value: true
+    min_value: 0
+    # Logical open target; physical MAIN-1 travel remains uncalibrated.
+    initial_value: 100
+    max_value: 100
+    step: 1
+    optimistic: true
+    mode: box
+
+  - platform: template
+    name: "Valve Closed Position"
+    id: valve_closed_position
+    restore_value: true
+    min_value: 0
+    # Logical closed target; physical MAIN-1 travel remains uncalibrated.
+    initial_value: 0
+    max_value: 100
+    step: 1
+    optimistic: true
+    mode: box
+
+button:
+  - platform: template
+    name: "Close Valve"
+    id: close_valve_button
+    on_press:
+      then:
+        - lambda: |-
+            if (id(command_source) != 2) id(command_source) = 4;
+        - number.set:
+            id: valve_position_direct_control_number
+            value: !lambda 'return id(valve_closed_position).state;'
+
+  - platform: template
+    name: "Open Valve"
+    id: open_valve_button
+    on_press:
+      then:
+        - lambda: |-
+            if (id(command_source) != 2) id(command_source) = 3;
+        - number.set:
+            id: valve_position_direct_control_number
+            value: !lambda 'return id(valve_opened_position).state;'
+
+  - platform: template
+    name: "Test Temperature Alerts"
+    id: test_temp_alerts
+    icon: "mdi:alarm-light"
+    disabled_by_default: true
+    on_press:
+      then:
+        - lambda: id(temp_alert_level) = 1;
+        - delay: 5s
+        - lambda: id(temp_alert_level) = 2;
+        - delay: 5s
+        - lambda: id(temp_alert_level) = 3;
+        - delay: 5s
+        - lambda: id(temp_alert_level) = 0;
+
+binary_sensor:
+  - platform: template
+    name: "PWM Commanded Active"
+    entity_category: diagnostic
+    lambda: 'return id(pwm_expected);'
+
+  - platform: esp32_touch
+    name: "Touch Toggle"
+    pin: GPIO33
+    threshold: 400
+    on_press:
+      then:
+        - lambda: |-
+            id(command_source) = 2;
+            if (id(valve_position_direct_control_number).state >= 50)
+              id(close_valve_button).press();
+            else
+              id(open_valve_button).press();
+
+  - platform: template
+    name: "Temperature Notice"
+    device_class: problem
+    disabled_by_default: true
+    lambda: 'return id(internal_temp).state >= 60.0;'
+
+  - platform: template
+    name: "Temperature Alarm"
+    device_class: problem
+    disabled_by_default: true
+    lambda: 'return id(internal_temp).state >= 70.0;'
+
+  - platform: template
+    name: "Temperature Emergency"
+    device_class: problem
+    disabled_by_default: true
+    lambda: 'return id(internal_temp).state >= 80.0;'
 
 sensor:
+  - platform: debug
+    free:
+      name: "Free Heap"
+    loop_time:
+      name: "Loop Time"
+  - platform: internal_temperature
+    name: "Internal Temperature"
+    id: internal_temp
+    update_interval: 5s
+    entity_category: diagnostic
+    disabled_by_default: true
+
   - platform: wifi_signal
     name: "WiFi Signal dB"
     id: wifi_signal_db
@@ -199,175 +331,44 @@ sensor:
     entity_category: diagnostic
 
   - platform: uptime
-    name: "Uptime"
+    name: Uptime
 
-  - platform: internal_temperature
-    name: "Internal Temperature"
-    id: internal_temp
-    update_interval: 5s
+text_sensor:
+  - platform: debug
+    reset_reason:
+      name: "Reset Reason"
+  - platform: template
+    name: "Position Confidence"
     entity_category: diagnostic
+    update_interval: 1s
+    lambda: |-
+      if (id(position_commanded_this_boot)) return {"Commanded only; unverified"};
+      return {"Restored command; physical position unknown"};
+
+  - platform: template
+    name: "Last Command Source"
+    entity_category: diagnostic
+    update_interval: 1s
+    lambda: 'return {id(last_command_source)};'
+
+  - platform: template
+    name: "Temperature Alert Level"
+    id: temp_alert_level_text
+    icon: "mdi:thermometer-alert"
+    update_interval: 1s
     disabled_by_default: true
+    lambda: |-
+      int level = id(temp_alert_level);
+      if (level == 3) return {"Emergency"};
+      else if (level == 2) return {"Alarm"};
+      else if (level == 1) return {"Notice"};
+      else return {"Normal"};
 
-script:
-  - id: check_pwm_shutdown
-    mode: restart
-    then:
-      - delay: 2s
-      - lambda: |-
-          if (id(valve_position_direct_control_number).state == 0.0) {
-            id(valve_servo_pwm_output).turn_off();
-            id(pwm_enabled) = false;
-            ESP_LOGI("pwm", "PWM disabled - valve at 0%%");
-          }
-
-number:
-  - platform: template
-    name: "Valve Position"
-    id: valve_position_direct_control_number
-    min_value: 0
-    initial_value: 0
-    max_value: 100
-    step: 1
-    optimistic: true
-    set_action:
-      then:
-        - lambda: |-
-            if (!id(pwm_enabled)) {
-              id(valve_servo_pwm_output).turn_on();
-              id(pwm_enabled) = true;
-              ESP_LOGI("pwm", "PWM enabled - valve moving");
-            }
-        - servo.write:
-            id: valve_servo
-            level: !lambda 'return (x / 100.0) * 2.0 - 1.0;'
-        - lambda: |-
-            float red, green, blue;
-            if (x >= id(valve_opened_position).state) {
-              red = 0.0; green = 1.0; blue = 0.0;
-            } else if (x > 0.0) {
-              red = 1.0; green = 0.5; blue = 0.0;
-            } else {
-              red = 1.0; green = 0.0; blue = 0.0;
-            }
-            id(status_led).turn_on().set_brightness(1.0).set_rgb(red, green, blue).perform();
-        - mqtt.publish:
-            topic: ${mqtt_state_topic}
-            payload: !lambda 'return to_string((int)x);'
-            retain: true
-        - script.execute: check_pwm_shutdown
-
-  - platform: template
-    name: "Valve Open Position"
-    id: valve_opened_position
-    min_value: 0
-    initial_value: 50
-    max_value: 100
-    step: 1
-    optimistic: true
-    mode: box
-
-  - platform: template
-    name: "Valve Closed Position"
-    id: valve_closed_position
-    min_value: 0
-    initial_value: 0
-    max_value: 100
-    step: 1
-    optimistic: true
-    mode: box
-
-button:
-  - platform: template
-    name: "Close Valve"
-    id: close_valve_button
-    on_press:
-      then:
-        - lambda: |-
-            if (!id(pwm_enabled)) {
-              id(valve_servo_pwm_output).turn_on();
-              id(pwm_enabled) = true;
-              ESP_LOGI("pwm", "PWM enabled - closing valve");
-            }
-        - servo.write:
-            id: valve_servo
-            level: !lambda 'return (id(valve_closed_position).state / 100.0) * 2.0 - 1.0;'
-        - number.set:
-            id: valve_position_direct_control_number
-            value: !lambda 'return id(valve_closed_position).state;'
-        - script.execute: check_pwm_shutdown
-
-  - platform: template
-    name: "Open Valve"
-    id: open_valve_button
-    on_press:
-      then:
-        - lambda: |-
-            if (!id(pwm_enabled)) {
-              id(valve_servo_pwm_output).turn_on();
-              id(pwm_enabled) = true;
-              ESP_LOGI("pwm", "PWM enabled - opening valve");
-            }
-        - servo.write:
-            id: valve_servo
-            level: !lambda 'return (id(valve_opened_position).state / 100.0) * 2.0 - 1.0;'
-        - number.set:
-            id: valve_position_direct_control_number
-            value: !lambda 'return id(valve_opened_position).state;'
-
-  - platform: template
-    name: "Test Temperature Alerts"
-    id: test_temp_alerts
-    icon: "mdi:alarm-light"
-    disabled_by_default: true
-    on_press:
-      then:
-        - logger.log: "Temperature alert test started (15 seconds)"
-        - lambda: id(temp_alert_level) = 1;
-        - delay: 5s
-        - lambda: id(temp_alert_level) = 2;
-        - delay: 5s
-        - lambda: id(temp_alert_level) = 3;
-        - delay: 5s
-        - lambda: id(temp_alert_level) = 0;
-        - logger.log: "Temperature alert test complete"
-
-binary_sensor:
-  - platform: esp32_touch
-    name: "Touch Toggle"
-    pin: GPIO33
-    threshold: 400
-    on_press:
-      then:
-        - lambda: |-
-            if (id(valve_position_direct_control_number).state >= 50) {
-              id(close_valve_button).press();
-            } else {
-              id(open_valve_button).press();
-            }
-
-  - platform: template
-    name: "Temperature Notice"
-    id: temp_notice
-    device_class: problem
-    icon: "mdi:alert-circle-outline"
-    disabled_by_default: true
-    lambda: 'return id(internal_temp).state >= 60.0;'
-
-  - platform: template
-    name: "Temperature Alarm"
-    id: temp_alarm
-    device_class: problem
-    icon: "mdi:alert"
-    disabled_by_default: true
-    lambda: 'return id(internal_temp).state >= 70.0;'
-
-  - platform: template
-    name: "Temperature Emergency"
-    id: temp_emergency
-    device_class: problem
-    icon: "mdi:alert-octagon"
-    disabled_by_default: true
-    lambda: 'return id(internal_temp).state >= 80.0;'
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"
+    ssid:
+      name: "SSID"
 
 light:
   - platform: neopixelbus
@@ -379,3 +380,45 @@ light:
     num_leds: 1
     internal: true
     default_transition_length: 0s
+
+interval:
+  - interval: 1s
+    then:
+      - lambda: |-
+          if (id(temp_alert_level) == 0) {
+            float pos = id(valve_position_direct_control_number).state;
+            float red, green, blue;
+            if (pos >= id(valve_opened_position).state) { red=0.0; green=1.0; blue=0.0; }
+            else if (pos > 0.0)    { red=1.0; green=0.5; blue=0.0; }
+            else                   { red=1.0; green=0.0; blue=0.0; }
+            id(status_led).turn_on().set_brightness(1.0).set_rgb(red,green,blue).perform();
+          }
+
+  - interval: 200ms
+    then:
+      - lambda: |-
+          float temp = id(internal_temp).state;
+          int alert_level = 0;
+          if (temp >= 80.0) alert_level = 3;
+          else if (temp >= 70.0) alert_level = 2;
+          else if (temp >= 60.0) alert_level = 1;
+          int current_global = id(temp_alert_level);
+          if (current_global > 0 && alert_level == 0) alert_level = current_global;
+          else id(temp_alert_level) = alert_level;
+          if (alert_level > 0) {
+            static unsigned long last_flash = 0;
+            static bool flash_state = false;
+            unsigned long now = millis();
+            unsigned long flash_interval = (alert_level==3) ? 300 : (alert_level==2) ? 750 : 1500;
+            if (now - last_flash >= flash_interval) { flash_state = !flash_state; last_flash = now; }
+            if (flash_state) {
+              auto call = id(status_led).turn_on();
+              call.set_brightness(1.0);
+              call.set_rgb(1.0, (alert_level==1) ? 0.25 : 0.0, 0.0);
+              call.perform();
+            } else {
+              id(status_led).turn_off().perform();
+            }
+          }
+packages:
+  board_management: !include ventsys_board_management.yaml

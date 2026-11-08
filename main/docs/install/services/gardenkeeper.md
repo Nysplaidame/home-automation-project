@@ -3,7 +3,7 @@ title: GardenKeeper Install Manual
 description: Internal garden care, task, calendar, and map app on docker-host
 tags: [install, docker-host, gardenkeeper]
 created: 2026-06-29
-modified: 2026-09-15
+modified: 2026-09-16
 type: install-guide
 status: live
 ---
@@ -74,6 +74,27 @@ Current live integrations:
 - ntfy broker integration is configured through the central notification stack.
 - Local Postgres dump timer is enabled on docker-host.
 
+### October 4 read-only verification
+
+API `/health` and `/ready` passed, authenticated `/api/status` returned 200,
+and ntfy plus the configured broker health endpoints returned 200. These are
+reachability checks; no notification was published or dispatched and phone
+delivery remains unverified. API and worker Nextcloud settings are incomplete;
+canonical live-state already records that Nextcloud is not deployed. Live
+CalDAV acceptance therefore remains blocked on deployment/configuration.
+
+The API and worker containers have no Docker healthcheck in their current live
+configuration. The reviewed source VM Compose includes readiness/heartbeat
+healthchecks, but has not been rolled out. Database and Redis healthchecks pass.
+Do not interpret an `Up` container alone as API/worker health acceptance.
+
+The October 4 local audit repairs, browser CI and PostgreSQL checks remain
+undeployed. The existing morning backup was restored in an isolated PostgreSQL
+17 container (29 migrations, 24 tables, 62 validated constraints, restart checked).
+It contains no plants, tasks, zones, placements, journal entries or pending
+deliveries and live media is empty. This is database restore acceptance only;
+the populated synthetic rehearsal and full-system recovery gate remain separate.
+
 ## Commands
 
 Run on: docker-host over SSH.
@@ -138,6 +159,9 @@ Back up:
 - `/opt/stacks/gardenkeeper/docker-compose.yml`
 - A checked PostgreSQL logical dump; raw `postgres-data` only as a stopped,
   version-compatible checkpoint, never an ordinary live directory copy.
+- `/opt/stacks/gardenkeeper/journal-media/` — authenticated journal-photo
+  uploads. It is separate from PostgreSQL because journal records retain a
+  `photo_url`, while the image bytes are files.
 
 The docker-host template also includes a lightweight local PostgreSQL dump
 timer:
@@ -167,12 +191,32 @@ Read-only check on 2026-07-06:
   `/mnt/omv/docker-host-backups` mount and daily `03:45` app-data backup timer
   are live and restore-smoked as of 2026-07-07.
 
-The repo-side docker-host app-data backup templates now include
-`/opt/stacks/gardenkeeper/backups`. Treat the local dump timer as the database
-consistency layer and the docker-host app-data backup as the off-host copy.
+The repo-side docker-host app-data backup templates include both
+`/opt/stacks/gardenkeeper/backups` and
+`/opt/stacks/gardenkeeper/journal-media`. Treat the local dump timer as the
+database consistency layer and the docker-host app-data backup as the off-host
+copy of both the dump and uploaded images.
 
 Redis data is rebuildable task/worker state unless future behavior makes it
 authoritative.
+
+### Journal media persistence and recovery
+
+The API's current `GARDENKEEPER_MEDIA_DIR` is `/data/journal-media`. The
+Compose service bind-mounts the root-only host directory
+`./journal-media` there; create it with `install -d -m 0700 journal-media`
+before the first `docker compose up`. Do not rely on the API container writable
+layer: it is discarded on container recreation and is not part of the scheduled
+app-data backup inventory.
+
+On 2026-09-16 the live path contained no uploaded files, so no historical media
+copy was required. A disposable recovery used the 2026-09-16 checked PostgreSQL
+dump, the current API image, migrations disabled, an internal-only Docker
+network and a test-only token. A synthetic authenticated PNG survived API
+recreation through the bind mount with identical SHA-256. This verifies the
+storage path and the matched database/image generation; it does not prove a
+real user photo or integration workflow. Keep production workers and external
+integrations disabled in every future recovery rehearsal.
 
 ## Failure recovery
 

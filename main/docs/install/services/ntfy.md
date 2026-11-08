@@ -119,6 +119,30 @@ not prove authenticated publish/subscribe or phone delivery.
 
 ## Mobile subscriber rollout
 
+### October 11 resource-monitor phone test
+
+At 20:55:15 BST Proxmox published `Resource monitor TEST alert` and
+`Resource monitor TEST recovery` through the configured monitoring token;
+both received HTTP200 (message IDs `m1xqh8G97XpD`, `qaFwExyPccep`).
+The owner reported neither arriving on the phone. ntfy's minute statistics
+showed zero subscribers throughout 19:41–19:55 UTC, including the test;
+the two messages were cached. This is failed phone delivery acceptance,
+not a collector failure or proof of an OS notification-permission problem.
+
+The Android Tailscale peer was active via London relay. The persistent tailnet
+Serve rule still proxies8444 to127.0.0.1:8085. A host-local request to the
+tailnet IP using the correct hostname and normal system certificate validation
+returned healthy. The existing `mobile-monitoring` account still has read-only
+access to `monitoring` and `watchtower`. No credentials or ACLs were changed.
+
+Next inspect the phone's custom-server URL, authenticated `monitoring`
+subscription and connection state. Use the documented credential-manager
+entry below; do not send its password in chat. Once a live subscription is
+established, repeat a labelled alert/recovery test with the app backgrounded.
+If messages appear only in-app, investigate Android notification permission,
+topic mute and battery/background restrictions. A connected Tailscale peer
+alone does not establish an ntfy subscription.
+
 The read-only phone identity already exists in the recorded live state. Inspect
 `ntfy user list` and `ntfy access` first. The following creation/grant commands
 are only for a blank instance where that identity is absent; on restore, verify

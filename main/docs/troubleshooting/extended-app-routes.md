@@ -16,6 +16,16 @@ Keep credentials, private URLs and household data out of shared logs or incident
 
 | Area | Investigation |
 |---|---|
+| Network and access | [Homepage Preview works but Direct is blank](#portal-navigation) |
+| Network and access | [An app redirects to the wrong IP or port](#proxy-redirect) |
+| Network and access | [HTTPS works intermittently after service restarts](#listener-collision) |
+| Network and access | [Local or remote DNS fails after a reboot](#dns-after-reboot) |
+| Hosts and storage | [NAS drive disappears or says permission denied](#smb-access) |
+| Hosts and storage | [NAS copies or archive extraction stop and start](#nas-speed) |
+| Home and devices | [Bambuddy queue is stuck while the printer is idle](#printer-queue) |
+| Applications and data | [An app shows an old version or cannot save](#frontend-cache) |
+| Home and devices | [ESPHome controls the wrong device or shows stale entities](#esphome-identity) |
+| Hosts and storage | [Docker app runs but builds or downloads fail](#docker-build) |
 | Network and access | [Internet or Wi-Fi stops working](#internet) |
 | Network and access | [Local names or web searches fail](#dns) |
 | Network and access | [Certificate warning or HTTPS failure](#tls) |
@@ -38,6 +48,456 @@ Keep credentials, private URLs and household data out of shared logs or incident
 | Applications and data | [Password vault login or sync fails](#vault) |
 | Home and devices | [VentSys device or dashboard is offline](#ventsys) |
 | Home and devices | [Phone stream or recordings stop](#phone-relay) |
+
+<a id="portal-navigation"></a>
+## Homepage Preview works but Direct is blank
+
+Compare the actual navigation URL with the phone’s approved HTTPS proxy path.
+
+Required evidence: Homepage listener (`homepage`); Standalone link destination (`portal_link`); Mobile-data acceptance (`mobile_acceptance`).
+
+### 1. Compare Preview and standalone destinations
+
+Run on: **Affected phone / browser**.
+
+```text
+No command: record the Homepage URL, selected card and the address opened by Direct.
+```
+
+Expected: Both actions use the same HTTPS proxy; paths and queries are preserved.
+
+If not: A raw 192.168 address or backend HTTP port bypasses the scoped phone grant. September 25 introduced this regression; September 30 repaired it.
+
+### 2. Check the navigation release contract
+
+Run on: **Canonical Windows checkout / repository root**.
+
+```text
+node main/configs/docker-host/stacks/homepage/tests/access-contract.cjs
+```
+
+Expected: Standalone/preview parity and listener ownership checks pass.
+
+If not: This is an offline source check, not phone connectivity proof. Do not add VLAN routes to hide an incorrect link.
+
+### 3. Compare the real phone paths
+
+Run on: **Phone on mobile data / Tailscale**.
+
+```text
+No command: refresh Homepage and open the same app in Preview and Direct.
+```
+
+Expected: Both show the app or its expected login page.
+
+If not: If only one app fails, use the redirect route; if every request fails, use the remote-access route. An already-open cached page is not a fresh acceptance test.
+
+References: [Operating guide](../install/services/homepage.md) · [Service inventory](../reference/service-matrix.md)
+
+<a id="proxy-redirect"></a>
+## An app redirects to the wrong IP or port
+
+Find redirects that escape a working HTTPS proxy to an unreachable backend.
+
+Required evidence: Homepage listener (`homepage`); Redirect hostname and port (`redirect_origin`); Complete redirect chain (`redirect_chain`).
+
+### 1. Read the Grocy first response
+
+Run on: **VM 103 / docker-host**.
+
+```text
+curl --cacert /opt/stacks/homepage/tls/ca.crt --resolve homepage.home.local:8198:100.94.122.18 -I https://homepage.home.local:8198/
+```
+
+Expected: Location remains on homepage.home.local:8198, or is relative.
+
+If not: Grocy previously redirected to HTTPS 192.168.20.102:9283 because the proxy sent its backend Host. That listener speaks HTTP and is outside the mobile navigation path.
+
+### 2. Follow the complete redirect chain
+
+Run on: **VM 103 / docker-host**.
+
+```text
+curl --max-time 15 -L --cacert /opt/stacks/homepage/tls/ca.crt --resolve homepage.home.local:8198:100.94.122.18 -sS -o /dev/null -w "%{http_code} %{url_effective}\n" https://homepage.home.local:8198/
+```
+
+Expected: The final response is the app/login page on the same HTTPS proxy origin.
+
+If not: A 302 response alone is not acceptance. Check every hostname and port; preserve certificate verification.
+
+### 3. Inspect the service-specific Host policy
+
+Run on: **Canonical checkout / Homepage proxy config**.
+
+```text
+No command: inspect the Grocy 8198 server block and proxy_set_header Host.
+```
+
+Expected: Grocy preserves the external Host and port using $http_host.
+
+If not: Do not change every upstream Host globally: other services may require their existing backend Host policy. Do not disable authentication to remove a redirect.
+
+References: [Operating guide](../install/services/grocy.md) · [Service inventory](../reference/service-matrix.md)
+
+<a id="listener-collision"></a>
+## HTTPS works intermittently after service restarts
+
+Separate competing proxy/Tailscale Serve listeners from DNS or certificate failure.
+
+Required evidence: Docker host reachable (`docker_host`); Port owner by address (`listener_owner`); Serve and browser endpoints (`serve_proxy`).
+
+### 1. Read who owns the relevant listeners
+
+Run on: **VM 103 / docker-host**.
+
+```text
+ss -lntp | grep -E ":(443|8181|8207|8443|8444) "
+```
+
+Expected: Tailnet 8181 belongs to tailscaled; Nginx owns browser 8207 and may retain LAN-only 8181.
+
+If not: A wildcard Nginx 8181 competes with native Bambuddy Serve. Startup order can determine which path breaks.
+
+### 2. Inspect the persistent Serve mapping
+
+Run on: **VM 103 / docker-host**.
+
+```text
+tailscale serve status
+```
+
+Expected: Native Bambuddy remains on the ts.net hostname at 8181; browser access uses 8207.
+
+If not: Serve config existing does not prove a listener bound successfully. Do not reset all Serve mappings; LiveSync and ntfy also depend on them.
+
+### 3. Read bind and handshake failures
+
+Run on: **VM 103 / docker-host**.
+
+```text
+journalctl -u tailscaled --since "30 minutes ago" --no-pager | grep -E "address already in use|no webserver configured|failed to listen"
+```
+
+Expected: No repeated bind conflicts or name/port errors for the failing endpoint.
+
+If not: No matches only means these errors were not recorded. Test both browser and native endpoints with their own hostnames and normal certificate verification.
+
+References: [Operating guide](../procedures/tailscale_remote_access_guide.md) · [Service inventory](../reference/service-matrix.md)
+
+<a id="dns-after-reboot"></a>
+## Local or remote DNS fails after a reboot
+
+Check the AdGuard startup gate and address-specific bindings before changing resolvers.
+
+Required evidence: Docker host reachable (`docker_host`); AdGuard startup gate (`dns_startup`); LAN and tailnet DNS bindings (`dns_binding`).
+
+### 1. Inspect the Compose startup gate
+
+Run on: **VM 103 / docker-host**.
+
+```text
+systemctl status adguard-home-compose.service --no-pager; systemctl is-enabled adguard-home-compose.service
+```
+
+Expected: The enabled gate completed after the Tailscale address became available.
+
+If not: July 29 recorded a reboot race. A running Docker daemon does not prove its address-bound DNS service started.
+
+### 2. Check addresses and DNS listeners
+
+Run on: **VM 103 / docker-host**.
+
+```text
+ip -4 address show dev tailscale0; ss -lntup | grep ":53 "
+```
+
+Expected: 100.94.122.18 is present and DNS is bound on both the intended LAN and tailnet addresses.
+
+If not: Missing tailnet binding can break remote names while LAN DNS works. Capture the missing layer before recreating or restarting anything.
+
+### 3. Read the gate’s first failure
+
+Run on: **VM 103 / docker-host**.
+
+```text
+journalctl -u adguard-home-compose.service -b --no-pager -n 60
+```
+
+Expected: The address wait and Compose startup completed without a bind failure.
+
+If not: If direct HTTPS by the approved name-resolving test works, isolate DNS. Preserve split DNS and the router’s local-name authority; do not add a public rewrite for private services.
+
+References: [Operating guide](../procedures/tailscale_remote_access_guide.md) · [Service inventory](../reference/service-matrix.md)
+
+<a id="smb-access"></a>
+## NAS drive disappears or says permission denied
+
+Separate persistent Windows mappings, the authenticated SMB identity, share rights and filesystem ACLs.
+
+Required evidence: NAS listener (`nas`); Actual SMB account and mapping (`smb_identity`); Target folder permissions (`smb_acl`).
+
+### 1. Read the actual Windows connection
+
+Run on: **Windows HomeAdmin workstation / PowerShell**.
+
+```text
+Get-SmbConnection | Select-Object ServerName,ShareName,UserName,Dialect; Get-SmbMapping | Select-Object LocalPath,RemotePath,Status
+```
+
+Expected: Y: and Z: point to the intended shares using the intended account.
+
+If not: A saved credential does not prove the existing session uses it. Do not display credential secrets or disconnect a share while writes/transfers are active.
+
+### 2. Read existing mapping persistence
+
+Run on: **Windows HomeAdmin workstation / PowerShell**.
+
+```text
+net use
+```
+
+Expected: The intended mappings and reconnect state match the workstation setup.
+
+If not: After reboot, distinguish delayed networking from a failed credential. Do not duplicate credentials under several server aliases or paste passwords into commands.
+
+### 3. Inspect one denied directory ACL
+
+Run on: **OMV over authorized SSH**.
+
+```text
+No command: run getfacl -p on the exact denied folder and its parent after identifying its backing filesystem.
+```
+
+Expected: Share access and filesystem traversal/write rights both include the intended account.
+
+If not: September 28 proved nasadmin share rights were present while folder ACLs denied writes. Check both layers; do not recursively reset ownership/permissions across libraries or backup data.
+
+References: [Operating guide](../install/phases/06-omv-nas.md) · [Service inventory](../reference/service-matrix.md)
+
+<a id="nas-speed"></a>
+## NAS copies or archive extraction stop and start
+
+Separate many-small-file metadata latency from link speed, disk pressure and concurrent work.
+
+Required evidence: NAS listener (`nas`); Large-file versus small-file behavior (`transfer_pattern`); Link and storage load (`nas_load`).
+
+### 1. Record the stalled operation
+
+Run on: **Windows workstation / transfer or archive tool**.
+
+```text
+No command: record source/destination, file count, typical size, whether pauses occur between files, and concurrent jobs.
+```
+
+Expected: The slowdown pattern is reproducible without retrying a destructive move.
+
+If not: Long pauses between thousands of files may be SMB metadata work, not poor bulk throughput. A transfer speed gauge alone cannot identify the cause.
+
+### 2. Read negotiated adapter speed
+
+Run on: **Windows HomeAdmin workstation / PowerShell**.
+
+```text
+Get-NetAdapter | Select-Object Name,Status,LinkSpeed; Get-SmbConnection | Select-Object ServerName,ShareName,Dialect
+```
+
+Expected: The expected wired adapter is active at its negotiated speed, with a modern SMB dialect.
+
+If not: LinkSpeed is not measured throughput. Compare wired versus Wi-Fi history and NAS CPU/disk activity before changing SMB settings.
+
+### 3. Read NAS load and capacity
+
+Run on: **OMV over authorized SSH**.
+
+```text
+uptime; free -h; df -h; df -i
+```
+
+Expected: Storage has headroom and concurrent jobs are understood.
+
+If not: A large copy, torrent, indexing run or small-file extraction can compete for disk work. A local-SSD extraction comparison is a separate optional write test; do not disable security scanning or kill transfers as a diagnostic shortcut.
+
+References: [Operating guide](../install/phases/06-omv-nas.md) · [Service inventory](../reference/service-matrix.md)
+
+<a id="printer-queue"></a>
+## Bambuddy queue is stuck while the printer is idle
+
+Distinguish the plate-clear safety gate, upload progress and weak printer Wi-Fi.
+
+Required evidence: Docker host reachable (`docker_host`); Queue safety state (`queue_gate`); Upload progress and signal (`printer_upload`).
+
+### 1. Inspect the physical printer queue
+
+Run on: **Bambuddy / Printers / physical P1S card**.
+
+```text
+No command: read awaiting_plate_clear, printer state and queued-job status.
+```
+
+Expected: The queue’s explicit blocking reason is understood.
+
+If not: Idle or FINISH does not mean ready for another print. The control is Clear Bed; it can immediately release a queued job. Do not press it until the plate is physically clear and a start is intended.
+
+### 2. Compare upload and dispatch stages
+
+Run on: **Bambuddy UI / existing Central Logs dashboard**.
+
+```text
+No command: read file size, transferred bytes, elapsed time and first upload/FTP error; omit access codes and authenticated URLs.
+```
+
+Expected: Upload progress is distinct from awaiting-plate-clear and preparing/running states.
+
+If not: A September incident transferred about 124 MB at 135 KB/s before dispatch. Do not resend an already queued file or cancel an active job to test the path.
+
+### 3. Inspect the established metrics
+
+Run on: **Grafana / Bambuddy Metrics dashboard**.
+
+```text
+No command: compare printer connectivity, state, Wi-Fi signal and metric timestamps.
+```
+
+Expected: Recent samples explain the queue state and signal quality.
+
+If not: Weak signal around -80 dBm was observed previously, not established for the current incident. A green dashboard or current upload is not permission to bypass the queue gate.
+
+References: [Operating guide](../../scripts/setup/printers/bambuddy_p1s_setup_guide.md) · [Service inventory](../reference/service-matrix.md)
+
+<a id="frontend-cache"></a>
+## An app shows an old version or cannot save
+
+Separate stale frontend/service-worker assets, browser API support and rejected backend writes.
+
+Required evidence: Docker host reachable (`docker_host`); Served and displayed release (`frontend_version`); Browser error or API outcome (`save_response`).
+
+### 1. Identify the failure before retrying writes
+
+Run on: **Affected browser / developer tools**.
+
+```text
+No command: record displayed version, secure-context status, exact console error and failed request status; exclude request bodies/cookies/tokens.
+```
+
+Expected: The problem is identified as a browser exception or backend response.
+
+If not: crypto.randomUUID can be unavailable in a browser/webview; Recomp has a getRandomValues fallback. A client exception before a request is different from a server rejecting a save.
+
+### 2. Compare served and container versions
+
+Run on: **VM 103 / docker-host**.
+
+```text
+docker inspect recomp-tracker --format "{{.Image}} {{.State.Status}}"
+```
+
+Expected: The image matches the recorded Recomp release and browser version.
+
+If not: The runtime tag alone may lag behind the recorded source. Compare the app handoff and served assets; do not rebuild from an incomplete source or overwrite saved data.
+
+### 3. Inspect the existing service-worker state
+
+Run on: **Affected browser / application storage tools**.
+
+```text
+No command: inspect active worker/cache version and whether the tab retained an older script.
+```
+
+Expected: Browser assets match the deployed release.
+
+If not: Preserve unsaved work before refreshing. Do not clear all site storage: browser-only records or sessions may be lost. A server restart alone does not invalidate an old worker.
+
+References: [Operating guide](../install/services/recomp-tracker.md) · [Service inventory](../reference/service-matrix.md)
+
+<a id="esphome-identity"></a>
+## ESPHome controls the wrong device or shows stale entities
+
+Separate physical board identity, production firmware, MQTT topic and stale HA registry entries.
+
+Required evidence: Home Assistant HTTPS (`ha_http`); Board and firmware identity (`device_identity`); HA entity and MQTT mapping (`entity_identity`).
+
+### 1. Identify the physical board without motion
+
+Run on: **Device owner / ESPHome and project record**.
+
+```text
+No command: compare device name, IP/MAC, flashed YAML and labelled physical board.
+```
+
+Expected: Each controller matches its dedicated production file and role.
+
+If not: Valve 2 previously ran a Valve 1 image; an IP responding does not establish correct physical identity. Do not command a servo to identify a board.
+
+### 2. Compare HA integration and MQTT identity
+
+Run on: **Home Assistant / device and entity details**.
+
+```text
+No command: compare ESPHome device IDs, entity availability and recorded MQTT topic prefixes.
+```
+
+Expected: No duplicated device or topic namespace is active.
+
+If not: Stale Valve 1 registry IDs can survive a corrected Valve 2 flash. Distinguish stale entries from the actual controller before removal or re-adoption.
+
+### 3. Separate reset from supply-loss behavior
+
+Run on: **Physical owner / accepted bench procedure**.
+
+```text
+No command: record whether the last outage followed USB power loss, RST/EN or firmware flashing, and whether the servo signal was connected.
+```
+
+Expected: Existing observations distinguish Wi-Fi/API availability from physical startup movement.
+
+If not: Uncalibrated feedback is not shaft angle. Startup movement can occur with signal disconnected. Stop before rewiring, flashing or actuation; use the documented unloaded test procedure and identify the power path first.
+
+References: [Operating guide](../diagrams/wiring-diagrams/ventsys_wiring_reference.md) · [Service inventory](../reference/service-matrix.md)
+
+<a id="docker-build"></a>
+## Docker app runs but builds or downloads fail
+
+Separate running-stack health from default build-network, package route and release-source problems.
+
+Required evidence: Docker host reachable (`docker_host`); Default Docker bridge (`build_network`); Release source and dependencies (`build_source`).
+
+### 1. Inspect the default build network
+
+Run on: **VM 103 / docker-host**.
+
+```text
+docker network inspect bridge --format "{{json .IPAM.Config}}"; ip -4 address show docker0
+```
+
+Expected: The bridge configuration and actual docker0 interface agree.
+
+If not: A missing docker0 was recorded for VM103 while explicit Compose networks still ran. Healthy apps do not prove a default dependency build can reach the network.
+
+### 2. Compare build and runtime failure
+
+Run on: **Build logs / canonical release procedure**.
+
+```text
+No command: identify the first failed stage, DNS/download error, and whether the build requires new dependencies.
+```
+
+Expected: A source-only offline build is distinguished from a dependency-fetching build.
+
+If not: Preserve the installed runtime image and rollback. Do not use host networking, broad firewall allowances or package upgrades to bypass an unexplained build-network fault.
+
+### 3. Check source completeness
+
+Run on: **Canonical checkout / app install manual**.
+
+```text
+No command: confirm the maintained source, release artifact and documented deployment command.
+```
+
+Expected: The chosen release can be rebuilt and validated without replacing live data.
+
+If not: Household Hub has a documented incomplete source mirror. A running container is not evidence of a safe rebuild; use the recovery register before changing its image.
+
+References: [Operating guide](../../scripts/setup/proxmox/docker_host_setup_guide.md) · [Service inventory](../reference/service-matrix.md)
 
 <a id="internet"></a>
 ## Internet or Wi-Fi stops working

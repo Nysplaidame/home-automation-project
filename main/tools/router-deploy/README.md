@@ -100,7 +100,9 @@ quotes, line breaks and NUL in those values fail validation. An explicit
 LAN2 now belongs to cloud IoT VLAN55; use HomeAdmin for management or LAN5
 for the existing recovery path. Never use the retired Zyxel uplink helper on
 a working fibre connection: its disconnected station prevented radio0 APs
-from starting. Live IPv6 currently awaits Zen allocation (NoPrefixAvail).
+from starting. Zen IPv6 uses DHCPv6-PD for the `/48` with a separate static
+ND `/64` interface and link-local default gateway; this arrangement was live
+tested on 2026-09-11. Do not replace the ND address with the delegated prefix.
 The full profile still requires other existing deployment secrets and
 hardware identities. Scoped live recovery did not redeploy the full template.
 

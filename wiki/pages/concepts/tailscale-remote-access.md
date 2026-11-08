@@ -3,7 +3,7 @@ title: "Tailscale Remote Access"
 category: concept
 tags: [tailscale, vpn, remote-access, subnet-router]
 created: 2026-05-23
-updated: 2026-08-21
+updated: 2026-09-30
 sources: [project-readme, project-todo]
 status: active
 ---
@@ -44,6 +44,12 @@ docker-host. All user-facing Homepage cards use those fixed proxy routes rather
 than their private-address direct URLs.
 
 ## Trade-offs / Considerations
+
+- Browser standalone links and previews must obey the same scoped HTTPS
+  routing contract. September 30 repaired raw-IP actions that bypassed it.
+- Listener ownership must be exclusive: native Bambuddy Serve owns tailnet
+  `8181`, and the browser proxy uses `8207`. Wildcard Nginx `8181` caused bind
+  and phone TLS failures; the canonical guide records the evidence.
 
 - Simpler mobile access than maintaining WAN WireGuard endpoint changes.
 - Requires persistent docker-host outbound connectivity.

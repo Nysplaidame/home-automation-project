@@ -33,7 +33,7 @@ helper_path: /usr/local/lib/transferportal/root-helper
     app = app_module.create_app()
     helper = FakeHelper()
     app.state.helper = helper
-    client = TestClient(app)
+    client = TestClient(app, headers={"Origin": "http://testserver"})
     response = client.post("/login", data={"username": "admin", "password": "test-password"})
     assert response.status_code == 200
     return client, helper, config

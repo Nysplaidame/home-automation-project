@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-20",
+  "scope": "disposable preparation fixtures; not household migration acceptance",
+  "linux": {
+    "host": "omv-lan",
+    "command": "python main/tools/storage-migration/run_linux_tests.py",
+    "tests": 75,
+    "passed": 75,
+    "skipped": 0,
+    "failed": 0,
+    "fixture_location": "temporary private directory on the persistent OS filesystem",
+    "fixture_cleanup": "completed"
+  },
+  "windows": {
+    "command": "python -m unittest discover -s main/tools/storage-migration",
+    "tests": 75,
+    "passed": 19,
+    "skipped": 56,
+    "failed": 0,
+    "skip_reason": "Linux-specific filesystem, rsync and namespace operations"
+  },
+  "configuration": {
+    "rendered_artifacts": 17,
+    "patches_apply_check_passed": 3,
+    "python_ast": "passed",
+    "json_parse": "passed",
+    "rendered_shell_syntax": "passed in Linux suite",
+    "deployment": "not performed"
+  },
+  "filebrowser_fixture": {
+    "image": "existing installed image; no pull",
+    "network": "none",
+    "process_uid_gid": "1006:100",
+    "composite_print_media_visibility": "passed",
+    "live_settings_changed": false,
+    "temporary_mounts_and_container": "cleaned"
+  },
+  "remaining_gates": [
+    "exact fourth-disk extended SMART completion and sector attributes",
+    "fresh device, source generation, client and writer preflight",
+    "reviewed hardware preparation and actual guarded data migration",
+    "native application, scoped access and offline-client checks",
+    "fresh backup generations and isolated restores",
+    "separate proof-based retained-original and quarantine retirement"
+  ],
+  "independent_full_data_recovery_copy": "waived by owner; temporary single-copy risk accepted",
+  "household_data_or_share_or_raid_changes": false
+}

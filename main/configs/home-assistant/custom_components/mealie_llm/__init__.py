@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
+import asyncio
 from urllib.parse import quote
 
 import aiohttp
@@ -15,6 +16,8 @@ from homeassistant.helpers import config_validation as cv, llm
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.util.json import JsonObjectType
+
+from .url_safety import validate_recipe_url
 
 DOMAIN = "mealie_llm"
 CONF_TOKEN = "token"
@@ -158,6 +161,10 @@ class ImportRecipeUrlTool(MealieTool):
     ) -> JsonObjectType:
         """Import a recipe by URL."""
         args = self.parameters(tool_input.tool_args)
+        try:
+            await asyncio.to_thread(validate_recipe_url, args["url"])
+        except (ValueError, OSError) as err:
+            raise HomeAssistantError("Recipe URL must resolve only to public addresses") from err
         imported = await self._request(
             hass,
             "POST",
@@ -169,7 +176,7 @@ class ImportRecipeUrlTool(MealieTool):
             },
         )
         if isinstance(imported, str):
-            recipe = await self._request(hass, "GET", f"/api/recipes/{imported}")
+            recipe = await self._request(hass, "GET", f"/api/recipes/{quote(imported, safe='')}")
         else:
             recipe = imported
 
@@ -211,7 +218,7 @@ class FindRecipesTool(MealieTool):
             "/api/recipes",
             params={"search": query, "page": 1, "perPage": self._result_count},
         )
-        recipes = payload.get("items", payload if isinstance(payload, list) else [])
+        recipes = payload if isinstance(payload, list) else payload.get("items", []) if isinstance(payload, dict) else []
 
         return {
             "success": bool(recipes),
@@ -249,7 +256,7 @@ class GetRecipeTool(MealieTool):
         recipe = None
         if looks_like_slug:
             try:
-                recipe = await self._request(hass, "GET", f"/api/recipes/{quote(slug)}")
+                recipe = await self._request(hass, "GET", f"/api/recipes/{quote(slug, safe='')}")
             except HomeAssistantError:
                 recipe = None
 
@@ -260,7 +267,7 @@ class GetRecipeTool(MealieTool):
                 "/api/recipes",
                 params={"search": slug, "page": 1, "perPage": 5},
             )
-            recipes = payload.get("items", payload if isinstance(payload, list) else [])
+            recipes = payload if isinstance(payload, list) else payload.get("items", []) if isinstance(payload, dict) else []
             recipe = next(
                 (
                     item
@@ -273,7 +280,7 @@ class GetRecipeTool(MealieTool):
             if not recipe:
                 raise HomeAssistantError(f"No Mealie recipe matched {slug}")
             recipe = await self._request(
-                hass, "GET", f"/api/recipes/{quote(recipe['slug'])}"
+                hass, "GET", f"/api/recipes/{quote(recipe['slug'], safe='')}"
             )
 
         return {

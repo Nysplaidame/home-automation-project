@@ -39,6 +39,7 @@ Live stack paths:
 | Mermaid Viewer | `/opt/stacks/mermaid-viewer` | `../../apps/mermaid-viewer/` |
 | Gridfinity Layout Tool | `/opt/stacks/gridfinity-layout-tool` | `stacks/gridfinity-layout-tool/` |
 | Docker-host Telegraf metrics | `/opt/stacks/telegraf` | `stacks/telegraf/` |
+| Docker-host Alloy log collector | `/opt/stacks/alloy` | `stacks/alloy/` |
 | GardenKeeper | `/opt/stacks/gardenkeeper` | `stacks/gardenkeeper/` |
 | Jellyfin | `/opt/stacks/jellyfin` | `stacks/jellyfin/` |
 | Calibre-Web | `/opt/stacks/calibre-web` | `stacks/calibre-web/` |

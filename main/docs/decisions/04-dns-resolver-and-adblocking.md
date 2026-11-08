@@ -158,3 +158,10 @@ its existing content filters. Direct `Resolve-DnsName -Server 192.168.10.1
 -NoHostsFile` probes may still fail under VPN protection: a hosts entry does not
 repair or prove that separate DNS transport path. Do not mark those probes passed
 because browser navigation works.
+
+On 2026-09-28, the same exact-name approach was prepared for the workstation's
+core service UIs: Home Assistant, Frigate, Grafana, and Uptime Kuma. Router-local
+DNS confirmed their four addresses, and
+`main/scripts/setup/windows/set-local-core-service-names.ps1` passed preview,
+apply, repeat-apply, and removal on a temporary hosts fixture. It is staged
+for elevated application on the PC; Mullvad custom DNS remains disabled.

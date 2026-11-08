@@ -1,22 +1,19 @@
 #!/bin/sh
 set -eu
 
-DEST_ROOT="${DEST_ROOT:-/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/configs/omv-config}"
+DEST_ROOT="${DEST_ROOT:-/srv/dev-disk-by-uuid-a8843f98-c937-48a8-aefa-4cd0fb80667c/backups/configs/omv-config}"
 timestamp=$(date -u +%Y%m%dT%H%M%SZ)
 runs_dir="${DEST_ROOT}/runs"
 tmp_dir="${runs_dir}/.${timestamp}.tmp"
 final_dir="${runs_dir}/${timestamp}"
 
 case "$DEST_ROOT" in
-  /srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/configs/omv-config) ;;
+  /srv/dev-disk-by-uuid-a8843f98-c937-48a8-aefa-4cd0fb80667c/backups/configs/omv-config) ;;
   *) echo "Refusing unexpected destination: $DEST_ROOT" >&2; exit 2 ;;
 esac
 
-mount_source=$(findmnt -rn -o SOURCE -T "$DEST_ROOT" 2>/dev/null || true)
-case "$mount_source" in
-  /dev/md0|/dev/md0\[*|/dev/md/*) ;;
-  *) echo "Refusing destination not backed by md0: ${mount_source:-unmounted}" >&2; exit 3 ;;
-esac
+actual_uuid=$(findmnt -rn --mountpoint "/srv/dev-disk-by-uuid-a8843f98-c937-48a8-aefa-4cd0fb80667c" -o UUID 2>/dev/null || true)
+test "$actual_uuid" = "a8843f98-c937-48a8-aefa-4cd0fb80667c" || { echo "Wrong or missing Media filesystem" >&2; exit 3; }
 
 umask 077
 install -d -m 0700 "$runs_dir"

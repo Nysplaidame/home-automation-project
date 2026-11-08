@@ -6,28 +6,28 @@
 > GPIO pin assignments. Recovery requires a full USB re-flash.
 >
 > The IP reservations below must match `configs/openwrt/dhcp-config.conf`.
-> | Board label | YAML file | Expected device_name | IP reservation |
-> |---|---|---|---|
-> | Main fan controller | ventsys_fan_controller.yaml | ventsys-main-fan | 192.168.50.21 |
-> | Booth fan controller | ventsys_booth_fan.yaml | ventsys-booth-fan | 192.168.50.22 |
+> | Board label | YAML file | Expected device_name | IP reservation | Verified MAC |
+> |---|---|---|---|---|
+> | Main fan controller | ventsys_fan_controller.yaml | ventsys-main-fan | 192.168.50.21 | — |
+> | Booth fan controller | ventsys_booth_fan.yaml | ventsys-booth-fan | 192.168.50.22 | — |
 > | FDM sensor array 1 | ventsys_fdm_array_1.yaml | ventsys-fdm-array-1 | 192.168.50.31 |
 > | FDM sensor array 2 | ventsys_fdm_array_2.yaml | ventsys-fdm-array-2 | 192.168.50.32 |
 > | SLA sensor array 1 | ventsys_sla_array_1.yaml | ventsys-sla-array-1 | 192.168.50.33 |
 > | SLA sensor array 2 | ventsys_sla_array_2.yaml | ventsys-sla-array-2 | 192.168.50.34 |
 > | Garage air sensor | ventsys_garage_air_sensor.yaml | ventsys-garage-air-sensor | 192.168.50.35 |
 > | FDM pipe air sensor | ventsys_fdm_pipe_air_sensor.yaml | ventsys-fdm-pipe-air-sensor | 192.168.50.36 |
-> | SLA pipe air sensor | ventsys_sla_pipe_air_sensor.yaml | ventsys-sla-pipe-air-sensor | 192.168.50.37 |
-> | FDM airflow sensor | ventsys_fdm_airflow.yaml | ventsys-fdm-airflow | 192.168.50.41 |
+> | SLA pipe air sensor | ventsys_sla_pipe_air_sensor.yaml | ventsys-sla-pipe-air-sensor | 192.168.50.37 | `CC:BA:97:F0:C3:0C` |
+> | FDM airflow sensor | ventsys_fdm_airflow.yaml | ventsys-fdm-airflow | 192.168.50.41 | `CC:BA:97:F0:E3:DC` |
 > | SLA airflow sensor | ventsys_sla_airflow.yaml | ventsys-sla-airflow | 192.168.50.42 |
-> | Booth airflow sensor | ventsys_booth_airflow.yaml | ventsys-booth-airflow | 192.168.50.43 |
+> | Booth airflow sensor | ventsys_booth_airflow.yaml | ventsys-booth-airflow | 192.168.50.43 | `CC:BA:97:F0:D0:A0` |
 > | Main duct valve 1 | ventsys_main_valve1.yaml | ventsys-main-valve-1 | 192.168.50.51 |
 > | Main duct valve 2 | ventsys_main_valve2.yaml | ventsys-main-valve-2 | 192.168.50.52 |
 > | FDM branch valve | ventsys_fdm_branch_valve.yaml | ventsys-fdm-branch-valve | 192.168.50.53 |
 > | SLA branch valve | ventsys_sla_branch_valve.yaml | ventsys-sla-branch-valve | 192.168.50.54 |
 > | FDM print valve | ventsys_fdm_print_valve.yaml | ventsys-fdm-print-valve | 192.168.50.55 |
 > | SLA print valve | ventsys_sla_print_valve.yaml | ventsys-sla-print-valve | 192.168.50.56 |
-> | FDM 360 intake valve | ventsys_fdm_360_valve.yaml | ventsys-fdm-360-valve | 192.168.50.61 |
-> | SLA 360 intake valve | ventsys_sla_360_valve.yaml | ventsys-sla-360-valve | 192.168.50.62 |
+> | FDM 360 intake valve | ventsys_fdm_360_valve_v2_nerdiy.yaml | ventsys-fdm-360-valve | 192.168.50.62 | `A0:85:E3:AE:5B:C8` |
+> | SLA 360 intake valve | ventsys_sla_360_valve_v2_nerdiy.yaml | ventsys-sla-360-valve | 192.168.50.61 | `CC:BA:97:F0:E3:EC` |
 > | UV station 1 plug | ventsys_plug_uv1.yaml | ventsys-plug-uv-1 | 192.168.50.73 |
 > | UV station 2 plug | ventsys_plug_uv2.yaml | ventsys-plug-uv-2 | 192.168.50.74 |
 > | Wash/cure plug | ventsys_plug_wash_cure.yaml | ventsys-plug-wash-cure | 192.168.50.75 |

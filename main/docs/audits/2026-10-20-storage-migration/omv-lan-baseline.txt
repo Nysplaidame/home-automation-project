@@ -1,0 +1,380 @@
+Personalities : [raid0] [raid1] [raid4] [raid5] [raid6] [raid10] 
+md0 : active raid1 sda[1] sde[0]
+      15625747456 blocks super 1.2 [2/2] [UU]
+      
+unused devices: <none>
+/dev/md0:
+           Version : 1.2
+     Creation Time : Mon Jun 22 00:36:09 2026
+        Raid Level : raid1
+        Array Size : 15625747456 (14.55 TiB 16.00 TB)
+     Used Dev Size : 15625747456 (14.55 TiB 16.00 TB)
+      Raid Devices : 2
+     Total Devices : 2
+       Persistence : Superblock is persistent
+
+       Update Time : Tue Oct 20 14:23:37 2026
+             State : clean 
+    Active Devices : 2
+   Working Devices : 2
+    Failed Devices : 0
+     Spare Devices : 0
+
+Consistency Policy : resync
+
+              Name : OMVNAS:0
+              UUID : 3b66663a:56b2508c:16239203:a6cf060f
+            Events : 1183
+
+    Number   Major   Minor   RaidDevice State
+       0       8       64        0      active sync   /dev/sde
+       1       8        0        1      active sync   /dev/sda
+NAME     SIZE TYPE  FSTYPE            LABEL      UUID                                 MOUNTPOINTS
+sda     14.6T disk  linux_raid_member OMVNAS:0   3b66663a-56b2-508c-1623-9203a6cf060f 
+â””â”€md0   14.6T raid1 ext4                         fdb92af7-371c-4793-8d98-ff47e961498d /srv/transferportal/smoke/destination
+                                                                                      /srv/transferportal/destination
+                                                                                      /export/immich
+                                                                                      /export/ha-backups
+                                                                                      /export/frigate
+                                                                                      /export/configs
+                                                                                      /srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d
+sdb    476.9G disk                                                                    
+â”œâ”€sdb1   976M part  vfat                         BE6C-C787                            /boot/efi
+â”œâ”€sdb2 468.1G part  ext4                         21e7387a-4779-4155-b32f-b9efb60e6cc7 /var/lib/containers/storage/overlay
+â”‚                                                                                     /run/omv-writecache/var_tmp/lower
+â”‚                                                                                     /run/omv-writecache/var_log/lower
+â”‚                                                                                     /run/omv-writecache/var_lib_monit/lower
+â”‚                                                                                     /run/omv-writecache/var_lib_rrdcached/lower
+â”‚                                                                                     /run/omv-writecache/var_lib_openmediavault_rrd/lower
+â”‚                                                                                     /run/omv-writecache/var_lib_dpkg_updates/lower
+â”‚                                                                                     /run/omv-writecache/var_lib_apt_lists/lower
+â”‚                                                                                     /run/omv-writecache/var_cache_samba/lower
+â”‚                                                                                     /run/omv-writecache/var_cache_apt_archives/lower
+â”‚                                                                                     /
+â””â”€sdb3   7.9G part  swap                         deef40e0-7a83-415b-96cd-0358d6480fa6 [SWAP]
+sdc     14.6T disk                                                                    
+â””â”€sdc1  14.6T part  ext4                         a216b8bb-708e-4342-a5be-a415cdc465fa /srv/transferportal/smoke/source
+                                                                                      /export/media
+                                                                                      /srv/transferportal/source
+                                                                                      /srv/dev-disk-by-uuid-a216b8bb-708e-4342-a5be-a415cdc465fa
+sdd     14.6T disk                                                                    
+â””â”€sdd1  14.6T part  ntfs              New Volume 2EE6BB16E6BADCF1                     
+sde     14.6T disk  linux_raid_member OMVNAS:0   3b66663a-56b2-508c-1623-9203a6cf060f 
+â””â”€md0   14.6T raid1 ext4                         fdb92af7-371c-4793-8d98-ff47e961498d /srv/transferportal/smoke/destination
+                                                                                      /srv/transferportal/destination
+                                                                                      /export/immich
+                                                                                      /export/ha-backups
+                                                                                      /export/frigate
+                                                                                      /export/configs
+                                                                                      /srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d
+Filesystem          1B-blocks           Used     Available Use% Mounted on
+/dev/md0       15873499238400 11577057009664 4296425451520  73% /srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d
+/dev/sdc1      15873632378880  8381263282176 7492352319488  53% /srv/dev-disk-by-uuid-a216b8bb-708e-4342-a5be-a415cdc465fa
+/:
+       0 Jul 11 09:39 2026 $RECYCLE.BIN
+       0 Jul 11 09:31 2026 System Volume Information
+
+/$RECYCLE.BIN:
+       0 Jul 11 09:39 2026 .
+       0 Jul 11 09:39 2026 S-1-5-21-4218969372-1645167379-354272111-1000
+
+/$RECYCLE.BIN/S-1-5-21-4218969372-1645167379-354272111-1000:
+       0 Jul 11 09:39 2026 .
+       0 Jul 11 09:39 2026 ..
+     129 Jul 11 09:39 2026 desktop.ini
+
+/System Volume Information:
+       0 Jul 11 09:31 2026 .
+   20480 Jul 11 09:35 2026 tracking.log
+      12 Jul 11 09:31 2026 WPSettings.dat
+/dev/sda
+smartctl 7.4 2023-08-01 r5530 [x86_64-linux-7.0.10+deb13-amd64] (local build)
+Copyright (C) 2002-23, Bruce Allen, Christian Franke, www.smartmontools.org
+
+=== START OF INFORMATION SECTION ===
+Model Family:     Western Digital Ultrastar (He10/12)
+Device Model:     WDC WD160EDFZ-11AFWA0
+Serial Number:    2CH0STYP
+LU WWN Device Id: 5 000cca 2a1ce70dd
+Firmware Version: 81.00A81
+User Capacity:    16,000,900,661,248 bytes [16.0 TB]
+Sector Sizes:     512 bytes logical, 4096 bytes physical
+Rotation Rate:    5400 rpm
+Form Factor:      3.5 inches
+Device is:        In smartctl database 7.3/6293
+ATA Version is:   ACS-4 published, ANSI INCITS 529-2018
+SATA Version is:  SATA 3.3, 6.0 Gb/s (current: 6.0 Gb/s)
+Local Time is:    Tue Oct 20 14:24:16 2026 BST
+SMART support is: Available - device has SMART capability.
+SMART support is: Enabled
+
+=== START OF READ SMART DATA SECTION ===
+SMART overall-health self-assessment test result: PASSED
+
+SMART Attributes Data Structure revision number: 16
+Vendor Specific SMART Attributes with Thresholds:
+ID# ATTRIBUTE_NAME          FLAG     VALUE WORST THRESH TYPE      UPDATED  WHEN_FAILED RAW_VALUE
+  1 Raw_Read_Error_Rate     0x000b   100   100   001    Pre-fail  Always       -       0
+  2 Throughput_Performance  0x0004   131   131   054    Old_age   Offline      -       116
+  3 Spin_Up_Time            0x0007   084   084   001    Pre-fail  Always       -       342 (Average 298)
+  4 Start_Stop_Count        0x0012   096   096   000    Old_age   Always       -       1611
+  5 Reallocated_Sector_Ct   0x0033   100   100   001    Pre-fail  Always       -       0
+  7 Seek_Error_Rate         0x000a   100   100   001    Old_age   Always       -       0
+  8 Seek_Time_Performance   0x0004   140   140   020    Old_age   Offline      -       15
+  9 Power_On_Hours          0x0012   098   098   000    Old_age   Always       -       16522
+ 10 Spin_Retry_Count        0x0012   100   100   001    Old_age   Always       -       0
+ 12 Power_Cycle_Count       0x0032   088   088   000    Old_age   Always       -       857
+ 22 Helium_Level            0x0023   100   100   025    Pre-fail  Always       -       100
+192 Power-Off_Retract_Count 0x0032   100   100   000    Old_age   Always       -       2857
+193 Load_Cycle_Count        0x0012   100   100   000    Old_age   Always       -       2857
+194 Temperature_Celsius     0x0002   039   039   000    Old_age   Always       -       40 (Min/Max 15/60)
+196 Reallocated_Event_Count 0x0032   100   100   000    Old_age   Always       -       0
+197 Current_Pending_Sector  0x0022   100   100   000    Old_age   Always       -       0
+198 Offline_Uncorrectable   0x0008   100   100   000    Old_age   Offline      -       0
+199 UDMA_CRC_Error_Count    0x000a   100   100   000    Old_age   Always       -       1
+
+SMART Self-test log structure revision number 1
+No self-tests have been logged.  [To run self-tests, use: smartctl -t]
+
+/dev/sdc
+smartctl 7.4 2023-08-01 r5530 [x86_64-linux-7.0.10+deb13-amd64] (local build)
+Copyright (C) 2002-23, Bruce Allen, Christian Franke, www.smartmontools.org
+
+=== START OF INFORMATION SECTION ===
+Model Family:     Western Digital Ultrastar DC HC550
+Device Model:     WDC  WUH721816ALE6L4
+Serial Number:    3GHV81YE
+LU WWN Device Id: 5 000cca 2afda076b
+Firmware Version: PCGNW232
+User Capacity:    16,000,900,661,248 bytes [16.0 TB]
+Sector Sizes:     512 bytes logical, 4096 bytes physical
+Rotation Rate:    7200 rpm
+Form Factor:      3.5 inches
+Device is:        In smartctl database 7.3/6293
+ATA Version is:   ACS-4 published, ANSI INCITS 529-2018
+SATA Version is:  SATA 3.3, 6.0 Gb/s (current: 6.0 Gb/s)
+Local Time is:    Tue Oct 20 14:24:16 2026 BST
+SMART support is: Available - device has SMART capability.
+SMART support is: Enabled
+
+=== START OF READ SMART DATA SECTION ===
+SMART overall-health self-assessment test result: PASSED
+
+SMART Attributes Data Structure revision number: 16
+Vendor Specific SMART Attributes with Thresholds:
+ID# ATTRIBUTE_NAME          FLAG     VALUE WORST THRESH TYPE      UPDATED  WHEN_FAILED RAW_VALUE
+  1 Raw_Read_Error_Rate     0x000b   100   100   001    Pre-fail  Always       -       0
+  2 Throughput_Performance  0x0005   136   136   054    Pre-fail  Offline      -       96
+  3 Spin_Up_Time            0x0007   084   084   001    Pre-fail  Always       -       346 (Average 325)
+  4 Start_Stop_Count        0x0012   100   100   000    Old_age   Always       -       76
+  5 Reallocated_Sector_Ct   0x0033   100   100   001    Pre-fail  Always       -       0
+  7 Seek_Error_Rate         0x000b   100   100   001    Pre-fail  Always       -       0
+  8 Seek_Time_Performance   0x0005   140   140   020    Pre-fail  Offline      -       15
+  9 Power_On_Hours          0x0012   099   099   000    Old_age   Always       -       9314
+ 10 Spin_Retry_Count        0x0013   100   100   001    Pre-fail  Always       -       0
+ 12 Power_Cycle_Count       0x0032   099   099   000    Old_age   Always       -       71
+ 22 Helium_Level            0x0023   100   100   025    Pre-fail  Always       -       100
+192 Power-Off_Retract_Count 0x0032   100   100   000    Old_age   Always       -       590
+193 Load_Cycle_Count        0x0012   100   100   000    Old_age   Always       -       590
+194 Temperature_Celsius     0x0002   055   055   000    Old_age   Always       -       39 (Min/Max 14/60)
+196 Reallocated_Event_Count 0x0032   100   100   000    Old_age   Always       -       0
+197 Current_Pending_Sector  0x0022   100   100   000    Old_age   Always       -       0
+198 Offline_Uncorrectable   0x0008   100   100   000    Old_age   Offline      -       0
+199 UDMA_CRC_Error_Count    0x000a   100   100   000    Old_age   Always       -       0
+
+SMART Self-test log structure revision number 1
+Num  Test_Description    Status                  Remaining  LifeTime(hours)  LBA_of_first_error
+# 1  Short offline       Completed without error       00%      6495         -
+
+/dev/sdd
+smartctl 7.4 2023-08-01 r5530 [x86_64-linux-7.0.10+deb13-amd64] (local build)
+Copyright (C) 2002-23, Bruce Allen, Christian Franke, www.smartmontools.org
+
+=== START OF INFORMATION SECTION ===
+Model Family:     Western Digital Ultrastar (He10/12)
+Device Model:     WDC WD160EDGZ-11B2DA0
+Serial Number:    3HG402GN
+LU WWN Device Id: 5 000cca 29dc1d1c8
+Firmware Version: 85.00A85
+User Capacity:    16,000,900,661,248 bytes [16.0 TB]
+Sector Sizes:     512 bytes logical, 4096 bytes physical
+Rotation Rate:    7200 rpm
+Form Factor:      3.5 inches
+Device is:        In smartctl database 7.3/6293
+ATA Version is:   ACS-4 published, ANSI INCITS 529-2018
+SATA Version is:  SATA 3.3, 6.0 Gb/s (current: 6.0 Gb/s)
+Local Time is:    Tue Oct 20 14:24:16 2026 BST
+SMART support is: Available - device has SMART capability.
+SMART support is: Enabled
+
+=== START OF READ SMART DATA SECTION ===
+SMART overall-health self-assessment test result: PASSED
+
+SMART Attributes Data Structure revision number: 16
+Vendor Specific SMART Attributes with Thresholds:
+ID# ATTRIBUTE_NAME          FLAG     VALUE WORST THRESH TYPE      UPDATED  WHEN_FAILED RAW_VALUE
+  1 Raw_Read_Error_Rate     0x000b   100   100   001    Pre-fail  Always       -       0
+  2 Throughput_Performance  0x0004   134   134   054    Old_age   Offline      -       104
+  3 Spin_Up_Time            0x0007   083   083   001    Pre-fail  Always       -       347 (Average 350)
+  4 Start_Stop_Count        0x0012   099   099   000    Old_age   Always       -       616
+  5 Reallocated_Sector_Ct   0x0033   100   100   001    Pre-fail  Always       -       0
+  7 Seek_Error_Rate         0x000a   100   100   001    Old_age   Always       -       0
+  8 Seek_Time_Performance   0x0004   140   140   020    Old_age   Offline      -       15
+  9 Power_On_Hours          0x0012   097   097   000    Old_age   Always       -       27555
+ 10 Spin_Retry_Count        0x0012   100   100   001    Old_age   Always       -       0
+ 12 Power_Cycle_Count       0x0032   097   097   000    Old_age   Always       -       247
+ 22 Helium_Level            0x0023   100   100   025    Pre-fail  Always       -       100
+192 Power-Off_Retract_Count 0x0032   094   094   000    Old_age   Always       -       40520
+193 Load_Cycle_Count        0x0012   094   094   000    Old_age   Always       -       40520
+194 Temperature_Celsius     0x0002   044   044   000    Old_age   Always       -       37 (Min/Max 4/66)
+196 Reallocated_Event_Count 0x0032   100   100   000    Old_age   Always       -       0
+197 Current_Pending_Sector  0x0022   100   100   000    Old_age   Always       -       0
+198 Offline_Uncorrectable   0x0008   100   100   000    Old_age   Offline      -       0
+199 UDMA_CRC_Error_Count    0x000a   100   100   000    Old_age   Always       -       0
+
+SMART Self-test log structure revision number 1
+No self-tests have been logged.  [To run self-tests, use: smartctl -t]
+
+/dev/sde
+smartctl 7.4 2023-08-01 r5530 [x86_64-linux-7.0.10+deb13-amd64] (local build)
+Copyright (C) 2002-23, Bruce Allen, Christian Franke, www.smartmontools.org
+
+=== START OF INFORMATION SECTION ===
+Model Family:     Seagate Exos X16
+Device Model:     ST16000NM001G-2KK103
+Serial Number:    ZL2GBZVR
+LU WWN Device Id: 5 000c50 0c9854060
+Firmware Version: SN03
+User Capacity:    16,000,900,661,248 bytes [16.0 TB]
+Sector Sizes:     512 bytes logical, 4096 bytes physical
+Rotation Rate:    7200 rpm
+Form Factor:      3.5 inches
+Device is:        In smartctl database 7.3/6293
+ATA Version is:   ACS-4 (minor revision not indicated)
+SATA Version is:  SATA 3.3, 6.0 Gb/s (current: 6.0 Gb/s)
+Local Time is:    Tue Oct 20 14:24:16 2026 BST
+SMART support is: Available - device has SMART capability.
+SMART support is: Enabled
+
+=== START OF READ SMART DATA SECTION ===
+SMART overall-health self-assessment test result: PASSED
+See vendor-specific Attribute list for marginal Attributes.
+
+SMART Attributes Data Structure revision number: 10
+Vendor Specific SMART Attributes with Thresholds:
+ID# ATTRIBUTE_NAME          FLAG     VALUE WORST THRESH TYPE      UPDATED  WHEN_FAILED RAW_VALUE
+  1 Raw_Read_Error_Rate     0x000f   083   064   044    Pre-fail  Always       -       0/202794629
+  3 Spin_Up_Time            0x0003   089   089   000    Pre-fail  Always       -       0
+  4 Start_Stop_Count        0x0032   100   100   020    Old_age   Always       -       977
+  5 Reallocated_Sector_Ct   0x0033   100   100   010    Pre-fail  Always       -       0
+  7 Seek_Error_Rate         0x000f   084   060   045    Pre-fail  Always       -       0/251650244
+  9 Power_On_Hours          0x0032   063   063   000    Old_age   Always       -       33275
+ 10 Spin_Retry_Count        0x0013   100   100   097    Pre-fail  Always       -       0
+ 12 Power_Cycle_Count       0x0032   100   100   020    Old_age   Always       -       331
+ 18 Head_Health             0x000b   100   100   050    Pre-fail  Always       -       0
+187 Reported_Uncorrect      0x0032   100   100   000    Old_age   Always       -       0
+188 Command_Timeout         0x0032   100   099   000    Old_age   Always       -       13 13 14
+190 Airflow_Temperature_Cel 0x0022   063   020   040    Old_age   Always   In_the_past 37 (254 43 47 28 0)
+192 Power-Off_Retract_Count 0x0032   100   100   000    Old_age   Always       -       135
+193 Load_Cycle_Count        0x0032   063   063   000    Old_age   Always       -       75193
+194 Temperature_Celsius     0x0022   037   080   000    Old_age   Always       -       37 (0 6 0 0 0)
+197 Current_Pending_Sector  0x0012   100   100   000    Old_age   Always       -       0
+198 Offline_Uncorrectable   0x0010   100   100   000    Old_age   Offline      -       0
+199 UDMA_CRC_Error_Count    0x003e   200   200   000    Old_age   Always       -       0
+200 Pressure_Limit          0x0023   100   100   001    Pre-fail  Always       -       0
+240 Head_Flying_Hours       0x0000   100   253   000    Old_age   Offline      -       22213h+29m+13.091s
+241 Total_LBAs_Written      0x0000   100   253   000    Old_age   Offline      -       122921741448
+242 Total_LBAs_Read         0x0000   100   253   000    Old_age   Offline      -       221604904247
+
+SMART Self-test log structure revision number 1
+Num  Test_Description    Status                  Remaining  LifeTime(hours)  LBA_of_first_error
+# 1  Extended offline    Completed without error       00%     29210         -
+# 2  Short offline       Completed without error       00%     29188         -
+
+/export/immich	192.168.20.102(sync,wdelay,hide,no_subtree_check,fsid=cca10456-2592-4759-8dc5-f3a94c130885,sec=sys,rw,secure,no_root_squash,no_all_squash)
+/export/frigate
+		192.168.10.10(sync,wdelay,hide,no_subtree_check,fsid=29a0d6a7-be91-4a6d-9ed1-f4ef3700d5c5,sec=sys,rw,secure,root_squash,no_all_squash)
+/export/media 	192.168.20.102(sync,wdelay,hide,no_subtree_check,fsid=dc7661cf-3dab-4427-ab02-3596b07681d6,sec=sys,rw,secure,root_squash,no_all_squash)
+/export       	192.168.20.102(sync,wdelay,hide,fsid=0,sec=sys,ro,secure,root_squash,no_all_squash)
+/export       	192.168.10.10(sync,wdelay,hide,fsid=0,sec=sys,ro,secure,root_squash,no_all_squash)
+/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/proxmox
+		192.168.10.10(sync,wdelay,hide,no_subtree_check,sec=sys,rw,secure,no_root_squash,no_all_squash)
+/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/home-assistant
+		192.168.20.101(sync,wdelay,hide,no_subtree_check,sec=sys,rw,secure,no_root_squash,no_all_squash)
+/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/docker-host
+		192.168.20.102(sync,wdelay,hide,no_subtree_check,sec=sys,rw,secure,no_root_squash,no_all_squash)
+# file: /srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/frigate
+# owner: root
+# group: users
+# flags: -s-
+user::rwx
+user:filebrowser:rwx
+user:admin:rwx
+user:Admin:rwx
+user:nasadmin:rwx
+user:100000:rwx
+group::rwx
+group:openmediavault-admin:rwx
+mask::rwx
+other::r-x
+default:user::rwx
+default:user:filebrowser:rwx
+default:user:admin:rwx
+default:user:Admin:rwx
+default:user:nasadmin:rwx
+default:user:100000:rwx
+default:group::rwx
+default:group:openmediavault-admin:rwx
+default:mask::rwx
+default:other::r-x
+
+# file: /srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/immich
+# owner: root
+# group: root
+user::rwx
+user:nasadmin:rwx
+group::r-x
+mask::rwx
+other::r-x
+default:user::rwx
+default:user:nasadmin:rwx
+default:group::r-x
+default:mask::rwx
+default:other::r-x
+
+# file: /srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/Print
+# owner: root
+# group: users
+# flags: -s-
+user::rwx
+user:filebrowser:rwx
+user:nasadmin:rwx
+group::r-x
+mask::rwx
+other::rwx
+default:user::rwx
+default:user:filebrowser:rwx
+default:user:nasadmin:rwx
+default:group::r-x
+default:mask::rwx
+default:other::r-x
+
+# file: /srv/dev-disk-by-uuid-a216b8bb-708e-4342-a5be-a415cdc465fa/Media/books/calibre-library
+# owner: media-service
+# group: users
+# flags: -s-
+user::rwx
+user:filebrowser:rwx
+user:nasadmin:rwx
+group::r-x
+mask::rwx
+other::r-x
+default:user::rwx
+default:user:filebrowser:rwx
+default:user:nasadmin:rwx
+default:group::r-x
+default:mask::rwx
+default:other::r-x
+
+
+STDERR: 

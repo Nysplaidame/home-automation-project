@@ -15,7 +15,7 @@ mqtt:
   discovery: false
   # Local CA certificate for TLS validation (no internet dependency)
   # Copy ca-cert.pem content into secrets.yaml as mqtt_ca_cert
-  ca_certificate: !secret mqtt_ca_cert
+  certificate_authority: !secret mqtt_ca_cert
   on_message:
     - topic: ventsys/fan/percent
       qos: 0
@@ -86,3 +86,6 @@ fan:
 binary_sensor:
   - platform: status
     name: "Status"
+
+packages:
+  board_management: !include ../../configs/esphome/ventsys_board_management.yaml

@@ -1,0 +1,40 @@
+{
+  "local": {
+    "text_files_scanned": 6969,
+    "matching_lines": 1759,
+    "matching_files": 408,
+    "errors": []
+  },
+  "hosts": [
+    {
+      "host": "omv-lan",
+      "references": 182,
+      "error": null,
+      "read_errors": 0
+    },
+    {
+      "host": "docker-host-lan",
+      "references": 43,
+      "error": null,
+      "read_errors": 0
+    },
+    {
+      "host": "proxmox-lan",
+      "references": 8,
+      "error": null,
+      "read_errors": 0
+    },
+    {
+      "host": "monitoring-lan",
+      "references": 0,
+      "error": null,
+      "read_errors": 0
+    },
+    {
+      "host": "llm-host-lan",
+      "references": 0,
+      "error": null,
+      "read_errors": 0
+    }
+  ]
+}

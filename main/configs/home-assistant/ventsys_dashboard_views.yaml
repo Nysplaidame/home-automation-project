@@ -1,0 +1,18 @@
+# Two views of the same authenticated card; standard view remains the default.
+views:
+  - title: VentSys
+    path: '0'
+    type: panel
+    cards:
+      - type: custom:ventsys-dashboard-card
+  - title: Touch screen
+    path: touch
+    type: panel
+    cards:
+      - type: custom:ventsys-dashboard-card
+        layout: touch
+  - title: Diagnostics
+    path: diagnostics
+    type: panel
+    cards:
+      - type: custom:ventsys-diagnostics-card

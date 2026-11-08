@@ -1,0 +1,37 @@
+%%{init: {"theme":"base","fontFamily":"Segoe UI, sans-serif","themeVariables":{"primaryColor":"#123044","primaryTextColor":"#eef6ff","primaryBorderColor":"#58b7bf","lineColor":"#9aafc4","clusterBkg":"#0d1c2d","clusterBorder":"#38516b","tertiaryColor":"#0d1c2d","edgeLabelBackground":"#0b1929","fontSize":"18px"},"flowchart":{"curve":"basis","nodeSpacing":28,"rankSpacing":90,"padding":12,"subGraphTitleMargin":{"top":8,"bottom":16},"wrappingWidth":280,"useMaxWidth":false}}}%%
+flowchart LR
+    %% GPIO differs by active board configuration; source of truth: ventsys_*_airflow.yaml.
+    %% Layout: ESP pins (left) --- peripheral pins (right) --- power (far right). Solid = FDM/SLA board, dashed = Booth board.
+    Note["Choose only the GPIO pair matching the installed airflow board.<br/>If the pulse sensor output exceeds 3.3V, level-shift it before the ESP32-C6 input."]
+    subgraph ESP["ESP32-C6 AIRFLOW-SENSOR FAMILY"]
+        FdmPulse["FDM / SLA · GPIO0<br/>pulse input · inverted INPUT_PULLUP"]
+        BoothPulse["Booth · GPIO10<br/>pulse input · inverted INPUT_PULLUP"]
+        V33["3.3V rail"]
+        GND["Common GND"]
+        FdmLed["FDM / SLA · GPIO1<br/>WS2812 data"]
+        BoothLed["Booth · GPIO9<br/>WS2812 data"]
+    end
+    subgraph Meter["AIRFLOW / PULSE SENSOR"]
+        MeterOut["Pulse output"]
+        MeterV["VCC · verify sensor voltage"]
+        MeterG["GND"]
+    end
+    subgraph LEDs["WS2812 LED STRIP"]
+        LedDin["DIN"]
+        LedG["GND"]
+        LedV["5V power"]
+    end
+    PSU["Suitable regulated LED power rail"]
+    Note ~~~ ESP
+    FdmPulse --- MeterOut
+    BoothPulse -.- MeterOut
+    V33 --- MeterV
+    GND --- MeterG
+    GND --- LedG
+    FdmLed --- LedDin
+    BoothLed -.- LedDin
+    LedV --- PSU
+    class ESP,Meter,LEDs core
+    class PSU,Note policy
+    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa
+    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8

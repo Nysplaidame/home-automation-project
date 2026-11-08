@@ -10,6 +10,12 @@ status: preflight-live
 
 # Immich Install Manual
 
+**October27 storage cutover:** logical `/export/immich` -> VM103
+`/mnt/omv/immich` -> container `/data` unchanged; server backing is now Media
+UUID `a8843f98-c937-48a8-aefa-4cd0fb80667c`. Containers recreated on verified
+mounts and healthy; owner confirmed gallery access. Original Y data retained
+privately pending retirement. Migration audit/current-live-state are authoritative.
+
 ## Purpose
 
 Provide a self-hosted photo gallery and upload service. Immich runs on docker-host;

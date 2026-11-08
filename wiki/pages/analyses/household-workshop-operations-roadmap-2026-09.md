@@ -3,7 +3,7 @@ title: "Household, Workshop and Operations Product Roadmap"
 category: analysis
 tags: [roadmap, household, workshop, diagnostics, resilience, ventsys]
 created: 2026-09-05
-updated: 2026-09-06
+updated: 2026-10-02
 sources: [project-readme, project-todo]
 status: active
 ---
@@ -70,12 +70,25 @@ recovery acceptance.
 
 - [x] Define the Phase 0 schema and fixture set for the local proof of concept.
 - [ ] Decide the live adapter and placement model before any authenticated collection.
-- [ ] Complete the Troubleshooting Dashboard's real Proxmox backup-snapshot acceptance.
+- [x] September14–15 real Proxmox collector/backup-snapshot import acceptance;
+  this does not establish complete application restore acceptance.
 - [ ] Seed and validate a small Grocy stock pilot before recipe suggestions.
 - [ ] Evaluate HomeBox against a purpose-built workshop app with one real workshop zone.
 - [ ] Keep VentSys commissioning behind physical hardware and existing safety acceptance.
 
-## Sources used
+## October 2 reconciliation
+
+Canonical [[../../../main/docs/audits/2026-10-02-roadmap-code-file-audit]] records
+passing local Workbench/diagnostic browser checks, 16 rendered diagrams and
+62 passing recovered-Hub API tests plus its production frontend build.
+Read-only Grocy integration exists; Hub background jobs and MCP remain absent.
+The 37-route live diagnostic app is separate from the local Today/recovery
+prototype. P1S telemetry/dashboard/notifications are commissioned; cameras
+remain disconnected and VentSys physical safety acceptance remains incomplete.
+Five NAS disks passed fresh read-only SMART checks, with md0 healthy and an
+existing consistency check running. None of this certifies every live workflow.
+
+## Sources used (current and historical)
 
 [[sources/project-readme]], [[sources/project-todo]],
 [[entities/household-hub]], [[entities/home-assistant]],

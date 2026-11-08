@@ -19,6 +19,11 @@ manual expansion adds operating procedures, not a fresh streaming/restore test.
 
 ## Live design
 
+- October25 storage cutover: `/mnt/omv/media/phone-recordings` is an exact scoped
+  NFS mount from `192.168.40.50:/export/media-phone-recordings` on new Media UUID
+  `a8843f98-c937-48a8-aefa-4cd0fb80667c`. Authenticated synthetic publish/view,
+  UID1007:100 NAS recording and completed segment decode passed. Credentials,
+  RTSP/firewall policy and internal `/recordings` path unchanged.
 - Android/Larix publishes an already-compressed camera stream over HomeAdmin
   Wi-Fi to `192.168.20.102:8554`.
 - MediaMTX relays the packets without transcoding and records fMP4 directly to
@@ -115,7 +120,7 @@ Run on: docker-host shell before starting the service.
 
 ```sh
 cd /opt/stacks/mediamtx || exit 1
-findmnt -T /mnt/omv/media
+findmnt --mountpoint /mnt/omv/media/phone-recordings
 test -d /mnt/omv/media/phone-recordings
 docker compose config --quiet
 docker compose config --images

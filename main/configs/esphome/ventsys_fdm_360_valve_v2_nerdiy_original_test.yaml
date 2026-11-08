@@ -12,7 +12,7 @@
 substitutions:
   device_name: ventsys-fdm-360-valve
   friendly_name: "VentSys FDM 360 Intake Valve"
-  device_ip: "192.168.50.61"
+  device_ip: "192.168.50.62"
   mqtt_command_topic: "ventsys/fdm/360/control"
   mqtt_state_topic:   "ventsys/fdm/360/state"
   servo_gpio: GPIO21
@@ -21,6 +21,10 @@ substitutions:
 esphome:
   name: ${device_name}
   friendly_name: ${friendly_name}
+
+# Save commands/endpoints promptly; restoring numbers does not drive the servo.
+preferences:
+  flash_write_interval: 1ms
 
 esp32:
   board: esp32-c6-devkitc-1
@@ -104,6 +108,7 @@ output:
 servo:
   - id: valve_servo
     output: valve_servo_pwm_output
+    restore: false  # Restore displayed command only; keep PWM detached at boot.
 
 script:
   - id: check_pwm_shutdown
@@ -120,6 +125,7 @@ number:
   - platform: template
     name: "Valve Position"
     id: valve_position_direct_control_number
+    restore_value: true
     min_value: 0
     initial_value: 0
     max_value: 35
@@ -146,6 +152,7 @@ number:
   - platform: template
     name: "Valve Open Position"
     id: valve_opened_position
+    restore_value: true
     min_value: 0
     initial_value: 35
     max_value: 35
@@ -156,6 +163,7 @@ number:
   - platform: template
     name: "Valve Closed Position"
     id: valve_closed_position
+    restore_value: true
     min_value: 0
     initial_value: 0
     max_value: 35
@@ -226,3 +234,6 @@ interval:
           else if (pos > 0.0)    { red=1.0; green=0.5; blue=0.0; }
           else                   { red=1.0; green=0.0; blue=0.0; }
           id(status_led).turn_on().set_brightness(1.0).set_rgb(red,green,blue).perform();
+
+packages:
+  board_management: !include ventsys_board_management.yaml

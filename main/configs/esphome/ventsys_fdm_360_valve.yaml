@@ -1,3 +1,5 @@
+# Legacy ESP32 template: do not flash the installed ESP32-C6 intakes.
+# Installed boards use the MAC-bound v2_nerdiy profiles; see board procedure.
 # NOTE: 360-degree intake valve. Servo on GPIO04 (matching upstream PrintAirPipe
 # 360deg_intake hardware reference). All butterfly valve features retained.
 # Touch sensor toggles between fully open and fully closed (same as valve controllers).
@@ -17,7 +19,7 @@
 substitutions:
   device_name: ventsys-fdm-360-valve
   friendly_name: "VentSys FDM 360 Intake Valve"
-  device_ip: "192.168.50.61"
+  device_ip: "192.168.50.62"
   mqtt_command_topic: "ventsys/fdm/360/control"
   mqtt_state_topic:   "ventsys/fdm/360/state"
   servo_gpio: GPIO04
@@ -25,6 +27,10 @@ substitutions:
 esphome:
   name: ${device_name}
   friendly_name: ${friendly_name}
+
+# Save commands/endpoints promptly; restoring numbers does not drive the servo.
+preferences:
+  flash_write_interval: 1ms
 
 esp32:
   board: esp32dev
@@ -111,6 +117,7 @@ output:
 servo:
   - id: valve_servo
     output: valve_servo_pwm_output
+    restore: false  # Restore displayed command only; keep PWM detached at boot.
 
 script:
   - id: check_pwm_shutdown
@@ -127,6 +134,7 @@ number:
   - platform: template
     name: "Valve Position"
     id: valve_position_direct_control_number
+    restore_value: true
     min_value: 0
     initial_value: 0
     max_value: 100
@@ -153,6 +161,7 @@ number:
   - platform: template
     name: "Valve Open Position"
     id: valve_opened_position
+    restore_value: true
     min_value: 0
     initial_value: 50
     max_value: 100
@@ -163,6 +172,7 @@ number:
   - platform: template
     name: "Valve Closed Position"
     id: valve_closed_position
+    restore_value: true
     min_value: 0
     initial_value: 0
     max_value: 100
@@ -338,3 +348,5 @@ interval:
               id(status_led).turn_off().perform();
             }
           }
+packages:
+  board_management: !include ventsys_board_management.yaml

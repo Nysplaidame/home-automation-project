@@ -1,0 +1,318 @@
+# ESPHome - VentSys array status display (package)
+#
+# Use with ventsys_air_sensor_base.yaml + ventsys_air_sensor_co.yaml.
+# Shows ΔP when ventsys_air_sensor_dp.yaml is also included ("--" otherwise).
+#
+# Hardware:
+#   - 0.96" 128x64 SSD1306 I2C OLED (52Pi S-0018 yellow/blue or S-0005 white), 3V3,
+#     shared I2C bus, address 0x3C (some modules ship as 0x3D)
+#   - GL5528 LDR for auto-brightness: 3V3 -> LDR -> GPIO0 -> 10k -> GND
+#     (brighter = higher voltage; ~1% dark, ~40% dim room, ~75% bright)
+#
+# Layout (S-0018: top 16 rows are the yellow band):
+#   header  : title | status word | API / MQ link boxes
+#   3 x 2   : DP Pa | TEMP | RISE (°C/min)
+#             SMOKE | CO   | RH
+#   alarm   : whole screen flashes with the cause and its reading, full brightness
+#   diag    : IP / Wi-Fi / uptime / baselines for 5 s each minute (switchable)
+#
+# Burn-in care: brightness follows the LDR, the screen turns off in the dark
+# (switchable), and the image shifts by one pixel every few minutes.
+# An alarm always wakes the screen at full brightness.
+#
+# Fonts download from Google Fonts when the firmware is compiled.
+
+substitutions:
+  display_title: "VENTSYS"          # short, about 8 characters: e.g. FDM-1, SLA-2
+  display_address: "0x3C"
+  display_rotation: "0"             # 180 if the image is upside down as mounted
+  display_update_interval: 500ms    # also the alarm flash rate
+  ldr_gpio: GPIO0
+  display_label_font: "gfonts://Silkscreen"
+  display_value_font: "gfonts://Roboto Condensed@700"
+  # first-boot values, adjustable from Home Assistant afterwards
+  display_dark_level: "8"           # % ambient: at or below = minimum brightness / screen off
+  display_bright_level: "70"        # % ambient: at or above = maximum brightness
+  display_min_brightness: "5"       # %
+  display_max_brightness: "100"     # %
+
+font:
+  - file: ${display_label_font}
+    id: f_label
+    size: 8
+  - file: ${display_value_font}
+    id: f_value
+    size: 14
+    glyphsets: [GF_Latin_Kernel]
+    glyphs: ["°"]
+  - file: ${display_value_font}
+    id: f_head
+    size: 12
+  - file: ${display_value_font}
+    id: f_big
+    size: 26
+    glyphsets: [GF_Latin_Kernel]
+    glyphs: ["°"]
+
+globals:
+  - id: px_shift
+    type: int
+    restore_value: no
+    initial_value: "0"
+  - id: disp_level
+    type: float
+    restore_value: no
+    initial_value: "1.0"
+  - id: disp_dark_off
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
+number:
+  - platform: template
+    name: "display_dark_level"
+    id: disp_dark_num
+    entity_category: config
+    unit_of_measurement: "%"
+    mode: box
+    min_value: 0
+    max_value: 100
+    step: 1
+    optimistic: true
+    restore_value: true
+    initial_value: ${display_dark_level}
+
+  - platform: template
+    name: "display_bright_level"
+    id: disp_bright_num
+    entity_category: config
+    unit_of_measurement: "%"
+    mode: box
+    min_value: 0
+    max_value: 100
+    step: 1
+    optimistic: true
+    restore_value: true
+    initial_value: ${display_bright_level}
+
+  - platform: template
+    name: "display_min_brightness"
+    id: disp_min_num
+    entity_category: config
+    unit_of_measurement: "%"
+    mode: slider
+    min_value: 0
+    max_value: 100
+    step: 1
+    optimistic: true
+    restore_value: true
+    initial_value: ${display_min_brightness}
+
+  - platform: template
+    name: "display_max_brightness"
+    id: disp_max_num
+    entity_category: config
+    unit_of_measurement: "%"
+    mode: slider
+    min_value: 0
+    max_value: 100
+    step: 1
+    optimistic: true
+    restore_value: true
+    initial_value: ${display_max_brightness}
+
+switch:
+  - platform: template
+    name: "display_enabled"
+    id: disp_enabled
+    entity_category: config
+    icon: mdi:monitor
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+
+  - platform: template
+    name: "display_off_when_dark"
+    id: disp_off_dark
+    entity_category: config
+    icon: mdi:weather-night
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+
+  - platform: template
+    name: "display_diagnostics_page"
+    id: disp_diag
+    entity_category: config
+    icon: mdi:information-outline
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+
+sensor:
+  - platform: adc
+    pin: ${ldr_gpio}
+    name: "ambient_light"
+    id: ambient_light
+    icon: mdi:brightness-6
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    attenuation: 12db
+    samples: 8
+    update_interval: 1s
+    filters:
+      - median:
+          window_size: 5
+          send_every: 2
+      - lambda: 'return std::max(0.0f, std::min(100.0f, x / ${gas_supply_voltage}f * 100.0f));'
+      - delta: 1.0             # only publish real changes
+
+display:
+  - platform: ssd1306_i2c
+    id: oled
+    model: "SSD1306 128x64"
+    address: ${display_address}
+    rotation: ${display_rotation}
+    contrast: 100%
+    update_interval: ${display_update_interval}
+    lambda: |-
+      const int ox = id(px_shift) & 1;
+      const int oy = (id(px_shift) >> 1) & 1;
+      const bool flash = (millis() / 500) % 2;
+      const bool smoke_on = id(smoke_alarm).state;
+      const bool co_on = id(co_alarm).state;
+      const bool heat_on = id(high_temp_alarm).state;
+
+      // ---------- alarm takeover ----------
+      if (smoke_on || co_on || heat_on) {
+        const Color fg = flash ? COLOR_OFF : COLOR_ON;
+        if (flash) it.fill(COLOR_ON);
+        it.print(64, 1, id(f_head), fg, TextAlign::TOP_CENTER, "ALARM");
+        const char *what = smoke_on ? "SMOKE" : co_on ? "CO" : "HEAT";
+        it.print(64, 17, id(f_big), fg, TextAlign::TOP_CENTER, what);
+        if (smoke_on) {
+          if (id(smoke_r0) > 0.0f) it.printf(64, 48, id(f_value), fg, TextAlign::TOP_CENTER, "%.2f", id(smoke_ratio).state);
+          else it.printf(64, 48, id(f_value), fg, TextAlign::TOP_CENTER, "%.2fV", id(smoke_voltage).state);
+        } else if (co_on) {
+          if (id(co_r0) > 0.0f) it.printf(64, 48, id(f_value), fg, TextAlign::TOP_CENTER, "%.2f", id(co_ratio).state);
+          else it.printf(64, 48, id(f_value), fg, TextAlign::TOP_CENTER, "%.2fV", id(co_voltage).state);
+        } else {
+          it.printf(64, 48, id(f_value), fg, TextAlign::TOP_CENTER, "%.1f°", id(air_temperature).state);
+        }
+        return;
+      }
+
+      // ---------- diagnostics page: last 5 s of every minute ----------
+      if (id(disp_diag).state && (millis() / 1000) % 60 >= 55) {
+        it.print(ox, oy + 1, id(f_head), "${display_title}");
+        it.print(127 - ox, oy + 1, id(f_label), TextAlign::TOP_RIGHT, "INFO");
+        it.printf(ox, 18 + oy, id(f_label), "IP %s", id(ip_addr).state.c_str());
+        it.printf(ox, 29 + oy, id(f_label), "WIFI %.0f DBM", id(wifi_rssi).state);
+        const float up = id(uptime_s).state;
+        it.printf(ox, 40 + oy, id(f_label), "UP %.0fD %.0fH", floorf(up / 86400.0f), floorf(fmodf(up, 86400.0f) / 3600.0f));
+        it.printf(ox, 51 + oy, id(f_label), "BASE S:%s C:%s",
+                  id(smoke_r0) > 0.0f ? "Y" : "N", id(co_r0) > 0.0f ? "Y" : "N");
+        return;
+      }
+
+      // ---------- header (yellow band on the S-0018) ----------
+      it.print(ox, oy + 1, id(f_head), "${display_title}");
+      const char *status = "OK";
+      if (id(alarm_latch)) status = flash ? "LATCHED" : "";
+      else if (id(temp_rise_alarm).state) status = "RISING";
+      else if (id(any_fault).state) status = "FAULT";
+      else if (!id(gas_sensors_ready)) status = "WARM-UP";
+      it.print(89 + ox, oy + 1, id(f_head), TextAlign::TOP_RIGHT, status);
+      // link boxes: filled = connected
+      const bool api_ok = api::global_api_server != nullptr && api::global_api_server->is_connected();
+      const bool mq_ok = id(mqtt_client).is_connected();
+      struct Box { int x, w; const char *t; bool on; };
+      const Box boxes[2] = {{92, 19, "API", api_ok}, {113, 15, "MQ", mq_ok}};
+      for (const auto &b : boxes) {
+        if (b.on) {
+          it.filled_rectangle(b.x - ox, 2 + oy, b.w, 11);
+          it.print(b.x - ox + b.w / 2, 1 + oy, id(f_label), COLOR_OFF, TextAlign::TOP_CENTER, b.t);
+        } else {
+          it.rectangle(b.x - ox, 2 + oy, b.w, 11);
+          it.print(b.x - ox + b.w / 2, 1 + oy, id(f_label), TextAlign::TOP_CENTER, b.t);
+        }
+      }
+
+      // ---------- 3 x 2 grid (blue band) ----------
+      auto cell = [&](int col, int row, const char *label, const char *value) {
+        const int cx = col * 43 + 21 + ox;
+        const int y0 = 16 + row * 24 + oy;
+        it.print(cx, y0 + 1, id(f_label), TextAlign::TOP_CENTER, label);
+        it.print(cx, y0 + 9, id(f_value), TextAlign::TOP_CENTER, value);
+      };
+      char v[12];
+      const bool bme_bad = id(bme_fault).state;
+
+      const float dp = id(dp_pa);
+      if (std::isnan(dp)) snprintf(v, sizeof(v), "--");
+      else if (fabsf(dp) >= 100.0f) snprintf(v, sizeof(v), "%.0f", dp);
+      else snprintf(v, sizeof(v), "%.1f", dp);
+      cell(0, 0, "DP PA", v);
+
+      if (bme_bad || std::isnan(id(air_temperature).state)) snprintf(v, sizeof(v), "ERR");
+      else snprintf(v, sizeof(v), "%.1f°", id(air_temperature).state);
+      cell(1, 0, "TEMP", v);
+
+      const float rise = id(temp_rise_rate).state;
+      if (bme_bad) snprintf(v, sizeof(v), "ERR");
+      else if (std::isnan(rise)) snprintf(v, sizeof(v), "--");
+      else snprintf(v, sizeof(v), "%+.1f", rise);
+      cell(2, 0, "RISE", v);            // degC per minute
+
+      auto gas = [&](bool fault, float r0, float ratio, float volts) {
+        if (!id(gas_sensors_ready)) snprintf(v, sizeof(v), "--");   // header shows WARM-UP
+        else if (fault) snprintf(v, sizeof(v), "ERR");
+        else if (r0 > 0.0f && !std::isnan(ratio)) snprintf(v, sizeof(v), "%.2f", ratio);
+        else if (!std::isnan(volts)) snprintf(v, sizeof(v), "%.2fV", volts);
+        else snprintf(v, sizeof(v), "--");
+      };
+      gas(id(smoke_fault).state, id(smoke_r0), id(smoke_ratio).state, id(smoke_voltage).state);
+      cell(0, 1, "SMOKE", v);
+      gas(id(co_fault).state, id(co_r0), id(co_ratio).state, id(co_voltage).state);
+      cell(1, 1, "CO", v);
+
+      if (bme_bad || std::isnan(id(air_humidity).state)) snprintf(v, sizeof(v), "ERR");
+      else snprintf(v, sizeof(v), "%.0f%%", id(air_humidity).state);
+      cell(2, 1, "RH", v);
+
+interval:
+  # Burn-in: move the whole image by one pixel every 4 minutes
+  - interval: 4min
+    then:
+      - lambda: 'id(px_shift) = (id(px_shift) + 1) % 4;'
+
+  # Brightness from the LDR; off when disabled or dark; alarms always win
+  - interval: 1s
+    then:
+      - lambda: |-
+          const bool alarm = id(smoke_alarm).state || id(co_alarm).state || id(high_temp_alarm).state;
+          const float amb = id(ambient_light).state;
+          const float dark = id(disp_dark_num).state;
+          const float bright = std::max(dark + 1.0f, id(disp_bright_num).state);
+          // dark latch with 3 % hysteresis so the screen does not flicker at the threshold
+          if (!std::isnan(amb)) {
+            if (amb <= dark) id(disp_dark_off) = true;
+            else if (amb >= dark + 3.0f) id(disp_dark_off) = false;
+          }
+          bool want_on = alarm || (id(disp_enabled).state && !(id(disp_off_dark).state && id(disp_dark_off)));
+          float target;
+          if (alarm) {
+            target = 1.0f;
+          } else {
+            float t = std::isnan(amb) ? 1.0f : (amb - dark) / (bright - dark);
+            t = std::max(0.0f, std::min(1.0f, t));
+            const float lo = id(disp_min_num).state / 100.0f;
+            const float hi = std::max(lo, id(disp_max_num).state / 100.0f);
+            target = lo + t * (hi - lo);
+          }
+          // ease toward the target (about 3 s), jump straight up for alarms
+          float lvl = alarm ? target : id(disp_level) + (target - id(disp_level)) * 0.35f;
+          id(disp_level) = lvl;
+          if (want_on) {
+            if (!id(oled).is_on()) id(oled).turn_on();
+            id(oled).set_contrast(lvl);
+          } else if (id(oled).is_on()) {
+            id(oled).turn_off();
+          }

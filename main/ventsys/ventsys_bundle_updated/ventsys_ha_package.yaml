@@ -236,7 +236,7 @@ mqtt:
 
 
 
-    - name: SLA Branch Valve
+    - name: E2 Branch Valve
 
 
       unique_id: ventsys_sla_branch_valve
@@ -288,6 +288,20 @@ mqtt:
 
 
 
+    - name: Main Duct Valve 2
+
+      unique_id: ventsys_main_valve2
+
+      command_topic: "ventsys/main/valve2/control"
+
+      state_topic: "ventsys/main/valve2/state"
+
+      min: 0
+
+      max: 100
+
+      step: 1
+
     - name: Main Duct Valve 1
 
 
@@ -312,27 +326,6 @@ mqtt:
 
 
 
-
-
-    - name: Main Duct Valve 2
-
-
-      unique_id: ventsys_main_valve2
-
-
-      command_topic: "ventsys/main/valve2/control"
-
-
-      state_topic: "ventsys/main/valve2/state"
-
-
-      min: 0
-
-
-      max: 100
-
-
-      step: 1
 
 
 
@@ -567,7 +560,7 @@ mqtt:
       unique_id: ventsys_fdm_temperature
 
 
-      state_topic: "ventsys/fdm/temperature"
+      state_topic: "ventsys/fdm/array_1/temperature"
 
 
       unit_of_measurement: "°C"
@@ -587,7 +580,7 @@ mqtt:
       unique_id: ventsys_sla_temperature
 
 
-      state_topic: "ventsys/sla/temperature"
+      state_topic: "ventsys/sla/array_1/temperature"
 
 
       unit_of_measurement: "°C"
@@ -619,7 +612,7 @@ mqtt:
       unique_id: ventsys_fdm_smoke
 
 
-      state_topic: "ventsys/fdm/smoke"
+      state_topic: "ventsys/fdm/array_1/smoke"
 
 
       expire_after: 120
@@ -633,7 +626,7 @@ mqtt:
       unique_id: ventsys_sla_smoke
 
 
-      state_topic: "ventsys/sla/smoke"
+      state_topic: "ventsys/sla/array_1/smoke"
 
 
       expire_after: 120
@@ -760,7 +753,7 @@ mqtt:
       unique_id: ventsys_fdm_iaq
 
 
-      state_topic: "ventsys/fdm/iaq"
+      state_topic: "ventsys/fdm/array_1/iaq"
 
 
       unit_of_measurement: "Ω"
@@ -780,7 +773,7 @@ mqtt:
       unique_id: ventsys_sla_iaq
 
 
-      state_topic: "ventsys/sla/iaq"
+      state_topic: "ventsys/sla/array_1/iaq"
 
 
       unit_of_measurement: "Ω"

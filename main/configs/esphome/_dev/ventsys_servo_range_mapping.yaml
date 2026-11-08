@@ -1,0 +1,257 @@
+# Supervised, UNLOADED exploration of the B2122's usable range. The first
+# command must be 1500 us; each later command may differ by at most 100 us
+# from the last completed command. Observe every pulse. Stop at binding,
+# feedback plateau, or persistent noise, before approaching a hard stop.
+# This is not a manufacturer-certified safe 500-2500 us range.
+substitutions:
+  device_name: ventsys-main-valve-2
+  friendly_name: "VentSys Main Duct Valve 2 Calibration"
+  device_ip: "192.168.50.52"
+  servo_gpio: GPIO16
+  feedback_gpio: GPIO35
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  on_boot:
+    priority: -100
+    then:
+      - servo.detach: calibration_servo
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+    version: recommended
+
+logger:
+
+api:
+  encryption:
+    key: !secret api_key
+  reboot_timeout: 0s
+
+ota:
+  platform: esphome
+  password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  use_address: ${device_ip}
+  manual_ip:
+    static_ip: ${device_ip}
+    gateway: 192.168.50.1
+    subnet: 255.255.255.0
+    dns1: 192.168.50.1
+  ap:
+    ssid: "VentSys Valve 2 Calibration"
+    password: !secret ota_password
+
+captive_portal:
+
+output:
+  - platform: ledc
+    id: calibration_pwm
+    pin: ${servo_gpio}
+    frequency: 50Hz
+
+servo:
+  - id: calibration_servo
+    output: calibration_pwm
+    auto_detach_time: 900ms
+    min_level: 2.5%
+    idle_level: 7.5%
+    max_level: 12.5%
+
+globals:
+  - id: command_sequence
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: sample_sum
+    type: float
+    restore_value: no
+    initial_value: '0.0f'
+  - id: sample_min
+    type: float
+    restore_value: no
+    initial_value: 'NAN'
+  - id: sample_max
+    type: float
+    restore_value: no
+    initial_value: 'NAN'
+  - id: sample_count
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: active_pulse_us
+    type: float
+    restore_value: no
+    initial_value: '1500.0f'
+  - id: last_completed_us
+    type: float
+    restore_value: no
+    initial_value: '1500.0f'
+  - id: has_completed_pulse
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: previous_mean_v
+    type: float
+    restore_value: no
+    initial_value: 'NAN'
+
+number:
+  - platform: template
+    name: "Servo Pulse Width"
+    id: target_pulse_us
+    unit_of_measurement: "µs"
+    icon: "mdi:pulse"
+    min_value: 500
+    max_value: 2500
+    step: 10
+    initial_value: 1500
+    optimistic: true
+    mode: box
+    set_action:
+      then:
+        - lambda: |-
+            // Selecting a target never energises the servo.
+            ESP_LOGI("calibration", "Selected %.0f us; press Apply Pulse to move", x);
+
+sensor:
+  - platform: adc
+    pin: ${feedback_gpio}
+    name: "Raw Feedback Voltage"
+    id: raw_feedback_v
+    unit_of_measurement: "V"
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 3
+    attenuation: auto
+    update_interval: 20ms
+    entity_category: diagnostic
+
+  - platform: template
+    name: "Last Feedback Mean"
+    id: last_feedback_mean
+    unit_of_measurement: "V"
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 3
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "Last Feedback Range"
+    id: last_feedback_range
+    unit_of_measurement: "V"
+    state_class: measurement
+    accuracy_decimals: 3
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "Last Applied Pulse"
+    id: last_applied_pulse
+    unit_of_measurement: "µs"
+    accuracy_decimals: 0
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "Command Sequence"
+    id: sequence_sensor
+    accuracy_decimals: 0
+    update_interval: never
+    entity_category: diagnostic
+
+button:
+  - platform: template
+    name: "Apply Pulse"
+    on_press:
+      then:
+        - if:
+            condition:
+              script.is_running: apply_pulse_script
+            then:
+              - lambda: 'ESP_LOGW("calibration", "Apply rejected: a pulse is already active");'
+            else:
+              - if:
+                  condition:
+                    lambda: |-
+                      const float target = id(target_pulse_us).state;
+                      return (!id(has_completed_pulse) && target != 1500.0f) ||
+                             (id(has_completed_pulse) && fabsf(target - id(last_completed_us)) > 100.0f);
+                  then:
+                    - lambda: |-
+                        ESP_LOGW("calibration", "Apply rejected: first pulse must be 1500 us; later steps must be <=100 us from last completed pulse");
+                  else:
+                    - script.execute: apply_pulse_script
+
+  - platform: template
+    name: "Stop Release"
+    on_press:
+      then:
+        - script.stop: apply_pulse_script
+        - servo.detach: calibration_servo
+        - lambda: |-
+            id(has_completed_pulse) = false;
+            ESP_LOGW("calibration", "Stop/Release: PWM detached; range anchor cleared, reapply 1500 us before stepping");
+
+script:
+  - id: apply_pulse_script
+    mode: single
+    then:
+      - lambda: |-
+          id(command_sequence)++;
+          id(active_pulse_us) = clamp(id(target_pulse_us).state, 500.0f, 2500.0f);
+          id(sequence_sensor).publish_state(id(command_sequence));
+          id(last_applied_pulse).publish_state(id(active_pulse_us));
+          id(sample_sum) = 0.0f;
+          id(sample_min) = NAN;
+          id(sample_max) = NAN;
+          id(sample_count) = 0;
+          ESP_LOGI("calibration", "Command %d: %.0f us; feedback before %.3f V",
+                   id(command_sequence), id(active_pulse_us), id(raw_feedback_v).state);
+      - servo.write:
+          id: calibration_servo
+          level: !lambda |-
+            const float pulse = id(active_pulse_us);
+            // Servo -1..+1 maps to 500..2500 us at 50 Hz.
+            return (pulse - 1500.0f) / 1000.0f;
+      - delay: 600ms
+      - repeat:
+          count: 10
+          then:
+            - component.update: raw_feedback_v
+            - delay: 20ms
+            - lambda: |-
+                const float sample = id(raw_feedback_v).state;
+                if (!isnan(sample)) {
+                  id(sample_sum) += sample;
+                  if (isnan(id(sample_min)) || sample < id(sample_min)) id(sample_min) = sample;
+                  if (isnan(id(sample_max)) || sample > id(sample_max)) id(sample_max) = sample;
+                  id(sample_count)++;
+                }
+      - servo.detach: calibration_servo
+      - lambda: |-
+          if (id(sample_count) == 10) {
+            const float mean = id(sample_sum) / 10.0f;
+            const float range = id(sample_max) - id(sample_min);
+            const float delta = mean - id(previous_mean_v);
+            id(last_feedback_mean).publish_state(mean);
+            id(last_feedback_range).publish_state(range);
+            ESP_LOGI("calibration", "Command %d: mean %.3f V, range %.3f V, delta %.3f V (10 samples); PWM released",
+                     id(command_sequence), mean, range, delta);
+            if (id(has_completed_pulse) && fabsf(id(active_pulse_us) - id(last_completed_us)) >= 50.0f && fabsf(delta) < 0.010f) {
+              ESP_LOGW("calibration", "Small feedback change for >=50 us step: stop and inspect before moving farther");
+            }
+            id(previous_mean_v) = mean;
+            id(last_completed_us) = id(active_pulse_us);
+            id(has_completed_pulse) = true;
+          } else {
+            ESP_LOGW("calibration", "Command %d: only %d valid samples; PWM released, result discarded",
+                     id(command_sequence), id(sample_count));
+          }

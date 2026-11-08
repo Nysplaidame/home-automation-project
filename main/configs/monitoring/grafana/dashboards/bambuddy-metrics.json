@@ -1,0 +1,92 @@
+{
+  "annotations": { "list": [] },
+  "editable": false,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": { "type": "influxdb", "uid": "influxdb-dockerhost" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [{ "options": { "0": { "color": "red", "text": "Offline" }, "1": { "color": "green", "text": "Connected" } }, "type": "value" }], "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] } }, "overrides": [] },
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 0 },
+      "id": 1,
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{ "datasource": { "type": "influxdb", "uid": "influxdb-dockerhost" }, "query": "from(bucket: \"dockerhost\") |> range(start: -10m) |> filter(fn: (r) => r._measurement == \"prometheus\" and r._field == \"bambuddy_printer_connected\") |> last() |> keep(columns: [\"_time\", \"_value\"])", "refId": "A" }],
+      "title": "P1S connection",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "influxdb-dockerhost" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [{ "options": { "0": { "text": "Unknown" }, "1": { "color": "green", "text": "Idle" }, "2": { "color": "blue", "text": "Printing" }, "3": { "color": "orange", "text": "Paused" }, "4": { "color": "yellow", "text": "Finished" }, "5": { "color": "red", "text": "Failed" }, "6": { "color": "blue", "text": "Preparing" }, "7": { "color": "blue", "text": "Slicing" } }, "type": "value" }], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] } }, "overrides": [] },
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 0 },
+      "id": 2,
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{ "datasource": { "type": "influxdb", "uid": "influxdb-dockerhost" }, "query": "from(bucket: \"dockerhost\") |> range(start: -10m) |> filter(fn: (r) => r._measurement == \"prometheus\" and r._field == \"bambuddy_printer_state\") |> last() |> keep(columns: [\"_time\", \"_value\"])", "refId": "A" }],
+      "title": "P1S state",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "influxdb-dockerhost" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "decimals": 0, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 1 }] }, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 0 },
+      "id": 3,
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{ "datasource": { "type": "influxdb", "uid": "influxdb-dockerhost" }, "query": "from(bucket: \"dockerhost\") |> range(start: -10m) |> filter(fn: (r) => r._measurement == \"prometheus\" and r._field == \"bambuddy_queue_pending\") |> last() |> keep(columns: [\"_time\", \"_value\"])", "refId": "A" }],
+      "title": "Queued jobs",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "influxdb-dockerhost" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "decimals": 0, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "blue", "value": 1 }] }, "unit": "percent" }, "overrides": [] },
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 0 },
+      "id": 4,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{ "datasource": { "type": "influxdb", "uid": "influxdb-dockerhost" }, "query": "from(bucket: \"dockerhost\") |> range(start: -10m) |> filter(fn: (r) => r._measurement == \"prometheus\" and r._field == \"bambuddy_print_progress\") |> last() |> keep(columns: [\"_time\", \"_value\"])", "refId": "A" }],
+      "title": "Print progress",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "influxdb-dockerhost" },
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "line", "fillOpacity": 12, "lineWidth": 1, "showPoints": "never" }, "min": 0, "unit": "celsius" }, "overrides": [] },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 5 },
+      "id": 5,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "datasource": { "type": "influxdb", "uid": "influxdb-dockerhost" }, "query": "from(bucket: \"dockerhost\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"prometheus\" and r._field == \"bambuddy_nozzle_temp_celsius\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> set(key: \"_field\", value: \"Nozzle\") |> keep(columns: [\"_time\", \"_value\", \"_field\"])", "refId": "A" },
+        { "datasource": { "type": "influxdb", "uid": "influxdb-dockerhost" }, "query": "from(bucket: \"dockerhost\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"prometheus\" and r._field == \"bambuddy_bed_temp_celsius\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> set(key: \"_field\", value: \"Bed\") |> keep(columns: [\"_time\", \"_value\", \"_field\"])", "refId": "B" }
+      ],
+      "title": "Bed and nozzle temperature",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "influxdb-dockerhost" },
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "line", "fillOpacity": 12, "lineWidth": 1, "showPoints": "never" }, "min": 0, "unit": "percent" }, "overrides": [] },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 5 },
+      "id": 6,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [{ "datasource": { "type": "influxdb", "uid": "influxdb-dockerhost" }, "query": "from(bucket: \"dockerhost\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"prometheus\" and r._field == \"bambuddy_print_progress\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\"])", "refId": "A" }],
+      "title": "Print progress history",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "influxdb-dockerhost" },
+      "fieldConfig": { "defaults": { "custom": { "align": "auto", "cellOptions": { "type": "auto" }, "inspect": false }, "mappings": [{ "options": { "0": { "color": "red", "text": "Offline" }, "1": { "color": "green", "text": "Connected" } }, "type": "value" }] }, "overrides": [] },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 15 },
+      "id": 7,
+      "options": { "cellHeight": "sm", "showHeader": true },
+      "targets": [{ "datasource": { "type": "influxdb", "uid": "influxdb-dockerhost" }, "query": "from(bucket: \"dockerhost\") |> range(start: -10m) |> filter(fn: (r) => r._measurement == \"prometheus\" and r._field == \"bambuddy_printer_connected\") |> last() |> keep(columns: [\"_time\", \"_value\", \"printer_name\", \"model\", \"serial\"])", "refId": "A" }],
+      "title": "Configured printer connection",
+      "type": "table"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 41,
+  "tags": ["bambuddy", "printer", "metrics"],
+  "templating": { "list": [] },
+  "time": { "from": "now-6h", "to": "now" },
+  "timezone": "browser",
+  "title": "Bambuddy Metrics",
+  "uid": "bambuddy-metrics",
+  "version": 1
+}

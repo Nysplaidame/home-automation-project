@@ -87,6 +87,10 @@ def required_sections_check(files: dict[str, list]) -> None:
     if missing_ifaces:
         err("vlan-config.conf", f"missing required interfaces: {sorted(missing_ifaces)}")
 
+    wan6_nd = interfaces.get("wan6_nd")
+    if not wan6_nd or wan6_nd.get("device") != "@wan" or wan6_nd.get("proto") != "static":
+        err("vlan-config.conf", "Zen ND interface wan6_nd must be static on @wan")
+
     if len(bridge_vlans) < 11:
         err("vlan-config.conf", f"expected at least 11 bridge-vlan sections, found {len(bridge_vlans)}")
 
@@ -123,7 +127,7 @@ def cross_file_consistency(files: dict[str, list]) -> None:
 
     for zname, zone in get_zones(fw).items():
         for net in zone.get_list("network"):
-            if net in {"wan", "wan6", "wg0"}:
+            if net in {"wan", "wan6", "wan6_nd", "wg0"}:
                 continue
             if net not in if_names:
                 err("firewall-config.conf", f"zone '{zname}' references unknown interface '{net}'", zone.line_no)

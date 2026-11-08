@@ -1,4 +1,5 @@
 import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -119,6 +120,24 @@ for (const absolute of files) {
 await writeFile(
   path.join(distRoot, 'diagram-data.js'),
   `export const diagrams = ${JSON.stringify(diagrams, null, 2)};\n`,
+  'utf8',
+);
+
+const releaseFiles = [
+  'app.js',
+  'diagram-data.js',
+  'index.html',
+  'styles.css',
+  'vendor/mermaid.min.js',
+];
+const checksums = [];
+for (const relative of releaseFiles) {
+  const content = await readFile(path.join(distRoot, relative));
+  checksums.push(`${createHash('sha256').update(content).digest('hex')}  ${relative}`);
+}
+await writeFile(
+  path.join(distRoot, 'SHA256SUMS'),
+  `${checksums.join('\n')}\n`,
   'utf8',
 );
 

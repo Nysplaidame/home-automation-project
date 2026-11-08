@@ -1,0 +1,2 @@
+{"result":"ok","data":{"default_backup_mount":"nas_backups","mounts":[{"path":"/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/home-assistant","server":"192.168.40.50","name":"nas_backups","type":"nfs","usage":"backup","read_only":false,"state":"active","user_path":null}]}}
+STDERR: 

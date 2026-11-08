@@ -7,13 +7,13 @@
 
 | Layer | What | Where stored | Schedule | Retention |
 |---|---|---|---|---|
-| Proxmox VM backup | VM disks 100/102/103 | OMV md0 NFS `backups/proxmox` (`omv-backups`) | Daily 02:00 | 7 daily + 6 monthly |
-| Proxmox LXC backup | CT 111/114 root filesystems | OMV md0 NFS `backups/proxmox` (`omv-backups`) | Daily 04:00 | 7 daily + 6 monthly |
-| HA native backup | HA config, add-ons, automations | OMV md0 NFS `backups/home-assistant` | Daily 03:00 | 7 daily + 6 monthly |
-| Frigate recordings | Camera footage | OMV md0 NFS `CCTV` share | Continuous | Set in Frigate before cameras go live |
+| Proxmox VM backup | VM disks 100/102/103 | Media mirror NFS `backups/proxmox` (`omv-backups`) | Daily 02:00 | 7 daily + 6 monthly |
+| Proxmox LXC backup | CT 111/114 root filesystems | Media mirror NFS `backups/proxmox` (`omv-backups`) | Daily 04:00 | 7 daily + 6 monthly |
+| HA native backup | HA config, add-ons, automations | Media mirror NFS `backups/home-assistant` | Daily 03:00 | 14 copies |
+| Frigate recordings | Camera footage | Media mirror NFS `frigate` dataset | Continuous | Set in Frigate before cameras go live |
 | Frigate LXC state | OS disk, DB, cache, compose/config | MINISFORUM NVMe on CT 111 | Continuous | Rebuildable + config-backed |
-| Docker-host app data | Mealie, Grocy, LiveSync, GardenKeeper, ntfy, Jellyfin, Calibre-Web, Atsumeru, qBittorrent config, Vaultwarden state, and the staged Immich curated-exporter manifest/review queue | OMV md0 NFS `backups/docker-host` | Daily 03:45 | 14 days of timestamped runs plus `latest`; SQLite-consistent staging for ntfy/Vaultwarden |
-| Config file backup | Safety vault YAML/configs | OMV md0 NFS `backups/configs` | Daily via rsync | 7 daily + 6 monthly |
+| Docker-host app data | Mealie, Grocy, LiveSync, GardenKeeper, ntfy, Jellyfin, Calibre-Web, Atsumeru, qBittorrent config, Vaultwarden state, and the staged Immich curated-exporter manifest/review queue | Media mirror NFS `backups/docker-host` | Daily 03:45 | 14 days of timestamped runs plus `latest`; SQLite-consistent staging for ntfy/Vaultwarden |
+| Config file backup | Safety vault YAML/configs | Media SMB `configs/home-automation-project` | Manual guarded helper, dry-run default; no schedule installed | Additive; no automatic deletion |
 | GitHub | Safety vault docs + configs | GitHub repo | On push | Full history |
 
 ---
@@ -26,7 +26,7 @@
 
 | Field | Value |
 |---|---|
-| Storage | `omv-backups` (NFSv3 to OMV md0 `backups/proxmox`) |
+| Storage | `omv-backups` (NFSv3 to Media mirror `backups/proxmox`) |
 | Schedule | `02:00` (daily) |
 | Selection | VMs 100, 102, 103 |
 | Mode | Snapshot |
@@ -34,8 +34,8 @@
 | Retention | `keep-daily=7,keep-monthly=6` |
 | Email | your@email.com (optional) |
 
-The storage maps OMV md0 path
-`/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/proxmox`
+The storage maps the scoped Media export
+`/export/backups-proxmox`
 over NFS. There is no Proxmox SMB credential in the final path.
 
 Historical pre-NAS check from 2026-05-27:
@@ -123,7 +123,7 @@ pct restore 111 /mnt/pve/omv-backups/dump/vzdump-lxc-111-*.tar.zst
 
 Configure in HA:
 1. Add NAS as storage: `Settings → System → Storage → Add Network Storage`
-   - Server: `192.168.40.50`, Protocol: NFS, Path: `/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/home-assistant`
+   - Server: `192.168.40.50`, Protocol: NFS, Path: `/export/backups-home-assistant`
 2. Set schedule: `Settings → System → Backups → Automatic Backups`
    - Schedule: Daily, Time: 03:00, Keep: 14, Location: NAS Backups
 
@@ -198,7 +198,7 @@ The safety vault on your Windows machine is the authoritative source for all con
 ### Prepare the Windows-to-NAS vault backup
 
 The tracked helper defaults to a non-writing dry run and targets the live
-`NAS\configs` path. It uses an additive copy (`/E`) rather than `/MIR`, so a
+`Media\configs` path. It uses an additive copy (`/E`) rather than `/MIR`, so a
 source deletion cannot silently purge the NAS copy. Run it manually first:
 
 ```powershell
@@ -252,7 +252,7 @@ Read-only checks on 2026-07-06:
 - `findmnt` showed the existing Immich OMV mount at `/mnt/omv/immich`; no
   mounted `backups/docker-host` target was proven in this initial check.
 - Proxmox `showmount -e 192.168.40.50` showed OMV exports
-  `/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/docker-host`
+  `/export/backups-docker-host`
   to `192.168.20.102`.
 
 Live proof on 2026-07-07:
@@ -261,7 +261,7 @@ Live proof on 2026-07-07:
   source intent, allowing docker-host `192.168.20.102` to OMV
   `192.168.40.50` ports `111`, `2049`, `20048`, and `32765-32767`.
 - Docker-host now mounts
-  `192.168.40.50:/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/docker-host`
+  `192.168.40.50:/export/backups-docker-host`
   at `/mnt/omv/docker-host-backups` with NFSv3.
 - A write test to the mount succeeded.
 - Dry-run completed without writing a real run directory.
@@ -288,7 +288,7 @@ Expanded live proof on 2026-07-29:
 
 Target OMV location:
 
-- OMV md0 export/share: `backups/docker-host`
+- Media export/share: `backups/docker-host`
 - Docker-host mount path: `/mnt/omv/docker-host-backups`
 
 Repo-side deployment templates:
@@ -307,14 +307,14 @@ writes backup data to OMV.
 Planned mount:
 
 ```fstab
-192.168.40.50:/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/docker-host /mnt/omv/docker-host-backups nfs nfsvers=3,proto=tcp,_netdev,nofail,timeo=50,retrans=2 0 0
+192.168.40.50:/export/backups-docker-host /mnt/omv/docker-host-backups nfs nfsvers=3,proto=tcp,_netdev,nofail,timeo=50,retrans=2 0 0
 ```
 
 Approved live install sequence:
 
 ```sh
 mkdir -p /mnt/omv/docker-host-backups
-printf '%s\n' '192.168.40.50:/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/docker-host /mnt/omv/docker-host-backups nfs nfsvers=3,proto=tcp,_netdev,nofail,timeo=50,retrans=2 0 0' >> /etc/fstab
+printf '%s\n' '192.168.40.50:/export/backups-docker-host /mnt/omv/docker-host-backups nfs nfsvers=3,proto=tcp,_netdev,nofail,timeo=50,retrans=2 0 0' >> /etc/fstab
 mount /mnt/omv/docker-host-backups
 install -m 0755 docker-host-app-data-backup.sh /usr/local/sbin/docker-host-app-data-backup.sh
 install -m 0644 docker-host-app-data-backup.service /etc/systemd/system/docker-host-app-data-backup.service
@@ -487,7 +487,7 @@ Follow `scripts/setup/proxmox/proxmox_setup_guide.md` phases A–C.
 ### Step 2 — Restore VM backups from NAS
 
 ```bash
-# Proxmox vzdump backups are stored on OMV md0 NFS storage `omv-backups`.
+# Proxmox vzdump backups are stored on Media mirror NFS storage `omv-backups`.
 # Recreate the Proxmox storage entry during rebuild, confirm it mounts at
 # /mnt/pve/omv-backups, then restore VMs and LXCs from the dump directory.
 

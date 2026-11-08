@@ -3,7 +3,7 @@ title: "CCTV Camera Fleet"
 category: entity
 tags: [hardware, cctv, camera, frigate, vlan-30]
 created: 2026-07-28
-updated: 2026-07-29
+updated: 2026-10-10
 sources: [project-readme, frigate-vm-setup-guide]
 status: active
 ---
@@ -11,15 +11,19 @@ status: active
 # CCTV Camera Fleet
 
 **Type:** device fleet
-**Status:** Three cameras operational
+**Status:** Three previously proven cameras intentionally disconnected and disabled
 **Related:** [[entities/frigate]], [[entities/home-assistant]], [[concepts/vlan-segmentation]]
 
 ## Overview
 
-The exterior CCTV fleet streams main and sub RTSP feeds to [[entities/frigate]]
-on isolated VLAN 30. The Zyxel GS1900-8HP provides PoE and access switching.
+The exterior CCTV fleet retains main/sub RTSP definitions in [[entities/frigate]]
+on isolated VLAN 30. The Zyxel and cameras are deliberately disconnected;
+Frigate camera workers were disabled during October 10 memory recovery.
+The publisher lifecycle repair and RAM reassessment are complete; physical
+reconnection still requires sustained real-stream acceptance in
+[[main/docs/install/phases/04-frigate]].
 
-## Live Inventory
+## Reserved Inventory
 
 | Frigate identity | Location | IP | Switch port | MAC | Model status |
 |---|---|---:|---:|---|---|
@@ -35,7 +39,7 @@ on isolated VLAN 30. The Zyxel GS1900-8HP provides PoE and access switching.
   minutes below 1 fps. A recovery message clears the persistent alert and
   replaces the mobile notification.
 - Uptime Kuma now pings `.21`, `.22`, and `.23` from monitoring VM
-  `192.168.60.10`; all three ntfy-enabled checks returned `Up` after OpenWrt was
+  `192.168.60.10`; all three ntfy-enabled checks historically returned `Up` after OpenWrt was
   limited to ICMP for exactly those hosts.
 
 ## Open Questions

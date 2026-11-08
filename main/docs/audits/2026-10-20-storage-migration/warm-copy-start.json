@@ -1,0 +1,40 @@
+{
+  "observed_at": "2026-10-21T15:52:56.678002+01:00",
+  "phase": "initial Z warm staging copy",
+  "unit": "household-storage-copy-z-20261021.service",
+  "unit_state": {
+    "MainPID": "2568614",
+    "ExecMainStatus": "0",
+    "ActiveState": "active",
+    "SubState": "running",
+    "ActiveEnterTimestamp": "Wed 2026-10-21 15:48:44 BST"
+  },
+  "media_filesystem_uuid": "a8843f98-c937-48a8-aefa-4cd0fb80667c",
+  "media_label": "Media",
+  "md_uuid": "fd8de871:2fcb43a8:d97ff800:008ccb6b",
+  "md_path": "/dev/md/media",
+  "observed_kernel_name": "md127",
+  "members": [
+    "3HG402GN-part1"
+  ],
+  "configured_slots": 2,
+  "expected_degraded": 1,
+  "original_z_serial": "3GHV81YE",
+  "original_z_unchanged": true,
+  "existing_y_md0": "healthy two-member RAID1 [UU]",
+  "media_available_bytes": 15820448608256,
+  "media_used_bytes": 53031755776,
+  "private_checkpoint": "/root/storage-migration-preflight-20261021T144508Z",
+  "session_state": "/root/household-storage-state-20261021",
+  "session": "household-20261021",
+  "fresh_inventory_entries": 1139650,
+  "fresh_inventory_issues": {
+    "directory-merge-review": 5
+  },
+  "configuration_checkpoint": "private OMV archive and partition/signature metadata on OS disk",
+  "omv_persistence_deployment": "mdadm fstab initramfs succeeded",
+  "share_or_service_cutover": false,
+  "cold_copy_or_hash_acceptance": false,
+  "independent_full_data_recovery_copy": "owner waiver preserved",
+  "monitor": "check-media-warm-copy, hourly, quiet normal, notify terminal/error"
+}

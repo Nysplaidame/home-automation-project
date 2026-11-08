@@ -10,6 +10,12 @@ status: active
 
 # Media Library Service Operations
 
+**October27 acceptance:** scoped Media mounts verified and containers recreated;
+new backup export `/export/backups-docker-host` active. Fresh app-data checkpoint
+20261027T192711Z completed; isolated Calibre-Web app.db/gdrive.db and Atsumeru
+users.db/library.db restore quick_check passed. Restore schedule states recorded
+in storage migration audit; no credential or image change made at this cutover.
+
 This is the shared operating manual for the three media services on VM 103.
 The adjacent stack READMEs record service-specific history; the Compose files
 define exact images and mounts. This manual is reconciled with tracked source,
@@ -21,10 +27,18 @@ Diagrams: [service placement](../../diagrams/infrastructure/docker-host-service-
 
 ## Service and data contract
 
+October25 migration: broad `/export/media` is retired. VM103 mounts scoped
+`/export/media-jellyfin`, `/export/media-comics` and `/export/calibre-library`
+from new Media UUID `a8843f98-c937-48a8-aefa-4cd0fb80667c`. The parent
+`/mnt/omv/media` is now a plain directory; always assert exact child mounts.
+Calibre integrity/counts and scoped read/write boundaries pass; owner confirmed
+Calibre/Atsumeru access. Jellyfin has no configured users, so no household playback
+is claimed. See the storage migration audit for current mirror/Y-stage state.
+
 | Service | Source | Host listener | Persistent application data | OMV library and permission |
 |---|---|---|---|---|
 | Jellyfin | [Compose](../../../configs/docker-host/stacks/jellyfin/docker-compose.yml) | 8096 | `/opt/stacks/jellyfin/config` | `jellyfin/films`, `series`, `music`, `immich-curated`, each read-only under `/mnt/omv/media` |
-| Calibre-Web | [Compose](../../../configs/docker-host/stacks/calibre-web/docker-compose.yml) | 8083 | `/opt/stacks/calibre-web/config` | `/mnt/omv/media/books/calibre-library` writable, exposed as `/books` |
+| Calibre-Web | [Compose](../../../configs/docker-host/stacks/calibre-web/docker-compose.yml) | 8083 | `/opt/stacks/calibre-web/config` | `/mnt/omv/calibre-library` writable, exposed as `/books` |
 | Atsumeru | [Compose](../../../configs/docker-host/stacks/atsumeru/docker-compose.yml) | 31337 | `/opt/stacks/atsumeru/config` and `database` | `/mnt/omv/media/comics/atsumeru-library` writable, exposed as `/library` |
 
 The recorded media identity is UID `1007`, GID `100`; verify the actual OMV
@@ -63,7 +77,9 @@ case "$media_service" in
   *) echo 'Unknown media service'; exit 1 ;;
 esac
 cd "/opt/stacks/$media_service" || exit 1
-findmnt -T /mnt/omv/media
+findmnt --mountpoint /mnt/omv/media/jellyfin
+findmnt --mountpoint /mnt/omv/media/comics
+findmnt --mountpoint /mnt/omv/calibre-library
 test -f .env && docker compose config --quiet
 docker compose config --images
 ```
@@ -111,7 +127,7 @@ cannot pass or fail household acceptance.
 
 | Symptom | Next check | Recovery boundary |
 |---|---|---|
-| All libraries disappear | `findmnt -T /mnt/omv/media`, OMV LAN4 connectivity, then NFS | Stop library writers before repairing a missing mount; verify the exact remote source before resuming |
+| All libraries disappear | Exact child mounts for jellyfin/comics/calibre-library, OMV LAN4 connectivity, then NFS | Stop library writers before repairing a missing mount; verify the exact remote source before resuming |
 | Service starts but library is empty | Container mount destination, configured library path, read permission and scan logs | Do not mount the entire media export or Immich live library to find files |
 | Calibre-Web cannot open its library | `/books` content, Calibre metadata database, UID/GID and logs | Do not initialize over an existing library or recursively change all NAS ownership |
 | Atsumeru URL responds but browsing fails | Authenticated client login, configured library and scanner logs | HTTP alone does not prove its API/client workflow |

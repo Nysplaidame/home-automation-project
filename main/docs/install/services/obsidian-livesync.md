@@ -3,7 +3,7 @@ title: Obsidian Self-hosted LiveSync
 description: Central multi-device synchronization for the project documentation vault
 tags: [install, docker-host, obsidian, couchdb, tailscale]
 created: 2026-06-21
-modified: 2026-08-24
+modified: 2026-09-25
 type: install-guide
 status: live-client-setup-pending
 ---
@@ -41,6 +41,23 @@ passphrase and setup-URI passphrase are separate secrets and also belong there.
 - the canonical `K:` checkout for the first authoritative client;
 - a separate, backed-up working copy for the second-device acceptance test;
 - Tailscale admin/clients only for the approved HTTPS `8443` path.
+
+## Confirmed client vault paths
+
+| Client | Evidence | Vault root | Status |
+|---|---|---|---|
+| Current Windows admin workstation | `%APPDATA%\Obsidian\obsidian.json`, checked 2026-09-25 | `K:\Documents\Obsidian\home-automation-project` | Confirmed open; canonical root vault |
+| Earlier Codex desktop checkout | Historical audits and handoffs only | `E:\home-automation-project` | Separate working copy; current Obsidian-open state not confirmed |
+| Older checkout | Project rules only | `G:\home-automation-project` | Stale; not authoritative |
+| Other desktop/mobile clients | No device-local evidence in this checkout | Unknown | Must be checked on each device before removing nested vault configuration |
+
+The current workstation is conclusively opening the repository root, not
+`main/`: Obsidian's local registry marks the K: repository root `open: true`,
+and the active plugins/configuration are under the root `.obsidian/`. The three
+tracked files in `main/.obsidian/` are therefore not used by this workstation.
+That does not prove they are unused on every other device. On each remaining
+device, inspect **Manage vaults** or its device-local Obsidian registry and add
+the result to this table before deleting `main/.obsidian/`.
 
 ## Prerequisites
 

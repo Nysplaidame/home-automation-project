@@ -1,0 +1,16 @@
+[Unit]
+Description=Notify on resource collector failure
+After=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/sbin/resource-pressure-monitor.py --failure
+TimeoutStartSec=10
+StateDirectory=resource-pressure-monitor
+StateDirectoryMode=0700
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true

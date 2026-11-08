@@ -3,7 +3,7 @@ title: Phase 06 - OMV NAS
 description: OpenMediaVault installation, preservation gates, filesystems, shares, NFS/SMB, SMART, client mounts, backups, and recovery
 tags: [install, omv, nas, storage]
 created: 2026-05-24
-modified: 2026-09-11
+modified: 2026-09-28
 type: install-guide
 status: active
 ---
@@ -418,6 +418,17 @@ the connection uses the intended OMV identity. Confirm an unapproved user or
 source cannot browse the share. If Windows confuses case-only names, disconnect
 all mappings/sessions before concluding that a directory was recreated.
 
+Current workstation access (2026-09-28): Windows maps `Y:` to the `NAS` share
+on md0 and `Z:` to the `14tb` share on the dedicated media disk. The active SMB
+login is `nasadmin`; both shares permit it to write. A named filesystem ACL
+grants `nasadmin` read/write on existing files and traversal/write on directories
+across both roots, with default ACL inheritance for new content. This account
+can also modify backup and service data reachable through these broad shares;
+keep the credential limited to the approved admin workstation. Pre-change ACLs
+are saved on OMV as `/root/acl-backups/{14tb,NAS}-20260928T162931Z.acl.gz`.
+OMV-side `nasadmin` create/write/delete probes passed at both roots and under
+`14tb/Media/study & work/Courses/New`; recheck the Windows SMB path after login.
+
 ## 11. Enable SMART and storage monitoring
 
 Run on: OMV web UI.
@@ -470,7 +481,7 @@ Run on: Proxmox host shell.
 ```bash
 pvesm add nfs omv-backups \
   --server 192.168.40.50 \
-  --export /srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/proxmox \
+  --export /export/backups-proxmox \
   --content backup \
   --options vers=3 \
   --prune-backups keep-daily=7,keep-monthly=6
@@ -504,7 +515,7 @@ Run on: Home Assistant UI.
 2. Name it `nas_backups`, choose NFS and usage **Backup**.
 3. Server: `192.168.40.50`.
 4. Remote path:
-   `/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/home-assistant`
+   `/export/backups-home-assistant`
    for the current md0 filesystem, or the newly recorded equivalent after a
    genuine filesystem replacement.
 5. Connect, then select it as the automatic-backup location.
@@ -537,7 +548,7 @@ install -d -m 0755 /mnt/omv/immich /mnt/omv/docker-host-backups
 mount -t nfs -o nfsvers=3,proto=tcp \
   192.168.40.50:/export/immich /mnt/omv/immich
 mount -t nfs -o nfsvers=3,proto=tcp \
-  192.168.40.50:/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/docker-host \
+  192.168.40.50:/export/backups-docker-host \
   /mnt/omv/docker-host-backups
 
 findmnt -T /mnt/omv/immich
@@ -561,7 +572,7 @@ Run on: docker-host over SSH.
 cp -a /etc/fstab "/etc/fstab.pre-omv-$(date +%Y%m%dT%H%M%S)"
 
 immich_line='192.168.40.50:/export/immich /mnt/omv/immich nfs nfsvers=3,proto=tcp,_netdev,nofail,timeo=50,retrans=2 0 0'
-backup_line='192.168.40.50:/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/docker-host /mnt/omv/docker-host-backups nfs nfsvers=3,proto=tcp,_netdev,nofail,timeo=50,retrans=2 0 0'
+backup_line='192.168.40.50:/export/backups-docker-host /mnt/omv/docker-host-backups nfs nfsvers=3,proto=tcp,_netdev,nofail,timeo=50,retrans=2 0 0'
 
 grep -Fqx "$immich_line" /etc/fstab || printf '%s\n' "$immich_line" >>/etc/fstab
 grep -Fqx "$backup_line" /etc/fstab || printf '%s\n' "$backup_line" >>/etc/fstab

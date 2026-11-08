@@ -3,14 +3,27 @@ title: Monitoring and Logging Roadmap
 description: Deployment order for health checks, uptime monitoring, metrics, alerts, and syslog
 tags: [monitoring, logging, grafana, influxdb, telegraf, uptime-kuma]
 created: 2026-05-08
-modified: 2026-08-25
+modified: 2026-10-10
 type: procedure
 status: active
 ---
 
 # Monitoring And Logging Roadmap
 
+October10: [[resource_pressure_monitor]] is live on Proxmox every minute,
+independent of VM102. It covers actual host/guest usable memory, cgroup limits,
+new OOMs, CPU, disk/memory PSI, blocked tasks, capacity and kernel hang warnings
+with authenticated ntfy alerts. VM102 now6GiB; VM103 root now128GiB. An hourly
+Codex watchdog checks collector freshness/failure; handset presentation remains
+an acceptance item. Existing Grafana/Kuma checks remain in place.
+
 ## Current live state
+
+Status wording reconciled against [[../reference/current-live-state|Current Live
+State]] and [[../../README|Project Overview]] on October4. Historical green
+checks below describe their dated acceptance, not fresh uptime certification.
+The Zyxel switch and three installed cameras are disconnected pending owner
+reconnection/acceptance; Frigate's reachable baseline does not certify streams.
 
 ### Already live
 
@@ -22,6 +35,8 @@ status: active
 - `InfluxDB`
 - `Grafana`
 - `Telegraf`
+- `Loki` for centrally retained application and container logs
+- `Alloy` on docker-host for mTLS-protected log shipping
 
 ### Alert routing
 
@@ -55,11 +70,19 @@ status: active
   checks plus docker-host mount metrics.
 - CT 114 `llm-host` is live. Uptime Kuma checks cover llama.cpp, Open WebUI,
   Wyoming Whisper, Piper and OpenWakeWord and are exported to InfluxDB.
-- CT 111 Frigate is live and the API/UI are healthy. Direct Kuma reachability
-  checks and HA offline/recovery alerts cover all three installed cameras.
+- CT 111 Frigate retains its reachable API/UI baseline. Direct Kuma checks and
+  HA offline/recovery alerts are configured for three installed cameras, which
+  remain disconnected pending reconnection and acceptance. Do not label those
+  camera streams healthy based on historical checks.
 - OMV SMART and docker-host app-data backup freshness report through Kuma push
   monitors; both paths have accepted live heartbeats.
 - Home Assistant has a storage-managed `Monitoring` dashboard at `/monitoring/overview` with direct links to Grafana and Uptime Kuma
+- Homepage exposes one **Grafana** entry, which opens
+  `/login?disableAutoLogin=true` through the same HTTPS proxy. An authenticated
+  session persists in Homepage's embedded preview through Grafana's HTTPS-only
+  `SameSite=None` session cookie. Grafana anonymous access is disabled, so an
+  absent or expired session returns to the login form rather than silently
+  opening an anonymous Viewer dashboard.
 - Embedded Grafana and Uptime Kuma views in HA remain intentionally parked until a same-origin HTTPS/reverse-proxy path is implemented and validated
 - Uptime Kuma direct iframe embedding is blocked by its `SAMEORIGIN` frame header; integrate it later through a same-origin reverse proxy/HTTPS route or use API/notification integration instead
 - HA-side external monitoring health package is live at
@@ -70,9 +93,11 @@ status: active
   sensor. Router rule `HA to Monitoring Health` allows HA to reach Grafana and
   Kuma on `192.168.60.10:3000/3001`; the existing `HA to InfluxDB` rule covers
   `8086`.
-- `scripts/monitoring/health_check.sh` defaults to staged core checks only. Use
-  `--full` later when Frigate UI, NAS, P1S, VentSys boards, and smart plugs are
-  expected to be online.
+- `scripts/monitoring/health_check.sh` defaults to its maintained core checks.
+  `--full` adds parked hardware/service expectations; use it only when those
+  targets are intentionally online. OMV and Frigate baseline availability are
+  live service facts. P1S integration is live; disconnected cameras and VentSys
+  commissioning remain separate from service reachability.
 
 ## Chosen deployment order
 
@@ -99,7 +124,8 @@ Initial monitors should cover:
 - Bambuddy UI port
 - monitoring stack self-checks
 - Frigate CT 111 baseline now; camera streams later
-- NAS when built
+- NAS web/NFS and existing SMART push checks — live; host-local resource
+  collection and dashboard delivery remain prepared/unaccepted
 - llm-host CT 114 services: llama.cpp `8081`, Open WebUI `3002`, Piper
   `10200`, Whisper `10300`, and OpenWakeWord `10400`
 
@@ -134,7 +160,9 @@ Live state:
 
 ## Monitoring posture consistency
 
-- Day-to-day operator path is direct-link monitoring access (HA links out to Grafana and Uptime Kuma).
+- HA's Monitoring dashboard links directly to Grafana and Uptime Kuma.
+  Homepage's authenticated Grafana HTTPS embedded preview is also live; its
+  session/cookie behavior is distinct from embedding monitoring inside HA.
 - HA-embedded Grafana/Kuma is not a current dependency and should not be treated as an in-scope reliability target.
 - Do not widen anonymous access solely to force embedding; re-evaluate embedding only after same-origin HTTPS is in place.
 - External monitoring health in HA (`binary_sensor.monitoring_stack_externally_healthy`) remains the backstop when the monitoring VM itself is degraded.
@@ -180,8 +208,52 @@ Preferred progression:
 
 ### Docker-host
 
-- use container logs locally first
-- use the deployed internal Dozzle service for container-log inspection
+- Docker and Bambuddy application logs are sent automatically to Loki on the
+  monitoring VM by Alloy. Transport is TLS 1.3 with mutual certificate
+  authentication and is firewall-scoped to docker-host (`192.168.20.102`) to
+  Loki (`192.168.60.10:3100`).
+- Use Grafana **Explore** with the `Loki` datasource for normal browser-based
+  reading; Dozzle remains useful as a live, docker-host-only fallback.
+- Grafana reaches Loki through an internal-only query proxy which is itself an
+  mTLS client. The Grafana datasource therefore contains no private key.
+- Grafana's provisioned **Central Logs** dashboard includes focused Bambuddy
+  error output, focused docker-host error output, OpenWrt warning/error syslog,
+  and the unfiltered Bambuddy and docker-host log tables. Use a panel's
+  **Explore** action for surrounding context and arbitrary Loki queries.
+- Grafana's provisioned **Infrastructure Fleet** dashboard provides a concise
+  current view of the five running Proxmox guests, Proxmox CPU, docker-host root
+  disk usage, active guest state, and guest CPU history. It links to the deeper
+  `Proxmox Resource Overview`; no in-guest collector was installed for this
+  view.
+
+### Next central collection stages
+
+Keep collection least-privilege and host-local. Do not make Grafana poll a
+guest's service ports or grant it general SSH access.
+
+1. Proxmox: ship task, backup, replication, and host journal events through a
+   dedicated read-only collector/API token; retain guest resource metrics from
+   the existing native Proxmox metric server.
+2. Home Assistant and Frigate: collect their local application/service logs
+   with a supported host-local mechanism, preserving the current VLAN rules and
+   without copying secrets or camera stream URLs into Loki.
+3. LLM host: collect systemd/service logs for llama.cpp, Open WebUI, Piper,
+   Whisper, and OpenWakeWord from CT 114.
+4. OMV: existing desktop key administration access was verified October2;
+   keep that access separate from collection. Accept and install a
+   dedicated Telegraf/Alloy collector for host, filesystem, RAID, SMART,
+   SMB/NFS, backup, and Transfer Portal logs. Only then replace the intentional
+   NAS dashboard shell with a live NAS resource overview.
+
+October4 OMV preparation supplies the host-local `omv-health/1.0` collector,
+atomic publisher, stdout conversion, dedicated consumer input fragments and
+three guarded current-state/unit Flux queries. Eighteen Linux tests, five
+Telegraf parser cases and19 synthetic Flux cases (32 executions) pass. October2's
+one-off read-only observation remains historical, not current health. No
+scheduled collector or metric shipping is deployed; real consumer permissions,
+delivery, alert/rendering and NAS panel acceptance remain open. Log/backup
+coverage is a separate contract.
+See [[omv-health-collector-preparation|contract, live evidence and deployment boundaries]].
 
 ## Recommended near-term stack choices
 
@@ -209,7 +281,8 @@ Reference plan: `docs/procedures/ids_ips_progression_plan.md`
 
 ### Later
 
-- add centralized log visibility first
+- expand the already-live docker-host Loki/Alloy visibility to the remaining
+  host/application sources before adding log-driven blocking
 - add `Fail2ban` on Frigate and other Linux-exposed services where it adds value
 - evaluate `CrowdSec` if log-driven automated blocking becomes useful
 - evaluate `Suricata` only on dedicated x86 hardware if true network IDS/IPS becomes a real goal
@@ -226,7 +299,9 @@ As of August 25, 2026:
 - true IDS: not deployed
 - true IPS: not deployed
 - host-based banning: docker-host and CT 111 Frigate SSH baselines are deployed;
-  CT 114 should be reviewed for the same baseline
+  October4 read-only CT114 inspection still finds Fail2ban absent, no HTTP APT
+  proxy and blocked/unavailable cache paths. Prepared repair remains
+  maintenance-gated under [[ct114-package-path-repair]].
 - security foundations: segmentation, OpenWrt/host/Docker firewall rules,
   explicit Compose bridge allocations, scoped Tailscale access, dormant
   WireGuard fallback, selective logging, Grafana/Kuma visibility and ntfy alert

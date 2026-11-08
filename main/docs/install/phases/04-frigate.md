@@ -800,3 +800,197 @@ Expected result:
 Continue to [Phase 05 - Docker Host](05-docker-host.md) after the migration-safe
 Frigate foundation is accepted. Phase 06 must complete OMV recording storage
 before production recording is enabled.
+
+## October 10, 2026 — idle configuration publisher retention
+
+The outage was CT-local memory/cache pressure, not host-wide RAM exhaustion.
+The main `python3 -u -m frigate` process held about 5 GiB anonymous RSS;
+CT 111 used 5.96/6 GiB with no swap and only about 4 MiB ordinary file cache.
+The host still had 21 GiB available, but load was 95/113/115 and disk readers
+were blocked in `folio_wait_bit_common`. CT root storage (`dm-8`) had accumulated
+96.8 TB reads; a five-second NVMe sample measured 11,784 reads/s and 459 MiB/s.
+Two historical cgroup OOM kills were present. October 8 kernel warnings also
+included monitoring VM102 disk workers blocked for more than 122 seconds.
+NVMe SMART passed with zero media errors/error-log entries; the bounded kernel
+check found no NVMe timeout/reset or NFS-server failure.
+
+### Confirmed mechanism
+
+In this installed 0.17.1 / pyzmq 26.2.1 / libzmq 4.3.5 runtime:
+
+1. Disconnected streams repeatedly exit `video.capture_frames` and start again.
+   Each invocation constructs a `CameraConfigUpdateSubscriber` and closes it
+   on exit. The `finally` cleanup exists; this is not an omitted Python close.
+2. Subscribers connect to the main process's idle `ConfigPublisher` at
+   `ipc:///tmp/cache/config`. Native tracing caught 15 retained connection
+   allocation groups in 60 seconds, including 18,160-byte malloc and two
+   16,400-byte calloc blocks per group.
+3. A conditional malloc breakpoint identified `libzmq` on its publisher IO
+   thread. A 12-second targeted syscall trace showed that thread accepting
+   subscriptions from the three capture PIDs and closing them about three
+   seconds later. The listening FD mapped specifically to `/tmp/cache/config`.
+4. Pending native attach/termination work accumulates when the application
+   does not operate on the PUB socket. Two `getsockopt(zmq.EVENTS)` calls, with
+   time for its IO thread to respond, followed by `malloc_trim(0)`, reduced
+   main RSS from about 5.4 GiB to 593 MiB **without restarting**. `malloc_trim`
+   alone previously reclaimed only about 11 MiB.
+
+Python inspection found empty frame/object caches, 80 bounded stats samples,
+and no large application container accounting for the heap. The 188 KiB DB
+and approximately 56 MiB shared-memory allocation also did not account for it.
+Do not mislabel this as the separately reported recording-manager,
+embeddings-manager, or FFmpeg heap leaks.
+
+The isolated reproduction is
+`scripts/validation/frigate_zmq_idle_pub_repro.py`. It opens a unique temporary
+IPC endpoint in a **separate process**, with no production socket, camera,
+database or MQTT access. It compares an idle publisher against a publisher
+whose owner thread regularly processes `ZMQ_EVENTS` during subscriber churn.
+The final 600-reconnect experiment measured RSS 17,084,416 → 24,870,912 bytes;
+after polling/trim it returned to 18,206,720, and the polling case ended at
+18,132,992. Exact RSS depends on allocator and platform; compare deltas.
+
+Run using Frigate's existing Python/pyzmq, after copying the script to CT 111:
+
+```bash
+docker cp /opt/frigate/incident-20261010/reproduce.py frigate:/tmp/frigate-zmq-repro.py
+docker exec frigate python3 /tmp/frigate-zmq-repro.py
+```
+
+Do not add a background polling thread around a production ZeroMQ socket:
+socket operations must be serialized on its owner thread. The live debugger
+experiment was a controlled forensic intervention, not a scheduled remedy.
+Relevant source:
+[installed publisher](https://github.com/blakeblackshear/frigate/blob/v0.17.1/frigate/comms/config_updater.py),
+[capture lifecycle](https://github.com/blakeblackshear/frigate/blob/v0.17.1/frigate/video.py),
+and [libzmq command processing](https://github.com/zeromq/libzmq/blob/v4.3.5/src/socket_base.cpp).
+The [0.17.2 publisher](https://github.com/blakeblackshear/frigate/blob/v0.17.2/frigate/comms/config_updater.py)
+still lacks idle event polling; a blind update is not evidence of repair.
+
+### Recovery and present operating state
+
+- `pct set 111 --memory 12288` restored cache headroom immediately. Parent
+  cgroup `memory.max=12884901888`, `memory.high=12784238592`, CT `/proc/meminfo`
+  and Docker's denominator were verified. The dedicated CT's Docker daemon
+  was restarted to refresh its cached former 6 GiB denominator. No host
+  packages were upgraded; debugger dependencies were extracted under
+  `/var/tmp/frigate-diag-tools/` rather than installed.
+- Before YAML/Compose changes, saved originals and bounded heap/allocation
+  evidence under CT `/opt/frigate/incident-20261010/` (directory mode 700).
+  Files include `config.yml.before`, `docker-compose.yml.before`,
+  `frigate-heap-summary.json`, `frigate-malloc-before.xml`,
+  `frigate-live-memory.bin`, and `reproduce.py`. These stay outside the vault.
+- Set `enabled: false` on all three intentionally disconnected cameras in
+  source and live config. Validated the live candidate with
+  `FrigateConfig.parse(...)` using the existing container environment before
+  installing it. Stream/detection/recording definitions and host-only secrets
+  remain available for later reconnection.
+- Pinned the already installed 0.17.1 image to manifest digest
+  `1724960349dad0bd2ae8ec884171a6fd5755a4dc242a0e66cadbda9c0e85c99b`.
+  `docker compose config -q` and
+  `docker compose up --pull never -d --force-recreate frigate` passed.
+- Frigate returned healthy, API version responded, disabled cameras had no
+  capture/process PIDs, unauthenticated HTTPS returned 401, and both host/CT
+  NFS mounts retained the expected OMV export. One-minute host load fell below
+  1, blocked tasks to zero and IO wait cleared. Camera/inference/recording
+  acceptance remains unavailable while camera hardware is disconnected.
+- Follow-up at 20:56–20:57 BST: main RSS about 324 MiB, Docker working memory
+  about 675 MiB/12 GiB, CT usage including cache about 1.45 GiB, no new OOM
+  kills, and zero CT-root reads in a five-second sample. MQTT TLS verification
+  received retained Frigate availability `online`. HA/Homepage HTTPS returned
+  200; Kuma returned 302. Intel GPU usage telemetry retains a separate PMU
+  permission error; no capability/firewall change was made to silence it.
+- Final 20:59 BST check: healthy, zero Docker restart count, 678 MiB working
+  memory and host one-minute load 0.19. Compose source/live structures match;
+  repository Frigate config passes the installed schema and matches live
+  structure after masking host-only RTSP userinfo. The reproduction in the
+  repository was rerun successfully in the recovered container.
+
+The initial recovery above left upstream code unpatched. The subsequent local
+lifecycle repair and RAM reassessment are recorded below. Real-stream GPU,
+recording/playback and HA acceptance still require physical camera reconnection.
+
+Rollback only the incident edits when deliberately resuming camera testing:
+restore the two `.before` files into their original CT paths, validate Compose,
+then recreate with `--pull never`. Preserve the current 12 GiB limit until
+memory safety is established; restoring 6 GiB with the original retry trigger
+would reintroduce the failure. Frigate's log timestamps during this incident
+were UTC; host timestamps and this procedure use BST.
+
+### Permanent local lifecycle repair and RAM reassessment
+
+The pinned0.17.1 image now has a tracked read-only overlay:
+[[../../../configs/frigate/patches/config_updater.py]]. ConfigPublisher's
+dedicated owner thread creates, operates, polls and destroys its PUB socket.
+MQTT/API callers submit bounded synchronous requests, so multipart messages
+cannot interleave. Idle `ZMQ_EVENTS` polling every100ms processes native
+connection cleanup; there is no cross-thread socket polling or malloc_trim
+remedy. Shutdown drains accepted requests, closes with linger0 and joins the
+owner. Startup/send failures propagate to callers. ConfigSubscriber and wire
+topics/payloads remain unchanged.
+
+Compose binds `/opt/frigate/patches/config_updater.py` over the image module
+read-only. This survives recreation and host restarts. The patch is coupled
+to the pinned image: compare/port it or remove after proving an equivalent
+upstream fix whenever updating Frigate. See the [[../../../configs/frigate/patches/README|overlay guide]].
+
+Validation using Frigate's installed Python/pyzmq:
+
+- Three functional tests passed:100 concurrent multipart updates delivered
+  intact, repeatable bounded shutdown/post-stop rejection, bind failure propagation.
+- Candidate actual-class3600-reconnect test: RSS23,142,400→23,257,088bytes,
+  only114,688bytes growth after warmup, without forced collection or trimming.
+- Deployed-class repeat: maximum post-warmup growth491,520bytes.
+- **Live** publisher12000 read-only reconnects: main RSS339,898,368→341,602,304
+  bytes, maximum growth1,703,936bytes. The original idle lifecycle retained
+  native connection groups; this repair drains them throughout churn.
+- A separate `frigate-lifecycle-test` container used the same pinned image and
+  overlay, network isolation, separate config/database/media, a4GiB memory
+  limit and three lavfi720p/10fps cameras. OpenVINO GPU inference ran around4ms,
+  all streams processed~10fps without skipped frames, software-H264 recording
+  segments were written, and working memory was~1.2GiB. Synthetic FFmpeg
+  interruption/recovery exercised real capture retries; production cameras,
+  MQTT and NAS recordings were not touched. This does not certify real-camera
+  codecs, VA-API decoding, upstream RTSP reconnects or long-term recording load.
+
+The lifecycle fix removes the reason for the emergency12GiB allocation.
+CT111 is now **2CPU / 6GiB / no swap**, retaining several GiB above the measured
+idle and synthetic working sets for real-stream processes, tmpfs and file cache.
+Do not shrink to the smallest idle footprint. Re-evaluate below6GiB only after
+physical cameras are reconnected and sustained real-stream/recording peaks,
+cache headroom and PSI are measured. Disabled production cameras remain disabled.
+
+Deployment commands (CT paths):
+
+```sh
+# Save Compose before overlay deployment; retain host-only secrets/config.
+cp /opt/frigate/docker-compose.yml /opt/frigate/incident-20261010/docker-compose.before-lifecycle.yml
+# Upload tracked patch into /opt/frigate/patches/, then add the tracked bind mount.
+cd /opt/frigate
+docker compose config -q
+docker compose up --pull never -d --force-recreate frigate
+docker exec frigate python3 /tmp/frigate_publisher_lifecycle_test.py --churn
+docker exec frigate python3 /tmp/frigate_publisher_lifecycle_test.py --live-churn
+# On Proxmox, after validation:
+pct set 111 --memory 6144
+# Refresh Docker's cached denominator in the dedicated CT and verify recovery.
+pct exec 111 -- systemctl restart docker
+```
+
+To roll back **only the lifecycle overlay**, restore the saved pre-lifecycle
+Compose, validate and recreate using `--pull never`; keep disconnected cameras
+disabled. Restore12GiB first if deliberately testing the original leaking
+publisher under reconnects. Never combine rollback to the defective publisher
+with re-enabled failing cameras at6GiB. The previous `.before` YAML contains
+the original retry trigger and is not the appropriate lifecycle-only rollback.
+
+Selected test evidence stays under CT `/opt/frigate/incident-20261010/`.
+The isolated test container/media are removed after acceptance. Always-on
+[[../../procedures/resource_pressure_monitor|resource alerts]] remain active.
+
+Final6GiB check: cgroup `memory.max=6442450944`, Docker reports6GiB, Frigate
+healthy with restart count0, working memory~670MiB and CT usable headroom~4.6GiB.
+Memory PSI is0; cumulative OOM kills remain2. The overlay's SHA256 inside the
+recreated container matches its host file (`ff482e7dfdf0dca929ca585b951cb6e50fb401ce9d2747671c882847dfbed303`).
+Functional tests passed again after restart. Resource collector has all six
+systems with no pending/active alerts and no blocked host tasks.

@@ -3,7 +3,7 @@ title: "Monitoring VM"
 category: entity
 tags: [software, monitoring, grafana, proxmox, influxdb, uptime-kuma, telegraf]
 created: 2026-04-07
-updated: 2026-08-01
+updated: 2026-10-11
 sources: [proxmox-setup-guide, project-readme, project-todo]
 status: stable
 ---
@@ -26,7 +26,19 @@ direct links to Grafana and Uptime Kuma. Direct UI access is the reliable path
 for now; embedded Grafana/Kuma inside HA is intentionally parked until a
 same-origin HTTPS/reverse-proxy path is designed and tested.
 
+Homepage's authenticated Grafana HTTPS preview is live and distinct from HA
+embedding. The monitoring roadmap's October4 reconciliation preserves this
+boundary and the disconnected-camera state. Configured July camera monitors
+and their historical green checks do not establish current stream health.
+
 ## Key Properties
+
+- October10: VM102 now2CPU/6GiB, applied with graceful shutdown/start after
+  finding a September17 Grafana OOM. Grafana/Influx/Kuma recovered; ~4.3GiB
+  available after startup. Proxmox independently samples every running guest
+  every minute and alerts actual resource pressure/OOMs through ntfy; an hourly
+  Codex watchdog checks collector freshness. Canonical operations:
+  [[../../../main/docs/procedures/resource_pressure_monitor]].
 
 - VM ID: 102 (`monitoring`)
 - VLAN: 60 (Monitoring)
@@ -38,6 +50,13 @@ same-origin HTTPS/reverse-proxy path is designed and tested.
 - Uptime Kuma: `http://192.168.60.10:3001`
 
 ## Live Integrations
+
+- October11: independent Proxmox monitor now preserves fresh partial coverage
+  through inventory timeouts, debounces collection failures, sends recovery,
+  durably queues failed deliveries and retains OOM baselines across gaps.
+  Application cooldown replaces the notifier's systemd rate-limit latch;
+  watchdog checks supported status output. Ten tests and live coverage pass.
+  [[../../../main/docs/procedures/resource_pressure_monitor]].
 
 - Uptime Kuma baseline monitors are green for router DNS, Proxmox UI, HA UI, docker-host SSH, docker-host APT cache, Bambuddy UI, Grafana, InfluxDB, and Uptime Kuma.
 - Uptime Kuma also checks OMV web/NFS and direct reachability of all three CCTV
@@ -56,7 +75,10 @@ same-origin HTTPS/reverse-proxy path is designed and tested.
   backup-freshness heartbeat only after the backup service succeeds; its first
   live delivery was accepted on 2026-08-01.
 - ntfy has a dedicated read-only `mobile-monitoring` subscriber. Authenticated
-  polling passed; a real Android notification is the remaining acceptance step.
+  polling passed. October11 phone acceptance failed: both labelled resource
+  test messages were accepted, but the phone's ntfy subscription was disconnected
+  despite active Tailscale on mobile data; server reported zero subscribers.
+  Diagnose the phone connection error before relying on background alerts.
 - OpenWrt forwards syslog to `192.168.60.10:514/udp`; Telegraf receives on container port `6514/udp` and writes `syslog` measurements to InfluxDB.
 - Home Assistant exports state history to the `homeassistant` InfluxDB bucket using `source=HA`.
 - Router policy includes scoped `HA to InfluxDB` access from `192.168.20.101` to `192.168.60.10:8086/tcp`.
@@ -89,6 +111,12 @@ same-origin HTTPS/reverse-proxy path is designed and tested.
 - [x] Repair CT 111's Frigate API exception.
 
 ## Change Log
+
+- 2026-10-04: reconciled roadmap/operator-path and disconnected-camera wording
+  against canonical state. OMV current-state queries and exact producer/timer
+  inputs are prepared, with19 synthetic Flux cases (32 executions), but no
+  live shipping, collection permissions or Grafana UI/alert acceptance.
+  [[../../../main/docs/procedures/monitoring_roadmap]]
 
 - 2026-07-29: Repaired stale Kuma checks, added OMV NFS/web and three camera
   monitors, and recorded remaining Frigate-host, Grafana, and ntfy gaps.

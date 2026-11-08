@@ -3,7 +3,7 @@ title: Current Live State
 description: Canonical inventory of deployed hosts, services, and deliberately deferred components
 tags: [reference, current-state, infrastructure]
 created: 2026-06-20
-modified: 2026-09-14
+modified: 2026-10-19
 type: reference
 status: active
 ---
@@ -12,6 +12,58 @@ status: active
 
 This is the canonical current-state inventory. Rebuild manuals describe how to
 build from blank and must link here rather than duplicating live-status claims.
+
+**Code remediation, 2026-10-02:** canonical source fixes are tested but not
+deployed. Read-only OMV inspection confirms active TransferPortal still imports
+the older helper without ROOT_POLICY and its wrapper lacks isolated imports.
+Matched checkpoint `20261002T211810Z` and isolated no-NIC VM restore/preview/copy
+acceptance passed for saved and repaired generations; historical rows and source
+hashes were preserved. The protected NAS checkpoint remains; the test VM/media
+were removed. Live replacement is still outstanding. VentSys hardware commissioning gates remain disabled.
+See [[../audits/2026-10-02-code-audit-verification]] and the TransferPortal manual.
+
+**Bambuddy scheduled offline updates, 2026-10-02:** the owner authorized this
+service exception. Windows task `Bambuddy Offline Release Staging` checks and
+stages stable versioned images daily at09:00 while Admin is signed in, using
+the existing Ubuntu WSL Docker engine and strict-host-key SSH. VM103's
+`bambuddy-offline-update.timer` installs local bundles at04:30 with half-hourly
+idle-gated retries through06:30, Europe/London, without registry pulls. Checkpoints
+are on OMV under `/mnt/omv/docker-host-backups/bambuddy-updates`; three successful
+update generations are retained. At10:47 BST the first manual1.2.5.5→1.2.5.6
+run passed copied-data startup/migration with networking disabled, stopped-service
+NAS backup, SQLite integrity, running image/network identity and P1S reconnection.
+Host networking remains in place; no firewall change was made. Watchtower remains
+monitor-only. Dynamic installed version/result is recorded in VM103's
+`/var/lib/home-automation-updates/bambuddy/last-result.json`; unattended-window
+acceptance remains open. See [[../procedures/bambuddy_offline_updates]].
+
+**Scoped read-only refresh, 2026-10-02 10:37 BST:** the Windows collector reports
+11/12 endpoint checks passing; Camera1 RTSP fails consistently with intentional
+disconnection. OMV BatchMode management login works and all five disks report
+SMART health passed at 30–47 C with no reported pending/offline-uncorrectable
+sectors. md0 is `[UU]` and an existing consistency check is 46.7% complete;
+this audit did not start or alter it. One current RAID member reports lifetime
+UDMA CRC count 1; compare stable disk identities before inferring a change.
+These checks do not prove application recovery or HTTP certificate trust.
+September14–17 Proxmox access/import, VM102 isolated boot and Watchtower
+server-delivery acceptance supersede their older blockers below; phone receipt
+remains open. See [[../audits/2026-10-02-roadmap-code-file-audit]].
+
+**CT114 read-only diagnosis, 2026-10-02 10:48 BST:** Fail2ban is not installed;
+the earlier `inactive` description did not establish an installed service.
+APT has no proxy; security/update metadata expired June26. Native cache-host
+UFW logs prove rejected `.104 -> .102 TCP3142` requests. Cache report-page
+loopback access works, but Debian upstream metadata through it returns503.
+All seven AI containers remain running. The host-only permission/proxy repair
+is prepared and tested locally, not deployed; see
+[[../procedures/ct114-package-path-repair]].
+
+**CT114 package-path refresh, 2026-10-04:** Fail2ban remains absent and no HTTP
+APT proxy is configured. CT114's cache probe returns no HTTP response (timeout),
+while apt-cacher-ng is active and loopback Debian InRelease still returns503.
+Cached headers retain June19 dates/June26 expiry. The firewall rejection was
+proven October2; this refresh does not independently re-prove its cause.
+No firewall, package, proxy or service configuration was changed.
 
 **Scoped update, 2026-09-10:** the troubleshooting dashboard evidence-age update
 is deployed at management port8094, with live desktop/mobile verification and
@@ -55,12 +107,30 @@ forwarding. DHCP, bidirectional internet TLS traffic and router NTP are
 verified. **Hive still appears offline in the owner's app**; prior issues
 remain unresolved and application/account acceptance is pending.
 OMV is directly on **LAN4 / VLAN40**, reachable with active NFS mounts.
-The Zyxel switch/cameras are deliberately unplugged; P1S is not yet set up.
+The Zyxel switch/cameras are deliberately unplugged. The P1S (`Da Printor`) is
+commissioned on VLAN35 through Bambuddy: its MQTT telemetry is live in Home
+Assistant, the **P1S** dashboard is available at `/p1s-status`, and phone plus
+persistent notifications are enabled. The direct printer camera and any
+physical safety interlock work remain separate acceptance items.
 
-WAN6's device/firewall fault is repaired, but Zen DHCPv6 returns
-`NoAddrsAvail` / `NoPrefixAvail`, including an explicit /48 trial. IPv6 awaits
-provider provisioning confirmation. Saved router source is reconciled for
-PPPoE and VLAN55; compiler refuses missing PPPoE credentials for deployment.
+**OrcaSlicer virtual-printer compatibility, 2026-10-29:** `Da Printor VP`
+was working with the locally installed **OrcaSlicer 2.4.2** (build `8500fcdc`).
+The subsequent **2.5.0-beta** reinstall completes the VP's LAN detect exchange
+but returns `code=-1` before opening its MQTT session; connectivity, certificate
+and access-code validation on the Bambuddy side passed. Keep the production
+workflow on 2.4.2 until the newer Orca network path is separately accepted; do
+not change P1S firmware, firewall, VLAN rules or Bambuddy configuration to
+compensate for this desktop-client regression.
+
+**IPv6 accepted 2026-09-11:** Zen now delegates `2a02:8013:781f::/48` by
+DHCPv6-PD. The router requests the prefix only because Zen returns
+`NoAddrsAvail` for IA_NA. A separate static interface uses the supplied ND
+prefix and Zen's link-local next hop for the default route. Both interfaces
+are up after a network reload; IPv4 and IPv6 internet pings pass at about
+15 ms. The existing LAN interface receives a delegated global assignment;
+restricted VLANs were not newly enabled for IPv6. Saved router source is
+reconciled for this arrangement, PPPoE and VLAN55; compiler refuses missing
+PPPoE credentials for deployment.
 Preview builds are not deployed. See
 [[../../HANDOFF-2026-07-27-portal-services]] for evidence, backups and limits.
 
@@ -103,6 +173,32 @@ not replaced. These component tests do not certify full-system recovery.
 
 ## Compute
 
+**October10 resource audit:** all eight configured guests inspected; production
+100/102/103/111/114 running, rollback101/104 and restore9102 stopped. VM102 is
+now2CPU/6GiB after a graceful shutdown/start (Grafana historical OOM September17);
+Grafana/Influx/Kuma recovered. VM103 remains4CPU/10GiB and its root disk expanded
+online64→128GiB, reducing filesystem use88→44%. CT111 is2CPU/6GiB after lifecycle repair, CT114
+6CPU/28GiB, HA2CPU/6GiB. Actual usable memory is ample; cache-inclusive Proxmox
+VM RAM percentages must not be interpreted as pressure. Host has~25GiB available;
+root81% (64GiB local backups), thin data~26.7%, metadata~1.1%. No backups removed.
+
+`resource-pressure-monitor.timer` runs every minute on Proxmox with actual
+guest/cgroup usable memory, OOM deltas, PSI, CPU/load/blocked tasks, root/thin
+capacity, new kernel disk/hang warnings and lost-coverage checks. All six systems
+sample successfully. Debounced pressure/recovery and immediate event alerts
+route to the existing authenticated ntfy monitoring topic; test accepted.
+An hourly Codex watchdog checks monitor freshness/failure without duplicating
+normal alerts. Source, thresholds, limitations and operations:
+[[../procedures/resource_pressure_monitor]]. Phone presentation is not yet
+independently verified. Frigate lifecycle repair is deployed; real-camera acceptance remains open.
+
+October11: error handling improved—inventory timeouts retain fresh host/guest
+collection with explicit degraded coverage; collection failures debounce and
+recover, failed deliveries remain queued, OOM baselines survive missing samples.
+Notifier cooldown moved from systemd start limiting to durable application
+state, and the old failed status was cleared. Ten tests and live coverage pass.
+The watchdog reads supported `--status` including health and pending delivery.
+
 | ID | Kind | Name | Address | State | Role |
 |---:|---|---|---|---|---|
 | 100 | QEMU VM | home-assistant | `192.168.20.101` | Live | HAOS 2026.7.1, native HTTPS, MQTT, ESPHome and Assist |
@@ -112,6 +208,7 @@ not replaced. These component tests do not certify full-system recovery.
 | 104 | QEMU VM | llm-host | offline | Rollback only | Pre-LXC snapshot; `onboot=0` |
 | 111 | unprivileged LXC | frigate-nvr | `192.168.30.20` | Live | Frigate 0.17.1, OpenVINO and VA-API on shared iGPU |
 | 114 | unprivileged LXC | llm-host | `192.168.20.104` | Live | llama.cpp, Open WebUI and Wyoming voice services on shared iGPU |
+| 9102 | QEMU VM | monitoring restore | offline | Stopped | Retained isolated restore guest |
 
 VM 101 and VM 104 are retained temporarily as rollback points. Production DNS
 and static addresses belong to CT 111 and CT 114. Never start either retired VM
@@ -148,6 +245,513 @@ while its replacement LXC is running.
 - Mealie is live; Overwatch-to-Mealie recipe saving is not yet implemented.
 - VentSys dashboard is deployed; most physical VentSys entities remain gated on
   hardware installation.
+- October18–19: full 0–100 software range and HA mode targets are restored, and
+  the authenticated custom-card replacement is live at `/dashboard-ventsys/0`
+  (release `20261018-3`). Repository and deployed dashboard sources now match.
+  The public config credential was removed and its dedicated token revoked;
+  independent API verification returned HTTP401. Confirmed-state controls,
+  unavailable/stale displays, smoke precedence, pressure units, raw gas/flow
+  readings and desktop/phone layouts are validated. All ten schematic selectors
+  worked in real HA; startup sent zero service calls. Both live 360 boards still
+  advertise firmware range30–60, which the card enforces. No physical movement,
+  firmware or endpoint calibration was changed. See [[../procedures/ventsys-dashboard]]
+  for current operation, tests, private checkpoint and remaining hardware gates;
+  [[../audits/2026-10-18-ventsys-dashboard]] retains the historical findings.
+- On October 19 the Homepage Home & Security tab gained a VentSys Open tab
+  entry through the existing HA `8188` proxy, preserving normal HA sign-in and
+  current network scopes. Desktop navigation/mobile viewport checks passed;
+  no control iframe or public credential was added. See the dashboard/Homepage
+  manuals for the deployment and recovery evidence.
+- October 19 owner correction: the 360 firmware is correct and the role swap
+  was already completed in firmware/HA. Missing sensors/controllers reflect
+  incomplete installation, not a request to repair/recommission them. The
+  dashboard incorrectly matched legacy entity prefixes: FDM `.62` / MAC
+  `a0:85:e3:ae:5b:c8` is registered under the native `ventsys_sla_360...` IDs;
+  SLA `.61` / MAC `cc:ba:97:f0:e3:ec` under `ventsys_fdm_360...`. Builder command
+  topics already match FDM/SLA correctly. Live release `20261019-1` swaps only the
+  native read/confirmation bindings, retains logical topics, and treats the
+  30–60 intake range as intended. Activated through normal HA sign-in after
+  configuration validation and idle-script reload; 53 tests passed, live ranges
+  and asset/package hashes verified. No firmware changes or actuator commands.
+- October 19 backend `20261019-arbitration-1` is live alongside frontend
+  `20261019-1`: named normal modes, valve helper and dashboard commands share
+  `script.ventsys_normal_command`; every normal publish requires failsafe off
+  and fire script idle. Fire response cancels normal execution before direct
+  canonical publishes, including main fan 100%. Eight arbitration, 11 backend
+  and three drift tests passed; isolated real HA no-MQTT probe passed contention,
+  preemption and failsafe rejection. Temporary probe removed; production script
+  reload performed idle, dispatcher loaded off and deployed hashes verified.
+  No actuator commands or firmware changes. Direct MQTT/native controls remain
+  outside this boundary; physical commissioning remains separate. Runtime source,
+  checkpoint and rollback are in [[../procedures/ventsys-dashboard]].
+- October 19 frontend `20261019-2` is live with dispatcher-aware availability,
+  immediate unverified interruption on failsafe/fire/backend loss and explicit
+  alarm/failsafe/fire note headings. Four new regressions; 24 browser tests and
+  runtime contract checks passed. Connected live version and Ready/no commands
+  verified. Backend remains `20261019-arbitration-1`; hardware unchanged.
+- October 19 frontend `20261019-3` is live: Environment comparison table with
+  Ambient/FDM/SLA columns and System log with dashboard-session events. Shared
+  source/freshness/unit/alarm rules match the detailed sensors. 26 browser tests,
+  desktop/mobile visual checks, runtime contract/drift checks and signed-in HA
+  labels/version/no-command verification passed. Backend unchanged.
+- October 19 frontend `20261019-4` is live with an additional Touch screen view
+  at `/dashboard-ventsys/touch`. Original-style PrintAirPipe title/header, clock
+  and bottom status strip restored with current/unmeasured status, plus touch
+  pop-up controllers/modes/sensors/status/logs. Default view configuration and SVG
+  layout retained. Main duct highlight overruns fixed and log entries enlarged.
+  30 browser tests passed at normal/mobile and touch 800×480/1024×600; signed-in
+  HA popup/view/config/hash acceptance passed. Physical screen not yet checked.
+  Backend/firmware unchanged, no actuator commands. Recovery in the runbook.
+- October 19 owner physical test reported stalled/nonresponsive intake controls,
+  blocked mode menu and longstanding E2 failure. Frontend `20261019-5` / backend
+  `20261019-command-repair-1` correct identified causes. Actual running firmware
+  logs prove physical FDM `.62` / `a0:85:e3:ae:5b:c8` subscribes to legacy
+  `ventsys/sla/360/control`; physical SLA `.61` / `cc:ba:97:f0:e3:ec` subscribes
+  to `ventsys/fdm/360/control`. Earlier Builder-based "topics already correct"
+  statements were wrong and are superseded. Dashboard/modes now match runtime.
+  E2 `.52` / `ec:e3:34:b4:79:7c` uses `ventsys/sla/branch/control`; its HA entry
+  wrongly pointed at `.51`, corrected through Reconfigure, native value recovered.
+  Available-controller mode subsets are explicit and frozen at review; full modes
+  still require all targets. Matching position targets may be explicitly resent.
+  32 browser/22 model/13 backend/8 arbitration/3 drift tests and HA read-only
+  command-plan/config/UI checks passed. No actuator commands or firmware changes;
+  physical responsiveness after repair remains unverified. Earlier UI acceptance
+  was not physical acceptance. See dashboard manual/checkpoint for evidence.
+- October 19 frontend `20261019-6`: deep red closed/bright green open indicators,
+  calibrated 360 endpoint colours and aligned System log/enclosure/booth bottoms.
+  34 browser tests passed; visual-only, no backend/firmware/actuation change.
+
+- November4 owner correction (supersedes earlier endpoint-pending statements):
+  standard SLA/FDM print, enclosure/branch and main valves use 0–100% for both
+  physical travel and display. The 360 intake remains the separate raw30–60 to
+  display0–100 mapping. This is owner-reported; no physical feedback is fitted.
+  Earlier bench notes and provisional pulse-window records are historical evidence,
+  not a request to restrict travel or recalibrate established endpoints.
+- The E2 five-minute Codex monitor was stopped and deleted at the owner's request
+  on November4; prior healthy readings do not establish present availability.
+- November4: frontend20261104-4 live in standard/touch: normalized360 opening
+  (raw30/45/60 -> UI0/50/100), integer RPM/gas, fresh-flow arrow sequencing.
+  Board CC:BA:97:F0:D0:C0 `.32` is FDM, not SLA; renamed firmware/HA and mapped
+  exclusively to FDM readings, installed wiring retained. See board/dashboard manuals.
+- November4: E2 native host again wrong `.51`; corrected through HA UI to `.52`.
+  E2 uptime382515s/RSSI-72dBm and valid0 report ruled out a continuous Wi-Fi
+  outage at inspection. Found live router MAIN-1/.51 reservation using E2 MAC;
+  corrected MAIN-1 MAC and added proper E2/.52 reservation, dnsmasq reloaded,
+  DNS/router reachability/HA host verified. Plausible discovery-confusion source,
+  actual host-rewrite cause unproven. A five-minute Codex heartbeat monitored HA host, router reservation and
+  connectivity temporarily; it was stopped and deleted at the owner’s request.
+- November4: both MAC-bound C6 intakes updated with GPIO2 external digital touch,
+  LED1/servo0 preserved. SLA known raw60 restored WITHOUT PWM and survived
+  accepted-image restart; final OTA retained SLA60 and FDM30 plus endpoints,
+  PWM off. UI shows100/0 respectively. First post-update report loss and an
+  early-restart OTA rollback are recorded separately in board procedure.
+  Physical touch, loaded travel and full-system commissioning remain pending.
+- October29: normal three-wire SLA print valve flashed/adopted in HA Garage:
+  COM4, MAC `EC:E3:34:1B:DB:2C`, static `192.168.50.56`, ESPHome2026.4.5.
+  Full4MB original firmware backup saved privately; four write hashes verified.
+  MQTT TLS/native report verified: seed50%, endpoints0/100, PWM off, source
+  None since boot; physical position unknown. GPIO16 servo/GPIO33 touch,
+  provisional940–2000us pulse window. Canonical/build/Builder sources match.
+  No movement command sent; calibration, touch/remote and loaded tests pending.
+- October28: normal three-wire FDM print valve flashed over COM4, MAC
+  `EC:E3:34:B4:76:A4`, static `192.168.50.55`, ESPHome2026.4.5; four upload
+  hash checks passed. HA adopted it in Garage as VentSys FDM Print Valve.
+  MQTT TLS and native dashboard report verified: display50%, endpoints0/100,
+  PWM off, command source None since boot. This is restored command state,
+  not measured physical position. GPIO16 servo/GPIO33 touch, provisional
+  940–2000us pulse range; endpoint calibration and movement/load tests pending.
+  Canonical and live Builder YAML match. October29 owner reports board unplugged;
+  subsequent unavailability is expected until repowered. No actuation sent.
+
+- The owner clarified on 2026-10-10 that VentSys is still under testing and has
+  not been commissioned. Commissioning will be recorded only when the owner
+  specifies it. A 2026-10-10 owner correction swaps the FDM/SLA 360 intake
+  identities. HA device info verified the board labeled FDM at `.61` as MAC
+  `CC:BA:97:F0:E3:EC` and the board labeled SLA at `.62` as MAC
+  `A0:85:E3:AE:5B:C8`; the corrected target swaps the role names while keeping
+  board IP/MAC pairs intact: FDM `.62` / `A0:85:E3:AE:5B:C8` and SLA `.61` /
+  `CC:BA:97:F0:E3:EC`. The `.61` board (now assigned SLA) was
+  compiled locally with ESPHome 2026.4.5 and flashed over USB COM8; esptool
+  verified the write. Its application image SHA-256 is
+  `E2AC048E49486C8675C5BF19266E0B827E1A6EB9B671AC61636FEBF85FA7CCAC`.
+  HA showed `-55 dBm` Wi-Fi telemetry after the flash. At 09:52:11, HA logged
+  the new Restart Board entity changing from `Unavailable` to `Unknown`, then
+  displayed “Pressed”; activity details record no cause, which is not evidence
+  of a button activation. No valve movement was commanded in that flash. The
+  source DHCP reservations and all 360 firmware profiles now reflect the
+  corrected target mapping. The ESPHome Builder copies were synchronized and
+  SHA-256 checked. At the last check, Builder reported both 360 boards offline
+  and HA showed an active P1S print, so no OTA was attempted. The live boards
+  still run their prior names/topics; reflash each in place at its existing IP,
+  then verify HA names, MACs, IPs and MQTT topics before using either valve.
+  **Superseded October 19:** the owner confirms this firmware/HA role swap was
+  already completed. The dashboard's retained-ID mapping was the remaining
+  mismatch; do not repeat an OTA solely for that UI issue.
+  Power Off and physical wake/reconnect acceptance remain pending; see
+  [[../procedures/ventsys-board-power-controls]].
+- On 2026-10-10, the owner reported MAIN-2's ESP32 internal-temperature reading
+  sustained at or above 57°C for hours. The source firmware's LED notice/alarm/
+  emergency thresholds are 60/70/80°C; no cause is established. Production
+  firmware source now includes shared Power Off Board and Restart Board buttons
+  (shutdown suspends network, sensing, telemetry and control until physical
+  reset/power cycle). All six reachable boards have now been flashed with
+  the feature under supervised testing; MAIN-2's high-temperature cause remains
+  undiagnosed. See [[../procedures/ventsys-board-power-controls]].
+- On 2026-10-09 the 360 intake ESP32-C6 later reassigned to SLA (MAC
+  `cc:ba:97:f0:e3:ec`, then `192.168.50.61`) was connected as COM8 for a
+  direction fault: both Open and
+  Close visibly drove toward closed, although HA showed distinct targets.
+  The v2 firmware called `turn_on()` on the raw LEDC float output before each
+  `servo.write`, briefly selecting full duty. The revised firmware removes
+  that call and uses `servo.detach` at endpoints. It compiled and flashed with
+  verified hashes; HA reports build `2026-10-09 22:58:25 +0100`. Serial logs
+  show Open 60 -> servo level +0.2 and Close 30 -> -0.4, each detached after
+  one second. The operator then confirmed that Open and Close move in the
+  correct physical directions. The linkage remains connected; endpoint travel
+  is not yet calibrated.
+- 2026-10-10 maintenance: all six reachable VentSys devices (.61 then-labeled FDM 360,
+  .62 then-labeled SLA 360, .52 E2, .57 MAIN-2, .41 FDM airflow, .32 installed SLA sensor)
+  received OTA firmware with shared restart/shutdown controls. All production
+  valve source variants now persist commands/endpoints without boot motion;
+  v2 MQTT/button paths also save through number.set. The SLA-profile 360 raw-LEDC fix
+  is flashed; physical direction acceptance remains pending. Offline boards
+  remain deployment targets. See [[../procedures/ventsys-board-power-controls]].
+- Installed sensor .32 is legacy ESP32-C6 `cc:ba:97:f0:d0:c0`, now assigned to
+  FDM, with SDA4, SCL5, BME680 0x77, analog gas input ADC3 and status LED2.
+  Archived firmware described that input as smoke; on 2026-11-08 the owner
+  physically identified the installed component as a CO detector. The flashed
+  firmware and HA/dashboard still use smoke naming and a fixed uncalibrated
+  raw threshold, so their smoke/CO alarm meaning is not validated. Confirm the
+  exact module model, electrical interface and output behavior before changing
+  firmware or relying on that channel. An initial incorrect 0x76 maintenance image
+  caused the BME fault; final build 10:32:58 BST restored valid readings and
+  sensor_fault=false. Canonical standalone ventsys_sla_sensor.yaml and HA
+  Builder now match. Resolve the planned FDM-array-2 .32 inventory conflict.
+  On 2026-11-08 the owner confirmed the FDM enclosure board uses the same CO
+  GPIO3/BME680 GPIO4/5 pinout as the SLA pipe air sensor. A CO-only replacement
+  source was added as `configs/esphome/ventsys_fdm_sensor_co.yaml`, retaining
+  FDM identity, `.32`, MQTT prefix and the existing 40 C limit. ESPHome 2026.9.1
+  configuration and factory/OTA compilation passed (config hash `0x4cb76d52`).
+  Factory SHA-256: `71987EBD5F40EA2489333E7FB1D8265C1ACCBDF2A78C34A4765C1D27215090FD`.
+  It was not flashed: HA native FDM enclosure entities remained unavailable,
+  `.32` was unreachable, and Windows exposed no USB serial device beyond COM1.
+  Existing flashed smoke-labelled firmware remains active if the board returns.
+  The new source assumes the SLA base's GPIO8 WS2812 status LED, which conflicts
+  with the older GPIO2 plain-LED record; verify physical LED wiring before use.
+- MAIN-2 final diagnostic build 10:25:40 BST adds reset reason, heap and loop
+  telemetry. Independent power was stable beyond five minutes and one native
+  restart recovered with saved 0/75/0 settings and PWM inactive within 7.7 s.
+  PC USB control/power is a candidate cause of earlier reset failures, not
+  proven. Repeated loaded cold-start testing remains required before duct use.
+- The board formerly identified as Main Duct Valve 2 (`192.168.50.52`, MAC
+  `ec:e3:34:b4:79:7c`) is now the E2/SLA branch valve in the garage diagram.
+  On 2026-10-06, `ventsys_sla_branch_valve.yaml` was built from its calibrated
+  three-wire-servo image, with ESPHome name `ventsys-sla-branch-valve`, friendly
+  name `VentSys E2 Branch Valve`, and MQTT topics `ventsys/sla/branch/*`.
+  The board keeps `.52` and the same MAC, 940–2000 µs endpoints, and indefinite
+  PWM hold only for commands 1–99. The COM4 flash passed hash verification;
+  HA reconnected under the same MAC/device record and showed Valve Position 0.
+  The E2 MQTT number `number.sla_branch_valve` reported 0 after reload; the old
+  `number.main_duct_valve_2` is unavailable and no longer defined in live MQTT
+  YAML. At that point MAIN-2 was a separate uninstalled design position with
+  no board or IP assigned. The obsolete Main Valve 2 ESPHome Builder YAML was
+  removed before the later MAIN-2 board was installed.
+  The following paragraphs retain bench history under the old name.
+- On 2026-10-06 a different ESP32 D1 Mini, MAC `ec:e3:34:67:a0:18`, was
+  assigned to MAIN-2 at `192.168.50.57`. The normal three-wire servo uses
+  GPIO16; GPIO21 LED is active and GPIO33 touch toggle is enabled for its
+  planned touch input. COM4 flashing of `ventsys_main_valve2.yaml` passed hash
+  verification. The first native HA connection timed out while the network
+  path settled; a later HA-to-board TCP trace proved port 6053 reachable, and
+  the existing MAC-bound ESPHome entry was reconfigured from its old Valve 1
+  role. Its title, device, and 21 native entity IDs now identify MAIN-2. The
+  separate MQTT `number.main_duct_valve_2` was restored from the package and
+  showed 50. The firmware reports a restored command with physical position
+  unknown and PWM inactive; no range command was sent. Its initial 940–2000 µs
+  command window matches E2 but MAIN-2 mechanical stops remain uncalibrated.
+  A subsequent COM4 flash on 2026-10-06 installed the validated MQTT number
+  parser, which accepts finite decimal positions such as `50.0` and rejects
+  malformed or out-of-range payloads. HA confirmed firmware build
+  `2026-10-06 14:46:12 +0100`, position 50, and PWM inactive after reboot.
+  E2's corrected YAML was then flashed over COM4 on 2026-10-06 to its
+  MAC `ec:e3:34:b4:79:7c`. HA confirmed firmware build
+  `2026-10-06 14:48:31 +0100`, IP `192.168.50.52`, restored position 0,
+  and PWM inactive after reboot. The live ESPHome YAML matches the source.
+  The board's previous Valve 1 association leaves no installed MAIN-1 board
+  verified in this session.
+- On 2026-10-11, E1/FDM branch received a separate ESP32 D1 Mini, MAC
+  `EC:E3:34:67:0D:28`, at static IP `192.168.50.53`. Its normal three-wire
+  servo uses GPIO16 PWM and board 5 V/GND; GPIO21 LED and GPIO33 touch toggle
+  are configured. The feedback ADC/network was removed from this firmware.
+  `ventsys_fdm_branch_valve.yaml` was compiled with ESPHome 2026.4.5, flashed
+  over COM4 with verified hashes, and copied to the live ESPHome Builder.
+  The board joined HomeIoT, and HA adopted it as VentSys E1 Branch Valve in
+  Garage with 26 native entities; the serial log confirmed HA's API connection.
+  MQTT control/state topics remain `ventsys/fdm/branch/*`. The 940–2000 µs
+  pulse window is copied from E2 only as a provisional calibration range;
+  E1's horn is free and its physical valve stops have not been mapped. The
+  position and endpoint numbers restore saved values, seed at 50 on a fresh
+  board, and do not command PWM on boot. No movement command was sent during
+  adoption. The system remains under testing and uncommissioned.
+  On the following bench watch, GPIO33 generated repeated
+  `Accepted Touch command: 50%` log entries and enabled PWM. The operator may
+  have touched the exposed pin, so unintended triggering is not established.
+  The reason for 50% was a configuration error: both fresh-board Open and
+  Closed targets were seeded at 50 while awaiting calibration. The
+  serial watch later ended with `Serial port closed`; the router removed E1
+  at 23:52 BST for Wi-Fi inactivity, and E1 was unreachable at the next check
+  despite COM4 being present. The serial/USB loss and Wi-Fi dropout are
+  temporally related, but their cause is not established. E1 must not be
+  treated as stable until connectivity is resolved. On 2026-10-12 the E1
+  source was corrected to seed logical Open/Closed at 100/0, compiled and
+  reflashed over COM4 with verified hashes. HA showed the new build online,
+  Open 100, Closed 0, Valve Position 50, Last Command Source `None since boot`,
+  and PWM Commanded Active off. No movement command was sent in this fix;
+  physical E1 endpoints remain uncalibrated.
+- On 2026-10-12, a separate ESP32 D1 Mini, MAC `EC:E3:34:67:8C:9C`, was
+  assigned to MAIN-1 at static IP `192.168.50.51`. The owner confirmed the
+  normal three-wire servo on GPIO16, GPIO21 LED, GPIO33 touch input and a free
+  horn. The former MAIN-1 feedback-servo YAML was replaced by the current
+  three-wire production profile: no GPIO35 input, feedback network, feedback
+  sensor or position-mismatch entities. It retains commanded position and
+  Open/Closed targets across resets, does not actuate on boot, includes
+  Restart Board and Power Off Board, and uses `ventsys/main/valve1/*` MQTT
+  topics. The provisional 940–2000 µs command window is copied from E2,
+  with MAIN-1's physical stops still uncalibrated. ESPHome 2026.4.5 compiled
+  and flashed over COM4 with verified hashes; the live Builder YAML matches
+  canonical source. HA adopted the board in Garage as VentSys Main Duct Valve
+  1 with 26 native entities, no feedback entities, Open/Closed 100/0, saved
+  Valve Position 50 and PWM inactive. No movement command was sent.
+- On 2026-11-06, SLA pipe air ESP32-C6 `CC:BA:97:F0:C3:0C` was flashed
+  over COM3 with `ventsys_sla_pipe_air_sensor.yaml` using ESPHome 2026.9.1;
+  factory-image hash verified. It runs at `192.168.50.37` with CO analog
+  input on GPIO3 and BME680 I2C on GPIO4/5 at address `0x77` (bus scan
+  confirmed). Encrypted API verified identity and live BME readings; HA
+  adopted it in Garage as VentSys SLA Pipe Air Sensor with 33 entities.
+  The CO voltage remained about 3.26–3.28 V after warm-up, producing a CO
+  sensor fault and a latched alarm. This channel is not commissioned; inspect
+  its 3V3/GND/analog wiring and sensor output before relying on CO alerts or
+  clearing the latch. After a power cycle on 2026-11-07, the CO voltage
+  fell to about 1.03 V after the 180 s warm-up; CO detected and CO sensor
+  fault were both false, while the prior alarm latch remained true. The
+  channel still needs physical verification and a clean-air baseline before
+  commissioning. Builder YAML and included packages were synchronized.
+  Later on 2026-11-07, HA reported `co_voltage` 3.307 V again, with
+  `co_detected` and `co_sensor_fault` active. The improvement did not persist.
+  Do not capture a baseline or acknowledge this active alarm; inspect the
+  hardware and confirm a stable output first.
+  A later encrypted API check after warm-up on November 7 read 3.3258 V,
+  `co_detected: false`, `co_sensor_fault: true`, `alarm_latched: true` and
+  `bme680_fault: false`. The sensor fault and latch persist; this is not a
+  confirmed CO reading. Dashboard frontend `20261107-4` now displays the
+  latch and CO fault as two orange incidents, with SLA BME680 readings and a
+  CO label. Home Assistant loaded `ventsys_incidents.yaml` automations for
+  SLA CO hardware fault and VentSys failsafe transitions. A labelled test
+  publish to internal ntfy `monitoring` returned HTTP 200; mobile reception
+  remains unverified because the phone subscription is disconnected.
+  VentSys dashboard `20261107-6` additionally has a live read-only Diagnostics
+  tab. It groups and searches 294 exposed HA entities, including CO voltage,
+  BME680 readings, faults and available board/controller statistics. The live
+  tab showed CO voltage about 3.33 V, fault on and detection off. HA state
+  update age is displayed separately from board uptime; unchanged values may
+  have an old HA timestamp.
+  Dashboard `20261107-7` now surfaces SLA pipe board status dropout and a
+  missing CO-voltage entity while the board is online. HA's loaded SLA pipe
+  dropout automation sends an ntfy warning after two minutes offline and a
+  recovery after 30 seconds online. Configuration check passed and the
+  automation was `on`; no actual outage or phone receipt was tested.
+  Dashboard `20261107-8` now treats all 12 adopted VentSys boards as expected
+  online by default. Diagnostics has a per-board maintenance switch that
+  persists across HA restarts; new switches start off. Maintenance suppresses
+  that board's dropout ntfy alerts while retaining a blue dashboard indication
+  and does not suppress CO hardware fault or failsafe notifications. Eleven
+  boards use uptime availability in the new general dropout/recovery automation;
+  the SLA pipe board keeps its separate status-based rule. Local assets and HA
+  packages were deployed, HA configuration passed, all 12 helpers and the
+  general automation loaded, and a live Main duct valve 1 on/off switch cycle
+  updated the dashboard. Induced outage/recovery and phone receipt remain open.
+  On 2026-11-08 the owner found the SLA CO sensor's packaging cover still in
+  place and a possible stray wire strand bridging analog signal to VCC; both
+  were removed. At 23:09 GMT, HA showed CO voltage about 0.300 V, CO detection
+  off, CO sensor fault off, BME680 fault off, and the historical alarm latch
+  still on. The CO Rs/R0 ratio remains unknown because no clean-air baseline
+  has been captured. This is a plausible explanation for the earlier high and
+  unstable voltage, not yet a validated diagnosis or CO commissioning result.
+- On 2026-10-21, airflow identities were reassigned at the owner's request:
+  FDM is `CC:BA:97:F0:E3:DC` at `192.168.50.41`; the previous FDM board
+  `CC:BA:97:F0:D0:A0` is now Booth at `192.168.50.43`. Both run ESPHome
+  2026.4.5 with GPIO0 Hall pulse/GPIO1 WS2812. FDM was flashed over COM5
+  with verified factory-image hashes (build `08:50:23 +0100`, config hash
+  `0x5846da5e`). Booth was OTA-updated only after encrypted API MAC verification
+  (build `09:12:36 +0100`, hash `0x42ec9a4c`). The old Booth template's
+  GPIO10/GPIO9 mapping was replaced with the reused board's actual FDM wiring.
+  Both encrypted APIs independently confirmed names, MACs, IPs, HomeIoT and
+  live zero pulse/wheel readings. MQTT configuration reports distinct FDM/Booth
+  prefixes on TLS8883; broker delivery and physical pulse response were not
+  independently verified. The temporary router neighbor pin used to target
+  the old board was removed; the `.41` address conflict is resolved.
+  Both Builder YAMLs match canonical source. HA native device/entity adoption
+  and naming after the MAC/role change still need verification; do not treat
+  the old FDM device-registry record as proof of the replacement's adoption.
+  The separate planned FDM pipe-air sensor `.36` did not answer an API probe;
+  the installed SLA enclosure sensor `.32` did. Build artifacts/secrets remain
+  outside the vault in temporary staging. Physical commissioning remains open.
+- On 2026-10-19, SLA airflow ESP32-C6 (MAC `CC:BA:97:F0:D3:10`) was flashed
+  over COM9 with `ventsys_sla_airflow.yaml` (ESPHome 2026.4.5); flash hashes
+  verified. It joined HomeIoT at static IP `192.168.50.42`, with ESPHome API
+  port 6053 reachable, and HA adopted it in Garage as VentSys SLA Airflow
+  Sensor. HA showed live pulse rate 0 pulses/s, wheel speed 0.0 rounds/s,
+  Wi-Fi -68 dBm and matching firmware build/hash. The live Builder YAML hash
+  matches canonical source. Pulse generation and physical airflow response
+  remain untested; this is not commissioning acceptance.
+  Later that day the owner clarified that the installed SLA board uses the
+  same GPIO pair as FDM airflow: GPIO0 Hall pulse and GPIO1 external WS2812.
+  The original SLA YAML had GPIO10/GPIO9. Corrected source compiled and was
+  reflashed on COM9 with verified hashes; the Builder YAML hash matches the
+  correction and API port 6053 is reachable. Four-blade pulses per revolution
+  and low-flow LED timing have not yet been calibrated.
+  Main Duct Valve 2 (`192.168.50.52`) was restored to the canonical production
+  `ventsys_main_valve2.yaml` image over COM4 on 2026-09-26, with flash hash
+  verification. The three production position controls were subsequently
+  expanded from 40-60 to 0-100 and reflashed over COM4 with hash verification;
+  HA confirmed min=0/max=100/step=1 for position, open position, and closed
+  position. Open and Closed retain `restore_value: true`; their reported values
+  are Open 100 and Closed 0. At the operator's request, direct Valve Position
+  now starts at a **displayed** 100 on every boot (`restore_value: false`,
+  `initial_value: 100`); boot does not call its servo action. The 2026-09-26
+  COM4 flash passed hash verification, and HA reported Position 100 with live
+  telemetry after reboot. This display value is not evidence of shaft angle.
+  The operator later clarified that the earlier USB power removals were
+  intentional. On 2026-09-27 a controlled PC USB unplug/replug left the board
+  unavailable even though COM4 re-enumerated; one RST/EN press did not restore
+  HA. Moving the USB plug to a 5 V/2 A-or-higher wall charger brought the board
+  back without a serial reset. A second unplug/replug on charger power also
+  rebooted into HA without intervention (uptime 4.861 s at 09:49:10 UTC,
+  increasing thereafter), with Wi-Fi near -65 dBm and live feedback. This
+  implicates the PC USB path but
+  does not distinguish USB power delivery from data/control-line behavior.
+  A subsequent charge-only cable on the same PC port allowed HA uptime to
+  increase beyond two minutes with COM4 absent, making the data/control-line
+  path a stronger candidate while leaving cable and power differences open.
+  Independently, raw feedback fell to 0.075 V at 09:51:06 UTC before that
+  cable swap. The operator found the feedback lead disconnected and reseated
+  it with power off; raw feedback returned near 0.97-1.02 V and HA cleared the
+  disconnected warning by 10:01 UTC. Do not use the derived feedback
+  percentage as physical position until the replacement servo is calibrated.
+  The valve linkage remains off. The operator reconnected the orange GPIO16
+  servo signal lead before this second flash. Production feedback has varied
+  during bench testing;
+  the previous servo's calibration constants in the production YAML are not
+  valid for the replacement B2122. The actual wiring is the ESP32 D1 Mini USB
+  5 V/GND feeding the servo and LED through the documented splice/capacitor,
+  with GPIO35 feedback through the 10k/20k/100nF network. See the current
+  handoff for the unloaded test history. No new endpoint calibration was accepted.
+  At the earlier 2026-09-27 bench check, the board was powered off with the
+  orange GPIO16 servo signal lead disconnected. The free horn still moved
+  clockwise on charger power-up with that lead disconnected, so an ESP32 PWM
+  command is not required for the startup motion. The operator then tested a
+  second, unused feedback servo of the same model: it also moved on power-up
+  both with and without its feedback lead connected. A non-feedback servo did
+  not move in the comparison test. This rules out the external feedback lead
+  as necessary for the observed motion, but does not distinguish the feedback
+  servo's floating PWM input, internal startup behavior, and supply transient.
+  Current power and signal-lead connection after these swaps were not reported.
+  Further repeated cycles are paused; the linkage remains off and physical
+  position is uncalibrated.
+  The connectorized second ESP32 D1 Mini was then reassigned as Main Duct
+  Valve 1 (`ventsys-main-valve-1`, `192.168.50.51`) on 2026-09-27. Canonical
+  `main/configs/esphome/ventsys_main_valve1.yaml` now uses the tested Valve 2
+  control behavior under Valve 1 identity. The compiled image passed COM4
+  flash hash verification with the servo fully disconnected; HA's native
+  ESPHome integration entry was created and loaded, and Valve 1 entities
+  appeared. The same YAML was copied to HA ESPHome Builder with matching
+  SHA-256. The board has no LED and no feedback resistor/capacitor network.
+  Its servo signal and feedback leads remain disconnected; HA's feedback
+  disconnected warning and unknown derived feedback position are expected.
+  Direct Valve Position initially displays 100 but does not establish or
+  command physical position. Open and Closed initially show 50 on this new
+  board. Do not actuate Valve 1 or treat it as calibrated until its wiring,
+  supply, and physical travel have been checked.
+  In the subsequent bench check, two feedback servos remained motionless and
+  quiet while HA Valve Position commands changed from 100 through intermediate
+  values and 0 back to 100; HA uptime continued increasing, so these commands
+  did not reset the ESP32. The operator had connected the servo feedback lead
+  directly to GPIO35 without the protection network and then disconnected it
+  on request. The servo was later fully unplugged for supply measurements.
+  Meter readings were approximately 1.15 V at both the unloaded servo
+  connector and the ESP32 pin identified as 5 V, then 0.2 V at the pin
+  identified as 3V3 relative to the same reported GND. The operator then found
+  that TX and GND pins had been swapped. The earlier readings were therefore
+  taken against the wrong reference and are invalid as rail measurements; the
+  servo ground connection was also suspect. Correct the wiring with USB power
+  off, leave feedback disconnected until a suitable input divider is fitted,
+  and recheck unloaded 5 V/GND before further actuation.
+  On 2026-09-28 the operator reported that, after correcting the new-board
+  wiring, multiple servos now moved their free horns on power-up with more than
+  one power source. The extent, direction and signal-lead connection for these
+  new-board trials were not yet reported. This supersedes the earlier
+  "no movement" comparison made with TX/GND swapped; it does not by itself
+  isolate a floating signal from servo-internal startup behavior.
+  Later bench tests found that the feedback servo still stepped
+  clockwise at power-up with GPIO16 unplugged and a roughly 5.5 kΩ resistor
+  from its orange input to GND. It also stepped with a separate 5 V supply,
+  the same pull-down, and the ESP32 entirely disconnected. The operator chose
+  a normal three-wire servo for the board on COM4. On 2026-10-04, inspection
+  of its upload MAC (`ec:e3:34:b4:79:7c`) established that this board is HA's
+  existing Main Duct Valve 2, not Valve 1. It had temporarily been flashed
+  with the Valve 1 identity/IP (`192.168.50.51`); HA rejected the API
+  connection because its Valve 1 entry expects MAC `ec:e3:34:67:a0:18`.
+  The Valve 1 MQTT position/state topics nevertheless reported 100 while
+  that temporary image was running. The operator confirmed the board should
+  remain Valve 2. Valve 1's canonical YAML was restored to its previous
+  feedback configuration. Valve 2's canonical YAML was changed to remove ADC
+  feedback and mismatch/disconnect entities, retain its other controls, and
+  restore the last commanded Valve Position from ESP32 preferences with prompt
+  NVS writes. The operator states the valve is physically 100% open; 100 is
+  the first-boot display seed. A restored/commanded number is an estimate,
+  not measured valve position. The corrected Valve 2 image was compiled and
+  flashed over COM4 with hash verification; HA's existing MAC-bound entry
+  reconnected at `192.168.50.52` and showed Valve Position 100 with feedback
+  entities removed. A follow-up image delays the MQTT reconnect publication
+  until the client is ready: both the ESPHome position topic and the separate
+  retained VentSys state topic then reported 100. After return to wall-charger
+  power, HA remained online and showed 100. A commanded non-100 value followed
+  by power-loss restoration and physical travel calibration remain untested.
+  On 2026-10-05, with the normal servo linked to the valve, HA Close at the
+  former 1000 µs endpoint left the valve about 5° short of closed. Supervised
+  980 µs and 950 µs Close trials were quiet but still short. A 940 µs Close
+  trial was accepted by the operator as good enough; no strain or buzz was
+  reported for the prior two trials. The linked valve returns about 1–2°
+  toward open after the 940 µs PWM releases, leaving a minimal gap. A supervised
+  five-second hold kept it sealed while powered, and a second 200 ms 940 µs
+  pulse after a one-second release still allowed the same return. The operator
+  accepted this behavior and declined continuous holding torque. The temporary
+  double-close test control was removed. The canonical Valve 2 YAML and HA Builder copy
+  now set `min_level: 4.7%` (940 µs at 50 Hz), with the 2000 µs open endpoint
+  unchanged. Each image was flashed on COM4 to MAC `ec:e3:34:b4:79:7c`
+  with hash verification. The final image was compiled and flashed over COM4
+  on 2026-10-05 with hash verification; HA showed it online at `.52`, Valve
+  Position 0, and no double-close test button. On 2026-10-05, the operator
+  requested indefinite holding torque at intermediate positions for a later
+  loaded-pipe test while retaining endpoint release. A further image was
+  compiled and flashed over COM4 to MAC `ec:e3:34:b4:79:7c` with verified
+  hashes; HA showed build time 10:06:42 +0100 online at `.52` with Valve
+  Position 0. This image keeps PWM active for commanded positions 1–99 and
+  cancels a pending endpoint detach on each new command; commands to 0 or 100
+  detach after one second. No valve movement or loaded intermediate hold was
+  tested after that flash. After reboot, the saved number is display state:
+  servo PWM is not restored until another movement command. Physical position
+  remains unmeasured by the three-wire servo.
+  On 2026-09-27, a second ESP32 D1 Mini on COM4 was flashed with the exact
+  canonical production Valve 2 image for an isolated bench comparison. The
+  saved build YAML SHA-256 matched the canonical YAML; ESPHome verified the
+  flashed image hash. This new board has connectors and no LED, with no servo
+  or feedback network attached at flash time. Its firmware uses the same
+  Valve 2 network identity, so the original board must remain off while this
+  test board is powered. In the first new-board check, the operator connected
+  only servo 5 V and GND, left signal and feedback disconnected, and observed
+  no horn movement on power-up. Whether the same servo and USB power source
+  were used in the old-board comparison is pending confirmation.
 - Repository and live HA core files, VentSys packages, mode scripts and dashboard
   have matching SHA-256 hashes. The valve contract is direct `0`/`50`, HA
   configuration validation passes, and HA restarted successfully on that source.
@@ -156,6 +760,73 @@ while its replacement LXC is running.
   Advanced Camera Card CCTV views in HA.
 
 ## Frigate
+
+**October 10 memory incident — recovered:** failed camera-capture retries
+repeatedly connected/disconnected ZeroMQ configuration subscribers. Frigate's
+idle configuration PUB socket was not processing pending connection cleanup
+commands, retaining native connection allocations in the main process.
+Native allocation tracing, a live recovery experiment, and a separate-process
+reproduction confirmed this mechanism; it is not the upstream recording-manager
+or embeddings-manager leak. Two `ZMQ_EVENTS` polls on that publisher followed
+by `malloc_trim(0)` reduced main-process RSS from about 5.4 GiB to 593 MiB
+without restarting. Python camera caches were empty and stats history bounded.
+
+Before intervention CT 111 used 5.96/6 GiB, with no swap and only about 4 MiB
+ordinary file cache. It had two historical OOM kills (one confirmed September
+27), 23.46 billion file refaults and IO pressure near 99%. CT-local root reads
+mapped to `dm-8` / `pve-vm--111--disk--0` on the NVMe. A five-second host sample
+measured 11,784 reads/s and 459 MiB/s. Host load was 95/113/115 despite 21 GiB
+available RAM; most sampled blocked tasks waited in `folio_wait_bit_common`.
+October 8 kernel warnings also showed VM102 IO workers blocked over 122 seconds.
+NVMe SMART passed, with zero media/integrity errors and error-log entries;
+no matching NVMe timeout/reset or NFS-server failure was found in the bounded
+kernel-log check. This was demonstrated CT-local cache thrashing, not evidence
+of defective storage.
+
+Initial recovery gave CT111 **12GiB RAM**, subsequently reassessed to **6GiB,
+2 cores, no swap** after the lifecycle repair below. Its effective `memory.max`
+and `memory.high` were checked; Docker was restarted to refresh its cached
+memory denominator. All three deliberately disconnected cameras now have
+`enabled: false` in both canonical and live YAML, preserving their stream,
+detection, recording and credential definitions. The existing 0.17.1 image is
+pinned to digest `1724960349dad0bd2ae8ec884171a6fd5755a4dc242a0e66cadbda9c0e85c99b`.
+Frigate was recreated successfully; authenticated HTTPS still requires login,
+API responds and no disabled-camera capture/process workers start. Host
+one-minute load fell below 1 and blocked tasks to zero. Recordings remain
+mounted from the expected OMV NFS export. Camera/inference/recording acceptance
+is still deferred while hardware is disconnected.
+
+At 20:56–20:57 BST main RSS was about 324 MiB, Docker working memory about
+675 MiB/12 GiB, CT usage including usable file cache about 1.45 GiB, and
+a five-second CT-root sample measured zero reads. No new OOM kills occurred.
+An independent MQTT TLS client subscribed to Frigate availability and received
+`online`. HA and Homepage HTTPS returned 200 and Kuma returned its normal 302.
+Intel GPU utilization telemetry still logs `Failed to initialize PMU`
+(`Operation not permitted`); this is separate from the proven retention issue.
+Actual camera GPU decode/inference remained untested in this initial disabled-camera recovery state.
+Final 20:59 BST check: healthy, zero Docker restart count, about 678 MiB working
+memory and host one-minute load 0.19. Compose matches source; Frigate schema
+passes and config structures match after masking host-only RTSP userinfo.
+
+Subsequently deployed a tracked local lifecycle overlay on the pinned image:
+`configs/frigate/patches/config_updater.py`. One owner thread creates, polls,
+sends and closes the publisher socket; bounded synchronous requests serialize
+API/MQTT multipart sends, with idle native cleanup every100ms. Three functional
+tests and3600-reconnect isolated tests passed without forced trimming. The live
+publisher handled12000 reconnects with only1.6MiB main RSS growth.
+A separate network-isolated three720p/10fps camera test ran OpenVINO GPU
+inference and H264 recording at~1.2GiB working memory, recovered from two FFmpeg
+interruptions and remained healthy. This synthetic test does not certify real
+RTSP, VA-API or long-term physical-camera load. CT111 returned to6GiB rather
+than the emergency12GiB, retaining generous working-set/cache margin. Production
+cameras remain disabled pending physical reconnection/real-stream acceptance.
+The read-only Compose overlay survives recreation; port/retest or remove after
+proving an equivalent upstream fix when changing images.
+The 0.17.2 publisher source still lacks idle event polling; a version bump alone
+is not proof. Evidence and rollback files remain host-only in CT 111 at
+`/opt/frigate/incident-20261010/`. See the incident section of
+[[../install/phases/04-frigate|Phase 04]] and the bounded reproduction at
+`scripts/validation/frigate_zmq_idle_pub_repro.py`.
 
 - CT 111 runs Frigate 0.17.1 live on the shared Intel iGPU.
 - OpenVINO detector process uses the shared Intel iGPU.
@@ -213,6 +884,10 @@ while its replacement LXC is running.
 
 ## Local AI
 
+- October4 read-only `pct config 114` confirms allocated6 cores,28672 MiB RAM
+  and swap0. Older4-core/10–20 GiB guide descriptions are superseded; no
+  allocation was changed during this audit. Root-size/model facts below retain
+  their separately recorded evidence.
 - CT 114 runs llama.cpp `server-vulkan`, a dedicated llama.cpp embedding
   service, Open WebUI, Wyoming Whisper, Piper and OpenWakeWord.
 - llama.cpp serves `home-assistant-llm` from
@@ -240,7 +915,23 @@ while its replacement LXC is running.
 
 ## Docker host
 
-Live workloads: Bambuddy, AdGuard Home, Immich, Homepage, Dozzle,
+**GardenKeeper recheck, 2026-10-04:** read-only API health/readiness and
+authenticated status passed; ntfy and configured broker health returned 200.
+No notification was sent. Nextcloud is absent from both API/worker configuration,
+consistent with the existing undeployed Nextcloud state. Live API/worker containers
+lack Docker healthchecks; source VM Compose contains them but is not rolled out.
+Local audit repairs and CI remain undeployed. The current morning database dump
+restored in isolation, but its empty operational tables/media do not establish
+populated full-system recovery. See the GardenKeeper service manual for limits.
+
+Pocketry1.5.1 is live as of2026-10-18 at `https://homepage.home.local:8211/`,
+with the standard Homepage Tools card and Preview. VM103 serves the unmodified
+workstation-built frontend from `/opt/stacks/pocketry`, loopback8098, explicit
+bridge `10.240.33.0/24`. Hosting/HTTPS smoke checks and browser cutout3D passed.
+Projects remain browser-local; export editable backups. Phone ACL8211 and
+physical fit remain unverified. See [[../install/services/pocketry|Pocketry]].
+
+Live workloads: Pocketry, Bambuddy, AdGuard Home, Immich, Homepage, Dozzle,
 ntfy, SearXNG, Whoogle, Mealie, Grocy, Obsidian LiveSync/CouchDB, Watchtower
 monitor-only, GardenKeeper, Household Hub, Gridfinity Layout Tool, Recomp
 Tracker, MediaMTX, the staged Troubleshooting Dashboard and Telegraf.
@@ -254,7 +945,7 @@ Authenticated publish/read, unauthenticated denial, live H.264 relay and a
 decodable NAS recording passed on 2026-08-27; synthetic acceptance files were
 removed afterward. Automatic recording deletion is disabled pending an owner
 retention decision.
-The read-only Troubleshooting Dashboard is staged at
+The Troubleshooting Dashboard is live at
 `http://192.168.20.102:8094/` on explicit bridge `10.240.32.0/24`. Its host
 bind and IPv4 `DOCKER-USER` policy allow Management VLAN `192.168.10.0/24` only.
 The September10 deployment verified the evidence-age update with a fresh
@@ -263,12 +954,59 @@ checks. Historical stop/start rollback passed August25; September's prior image
 is retained but that rollback was not exercised. A pre-existing IPv6 Tailscale
 RETURN rule for8094 contradicts the earlier blanket-denial description; the
 current publication is IPv4-only and bridge IPv6 is disabled. Reconcile that
-rule before any IPv6 publication. Owner-approved Homepage Tools placement is
-live at `https://homepage.home.local/portal-preview/troubleshooting/`; existing
+rule before any IPv6 publication.
+
+October2 at21:21 BST: the live bind is still `192.168.20.102:8094`, its bridge
+still has IPv6 disabled, and the IPv6 RETURN/DROP pair remains at rules32/33
+with zero counters during inspection. Host IPv4 HTTP returns200. Windows IPv6
+times out and monitoring VM102 fails to connect; those failures do not prove
+the full audience-path deny policy. An isolated-tested explicit8094 IPv6 DROP
+is prepared in local source only. Live reconciliation/persistence and client
+acceptance remain open; see the [[../procedures/troubleshooting-dashboard-ipv6-publication-guard|IPv6 guard]].
+Owner-approved Homepage Tools placement is live at `https://homepage.home.local/portal-preview/troubleshooting/`; existing
 Homepage clients can use the fixed HTTPS path without a new DNS alias. Proxmox
 SSH was authorized September14; a dedicated snapshot collector is installed,
 and September15 required evidence validation and real-file browser import passed. The [written walkthroughs](../troubleshooting/diagnostic-walkthroughs.md)
 retain offline diagnosis and Mermaid links alongside the app.
+The September30 update expanded the deployed catalog to 37 routes, including
+ten recurring-incident investigations. Search covers check instructions and
+exact errors; `#route=<id>` and Copy route link share the selected investigation
+without notes/evidence. P1S guidance now reflects commissioning and FTPS990.
+The offline companion has 32 extended routes. Twenty model tests, all local
+route selections and live desktop/mobile checks passed; this remains an
+guide whose imported signals remain independent of live tools. October11 adds Resource Health and bounded connection tests; manual route signals still require their stated evidence.
+October11 Resource Health is live in this app and linked from Homepage Monitoring
+at `https://homepage.home.local/portal-preview/troubleshooting/#resource-health`.
+The main alert collector stays on Proxmox. An independent minute publisher uses
+a source-restricted, forced-command key to send metrics-only JSON to VM103;
+VM103→Proxmox SSH remains blocked. A128MiB-capped unprivileged Python service
+serves a Unix socket mounted into the existing container, without a new port.
+The page displays host/guest usable memory, CPU, disk/pressure/OOM, stopped
+inventory, incidents, freshness/coverage and queued/failed notification delivery.
+Five-minute-old evidence is stale. Grafana/ntfy links provide history and alert
+navigation; no new time-series integration was added.
+Buttons and a diagnostic input support fixed-target ping, system DNS lookup,
+allowlisted TCP ports and fixed HTTP health endpoints from VM103. Two concurrent
+jobs,20checks/minute, bounded time/output and same-origin POST protections apply.
+Guided TCP steps link to these tests; copied incident reports include live summary
+and tab-local test output. No arbitrary shell or remediation is exposed. Twenty
+model tests,10 API tests, live HTTPS tools, guided-route desktop/mobile checks and
+API restart/socket continuity passed. Runtime/rollback details are in
+[[../../apps/troubleshooting-dashboard/README|the troubleshooting service manual]].
+The October11 troubleshooting extension adds TLS inspection/trust/expiry for
+Homepage, HA, Frigate and Vault, nine sequential/cancellable diagnostic bundles
+covering all37 investigations, and a30-day/1,000-event SQLite timeline on VM103.
+Monitor observations, accepted delivery and requested-check summaries are
+retained; user notes/imports and full transcripts remain tab-local. Event links
+open existing Infrastructure Fleet/Central Logs dashboards around±10minutes.
+Twenty-eight backend tests and live desktop/mobile extension flows passed.
+The actual Home Local CA lacks the key-usage extension required by strict
+Python3.13 validation(code92). The UI shows this warning separately from legacy
+chain/hostname/date verification, which passed for all four HTTPS targets.
+Public CA copy `/etc/troubleshooting-api/ca.crt` is root-owned; no private key is
+shared. Planned trust-preserving CA maintenance remains open in
+[[../procedures/ssl_tls_guide|the TLS guide]]. Runtime database, operations and
+selected rollback are documented in the troubleshooting service manual.
 Homepage is the central `Home Operations` navigation portal at
 `https://homepage.home.local/`, using a `Home Local CA` certificate. The former
 `http://192.168.20.102:3001/` endpoint remains live for rollback. Its Home,
@@ -279,10 +1017,35 @@ expandable resource statistics. The header aligns the Home Operations title,
 search, Portal runtime resources (the Homepage container, not host-wide CPU or
 memory) and date/time, while Home starts with the reference links. Portal cards
 use 50% translucent, elevated glass surfaces.
+Tailscale remains in Home's Reference Links; its duplicate Infrastructure card was removed on 2026-10-11.
 Each card also exposes a visible Preview action that opens an inline embedded
 workspace below the active tab's portal cards, with working Reload, Close and
 normal-link `Open tab` controls. Every configured service is attempted in the
 iframe; Open tab remains the safe fallback if a target declines framing. The
+cards with a routable application endpoint also expose a `Direct` action that
+opens the same fixed HTTPS route as Preview in a separate tab, preserving
+paths and query strings. Raw LAN destinations are confined to management
+runbooks rather than mobile navigation. Vaultwarden remains
+proxy-only because its raw listener is intentionally bound to loopback, and
+status-only backend cards have no navigation action.
+The Home Assistant `:8188` wrapper permits its own origin as an intermediate
+frame ancestor in addition to the explicit outer Homepage origins. This keeps
+the allowlist narrow while allowing HA's nested authenticated app ingress, such
+as ESPHome Device Builder and File Editor, to render inside the HA preview.
+Preview URLs also inherit the outer Homepage hostname: IP-based Homepage access
+uses IP-based proxy previews, while `homepage.home.local` access retains that
+hostname. This same-site pairing is required for Home Assistant's strict
+Supervisor ingress cookie and avoids intermittent add-on `401` responses.
+
+September 30 access repair: standalone `Direct` now follows the same fixed
+HTTPS routing as Preview. Bambuddy browser/PWA uses proxy `8207`; native
+Bambuddy Mobile retains Tailscale Serve `8181`. Nginx's old `8181` listener is
+LAN-address-only, removing a confirmed wildcard/Serve bind conflict. The
+tracked Homepage access-contract test must pass before navigation/listener
+deployments. Split DNS and certificate-verified representative proxies passed;
+the owner confirmed general phone mobile-data navigation works. Grocy's
+remaining raw-backend redirect was separately repaired with a proxy Host/port
+fix and the owner confirmed it works. A controlled reboot drill remains separate.
 workspace is a sibling immediately after the complete card grid, closes before
 tab changes, is margin-bounded and acts as a splitter/work area rather than a
 popup. On 2026-07-26 its responsive desktop and mobile heights were doubled,
@@ -400,7 +1163,10 @@ respectively; their Homepage status dots are healthy.
 Its local network SVG now has a slow background and ambient-glow drift; both
 animations are disabled for `prefers-reduced-motion`.
 Mermaid Viewer is live at `http://192.168.20.102:8092/` and is generated from
-the 11 canonical project diagrams. It supports search, deep links, pan, zoom,
+the canonical project diagrams. `main/apps/mermaid-viewer/` is its only
+repository source tree: `src/` is editable source, `dist/` is the single
+checked-in release artifact, and the colocated release command packages,
+verifies, checkpoints and deploys the complete stack. It supports search, deep links, pan, zoom,
 fit, 100% view, fullscreen, source inspection and an adaptive full-width
 layout in both direct and embedded views. Its dark canvas, controls and panels
 use elevated glass surfaces over a subtle technical grid and network glow.
@@ -425,7 +1191,33 @@ workout tracking, with the fixed Homepage HTTPS proxy at
 `configs/docker-host/stacks/recomp-tracker/`, its Docker bridge is explicitly
 allocated as `10.240.31.0/24`, and its firewall permits only management, LAN
 and Tailscale sources. Its HTTP endpoint returned `200` during the 2026-08-19
-reachability recheck.
+reachability recheck. On 2026-10-10, frontend release r14/v33 added local
+English nutrition-label photo OCR with review and persistent collapsible
+Diet/Food library sections (browser/device preferences); it fixes split-line
+calorie extraction, reduces the language download by about 82%, reuses prepared
+workers and corrects root service-worker scope for OCR caching. The container
+and database integrity checks passed; direct HTTP and Homepage HTTPS mobile
+browser checks proved reload persistence and synthetic-label OCR without
+production writes. Real packaging and phone-camera performance remain
+unverified. Release image, checkpoint and rollback are recorded below as part
+of the current service state.
+On 2026-10-13, r15/v34 corrected Diet totals for archived quantity-based
+constants, which must use their recorded g/ml amount rather than a 100g
+snapshot. A Diet day now visibly lists any archived constants that remain
+checked and permits a deliberate per-day removal while retaining the audit
+snapshot. The healthy service uses
+`recomp-tracker:release-r15-20261013`
+(`sha256:1af9a1c40438448979cd064f2c6071c45c190481208797c8c989fc7b03b783c6`);
+the pre-correction checkpoint is
+`/opt/stacks/recomp-tracker/data/recomp-pre-archived-constants-20261013.db`.
+On 2026-10-19, r16/v35 added date-specific custom one-time meal estimates:
+description, inclusion tick and manual calories/protein/carbs/fat. These count
+only for their selected day, never create a Food Library record and are not
+copied into a new day. Backend validation bounds their shape and values. The
+healthy service now uses `recomp-tracker:release-r16-20261019`
+(`sha256:86608efd4836d0cafd7349b4ccc3794de5a32d47000f6c55385f255c15f3f521`);
+the pre-update checkpoint is
+`/opt/stacks/recomp-tracker/data/recomp-pre-one-time-meals-20261019.db`.
 VM 103 has a 64 GiB virtual disk and 8 GiB RAM. On 2026-07-13 both app stacks were rebuilt from verified source,
 their scoped HA credentials were rotated, the Hub database was baselined at
 Alembic revision `20260617_0001`, and authenticated assistant probes passed.
@@ -465,6 +1257,17 @@ On 2026-07-29 OMV gained a dedicated `media` export for the populated
 mounts it at `/mnt/omv/media` with a persistent systemd automount. The dedicated
 `media-service` identity (`1007:100`) passed create/read/delete validation in
 the new isolated library and staging roots; no legacy media path was changed.
+
+On 2026-09-28, the Windows `Y:` (`NAS`) and `Z:` (`14tb`) SMB session was
+authenticated as OMV `nasadmin`. Both shares allowed writes, but existing
+filesystem ACLs denied this account writes in parts of the trees, including
+`14tb/Media/study & work/Courses/New`. The `nasadmin` ACL now grants read/write
+on existing files and traversal/write on directories throughout both share
+roots, with default ACLs for new descendants. Ownership and other named ACLs
+were retained. OMV-side create/write/delete probes as `nasadmin` passed at both
+roots and at `Courses/New`; a Windows Explorer write recheck is still pending.
+Pre-change ACL backups are on OMV at
+`/root/acl-backups/{14tb,NAS}-20260928T162931Z.acl.gz`.
 
 The first media foundation is live on docker-host:
 
@@ -537,6 +1340,11 @@ registry mirror and Node-RED remain decision-gated candidates.
 ## Monitoring
 
 - Uptime Kuma, InfluxDB, Grafana and Telegraf are live on VM 102.
+- Bambuddy Prometheus-format metrics are collected locally on docker-host by
+  host-networked Telegraf through `127.0.0.1:8000/api/v1/metrics`, written to
+  the existing `dockerhost` InfluxDB bucket, and presented by Grafana's
+  provisioned `Bambuddy Metrics` dashboard. This adds no Prometheus server or
+  inter-VLAN metrics exposure.
 - Proxmox, HA, docker-host, DNS, core apps and local-AI endpoints are monitored.
 - Alert routing through ntfy exists for configured Kuma monitors. Grafana also
   uses an authenticated `ntfy Monitoring` webhook as its default notification
@@ -569,6 +1377,15 @@ registry mirror and Node-RED remain decision-gated candidates.
   Tailscale Serve HTTPS at `https://docker-host.tail7012a0.ts.net`; the
   Homepage proxy binds both its LAN and Tailscale address on port 443; Tailscale
   Serve continues to own its separate MagicDNS endpoint.
+- October11 mobile resource-alert acceptance failed: ntfy accepted both labelled
+  test messages at20:55:15 BST, while the owner received neither on mobile data
+  with Tailscale connected. Its ntfy subscription was disconnected; server
+  statistics showed zero subscribers. Tailnet HTTPS8444 health passed normal
+  certificate validation on docker-host and subscriber ACLs remained correct.
+  Phone connection-error diagnosis and background delivery proof remain open;
+  server acceptance must not be presented as working phone alerts. Details:
+  [[../install/services/ntfy|ntfy manual]]. CA migration is prepared in the TLS
+  procedure, with embedded MQTT trust dependencies and Frigate deferred.
 - The live docker-host app-data job now snapshots ntfy's `user.db` and
   `cache.db` through SQLite's backup API. A fresh NAS run and temporary restore
   smoke on 2026-07-29 passed integrity checks for both databases.
@@ -618,6 +1435,18 @@ registry mirror and Node-RED remain decision-gated candidates.
   The change was saved to switch startup configuration. Live validation showed
   cameras on ports 2-4 at approximately 10 fps, including recovery of the gate
   camera at `192.168.30.22` after correcting port 4 and cycling only its PoE.
+- On 2026-09-27, router `lan5` gained tagged VLAN 10 while retaining untagged
+  VLAN 1 as its recovery PVID. The admin PC's Realtek Ethernet NIC uses VLAN ID
+  10 and renewed DHCP to `192.168.10.132` with router/DNS `192.168.10.1`;
+  source-bound Ethernet ping and SSH to the router passed. `lan3` remains the
+  VLAN 1/10/30/40 managed-switch trunk. The switch remains disconnected, but
+  OMV is directly attached to router `lan4` and answered a router-origin ping
+  on `192.168.40.50`. The PC's persistent Ethernet routes now cover
+  `192.168.20.0/24`, `192.168.30.0/24`, `192.168.40.50/32`, and
+  `192.168.60.0/24`; both Y:/Z: SMB mappings returned `OK`, Homepage HTTPS
+  returned `200`, and HA HTTPS answered on `8123`. Mullvad remains connected;
+  its DNS leak protection still blocks direct queries to router DNS for
+  `home.local` aliases while the VPN is active.
 - HA Supervisor mount `nas_backups` is active again and set as the default
   backup mount. Manual backup
   `post-switch-trunk-nas-backups-20260703-db-excluded`, slug `3e3b1ecb`,
@@ -665,7 +1494,8 @@ registry mirror and Node-RED remain decision-gated candidates.
   camera, remaining motion/zone tuning, and later AI-rule decisions.
 - Most VentSys physical hardware, remaining ESPHome adoption and full safety
   acceptance testing.
-- P1S details and HA Bambuddy package deployment.
+- P1S camera acceptance and any physical safety-interlock expansion beyond the
+  present telemetry, dashboard and notification baseline.
 - Same-origin HTTPS/reverse proxy for embedded monitoring views. HA native
   HTTPS is live, but Grafana/Kuma remain direct HTTP links rather than embedded
   iframes.
@@ -678,9 +1508,360 @@ registry mirror and Node-RED remain decision-gated candidates.
 
 ## Rollback and backup warning
 
+October2: recurring Household Hub cold-checkpoint source, ten isolated tests and
+service/timer templates are prepared. Live read-only preflight passes for the
+expected NAS mount and all five current containers/three owned volumes. The job
+is not installed/enabled and no new live checkpoint was made. September15 remains
+one-off proof; [[../procedures/household-hub-coordinated-backup|manual generation, restore and outage scheduling]]
+remain maintenance-gated acceptance work.
+
 Migration snapshots named `pre-lxc-migration-20260620` exist for retired VM 101
 and VM 104. Daily Proxmox jobs now retain 7 daily and 6 monthly generations on
 `omv-backups`; projected retention fits the current md0-backed storage after
 the 2026-07-05 capacity check, and both CT 111 and CT 114 have manual successful
 proof after the `tmpdir=/var/tmp` change. Consult
 `scripts/backup/backup_strategy.md`.
+
+## Desktop SSH management — 2026-09-30
+
+### Admin desktop routes — verified 2026-10-20
+
+Five persistent project routes use gateway `192.168.10.1`, metric1:
+`192.168.20.0/24`, `192.168.30.0/24`, `192.168.40.50/32`,
+`192.168.60.0/24`, and the owner-added `192.168.35.200/32` printer exception.
+The selected printer path is Ethernet; TCP8883/990/6000 passed with Mullvad
+connected. Windows events show HomePrinters Wi-Fi connected October19 and
+disconnected October20 at08:37, explaining previous direct access without a
+saved printer route. Exact last successful Orca connection remains unknown;
+application acceptance is pending. Inventory and recovery commands:
+[[windows-admin-pc-routes|Windows admin PC project routes]].
+
+Root key authentication from the Admin Windows desktop is verified with `ssh -o BatchMode=yes omv-lan`. The existing local SSH alias targets `192.168.40.50` as root using the desktop OMV Ed25519 identity. Its public key was added to `/root/.ssh/authorized_keys`, preserving existing entries; directory/file permissions are 700/600. No SSH service, password-login policy, firewall or SMB settings changed. Keep private keys and passwords outside tracked files. Live hostname returned `omvnas`. For transfer diagnostics, `vmstat` and `/proc/diskstats` are available; `iostat` is absent.
+
+### Validated SMB backing devices — 2026-09-30
+
+Live Samba configuration and lsblk confirmed `NAS`/Windows Y: on filesystem UUID `fdb92af7-371c-4793-8d98-ff47e961498d`, backed by RAID1 md0 (`sda` + `sde`); `14tb`/Windows Z: is filesystem UUID `a216b8bb-708e-4342-a5be-a415cdc465fa` on separate disk `sdd1`. RAID status was `[UU]` with no rebuild reported. Device names are observational and can change across boots; use UUIDs for durable identification.
+
+October20 read-only revalidation: Y remains healthy two-member RAID1.
+The same Z filesystem UUID is now observed on `sdc1`, still standalone ext4.
+All four 16 TB disks are present; the fourth (`sdd1` at observation) is unmounted
+NTFS with only Windows housekeeping found by recursive listing. All four SMART
+health assessments pass, with zero pending/reallocated/offline-uncorrectable
+sectors. Requested Print/Media share renames, flattening and Calibre relocation
+have not been executed. New Media staging began October21 as recorded below. See
+[[../audits/2026-10-20-storage-migration/README|storage migration audit]]
+for evidence, dependency coverage and execution gates. The owner subsequently
+accepted the temporary single-copy interval and waived an independent full-data
+recovery copy. Verification and exact-device safeguards remain required.
+
+October20 at approximately 14:38 BST: started the fourth disk's extended SMART
+self-test using stable identity `ata-WDC_WD160EDGZ-11B2DA0_3HG402GN`; running
+status confirmed. The original completion estimate was October21 22:20 BST.
+**October21 14:38:54 BST: confirmed completed without error**, exact serial
+`3HG402GN`. New extended-offline log entry #1 has 00% remaining, lifetime
+27578 hours and no failing LBA; execution status 0 and overall SMART PASSED.
+Reallocated sectors/events, pending sectors, offline-uncorrectable sectors and
+CRC errors all remain zero; temperature 36 C. At13:41:48 BST the test was still
+running with10% remaining and no logged tests, distinguishing this new result
+from older tests. Exact completion time lies between those observations.
+Evidence: audit `smart-extended-completion.json`. Completed-test heartbeat was
+deleted; that completed test is no longer polled. Subsequent migration progress
+is recorded below.
+
+**October21 about15:48 BST: migration started.** Fourth-disk partition1, serial
+`3HG402GN`, now backs RAID1 `/dev/md/media` (currently md127), MD UUID
+`fd8de871:2fcb43a8:d97ff800:008ccb6b`, with one intentionally missing member.
+New ext4 label `Media`, UUID `a8843f98-c937-48a8-aefa-4cd0fb80667c`, is managed/
+mounted through OMV at its `/srv/dev-disk-by-uuid-...` path. OMV mdadm/fstab/
+initramfs deployment succeeded. Original Z is unchanged on serial `3GHV81YE`;
+Y md0 remains healthy `[UU]`. No share rename or service cutover has occurred.
+Warm Z copy ran independently under `household-storage-copy-z-20261021.service`
+into private `.household-migration/household-20261021/stage-z/` on new Media.
+State: `/root/household-storage-state-20261021/`; private OS checkpoint/tools/
+fresh inventory: `/root/storage-migration-preflight-20261021T144508Z/`.
+Fresh inventory has1,139,650 entries and only the same five reviewed merges.
+Existing services/SMB stay live. **October23 09:06 BST confirmation:** warm copy
+finished October22 23:30:54 BST, systemd exit0 and active/exited/MainPID0.
+Session journal records code0, role z, final:false. Rsync transferred
+357,772 regular files,8,381,330,552,140 bytes;402,234 total entries, zero deletions.
+Target UUID confirmed; available space7.52TB. Original Z remains present, md0
+healthy `[UU]`, new Media intentionally `[U_]`, no matching kernel I/O/filesystem
+errors since preflight. Evidence: audit `warm-copy-completion.json` and private
+copy log in the session state directory. Completed monitor `check-media-warm-copy`
+deleted. No cold verification or service/share cutover yet; next is quiesced
+reconciliation, cold sync and full verification under the runbook.
+**October23 09:19:55 BST:** authorized cold runner
+`household-storage-cold-z-20261023.service` started: stale-copy reconciliation,
+final rsync and full SHA256/metadata verification, failing closed on errors and
+checking original Z remains read-only before each step. No publication/cutover.
+Original Z and its three bind aliases confirmed read-only at both VFS and
+filesystem layers. VM103 Watchtower plus Calibre-Web/Jellyfin/Atsumeru/
+qBittorrent/MediaMTX stopped, MediaMTX backup timer paused; original media NFS
+cleanly unmounted and its mount/automount runtime-masked. Atsumeru required
+graceful SIGTERM to its verified Java child because PID1 shell did not forward
+the Docker stop signal; no SIGKILL. OMV Filebrowser/TransferPortal stopped and
+runtime-masked. Private before-state/config and stopped Filebrowser checkpoints
+on both hosts: `/root/household-storage-cold-z-20261023/`. Services remain paused
+and original Z read-only pending verified namespace/cutover steps. Y filesystem
+unchanged. Hourly `check-media-cold-sync-and-verification` watches terminal proof/
+errors quietly. Cold verification may run into tomorrow. Remove old media fstab
+entry before clearing VM103 mount masks; unmask Filebrowser only after its new
+view is checked. Preserve stopped-state records when selecting services to resume.
+October24 15:55 BST: owner-authorized continuation queued under
+`household-storage-layout-z-20261024.service`, waiting for cold-unit exit0 and
+explicit staged-verification completion. Then it checks freeze/array/writers,
+uses the tested flatten-z/publish-z rename journal, and verifies the final mapped
+layout with SHA256/metadata. No service activation, share changes or disk erase.
+Logs/runner/command: `/root/household-storage-layout-z-20261024/`; six-hour waiting
+deadline and no restart. At queue time8.29TB checked, zero issues, incomplete.
+Monitor now follows both jobs through terminal final-layout proof. Original Z
+stays read-only, services paused; stop layout unit before any thaw/recovery.
+NFS/SMB/Compose cutover and application gates remain pending.
+**October25 16:37 GMT terminal confirmation:** final Z layout passed at
+09:46:47 GMT with402,233 entries and zero issues; complete terminal record and
+sealed SHA256 receipt in `final-z-5cd23de76ddc418a81e7f557f42ce2b2.jsonl` under
+the session state directory. SHA256:
+`20fee82a1e9b2c88196f6ea5090c3e7a73723ec31e22c9ebc510a1b622d5f71a`.
+Staged copy passed October24 16:11 BST with402,234 entries/all8.38TB; journaled
+flatten/publish completed16:12 BST. One redundant Media wrapper is excluded from
+the published namespace. Calibre now resides at new Media root/calibre-library.
+Both cold/layout jobs are active/exited, MainPID0, exit0. No activation/share
+switch: original Z/all bind aliases remain read-only; affected writers and
+services stay stopped/runtime-masked. md0 `[UU]`, new Media intentionally `[U_]`,
+7.52TB available; no matching kernel I/O/filesystem errors. Monitor
+`check-media-cold-sync-and-verification` deleted after terminal result. Evidence:
+audit `final-z-completion.json`. Next: reviewed scoped OMV/NFS/SMB/Compose
+cutover and application checks before original-Z retirement. Recovery waiver
+unchanged. Times use GMT after the October25 UK clock change.
+**October25 19:49 GMT cutover/member-add supersedes the preceding paused state:**
+Z now maps `\\192.168.40.50\Media` on new ext4 UUID
+`a8843f98-c937-48a8-aefa-4cd0fb80667c`; old14tb/broad `/export/media` retired.
+Five scoped VM103 NFS mounts resolve to that UUID. Calibre-Web host path is now
+`/mnt/omv/calibre-library:/books`; integrity ok,10548 books/11031 formats.
+Five media containers recreated/running; qBittorrent VPN Mullvad-recognized,
+monitor-only Watchtower and MediaMTX backup timer restored. Owner confirmed
+Calibre-Web/Atsumeru library/login and qBittorrent login. Automated credential
+probe returned401, no password changed or successful API probe claimed.
+Scoped writable/read-only boundaries pass; synthetic MediaMTX authenticated
+record/view/decode and completed recording decode pass. Jellyfin has no users;
+household playback not claimed. Filebrowser remains paused/runtime-masked until
+its composite view; TransferPortal/all four legacy bind units stopped/disabled.
+Original Z passed unchanged-generation proof for402234 entries, then all old
+references/aliases were retired and filesystem cleanly unmounted. Exact serial
+`3GHV81YE` partition1 was rechecked, signatures removed and added to Media MD
+UUID `fd8de871:2fcb43a8:d97ff800:008ccb6b` (md127). It is rebuilding from
+serial `3HG402GN` partition1; no independent original-Z rollback copy remains,
+as explicitly waived. md0/Y remains healthy `[UU]`, Y stays NAS until Print
+stage. mdadm/initramfs persistence succeeded. Initial mirror ETA about22h is
+only an estimate. Do not stage Y until new mirror degraded=0/sync_action=idle.
+`household-storage-stage-y-20261025.service` enforces that gate, then ONLY warm
+copies Y except Print, preserving Y sources. Logs `/root/household-storage-y-stage-20261025/`;
+quiet hourly monitor `check-media-rebuild-and-y-staging` follows both stages.
+
+**October27 09:05 GMT supersedes the preceding rebuild/queue status:** Media
+mirror is `[UU]`, degraded=0/sync_action=idle with both expected members; Y md0
+also `[UU]`. Runner confirmed healthy mirror at01:00:10 GMT and started Y warm
+staging, then failed at02:51:49 GMT: rsync24 because seven live source backup
+files vanished (six Proxmox dump/log files and one Immich database backup).
+Controller correctly refused success; no cold/full verification or Y namespace
+change is implied. Both Media disks pass SMART with sector/CRC attributes zero,
+no new kernel storage errors, target6.3TiB free. Y sources and Print layout
+remain in place; no retry or cutover performed. Private copy log:
+`/root/household-storage-state-20261021/copy-y-6b3aa73e0e5143c083a75b66995f7cfa.log`.
+Terminal monitor removed. Resume with backup-retention/writer and conflict review
+before planned frozen-source reconciliation/final sync/full verification.
+Owner's independent full-data recovery waiver remains in force.
+
+**October27 about09:14 GMT continuation:** owner authorized resumption. Warm-only
+retry `household-storage-warm-y-retry-20261027.service` is running against the
+same Y source/private stage; no competing copy, writer shutdown or namespace
+change. Proxmox02:00 backup/prune overlaps the failed pass. Refreshed live scan
+found only five approved directory merges, no new collisions/read errors
+(Y non-Print10233 entries, current Media402235). Evidence and retry log under
+`/root/household-storage-y-stage-20261025/`. Full frozen-source acceptance remains
+pending after warm staging.
+
+**October27 23:19 GMT retirement complete supersedes private-retention notes:**
+Y exact retained-source job removed10233 verified entries/empty wrappers at
+23:18:29 GMT, status0. Reviewed312 sealed expired/superseded staging backup
+entries and8 empty staging directories removed23:19:09 GMT, status0. Live roots
+untouched, both private migration trees absent; Y about4.4TiB free. All52 live
+deltas accounted for by merges/fresh backups/Immich markers/Frigate parent.
+Operational text paths fixed (vault helper, twelve Hub scripts, seven GW audit
+text files); generated monitoring refreshed. Both mirrors healthy, mappings and
+services live, Telegram deletion preserved. Exact evidence in retirement-review
+directory; final-reference-disposition.json records historical/noncanonical and
+native-binary limitations. Known synthetic/SMB fixtures retained; no current
+backups deleted. No further migration jobs/monitors pending. Offline/native
+embedded-link checks remain a client acceptance limitation.
+
+**October27 20:43 GMT retained proof terminal:**10233 retained entries and
+701454752741B rehashed, zero issues; completed20:42:30 GMT/unit exited0.
+10181 live destination generations unchanged,52 changed for review, none missing
+or type-changed. No deletion. Both mirrors/SMART healthy, no new kernel errors.
+Reference inventory finished7026 text files/five hosts with zero read errors;
+matches still need disposition. Private evidence in retirement-review directory
+below; completed monitor removed. Owner's `Y:\Models\Telegram` deletion is
+intentional and must not be restored; other unspecified deletions remain review.
+
+**October27 about19:40 GMT retirement review:** live shares/apps remain available.
+Read-only `household-storage-retained-proof-20261027.service` rehashes private Y
+originals against sealed receipt and records live destination changes separately;
+no deletion. Evidence `/root/household-storage-retirement-review-20261027/`.
+Refreshed local/five-host reference scan output private Windows directory
+`C:\Users\Admin\.codex\storage-migration-final-reference-20261027`.
+Retained originals/quarantines remain pending exact candidate review/disposition.
+
+**October27 about19:33 GMT live cutover supersedes paused state:** Y maps
+`\\192.168.40.50\Print`, Z maps Media; Print contents at Y root, no wrapper.
+Both SMB create/read/remove tests and owner Y/Immich/Filebrowser login access
+pass. Publish-y/flatten-print activated. All service/export aliases use new Media
+except Print root/composite Print bind on original healthy md0. Three scoped
+backup exports active; HA nas_backups/default restored, Proxmox omv-backups ID
+preserved. Media/Immich containers and Frigate CT111 healthy, Watchtower restored,
+backup jobs/timers/Bambuddy prior states restored. Filebrowser composite active,
+admin scope unchanged, actual UID994:100 preserved and UUID mount guard passes.
+TransferPortal retired. Fresh OMV/HA/VM103/MediaMTX/Proxmox backups passed;
+offline HA/OMV config restore, four app SQLite checks and full isolated CT111
+restore to never-booted CT105/config hash comparison passed; CT105 removed.
+Evidence `/root/household-storage-cutover-y-20261027/` (OMV/Proxmox), VM103
+`/root/household-storage-cold-y-20261027/isolated-app-restore/`. No camera recording
+or full HA booted restore claimed. Retained originals/quarantines remain private;
+final retirement/native embedded-path disposition still pending. Both mirrors
+healthy, independent recovery waiver unchanged.
+
+**October27 19:23 GMT terminal layout confirmation:** combined verification
+passed16:06:57 GMT,412464 entries/zero issues; report
+`final-combined-55c5f9af35a04df89d581bfa782d5201.jsonl` in migration state,
+SHA256 `664f314d8d650be27991ed38ed2060686062a71c3b9826b17528ff62d12e51cb`.
+Y originals retained privately (root-owned2700 .household-retained/session),
+Print children moved to Y root, wrapper removed only after complete journal
+proof. Y refrozen16:07:05 GMT; layout unit exited0, both mirrors `[UU]`.
+No retained data deleted. All maintenance/masks persist; share/client/config
+cutover and service/backup/restore acceptance still outstanding. Monitor removed.
+
+**October27 14:45 GMT layout in progress:** owner authorized continuation;
+publish-y journal prepare/apply completed, combined verification running under
+`household-storage-layout-y-20261027.service`. On success only, its guarded
+runner temporarily makes Y root controller-writable, retains originals privately,
+flattens Print and removes wrapper only after complete inode/empty proof, then
+refreezes Y RO. Export aliases stay VFS RO. No services/shares activated or
+retained data deleted. Logs `/root/household-storage-layout-y-20261027/`.
+All prior maintenance/masks/job pauses/HA mount detachment remain in effect;
+do not issue competing layout commands. Reviewed service cutover follows proof.
+
+**October27 14:26 GMT terminal cold-proof confirmation:** Y verification passed
+12:41:21 GMT,10234 entries/zero issues; fresh current Media identity baseline
+passed12:41:58 GMT,402236 entries/zero issues. Unit active/exited status0.
+Receipts under `/root/household-storage-state-20261021/`:
+`verify-y-a4c7e264801c47f9910fa96af026e108.jsonl` SHA256
+`c6713191e7ec270d8a058750a913b3eddc2a8c0f9121a75ddb41bf998a09733e`,
+`live-z-e2eb363549cc4a6a83814cca586f164f.jsonl` SHA256
+`f41a5554e7b4109601d336bc15a3e7b379bac5c006a49f7432d627478afa8927`.
+Reconcile sealed312 stale-stage entries privately, no deletion. Both mirrors
+healthy, Media degraded0/idle, SMART sector/CRC zero, no new storage errors.
+Y remains frozen and all recorded services/mounts/jobs remain paused. No Y
+publication or Print flattening; next reviewed section C cutover. Cold monitor
+removed. Baseline is identity proof, not fresh full-Media hashes/recovery copy.
+
+**October27 10:21 GMT cold Y maintenance:** unit
+`household-storage-cold-y-20261027.service` frozen audit passed only five merges;
+reconciliation/final copy exit0, full hashes running then snapshot-live-z. No
+publication/Print moves. Y root/all aliases VFS+FS RO; Media export aliases VFS
+RO, target root writable. smbd runtime-masked, OMV backup timer paused. VM103
+Watchtower/four Immich/five Media apps stopped; app-data/MediaMTX/Bambuddy timers
+paused, seven NFS mount+automount paths runtime-masked after clean unmount.
+Proxmox backup jobs/storage disabled temporarily, CT111 stopped/NFS unmounted.
+HA safety/Core live; NAS backup mount detached/default null, schedule unchanged
+daily03:00/14 copies. Restore saved mount/default only after retargeting. Private
+checkpoints/logs all four hosts `/root/household-storage-cold-y-20261027/`.
+Both mirrors healthy; recovery waiver unchanged. Services remain paused pending
+proof and reviewed cutover. Do not restore old source mounts prematurely.
+
+**October27 10:14 GMT terminal warm-retry confirmation:** retry finished09:25:21
+GMT, unit active/exited status0, session copy-finish y code0 final=false. Report
+`/root/household-storage-state-20261021/copy-y-9989cc20c5d444058ff7040fe7e4f84c.log`:
+10234 entries,701454752762B logical,254 regular files transferred, zero deletions.
+Both mirrors `[UU]`, Media degraded0/idle; both Media disks pass SMART with
+sector/CRC attributes zero, no new kernel storage errors,6.2TiB free. Monitor
+removed. Y originals/Print unchanged; cold final sync, full verification and
+publication remain pending. Owner's independent-recovery waiver is unchanged.
+Z private proof/config/member-add logs: `/root/household-storage-cutover-z-20261025/`.
+Live diagnostics rebuilt with scoped mount commands, nginx validates; prepared
+collector source updated but collector scheduling/shipping remains undeployed.
+Owned fixtures retained:531431B synthetic recording and17B hidden SMB probe
+`.migration-smb-probe-9772835e4ef34a609105a72164f5fcbb` at Media root; automatic
+approval review blocked hidden-probe cleanup with only “blocked by policy”.
+Next: healthy mirror/Y warm staging, then refreshed audit/cold proof/live-Media
+baseline before Y merge/retention/Print flattening. No Y original data moved yet.
+Warm success is not cold/hash/application acceptance. Do not repurpose original
+Z until cold sync, verification, final-layout and service gates pass. Degraded
+new Media `[U_]` is expected for this stage; do not confuse it with failed md0.
+
+October20 waiting-time preparation: guarded storage copy/rename/recovery tools,
+scoped NFS/backup/Filebrowser configuration templates and cutover runbook are
+ready for review; 75 Linux disposable tests pass (Windows 19 pass, 56 skips).
+The active Filebrowser database has one admin scoped to `/srv` + `/`; a
+network-isolated real-image fixture confirmed composite Print/Media binds work
+as UID1006. Hardware preparation/warm staging began October21 as above;
+remaining configuration deployment and application/backup/restore acceptance
+are pending.
+See the audit for evidence and
+`main/tools/storage-migration/cutover-runbook.md` for the execution sequence.
+
+October2 at21:30 BST: the prepared host-local JSON collector produced one-off
+read-only evidence for five disks, both expected UUID mounts, root capacity,
+md0 and four active NAS daemons. All disks report SMART passed,30–42 C, with
+no reported pending/uncorrectable/reallocated sectors. Lifetime CRC1 and a
+separate historical threshold bitmask32 remain warnings; no new fault is inferred.
+md0 has zero degraded members and idle sync action. Six isolated tests pass;
+collector scheduling, metric shipping and NAS dashboard acceptance remain open.
+See [[../procedures/omv-health-collector-preparation|source and deployment contract]].
+
+- October20: VentSys frontend `20261019-7` live: cyan Environment glow,
+  enclosure tops y263 and shared box bottoms y800 verified. Backend unchanged.
+  Grouped mode/state redesign requested and semantics being confirmed; see
+  `../procedures/ventsys-dashboard.md`. E2 again unavailable on browser observation.
+
+
+- October20 VentSys frontend `20261020-3` and operating-mode package are live.
+  Independent FDM/SLA Enclosure/Print/Purge intents and separate Booth compose
+  shared paths; revision/concurrency/manual-conflict guards apply in HA. Purge
+  levels2/4/6/8/10 request20/40/60/80/100%, strongest active request wins; physical
+  mapping remains uncalibrated. Review steps/physical-position fields removed,
+  labels enlarged. 38 Python +39 browser +24 model tests and HA config/template/UI
+  checks passed without actuator commands. ntfy rules remain proposed, phone
+  delivery and hardware acceptance open. E2 native unavailable; current entry
+  host is `.51` despite prior `.52` recovery claim, and `.52` did not answer two
+  HA-host pings. Canonical E2 MAC/IP unchanged. See service manual for rollback.
+
+
+- October27 E2 reporting recovered: desktop COM4, MAC `ec:e3:34:b4:79:7c`,
+  correct October10 firmware/hostname/topic and MQTT TLS at `.52` confirmed.
+  HA's stale `.51` host was corrected through authenticated Reconfigure;
+  persisted `.52` and native E2 branch0% on the unchanged dashboard verified.
+  Ping failure did not mean offline; do not diagnose MQTT filtering from the
+  router's generic WAN-block log prefix alone. No flash, firewall change or
+  valve command. Remote actuation/physical travel acceptance remains separate.
+  See dashboard manual for exact diagnosis and connection repair.
+
+- October27 Setup/test release20261027-1 is implemented and tested, but NOT LIVE.
+  39 Python +42 browser +24 model checks pass; valve-only reviewed subsets leave
+  fans/intents unchanged, with active-mode/fan/failsafe and concurrency guards.
+  Activation awaits attachable signed-in HA panel. Private prepared checkpoint
+  `/config/backups/ventsys-setup-test-20261027-193629Z/`; live remains20261020-3.
+  See dashboard service manual for exact resume/deployment/rollback steps.
+
+
+- October27 Setup/test release20261027-1 is now LIVE after the signed-in panel
+  was restored. HA config valid, all three script paths idle, resource version
+  saved and five asset/three package hashes verified. Available valve tests are
+  selectable; exact SLA targets/skips reviewed then cancelled without sending.
+  Normal modes retain full-path guards. Tests:39 Python,42 browser,24 model.
+  Private checkpoint `ventsys-setup-test-20261027-193629Z`; service manual has rollback.
+
+### OMV SMB recycle access — 2026-11-04
+Print and Media SMB bins retain files 30 days; unrestricted max size. Share extraoptions include `recycle:subdir_mode = 0770` so inherited Filebrowser ACLs are effective on new recycled directories. Existing recycle directory ACL masks were adjusted to give filebrowser access; this also activates other pre-existing named/group ACL entries. Backups before changes are on OMV at `/root/recycle-filebrowser-acl-20261104/` (ACL files and SMB share config). Samba deployment restarted smbd. Media disposable SMB delete then Filebrowser UI move restore passed; Print move restore tested as filebrowser OS identity. Newly created subfolder SMB deletion and service-identity restoration passed on both. Test folders remain at share roots. Restores for deleted files owned by other identities or inaccessible source files remain unverified; NFS and Filebrowser deletions bypass SMB recycle. Rollback: restore relevant SMB share extraoptions from backup through OMV, deploy Samba; restore ACLs with `setfacl --restore` using the matching saved ACL file after checking current state.
+
+### Windows development-tool storage — 2026-11-04
+Windows Admin user Conda config (`C:\Users\Admin\.condarc`) now prefers `K:\Documents\Cache Folders\conda\envs` and `...\conda\pkgs`, retaining C: fallback paths and existing voice310/facefusion environments. PlatformIO Core is fully migrated to the space-free `K:\Documents\Obsidian\home-automation-project\main\PlatformIO`: user `PLATFORMIO_CORE_DIR` resolves to that directory and `PLATFORMIO_PACKAGES_DIR` to its `packages` child, including tools, package cache, PlatformIO's virtual environment and the ESP-IDF dependency environment. The generated core is intentionally Git-ignored. On November5 the PlatformIO6.1.19 launcher was rebuilt at its existing version after the relocation, then `pio system info` and the global package inventory passed against this core (14 installed platform/tool dependencies); no PlatformIO, framework or toolchain versions were upgraded. A clean ESP-IDF/Arduino `ventsys-main-valve-1` rebuild completed from the K: core on November4, generating `firmware.bin` (1,139,344bytes) without using `C:\Users\Admin\.platformio`; no firmware was flashed. ESP-IDF rejects paths containing spaces, so the earlier `K:\Documents\Cache Folders\platformio` copy is not the active location. The original C: core was manually removed after this proof; restart VS Code/ESPHome or any open terminals so they inherit the new user settings. PlatformIO test junction `K:\PlatformIOCache` points at the earlier spaced folder and remains because automatic review blocked its removal; it is not the active package path. The Visual Studio temporary staging folder `C:\Users\Admin\AppData\Local\Temp\k1bdwnii` remains after the same review blocked deletion.

@@ -73,7 +73,7 @@ Write-Host "Profile: $Profile"
 
 # VLAN interfaces present
 foreach ($vlan in @(1,10,20,30,35,40,50,60,70,99)) {
-    Run-Check -Name "VLAN $vlan interface" -Command "ip -4 addr show br-lan.$vlan || true" -MatchRegex "br-lan\.$vlan"
+    Run-Check -Name "VLAN $vlan interface" -Command "ip -4 addr show br-lan.$vlan >/dev/null 2>&1 && echo VLAN_PRESENT_$vlan" -MatchRegex "^VLAN_PRESENT_$vlan$"
 }
 
 # DHCP scopes present
@@ -111,7 +111,7 @@ else {
 
 # DNS local host entries
 foreach ($dnsHost in @("homeassistant.home.local","docker-host.home.local","bambuddy.home.local","adguard.home.local","immich.home.local","homepage.home.local","dozzle.home.local","frigate.home.local","p1s.home.local","athena2.home.local","nas.home.local","omv.home.local","omv-nas.home.local","printers.home.local","nvr.home.local")) {
-    Run-Check -Name "DNS local mapping $dnsHost" -Command "uci show dhcp | grep -F `"$dnsHost`" || true" -MatchRegex ([regex]::Escape($dnsHost))
+    Run-Check -Name "DNS local mapping $dnsHost" -Command "uci show dhcp | grep -F `"'$dnsHost'`" || true" -MatchRegex ("'" + [regex]::Escape($dnsHost) + "'")
 }
 
 # DNS forwarding architecture

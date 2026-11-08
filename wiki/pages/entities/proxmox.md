@@ -3,7 +3,7 @@ title: "Proxmox VE"
 category: entity
 tags: [software, proxmox, virtualisation, hypervisor]
 created: 2026-04-07
-updated: 2026-08-25
+updated: 2026-10-10
 sources: [project-readme, proxmox-setup-guide]
 status: stable
 ---
@@ -29,7 +29,7 @@ VLAN-aware bridge (`vmbr0`). The Proxmox host itself sits on VLAN 10
 | 102 | monitoring | 60 | 192.168.60.10 | Running, Grafana/Influx/Kuma/Telegraf live |
 | 103 | docker-host | 20 | 192.168.20.102 | Running, docker-host services and metrics live |
 | 104 | llm-host | - | - | Stopped rollback VM |
-| 111 | frigate-nvr (LXC) | 30 | 192.168.30.20 | Running, three-camera Frigate live |
+| 111 | frigate-nvr (LXC) | 30 | 192.168.30.20 | Running, lifecycle repaired; reassessed to6GiB; disconnected cameras disabled |
 | 114 | llm-host (LXC) | 20 | 192.168.20.104 | Running, local AI/voice live |
 
 ## Backup
@@ -42,6 +42,12 @@ VLAN-aware bridge (`vmbr0`). The Proxmox host itself sits on VLAN 10
   Proxmox host into unprivileged CT 111.
 
 ## Metrics
+
+- October10: host-local `resource-pressure-monitor.timer` samples host and all
+  five production guests every minute; actual usable memory, OOM/PSI, CPU,
+  blocked tasks, capacity and new kernel hang warnings alert through ntfy.
+  All six systems have coverage. VM102 now6GiB; VM103 root now128GiB.
+  [[../../../main/docs/procedures/resource_pressure_monitor]] is authoritative.
 
 - Native Proxmox metrics export writes to InfluxDB bucket `proxmox`.
 - Grafana dashboard `Proxmox Resource Overview` includes host, VM, storage, docker-host, and container panels.

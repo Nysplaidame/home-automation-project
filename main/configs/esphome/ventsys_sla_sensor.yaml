@@ -1,0 +1,4 @@
+# Historical filename; installed board is FDM, MAC CC:BA:97:F0:D0:C0.
+# Use ventsys_fdm_sensor.yaml. This wrapper preserves old tooling references.
+packages:
+  base: !include ventsys_fdm_sensor.yaml

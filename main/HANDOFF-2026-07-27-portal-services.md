@@ -2,13 +2,339 @@
 title: Portal, Monitoring and Household Services Handoff
 description: Live Homepage/monitoring state and the next decision-gated service work
 created: 2026-07-27
-modified: 2026-09-14
+modified: 2026-09-25
 type: handoff
-status: current
+status: closed
 ---
 
 # Handoff — Portal, Monitoring and Household Services (2026-07-27)
 
+## Closed current state and resume point — 2026-09-25
+
+This implementation handoff is closed. Durable service state now belongs in
+[`docs/reference/current-live-state.md`](docs/reference/current-live-state.md)
+and the service manuals under [`docs/install/services/`](docs/install/services/).
+The dated sections below remain deployment evidence and rollback history; they
+are not the current task queue.
+
+Current boundaries:
+
+- Homepage and its reviewed previews/direct links are live; use the Homepage
+  configuration and current-live-state reference for the active contract.
+- Mermaid Viewer is live on port `8092`. Its sole repository source is now
+  `apps/mermaid-viewer/`, with `dist/` as the single checked-in release and one
+  verified packaging/deploy command documented in its README and service manual.
+- Household Hub's recovered source remains provenance-bounded; live adapters and
+  deployment still require a scoped decision.
+- Physical camera reconnection, VentSys commissioning, and remaining owner-gated
+  recovery exercises remain open in `TO-DO.md`.
+
+Resume from `TO-DO.md`, `docs/reference/current-live-state.md`, and the relevant
+service manual. Start a new handoff only when a genuinely active implementation
+session needs continuity across turns or devices.
+
+## 2026-09-18 delivery-contract reconciliation
+
+- Reconciled the active task list against the September15–17 recovery evidence.
+  The semantically verified SearXNG template/off-VM copy is now recorded as
+  complete; the older recovery wording is historical. No new live search
+  acceptance is claimed.
+- Added the bounded [read-only household release contract](docs/procedures/read-only-product-release-plan.md), separating fixture work from a future
+  Household Hub deployment and retaining source ownership, least privilege,
+  unknown/stale presentation, and no-write boundaries.
+- Added non-destructive planning artefacts for hardening/resilience, the SMB
+  `Media`/`media` case collision, the dashboard's unapproved IPv6 8094 return,
+  and the VentSys authenticated card/page bridge. These plans intentionally do
+  not authorize credential rotation, firewall edits, storage mutation, dashboard
+  deployment, or any safety control.
+- The protected Household Hub source archive is present and identifies a tested
+  recovery generation, but it has no `.git` metadata and cannot establish the
+  original repository/revision. The owner authorized the local recovery
+  repository at `main/apps/household-hub-recovery`; initial commit `c463bd9`
+  has no remote. The durable [source recovery register](docs/procedures/household-hub-source-recovery-register.md) records the boundary. Next
+  implementation decision: choose a bounded first live adapter and deployment
+  path; physical integrations remain parked.
+
+## 2026-09-17 standard-valve analog-feedback alignment
+
+- Reconciled the standard ESP32 valve-controller design with the retained
+  feedback-carrier source: the feedback-capable servo's fourth lead passes
+  through 10k series resistance to GPIO35 (ADC1_CH7), with 20k and 100nF
+  shunts from the ADC node to common ground. The carrier remains a physical
+  prototype and the feedback node must be measured at no more than 3.3V before
+  it is connected to an ESP32.
+- Added a `Valve Feedback Voltage` diagnostic ADC sensor to the six standard
+  valve ESPHome files (Main 1/2, FDM/SLA branch, FDM/SLA print). This reports
+  protected raw voltage only; servo-specific end-stop calibration is still
+  required before it can claim actual valve position. The 360-degree legacy
+  GPIO4 controllers remain separate three-wire designs.
+- Updated the canonical standard-valve Mermaid view and wiring reference, then
+  rebuilt and atomically published viewer data. Previous bundle retained at
+  `/opt/backups/mermaid-viewer-diagrams-20260917-feedback/diagram-data.js`
+  (SHA-256 `393e228005240d191e3dfd87d17341da0a81ca47718d70271742f6c4085976b2`);
+  deployed bundle SHA-256
+  `88255a06ddc7b49abb550aca9118cf4363cd2a55e859d15bf36f276b573a03ad`.
+  Direct LAN retrieval returned HTTP 200 with the then-documented GPIO36 and 10k feedback path;
+  `mermaid-viewer` remained `Up` without a container recreate.
+
+## 2026-09-16 Mermaid Viewer wiring-diagram publication
+
+- Added five canonical VentSys ESP32 wiring diagrams: ESP32-C6 air sensor,
+  standard valve, legacy 360-degree valve, ESP32-C6 airflow sensor, and fan
+  controller. The diagram library now contains 16 renderable Mermaid sources.
+- Corrected stale valve GPIO18 references in the wiring guide: active standard
+  valve controllers use GPIO16 and active legacy 360-degree valve controllers
+  use GPIO4. The unconfirmed Nerdiy v2 GPIO0/GPIO1 variants remain explicitly
+  excluded from physical wiring guidance.
+- Rebuilt the local viewer and atomically replaced only the bind-mounted live
+  `/opt/stacks/mermaid-viewer/dist/diagram-data.js`. The prior file is retained
+  at `/opt/backups/mermaid-viewer-diagrams-20260916/diagram-data.js` (SHA-256
+  `876395a974946f8f939fb5e2f820561510ff0fad3d2b84c8e150e1e9dfff1f5c`).
+  The deployed replacement SHA-256 is
+  `393e228005240d191e3dfd87d17341da0a81ca47718d70271742f6c4085976b2`.
+  Direct LAN retrieval returned HTTP 200 with 16 diagram entries and the new
+  ESP32-C6 air-sensor and fan-controller sources. `mermaid-viewer` remained
+  `Up`; no container recreate was required.
+
+
+## Roadmap assessment and resume point — September 16
+
+Full assessment: [Roadmap assessment](docs/audits/2026-09-16-roadmap-assessment.md).
+Product phases: [Household/workshop roadmap](docs/procedures/household-workshop-operations-roadmap.md).
+This is an assessment of dated project evidence, not a fresh whole-estate audit.
+
+### Current position
+
+- Core infrastructure and individual services are live. Recent work substantially
+  improved diagnostics, backup verification and component recovery.
+- The separate Troubleshooting Dashboard is live with27 routes, Homepage preview,
+  readable layouts and real Windows/Proxmox evidence import. All11 canonical
+  Mermaid diagrams were simplified and published.
+- The Home Operations Workbench remains a local import-only prototype. Today at
+  Home, the cross-service dependency/recovery views, cooking and commissioning
+  views must not be described as deployed integrations.
+- Dedicated Proxmox SSH works. All eight required capacity/mount/backup-age checks
+  and real-file dashboard browser import passed. Five September15 archives passed
+  their respective VMA or decompression/tar checks; CT114's final exit0 is retained
+  at /root/backup-verification-20260916/ct114.log. No guest restore was run.
+- GardenKeeper backup repair, DB/API recovery and persistent media deployment
+  passed; a real-user upload/workflow recovery remains open. Coordinated Hub
+  recovery and six offline source builds passed; coordinated recurring backup
+  remains separate from the one-off checkpoint.
+- Vaultwarden has a matching Homepage card with Open tab, preserving no-framing.
+  Local hosts entries preserve Mullvad public DNS/filtering. Vault account/2FA/
+  recovery decisions remain separate from HTTPS/card acceptance.
+- Installation coverage is42 entries:36 Written and6 Candidate. This is not a
+  completion percentage or proof of a full blank-hardware rebuild.
+- Physical delivery remains gated: cameras/Zyxel deliberately disconnected, P1S
+  uncommissioned, VentSys unbuilt. No physical fire-safety acceptance is claimed.
+
+### Recommended work order
+
+1. [x] September17: complete the documented isolated monitoring VM102 restore
+   drill from `vzdump-qemu-102-2026_09_17-02_01_27.vma.zst` into freshly checked
+   ID9102 on `local-lvm`. It had no NIC, `onboot: 0`, no inherited startup,
+   passthrough or hook. Its serial console emitted no output, but the guest agent
+   became ready after about 100 seconds and confirmed Debian 13 with mounted EFI and
+   root filesystems; guest-agent shutdown passed. The temporary guest is stopped
+   and intentionally retained. Delete it only after re-reading its configuration,
+   confirming ID9102 with the owner, and never targeting production102.
+2. Close operational coverage: GardenKeeper uploads, recurring coordinated Hub
+   backup, fresh OMV SMART evidence, CT114 package/update-path diagnosis, and
+   Watchtower phone/next-report acceptance. Latest details and ownership below.
+3. Deliver one bounded live read-only product slice, preferably Today at Home in
+   the existing Hub after placement and adapter contracts are settled. Recovery
+   readiness using curated evidence is the alternative if operations is preferred.
+   Neither preference has been selected by the owner in this assessment.
+4. Pilot representative Grocy stock and one workshop inventory zone with the owner.
+5. Resume physical commissioning when equipment and owner availability permit.
+
+Keep Paperless-ngx, Actual Budget, Scrypted, Portainer, registry mirror and Node-RED
+parked unless an explicit need changes their priority. Do not expand the service
+list simply because operational groundwork improved.
+
+### Documentation and checkout cautions
+
+The product roadmap's obsolete Proxmox acceptance blocker was corrected locally.
+Older task/install-table rows still contradict newer dated evidence for parts of
+SearXNG, Watchtower and Hub recovery; reconcile narrowly rather than repeating
+completed work or marking broader acceptance complete. Historical notes can stay.
+
+At the assessment's remote fetch, this branch was one commit ahead of origin,
+with unrelated router/documentation edits present. The dated assessment and
+roadmap edits were saved locally, not committed by that assessment turn. Recheck
+Git state before committing; preserve other work and avoid blanket staging.
+
+## Remaining tasks and ownership — September 16
+
+This is the current follow-up list for the documentation/recovery work below.
+Older dated sections preserve historical gaps; September16 offline source builds
+and September15 coordinated Hub restore supersede those earlier open items.
+
+### Owner: phone receipt check only
+
+1. Open ntfy on the phone and find the `watchtower` subscription on the home
+   server. If absent, report that; do not recreate accounts or change credentials.
+2. Look for a September15/16 “Watchtower monitor-only service event” message and
+   the September16 scan report around05:02 BST, beginning “31 scanned”. That
+   report's zero available-update count was incorrect and has since been fixed.
+3. Report whether a notification arrived without opening ntfy, the message is
+   visible only inside ntfy, neither message appears, or the subscription is absent.
+   Include whether the phone used home Wi-Fi, mobile data or Tailscale; no passwords.
+4. If messages appear only inside ntfy, check OS notification permission and topic
+   mute settings; on Android also check background/battery restrictions. The agent
+   can diagnose further from the result; no restore or Docker commands are required.
+
+### Owner: temporary recovery-copy cleanup decision
+
+Confirm whether the stopped, isolated temporary Proxmox guest `9102` may be
+destroyed. It is a recovery drill copy of production VM102, has no virtual NIC and
+cannot autostart; retain it if further inspection is wanted. Destruction requires
+an explicit confirmation of that exact temporary ID and must never target VM102.
+
+### Agent: continue technical follow-up
+
+- [x] Execute the isolated VM102 recovery drill (September17): restore the latest
+  archive to `local-lvm` ID9102, remove its NIC and inherited startup, and boot it
+  without network access. The serial console was silent, but after about 100 seconds
+  the guest agent confirmed Debian 13 and mounted EFI/root filesystems; clean
+  guest-agent shutdown passed. VM102's production guest agent was read-only checked
+  as ready. Temporary ID9102 remains stopped awaiting the owner cleanup decision.
+- [x] Check the September17 Watchtower scan: it finished at04:02:48 UTC /05:02:48
+  BST with `Scanned=31`, `Updated=2` and `Failed=0`. ntfy cached the compact
+  report at04:02:49 UTC:31 scanned,2 updates available,0 updated,0 failed and8
+  skipped. The available count matches the scan's two reported newer images;
+  `0 updated` is correct for monitor-only. No ntfy attachment/error40014 entry
+  appeared in the delivery window. Server acceptance is complete; phone receipt
+  remains a separate owner check.
+- [x] Resolve GardenKeeper upload persistence (September16): the effective live
+  target is `/data/journal-media`; it had no files before deployment. The API now
+  bind-mounts the root-only host directory there, and the normal OMV app-data job
+  includes it. The API alone was recreated and recovered `/health` and `/ready`;
+  worker and web containers were unchanged. A matched dump/current-image,
+  internal-only rehearsal proved a synthetic authenticated PNG survives API
+  recreation with an identical hash.
+- [ ] Prove real-user GardenKeeper journal-photo/workflow recovery only after a
+  non-sensitive test image and its removal are explicitly approved. The scheduled
+  inventory check proves backup-path coverage, not recovery of a real entry.
+
+### Post-deployment access observation — September16
+
+The GardenKeeper API mount deployment completed with in-host `/health` and
+`/ready` success, and worker/web identity checks passed. Subsequent fresh
+workstation-to-docker-host SSH attempts timed out; local TCP checks to `22`,
+`8090` and `8091` plus ICMP produced no response. This is a separate,
+unattributed reachability observation, not evidence that the API deployment
+failed. No reboot, firewall, routing, VPN, credential or service change was
+attempted. Recheck the workstation network path before any further live action.
+- [ ] Assess recurring coordinated Hub backup coverage. The September15 checkpoint
+  was one-off and briefly stopped Hub. Prepare a maintainable job with NAS/export
+  checks, locking, failure-safe service restart, completion marker and restore checks.
+  Establish an appropriate maintenance window before recurring service interruption;
+  do not infer a deletion/retention policy from the one-off checkpoint.
+- [ ] Extend isolated recovery to application workflows and integrations. Inventory
+  credentials, uploads/exports, queues and dependencies; use test destinations and
+  keep production notifications/calendar/HA actions out of restore rehearsals.
+  Hub has no deployed worker; its saved worker is a placeholder, not proven job delivery.
+- [ ] Prepare full-system recovery rehearsal, including blank-host prerequisites,
+  OS/Docker availability, network/DNS/TLS, backups and ordered service restoration.
+  Distinguish verified app builds/store restores from physical and system acceptance.
+  Give the owner specific steps only when physical interaction or downtime decisions
+  are needed; these are not blanket tasks for the owner to execute unaided.
+
+### Already complete — do not repeat unnecessarily
+
+- Documentation/recovery batch `bc29f96`; notification/image recovery `5741785`;
+  corrected report counts and offline source-build runbooks `2596ddd`.
+- Scheduled September16 notification accepted by ntfy; available-count correction
+  subsequently tested with a stale-image fixture and deployed. Phone confirmation
+  and a scheduled report using the corrected template remain open as listed above.
+- Hub three-store/configuration/export checkpoint restored in isolation.
+- Ten executable images preserved; all six GardenKeeper/Hub app images rebuilt
+  offline from preserved source, wheels/npm cache and base images. Bundle checksums,
+  archive readability and base-image reload passed. Do not reopen offline source
+  builds merely because an older section still lists that historical gap.
+
+## 2026-09-16 scheduled alerts and offline source builds
+
+Watchtower scheduled report accepted/cached at04:02:47 UTC. It incorrectly
+reported zero available updates despite two in scan logs: Updated counts applied
+updates, Stale counts unapplied newer images. Corrected the template, proved a
+stale-image notification against an isolated fake Docker API and ntfy, and deployed.
+Phone receipt and the next scheduled corrected count remain pending.
+
+NAS `offline-source-builds/20260916` now contains both source trees, frozen Python
+requirements/wheels, npm cache, offline Dockerfiles and three saved base images.
+All six API/worker/web builds passed with network disabled and no build-cache
+reuse. Bundle checksums/archive readability/base-image reload passed. No production
+app images were replaced;12GB root free. Full-system/physical/integration and
+GardenKeeper upload recovery remain unproven. Scripts/logs protected at
+`/root/recovery-verification-20260916/`; see Hub/Watchtower runbooks for details.
+
+## 2026-09-16 GardenKeeper upload inspection and isolated recovery proof
+
+The deployed `gardenkeeper-api` image (`sha256:c9b3934fa88e2d632d258b2ccd877a7eee9b7897e3afdc80b3f8f238db332028`)
+stores journal images at `/app/data/media/journal`. The running API, web and worker
+containers have no mounts; only PostgreSQL and Redis have host-backed data. The
+configured media directory did not exist and had zero files, so there was no live
+upload to copy. A first real upload would therefore be container-local and lost
+when `gardenkeeper-api` is recreated.
+
+A synthetic PNG fixture was exercised in disposable API containers using that exact
+image, `--network none`, a test-only token, disabled migrations/table creation,
+read-only root filesystem and a temporary host-backed media path. Unauthenticated
+upload/read returned401; valid upload returned201; invalid image content returned422;
+and the authenticated read returned200 with `nosniff` and private-cache headers.
+The one-file media path was compressed, `gzip -t`-checked, deleted in the isolated
+fixture, restored from the archive and served successfully by a second disposable
+API container. Archive SHA-256:
+`f9656e8634901fe85fd0d7392364529ad6913031bde5ef052c60de78304b826c`;
+protected synthetic-fixture evidence:
+`/root/recovery-verification-20260916/gardenkeeper-upload.mSAhNx/`.
+
+This is a focused storage/API contract proof, not a real journal-entry or
+production-database recovery proof. Before enabling uploads, approve a brief API
+recreation to add a persistent media bind mount (for example,
+`./media-data:/app/data/media/journal`) and add that directory to the protected
+off-host app-data backup path. First capture any live container-local media, then
+run the same recovery test with a real, non-sensitive journal entry in isolation.
+
+Integration triage found the live worker active with Redis `DBSIZE` zero. Its
+configured boundary includes the notification broker, CalDAV, HA, knowledge,
+recipe/inventory, search and local-model connectors; configuration values were not
+read. A second disposable, network-disabled `gardenkeeper-worker` container used a
+mock HTTP transport to prove the due-task notification contract: one broker-only
+Bearer token, one JSON `POST` to `/publish`, an accepted `202`, and derivation of
+the paired `/dispatch-due` endpoint. No production broker, ntfy, HA, CalDAV or
+other external endpoint was contacted.
+
+The next integration rehearsal needs isolated test destinations: a disposable
+broker/ntfy topic, a disposable CalDAV calendar, and a non-production HA/webhook
+target. Use a copied database with non-sensitive fixture tasks and no worker until
+each destination is substituted; then separately prove notification delivery,
+CalDAV create/update/delete and HA ingress. Do not reuse production credentials or
+replay production reminders/events. None of those destination contracts, nor
+full-system recovery, is accepted yet.
+
+## 2026-09-15 notification and coordinated recovery
+
+Prior documentation/recovery batch committed as `bc29f96`; unrelated router
+IPv6 changes stayed unstaged. Existing ntfy publisher/subscriber ACLs were correct.
+Oversized text reproduced40014; compact Watchtower report passed isolated testing
+and was deployed. Startup message accepted/cached; phone receipt and next scheduled
+scan remain pending. See the Watchtower runbook for validation and rollback.
+
+NAS `household-hub-coordinated/20260915T142413Z` contains three cold store archives,
+protected configuration and exports. Original five containers restarted, health200.
+Isolated restore passed schema, Redis, Qdrant and API auth/read/denial checks.
+No worker is deployed. This is a one-off checkpoint, not a scheduled backup.
+
+NAS `offline-app-images/20260915` preserves ten images and both source archives.
+An initially empty daemon loaded the bundle; image layers/configurations matched
+across backend-specific ID formats. Six application executable/dependency checks
+passed with network disabled and pulls forbidden. Temporary daemon data removed,
+14GB root free. Protected scripts/evidence: `/root/recovery-verification-20260915`.
+Independent offline source builds and full-system/integration recovery remain open.
 
 ## 2026-09-14 recovery verification closeout (work executed September12)
 
@@ -415,6 +741,29 @@ Restored only the section type to `wifi-iface`, committed wireless UCI and ran
 `ubus` reports `phy0-ap4`; `iw` reports `HomeGuest` active; its SSID and WPA2
 mode remain intact. The guest password was neither recorded here nor changed.
 No firewall, VLAN, DHCP or 5 GHz setting changed.
+
+## 2026-09-11 Zen IPv6 activation
+
+The owner supplied Zen portal allocations for an ND `/64` and delegated `/48`.
+Initial status still showed pending WAN6/no default route. After one PPPoE
+release/reconnect, packet capture proved Zen offered the exact `/48` but
+returned `NoAddrsAvail` for IA_NA. OpenWrt accepted the lease when WAN6 was
+changed to `reqaddress=none`, `reqprefix=48`.
+
+Zen's DHCPv6-PD lease installs the delegated prefix and DNS servers. A separate
+`wan6_nd` static interface uses the supplied ND address ending `::1/64`; a
+`route6` uses Zen's advertised link-local next hop. After a full network reload,
+both WAN6 interfaces are up, the default route is installed, IPv4 remains
+healthy and three IPv6 internet pings passed at about 15 ms. The existing LAN
+VLAN1 receives a delegated global assignment. Restricted VLANs were not given
+new IPv6 assignments. Live network backup before persistence:
+`/root/recovery-20260911-network-before-ipv6-static`.
+
+Tracked router source, compiler invariants, lint expectations, current state,
+TODO and wiki now match the accepted live design. Sources consulted:
+- https://openwrt.org/docs/guide-user/network/wan/isp-configurations
+- https://openwrt.org/docs/guide-user/network/ipv6/configuration
+- https://docs.opnsense.org/manual/how-tos/IPv6_ZenUK.html
 
 ## 2026-09-04 post-fibre recovery (supersedes the audit below)
 
@@ -1567,3 +1916,629 @@ Reconciled current task/app/wiki claims with September14 SSH and September15
 browser evidence. Local Homepage/Vaultwarden hosts entries remain present;
 Mullvad custom DNS is disabled with its existing content filters unchanged.
 OMV SMART and full guest restore acceptance remain separate open work.
+
+## 2026-09-24 valve-feedback update
+
+The standard ESP32 valve board in hand exposes GPIO35 rather than GPIO36, so
+GPIO35/ADC1_CH7 is now the canonical conditioned feedback input in active docs,
+diagrams and all six standard-valve ESPHome files. Main valve 2 bench testing
+measured `0.464V` closed with PWM detached, `1.123V` open and `0.075V` with the
+feedback connection removed. Ten cycles showed `9mV` open and `11mV` closed
+endpoint spread with no reset/brownout; reconnection recovered immediately.
+
+Production configs now publish raw feedback voltage and calibrated position,
+and expose delayed problem entities for feedback disconnection (`<0.200V`) and
+commanded-versus-measured mismatch (`>10%` for three seconds). Main-valve-2
+values are only provisional defaults for the other five valves; replace each
+file's calibration substitutions after its own physical bench calibration.
+The physical unit was later confirmed to be Main Duct Valve 2, not Valve 1.
+It was restored from the safe ADC-only bench image using
+`ventsys_main_valve1.yaml` over COM4 on 2026-09-24, so the successful upload and
+boot evidence (`GPIO35` ADC initialisation, Wi-Fi at `192.168.50.51`, TLS MQTT
+and encrypted HA API) prove the hardware path but use the wrong production
+identity. Reflash the assembled board with `ventsys_main_valve2.yaml` before
+commissioning, then verify `.52`, Valve 2 entities and
+`ventsys/main/valve2/*`. Do not operate it alongside an actual Valve 1 while it
+retains the duplicate Valve 1 identity. The credential-bearing temporary build
+directory was removed after the original verification.
+
+## 2026-09-25 Homepage direct-service links
+
+**Superseded September 30:** raw-IP Direct navigation broke the scoped phone
+path. Direct now opens the same HTTPS route as Preview. Bambuddy browser uses
+`8207`, native Serve retains tailnet `8181`, and Grocy preserves the external
+Host/port. General phone acceptance passed. Current facts, release gate and
+rollback are in the Homepage/Grocy manuals and Tailscale access guide; only
+Grocy phone confirmation and a controlled reboot proof remain.
+
+Homepage application cards with routable UI endpoints now show a `Direct`
+action beside `Preview`. The action opens the underlying IP-address URL in a
+new tab and preserves paths and query strings; troubleshooting and qBittorrent
+use explicit direct-route overrides. Vaultwarden remains proxy-only because its
+raw listener is deliberately loopback-bound, and status-only backend cards
+remain non-navigable. The live files were backed up under
+`/opt/backups/homepage-direct-links-20260925/` before deployment. Compose
+validation passed, both containers remained healthy, and headless Chromium
+checks covered all seven tabs plus 1280x900 and 390x844 layouts with no missing
+actions, proxy-host `Direct` links, card overflow, description overlap or
+console errors.
+
+The HA `:8188` proxy CSP was then narrowed-corrected for nested Home Assistant
+app ingress: `frame-ancestors` now includes `'self'`, allowing the intermediate
+HA origin while retaining the explicit outer Homepage allowlist. The prior
+template is backed up at `/opt/backups/homepage-ha-ingress-csp-20260925/`.
+The proxy recreated cleanly, `nginx -t` passed, the live header contains
+`'self'`, and both Homepage and the HA proxy returned HTTP 200. Final ESPHome
+Builder/File Editor acceptance requires an already-authenticated browser
+session because those panels are HA-protected.
+
+Authenticated testing confirmed that the nested-frame CSP problem is cleared.
+Garage Dashboards subsequently rendered successfully. ESPHome Builder and File
+Editor initially still returned `401 Unauthorized`; live logs showed successful
+top-level ingress requests alternating with failed embedded requests. The outer
+Homepage was open at `https://192.168.20.102/`, but configured preview links
+remained on `homepage.home.local:<port>`. That cross-site combination suppresses
+Home Assistant's `SameSite=Strict` Supervisor ingress cookie.
+
+`custom.js` now rewrites already-proxied Preview URLs to inherit the outer
+Homepage hostname. An IP-address Homepage therefore embeds
+`192.168.20.102:8188`, while a hostname Homepage embeds
+`homepage.home.local:8188`. The change preserves Supervisor authentication; no
+add-on port was exposed and no cookie policy was weakened. The prior live file
+is backed up under `/opt/backups/homepage-preview-origin-20260925/`. Local syntax,
+live/source SHA-256 parity, served-script inspection, compose validation and
+both hostname-normalisation cases passed. Final authenticated Preview acceptance
+was confirmed by the operator after refreshing Homepage: ESPHome Builder and
+File Editor now work in Preview, and Garage Dashboards remains working. A newly
+selected HA proxy origin may still require its own one-time login because
+browser authentication storage is origin-specific.
+
+## 2026-09-25 Main Duct Valve 2 identity correction
+
+The assembled board was reflashed over COM4 from the canonical
+`configs/esphome/ventsys_main_valve2.yaml` using ESPHome `2026.4.5`. The upload
+verified successfully. Serial boot evidence confirmed hostname
+`ventsys-main-valve-2`, static address `192.168.50.52`, servo output GPIO16,
+feedback ADC GPIO35, MQTT topic `ventsys/main/valve2/control`, Wi-Fi connection
+and TLS MQTT connection.
+
+ESPHome Builder's prior Valve 1 YAML, its archived duplicate, and the previous
+Valve 2 YAML were moved to the recoverable HA backup at
+`/config/backups/ventsys-valve2-correction-20260925-1105/`. The live Builder
+Valve 2 YAML now matches the tested canonical file. All five active device
+YAMLs validate against the live `secrets.yaml`; no active secret key is missing
+and no secret value was changed.
+
+HA's obsolete native ESPHome registrations for this board's former Valve 1
+identity and the older Valve 2 hardware identity were removed through the
+config-entry API. A fresh Valve 2 entry was created for `.52`, and its 22
+registry records were renamed through the entity-registry API so the live state
+contains no native `ventsys_main_duct_valve_1` entities. The separate manual
+MQTT `number.main_duct_valve_1` control remains intentionally present because
+the VentSys architecture still reserves a distinct Main Duct Valve 1 path.
+
+At verification, the board reported feedback connected but approximately
+`1.685V` / `100%` while the command entity was `0%`, so the position-mismatch
+diagnostic was active. The installed valve therefore needs an in-assembly
+endpoint/range check before its feedback calibration is treated as final.
+
+## 2026-09-25 Main Duct Valve 2 full reflash and alert test
+
+After an apparent connectivity dropout following the temperature-alert test,
+the board's complete 4 MB flash was erased over COM4 and a newly compiled
+factory image from canonical `configs/esphome/ventsys_main_valve2.yaml` was
+installed with ESPHome `2026.4.5`. The write hash verified successfully. Fresh
+serial boot evidence confirmed GPIO16 servo PWM, GPIO35 feedback ADC,
+`192.168.50.52`, Wi-Fi, TLS MQTT and the encrypted Home Assistant API.
+
+The HA temperature-alert button was then exercised once under live serial
+observation. It completed Notice, Alarm, Emergency and Normal at the expected
+five-second stages without a reboot or connectivity loss. The earlier dropout
+was therefore not reproduced and should be treated as a likely coincidental
+power or network event unless it recurs. No valve movement command was issued.
+Final HA state was position `0%`, alert `Normal`, Wi-Fi approximately `-68 dBm`.
+The credential-bearing temporary build directory was removed after validation.
+
+Follow-up testing identified the apparent dropout cause more precisely. The
+board remained continuously healthy for more than six minutes with the Python
+`serial.tools.miniterm` console open and passed a second full temperature-alert
+sequence. Exiting miniterm then stopped firmware execution immediately; HA
+marked the device unavailable after its approximately 120-second detection
+delay. This is a CP210x/ESP32 RTS/DTR serial-control interaction, not a fault in
+the temperature-alert routine. `esptool --port COM4 run` released/reset the
+board correctly, after which HA uptime advanced normally beyond the same
+two-minute window without a console attached. Avoid using miniterm for routine
+logs on this assembled controller unless an explicit `esptool ... run` reset is
+performed after closing it.
+
+## 2026-09-26 Main Duct Valve 2 safe-calibration firmware
+
+The replacement B2122 feedback servo moved smoothly in both directions while
+unloaded near its centre and produced monotonic feedback. Its valve-open
+direction is counter-clockwise only for the current physical mounting, so
+firmware does not assign direction until the installed movement is measured.
+
+Canonical and live ESPHome Builder `ventsys_main_valve2.yaml` now contain a
+temporary calibration guard: `Valve Position` and both endpoint controls are
+limited to raw 40-60, the servo output is limited to approximately 1.0-2.0 ms,
+and PWM automatically detaches one second after every command. Close/Open
+buttons route solely through the guarded number action. The prior live YAML is
+recoverable as `ventsys_main_valve2.pre-calibration.yaml.bak`.
+
+ESPHome 2026.4.5 configuration validation and a complete local firmware build
+passed. At the attempted deployment the board was absent from USB (only COM1,
+not COM4) and `192.168.50.52` did not respond, so the guarded image has not yet
+been flashed. Reconnect/power the controller, flash the staged Builder config,
+then begin unloaded tests at 50 followed by 48 and 52. Do not attach the valve
+linkage until direction, feedback movement and automatic PWM release are
+confirmed.
+
+The controller was subsequently connected as CP210x `COM4` and the guarded
+ESPHome 2026.4.5 image was flashed successfully; all regions passed hash
+verification and `esptool run` explicitly released the serial reset lines.
+Home Assistant then reported fresh uptime, raw controls constrained to 40-60
+with 1% steps, and an initial raw-50 state. The first unloaded sequence returned
+feedback readings of approximately `1.110V` at raw 48, `1.140V` at raw 52 and
+`1.120V` after returning to raw 50. Physical direction, sound and visible motion
+still require operator confirmation before the travel window is expanded.
+
+Operator-observed unloaded testing found quiet operation after the one-second
+detach, but did **not** establish a reliable command-to-direction mapping.
+The recorded raw 45/50/55/45/40 sequence included a persistent feedback drop
+to approximately `1.009V` at raw 55, inconsistent with the nearby readings.
+The next raw-45 command read approximately `1.083V`, and the final raw-40
+command read approximately `1.044V`. The reported physical directions also
+conflict if the commands are interpreted as absolute positions. Treat direction
+and repeatability as unconfirmed. The last issued command was raw 40, followed
+by automatic PWM release; physical position after handling or reboot is unknown.
+The previous servo's `0.464V`/`1.123V` feedback endpoints do not calibrate the
+replacement servo.
+
+The next stage uses the separate supervised pulse-width image at
+`configs/esphome/_dev/ventsys_servo_pulse_calibration.yaml`. It removes MQTT,
+touch, Open/Close buttons, and calculated position diagnostics. Its target
+selector does not move the motor; Apply holds 50 Hz PWM for about two seconds,
+samples GPIO35 ten times in the final 200 ms, then detaches. Stop Release
+interrupts it. Start at 1500 us with the horn disconnected, after verifying
+the actual power arrangement and watching a marked shaft reference. Do not
+infer physical centring from a Home Assistant number state.
+
+ESPHome 2026.4.5 validated and compiled the calibration image on 2026-09-26
+(`config_hash=0x811e0368`). The build and credential-bearing binary are outside
+the vault under the local temporary directory
+`ventsys-valve2-calibration-20260926`. USB upload was attempted, but COM4 was
+absent (only COM1 present), so **the calibration image has not been flashed**.
+The operator confirmed the horn is disconnected and a dedicated 5 V supply
+with common ground is in use. Reconnect the known working CP210x COM4 path
+without paralleling independent +5 V supplies, upload the compiled image,
+verify fresh uptime and calibration entities, then request operator observation
+before the first explicit 1500 us Apply Pulse.
+
+COM4 returned and the ESPHome 2026.4.5 USB upload succeeded; all written
+regions passed hash verification. HA exposed the new calibration number,
+Apply Pulse and Stop Release buttons, raw feedback, command sequence and
+result sensors. With the operator watching an unloaded horn on the dedicated
+5 V supply, the first 1500 us Apply Pulse returned HTTP 200. Command sequence
+advanced to 1; feedback was approximately 1.388 V before, 1.125 V mean over
+the final ten samples, 0.0063 V sample range, and 1.127 V afterward. Await
+operator observation of movement and sound before issuing another pulse.
+
+First unloaded sequence (horn disconnected; operator watched each pulse):
+
+| Command | Pulse | Final GPIO35 mean | 10-sample range | Observation |
+|---:|---:|---:|---:|---|
+| 1 | 1500 us | 1.125 V | 0.0063 V | Counter-clockwise from unknown initial position |
+| 2 | 1450 us | 1.091 V | 0.0045 V | Short counter-clockwise step, smooth/quiet |
+| 3 | 1500 us | 1.123 V | 0.0062 V | Clockwise to the 1500 mark |
+| 4 | 1550 us | 1.159 V | 0.0056 V | Clockwise step of similar size, quiet |
+| 5 | 1500 us | 1.128 V | 0.0050 V | Counter-clockwise to same 1500 mark, quiet |
+| 6 | 1450 us | 1.092 V | 0.0081 V | Counter-clockwise to same 1450 mark, quiet |
+
+The provisional mapping in this 1450-1550 us window is increasing pulse ->
+clockwise shaft movement and increasing feedback voltage. The 1500 us means
+span 0.005 V, and the two 1450 us means differ by 0.002 V. This is promising,
+but repeat the observed sequence twice before accepting repeatability. The
+old raw-55 anomaly is not yet explained and must not be declared resolved.
+
+The operator requested a larger visible step while staying within the tested
+window. Subsequent commands were:
+
+| Command | Pulse | Final GPIO35 mean | 10-sample range | Observation |
+|---:|---:|---:|---:|---|
+| 7 | 1500 us | 1.122 V | 0.0053 V | Operator missed the small movement |
+| 8 | 1550 us | 1.159 V | 0.0057 V | Positioning for full-span sweep |
+| 9 | 1450 us | 1.091 V | 0.0039 V | 100 us counter-clockwise, clearly visible, quiet |
+| 10 | 1550 us | 1.158 V | 0.0065 V | 100 us clockwise to same mark, quiet |
+| 11 | 1450 us | 1.091 V | 0.0053 V | Counter-clockwise to same mark, quiet |
+| 12 | 1500 us | 1.122 V | 0.0106 V | Clockwise to same centre mark, quiet |
+
+Across repeated commands, the 1450 us means span 0.0018 V, 1500 us means
+span 0.0058 V, and 1550 us means span 0.0011 V. The adjacent mean separation
+is about 0.033-0.034 V, exceeding three times the largest repeated-mean spread
+(0.0174 V). Thus the **unloaded 1450-1550 us repeatability gate passed**:
+increasing pulse rotates clockwise and raises feedback, with no observed
+sticking or lasting buzz. The old raw-55 anomaly remains unexplained but did
+not recur with the explicit-pulse image. Last applied pulse was 1500 us and
+PWM detached. The operator correctly challenged calling this the servo's
+physical mid-travel: **1500 us is only the tested pulse reference**, and the
+servo's usable physical range has not been measured. Keep the linkage off.
+Next: map enough unloaded travel in supervised stages, staying clear of the
+servo's hard stops, then choose a safe mounting pulse and index the horn and
+valve to it. Check available motion toward both valve endpoints before
+committing to the linkage alignment.
+
+The operator chose to map the unloaded usable range first, using pulse width
+and feedback voltage rather than an angle estimate. A separate staged image
+was saved at `configs/esphome/_dev/ventsys_servo_range_mapping.yaml`; the
+successful 1450-1550 us image remains separately preserved. ESPHome 2026.4.5
+compiled the mapping image (`config_hash=0xd2a89303`) and flashed it over
+COM4 with hash verification. `esptool --port COM4 run` reset the board; HA then
+showed the 500-2500 us selector and a cleared command sequence. The first
+Apply after boot must be 1500 us, then each accepted step is limited to 100 us
+from the last completed pulse. The 500-2500 us UI range is an exploration
+envelope, **not** a certified safe range for this B2122. Pulse duration is
+approximately 0.8 s with ten final feedback samples and automatic release.
+At the time, the supply was described as dedicated; later clarification
+established that servo current always passed through the board's 5 V pin.
+No shaft-angle measurement will be claimed.
+
+The new image's first pulse at 1500 us gave 1.125 V. The operator felt a very
+light vibration during that repeated-position pulse, which stopped after PWM
+release. With the linkage still disconnected, observed smooth/quiet
+counter-clockwise steps gave: 1400=1.059 V, 1300=0.987 V, 1200=0.918 V,
+1100=0.846 V, 1000=0.779 V, 900=0.704 V, 800=0.628 V, 700=0.559 V.
+The 1100 us move was repeated after the operator missed it: 1200=0.922 V,
+1100=0.846 V, again visually confirmed.
+
+**Stop condition at 650 us:** the final active-PWM mean was 0.5238 V, but the
+operator saw a second counter-clockwise jump and the live feedback fell to
+approximately 0.349 V immediately after release. HA history shows 0.523 V
+before release, 0.443 V at the release timestamp, then 0.347 V about 0.1 s
+later; it stayed near 0.349 V. Earlier commands from 1200 through 700 us
+had after-release feedback within about 0.002 V of their active-PWM means.
+Stop Release was sent successfully. Do not command a lower pulse, attach the
+linkage, or declare the lower usable endpoint until the cause is understood.
+The range-mapping image clears its step anchor on Stop Release, so any future
+recovery movement needs a deliberate revised plan rather than blindly
+reapplying 1500 us from the current uncertain shaft position.
+
+Critical power correction: the operator later clarified that during the
+range sweep, **PC USB powered the ESP32 and the servo red wire was attached to
+the board's 5 V pin**. Earlier statements that these movements used the
+separate 5 V/4 A USB supply were incorrect. Therefore the 650 us anomaly
+cannot be attributed to servo mechanics alone; USB/board power delivery must
+be checked. After Stop Release, the operator observed a slight clockwise
+twitch on each board power cycle with no Apply. The device later became
+unavailable in HA. COM4 remained present while PC USB was connected. Do not
+send a recovery pulse. Switch from PC USB to the dedicated 5 V/4 A USB source
+as the sole +5 V source, observe boot behavior, and verify live passive
+feedback/HA connectivity before deciding how to recover.
+
+The operator changed the board's USB power source, still feeding the servo red
+wire via the ESP32 board's 5 V pin. The exact supply rating/source for each
+stage should be rechecked before further testing. Power cycling caused a small
+clockwise twitch with no Apply. HA was temporarily unavailable, then
+reconnected. Passive feedback after the power cycles was about 1.36 V and the
+horn appeared near the 1500 us reference. A supervised 1500 us pulse moved
+counter-clockwise noticeably, returned feedback to 1.126 V, and held at
+1.127 V after release; the previous position estimate had been wrong.
+
+With the changed USB source, the higher-pulse sweep was: 1600=1.195 V,
+1700=1.264 V, 1800=1.325 V, each clockwise, quiet and stable after release.
+At 1900 us the active-PWM mean was 1.391 V, but feedback fell to 1.206 V
+after release. The operator saw a physical counter-clockwise jump back, quiet.
+The local step helper sent Stop Release automatically because the post-release
+change exceeded 0.020 V. Do not continue range mapping or attach the linkage.
+The 650 us and 1900 us release jumps have not been explained. In both power
+arrangements the servo red/brown power path still ran through the board's 5 V
+and GND pins. The operator clarified there is **no separate servo power rail**;
+USB powers the board, and the board powers the servo. A different USB adapter
+did not isolate the board power path. The recommended next test needs a suitable
+5 V source/breakout that powers the servo red/brown wires directly, common
+ground with the ESP32, and no connection between independent +5 V outputs if
+ESP32 uses PC USB. Check voltage at the servo during a supervised pulse if a
+multimeter is available. Remove all power before rewiring. The active mapping
+image currently permits a 500-2500 us selector but its displayed bounds are
+not approved usable endpoints.
+
+### Current state / resume gate
+
+The operator cannot provide a separate/direct servo power rail during this
+session. Calibration is parked. The horn remains disconnected; the last Apply
+was 1900 us, followed by the script's automatic release and an explicit Stop
+Release. HA raw feedback afterward was approximately 1.207 V, while the
+active-PWM mean had been 1.391 V. Do not infer physical position from the
+target selector or reapply 1900 us. Before resuming, provide a prepared power
+adapter/rail that feeds the servo directly rather than through the ESP32 5 V
+pin, share ground with the controller, verify voltage under motion, and use a
+fresh supervised reference pulse before any endpoint search. Keep the valve
+linkage off until post-release position is repeatable. The production YAML is
+still available locally for later restoration; no production mapping has been
+accepted from this session.
+
+### 2026-09-26 one-use 1850-to-700 request
+
+The operator requested one unloaded movement from 1850 to 700 µs, staged to
+start at 1850 µs. A guarded one-use image was saved as
+`configs/esphome/_dev/ventsys_servo_sweep_1850_to_700.yaml`, compiled with
+ESPHome 2026.4.5, and flashed to the Valve 2 board over COM4 with hash
+verification. `esptool --port COM4 run` reset the board. HA showed the new
+700–1850 µs selector, one-use sweep button, and release-fault sensor. The
+linkage remained disconnected; PC USB powered the board and the servo still
+received 5 V through the board pin. On boot, passive feedback was about
+1.60 V. The supervised first 1500 µs pulse moved counter-clockwise, quietly;
+active mean was 1.1259 V and release shift +0.0058 V.
+
+**Stop at the next pulse:** the supervised 1600 µs pulse moved clockwise
+then jumped back after release. Its active mean was 1.1947 V, but feedback
+fell to about 1.000 V after release (shift -0.1938 V). The operator confirmed
+the horn was quiet afterward. The firmware latched `Calibration Release
+Fault`, blocking further Apply or Sweep commands. An explicit Stop Release
+was also sent. The 1850 µs starting position was not reached, and the
+1850→700 µs sweep was **not** commanded. Do not bypass the fault or command
+another pulse on the current power path. The firmware remains the one-use
+image; production firmware has not been restored.
+
+The controller is an ESP32 D1 Mini (board maker/revision not yet confirmed).
+With the present USB-to-board-to-servo connection and no commanded movement,
+the operator measured **4.76 V DC** across the board's 5 V and GND pins using
+a multimeter on its 20 V DC range. The servo and LED power/ground wires are
+spliced downstream; the servo leads are not presently accessible for probing.
+The meter has no MIN/MAX function. This is an upstream idle measurement only;
+voltage at the servo and during a pulse has not been measured. Do not treat it
+as proof that the servo supply remains stable under load.
+
+### 2026-09-26 board-pin supply check and startup motion
+
+The servo/LED splice is inaccessible for probing, and the meter has no MIN/MAX.
+A one-use diagnostic image,
+`configs/esphome/_dev/ventsys_servo_supply_diagnostic.yaml`, was compiled and
+flashed over COM4 with hash verification. It boots detached and exposes only
+one 1500 µs, three-second hold button plus Stop Release. After serial logging,
+the board had briefly connected to HA; later HA entities stopped updating.
+The operator watched a press of the hold button and saw the horn move, but the
+multimeter physically fell, so **no loaded voltage was captured**. HA did not
+receive a command counter or feedback result from that attempt. Do not infer
+whether the three-second hold completed. The horn was quiet afterward.
+
+The operator then powered off, checked that wiring looked intact, and reported
+that the horn was no longer near the 1500 µs mark. On subsequent power-ups,
+the horn moves each time without an intentional servo command. The current
+diagnostic firmware's servo setup and on-boot actions detach PWM; the startup
+motion therefore needs hardware/signal-path investigation. HA remained
+unavailable after the latest reconnection, though COM4 was present. Do not
+send another pulse from this unknown position or power-cycle repeatedly.
+The next non-motion check is whether the GPIO16 PWM lead can be disconnected
+at the board with power off, so one controlled power-up can distinguish a
+signal/startup transient from servo power-up behavior; do not assume a
+removable connector exists.
+
+The operator confirmed the orange PWM lead can be unplugged at GPIO16. With
+power off, they unplugged only that lead and powered the board/servo once.
+**The unloaded horn still moved on power-up and then became quiet.** Thus a
+GPIO16 command is not required for the observed startup motion. The servo's
+now-floating signal input, its own power-up behavior, and supply-path effects
+remain possible; this single test does not distinguish them. Stop repeated
+power cycles and pulses while shaft position is unknown. The orange lead is
+currently disconnected unless the operator reports reconnecting it.
+
+At the operator's explicit request, the canonical production
+`configs/esphome/ventsys_main_valve2.yaml` was compiled with ESPHome 2026.4.5
+(`config_hash=0x872c2709`) and reflashed over COM4. All written regions passed
+hash verification; `esptool --port COM4 run` reset the board. HA showed the
+production Valve 2 entities at `192.168.50.52`, including direct position,
+temperature, Wi-Fi, and feedback. The servo orange GPIO16 lead was left
+disconnected as last reported; no movement command was sent after restoration.
+HA feedback was about 0.08 V with its feedback-disconnected warning on. The
+replacement B2122 has no accepted production feedback endpoints, so old
+calibration constants must not be interpreted as valid position measurement.
+The operator stated that
+`docs/diagrams/wiring-diagrams/esp32-d1-mini-servo-feedback-wiring.html` is
+the actual build wiring. Earlier separate-servo-rail assumptions were wrong:
+USB feeds the ESP32 D1 Mini, whose 5 V/GND pins feed the servo and LED through
+the depicted splice and capacitor, and GPIO35 receives conditioned feedback.
+
+The operator then requested that the three production position controls accept
+the full 0-100 range. `configs/esphome/ventsys_main_valve2.yaml` was changed
+accordingly for Valve Position, Valve Open Position, and Valve Closed Position,
+without changing the servo's 1.0-2.0 ms PWM mapping or old feedback constants.
+ESPHome validation and compilation passed (`config_hash=0xa62437dc`), and the
+updated image was flashed over COM4 with hash verification. The operator
+reported reconnecting the orange GPIO16 lead and watching the unobstructed,
+unlinked horn for the flash/reboot. HA confirmed min=0/max=100/step=1 for all
+three number entities. No position command was sent after flashing. The
+selectable 0 and 100 values are command percentages, not calibrated physical
+valve endpoints.
+
+After the 0-100 flash, the operator reported Valve 2 unavailable in HA while
+COM4 was present. Serial boot logs showed the new firmware booting normally,
+joining `HomeIoT` as `192.168.50.52` at about -66 dBm, and connecting to MQTT.
+The ESPHome API/HA entities reconnected after a COM4 serial reset. After the
+serial monitor was closed and `esptool --port COM4 run` released/reset the
+board, HA showed the position entity at 50 with fresh feedback around 1.025 V
+and uptime increasing past two minutes. No position command was sent during
+recovery. The exact reason for the earlier offline period was not established;
+do not infer a firmware compile or Wi-Fi credential failure from it.
+
+The operator asked for the three position numbers to retain changes across
+resets. `restore_value: true` was added to Valve Position, Valve Open Position,
+and Valve Closed Position in canonical `configs/esphome/ventsys_main_valve2.yaml`.
+The preflash HA values were Position 50, Open 100, Closed 0. The image compiled
+successfully (`config_hash=0x2c19504c`) and was flashed over COM4 with hash
+verification while the operator watched the clear, unlinked horn. On first
+boot, Open and Closed initially read 50 because the previous firmware had not
+stored their values; they were restored through their non-moving HA number
+entities to Open 100 and Closed 0. Direct Position was not commanded and
+remained 50. ESPHome's default preference sync interval is 60 seconds, so
+allow at least that long after the writes before power cycling. A reboot
+retention test was not performed because startup motion had been observed.
+
+The operator later clarified that the **Valve Position** control had shown 0
+before a reboot, whereas it showed 50 afterward. HA recorder history contains
+a Valve Position 0 event at 21:50:58 UTC, then 8 at 21:51:13 UTC before the
+disconnect; a later unrecorded 0 cannot be ruled out. At that reboot the old
+firmware did not restore template-number values, so 50 came from
+`initial_value`, not measured shaft position. The new `restore_value: true`
+applies to future control writes; it cannot reconstruct a value that the old
+firmware never saved. The current direct Position 50 was not changed or
+commanded during the restoration update. Position commands map absolutely
+from 0-100 to approximately 1000-2000 µs, not relative to the displayed
+starting number. Physical servo position still needs observation/feedback.
+
+At 22:27 UTC, a read-only HA Recorder review found further user-driven
+production control activity spanning the prior and new firmware. Between 21:50 and
+21:51 UTC, multiple rapid 0↔100 Position commands were recorded and feedback
+ranged about 0.77–1.46 V; the final recorded pre-outage Position command was
+8 at 21:51:13. Feedback then fell from 0.821 V at 21:51:30.900 to 0.075 V
+at 21:51:31.405, and the feedback-disconnected warning turned on at
+21:51:32. It recovered to about 1.005 V at 22:00:22 without an intervening
+recorded Position command. These recorder values do not distinguish servo
+motion from wiring/supply faults without physical observation.
+
+The newest command cluster was 22:25:16–22:25:27 UTC: direct Position changed
+51→50→49→50→73→44→11 (the separate HA Main Duct Valve 2 number followed the
+same values). Feedback was about 1.024 V before the cluster, rose briefly to
+1.117 V at 22:25:17.48, returned near 1.026 V by 22:25:21.49, remained near
+1.029 V through the 11 command at 22:25:27.41, then was 1.001 V at the last
+sample at 22:25:29.51. No later feedback samples were recorded. HA marked the
+device and its uptime unavailable at 22:27:27; COM4 was still present at the
+read-only check. The last uptime sample was 420.7 seconds at 22:24:54, so
+Recorder alone does not identify whether the controller reset, lost network,
+or stopped reporting after the 22:25 commands. No new motion or reset was
+commanded during this review.
+
+At the operator's request, the subsequent 22:27 UTC HA outage was investigated.
+COM4 remained present, but `192.168.50.52` did not answer a ping and all Valve 2
+ESPHome entities were unavailable. A supervised COM4 boot log showed normal
+firmware startup, HomeIoT association near -64 dBm, and MQTT connection; HA
+returned. The earlier dropout's cause was not established. The operator
+specified a **displayed** Valve Position of 100 at every boot, without a servo
+command. Canonical `ventsys_main_valve2.yaml` now sets direct Position
+`initial_value: 100` and `restore_value: false`; Open/Closed keep persistence.
+ESPHome validation and compilation passed (`config_hash=0x568ee0ab`), and the
+COM4 flash passed write/hash verification. HA then showed direct Position 100,
+Open 100, Closed 0, increasing uptime, and live raw feedback near 0.978 V.
+The canonical YAML was copied to HA's `/config/esphome/ventsys_main_valve2.yaml`
+with matching hash; its prior copy still had the obsolete 40-60 range. The
+displayed 100 must not be treated as a measured shaft angle or calibrated end.
+
+On 2026-09-27 the operator clarified that the previous two USB power removals
+were intentional. Those HA outages should not be treated as evidence of
+spontaneous ESP32 or network failure. The later serial/esptool resets were
+diagnostic steps, not known requirements after power return. At 09:25 UTC,
+HA still showed all Valve 2 entities unavailable since 22:49:47 UTC on
+September 26, while COM4 was enumerated and the board IP did not answer ping;
+the operator confirmed USB is plugged in now. The last raw feedback was
+0.9779 V at 22:47:50 UTC and HA's unavailable transition followed about two
+minutes later. Whether the board was unpowered at 22:47:50 and when power
+returned remain unknown. A read-only five-minute thread monitor was created
+for HA availability, uptime, Wi-Fi and raw feedback; it does not open COM4 or
+command the valve.
+
+The operator confirmed USB was plugged in during the 09:25 UTC check and the
+free horn was clear for a supervised COM4 read. Opening COM4 again yielded
+`rst:0x1 (POWERON_RESET)` and a normal Wi-Fi/MQTT connection at about -67 dBm;
+HA returned at 09:28:34 UTC with Position 100, live raw feedback near 0.98 V,
+and uptime increasing. This reset removed evidence of the pre-reset state, so
+the cause of the prolonged offline period remains unresolved. A trial 24-hour
+COM4 capture produced corrupt high-rate serial text despite normal HA updates;
+its background process was stopped. The HA heartbeat remains the only active
+monitor and does not touch COM4.
+
+The operator requested a controlled power-return test on 2026-09-27. A live
+HA read-only poll began at 09:32:27 UTC with Position 100, uptime 243 s,
+Wi-Fi -68 dBm and raw feedback 0.979 V. With COM4 closed, the operator
+unplugged the board's USB for about ten seconds and reconnected it to the
+same PC port; the free horn moved on power return. COM4 re-enumerated, but
+the board did not answer at its IP or resume HA telemetry. Last feedback was
+at 09:33:12 UTC; HA declared every Valve 2 entity unavailable at 09:35:04.
+A single operator press of RST/EN with USB still connected produced no observed
+horn movement and no HA recovery by 09:38:36. The test supports a reproducible
+power-return/startup problem on this PC USB path. PC USB serial DTR/RTS state,
+board startup circuitry and USB supply behavior remain possible; none is
+proven. A USB wall-charger power-only test was proposed to isolate the PC data
+connection, pending equipment availability. Do not infer physical valve
+position from the displayed 100 or open COM4 before preserving outage evidence.
+
+The operator confirmed a USB wall charger rated at least 5 V/2 A and clarified
+that they have never opened COM4 themselves; all deliberate serial-port opens
+in this session were by the assistant's tools. At about 09:41:50 UTC, moving
+the board's USB power from the PC to this charger brought the controller back
+to HA without COM4 or an EN reset. The free horn moved on charger power-up.
+HA showed Position 100 at 09:41:53, uptime 4.7 s, Wi-Fi -63 dBm and raw
+feedback 0.977 V, then uptime 124.7 s with fresh feedback at 09:43:06.
+This makes the PC USB path the likely differentiator but does not distinguish
+PC 5 V voltage/current behavior from USB serial control-line/boot behavior.
+Leave the board on charger power for monitoring; do not conflate the displayed
+100 with physical position. A read-only HA heartbeat remains active.
+
+A second controlled power-cut test was performed with the board left on the
+5 V/2 A-or-higher USB charger and COM4 disconnected. The operator reported the
+free horn was still during HA feedback-position fluctuations near 77-79%; raw
+feedback around 0.98 V maps to that percentage through the obsolete
+0.464-1.123 V calibration constants, so the percentage is not a valid shaft
+position for the replacement servo. After the operator disconnected and
+reconnected charger power, HA received a fresh uptime of 4.861 s at 09:49:10
+UTC without EN or serial reset. Uptime rose to 64.861 s at 09:49:50 and raw
+feedback continued updating near 0.984 V through 09:50:38. This validates
+one charger power-cut recovery and strengthens the PC USB-path hypothesis;
+it still does not distinguish PC power quality from USB data/control-line
+behavior. A charge-only cable/data-blocker test can separate those if the
+operator has one. The board remained on charger power at the last check.
+
+Further 2026-09-27 test: an available charge-only cable was used from the same
+PC USB port. COM4 did not enumerate, yet HA showed the ESP32 online with uptime
+increasing beyond two minutes. The operator deliberately unplugged/replugged
+once more during this test, explaining the second uptime reset; do not label it
+spontaneous. This result makes PC USB data/control-line behavior a stronger
+candidate for the normal-cable startup failure, although the cable itself also
+changed and power quality is not excluded. The operator then returned to the
+5 V charger; HA rebooted and uptime rose past 64 s.
+
+Separately, Recorder shows raw servo feedback dropping from 0.971 V at
+09:51:06.149 UTC to 0.075 V at 09:51:06.649 UTC, **before** the charge-only
+PC cable swap. Feedback remained at 0.075 V with `Valve Feedback Disconnected`
+on after returning to charger power. Do not attribute this feedback fault to
+the PC cable or derive physical angle from the feedback percentage. Further
+power-source comparisons and motion commands are paused pending a power-off
+visual check of the feedback connection and any handling around 09:51 UTC.
+
+The operator reported no board/wire handling around 09:51 UTC; separate manual
+valve movement near 10:00 UTC occurred much later. During a power-off visual
+inspection, the operator found the servo feedback wire disconnected and
+reconnected it. After charger power was restored, the free horn moved on
+power-up, HA's feedback-disconnected flag cleared, and raw feedback returned
+to roughly 0.97-1.02 V by 10:01 UTC. This identifies the loose feedback lead
+as the cause of the 0.075 V reading. It does not resolve whether PC USB
+startup trouble is caused by power quality or data/control-line behavior.
+The board remains on charger power; no servo command was sent in this check.
+
+Power-up horn investigation continued on 2026-09-27. The operator reported
+clockwise movement of roughly 10 degrees on each of at least five power-ups,
+with the horn remaining at each new position. ESPHome's local `Servo::setup()`
+detaches PWM, the production YAML has no boot `servo.write`, and a read-only
+MQTT subscription found no retained message on
+`ventsys/main/valve2/control`. The operator powered off and unplugged only
+the orange GPIO16 signal lead, leaving servo 5 V/GND/feedback connected,
+then did one charger power-up despite a requested pause; the horn still moved
+clockwise. The ESP32 PWM signal therefore is not required for that movement.
+The preceding boot had changed raw feedback from about 0.982 V to 1.538 V
+with no recorded Position command, indicating a large persistent change or
+feedback-circuit disturbance; the later signal-disconnected power-up was too
+brief for new HA telemetry. The operator then powered off and moved the horn
+counterclockwise by hand to create room. Current physical position is not
+calibrated. Do not power-cycle repeatedly or attach the linkage. A 10 kΩ
+pull-down test at the servo signal input could separate floating-input behavior
+from internal power-up behavior, but the operator has no safe connection point
+with current wiring, so this test was not performed. Board remains off with
+orange signal disconnected unless the operator reports otherwise.
+
+Follow-up on 2026-09-27: the operator tested a second, unused feedback servo
+of the same model. It also moved on power-up with the feedback lead connected
+and disconnected; a non-feedback servo did not move in the comparison test.
+The external feedback path is therefore not needed for the startup motion.
+Together with the earlier movement while GPIO16 was unplugged, this makes an
+ESP32 command unlikely. A floating PWM input on the disconnected servo lead,
+servo-internal startup behavior, or supply effects remain unresolved. The
+operator did not report the final power/signal connection state after swapping
+servos. Avoid further cycling near the mechanical stop; linkage stays off.

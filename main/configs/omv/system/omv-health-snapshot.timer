@@ -1,0 +1,12 @@
+[Unit]
+Description=Proposed OMV health snapshot cadence (not enabled)
+
+[Timer]
+OnBootSec=2min
+OnUnitInactiveSec=5min
+AccuracySec=15s
+Persistent=false
+Unit=omv-health-snapshot.service
+
+[Install]
+WantedBy=timers.target

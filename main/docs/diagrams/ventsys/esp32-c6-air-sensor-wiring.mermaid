@@ -1,0 +1,40 @@
+%%{init: {"theme":"base","fontFamily":"Segoe UI, sans-serif","themeVariables":{"primaryColor":"#123044","primaryTextColor":"#eef6ff","primaryBorderColor":"#58b7bf","lineColor":"#9aafc4","clusterBkg":"#0d1c2d","clusterBorder":"#38516b","tertiaryColor":"#0d1c2d","edgeLabelBackground":"#0b1929","fontSize":"18px"},"flowchart":{"curve":"basis","nodeSpacing":28,"rankSpacing":90,"padding":12,"subGraphTitleMargin":{"top":8,"bottom":16},"wrappingWidth":260,"useMaxWidth":false}}}%%
+flowchart LR
+    %% ESP32-C6 air sensor and enclosure-array family; source of truth: ventsys_air_sensor_base.yaml.
+    %% Layout: ESP pins (left) --- peripheral pins (right).
+    Note["Do not connect a 5V analog output to GPIO3.<br/>GPIO4 and GPIO5 are ESP32-C6 strapping pins."]
+    subgraph ESP["ESP32-C6 DEVKITC-1"]
+        V33["3.3V rail"]
+        SDA["GPIO4<br/>I2C SDA"]
+        SCL["GPIO5<br/>I2C SCL"]
+        GND["Common GND"]
+        ADC["GPIO3<br/>ADC input"]
+        LED["GPIO2<br/>Status LED"]
+    end
+    subgraph BME["BME680 BREAKOUT · 3.3V I2C"]
+        BMEV["VCC"]
+        SDO["SDO → 3.3V<br/>address 0x77"]
+        CS["CS → 3.3V<br/>I2C mode"]
+        BMESDA["SDA"]
+        BMESCL["SCL"]
+        BMEG["GND"]
+    end
+    subgraph Smoke["SMOKE / VOC ANALOG MODULE · 3.3V OUTPUT ONLY"]
+        SMV["VCC"]
+        SMG["GND"]
+        SMA["A"]
+    end
+    Note ~~~ ESP
+    V33 --- BMEV
+    V33 --- SDO
+    V33 --- CS
+    SDA --- BMESDA
+    SCL --- BMESCL
+    GND --- BMEG
+    V33 --- SMV
+    GND --- SMG
+    ADC --- SMA
+    class ESP,BME,Smoke core
+    class Note policy
+    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa
+    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8

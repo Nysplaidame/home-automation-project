@@ -65,8 +65,8 @@ VENTSYS_BOARDS=(
     "192.168.50.54:sla_branch_valve:SLA Branch Valve"
     "192.168.50.55:fdm_print_valve:FDM Printer Valve"
     "192.168.50.56:sla_print_valve:SLA Printer Valve"
-    "192.168.50.61:fdm_360_valve:FDM 360 Valve"
-    "192.168.50.62:sla_360_valve:SLA 360 Valve"
+    "192.168.50.62:fdm_360_valve:FDM 360 Valve"
+    "192.168.50.61:sla_360_valve:SLA 360 Valve"
 )
 # Smart plugs — checked by ping (not ESPHome port — commercial units)
 VENTSYS_PLUGS=(
@@ -219,6 +219,7 @@ check_backup_age() {
 
 # ── MAIN CHECK ───────────────────────────────────────────────────────────────
 run_checks() {
+    storage_json="{}"
     pass=0; fail=0; warn=0
     local ts
     ts=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
@@ -336,24 +337,36 @@ run_checks() {
             check_backup_age "CT 114 archive" "vzdump-lxc-114-*.tar.zst" 36; r_backup_ct114="$CHECK_RESULT"
         fi
 
-        # Proxmox disk usage
-        if [ "$JSON_MODE" -eq 0 ]; then
-            echo ""
-            echo "Proxmox Storage:"
-            while read -r storage total used; do
-                [ -z "$storage" ] && continue
-                pct=$((used * 100 / total))
-                threshold=85
-                [ "$storage" = "omv-backups" ] && threshold=80
-                if [ "$pct" -gt "$threshold" ]; then
-                    printf "  ${RED}✗${NC}  %-20s %d%% (limit %d%%)\n" "$storage" "$pct" "$threshold"
-                    fail=$((fail+1))
-                else
-                    printf "  ${GREEN}✓${NC}  %-20s %d%%\n" "$storage" "$pct"
-                    pass=$((pass+1))
-                fi
-            done < <(pvesm status 2>/dev/null | awk 'NR>1 && $4>0 {print $1, $4, $5}')
+        # Storage checks run in both modes; only presentation is conditional.
+        storage_json="{"
+        storage_status=""
+        if ! storage_status=$(pvesm status 2>/dev/null); then
+            storage_status=""
+            storage_json+='"collection":{"state":"fail"}'
+            fail=$((fail+1))
+            [ "$JSON_MODE" -eq 0 ] && echo "  Storage collection failed"
         fi
+        storage_first=1
+        [ "$JSON_MODE" -eq 0 ] && echo "Proxmox Storage:"
+        while read -r storage capacity used; do
+            [ -z "$storage" ] && continue
+            pct=$((used * 100 / capacity))
+            threshold=85
+            [ "$storage" = "omv-backups" ] && threshold=80
+            storage_state="ok"
+            if [ "$pct" -gt "$threshold" ]; then
+                storage_state="fail"
+                fail=$((fail+1))
+            else
+                pass=$((pass+1))
+            fi
+            [ "$JSON_MODE" -eq 0 ] && printf '  %-20s %d%% (limit %d%%) %s\n' "$storage" "$pct" "$threshold" "$storage_state"
+            [ "$storage_first" -eq 0 ] && storage_json+=","
+            storage_json+="\"$storage\":{\"state\":\"$storage_state\",\"percent\":$pct,\"threshold\":$threshold}"
+            storage_first=0
+        done < <(printf '%s\n' "$storage_status" | awk 'NR>1 && $4>0 {print $1, $4, $5}')
+        storage_json+="}"
+
     fi
 
     # ── SUMMARY ──
@@ -396,8 +409,9 @@ run_checks() {
 {
   "timestamp": "$ts",
   "collector": "Proxmox host",
-  "summary": {"pass": $pass, "fail": $fail, "total": $((pass+fail))},
+  "summary": {"pass": $pass, "fail": $fail, "warn": $warn, "total": $((pass+fail+warn))},
   "checks": {
+    "proxmox_storage": $storage_json,
     "router": "$r_router",
     "internet": "$r_internet",
     "ha_ping": "$r_ha_ping",

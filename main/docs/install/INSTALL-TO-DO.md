@@ -3,7 +3,7 @@ title: Installation Manual Suite To-Do
 description: Companion checklist for completing and validating the fresh rebuild documentation suite
 tags: [install, tasks, rebuild, documentation]
 created: 2026-05-24
-modified: 2026-09-14
+modified: 2026-10-02
 type: task-list
 status: active
 ---
@@ -17,6 +17,9 @@ without live assistance.
 ## Consolidated coverage audit — September 11
 
 This is the current planning view; the dated continuation notes below are history.
+October 2 reconciliation is in the [roadmap/code/file audit](../audits/2026-10-02-roadmap-code-file-audit.md).
+The 42-entry count retains its September scope; later Obico ML API work is
+outside that inventory. Written remains a documentation classification.
 Scope: all 34 named operational entries in the service matrix plus eight named
 roadmap additions, with ntfy counted once. Internal databases/workers are assessed
 under their parent service; unnamed future AI apps have no defined auditable scope.
@@ -55,13 +58,13 @@ No row means a complete credentialed blank-hardware rebuild has been proven.
 | [Immich](services/immich.md) | Written | Matched database/media isolated restore and household import acceptance. |
 | [Homepage](services/homepage.md) | Written | Protected TLS recovery and proxy denial/rollback proof via Phase07/12. |
 | [Dozzle](services/dozzle.md) | Written | Phase07/12 socket/exposure checks; no authoritative application data. |
-| [Bambuddy](../../configs/docker-host/stacks/bambuddy/README.md) | Written | Full stopped-state recovery added; host-network exception and P1S commissioning remain open. |
+| [Bambuddy](../../configs/docker-host/stacks/bambuddy/README.md) | Written | P1S telemetry/dashboard/notification baseline commissioned; host-network exception, camera/interlock and current restore acceptance remain separate. |
 | [ntfy](services/ntfy.md) | Written | Phone delivery and current isolated account/ACL restore acceptance. |
 | [Mealie](services/mealie.md) | Written | Owner/export and representative isolated restore acceptance. |
 | [Grocy](services/grocy.md) | Written | Owner/pilot workflow and consistent isolated restore acceptance. |
 | [Obsidian LiveSync](services/obsidian-livesync.md) | Written | Client wizard/two-device rollout; preserve canonical vault recovery boundary. |
 | [GardenKeeper](services/gardenkeeper.md) | Written | Backup defect repaired/deployed; seven tests, source builds, isolated DB/API recovery passed. Git provenance, uploads and worker workflows remain separate. |
-| [Household Hub](../../configs/docker-host/stacks/household-hub/README.md) | Written | Source builds, isolated PostgreSQL/API and two Qdrant collection restores passed; coordinated cross-store and external workflow recovery remain open. |
+| [Household Hub](../../configs/docker-host/stacks/household-hub/README.md) | Written | Source builds and component/coordinated checkpoint restores passed September12–16; recurring coordinated coverage and full external workflow recovery remain open. |
 | [Mermaid Viewer](services/mermaid-viewer.md) | Written | Complete static artifact checkpoint, isolated render and full/diagram-only rollback paths linked. |
 | [Gridfinity Layout Tool](services/gridfinity-layout-tool.md) | Written | Static build, scheduler, previous-release and separate browser-state recovery documented; runtime version/task state unverified. |
 | [Recomp Tracker](services/recomp-tracker.md) | Written | Current SQLite restore and notification acceptance; preserve copied-data isolation. |
@@ -73,7 +76,7 @@ No row means a complete credentialed blank-hardware rebuild has been proven.
 | [Mullvad gateway + qBittorrent](services/download-gateway.md) | Written | Current tunnel containment and isolated config recovery; payloads are separate. |
 | [SearXNG](services/searxng.md) | Written | Sanitized settings parsed/loaded; effective environment overrides verified. Source Compose rejects empty secret; engine-wide search acceptance remains separate. |
 | [Whoogle](services/whoogle.md) | Written | Rebuild pinned service and bounded upstream query acceptance; browser preferences separate. |
-| [Watchtower monitor-only](services/watchtower-monitor-only.md) | Written | Resolve error40014; preserve separate Compose/env backup and prove unchanged scan targets. |
+| [Watchtower monitor-only](services/watchtower-monitor-only.md) | Written | Server delivery/count correction accepted September15–17; phone receipt and current recovery acceptance remain separate. |
 | [apt-cacher-ng](../procedures/apt_cacher_ng_design.md) | Written | Native package/config/client recovery documented; CT114 package-path acceptance remains open. |
 | [Immich curated exporter](services/immich-curated-exporter.md) | Written | Matched state/allow-list/media recovery and rollback documented; timer remains gated on bounded no-delete acceptance. |
 | [Paperless-ngx](services/paperless-ngx.md) | Candidate | Written evaluation/export/restore path; no real document import before acceptance. |
@@ -82,7 +85,7 @@ No row means a complete credentialed blank-hardware rebuild has been proven.
 | [Portainer](services/portainer.md) | Candidate | Socket/admin boundary and isolated no-production-socket restore required. |
 | [Local registry mirror](services/local-registry-mirror.md) | Candidate | TLS/capacity/client rollback decision remains required. |
 | [Node-RED](services/node-red.md) | Candidate | Safe-mode restore and explicit flow promotion remain required. |
-| [Troubleshooting Dashboard](../../apps/troubleshooting-dashboard/README.md) | Written | September11 routes/Windows collector documented; Proxmox collector/access and real backup evidence still open. |
+| [Troubleshooting Dashboard](../../apps/troubleshooting-dashboard/README.md) | Written | 37-route catalog and September14–15 Proxmox collector/import acceptance recorded; cross-service dependency/history/recovery extensions remain open. |
 
 ### Live source discovery follow-up
 
@@ -262,16 +265,24 @@ rebuild dry-read. No live backups, credential changes or deletion were performed
 - [x] Review MediaMTX lifecycle instructions and Household Hub's actual source
   boundary. Add MediaMTX installation/backup/update/restore guidance and a Hub
   deployment-boundary README instead of implying the mirror can build the app.
-- [ ] Recover the canonical Household Hub application repository/revision and
-  link its build/migration/isolated database restore procedure; the Compose
-  mirror and backed-up exports alone cannot meet this requirement.
+- [x] Create an owner-authorized, labelled local Household Hub recovery
+  repository from the protected dated source archive. Initial commit `c463bd9`
+  records its provenance and has no remote. The Compose mirror and backed-up
+  exports alone still cannot meet original-history requirements; see
+  `docs/procedures/household-hub-source-recovery-register.md`.
+- [ ] Identify the original Household Hub repository/revision only if
+  historical provenance or a remote collaboration path becomes necessary; do
+  not infer or invent a remote from the recovered source.
 - [ ] Establish MediaMTX protected configuration backup and recording retention;
   its source is reproducible but the central app-data job does not capture it.
 - [x] Complete the source-backed update/restore coverage review for SearXNG,
   Whoogle, Watchtower and ntfy (September11); live acceptance remains separate.
-- [ ] Recover and review effective SearXNG settings and preserve a sanitized
-  source template; the current Compose alone cannot reproduce engine/limiter
-  policy or prove effective secret use. Add protected off-VM configuration backup.
+- [x] Recover and review effective SearXNG settings and preserve a sanitized
+  source template. On 2026-09-12, the installed loader semantically verified
+  the snapshot, engine enablement, disabled limiter, effective base URL, and
+  protected environment-secret precedence without changing the live service.
+  The protected off-VM copy and sanitized template are recorded in the SearXNG
+  service manual; search availability remains a separate acceptance concern.
 - [ ] Perform a complete sequential dry-read after this reconciliation, then
   record a separate credentialed rebuild/restore rehearsal when feasible.
 

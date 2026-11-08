@@ -21,6 +21,9 @@
 # allows 3142 only from Frigate (192.168.30.20) and Monitoring
 # (192.168.60.10). CT 114 was built after those rules and was never added.
 # Fail2ban cannot be installed until that path is restored.
+# October2 read-only recheck: package still absent; cached security indexes
+# expired June26. UFW rejection is directly logged, and the cache upstream
+# returns503. Prepared repair: docs/procedures/ct114-package-path-repair.md.
 
 [DEFAULT]
 banaction = ufw

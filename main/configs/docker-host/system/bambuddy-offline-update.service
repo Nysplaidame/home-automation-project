@@ -1,0 +1,13 @@
+[Unit]
+Description=Install staged Bambuddy release without registry access
+After=docker.service network-online.target
+Requires=docker.service
+RequiresMountsFor=/mnt/omv/docker-host-backups
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/bambuddy-offline-update.py
+TimeoutStartSec=30min
+UMask=0077
+Nice=10
+

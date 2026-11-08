@@ -121,7 +121,7 @@
   height: 100%;
   min-height: 5.25rem;
   overflow: hidden;
-  padding-right: 7.6rem;
+  padding-right: 12.2rem;
   border: 1px solid rgb(153 246 228 / 0.44);
   background:
     linear-gradient(142deg, rgb(236 253 245 / 0.16), transparent 28%),
@@ -251,12 +251,19 @@
     0 7px 15px rgb(15 23 42 / 0.28);
 }
 
-.portal-preview-trigger {
+.portal-card-actions {
   position: absolute;
   z-index: 20;
   top: 0.55rem;
   right: 2.25rem;
   bottom: 0.55rem;
+  display: flex;
+  align-items: stretch;
+  gap: 0.38rem;
+}
+
+.portal-preview-trigger,
+.portal-direct-trigger {
   display: inline-flex;
   min-height: 0;
   align-items: center;
@@ -278,6 +285,8 @@
 
 .portal-preview-trigger:hover,
 .portal-preview-trigger:focus-visible,
+.portal-direct-trigger:hover,
+.portal-direct-trigger:focus-visible,
 .portal-preview-actions :is(button, a):hover {
   border-color: rgb(45 212 191 / 0.8);
   background: rgb(20 64 77 / 0.78);
@@ -286,17 +295,21 @@
 }
 
 .portal-preview-trigger:hover,
-.portal-preview-trigger:focus-visible {
+.portal-preview-trigger:focus-visible,
+.portal-direct-trigger:hover,
+.portal-direct-trigger:focus-visible {
   transform: none !important;
 }
 
 .portal-preview-trigger:focus-visible,
+.portal-direct-trigger:focus-visible,
 .portal-preview-actions :is(button, a):focus-visible {
   outline: 2px solid var(--portal-accent);
   outline-offset: 2px;
 }
 
-.portal-preview-trigger svg {
+.portal-preview-trigger svg,
+.portal-direct-trigger svg {
   width: 0.9rem;
   height: 0.9rem;
   fill: none;
@@ -441,12 +454,13 @@
 /* Use the available desktop width before wrapping a service category. */
 @media (min-width: 721px) {
   .services-list {
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)) !important;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)) !important;
   }
 }
 
-/* Narrow cards grow vertically and give the action its own bottom row. */
-@container (max-width: 330px) {
+/* Cards that cannot fit service copy beside both actions grow vertically and
+   give the actions their own bottom row. */
+@container (max-width: 430px) {
   [id^="portal-"] .service-card {
     min-height: 8.75rem;
     padding-right: 0.25rem;
@@ -462,13 +476,18 @@
     padding-right: 1.35rem;
   }
 
-  .portal-preview-trigger {
+  .portal-card-actions {
     top: auto;
     right: 0.55rem;
     bottom: 0.55rem;
     left: 0.55rem;
     height: 2.35rem;
     min-height: 2.35rem;
+  }
+
+  .portal-preview-trigger,
+  .portal-direct-trigger {
+    flex: 1 1 0;
     justify-content: center;
   }
 }

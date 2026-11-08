@@ -38,6 +38,13 @@ it is not exposed by a broad remote VLAN route.
 | Admin devices | tailnet admin group | `192.168.40.50/32` | 80, 443, 445, 2049, 22 | OMV admin/shares as needed |
 | Admin devices | tailnet admin group | `192.168.60.10/32` | 3000, 3001 | Grafana and Uptime Kuma only |
 | Household mobile devices | approved user/device tags | Homepage fixed HTTPS proxies on docker-host | 443 and 8180-8209 | All Homepage user-facing cards, including infrastructure and monitoring, remain tailnet-only; no broad VLAN routes |
+
+Homepage standalone `Direct` navigation follows the same fixed HTTPS proxy as
+Preview; raw backend addresses are not part of the phone navigation contract.
+Bambuddy browser access uses `8207`, while native Bambuddy Mobile owns tailnet
+`8181` through Serve. Nginx may retain LAN-only `192.168.20.102:8181`, but must
+not claim wildcard/tailnet `8181`. This separation was deployed September 30
+without expanding any route or grant.
 | Household mobile devices | approved user/device tags | `192.168.60.10/32` | 3000, 3001 | Monitoring dashboards only if desired for daily mobile use |
 | Admin devices | tailnet admin group | `192.168.20.104/32` | 3002, 8081, 10200, 10300, 10400 | Local AI admin/testing only if explicitly approved; embedding port 8082 is source-scoped to docker-host |
 | Unknown devices | any | any routed subnet | none | Require explicit approval |
@@ -57,11 +64,11 @@ WireGuard fallback activation/deactivation governance is defined in
 | LAN / Management | docker-host app UIs | 443, 5984, 8000, 2283, 3001, 8080, 8081, 8085, 8087, 8088, 8091, 8092, 8093, 8100, 8180-8209, 9283, 9925/tcp | Homepage HTTPS and fixed proxies, Obsidian LiveSync, Bambuddy, Immich, HTTP rollback, AdGuard admin, Dozzle, ntfy, SearXNG, Whoogle, GardenKeeper, Mermaid Viewer, Gridfinity Layout Tool, Recomp Tracker, Household Hub, Grocy, Mealie |
 | Management | Troubleshooting Dashboard staged POC | 8094/tcp | Acceptance-only path; no LAN, Tailscale, monitoring, DNS alias, or Homepage exposure |
 | Management / HomeAdmin | MediaMTX | 8554/tcp | Authenticated RTSP publisher/viewer path for the Android phone and garage Pi; no other VLAN, Tailscale or IPv6 access |
-| LAN | Printers | 8883, 21, 80, 8080/tcp | Slicer/local printer access |
+| LAN | Printers | 8883, 990, 80, 8080/tcp | Slicer/local printer access |
 | HA | Frigate | 8971, 5000, 8554, 8555/tcp | HA integration |
 | HA | OMV | 22, 445, 2049/tcp | Backup/storage |
 | HA | IoT | 6053, 3232/tcp | ESPHome API/OTA |
-| docker-host | P1S | 8883, 21/tcp | Bambuddy |
+| docker-host | P1S | 8883, 990/tcp | Bambuddy |
 | HA | llm-host | 8081, 10200, 10300/tcp | llama.cpp/OpenAI-compatible LLM endpoint and Wyoming STT/TTS integrations |
 | HA | docker-host | 8090, 8100, 9283/tcp | GardenKeeper operations, Household Hub read-only knowledge/research, and Grocy voice shopping-list APIs |
 | HA Supervisor network `172.30.32.0/23` | docker-host | 8087, 8090, 8100, 9283, 9925/tcp | SearXNG, GardenKeeper, Household Hub, Grocy, and Mealie tools used by Overwatch/Assist |

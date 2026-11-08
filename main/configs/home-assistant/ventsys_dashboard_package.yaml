@@ -1,0 +1,330 @@
+# Generated operating-mode integration. No boot actuation.
+script:
+  ventsys_dashboard_command:
+    alias: VentSys Dashboard — reviewed command
+    mode: single
+    max_exceeded: warning
+    description: Exact allowlist, native availability/range checks and bounded report confirmation. No boot actions.
+    fields:
+      kind:
+        required: true
+        description: position, fan, speed or mode
+      target:
+        required: true
+        description: Fixed device or mode key
+      value:
+        required: false
+        description: Integer 0–100, or on/off for a fan
+      scope:
+        required: false
+        description: full (default) or available for a reviewed subset of a mode
+      included:
+        required: false
+        description: Reviewed exact mode-report keys for available scope
+    sequence:
+    - if:
+      - condition: template
+        value_template: '{{ kind | default('''') == ''mode'' }}'
+      then:
+      - stop: Refresh dashboard to use independent operating modes
+        error: true
+    - if:
+      - condition: template
+        value_template: '{{ not is_state(''script.ventsys_set_operating_mode'',''off'') or not is_state(''script.ventsys_test_valves'',''off'')
+          or not is_state(''script.ventsys_record_intake_reference'',''off'') }}'
+      then:
+      - stop: Operating mode transition, reference recording or setup test is running/unavailable; manual commands blocked
+        error: true
+    - variables:
+        controls:
+          main1:
+            key: main1
+            name: Main duct 1
+            short: MAIN-1
+            zone: Main duct
+            entity: number.main_duct_valve_1
+            native:
+            - number.ventsys_main_duct_valve_1_valve_position
+            topic: ventsys/main/valve1/control
+            svg: valve-main-1
+            text: valve-main-1-pos
+          main2:
+            key: main2
+            name: Main duct 2
+            short: MAIN-2
+            zone: Main duct
+            entity: number.main_duct_valve_2
+            native:
+            - number.garage_ventsys_main_duct_valve_2_valve_position
+            topic: ventsys/main/valve2/control
+            svg: valve-main-2
+            text: valve-main-2-pos
+          fdm_branch:
+            key: fdm_branch
+            name: FDM branch
+            short: E1 BRANCH
+            zone: FDM enclosure
+            entity: number.fdm_branch_valve
+            native:
+            - number.ventsys_e1_branch_valve_valve_position
+            topic: ventsys/fdm/branch/control
+            svg: valve-enc1-vert
+            text: valve-enc1-vert-pos
+          fdm_print:
+            key: fdm_print
+            name: FDM print valve
+            short: E1 PRINT
+            zone: FDM enclosure
+            entity: number.fdm_valve
+            native:
+            - number.ventsys_fdm_print_valve_valve_position
+            topic: ventsys/fdm/valve/control
+            svg: valve-enc1-print
+            text: enc1-print-pct
+          fdm_360:
+            key: fdm_360
+            name: FDM 360° intake
+            short: E1 INTAKE
+            zone: FDM enclosure
+            entity: number.fdm_360_intake
+            native:
+            - number.ventsys_sla_360_intake_valve_valve_position
+            boardMac: a0:85:e3:ae:5b:c8
+            expectedRange:
+              min: 30
+              max: 60
+            topic: ventsys/sla/360/control
+            svg: valve-360-enc1
+            text: enc1-360-pct
+          sla_branch:
+            key: sla_branch
+            name: SLA branch
+            short: E2 BRANCH
+            zone: SLA enclosure
+            entity: number.sla_branch_valve
+            native:
+            - number.ventsys_e2_branch_valve_valve_position
+            topic: ventsys/sla/branch/control
+            svg: valve-enc2-vert
+            text: valve-enc2-vert-pos
+          sla_print:
+            key: sla_print
+            name: SLA print valve
+            short: E2 PRINT
+            zone: SLA enclosure
+            entity: number.sla_valve
+            native:
+            - number.ventsys_sla_print_valve_valve_position
+            topic: ventsys/sla/valve/control
+            svg: valve-enc2-print
+            text: enc2-print-pct
+          sla_360:
+            key: sla_360
+            name: SLA 360° intake
+            short: E2 INTAKE
+            zone: SLA enclosure
+            entity: number.sla_360_intake
+            native:
+            - number.ventsys_fdm_360_intake_valve_valve_position
+            boardMac: cc:ba:97:f0:e3:ec
+            expectedRange:
+              min: 30
+              max: 60
+            topic: ventsys/fdm/360/control
+            svg: valve-360-enc2
+            text: enc2-360-pct
+          fan_main:
+            key: fan_main
+            name: Main extraction fan
+            short: MAIN FAN
+            zone: Main duct
+            entity: fan.inline_fan
+            native: []
+            topic: ventsys/fan/control
+            speedTopic: ventsys/fan/percent
+            svg: fan-blades
+            text: main-fan-pct
+            fan: true
+          fan_booth:
+            key: fan_booth
+            name: Spray booth fan
+            short: BOOTH FAN
+            zone: Spray booth
+            entity: fan.spray_booth_fan
+            native: []
+            topic: ventsys/spray-fan/control
+            speedTopic: ventsys/spray-fan/percent
+            svg: spray-booth-fan-blades
+            text: spray-fan-pct
+            fan: true
+        mode_expected:
+          sealed:
+            fan_main: 'off'
+            fan_booth: 'off'
+            main1: 0
+            main2: 0
+            fdm_branch: 0
+            fdm_print: 0
+            fdm_360: 30
+            sla_branch: 0
+            sla_print: 0
+            sla_360: 30
+          purge:
+            fan_main: 'on'
+            fan_booth: 'on'
+            main1: 100
+            main2: 100
+            fdm_branch: 100
+            fdm_print: 100
+            fdm_360: 60
+            sla_branch: 100
+            sla_print: 100
+            sla_360: 60
+          booth:
+            fan_booth: 'on'
+            fan_main: 'on'
+            fan_main_speed: 50
+            main1: 100
+            main2: 100
+          booth_seal:
+            fan_booth: 'off'
+            main2: 0
+          fdm_print:
+            fan_main: 'on'
+            fdm_print: 100
+            fdm_branch: 100
+            fdm_360: 30
+          fdm_enclosure:
+            fan_main: 'on'
+            fdm_360: 60
+            fdm_branch: 100
+            fdm_print: 0
+          fdm_purge:
+            fan_main: 'on'
+            fdm_360: 60
+            fdm_print: 100
+            fdm_branch: 100
+          fdm_seal:
+            fdm_branch: 0
+            fdm_print: 0
+            fdm_360: 30
+          sla_print:
+            fan_main: 'on'
+            sla_print: 100
+            sla_branch: 100
+            main1: 100
+            sla_360: 30
+          sla_enclosure:
+            fan_main: 'on'
+            sla_360: 60
+            sla_branch: 100
+            main1: 100
+            sla_print: 0
+          sla_purge:
+            fan_main: 'on'
+            sla_360: 60
+            sla_print: 100
+            sla_branch: 100
+            main1: 100
+          sla_seal:
+            sla_branch: 0
+            sla_print: 0
+            sla_360: 30
+        mode_scripts:
+          sealed: script.ventsys_mode_sealed
+          purge: script.ventsys_mode_purge
+          booth: script.ventsys_mode_booth
+          booth_seal: script.ventsys_mode_booth_seal
+          fdm_print: script.ventsys_mode_fdm_print
+          fdm_enclosure: script.ventsys_mode_fdm_enclosure
+          fdm_purge: script.ventsys_mode_fdm_purge
+          fdm_seal: script.ventsys_mode_fdm_seal
+          sla_print: script.ventsys_mode_sla_print
+          sla_enclosure: script.ventsys_mode_sla_enclosure
+          sla_purge: script.ventsys_mode_sla_purge
+          sla_seal: script.ventsys_mode_sla_seal
+    - if:
+      - condition: template
+        value_template: '{{ not is_state(''input_boolean.ventsys_failsafe'', ''off'') }}'
+      then:
+      - stop: Failsafe active or unavailable; manual dashboard commands blocked
+        error: true
+    - if:
+      - condition: template
+        value_template: "{%- set ns=namespace(bad=false) -%}\n{%- if kind not in ['position','fan','speed','mode'] or (kind\
+          \ == 'mode' and (target not in mode_expected or value | default(none) is not none)) or (kind != 'mode' and target\
+          \ not in controls) -%}true\n{%- elif scope | default('full') not in ['full','available'] -%}true\n{%- elif scope\
+          \ | default('full') == 'available' -%}\n {%- if kind != 'mode' or included is not defined or included is string\
+          \ or included is mapping or included is not sequence -%}true\n {%- elif included | count < 1 or included | count\
+          \ > 12 or included | unique | list | count != included | count -%}true\n {%- else -%}{%- for key in included -%}{%-\
+          \ if key is not string or key not in mode_expected[target] -%}{%- set ns.bad=true -%}{%- endif -%}{%- endfor -%}{{-\
+          \ ns.bad -}}{%- endif -%}\n{%- else -%}{{- included | default(none) is not none -}}{%- endif -%}"
+      then:
+      - stop: Unsupported dashboard request
+        error: true
+    - if:
+      - condition: template
+        value_template: '{%- if kind == ''mode'' -%}false
+
+          {%- elif kind == ''fan'' -%}{{- not controls[target].fan | default(false) or value | default(none) not in [''on'',''off'']
+          -}}
+
+          {%- else -%}{{- (kind == ''speed'') != (controls[target].fan | default(false)) or value | default(none) is boolean
+          or value | default(none) is not number or value | int(-1) != value or value | int(-1) < 0 or value | int(-1) > 100
+          -}}{%- endif -%}'
+      then:
+      - stop: Invalid dashboard value
+        error: true
+    - variables:
+        expected: '{%- if kind == ''mode'' and scope | default(''full'') == ''available'' -%}
+
+          {%- set ns=namespace(result={}) -%}{%- for key in included -%}{%- set ns.result=dict(ns.result, **{key:mode_expected[target][key]})
+          -%}{%- endfor -%}{{- ns.result -}}
+
+          {%- else -%}{{- mode_expected[target] if kind == ''mode'' else { (target ~ ''_speed'' if kind == ''speed'' else
+          target): value } -}}{%- endif -%}'
+    - variables:
+        blocked: "{%- set ns = namespace(reason='') -%}\n{%- for key, desired in expected.items() -%}\n  {%- set speed = key.endswith('_speed')\
+          \ -%}{%- set device = controls[key[:-6] if speed else key] -%}\n  {%- set chosen = namespace(id=device.entity, adopted=false)\
+          \ -%}\n  {%- for native in device.native -%}{%- if not chosen.adopted and states[native] is not none -%}{%- set\
+          \ chosen.id=native -%}{%- set chosen.adopted=true -%}{%- endif -%}{%- endfor -%}\n  {%- set report = states[chosen.id]\
+          \ -%}\n  {%- if report is none or report.state in ['unknown','unavailable','none',''] -%}{%- set ns.reason='Controller\
+          \ unavailable: ' ~ device.name -%}\n  {%- elif device.fan | default(false) and report.state not in ['on','off']\
+          \ -%}{%- set ns.reason='Invalid fan state: ' ~ device.name -%}\n  {%- elif not device.fan | default(false) and not\
+          \ is_number(report.state) -%}{%- set ns.reason='Invalid position report: ' ~ device.name -%}\n  {%- elif not device.fan\
+          \ | default(false) and not chosen.adopted -%}{%- set ns.reason='Native controller not adopted: ' ~ device.name -%}\n\
+          \  {%- elif not device.fan | default(false) and (desired | float < report.attributes.get('min',0) | float or desired\
+          \ | float > report.attributes.get('max',100) | float) -%}{%- set ns.reason='Target exceeds firmware range: ' ~ device.name\
+          \ -%}\n  {%- elif speed and report.attributes.get('percentage') is none -%}{%- set ns.reason='Fan percentage unavailable:\
+          \ ' ~ device.name -%}{%- endif -%}\n{%- endfor -%}{{- ns.reason -}}"
+    - if:
+      - condition: template
+        value_template: '{{ blocked | trim != "" }}'
+      then:
+      - stop: '{{ blocked }}'
+        error: true
+    - choose:
+      - conditions: '{{ kind == "mode" and scope | default("full") == "full" }}'
+        sequence:
+        - action: '{{ mode_scripts[target] }}'
+      default:
+      - action: script.ventsys_normal_command
+        data:
+          commands: '{%- set ns=namespace(commands=[]) -%}
+
+            {%- for key, desired in expected.items() -%}{%- set speed=key.endswith(''_speed'') -%}{%- set device=controls[key[:-6]
+            if speed else key] -%}
+
+            {%- set ns.commands=ns.commands + [{''topic'':device.speedTopic if speed else device.topic,''payload'':desired
+            | string}] -%}{%- endfor -%}{{- ns.commands -}}'
+    - wait_template: "{%- set ns = namespace(ok=true) -%}\n{%- for key, desired in expected.items() -%}\n {%- set speed=key.endswith('_speed')\
+        \ -%}{%- set device=controls[key[:-6] if speed else key] -%}\n {%- set chosen=namespace(id=device.entity, adopted=false)\
+        \ -%}\n {%- for native in device.native -%}{%- if not chosen.adopted and states[native] is not none -%}{%- set chosen.id=native\
+        \ -%}{%- set chosen.adopted=true -%}{%- endif -%}{%- endfor -%}\n {%- set report=states[chosen.id] -%}\n {%- if report\
+        \ is none or report.state in ['unknown','unavailable','none',''] -%}{%- set ns.ok=false -%}\n {%- elif speed -%}{%-\
+        \ if report.attributes.get('percentage', -1) | float(-1) != desired | float -%}{%- set ns.ok=false -%}{%- endif -%}\n\
+        \ {%- elif device.fan | default(false) -%}{%- if report.state != desired -%}{%- set ns.ok=false -%}{%- endif -%}\n\
+        \ {%- elif report.state | float(-1) != desired | float -%}{%- set ns.ok=false -%}{%- endif -%}\n{%- endfor -%}{{-\
+        \ ns.ok -}}"
+      timeout: 00:00:08
+      continue_on_timeout: false

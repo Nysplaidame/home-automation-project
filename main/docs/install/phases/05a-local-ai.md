@@ -3,7 +3,7 @@ title: Phase 05A - Local AI Inference
 description: Rebuild CT 114 shared-iGPU llama.cpp, embeddings, Open WebUI, and Home Assistant voice inference
 tags: [install, local-ai, llm, voice, home-assistant]
 created: 2026-06-15
-modified: 2026-09-11
+modified: 2026-10-04
 type: install-guide
 status: active
 ---
@@ -19,8 +19,14 @@ device exclusively to either workload.
 
 ## Current-state callout
 
-CT 114 is live at `192.168.20.104` with 4 vCPU, 20480 MiB RAM, a 100 GiB root
-disk, and no swap. Current tracked Compose serves:
+CT 114 is live at `192.168.20.104` with 6 vCPU, 28672 MiB RAM, a 100 GiB root
+disk, and no swap.
+
+The core/RAM/swap allocation was confirmed read-only through `pct config 114`
+on October4; prior4-core/10–20 GiB descriptions are superseded. The root size
+and model targets below retain their separately documented acceptance.
+
+Current tracked Compose serves:
 
 - `Qwen3-14B-128K-Q4_K_M.gguf` as `home-assistant-llm` with 65536-token context,
   Q8 KV cache, reasoning disabled, and Vulkan offload;
@@ -31,6 +37,15 @@ disk, and no swap. Current tracked Compose serves:
 Earlier 7B/8B-at-4k language in this phase is obsolete. A smaller model/context
 remains the pressure-recovery path, not the claimed live target. VM 104 is a
 stopped rollback artifact and must never run while CT 114 owns the same address.
+
+October4 read-only package/security refresh confirms Fail2ban is absent, no
+HTTP APT proxy is configured and cached security/update metadata still expires
+June26. CT114 cannot obtain an HTTP response through docker-host's active cache;
+cache-loopback Debian metadata returns503. The scoped helper/proxy repair is
+prepared, not applied. Do not treat old upgrade candidates as current or install
+a new security baseline before accepted package-path maintenance. See
+[[../../procedures/ct114-package-path-repair]] and
+[[../../reference/current-live-state]].
 
 ## Runs on
 
@@ -108,8 +123,8 @@ pct create 114 "local:vztmpl/<DEBIAN_13_LXC_TEMPLATE>" \
   --hostname llm-host \
   --unprivileged 1 \
   --features nesting=1,keyctl=1 \
-  --cores 4 \
-  --memory 20480 \
+  --cores 6 \
+  --memory 28672 \
   --swap 0 \
   --rootfs local-lvm:100 \
   --net0 name=eth0,bridge=vmbr0,tag=20,ip=192.168.20.104/24,gw=192.168.20.1 \

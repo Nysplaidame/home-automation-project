@@ -3,7 +3,7 @@ title: Household, Workshop and Operations Product Roadmap
 description: Phased roadmap for daily household workflows, workshop operations, diagnostics, resilience, and VentSys commissioning
 tags: [roadmap, household, workshop, monitoring, resilience, ventsys]
 created: 2026-09-05
-modified: 2026-09-07
+modified: 2026-10-02
 type: product-roadmap
 status: active
 ---
@@ -15,11 +15,12 @@ planned physical integrations into coherent daily workflows. It is a planning
 document: an entry authorises discovery and design only. Each implementation
 still needs a bounded change, backup, rollback and acceptance plan.
 
-The order reflects the actual estate on 2026-09-05. Docker-host, GardenKeeper,
+The order started from the estate on 2026-09-05. Docker-host, GardenKeeper,
 Grocy, Mealie, Household Hub, Recomp Tracker, monitoring and the staged
-Troubleshooting Dashboard are usable foundations. The P1S is not commissioned,
-the Zyxel/cameras are intentionally disconnected, and VentSys hardware remains
-unbuilt. Do not make those deferred systems prerequisites for work that can be
+Troubleshooting Dashboard are usable foundations. P1S telemetry/dashboard/
+notifications are now commissioned; its camera and safety interlock remain
+separate. The Zyxel/cameras are intentionally disconnected, and VentSys physical
+acceptance remains incomplete. Do not make deferred systems prerequisites for work that can be
 useful now.
 
 ## Product boundaries
@@ -50,7 +51,7 @@ useful now.
 |---|---|---|---|
 | 0 | Home-operations evidence contract | Local POC complete | A versioned, timestamped read-only fixture that can state `unknown`, `planned offline` and `failed` honestly. |
 | 1 | Today at Home | Local POC complete | One daily page for due garden work, expiring stock, planned meals, training and actionable infrastructure issues. |
-| 2 | Dependency-aware troubleshooting and recovery readiness | Local POC complete; live extension gated | An incident points to plausible shared dependencies; recovery evidence distinguishes backup, integrity and restore proof. |
+| 2 | Dependency-aware troubleshooting and recovery readiness | Troubleshooting live; shared-dependency/recovery views remain local POC | An incident points to plausible shared dependencies; recovery evidence distinguishes backup, integrity and restore proof. |
 | 3 | Cook what we have and Recomp shortcut | Local POC complete; live data gated | Reviewed meal suggestions that use real Grocy stock without automatic stock changes or diet logging. |
 | 4 | Workshop inventory and drawer map | Ready to evaluate | Find parts, tools and project allocations by location, label or QR code. |
 | 5 | VentSys commissioning companion | Local POC complete; hardware-gated | Bench and installation evidence for each device, with a command-free simulation mode. |
@@ -122,8 +123,10 @@ opens the correct owner application.
 
 ## Phase 2A — Dependency-aware troubleshooting
 
-Extend the staged Troubleshooting Dashboard only after its outstanding real
-Proxmox snapshot acceptance is complete. Add a tracked dependency graph derived
+Real Proxmox snapshot validation and live browser import passed September15.
+The live dashboard now has 37 guided routes after September30 and approved Homepage placement.
+The tracked cross-service dependency graph and incident history remain separate
+extensions; route coverage alone does not implement them. Add a dependency graph derived
 from the service and access matrices, initially covering Proxmox, VM 103,
 docker-host services, OMV mounts, DNS and the monitoring VM.
 
@@ -241,7 +244,71 @@ evidence exists.
    availability and a command-free VentSys checklist from fixture evidence.
 3. Decide whether a future live view belongs in Household Hub or a separately
    placed service, then define adapter contracts and least-privilege access.
-4. Complete the Proxmox snapshot acceptance before extending the staged
-   Troubleshooting Dashboard with live diagnostic or recovery evidence.
+4. **Acceptance complete September15:** use the verified Proxmox snapshot path
+   as the foundation for the separate dependency/recovery-board extension.
 5. Seed a small, accurate Grocy stock pilot before using live recipe data.
 6. Run the workshop-inventory evaluation with one cabinet or Gridfinity zone.
+
+
+## September 16 assessment
+
+See [the full dated assessment](../audits/2026-09-16-roadmap-assessment.md).
+Infrastructure/service availability is substantially ahead of cross-service
+product delivery. The live27-route troubleshooting app is distinct from the
+local Home Operations Workbench prototype. Proxmox evidence import and five
+September15 archive checks passed; full guest restore acceptance remains open.
+GardenKeeper repair/component recovery, coordinated Hub recovery and offline
+source builds have advanced; recurring coordinated backup and full integration
+recovery remain separate. Keep hardware-gated work parked until commissioning.
+The42-entry audit is36 Written/6 Candidate, a documentation classification rather
+than a completion score. Older checklist rows must be read with newer dated
+handoff evidence; they are not a reliable single backlog without reconciliation.
+
+The initial delivery boundary is now captured in the
+[read-only household operations release plan](read-only-product-release-plan.md).
+It deliberately keeps Today at Home and recovery readiness import-first until
+the Household Hub source, placement, adapters, credentials, backup path, and
+release approval are all explicit.
+
+## October 2 verification
+
+The [roadmap/code/file audit](../audits/2026-10-02-roadmap-code-file-audit.md)
+reconciles the current source with this roadmap. Local Workbench and diagnostic
+tests/browser checks pass, the recovered Hub builds and passes 62 API tests,
+and all 16 maintained diagrams render. The read-only Grocy integration exists;
+Hub background jobs and MCP do not. The integrated Today/recovery/workshop
+products and VentSys physical acceptance remain incomplete. Fresh OMV SMART
+evidence closes its access/evidence blocker; it does not certify restore readiness.
+Use the audit's independent next-work list before expanding the service estate.
+
+## October 4 saved GardenKeeper verification
+
+Today at Home now accepts a bounded saved `garden-tasks/1.0` selection in the
+local Workbench. Only pending tasks appear; explicit observation freshness,
+unknown timestamps and independently validated UTC due times remain visible.
+Notes, record identifiers and recurrence fields are omitted. Empty selections
+do not certify the whole garden, and imports cannot complete or reschedule tasks.
+The live API schema was read without fetching task records. Twenty-five unit
+tests and all three desktop/320px browser suites pass, including saved Grocy and
+historical recovery regressions. The
+[release plan](read-only-product-release-plan.md) records the scope; real-data
+pilot, live placement and authenticated production adapters remain open.
+
+October4 saved Mealie verification adds planned meals from a bounded saved page
+with explicit calendar selection. All33 Workbench unit tests and three browser
+suites pass. The [release plan](read-only-product-release-plan.md) records
+selection/privacy/freshness boundaries. Real-data pilot, source combination and
+authenticated production adapters remain open; no deployed product is inferred.
+
+October4 combined-source verification closes local three-source Today composition:
+GardenKeeper, Grocy and Mealie coexist with independent observation freshness,
+explicit unavailable states and reserved source summaries. All38 unit tests and
+three browser suites pass. Recomp, diagnostic/recovery composition, genuine
+household pilot and live integration remain open under the release plan.
+
+October4 four-source Today verification adds saved Recomp routine scheduling
+with weekday and one-off move semantics, without personal history or completion
+inference. The new explicit bundle version retains older three-source support.
+All45 unit tests and three browser suites pass. Real household pilot,
+diagnostic/recovery composition and deployed integration remain open; the
+calisthenics programme is outside this routine selection.

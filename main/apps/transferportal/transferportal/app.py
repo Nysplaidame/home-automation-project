@@ -4,6 +4,9 @@ import hashlib
 import hmac
 import json
 import os
+import time
+from threading import Lock
+from urllib.parse import urlsplit
 import uuid
 from dataclasses import asdict
 from pathlib import Path
@@ -32,6 +35,24 @@ def create_app() -> FastAPI:
     app.state.store.fail_unlaunched_jobs()
     app.state.helper = HelperClient(config.helper_path)
     app.add_middleware(SessionMiddleware, secret_key=_session_secret(config))
+    login_failures: dict[str, list[float]] = {}
+    login_lock = Lock()
+
+    @app.middleware("http")
+    async def same_origin_writes(request: Request, call_next):
+        if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
+            supplied = request.headers.get("origin") or request.headers.get("referer", "")
+            try:
+                parsed = urlsplit(supplied)
+            except ValueError:
+                return JSONResponse({"detail": "Invalid origin"}, status_code=403)
+            origin = f"{parsed.scheme}://{parsed.netloc}"
+            allowed = {str(request.base_url).rstrip("/")}
+            # Additional reverse-proxy origins must be deliberate host config.
+            allowed.update(value.strip().rstrip("/") for value in os.environ.get("TRANSFERPORTAL_ALLOWED_ORIGINS", "").split(",") if value.strip())
+            if parsed.scheme not in {"http", "https"} or origin not in allowed:
+                return JSONResponse({"detail": "Cross-origin or originless writes are not allowed"}, status_code=403)
+        return await call_next(request)
 
     @app.exception_handler(HTTPException)
     async def html_http_error(request: Request, exc: HTTPException) -> Response:
@@ -70,8 +91,23 @@ def create_app() -> FastAPI:
 
     @app.post("/login")
     def login(request: Request, username: Annotated[str, Form()], password: Annotated[str, Form()]) -> Response:
+        client = request.client.host if request.client else "unknown"
+        now = time.monotonic()
+        with login_lock:
+            for key in list(login_failures):
+                login_failures[key] = [at for at in login_failures[key] if now - at < 300]
+                if not login_failures[key]:
+                    del login_failures[key]
+            failures = login_failures.get(client, [])
+            if len(failures) >= 5 or (client not in login_failures and len(login_failures) >= 1024):
+                return JSONResponse({"detail": "Too many login attempts; retry in five minutes"}, status_code=429, headers={"Retry-After": "300"})
+            # Reserve before password verification to bound concurrent attempts.
+            login_failures.setdefault(client, []).append(now)
         if not verify_login(username, password):
             return login_page("Username or password was not recognised.", username=username, status_code=401)
+        with login_lock:
+            login_failures.pop(client, None)
+        request.session.clear()
         request.session["user"] = username
         return RedirectResponse("/", status_code=303)
 
@@ -499,8 +535,12 @@ def require_auth(request: Request) -> str:
 
 def _session_secret(config: AppConfig) -> str:
     if config.session_secret_file.exists():
-        return config.session_secret_file.read_text(encoding="utf-8").strip()
-    return os.environ.get("TRANSFERPORTAL_SESSION_SECRET", "dev-only-change-me")
+        secret = config.session_secret_file.read_text(encoding="utf-8").strip()
+    else:
+        secret = os.environ.get("TRANSFERPORTAL_SESSION_SECRET", "").strip()
+    if len(secret) < 32 or secret == "dev-only-change-me":
+        raise RuntimeError("Transfer Portal requires a session secret of at least 32 characters")
+    return secret
 
 
 def nav(active: str) -> str:

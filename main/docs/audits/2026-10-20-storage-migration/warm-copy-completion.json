@@ -1,0 +1,32 @@
+{
+  "observed_at": "2026-10-23T09:06:03+01:00",
+  "completed_at": "2026-10-22T23:30:54+01:00",
+  "unit": "household-storage-copy-z-20261021.service",
+  "active_state": "active",
+  "sub_state": "exited",
+  "main_pid": 0,
+  "exec_main_status": 0,
+  "session_event": {"event": "copy-finish", "role": "z", "code": 0, "final": false},
+  "rsync": {
+    "total_entries": 402234,
+    "regular_files": 357772,
+    "directories": 44462,
+    "regular_files_transferred": 357772,
+    "logical_bytes_transferred": 8381330552140,
+    "deleted_files": 0
+  },
+  "private_copy_log": "/root/household-storage-state-20261021/copy-z-4d88c5409660488d93d3b6c3af32a9a3.log",
+  "target_uuid": "a8843f98-c937-48a8-aefa-4cd0fb80667c",
+  "target_used_bytes": 8354624450560,
+  "target_available_bytes": 7518855913472,
+  "original_z_serial": "3GHV81YE",
+  "original_z_uuid": "a216b8bb-708e-4342-a5be-a415cdc465fa",
+  "original_z_present": true,
+  "existing_y_md0": "healthy two-member RAID1 [UU]",
+  "new_media": "expected one-member RAID1 [U_], serial 3HG402GN partition1 only",
+  "matching_kernel_io_filesystem_errors_since_preflight": false,
+  "cold_copy_hash_layout_application_acceptance": false,
+  "share_cutover": false,
+  "monitor": "check-media-warm-copy deleted after terminal result",
+  "independent_recovery_copy": "owner waiver preserved"
+}

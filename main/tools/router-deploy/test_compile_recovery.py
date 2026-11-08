@@ -57,5 +57,16 @@ class RecoveryCompileTests(unittest.TestCase):
             checks = module._validate_invariants(module.parse_uci_declarative(broken))
             self.assertTrue(any(v is False for v in checks.values()))
 
+    def test_wifi_secret_cannot_inject_uci_or_shell_lines(self):
+        for value in ("bad'quote", "bad\nuci set firewall.x=rule", "bad\x00nul"):
+            self.secrets.write_text(json.dumps({"YOUR_MAIN_WIFI_PASSWORD_HERE": value}))
+            with self.assertRaises(ValueError):
+                module._load_secret_replacements()
+
+    def test_mac_override_is_not_a_replacement_program(self):
+        self.secrets.write_text(json.dumps({"VENTSYS_MAIN_VALVE_1_MAC": r"\g<1>"}))
+        with self.assertRaises(ValueError):
+            module._load_secret_replacements()
+
 if __name__ == "__main__":
     unittest.main()

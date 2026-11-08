@@ -32,8 +32,8 @@ status: stable
 
 ## Canonical Device Fleet (21 boards)
 
-| Board | YAML | device_name | IP |
-|---|---|---|---|
+| Board | YAML | device_name | IP | Verified MAC |
+|---|---|---|---|---|
 | Main fan | ventsys_fan_controller.yaml | ventsys-main-fan | 192.168.50.21 |
 | Booth fan | ventsys_booth_fan.yaml | ventsys-booth-fan | 192.168.50.22 |
 | FDM sensor | ventsys_fdm_sensor.yaml | enc-fdm-sensors | 192.168.50.31 |
@@ -49,8 +49,8 @@ status: stable
 | SLA branch valve | ventsys_sla_branch_valve.yaml | ventsys-sla-branch-valve | 192.168.50.54 |
 | FDM print valve | ventsys_fdm_print_valve.yaml | ventsys-fdm-print-valve | 192.168.50.55 |
 | SLA print valve | ventsys_sla_print_valve.yaml | ventsys-sla-print-valve | 192.168.50.56 |
-| FDM 360 intake | ventsys_fdm_360_valve.yaml | ventsys-fdm-360-valve | 192.168.50.61 |
-| SLA 360 intake | ventsys_sla_360_valve.yaml | ventsys-sla-360-valve | 192.168.50.62 |
+| FDM 360 intake | ventsys_fdm_360_valve_v2_nerdiy.yaml | ventsys-fdm-360-valve | 192.168.50.62 | `A0:85:E3:AE:5B:C8` |
+| SLA 360 intake | ventsys_sla_360_valve_v2_nerdiy.yaml | ventsys-sla-360-valve | 192.168.50.61 | `CC:BA:97:F0:E3:EC` |
 | UV plug 1 | ventsys_plug_uv1.yaml | ventsys-plug-uv-1 | 192.168.50.73 |
 | UV plug 2 | ventsys_plug_uv2.yaml | ventsys-plug-uv-2 | 192.168.50.74 |
 | Wash/cure plug | ventsys_plug_wash_cure.yaml | ventsys-plug-wash-cure | 192.168.50.75 |

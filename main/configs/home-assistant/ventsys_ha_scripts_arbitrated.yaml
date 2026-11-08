@@ -1,0 +1,806 @@
+# Generated operating-mode integration. No boot actuation.
+script:
+  ventsys_normal_command:
+    alias: VentSys — shared normal command dispatcher
+    mode: single
+    max_exceeded: warning
+    sequence:
+    - variables:
+        valve_topics:
+        - ventsys/fdm/360/control
+        - ventsys/fdm/branch/control
+        - ventsys/fdm/valve/control
+        - ventsys/main/valve1/control
+        - ventsys/main/valve2/control
+        - ventsys/sla/360/control
+        - ventsys/sla/branch/control
+        - ventsys/sla/valve/control
+        fan_topics:
+        - ventsys/fan/control
+        - ventsys/spray-fan/control
+        speed_topics:
+        - ventsys/fan/percent
+        - ventsys/spray-fan/percent
+        operating_required:
+          off|off|off: {}
+          off|off|enclosure:
+            main1: 100
+            main2: 100
+            fan_booth: 'on'
+            fan_main: 'on'
+          off|enclosure|off:
+            sla_branch: 100
+            sla_360: 60
+            sla_print: 0
+            main1: 100
+            fan_main: 'on'
+          off|enclosure|enclosure:
+            sla_branch: 100
+            sla_360: 60
+            sla_print: 0
+            main1: 100
+            main2: 100
+            fan_booth: 'on'
+            fan_main: 'on'
+          off|print|off:
+            sla_branch: 100
+            sla_360: 30
+            sla_print: 100
+            main1: 100
+            fan_main: 'on'
+          off|print|enclosure:
+            sla_branch: 100
+            sla_360: 30
+            sla_print: 100
+            main1: 100
+            main2: 100
+            fan_booth: 'on'
+            fan_main: 'on'
+          off|purge|off:
+            sla_branch: 100
+            sla_360: 60
+            sla_print: 100
+            main1: 100
+            fan_main: 'on'
+          off|purge|enclosure:
+            sla_branch: 100
+            sla_360: 60
+            sla_print: 100
+            main1: 100
+            main2: 100
+            fan_booth: 'on'
+            fan_main: 'on'
+          enclosure|off|off:
+            fdm_branch: 100
+            fdm_360: 60
+            fdm_print: 0
+            fan_main: 'on'
+          enclosure|off|enclosure:
+            fdm_branch: 100
+            fdm_360: 60
+            fdm_print: 0
+            main1: 100
+            main2: 100
+            fan_booth: 'on'
+            fan_main: 'on'
+          enclosure|enclosure|off:
+            fdm_branch: 100
+            fdm_360: 60
+            fdm_print: 0
+            sla_branch: 100
+            sla_360: 60
+            sla_print: 0
+            main1: 100
+            fan_main: 'on'
+          enclosure|enclosure|enclosure:
+            fdm_branch: 100
+            fdm_360: 60
+            fdm_print: 0
+            sla_branch: 100
+            sla_360: 60
+            sla_print: 0
+            main1: 100
+            main2: 100
+            fan_booth: 'on'
+            fan_main: 'on'
+          enclosure|print|off:
+            fdm_branch: 100
+            fdm_360: 60
+            fdm_print: 0
+            sla_branch: 100
+            sla_360: 30
+            sla_print: 100
+            main1: 100
+            fan_main: 'on'
+          enclosure|print|enclosure:
+            fdm_branch: 100
+            fdm_360: 60
+            fdm_print: 0
+            sla_branch: 100
+            sla_360: 30
+            sla_print: 100
+            main1: 100
+            main2: 100
+            fan_booth: 'on'
+            fan_main: 'on'
+          enclosure|purge|off:
+            fdm_branch: 100
+            fdm_360: 60
+            fdm_print: 0
+            sla_branch: 100
+            sla_360: 60
+            sla_print: 100
+            main1: 100
+            fan_main: 'on'
+          enclosure|purge|enclosure:
+            fdm_branch: 100
+            fdm_360: 60
+            fdm_print: 0
+            sla_branch: 100
+            sla_360: 60
+            sla_print: 100
+            main1: 100
+            main2: 100
+            fan_booth: 'on'
+            fan_main: 'on'
+          print|off|off:
+            fdm_branch: 100
+            fdm_360: 30
+            fdm_print: 100
+            fan_main: 'on'
+          print|off|enclosure:
+            fdm_branch: 100
+            fdm_360: 30
+            fdm_print: 100
+            main1: 100
+            main2: 100
+            fan_booth: 'on'
+            fan_main: 'on'
+          print|enclosure|off:
+            fdm_branch: 100
+            fdm_360: 30
+            fdm_print: 100
+            sla_branch: 100
+            sla_360: 60
+            sla_print: 0
+            main1: 100
+            fan_main: 'on'
+          print|enclosure|enclosure:
+            fdm_branch: 100
+            fdm_360: 30
+            fdm_print: 100
+            sla_branch: 100
+            sla_360: 60
+            sla_print: 0
+            main1: 100
+            main2: 100
+            fan_booth: 'on'
+            fan_main: 'on'
+          print|print|off:
+            fdm_branch: 100
+            fdm_360: 30
+            fdm_print: 100
+            sla_branch: 100
+            sla_360: 30
+            sla_print: 100
+            main1: 100
+            fan_main: 'on'
+          print|print|enclosure:
+            fdm_branch: 100
+            fdm_360: 30
+            fdm_print: 100
+            sla_branch: 100
+            sla_360: 30
+            sla_print: 100
+            main1: 100
+            main2: 100
+            fan_booth: 'on'
+            fan_main: 'on'
+          print|purge|off:
+            fdm_branch: 100
+            fdm_360: 30
+            fdm_print: 100
+            sla_branch: 100
+            sla_360: 60
+            sla_print: 100
+            main1: 100
+            fan_main: 'on'
+          print|purge|enclosure:
+            fdm_branch: 100
+            fdm_360: 30
+            fdm_print: 100
+            sla_branch: 100
+            sla_360: 60
+            sla_print: 100
+            main1: 100
+            main2: 100
+            fan_booth: 'on'
+            fan_main: 'on'
+          purge|off|off:
+            fdm_branch: 100
+            fdm_360: 60
+            fdm_print: 100
+            fan_main: 'on'
+          purge|off|enclosure:
+            fdm_branch: 100
+            fdm_360: 60
+            fdm_print: 100
+            main1: 100
+            main2: 100
+            fan_booth: 'on'
+            fan_main: 'on'
+          purge|enclosure|off:
+            fdm_branch: 100
+            fdm_360: 60
+            fdm_print: 100
+            sla_branch: 100
+            sla_360: 60
+            sla_print: 0
+            main1: 100
+            fan_main: 'on'
+          purge|enclosure|enclosure:
+            fdm_branch: 100
+            fdm_360: 60
+            fdm_print: 100
+            sla_branch: 100
+            sla_360: 60
+            sla_print: 0
+            main1: 100
+            main2: 100
+            fan_booth: 'on'
+            fan_main: 'on'
+          purge|print|off:
+            fdm_branch: 100
+            fdm_360: 60
+            fdm_print: 100
+            sla_branch: 100
+            sla_360: 30
+            sla_print: 100
+            main1: 100
+            fan_main: 'on'
+          purge|print|enclosure:
+            fdm_branch: 100
+            fdm_360: 60
+            fdm_print: 100
+            sla_branch: 100
+            sla_360: 30
+            sla_print: 100
+            main1: 100
+            main2: 100
+            fan_booth: 'on'
+            fan_main: 'on'
+          purge|purge|off:
+            fdm_branch: 100
+            fdm_360: 60
+            fdm_print: 100
+            sla_branch: 100
+            sla_360: 60
+            sla_print: 100
+            main1: 100
+            fan_main: 'on'
+          purge|purge|enclosure:
+            fdm_branch: 100
+            fdm_360: 60
+            fdm_print: 100
+            sla_branch: 100
+            sla_360: 60
+            sla_print: 100
+            main1: 100
+            main2: 100
+            fan_booth: 'on'
+            fan_main: 'on'
+        operating_controls:
+          main1:
+            key: main1
+            name: Main duct 1
+            short: MAIN-1
+            zone: Main duct
+            entity: number.main_duct_valve_1
+            native:
+            - number.ventsys_main_duct_valve_1_valve_position
+            topic: ventsys/main/valve1/control
+            svg: valve-main-1
+            text: valve-main-1-pos
+          main2:
+            key: main2
+            name: Main duct 2
+            short: MAIN-2
+            zone: Main duct
+            entity: number.main_duct_valve_2
+            native:
+            - number.garage_ventsys_main_duct_valve_2_valve_position
+            topic: ventsys/main/valve2/control
+            svg: valve-main-2
+            text: valve-main-2-pos
+          fdm_branch:
+            key: fdm_branch
+            name: FDM branch
+            short: E1 BRANCH
+            zone: FDM enclosure
+            entity: number.fdm_branch_valve
+            native:
+            - number.ventsys_e1_branch_valve_valve_position
+            topic: ventsys/fdm/branch/control
+            svg: valve-enc1-vert
+            text: valve-enc1-vert-pos
+          fdm_print:
+            key: fdm_print
+            name: FDM print valve
+            short: E1 PRINT
+            zone: FDM enclosure
+            entity: number.fdm_valve
+            native:
+            - number.ventsys_fdm_print_valve_valve_position
+            topic: ventsys/fdm/valve/control
+            svg: valve-enc1-print
+            text: enc1-print-pct
+          fdm_360:
+            key: fdm_360
+            name: FDM 360° intake
+            short: E1 INTAKE
+            zone: FDM enclosure
+            entity: number.fdm_360_intake
+            native:
+            - number.ventsys_sla_360_intake_valve_valve_position
+            boardMac: a0:85:e3:ae:5b:c8
+            expectedRange:
+              min: 30
+              max: 60
+            topic: ventsys/sla/360/control
+            svg: valve-360-enc1
+            text: enc1-360-pct
+          sla_branch:
+            key: sla_branch
+            name: SLA branch
+            short: E2 BRANCH
+            zone: SLA enclosure
+            entity: number.sla_branch_valve
+            native:
+            - number.ventsys_e2_branch_valve_valve_position
+            topic: ventsys/sla/branch/control
+            svg: valve-enc2-vert
+            text: valve-enc2-vert-pos
+          sla_print:
+            key: sla_print
+            name: SLA print valve
+            short: E2 PRINT
+            zone: SLA enclosure
+            entity: number.sla_valve
+            native:
+            - number.ventsys_sla_print_valve_valve_position
+            topic: ventsys/sla/valve/control
+            svg: valve-enc2-print
+            text: enc2-print-pct
+          sla_360:
+            key: sla_360
+            name: SLA 360° intake
+            short: E2 INTAKE
+            zone: SLA enclosure
+            entity: number.sla_360_intake
+            native:
+            - number.ventsys_fdm_360_intake_valve_valve_position
+            boardMac: cc:ba:97:f0:e3:ec
+            expectedRange:
+              min: 30
+              max: 60
+            topic: ventsys/fdm/360/control
+            svg: valve-360-enc2
+            text: enc2-360-pct
+          fan_main:
+            key: fan_main
+            name: Main extraction fan
+            short: MAIN FAN
+            zone: Main duct
+            entity: fan.inline_fan
+            native: []
+            topic: ventsys/fan/control
+            speedTopic: ventsys/fan/percent
+            svg: fan-blades
+            text: main-fan-pct
+            fan: true
+          fan_booth:
+            key: fan_booth
+            name: Spray booth fan
+            short: BOOTH FAN
+            zone: Spray booth
+            entity: fan.spray_booth_fan
+            native: []
+            topic: ventsys/spray-fan/control
+            speedTopic: ventsys/spray-fan/percent
+            svg: spray-booth-fan-blades
+            text: spray-fan-pct
+            fan: true
+    - if:
+      - condition: template
+        value_template: "{% set ns = namespace(bad=false) %}\n{% if commands is not defined or commands is string or commands\
+          \ is mapping or commands is not sequence %}true\n{% elif commands | count < 1 or commands | count > 12 %}true\n\
+          {% else %}{% for c in commands %}\n {% if c is not mapping or c.keys() | list | sort != ['payload','topic'] %}{%\
+          \ set ns.bad=true %}\n {% elif c.topic in fan_topics %}{% if c.payload not in ['on','off'] %}{% set ns.bad=true\
+          \ %}{% endif %}\n {% elif c.topic in valve_topics or c.topic in speed_topics %}\n  {% if (c.payload is not string\
+          \ and c.payload is not integer) or c.payload | int(-1) < 0 or c.payload | int(-1) > 100 or (c.payload is string\
+          \ and c.payload | int(-1) | string != c.payload) %}{% set ns.bad=true %}{% endif %}\n {% else %}{% set ns.bad=true\
+          \ %}{% endif %}\n{% endfor %}{{ ns.bad }}{% endif %}"
+      then:
+      - stop: Invalid VentSys command batch
+        error: true
+    - if:
+      - condition: template
+        value_template: '{%- set saved=states(''input_text.ventsys_operating_state'') | from_json({''fdm'':''off'',''sla'':''off'',''booth'':''off''})
+          -%}
+
+          {%- set active_key=saved.fdm | default(''invalid'') ~ ''|'' ~ saved.sla | default(''invalid'') ~ ''|'' ~ saved.booth
+          | default(''invalid'') -%}
+
+          {%- set raw=states(''input_text.ventsys_operating_state'') -%}
+
+          {%- set owner=operating | default(false) -%}
+
+          {%- set tester=testing | default(false) -%}
+
+          {%- set ns=namespace(bad=not is_state(''script.ventsys_record_intake_reference'',''off'') or active_key not in operating_required
+          or raw == ''unavailable'' or raw not in ['''', ''unknown''] and raw | from_json(none) is none or owner is not boolean
+          or owner != is_state(''script.ventsys_set_operating_mode'',''on'') or states(''script.ventsys_set_operating_mode'')
+          not in [''on'',''off'']) -%}
+
+          {%- if tester is not boolean or tester != is_state(''script.ventsys_test_valves'',''on'') or states(''script.ventsys_test_valves'')
+          not in [''on'',''off''] or tester and owner -%}{%- set ns.bad=true -%}{%- endif -%}
+
+          {%- if tester and (is_state(''fan.inline_fan'',''on'') or is_state(''fan.spray_booth_fan'',''on'') or saved.fdm
+          | default(''invalid'') != ''off'' or saved.sla | default(''invalid'') != ''off'' or saved.booth | default(''invalid'')
+          != ''off'') -%}{%- set ns.bad=true -%}{%- endif -%}
+
+          {%- if tester -%}{%- for c in commands -%}{%- if c.topic not in valve_topics -%}{%- set ns.bad=true -%}{%- endif
+          -%}{%- endfor -%}{%- endif -%}
+
+          {%- set f=saved.fdm_strength | default(6) if saved.fdm | default(''off'') == ''purge'' else 0 -%}
+
+          {%- set s=saved.sla_strength | default(6) if saved.sla | default(''off'') == ''purge'' else 0 -%}
+
+          {%- if f is not integer or s is not integer or f not in [0,2,4,6,8,10] or s not in [0,2,4,6,8,10] -%}{%- set ns.bad=true
+          -%}{%- endif -%}
+
+          {%- set percent=([f,s] | max) * 10 -%}
+
+          {%- for c in commands -%}{%- if percent > 0 and c.topic == operating_controls.fan_main.speedTopic and c.payload
+          | int(-1) != percent -%}{%- set ns.bad=true -%}{%- endif -%}{%- endfor -%}
+
+          {%- if active_key in operating_required -%}{%- for c in commands -%}{%- for key,value in operating_required[active_key].items()
+          -%}
+
+          {%- if c.topic == operating_controls[key].topic and c.payload | string != value | string -%}{%- set ns.bad=true
+          -%}{%- endif -%}
+
+          {%- if key.startswith(''fan_'') and value == ''on'' and c.topic == operating_controls[key].speedTopic and c.payload
+          | int(0) <= 0 -%}{%- set ns.bad=true -%}{%- endif -%}
+
+          {%- endfor -%}{%- endfor -%}{%- endif -%}{{- ns.bad -}}'
+      then:
+      - stop: Manual command conflicts with an active operating mode; stop that mode first
+        error: true
+    - repeat:
+        for_each: '{{ commands }}'
+        sequence:
+        - if:
+          - condition: template
+            value_template: '{{ not (is_state(''input_boolean.ventsys_failsafe'', ''off'') and is_state(''script.ventsys_mode_fire_safe'',
+              ''off'')) }}'
+          then:
+          - stop: Failsafe active/unknown or fire response running
+            error: true
+        - if:
+          - condition: template
+            value_template: '{%- set saved=states(''input_text.ventsys_operating_state'') | from_json({''fdm'':''off'',''sla'':''off'',''booth'':''off''})
+              -%}
+
+              {%- set active_key=saved.fdm | default(''invalid'') ~ ''|'' ~ saved.sla | default(''invalid'') ~ ''|'' ~ saved.booth
+              | default(''invalid'') -%}
+
+              {%- set raw=states(''input_text.ventsys_operating_state'') -%}
+
+              {%- set owner=operating | default(false) -%}
+
+              {%- set tester=testing | default(false) -%}
+
+              {%- set ns=namespace(bad=not is_state(''script.ventsys_record_intake_reference'',''off'') or active_key not
+              in operating_required or raw == ''unavailable'' or raw not in ['''', ''unknown''] and raw | from_json(none)
+              is none or owner is not boolean or owner != is_state(''script.ventsys_set_operating_mode'',''on'') or states(''script.ventsys_set_operating_mode'')
+              not in [''on'',''off'']) -%}
+
+              {%- if tester is not boolean or tester != is_state(''script.ventsys_test_valves'',''on'') or states(''script.ventsys_test_valves'')
+              not in [''on'',''off''] or tester and owner -%}{%- set ns.bad=true -%}{%- endif -%}
+
+              {%- if tester and (is_state(''fan.inline_fan'',''on'') or is_state(''fan.spray_booth_fan'',''on'') or saved.fdm
+              | default(''invalid'') != ''off'' or saved.sla | default(''invalid'') != ''off'' or saved.booth | default(''invalid'')
+              != ''off'') -%}{%- set ns.bad=true -%}{%- endif -%}
+
+              {%- if tester -%}{%- for c in commands -%}{%- if c.topic not in valve_topics -%}{%- set ns.bad=true -%}{%- endif
+              -%}{%- endfor -%}{%- endif -%}
+
+              {%- set f=saved.fdm_strength | default(6) if saved.fdm | default(''off'') == ''purge'' else 0 -%}
+
+              {%- set s=saved.sla_strength | default(6) if saved.sla | default(''off'') == ''purge'' else 0 -%}
+
+              {%- if f is not integer or s is not integer or f not in [0,2,4,6,8,10] or s not in [0,2,4,6,8,10] -%}{%- set
+              ns.bad=true -%}{%- endif -%}
+
+              {%- set percent=([f,s] | max) * 10 -%}
+
+              {%- for c in commands -%}{%- if percent > 0 and c.topic == operating_controls.fan_main.speedTopic and c.payload
+              | int(-1) != percent -%}{%- set ns.bad=true -%}{%- endif -%}{%- endfor -%}
+
+              {%- if active_key in operating_required -%}{%- for c in commands -%}{%- for key,value in operating_required[active_key].items()
+              -%}
+
+              {%- if c.topic == operating_controls[key].topic and c.payload | string != value | string -%}{%- set ns.bad=true
+              -%}{%- endif -%}
+
+              {%- if key.startswith(''fan_'') and value == ''on'' and c.topic == operating_controls[key].speedTopic and c.payload
+              | int(0) <= 0 -%}{%- set ns.bad=true -%}{%- endif -%}
+
+              {%- endfor -%}{%- endfor -%}{%- endif -%}{{- ns.bad -}}'
+          then:
+          - stop: Operating intent changed; remaining commands blocked
+            error: true
+        - action: mqtt.publish
+          data:
+            topic: '{{ repeat.item.topic }}'
+            payload: '{{ repeat.item.payload }}'
+            retain: false
+  ventsys_mode_sealed:
+    alias: VentSys Mode — Seal All
+    icon: mdi:lock-outline
+    mode: single
+    sequence:
+    - action: script.ventsys_set_operating_mode
+      data:
+        zone: all
+        operation: 'off'
+        revision: '{{ (states(''input_text.ventsys_operating_state'') | from_json({''revision'':0})).revision | default(0)
+          }}'
+  ventsys_mode_fire_safe:
+    alias: VentSys Mode — Fire-Safe Ventilation
+    icon: mdi:fire-alert
+    mode: single
+    sequence:
+    - action: script.turn_off
+      target:
+        entity_id:
+        - script.ventsys_normal_command
+        - script.ventsys_dashboard_command
+        - script.ventsys_ramp_valve
+        - script.ventsys_mode_sealed
+        - script.ventsys_mode_purge
+        - script.ventsys_mode_booth
+        - script.ventsys_mode_booth_seal
+        - script.ventsys_mode_fdm_print
+        - script.ventsys_mode_fdm_enclosure
+        - script.ventsys_mode_fdm_purge
+        - script.ventsys_mode_fdm_seal
+        - script.ventsys_mode_sla_print
+        - script.ventsys_mode_sla_enclosure
+        - script.ventsys_mode_sla_purge
+        - script.ventsys_mode_sla_seal
+        - script.ventsys_set_operating_mode
+        - script.ventsys_test_valves
+        - script.ventsys_record_intake_reference
+    - action: mqtt.publish
+      data:
+        topic: ventsys/fan/control
+        payload: 'on'
+        retain: false
+    - action: mqtt.publish
+      data:
+        topic: ventsys/fan/percent
+        payload: '100'
+        retain: false
+    - action: mqtt.publish
+      data:
+        topic: ventsys/spray-fan/control
+        payload: 'off'
+        retain: false
+    - action: mqtt.publish
+      data:
+        topic: ventsys/fdm/branch/control
+        payload: '100'
+        retain: false
+    - action: mqtt.publish
+      data:
+        topic: ventsys/fdm/valve/control
+        payload: '100'
+        retain: false
+    - action: mqtt.publish
+      data:
+        topic: ventsys/sla/360/control
+        payload: '100'
+        retain: false
+    - action: mqtt.publish
+      data:
+        topic: ventsys/sla/branch/control
+        payload: '100'
+        retain: false
+    - action: mqtt.publish
+      data:
+        topic: ventsys/sla/valve/control
+        payload: '100'
+        retain: false
+    - action: mqtt.publish
+      data:
+        topic: ventsys/fdm/360/control
+        payload: '100'
+        retain: false
+    - action: mqtt.publish
+      data:
+        topic: ventsys/main/valve1/control
+        payload: '100'
+        retain: false
+    - action: mqtt.publish
+      data:
+        topic: ventsys/main/valve2/control
+        payload: '0'
+        retain: false
+  ventsys_mode_purge:
+    alias: VentSys Mode — Purge All
+    icon: mdi:weather-windy
+    mode: single
+    sequence:
+    - action: script.ventsys_set_operating_mode
+      data:
+        zone: both
+        operation: purge
+        strength: '{{ strength | default(6) }}'
+        revision: '{{ (states(''input_text.ventsys_operating_state'') | from_json({''revision'':0})).revision | default(0)
+          }}'
+  ventsys_mode_booth:
+    alias: VentSys Mode — Spray Booth
+    icon: mdi:spray
+    mode: single
+    sequence:
+    - action: script.ventsys_set_operating_mode
+      data:
+        zone: booth
+        operation: enclosure
+        revision: '{{ (states(''input_text.ventsys_operating_state'') | from_json({''revision'':0})).revision | default(0)
+          }}'
+  ventsys_mode_booth_seal:
+    alias: VentSys Mode — Booth Seal
+    icon: mdi:spray-bottle
+    mode: single
+    sequence:
+    - action: script.ventsys_set_operating_mode
+      data:
+        zone: booth
+        operation: 'off'
+        revision: '{{ (states(''input_text.ventsys_operating_state'') | from_json({''revision'':0})).revision | default(0)
+          }}'
+  ventsys_mode_fdm_print:
+    alias: VentSys Mode — FDM Print
+    icon: mdi:printer-3d
+    mode: single
+    sequence:
+    - action: script.ventsys_set_operating_mode
+      data:
+        zone: fdm
+        operation: print
+        revision: '{{ (states(''input_text.ventsys_operating_state'') | from_json({''revision'':0})).revision | default(0)
+          }}'
+  ventsys_mode_fdm_enclosure:
+    alias: VentSys Mode — FDM Enclosure
+    icon: mdi:cube-outline
+    mode: single
+    sequence:
+    - action: script.ventsys_set_operating_mode
+      data:
+        zone: fdm
+        operation: enclosure
+        revision: '{{ (states(''input_text.ventsys_operating_state'') | from_json({''revision'':0})).revision | default(0)
+          }}'
+  ventsys_mode_fdm_purge:
+    alias: VentSys Mode — FDM Purge
+    icon: mdi:weather-windy
+    mode: single
+    sequence:
+    - action: script.ventsys_set_operating_mode
+      data:
+        zone: fdm
+        operation: purge
+        strength: '{{ strength | default(6) }}'
+        revision: '{{ (states(''input_text.ventsys_operating_state'') | from_json({''revision'':0})).revision | default(0)
+          }}'
+  ventsys_mode_fdm_seal:
+    alias: VentSys Mode — FDM Seal
+    icon: mdi:lock
+    mode: single
+    sequence:
+    - action: script.ventsys_set_operating_mode
+      data:
+        zone: fdm
+        operation: 'off'
+        revision: '{{ (states(''input_text.ventsys_operating_state'') | from_json({''revision'':0})).revision | default(0)
+          }}'
+  ventsys_mode_sla_print:
+    alias: VentSys Mode — SLA Print
+    icon: mdi:printer-3d-nozzle
+    mode: single
+    sequence:
+    - action: script.ventsys_set_operating_mode
+      data:
+        zone: sla
+        operation: print
+        revision: '{{ (states(''input_text.ventsys_operating_state'') | from_json({''revision'':0})).revision | default(0)
+          }}'
+  ventsys_mode_sla_enclosure:
+    alias: VentSys Mode — SLA Enclosure
+    icon: mdi:cube-outline
+    mode: single
+    sequence:
+    - action: script.ventsys_set_operating_mode
+      data:
+        zone: sla
+        operation: enclosure
+        revision: '{{ (states(''input_text.ventsys_operating_state'') | from_json({''revision'':0})).revision | default(0)
+          }}'
+  ventsys_mode_sla_purge:
+    alias: VentSys Mode — SLA Purge
+    icon: mdi:weather-windy
+    mode: single
+    sequence:
+    - action: script.ventsys_set_operating_mode
+      data:
+        zone: sla
+        operation: purge
+        strength: '{{ strength | default(6) }}'
+        revision: '{{ (states(''input_text.ventsys_operating_state'') | from_json({''revision'':0})).revision | default(0)
+          }}'
+  ventsys_mode_sla_seal:
+    alias: VentSys Mode — SLA Seal
+    icon: mdi:lock
+    mode: single
+    sequence:
+    - action: script.ventsys_set_operating_mode
+      data:
+        zone: sla
+        operation: 'off'
+        revision: '{{ (states(''input_text.ventsys_operating_state'') | from_json({''revision'':0})).revision | default(0)
+          }}'
+  ventsys_ramp_valve:
+    alias: VentSys — Set Valve Target
+    mode: parallel
+    max: 16
+    fields:
+      topic:
+        description: MQTT command topic (e.g. ventsys/main/valve1/control)
+        example: ventsys/main/valve1/control
+        required: true
+        selector:
+          text: null
+      entity_id:
+        description: HA entity matching the topic; kept for caller compatibility
+        example: number.main_duct_valve_1
+        required: true
+        selector:
+          entity:
+            domain: number
+      target:
+        description: Target position, 0-100 full range
+        example: 100
+        required: true
+        selector:
+          number:
+            min: 0
+            max: 100
+            step: 1
+      duration_ms:
+        description: Compatibility field; ignored because hardware commands are direct
+        example: 0
+        default: 0
+        selector:
+          number:
+            min: 0
+            max: 10000
+            step: 100
+    sequence:
+    - action: script.ventsys_normal_command
+      data:
+        commands:
+        - topic: '{{ topic }}'
+          payload: '{{ target | int | string }}'

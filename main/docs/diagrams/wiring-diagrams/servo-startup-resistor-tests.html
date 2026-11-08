@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ESP32 D1 Mini feedback servo startup resistor tests</title>
+  <style>
+    body{margin:0;background:#f6f7fb;color:#172033;font:17px "Segoe UI",Arial,sans-serif}
+    main{max-width:1200px;margin:auto;padding:30px}
+    h1{margin:0 0 8px;font-size:32px} h2{font-size:25px;margin:0 0 8px}
+    p{color:#52627a;line-height:1.45;margin:8px 0 18px}
+    section{background:white;border:1px solid #cbd6e6;border-radius:12px;padding:24px;margin:26px 0;box-shadow:0 8px 24px #1b273d12;break-inside:avoid}
+    svg{display:block;width:100%;height:auto;background:#fbfcff;border-radius:8px}
+    .board,.servo,.box{fill:white;stroke:#cbd6e6;stroke-width:2}
+    .label{font:700 20px "Segoe UI",Arial,sans-serif;fill:#172033}
+    .small{font:17px "Segoe UI",Arial,sans-serif;fill:#52627a}
+    .pin{font:700 17px "Segoe UI",Arial,sans-serif}
+    .red{stroke:#d7262e;fill:none}.black{stroke:#222a35;fill:none}.orange{stroke:#f28c28;fill:none}.purple{stroke:#7c4dff;fill:none}
+    .wire{stroke-width:6;stroke-linecap:round;stroke-linejoin:round}
+    .dashed{stroke-dasharray:11 10}
+    .junction{stroke:white;stroke-width:4}
+    .callout{fill:#fff8e9;stroke:#e3a737;stroke-width:2}
+    .warn{fill:#9d5200;font:700 17px "Segoe UI",Arial,sans-serif}
+    @media print{main{padding:0}section{box-shadow:none;page-break-after:always}}
+  </style>
+</head>
+<body><main>
+  <h1>ESP32 D1 Mini · feedback servo startup tests</h1>
+  <p>Bench wiring based on the valve servo diagram. This version represents the newer connector board: no LED and no feedback resistor/capacitor network. Keep the horn disconnected from the valve and free of obstructions. Make wiring changes only with USB power removed. The orange plug is shown as two separate sides so the resistor location is unambiguous.</p>
+
+  <section id="a"><h2>A · Floating-input baseline</h2>
+    <p>Repeat of the existing control condition. Orange PWM is unplugged; the servo-side orange contact is insulated and floating. Record whether the horn advances on one power-up.</p>
+    <svg viewBox="0 0 1120 500" role="img" aria-label="ESP32 supplies servo 5 volts and ground, orange PWM unplugged and servo input floating, feedback unplugged">
+      <rect x="45" y="55" width="280" height="360" rx="10" class="board"/><text x="68" y="94" class="label">ESP32 D1 Mini</text>
+      <rect x="800" y="55" width="275" height="360" rx="10" class="servo"/><text x="820" y="94" class="label">Feedback servo</text>
+      <text x="70" y="159" class="pin" fill="#d7262e">5 V</text><text x="70" y="229" class="pin" fill="#222a35">GND</text><text x="70" y="309" class="pin" fill="#f28c28">GPIO16 · PWM</text><text x="70" y="379" class="pin" fill="#7c4dff">GPIO35 · ADC</text>
+      <text x="900" y="159" class="pin" fill="#d7262e">red · 5 V</text><text x="900" y="229" class="pin" fill="#222a35">brown · GND</text><text x="900" y="309" class="pin" fill="#f28c28">orange · PWM</text><text x="900" y="379" class="pin" fill="#7c4dff">feedback</text>
+      <path d="M325 150H800" class="wire red"/><path d="M325 220H800" class="wire black"/>
+      <path d="M325 300H480" class="wire orange"/><path d="M650 300H800" class="wire orange"/>
+      <circle cx="480" cy="300" r="8" fill="#f28c28"/><circle cx="650" cy="300" r="8" fill="#f28c28"/>
+      <text x="490" y="268" class="small">plug OPEN</text><text x="642" y="337" class="small">servo-side end insulated</text>
+      <circle cx="800" cy="370" r="8" fill="#7c4dff"/><text x="600" y="405" class="small">Feedback lead unplugged and insulated</text>
+      <rect x="340" y="430" width="720" height="45" rx="8" class="callout"/><text x="356" y="459" class="warn">Only 5 V and GND connect to the servo in this baseline.</text>
+    </svg>
+  </section>
+
+  <section id="b"><h2>B · Isolated servo-side pull-down</h2>
+    <p>Keep GPIO16 unplugged. Connect one 4.7–10 kΩ resistor from the <strong>servo-side orange signal contact</strong> to the same GND rail used by the servo brown lead. This tests whether a defined low input prevents the power-up movement without involving GPIO16.</p>
+    <svg viewBox="0 0 1120 500" role="img" aria-label="ESP32 supplies servo 5 volts and ground; GPIO16 unplugged; 4.7 to 10 kiloohm resistor from servo-side orange signal contact to servo ground; feedback unplugged">
+      <rect x="45" y="55" width="280" height="360" rx="10" class="board"/><text x="68" y="94" class="label">ESP32 D1 Mini</text>
+      <rect x="800" y="55" width="275" height="360" rx="10" class="servo"/><text x="820" y="94" class="label">Feedback servo</text>
+      <text x="70" y="159" class="pin" fill="#d7262e">5 V</text><text x="70" y="229" class="pin" fill="#222a35">GND</text><text x="70" y="309" class="pin" fill="#f28c28">GPIO16 · PWM</text><text x="70" y="379" class="pin" fill="#7c4dff">GPIO35 · ADC</text>
+      <text x="900" y="159" class="pin" fill="#d7262e">red · 5 V</text><text x="900" y="229" class="pin" fill="#222a35">brown · GND</text><text x="900" y="309" class="pin" fill="#f28c28">orange · PWM</text><text x="900" y="379" class="pin" fill="#7c4dff">feedback</text>
+      <path d="M325 150H800" class="wire red"/><path d="M325 220H800" class="wire black"/>
+      <path d="M325 300H480" class="wire orange"/><path d="M650 300H800" class="wire orange"/>
+      <circle cx="480" cy="300" r="8" fill="#f28c28"/><circle cx="650" cy="300" r="8" fill="#f28c28"/>
+      <text x="490" y="270" class="small">plug OPEN</text>
+      <path d="M725 300V330" class="wire orange"/><rect x="675" y="330" width="100" height="48" rx="6" fill="white" stroke="#f28c28" stroke-width="3"/><text x="690" y="359" class="pin" fill="#a05d13">4.7–10 kΩ</text>
+      <path d="M725 378V405H580V220" class="wire black"/><circle cx="725" cy="300" r="9" class="junction" fill="#f28c28"/><circle cx="580" cy="220" r="9" class="junction" fill="#222a35"/>
+      <circle cx="800" cy="370" r="8" fill="#7c4dff"/><text x="825" y="404" class="small">feedback unplugged</text>
+      <rect x="340" y="430" width="720" height="45" rx="8" class="callout"/><text x="356" y="459" class="warn">Resistor must remain on the servo side of the open plug.</text>
+    </svg>
+  </section>
+
+  <section id="c"><h2>C · GPIO16 connected with pull-down</h2>
+    <p>Only after test B: reconnect GPIO16 while leaving the 4.7–10 kΩ resistor from the shared orange signal node to GND. This checks startup with the normal PWM connection. The resistor is <strong>across signal and ground</strong>, not in series with orange.</p>
+    <svg viewBox="0 0 1120 500" role="img" aria-label="ESP32 GPIO16 connected to servo orange PWM; 4.7 to 10 kiloohm pull-down connects shared signal node to ground; 5 volts and ground supplied; feedback unplugged">
+      <rect x="45" y="55" width="280" height="360" rx="10" class="board"/><text x="68" y="94" class="label">ESP32 D1 Mini</text>
+      <rect x="800" y="55" width="275" height="360" rx="10" class="servo"/><text x="820" y="94" class="label">Feedback servo</text>
+      <text x="70" y="159" class="pin" fill="#d7262e">5 V</text><text x="70" y="229" class="pin" fill="#222a35">GND</text><text x="70" y="309" class="pin" fill="#f28c28">GPIO16 · PWM</text><text x="70" y="379" class="pin" fill="#7c4dff">GPIO35 · ADC</text>
+      <text x="900" y="159" class="pin" fill="#d7262e">red · 5 V</text><text x="900" y="229" class="pin" fill="#222a35">brown · GND</text><text x="900" y="309" class="pin" fill="#f28c28">orange · PWM</text><text x="900" y="379" class="pin" fill="#7c4dff">feedback</text>
+      <path d="M325 150H800" class="wire red"/><path d="M325 220H800" class="wire black"/>
+      <path d="M325 300H800" class="wire orange"/><text x="455" y="270" class="small">plug CLOSED · GPIO16 to servo signal</text>
+      <path d="M690 300V330" class="wire orange"/><rect x="640" y="330" width="100" height="48" rx="6" fill="white" stroke="#f28c28" stroke-width="3"/><text x="655" y="359" class="pin" fill="#a05d13">4.7–10 kΩ</text>
+      <path d="M690 378V405H555V220" class="wire black"/><circle cx="690" cy="300" r="9" class="junction" fill="#f28c28"/><circle cx="555" cy="220" r="9" class="junction" fill="#222a35"/>
+      <circle cx="800" cy="370" r="8" fill="#7c4dff"/><text x="825" y="404" class="small">feedback unplugged</text>
+      <rect x="340" y="430" width="720" height="45" rx="8" class="callout"/><text x="356" y="459" class="warn">Never substitute 10 Ω or connect signal directly to GND.</text>
+    </svg>
+  </section>
+
+  <p>Use one configuration at a time. A result from B is the most useful: if the horn still advances with GPIO16 unplugged and its own signal input pulled low, GPIO16 startup behavior is not the cause. Do not attach the valve linkage during these tests. No pull-up test is included because the reported 5 V pull-ups are unsuitable for a connected ESP32 GPIO.</p>
+</main></body></html>

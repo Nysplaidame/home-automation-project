@@ -19,16 +19,18 @@ correctly prevent Bambuddy from reaching the printer or Home Assistant.
 5. Confirm `docker network inspect bambuddy` reports `10.240.23.0/24`, then
    verify Bambuddy's UI, MQTT publishing and printer status.
 
-The image is pinned by manifest digest. Change it only through a reviewed
-maintenance window, recording the prior and candidate digests plus smoke-test
-results.
+The rebuild image is pinned to stable release1.2.5.6 by manifest digest, verified
+on the live host-network stack on2026-10-02. The owner authorized a Bambuddy-only
+scheduled offline updater; its locally staged image override takes precedence
+on the running stack. See the [staged update runbook](../../../../docs/procedures/bambuddy_offline_updates.md)
+for schedules, NAS checkpoints, idle gates, recovery and dynamic receipt paths.
 
 ## Current boundary and installation
 
-September source review: the running host-network exception remains until P1S
-ports21/8883 are reachable and the bridge migration is accepted. The printer is
-uncommissioned. The migration above is a future maintenance procedure, not the
-current runtime description. Use the [docker-host guide](../../../../scripts/setup/proxmox/docker_host_setup_guide.md)
+October2 update proof: the running stack still uses host networking. The P1S is
+commissioned; the bridge migration remains a separate unaccepted change. The
+migration above is a future maintenance procedure, not the current runtime
+description. Use the [docker-host guide](../../../../scripts/setup/proxmox/docker_host_setup_guide.md)
 for blank VM/stack setup; preserve the existing `.env` on recovery. Record the
 actual running image and network mode before comparing the pinned bridge template.
 

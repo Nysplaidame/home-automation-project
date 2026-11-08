@@ -1,9 +1,10 @@
 (() => {
   const CARD_SELECTOR = '[id^="portal-"]:not(#portal-preview-dock)';
   const PREVIEW_CLASS = 'portal-preview-trigger';
+  const ACTIONS_CLASS = 'portal-card-actions';
   const PREVIEW_PROXY_PORTS = new Map([
     ['192.168.20.102:8091', 8180],
-    ['192.168.20.102:8000', 8181],
+    ['192.168.20.102:8000', 8207],
     ['192.168.20.102:8088', 8182],
     ['192.168.10.10:8006', 8183],
     ['192.168.10.1', 8184],
@@ -31,7 +32,10 @@
     ['192.168.20.102:8083', 8206],
     ['192.168.20.102:31337', 8208],
     ['192.168.20.102:8420', 8209],
+    ['127.0.0.1:8098', 8211],
+
   ]);
+  const PREVIEW_PROXY_PORT_SET = new Set(PREVIEW_PROXY_PORTS.values());
   let observerQueued = false;
   let previousFocus = null;
   let previewLoadTimer = null;
@@ -104,12 +108,29 @@
   function getFrameHref(href) {
     try {
       const url = new URL(href);
+
+      // Keep the preview on the same site as the outer Homepage. In
+      // particular, Home Assistant's Supervisor ingress cookie is
+      // SameSite=Strict: an IP-address Homepage containing a
+      // homepage.home.local iframe suppresses that cookie and its add-ons
+      // return 401 even after a successful top-level login.
+      if (PREVIEW_PROXY_PORT_SET.has(Number(url.port))) {
+        url.hostname = window.location.hostname;
+        return url.href;
+      }
+
       const port = PREVIEW_PROXY_PORTS.get(url.host);
       if (!port) return href;
       return `https://${window.location.hostname}:${port}${url.pathname}${url.search}${url.hash}`;
     } catch {
       return href;
     }
+  }
+
+  function getDirectHref(card, href) {
+    // Standalone navigation must use the same reachable HTTPS route as Preview.
+    // Raw LAN addresses bypass the phone's scoped Tailscale grants.
+    return getFrameHref(href);
   }
 
   function getPreviewDock() {
@@ -254,18 +275,23 @@
     document.querySelectorAll(CARD_SELECTOR).forEach((card) => {
       const { href, name } = getServiceName(card);
       card.classList.toggle('portal-status-only', !href);
-      if (!href || card.querySelector(`.${PREVIEW_CLASS}`)) return;
+      if (!href || card.querySelector(`.${ACTIONS_CLASS}`)) return;
 
-      // Vaultwarden forbids framing; share card styling with a direct action.
-      if (card.id === 'portal-vaultwarden') {
+      const actions = document.createElement('div');
+      actions.className = ACTIONS_CLASS;
+
+      // Keep VentSys controls in their signed-in HA tab. Vaultwarden also uses
+      // standalone navigation because it forbids framing.
+      if (card.id === 'portal-vaultwarden' || card.id === 'portal-ventsys') {
         const link = document.createElement('a');
         link.className = PREVIEW_CLASS;
-        link.href = href;
+        link.href = card.id === 'portal-ventsys' ? getDirectHref(card, href) : href;
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
         link.textContent = 'Open tab';
         link.setAttribute('aria-label', `Open ${name} in a new tab`);
-        card.appendChild(link);
+        actions.appendChild(link);
+        card.appendChild(actions);
         return;
       }
 
@@ -285,7 +311,28 @@
         event.stopPropagation();
         openPreview(card, href);
       });
-      card.appendChild(button);
+      actions.appendChild(button);
+
+      const directHref = getDirectHref(card, href);
+      if (directHref) {
+        const direct = document.createElement('a');
+        direct.className = 'portal-direct-trigger';
+        direct.href = directHref;
+        direct.target = '_blank';
+        direct.rel = 'noopener noreferrer';
+        direct.title = 'Open application in a new tab';
+        direct.setAttribute('aria-label', `Open ${name} in a new tab`);
+        direct.innerHTML = `
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M14 5h5v5M19 5l-8 8M18 13v6H5V6h6"/>
+          </svg>
+          <span>Direct</span>
+        `;
+        direct.addEventListener('click', (event) => event.stopPropagation());
+        actions.appendChild(direct);
+      }
+
+      card.appendChild(actions);
     });
   }
 

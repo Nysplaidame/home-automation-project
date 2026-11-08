@@ -23,7 +23,8 @@ Diagrams: [access](../../diagrams/network/security-access-flow.mermaid),
 ## Prerequisites and inputs
 
 - Complete docker-host and OMV installation. Verify `/mnt/omv/media` is the
-  intended OMV NFS export before creating or starting a writer.
+  parent directory of the exact scoped `/mnt/omv/media/incoming` NFS mount,
+  source `192.168.40.50:/export/media-incoming`, before starting a writer.
 - Retain only the explicit `10.240.20.0/24` bridge and source-scoped UI port
   `8084`. qBittorrent has no independently published port or Docker network.
 - Copy the tracked directory to `/opt/stacks/download-gateway/`. Prepare a
@@ -48,7 +49,7 @@ Run on: docker-host shell in the prepared stack directory.
 
 ```sh
 cd /opt/stacks/download-gateway || exit 1
-findmnt -T /mnt/omv/media
+findmnt --mountpoint /mnt/omv/media/incoming
 test -f .env && stat -c '%a %n' .env
 docker compose config --quiet
 docker compose config --images

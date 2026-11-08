@@ -1,0 +1,33 @@
+name: obico-ml-api
+
+services:
+  ml_api:
+    build:
+      context: ./obico-server/ml_api
+      dockerfile: ../../Dockerfile
+    image: local/obico-ml-api:release
+    container_name: obico-ml-api
+    restart: unless-stopped
+    ports:
+      - "3333:3333"
+    environment:
+      DEBUG: "False"
+      FLASK_APP: server.py
+      ML_API_TOKEN: "${ML_API_TOKEN:-}"
+    command: >-
+      gunicorn --bind 0.0.0.0:3333 --workers 1 wsgi
+    mem_limit: 5g
+    cpus: 2.0
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - obico_ml_api
+
+networks:
+  obico_ml_api:
+    name: obico-ml-api
+    ipam:
+      config:
+        - subnet: 10.241.14.0/24

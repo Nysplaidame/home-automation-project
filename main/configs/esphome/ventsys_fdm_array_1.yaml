@@ -1,12 +1,18 @@
 # VentSys FDM enclosure sensor array 1
 # Device: ventsys-fdm-array-1  IP: 192.168.50.31  VLAN 50
+# Hardware: sensor carrier (ESP32-C6-Zero, Pimoroni BME680, SEN0570 smoke, SEN0564 CO)
 
 substitutions:
   device_name: ventsys-fdm-array-1
-  friendly_name: "ventsys_fdm_array_1"
   entity_prefix: "ventsys_fdm_array_1"
   device_ip: "192.168.50.31"
   mqtt_topic_prefix: "ventsys/fdm/array_1"
+  fallback_ap_ssid: "VentSys FDM Array 1 FB"
+  display_title: "FDM-1"
 
 packages:
   base: !include ventsys_air_sensor_base.yaml
+  co: !include ventsys_air_sensor_co.yaml
+  # Uncomment on the array(s) that have the hardware fitted:
+  # dp: !include ventsys_air_sensor_dp.yaml            # SDP810 differential pressure
+  # display: !include ventsys_air_sensor_display.yaml  # OLED + LDR (needs the co package)

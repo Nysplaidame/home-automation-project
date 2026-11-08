@@ -1,0 +1,10 @@
+[Unit]
+Description=Proposed daily Household Hub cold checkpoint (review outage window)
+
+[Timer]
+OnCalendar=*-*-* 04:15:00
+Persistent=false
+Unit=household-hub-coordinated-backup.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,10 @@
+{
+  "/opt/monitoring/uptime-kuma/kuma.db": {
+    "matches": [],
+    "skipped_large_tables": []
+  },
+  "/opt/monitoring/grafana/data/grafana.db": {
+    "matches": [],
+    "skipped_large_tables": []
+  }
+}

@@ -1,0 +1,60 @@
+// Central log collector for docker-host. Credentials live only in certs/.
+// Docker logs are shipped automatically; Bambuddy's own rotating application
+// logs are included because they contain its printer FTP/MQTT diagnostics.
+
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "docker_logs" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+  rule {
+    target_label = "job"
+    replacement  = "docker"
+  }
+  rule {
+    target_label = "host"
+    replacement  = "docker-host"
+  }
+}
+
+loki.source.docker "containers" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.docker_logs.output
+  forward_to = [loki.write.monitoring.receiver]
+}
+
+local.file_match "bambuddy" {
+  path_targets = [{
+    "__path__" = "/var/log/bambuddy/bambuddy.log*",
+    "job"      = "bambuddy",
+    "host"     = "docker-host",
+    "source"   = "application",
+  }]
+  sync_period = "10s"
+}
+
+loki.source.file "bambuddy" {
+  targets    = local.file_match.bambuddy.targets
+  forward_to = [loki.write.monitoring.receiver]
+  tail_from_end = true
+}
+
+loki.write "monitoring" {
+  endpoint {
+    url = "https://192.168.60.10:3100/loki/api/v1/push"
+    tls_config {
+      ca_file     = "/etc/alloy/certs/ca.crt"
+      cert_file   = "/etc/alloy/certs/client.crt"
+      key_file    = "/etc/alloy/certs/client.key"
+      server_name = "loki.monitoring.home.local"
+      min_version = "TLS13"
+    }
+  }
+}

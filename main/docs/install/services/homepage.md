@@ -3,7 +3,7 @@ title: Homepage Install Manual
 description: Tier 1 internal dashboard for service links
 tags: [install, docker-host, homepage]
 created: 2026-05-24
-modified: 2026-08-25
+modified: 2026-10-19
 type: install-guide
 status: live
 ---
@@ -34,6 +34,25 @@ Do not place tokens or passwords in visible Homepage config.
 
 ## Current live state
 
+- October 19: **VentSys** is in Home → Home & Security beside Home Assistant.
+  Its matching **Open tab** action opens the authenticated dashboard at
+  `https://homepage.home.local:8188/dashboard-ventsys/0`, using the existing
+  source-scoped HA proxy and normal HA sign-in. It does not add a Preview frame,
+  token, port, firewall rule or synthetic ventilation-health status. Desktop
+  navigation and 390 px mobile action bounds passed, and the proxy served the
+  tested card byte-for-byte. Existing Voice Mixer and other live services were
+  preserved by a narrow two-file patch. This viewport/server proof is not a new
+  phone-on-mobile-data acceptance claim. See [[../../procedures/ventsys-dashboard]].
+  Rollback: `/opt/backups/homepage-ventsys-20261019-082312Z/{services.yaml,custom.js}`;
+  restore those two files to `/opt/stacks/homepage/config/` and call
+  `/api/revalidate`. The config revalidation returned `{"revalidated":true}`.
+
+- October18: Pocketry1.5.1 added beside Gridfinity in Tools → Workshop &
+  Knowledge with the shared card, status, Preview and Open tab style, at
+  `https://homepage.home.local:8211/` (loopback8098 backend). Browser checks
+  passed; mobile-data8211 remains unverified. Preserve live Voice Mixer8210.
+  See [[pocketry|Pocketry]] for rebuild and browser-project backups.
+
 - Live at `/opt/stacks/homepage` on docker-host.
 - Canonical local and remote bookmark: `https://homepage.home.local/`, using a
   `Home Local CA` certificate and split DNS. Local DNS returns
@@ -44,6 +63,7 @@ Do not place tokens or passwords in visible Homepage config.
 - Rebuildable template: `configs/docker-host/stacks/homepage/`.
 - Seven tabs are live: Home, Tools, Infrastructure, Monitoring, Storage, Media
   and Operations.
+- Tailscale is available in Home's Reference Links; the duplicate Infrastructure card was removed on 2026-10-11.
 - User-facing portals and all running docker-host containers are represented.
 - Docker-backed cards expose state and expandable CPU, memory and network
   statistics.
@@ -221,6 +241,60 @@ not just an IP-based HTTP200. A successful `nginx -t` cannot detect a missing
 optional file matched by an empty wildcard.
 
 ## Failure recovery
+
+### September 30 access repair and release contract
+
+`Direct` means standalone navigation through the same fixed HTTPS proxy as
+`Preview`. It must not substitute a backend LAN IP or HTTP port. The September
+25 action did exactly that: Homepage and previews remained reachable while
+mobile-data standalone navigation tried destinations outside the phone's
+scoped Tailscale grant. Paths, queries and fragments remain preserved, and
+port-based destinations inherit the outer Homepage hostname to preserve HA's
+same-site ingress behavior. Raw backend URLs belong in management runbooks.
+
+Bambuddy browser/PWA access now uses `https://homepage.home.local:8207/`.
+Native Bambuddy Mobile retains `https://docker-host.tail7012a0.ts.net:8181/`.
+Nginx retains `192.168.20.102:8181` only as a legacy LAN bookmark; it must never
+bind wildcard or tailnet `8181`, which belongs to Tailscale Serve. Before this
+repair, both services claimed it: tailscaled repeatedly reported `address
+already in use`, and phone TLS handshakes reported `no webserver configured
+for name/port`. Which listener starts first can change the symptom.
+
+Before deploying navigation or proxy changes, run:
+
+```powershell
+node main/configs/docker-host/stacks/homepage/tests/access-contract.cjs
+node --check main/configs/docker-host/stacks/homepage/config/custom.js
+```
+
+This gate checks standalone/preview parity, paths/query/fragments, LAN/name/
+tailnet origins, scoped card URLs and separate native/browser port ownership.
+Then run Compose validation, Nginx validation, `/api/revalidate`, inspect live
+card destinations, and test both browser `8207` and native `8181` with normal
+certificate validation. A green Homepage monitor or `nginx -t` alone does not
+prove that individual cards work over the phone's access policy.
+
+September 30 server checks: split DNS answered `100.94.122.18`; certificate-
+verified Homepage and proxy ports `8180`, `8188`, `8195`, `8207`, `8209` returned
+200, as did native Bambuddy `8181`. These server-origin probes do not prove
+phone ACL acceptance. The phone was connected via London DERP; relay use is
+not the cause of this raw-IP navigation regression. Final phone acceptance
+requires refreshing Homepage on mobile data and opening standalone links.
+
+Rollback files are on docker-host at
+`/opt/backups/homepage-access-20260930/{custom.js,services.yaml,nginx.conf}`.
+Copy each to its original config/preview-proxy path, recreate only
+`preview-proxy`, and revalidate Homepage. That rollback restores the known
+mobile-link and port-conflict defects, so use it only for a new regression.
+
+For the historical failure picture, see the access guide. Preserve the narrow
+phone grants; widening VLAN routes would conceal a navigation defect.
+
+The owner confirmed mobile-data navigation now works across apps, with Grocy
+as the remaining exception. Grocy's proxy was then corrected to preserve the
+external Host and port: its old redirect escaped to raw LAN HTTPS `:9283`.
+The regression gate covers this distinct header policy. Phone confirmation
+of the Grocy follow-up also passed; the owner confirmed it works.
 
 - If config breaks the page, move the changed YAML aside and restart.
 - Homepage renders its navigation as a generated static page. After changing

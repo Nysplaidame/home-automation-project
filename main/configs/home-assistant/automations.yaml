@@ -6,6 +6,9 @@
 # Notification actions use persistent_notification as the safe always-available
 # default. Replace with a targeted service (notify.mobile_app_<device>,
 # notify.telegram, etc.) once HA notifications are configured.
+# COMMISSIONING GATE: these automations intentionally start disabled until
+# sensor publication, physical valve endpoints, plug cutoff and restart policy
+# pass end-to-end acceptance. Do not remove initial_state gates as a blanket fix.
 
 # ============================================================================
 # SYSTEM STARTUP — VentSys initialisation to known safe state
@@ -25,8 +28,15 @@
   trigger:
     - platform: homeassistant
       event: start
+  condition:
+    - condition: state
+      entity_id: input_boolean.ventsys_failsafe
+      state: "off"
   action:
     - delay: "00:00:30"
+    - condition: state
+      entity_id: input_boolean.ventsys_failsafe
+      state: "off"
     - action: script.turn_on
       target:
         entity_id: script.ventsys_mode_sealed
@@ -84,7 +94,8 @@
         title: "🔥 FIRE ALERT"
         message: >
           Fire or smoke detected! Triggered by: {{ trigger.entity_id }}.
-          Printer power cut. Ventilation at maximum. Check immediately.
+          Printer power cutoff and emergency ventilation requested. Verify the
+          physical plug and fan states immediately; commands are not proof.
 
 # ============================================================================
 # TIER 2 — HIGH TEMPERATURE: warning and staged response

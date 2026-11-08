@@ -9,7 +9,7 @@ in unprivileged **CT 114**, not VM 104.
 |---|---|
 | Hostname | `llm-host` |
 | Address | `192.168.20.104/24`, gateway `192.168.20.1`, VLAN 20 |
-| Resources | 4 cores, 10240 MiB RAM, 100 GiB root, no swap |
+| Resources | 6 cores, 28672 MiB RAM, 100 GiB root, no swap |
 | Features | `nesting=1,keyctl=1` |
 | Startup | `onboot=1`, order 4 |
 | Stack | `/opt/stacks/local-ai` |
@@ -17,6 +17,15 @@ in unprivileged **CT 114**, not VM 104.
 Install Docker Engine, Compose, UFW, Fail2ban and VA/Vulkan tools. Apply shared
 GPU mapping from `igpu_passthrough_guide.md`, then deploy
 `configs/local-ai/docker-compose.yml`.
+
+October4 read-only `pct config 114` confirms6 cores,28672 MiB RAM and no swap;
+older4-core/10–20 GiB descriptions are superseded. No resource allocation changed.
+
+October2 diagnosis, reconfirmed October4: Fail2ban is not installed and Debian security metadata
+expired June26. CT114 needs the scoped package-cache input permission, client
+proxy and a working temporary cache-host upstream path before installation.
+Follow [the prepared repair procedure](../../../docs/procedures/ct114-package-path-repair.md);
+source configuration is not proof of a working package path or deployed jail.
 
 Persistent directories:
 

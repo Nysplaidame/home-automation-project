@@ -49,4 +49,9 @@ fi
 "$UFW_BIN" allow in on tailscale0 to any port 8180:8209 proto tcp comment "Tailscale Homepage previews" >/dev/null
 "$UFW_BIN" allow from "$HOMEPAGE_BRIDGE_SUBNET" to "$HOMEPAGE_BRIDGE_GATEWAY" port 8299 proto tcp comment "Homepage Proxmox status" >/dev/null
 
+for source in 192.168.10.0/24 192.168.1.0/24 192.168.20.0/24; do
+    "$UFW_BIN" allow from "$source" to any port 8211 proto tcp comment "Pocketry Homepage preview" >/dev/null
+done
+"$UFW_BIN" allow in on tailscale0 to any port 8211 proto tcp comment "Pocketry Homepage preview" >/dev/null
+
 echo "Applied Homepage preview UFW rules"

@@ -15,3 +15,6 @@
 *.mermaid text eol=lf
 *.html text eol=lf
 *.py text eol=lf
+
+# Vendored minified bundles may contain upstream template-literal whitespace.
+main/apps/mermaid-viewer/dist/vendor/*.min.js whitespace=-trailing-space

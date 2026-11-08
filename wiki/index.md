@@ -3,8 +3,10 @@
 > **LLM:** Read this file first on every query. Master catalog of all wiki content.
 > Updated after every ingest, query (if filed), or lint pass.
 
-**Stats:** 21 sources - 28 entities - 7 concepts - 9 analyses
-**Last updated:** 2026-09-14
+**Stats:** 21 sources - 34 entities - 9 concepts - 9 analyses
+**Last updated:** 2026-10-11
+Storage relationship update October27: Print/Media cutover and restore evidence
+reconciled in [[pages/entities/openmediavault-nas]].
 
 ---
 
@@ -57,37 +59,48 @@
 - [[entities/rpi-displays]] - Pi kiosk displays on VLAN 1
 - [[entities/cctv-camera-fleet]] - Three-camera Frigate fleet on PoE VLAN 30 access ports
 - [[entities/bambu-p1s]] - FDM printer on VLAN 35
-- [[entities/openmediavault-nas]] - OMV NAS on router LAN4 / VLAN 40; attachment owner-confirmed 2026-09-04
+- [[entities/openmediavault-nas]] - Z/Media cutover passed; October25 mirror rebuilding onto retired original Z, Y staging queued behind healthy synchronization; Y/Print layout unchanged
 - [[entities/raspberry-pi-nas]] - Deprecated historical NAS plan; superseded by OMV
 
 ### Infrastructure
 - [[entities/proxmox]] - Proxmox VE on MINISFORUM; VMs 100/102/103 and CTs 111/114 live
-- [[entities/docker-host]] - VM 103; live household/media services, explicit Compose networks, fixed Homepage proxy, Tailscale, Telegraf and Fail2ban
-- [[entities/monitoring-vm]] - VM 102; Uptime Kuma, InfluxDB, Grafana, Telegraf, ntfy routing, infrastructure checks, dashboards, and exporters
+- [[entities/docker-host]] - VM103; 10GiB RAM/128GiB root, household/media services, ntfy pressure-alert delivery, Tailscale, Telegraf and Fail2ban
+- [[entities/monitoring-vm]] - VM102; 6GiB RAM, Grafana/Influx/Kuma/Telegraf; independent Proxmox pressure alerts and collector watchdog are live
 
 ### Software / integrations
 - [[entities/home-assistant]] - HAOS on VM 100; three-camera Frigate integration and camera-health alerts live
-- [[entities/frigate]] - CT 111 Frigate 0.17.1 with three cameras, MQTT TLS, shared-iGPU acceleration, and OMV recordings
+- [[entities/frigate]] - CT111 Frigate0.17.1 with publisher lifecycle repair; reconnect/synthetic-load tests passed, RAM reassessed to6GiB; disconnected cameras disabled
 - [[entities/llm-host]] - CT 114 llama.cpp/Open WebUI/Wyoming host with shared-iGPU Vulkan
 - [[entities/bambuddy]] - Bambu P1S bridge on docker-host
 - [[entities/adguard-home]] - Live DNS filtering/adblocking service on docker-host
 - [[entities/immich]] - Live gallery/photos service with OMV-backed media storage
 - [[entities/homepage]] - Live responsive HTTPS operations dashboard on docker-host
 - [[entities/dozzle]] - Live Docker log viewer on docker-host
-- [[entities/household-hub]] - Transcript RAG, confirmed recipe handoff, read-only Grocy, and Markdown/ICS exports on docker-host
+- [[entities/gardenkeeper]] - Live garden-care service; journal photos have a persistent, OMV-backed recovery path
+- [[entities/household-hub]] - Docker-host knowledge service with a local recovery-source repository; historical Git provenance remains unknown
 - [[entities/qbittorrent]] - Mullvad/Gluetun-isolated authorised download staging with fail-closed proof
-- [[entities/troubleshooting-dashboard]] - Staged read-only symptom-led diagnostics on management-only VM 103 port 8094
+- [[entities/troubleshooting-dashboard]] - Live Resource Health, VM103 connection/TLS console, guided bundles and bounded incident timeline through Homepage
 - [[entities/home-operations-workbench]] - Verified local fixture-driven evidence workbench; not deployed or live-integrated
-- [[entities/ventsys]] - Fire safety ventilation packages/dashboard staged; hardware rollout gated by TLS-path revalidation
+- [[entities/ventsys]] - Fire safety ventilation remains uncommissioned; authenticated dashboard is live, legacy credential revoked; 360 firmware accepted; standard/touch dashboard views and shared script arbitration deployed
 - [[entities/smart-plugs-ventsys]] - VentSys smart plugs
 - [[entities/esphome]] - ESP32 firmware platform; VentSys hardware adoption pending revalidation
 - [[entities/mosquitto-mqtt]] - MQTT broker on HA; TLS `8883` live and plain `1883` deprecated
+
+### Knowledge workspace and optional tooling
+
+- [[entities/obsidian]] - Canonical project vault; plugin adoption is separate
+- [[entities/qmd]] - Idea-file Markdown search candidate; adoption unverified
+- [[entities/marp]] - Idea-file presentation candidate; adoption unverified
+- [[entities/dataview-plugin]] - Optional Obsidian plugin; adoption unverified
+- [[entities/obsidian-web-clipper]] - Optional capture tool; adoption unverified
 
 ---
 
 ## Concepts
 
 - [[concepts/rag-vs-wiki-pattern]] - RAG vs Wiki Pattern
+- [[concepts/personal-knowledge-management]] - Source curation and maintained knowledge
+- [[concepts/memex]] - Historical idea-file analogy for associative knowledge trails
 - [[concepts/vlan-segmentation]] - 11-VLAN architecture including cloud IoT
 - [[concepts/ventsys-architecture]] - ESP32 to MQTT to HA
 - [[concepts/mqtt-tls]] - Local CA and Mosquitto TLS state; VentSys rollout should use `8883`

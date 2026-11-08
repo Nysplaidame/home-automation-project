@@ -1,0 +1,108 @@
+# ESPHome - VentSys enclosure differential pressure (package, used with ventsys_air_sensor_base.yaml)
+#
+# Hardware: Sensirion SDP810-125Pa (tube ports, I2C 0x25; SDP8x1 variants are 0x26),
+# powered from 3V3, on the shared I2C bus (GPIO4 SDA / GPIO5 SCL).
+# Plumbing: port H open to the enclosure air, port L tubed to the garage.
+#   reading = P(H) - P(L) = enclosure minus garage
+#   negative = enclosure below garage pressure (what the extraction should hold)
+#
+# ESPHome's sdp3x component supports the SDP8xx family (it identifies the SDP810-125Pa
+# by product ID) and reports in hPa; it is converted to Pa here.
+#
+# Zeroing: with the extraction fan off and the enclosure door open, press
+# "dp_capture_zero". The offset is stored and adjustable from Home Assistant.
+#
+# MQTT: <prefix>/diff_pressure (Pa, offset-corrected). Home Assistant has no entity for
+# this topic yet; the native API entity "differential_pressure" is available meanwhile.
+
+substitutions:
+  sdp_address: "0x25"
+  sdp_update_interval: 1s
+  sdp_stale_after_ms: "10000"     # dp fault if no reading for this long
+
+globals:
+  - id: last_dp_ms
+    type: uint32_t
+    restore_value: no
+    initial_value: "0"
+
+number:
+  - platform: template
+    name: "dp_zero_offset"
+    id: dp_zero_offset_num
+    entity_category: config
+    unit_of_measurement: "Pa"
+    mode: box
+    min_value: -20
+    max_value: 20
+    step: 0.01
+    optimistic: true
+    restore_value: true
+    initial_value: 0
+
+sensor:
+  - platform: sdp3x
+    id: dp_raw_pa
+    internal: true
+    address: ${sdp_address}
+    measurement_mode: differential_pressure
+    update_interval: ${sdp_update_interval}
+    unit_of_measurement: "Pa"
+    accuracy_decimals: 2
+    filters:
+      - multiply: 100          # component reports hPa
+      - filter_out: nan
+    on_value:
+      - lambda: 'id(last_dp_ms) = millis();'
+
+  - platform: copy
+    source_id: dp_raw_pa
+    name: "differential_pressure"
+    id: dp_pressure
+    unit_of_measurement: "Pa"
+    device_class: pressure
+    state_class: measurement
+    icon: mdi:gauge
+    accuracy_decimals: 2
+    filters:
+      - lambda: 'return x + id(dp_zero_offset_num).state;'
+      - sliding_window_moving_average:   # 1 s samples -> 5 s average
+          window_size: 5
+          send_every: 5
+    on_value:
+      - lambda: 'id(dp_pa) = x;'
+      - mqtt.publish:
+          topic: "${mqtt_topic_prefix}/diff_pressure"
+          payload: !lambda 'return str_sprintf("%.2f", x);'
+
+binary_sensor:
+  - platform: template
+    name: "dp_sensor_fault"
+    id: dp_fault
+    device_class: problem
+    entity_category: diagnostic
+    lambda: |-
+      const uint32_t last = id(last_dp_ms);
+      if (last == 0) return millis() > ${sdp_stale_after_ms}UL;
+      return (millis() - last) > ${sdp_stale_after_ms}UL;
+    on_state:
+      - lambda: |-
+          id(dp_fault_active) = x;
+          if (x) id(dp_pa) = NAN;
+
+button:
+  - platform: template
+    name: "dp_capture_zero"
+    entity_category: config
+    icon: mdi:gauge-empty
+    on_press:
+      - lambda: |-
+          const float raw = id(dp_raw_pa).state;
+          if (id(dp_fault).state || std::isnan(raw)) {
+            ESP_LOGW("dp", "Zero not captured: no SDP810 reading");
+            return;
+          }
+          auto call = id(dp_zero_offset_num).make_call();
+          call.set_value(-raw);
+          call.perform();
+          ESP_LOGI("dp", "Differential pressure zero offset set to %.2f Pa", -raw);

@@ -91,3 +91,5 @@ fan:
 binary_sensor:
   - platform: status
     name: "Status"
+packages:
+  board_management: !include ventsys_board_management.yaml

@@ -1,0 +1,85 @@
+{
+  "/var/lib/transferportal/jobs.sqlite": {
+    "matches": [
+      {
+        "table": "jobs",
+        "column": "command_json",
+        "references": [
+          "/srv/transferportal/smoke/destination/",
+          "/srv/transferportal/smoke/source/"
+        ]
+      },
+      {
+        "table": "jobs",
+        "column": "command_json",
+        "references": [
+          "/srv/transferportal/smoke/destination/",
+          "/srv/transferportal/smoke/source/"
+        ]
+      },
+      {
+        "table": "jobs",
+        "column": "command_json",
+        "references": [
+          "/srv/transferportal/smoke/destination/",
+          "/srv/transferportal/smoke/source/"
+        ]
+      },
+      {
+        "table": "jobs",
+        "column": "command_json",
+        "references": [
+          "/srv/transferportal/smoke/destination/",
+          "/srv/transferportal/smoke/source/"
+        ]
+      },
+      {
+        "table": "jobs",
+        "column": "command_json",
+        "references": [
+          "/srv/transferportal/smoke/destination/",
+          "/srv/transferportal/smoke/source/"
+        ]
+      },
+      {
+        "table": "jobs",
+        "column": "command_json",
+        "references": [
+          "/srv/transferportal/test/destination/",
+          "/srv/transferportal/test/source/"
+        ]
+      },
+      {
+        "table": "jobs",
+        "column": "command_json",
+        "references": [
+          "/srv/transferportal/test/destination/",
+          "/srv/transferportal/test/source/"
+        ]
+      },
+      {
+        "table": "jobs",
+        "column": "command_json",
+        "references": [
+          "/srv/transferportal/test/destination/",
+          "/srv/transferportal/test/source/"
+        ]
+      },
+      {
+        "table": "jobs",
+        "column": "command_json",
+        "references": [
+          "/srv/transferportal/test/destination/",
+          "/srv/transferportal/test/source/"
+        ]
+      }
+    ],
+    "skipped_large_tables": []
+  },
+  "/var/lib/filebrowser/config.yaml": {
+    "path_tokens": []
+  },
+  "/var/lib/filebrowser/database.db": {
+    "path_tokens": []
+  }
+}

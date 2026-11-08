@@ -1,7 +1,7 @@
 [Unit]
-Description=Back up OMV configuration and export evidence to md0
+Description=Back up OMV configuration and export evidence to Media mirror
 After=local-fs.target nfs-server.service
-RequiresMountsFor=/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/configs
+RequiresMountsFor=/srv/dev-disk-by-uuid-a8843f98-c937-48a8-aefa-4cd0fb80667c/backups/configs
 
 [Service]
 Type=oneshot
@@ -12,5 +12,5 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectHome=true
 ProtectSystem=strict
-ReadWritePaths=/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/configs/omv-config
+ReadWritePaths=/srv/dev-disk-by-uuid-a8843f98-c937-48a8-aefa-4cd0fb80667c/backups/configs/omv-config
 

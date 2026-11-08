@@ -91,7 +91,17 @@ def _validate_invariants(vlan_sections: list) -> dict:
 
     return {
         "wan_pppoe_on_eth1": bool(interfaces.get("wan") and interfaces["wan"].get("device") == "eth1" and interfaces["wan"].get("proto") == "pppoe"),
-        "wan6_on_logical_wan": bool(interfaces.get("wan6") and interfaces["wan6"].get("device") == "@wan"),
+        "wan6_on_logical_wan": bool(
+            interfaces.get("wan6")
+            and interfaces["wan6"].get("device") == "@wan"
+            and interfaces["wan6"].get("reqaddress") == "none"
+            and interfaces["wan6"].get("reqprefix") == "48"
+        ),
+        "zen_nd_on_logical_wan": bool(
+            interfaces.get("wan6_nd")
+            and interfaces["wan6_nd"].get("device") == "@wan"
+            and interfaces["wan6_nd"].get("proto") == "static"
+        ),
         "lan2_only_cloud_vlan": [bv.get("vlan") for bv in bridge_vlans if any(p.split(":")[0] == "lan2" for p in bv.get_list("ports"))] == ["55"],
         "cloud_interface_on_vlan55": bool(interfaces.get("cloud_iot") and interfaces["cloud_iot"].get("device") == "br-lan.55"),
         "lan5_vlan1_untagged": lan5_vlan1_untagged,
@@ -385,8 +395,10 @@ def _load_secret_replacements() -> dict[str, str]:
             continue
         if not isinstance(value, str):
             raise ValueError(f"{SECRETS_PATH}: value for {key} must be a string")
-        if key in WAN_SECRET_KEYS and any(char in value for char in "'\r\n\x00"):
+        if any(char in value for char in "'\r\n\x00"):
             raise ValueError(f"Unsupported UCI quoting/control character in {key}")
+        if key == "VENTSYS_MAIN_VALVE_1_MAC" and not re.fullmatch(r"(?:[0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}", value):
+            raise ValueError("VENTSYS_MAIN_VALVE_1_MAC must be a MAC address")
         clean[key] = value
     return clean
 

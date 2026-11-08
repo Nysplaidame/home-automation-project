@@ -1,0 +1,54 @@
+# Manual observation recording. This does not move a servo.
+script:
+  ventsys_record_intake_reference:
+    alias: VentSys - record intake reference without motion
+    mode: single
+    max_exceeded: error
+    fields:
+      target:
+        required: true
+      opening:
+        required: true
+      revision:
+        required: true
+    sequence:
+      - variables:
+          saved: "{{ states('input_text.ventsys_operating_state') | from_json(none) }}"
+          devices:
+            fdm_360:
+              report: number.ventsys_sla_360_intake_valve_valve_position
+              pwm: binary_sensor.garage_ventsys_sla_360_intake_valve_pwm_commanded_active
+              service: esphome.ventsys_sla_360_valve_record_known_command
+            sla_360:
+              report: number.ventsys_fdm_360_intake_valve_valve_position
+              pwm: binary_sensor.garage_ventsys_fdm_360_intake_valve_pwm_commanded_active
+              service: esphome.ventsys_fdm_360_valve_record_known_command
+      - if:
+          - condition: template
+            value_template: >-
+              {{ target | default('') not in devices or opening is not integer or opening < 0 or opening > 100
+                 or saved is not mapping or revision is not integer or saved.revision | default(-1) != revision
+                 or saved.fdm | default('invalid') != 'off' or saved.sla | default('invalid') != 'off'
+                 or saved.booth | default('invalid') != 'off'
+                 or not is_state('input_boolean.ventsys_failsafe','off')
+                 or not is_state('script.ventsys_mode_fire_safe','off')
+                 or not is_state('script.ventsys_set_operating_mode','off')
+                 or not is_state('script.ventsys_test_valves','off')
+                 or not is_state('script.ventsys_normal_command','off')
+                 or not is_state('script.ventsys_dashboard_command','off')
+                 or not is_state('fan.inline_fan','off') or not is_state('fan.spray_booth_fan','off') }}
+        then:
+          - stop: Stop modes and fans and wait for all controls to be available before recording a reference.
+            error: true
+      - variables:
+          device: "{{ devices[target] }}"
+          raw: "{{ (30 + opening * 0.3) | round(0) | int }}"
+      - if:
+          - condition: template
+            value_template: "{{ not is_state(device.pwm, 'off') or states(device.report) in ['unknown','unavailable',''] }}"
+        then:
+          - stop: Controller or inactive PWM report unavailable.
+            error: true
+      - action: "{{ device.service }}"
+        data:
+          position: "{{ raw }}"

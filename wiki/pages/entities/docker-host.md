@@ -3,7 +3,7 @@ title: "Docker Host (VM 103)"
 category: entity
 tags: [software, docker, proxmox, bambuddy, apt-cache, tailscale, monitoring, fail2ban, mullvad, qbittorrent]
 created: 2026-05-08
-updated: 2026-09-04
+updated: 2026-10-19
 sources: [project-readme, project-todo]
 status: stable
 ---
@@ -11,10 +11,16 @@ status: stable
 # Docker Host (VM 103)
 
 **Type:** integration - trusted Docker host
-**Status:** Recovered 2026-09-04: 6 GiB RAM restored; container and endpoint checks pass.
+**Status:** Live; October10 verified 4CPU/10GiB RAM and root expanded online64→128GiB.
 **Related:** [[entities/proxmox]], [[entities/bambuddy]], [[entities/home-assistant]], [[concepts/tailscale-remote-access]], [[entities/adguard-home]], [[entities/immich]], [[entities/homepage]], [[entities/dozzle]], [[entities/household-hub]], [[entities/qbittorrent]], [[entities/troubleshooting-dashboard]]
 
 ## Overview
+
+October10 resource audit supersedes the September allocation below:4CPU/10GiB
+running, ~4.9GiB usable RAM; root disk expanded online to128GiB, taking usage
+88→44% with69GiB available. Host resource alerts now publish through this VM's
+authenticated ntfy monitoring topic. See
+[[../../../main/docs/procedures/resource_pressure_monitor]].
 
 The 2026-09-04 audit found 4 vCPUs / 1024 MiB with full swap and failing
 applications. The authorized repair restored 6144 MiB with a graceful
@@ -71,7 +77,7 @@ maintenance window.
 | Whoogle | `/opt/stacks/whoogle/` | 8088 | Live search proxy |
 | Mealie / Grocy | `/opt/stacks/mealie/`, `/opt/stacks/grocy/` | 9925, 9283 | Live recipes, meal planning, stock and shopping |
 | Jellyfin / Calibre-Web / Atsumeru | respective `/opt/stacks/` paths | 8096, 8083, 31337 | Live OMV-backed media services |
-| Recomp Tracker | `/opt/stacks/recomp-tracker/` | 8420 | Live habits/workout tracker; fixed proxy 8209 |
+| Recomp Tracker | `/opt/stacks/recomp-tracker/` | 8420 | Live habits/workout and diet tracker; fixed proxy 8209; day-only meal estimates stay outside its Food Library |
 | [[entities/troubleshooting-dashboard]] | `/opt/stacks/troubleshooting-dashboard/` | 8094 | Staged live; Management VLAN only |
 | Vaultwarden | `/opt/stacks/vaultwarden/` | loopback 8222, HTTPS SNI proxy | Live; owner onboarding remains gated |
 | Watchtower | `/opt/stacks/watchtower/` | none | Monitor-only; no automatic updates |
@@ -130,6 +136,10 @@ not create a general route into VLAN 20 or other private subnets.
 
 ## Change Log
 
+- 2026-10-19: Recomp Tracker r16 added date-specific custom meal estimates
+  with manual nutrition values. They do not create Food Library records and
+  are not carried into copied diet days; the healthy image and checkpoint are
+  recorded in [[../../../main/docs/reference/current-live-state]].
 - 2026-08-25: Staged the read-only Troubleshooting Dashboard on explicit bridge
   `10.240.32.0/24` with management-only port `8094`; access and rollback proofs
   passed, while Proxmox snapshot acceptance remains open.

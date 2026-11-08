@@ -1,0 +1,153 @@
+# ESPHome - VentSys CO channel (package, used together with ventsys_air_sensor_base.yaml)
+#
+# Hardware: DFRobot SEN0564 Fermion MEMS CO sensor (13 x 13 mm breakout,
+# 5-5000 ppm, qualitative only), powered from 3V3, analog A -> GPIO2.
+# GPIO2 is ADC1_CH2 on the ESP32-C6 and sits next to the smoke input (GPIO3)
+# on the C6-Zero's left header.
+#
+# Same method as the smoke channel: Rs/R0 against a captured clean-air
+# baseline, with a voltage fallback until the baseline exists. CO MEMS
+# elements also respond to H2 and alcohol vapour, so treat an alarm as
+# "investigate", not as a calibrated CO concentration.
+#
+# The CO alarm feeds the base package's alarm latch, status LED and combined
+# sensor_fault entity through the extra_alarm_active / extra_fault_active globals.
+#
+# MQTT: <prefix>/co ("detected"/"clear"). Home Assistant has no entity for this
+# topic yet; add one to ventsys_ha_package.yaml if MQTT-side CO alarms are wanted.
+
+substitutions:
+  co_gpio: GPIO2
+  co_ratio_alarm: "0.50"        # first-boot value; adjustable from HA afterwards
+  co_voltage_alarm: "1.50"      # first-boot value; fallback until a baseline is captured
+
+globals:
+  - id: co_r0
+    type: float
+    restore_value: yes
+    initial_value: "0.0"
+
+number:
+  - platform: template
+    name: "co_ratio_alarm_threshold"
+    id: co_ratio_num
+    entity_category: config
+    mode: box
+    min_value: 0.05
+    max_value: 0.95
+    step: 0.01
+    optimistic: true
+    restore_value: true
+    initial_value: ${co_ratio_alarm}
+
+  - platform: template
+    name: "co_voltage_alarm_threshold"
+    id: co_voltage_num
+    entity_category: config
+    unit_of_measurement: "V"
+    mode: box
+    min_value: 0.1
+    max_value: 3.2
+    step: 0.01
+    optimistic: true
+    restore_value: true
+    initial_value: ${co_voltage_alarm}
+
+sensor:
+  - platform: adc
+    pin: ${co_gpio}
+    name: "co_voltage"
+    id: co_voltage
+    attenuation: 12db
+    samples: 16
+    update_interval: ${gas_update_interval}
+    accuracy_decimals: 3
+    filters:
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 1
+
+  - platform: template
+    name: "co_rs_r0_ratio"
+    id: co_ratio
+    icon: mdi:molecule-co
+    accuracy_decimals: 3
+    update_interval: ${gas_update_interval}
+    lambda: |-
+      const float vs = ${gas_supply_voltage}f;
+      const float v = id(co_voltage).state;
+      if (std::isnan(v) || v <= 0.01f || v >= vs || id(co_r0) <= 0.0f) return NAN;
+      const float rs = ${gas_load_resistance}f * (vs - v) / v;
+      return rs / id(co_r0);
+
+binary_sensor:
+  - platform: template
+    name: "co_detected"
+    id: co_alarm
+    device_class: carbon_monoxide
+    lambda: |-
+      if (!id(gas_sensors_ready) || id(co_fault).state) return false;
+      const float v = id(co_voltage).state;
+      if (std::isnan(v)) return false;
+      if (id(co_r0) > 0.0f) {
+        const float r = id(co_ratio).state;
+        return !std::isnan(r) && r < id(co_ratio_num).state;
+      }
+      return v > id(co_voltage_num).state;
+    filters:
+      - delayed_on: 5s
+      - delayed_off: 15s
+    on_press:
+      - lambda: 'id(alarm_latch) = true;'
+    on_state:
+      - lambda: 'id(extra_alarm_active) = x;'
+      - if:
+          condition:
+            lambda: 'return id(gas_sensors_ready);'
+          then:
+            - mqtt.publish:
+                topic: "${mqtt_topic_prefix}/co"
+                payload: !lambda 'return std::string(x ? "detected" : "clear");'
+
+  - platform: template
+    name: "co_sensor_fault"
+    id: co_fault
+    device_class: problem
+    entity_category: diagnostic
+    lambda: |-
+      if (!id(gas_sensors_ready)) return false;
+      const float v = id(co_voltage).state;
+      return std::isnan(v) || v < ${gas_fault_low_v}f || v > (${gas_supply_voltage}f - ${gas_fault_high_margin_v}f);
+    filters:
+      - delayed_on: 15s
+    on_state:
+      - lambda: 'id(extra_fault_active) = x;'
+
+button:
+  - platform: template
+    name: "co_capture_clean_air_baseline"
+    entity_category: config
+    icon: mdi:air-filter
+    on_press:
+      - lambda: |-
+          const float vs = ${gas_supply_voltage}f;
+          const float v = id(co_voltage).state;
+          if (!id(gas_sensors_ready) || id(co_fault).state || std::isnan(v) || v <= 0.01f || v >= vs) {
+            ESP_LOGW("gas", "CO baseline not captured: sensor not warmed up, faulted or out of range");
+            return;
+          }
+          id(co_r0) = ${gas_load_resistance}f * (vs - v) / v;
+          ESP_LOGI("gas", "CO clean-air baseline R0 = %.0f ohm (%.3f V)", id(co_r0), v);
+
+interval:
+  - interval: ${state_publish_interval}
+    then:
+      - if:
+          condition:
+            and:
+              - mqtt.connected:
+              - lambda: 'return id(gas_sensors_ready);'
+          then:
+            - mqtt.publish:
+                topic: "${mqtt_topic_prefix}/co"
+                payload: !lambda 'return std::string(id(co_alarm).state ? "detected" : "clear");'

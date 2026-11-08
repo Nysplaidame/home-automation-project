@@ -1,0 +1,135 @@
+{
+  "sharedfolder": [
+    {
+      "uuid": "d3e482e4-4af8-433b-96e1-5ccb8f454d52",
+      "name": "NAS",
+      "mntentref": "2c58a92d-d92d-48a4-9044-d3d85bad21f7",
+      "reldirpath": "/"
+    },
+    {
+      "uuid": "24f1b40d-f515-4b0c-88c6-50770669c328",
+      "name": "14tb",
+      "mntentref": "0214318e-5deb-40b6-a8b5-c5863fad0dd6",
+      "reldirpath": "/"
+    },
+    {
+      "uuid": "183e6aed-7c0e-4ad3-8c08-d985e0e0d688",
+      "name": "ha-backups",
+      "mntentref": "2c58a92d-d92d-48a4-9044-d3d85bad21f7",
+      "reldirpath": "ha-backups/"
+    },
+    {
+      "uuid": "6b2726be-07ed-410c-98de-cb17ba2a083a",
+      "name": "frigate",
+      "mntentref": "2c58a92d-d92d-48a4-9044-d3d85bad21f7",
+      "reldirpath": "frigate/"
+    },
+    {
+      "uuid": "b6be336f-14a7-4b9c-8041-f768df5fcb4b",
+      "name": "immich",
+      "mntentref": "2c58a92d-d92d-48a4-9044-d3d85bad21f7",
+      "reldirpath": "immich/"
+    },
+    {
+      "uuid": "cb10e6c5-5426-41ce-b7cb-c4a18343c58d",
+      "name": "configs",
+      "mntentref": "2c58a92d-d92d-48a4-9044-d3d85bad21f7",
+      "reldirpath": "configs/"
+    },
+    {
+      "uuid": "aafd9b33-2203-48df-ae67-43cdba11845d",
+      "name": "media",
+      "mntentref": "0214318e-5deb-40b6-a8b5-c5863fad0dd6",
+      "reldirpath": "Media/"
+    }
+  ],
+  "share": [
+    {
+      "uuid": "cca10456-2592-4759-8dc5-f3a94c130885",
+      "sharedfolderref": "b6be336f-14a7-4b9c-8041-f768df5fcb4b",
+      "name": null,
+      "public": null,
+      "readonly": null
+    },
+    {
+      "uuid": "29a0d6a7-be91-4a6d-9ed1-f4ef3700d5c5",
+      "sharedfolderref": "6b2726be-07ed-410c-98de-cb17ba2a083a",
+      "name": null,
+      "public": null,
+      "readonly": null
+    },
+    {
+      "uuid": "dc7661cf-3dab-4427-ab02-3596b07681d6",
+      "sharedfolderref": "aafd9b33-2203-48df-ae67-43cdba11845d",
+      "name": null,
+      "public": null,
+      "readonly": null
+    },
+    {
+      "uuid": "899b8e0f-5338-4918-847f-961f5bedd8d8",
+      "sharedfolderref": "d3e482e4-4af8-433b-96e1-5ccb8f454d52",
+      "name": null,
+      "public": null,
+      "readonly": "0"
+    },
+    {
+      "uuid": "c2f1abfa-b121-4f9b-bdbf-915f6c0341e1",
+      "sharedfolderref": "24f1b40d-f515-4b0c-88c6-50770669c328",
+      "name": null,
+      "public": null,
+      "readonly": "0"
+    }
+  ],
+  "mntent": [
+    {
+      "uuid": "79684322-3eac-11ea-a974-63a080abab18",
+      "fsname": "/dev/disk/by-uuid/21e7387a-4779-4155-b32f-b9efb60e6cc7",
+      "dir": "/",
+      "type": "ext4"
+    },
+    {
+      "uuid": "0214318e-5deb-40b6-a8b5-c5863fad0dd6",
+      "fsname": "/dev/disk/by-uuid/a216b8bb-708e-4342-a5be-a415cdc465fa",
+      "dir": "/srv/dev-disk-by-uuid-a216b8bb-708e-4342-a5be-a415cdc465fa",
+      "type": "ext4"
+    },
+    {
+      "uuid": "2c58a92d-d92d-48a4-9044-d3d85bad21f7",
+      "fsname": "/dev/disk/by-uuid/fdb92af7-371c-4793-8d98-ff47e961498d",
+      "dir": "/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d",
+      "type": "ext4"
+    },
+    {
+      "uuid": "bd807570-1703-4fa8-8661-cccef89c8b63",
+      "fsname": "/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/ha-backups/",
+      "dir": "/export/ha-backups",
+      "type": "none"
+    },
+    {
+      "uuid": "fbea2734-50af-4582-9666-c87f9ee976ea",
+      "fsname": "/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/frigate/",
+      "dir": "/export/frigate",
+      "type": "none"
+    },
+    {
+      "uuid": "7f1d06b2-9fce-4bac-8ec2-f560ea96fbd9",
+      "fsname": "/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/immich/",
+      "dir": "/export/immich",
+      "type": "none"
+    },
+    {
+      "uuid": "be660a49-0e0e-434c-bc4b-e233cf871102",
+      "fsname": "/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/configs/",
+      "dir": "/export/configs",
+      "type": "none"
+    },
+    {
+      "uuid": "8476ca9a-39c4-4501-b5c8-15772ada9449",
+      "fsname": "/srv/dev-disk-by-uuid-a216b8bb-708e-4342-a5be-a415cdc465fa/Media/",
+      "dir": "/export/media",
+      "type": "none"
+    }
+  ],
+  "mdadm": [],
+  "units": "export-configs.mount                                                                                                                 loaded    active   mounted   /export/configs\nexport-frigate.mount                                                                                                                 loaded    active   mounted   /export/frigate\nexport-ha\\x2dbackups.mount                                                                                                           loaded    active   mounted   /export/ha-backups\nexport-immich.mount                                                                                                                  loaded    active   mounted   /export/immich\nexport-media.mount                                                                                                                   loaded    active   mounted   /export/media\nrun-omv\\x2dwritecache-var_lib_openmediavault_rrd-lower.mount                                                                         loaded    active   mounted   /run/omv-writecache/var_lib_openmediavault_rrd/lower\nsrv-transferportal-destination.mount                                                                                                 loaded    active   mounted   Transfer portal destination\nsrv-transferportal-smoke-destination.mount                                                                                           loaded    active   mounted   Transfer Portal bind mount for /srv/transferportal/smoke/destination\nsrv-transferportal-smoke-source.mount                                                                                                loaded    active   mounted   Transfer Portal bind mount for /srv/transferportal/smoke/source\nsrv-transferportal-source.mount                                                                                                      loaded    active   mounted   Transfer portal source\nvar-lib-openmediavault-rrd.mount                                                                                                     loaded    active   mounted   /var/lib/openmediavault/rrd\ncontainer-filebrowser-app.service                                                                                                    loaded    active   running   Podman container-filebrowser-app.service\ndpkg-db-backup.service                                                                                                               loaded    inactive dead      Daily dpkg database backup service\ninitrd-cleanup.service                                                                                                               loaded    inactive dead      Cleaning Up and Shutting Down Daemons\ninitrd-udevadm-cleanup-db.service                                                                                                    loaded    inactive dead      Cleanup udev Database\nnetplan-ovs-cleanup.service                                                                                                          loaded    inactive dead      OpenVSwitch configuration for cleanup\nomv-config-backup.service                                                                                                            loaded    inactive dead      Back up OMV configuration and export evidence to md0\nomv_cterm.service                                                                                                                    loaded    active   running   container exec terminal for openmediavault-cterm\nopenmediavault-beep-down.service                                                                                                     loaded    inactive dead      Beep before system shutdown\nopenmediavault-beep-up.service                                                                                                       loaded    inactive dead      Beep after system start\nopenmediavault-cleanup-monit.service                                                                                                 loaded    inactive dead      Cleanup monit state file\nopenmediavault-cleanup-php.service                                                                                                   loaded    inactive dead      Cleanup PHP session files\nopenmediavault-engined.service                                                                                                       loaded    active   running   The OpenMediaVault engine daemon that processes the RPC request\nopenmediavault-issue.service                                                                                                         loaded    active   exited    Generate the prelogin message\npod-filebrowser.service                                                                                                              loaded    active   running   Podman pod-filebrowser.service\nsystemd-tmpfiles-clean.service                                                                                                       loaded    inactive dead      Cleanup of Temporary Directories\ntransferportal.service                                                                                                               loaded    active   running   OMV Transfer Portal\ndpkg-db-backup.timer                                                                                                                 loaded    active   waiting   Daily dpkg database backup timer\nomv-config-backup.timer                                                                                                              loaded    active   waiting   Daily OMV configuration and export evidence backup\nsystemd-tmpfiles-clean.timer                                                                                                         loaded    active   waiting   Daily Cleanup of Temporary Directories"
+}

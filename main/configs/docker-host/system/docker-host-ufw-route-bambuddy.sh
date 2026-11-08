@@ -18,7 +18,7 @@ fi
 for port in 8123 8883; do
     "$UFW_BIN" route allow from "$BAMBUDDY_SUBNET" to "$HOME_ASSISTANT_IP" port "$port" proto tcp comment "Bambuddy to Home Assistant" >/dev/null
 done
-for port in 21 8883; do
+for port in 8883 990 2024 6000 50000:50100; do
     "$UFW_BIN" route allow from "$BAMBUDDY_SUBNET" to "$P1S_IP" port "$port" proto tcp comment "Bambuddy to P1S" >/dev/null
 done
 

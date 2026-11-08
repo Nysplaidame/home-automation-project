@@ -124,6 +124,31 @@ first-power attempt. Never “fix” a wiring fault by changing random GPIOs liv
 Keep the actuator/motor output physically disconnected. Use the production TLS
 YAML matching the label; the garage air-sensor example is sensor-only.
 
+### Windows PlatformIO location — operational note (November 2026)
+
+PlatformIO Core, packages, toolchains and its ESP-IDF virtual environment are
+at **`K:\Documents\Obsidian\home-automation-project\main\PlatformIO`**, not
+`C:\Users\Admin\.platformio`. The current user environment must retain both of
+these values:
+
+```text
+PLATFORMIO_CORE_DIR=K:\Documents\Obsidian\home-automation-project\main\PlatformIO
+PLATFORMIO_PACKAGES_DIR=K:\Documents\Obsidian\home-automation-project\main\PlatformIO\packages
+```
+
+The project-local core passed a clean ESP-IDF/Arduino firmware build on
+2026-11-04. It is local generated runtime state and is intentionally ignored by
+Git; do not recreate or depend on the former C: core. After changing either
+variable, close and reopen VS Code, ESPHome, and terminals before compiling.
+`K:\Documents\Cache Folders\platformio` and `K:\PlatformIOCache` are historical,
+non-active copies; ESP-IDF must not be placed in a path containing spaces.
+
+On 2026-11-05 the core was relocated here from `K:\Documents\PlatformIO`.
+PlatformIO Core 6.1.19's entry point was rebuilt at the same version because
+the move invalidated its absolute launcher path. `pio system info` reports this
+core and 14 installed toolchain/package dependencies; no dependency versions
+were upgraded as part of the relocation.
+
 Run on: Admin laptop from the repository checkout.
 
 ```powershell
@@ -294,7 +319,7 @@ Run on: docker-host over SSH.
 
 ```bash
 nc -zvw5 192.168.35.200 8883
-nc -zvw5 192.168.35.200 21
+nc -zvw5 192.168.35.200 990
 nc -zvw5 192.168.20.101 8883
 docker compose -f /opt/stacks/bambuddy/docker-compose.yml ps
 docker compose -f /opt/stacks/bambuddy/docker-compose.yml logs --tail=100

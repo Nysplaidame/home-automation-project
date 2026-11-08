@@ -41,6 +41,9 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    volumes:
+      # Journal uploads are application state, not container-layer cache.
+      - ./journal-media:/data/journal-media
     networks:
       - gardenkeeper
       - alerting

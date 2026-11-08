@@ -3,7 +3,7 @@ title: Tailscale Remote Access Guide
 description: Daily remote access through docker-host host routes, with WireGuard as fallback
 tags: [tailscale, remote-access, docker-host, vpn]
 created: 2026-05-23
-modified: 2026-08-21
+modified: 2026-09-30
 type: procedure
 status: active
 ---
@@ -113,6 +113,28 @@ Homepage canonical-name note, updated 2026-08-21:
   clients. The mobile-data acceptance test must use Tailscale because no public
   Internet exposure was added.
 
+Native Bambuddy Mobile note, added 2026-09-17:
+
+- The Homepage Bambuddy link remains
+  `https://homepage.home.local:8207/`. It uses the local home CA and is the
+  preferred PWA/browser route.
+- The native Android Bambuddy Mobile client needs a publicly trusted TLS chain.
+  It must use the tailnet-only Tailscale Serve route
+  `https://docker-host.tail7012a0.ts.net:8181/`, which proxies only to
+  `http://127.0.0.1:8000` on docker-host. This is not a Funnel/public endpoint
+  and stays inside the tailnet.
+- Native Bambuddy Mobile authentication through that endpoint was validated on
+  the OnePlus phone on 2026-09-18.
+- The persistent Serve rule is managed by Tailscale:
+
+  ```bash
+  tailscale serve --https=8181 --bg http://127.0.0.1:8000
+  ```
+
+  Do not replace it with a raw HTTP or LAN-IP URL in the mobile app: the API
+  key would then travel without TLS. The existing OnePlus fixed-proxy grant
+  already covers port `8181`.
+
 ## Target access
 
 | Target | Route |
@@ -198,6 +220,40 @@ ping 192.168.50.1
 ```
 
 These should fail unless a future documented route/ACL explicitly allows them.
+
+## Recurring access diagnosis — September 30, 2026
+
+The available Codex conversations and canonical operational records show
+several separate failure classes, rather than one recurring Tailscale outage:
+
+| Date | Evidence / failure class | Durable response |
+|---|---|---|
+| May 31 | Monitoring needed an approved host route and routed firewall rules; missing temporary WAN uplink interrupted control/DERP sync | Approved `/32` route and scoped firewall rules; restore WAN first |
+| July 2 | Companion websocket drops while relayed; stale broad route preference | Removed broad route; use direct WiFi locally; direct UDP improvement remains optional |
+| July 26–29 | Fixed HTTPS wrappers and narrow upstream firewall rules; AdGuard failed after a VM reboot because its tailnet address was not ready | Scoped proxy rules and enabled `adguard-home-compose.service` startup gate |
+| August 10 | Docker bridge/address overlap disrupted services | Explicit non-overlapping stack subnets |
+| August 21 | LAN-address card links did not match mobile access policy | Canonical HTTPS proxy URLs across all cards |
+| September 11 | Empty optional Nginx configuration left Vaultwarden receiving the wrong certificate while Homepage was healthy | Restore optional SNI config; validate each hostname and certificate |
+| September 25–30 | New `Direct` action reintroduced raw private-IP destinations; previews worked while standalone links blanked on mobile data | Standalone and Preview now share HTTPS routing; regression gate added |
+| September 30 | Native Bambuddy Serve and wildcard Nginx both claimed `8181`; repeated bind and phone TLS errors | Browser moved to `8207`; tailnet `8181` belongs exclusively to Serve |
+| September 30 | Grocy generated absolute redirects from the backend Host, escaping to LAN HTTPS `9283` | Dedicated proxy preserves external hostname and `8198` port; complete redirect chain returned 200 |
+
+The architectural weakness is inconsistent access contracts between navigation,
+DNS, proxy listeners and the scoped phone grant. Tests previously proved LAN
+rendering and UI layout without proving standalone links obeyed the remote
+contract. Service/container health also missed optional-config omissions and
+listener ownership conflicts. Keep a single HTTPS destination per application
+for browser navigation, separate Serve-owned ports, and run the Homepage
+`tests/access-contract.cjs` gate on every relevant release. Preserve the
+existing AdGuard startup gate and explicit Docker networks.
+
+Troubleshoot from the first failing layer: phone tunnel state, split DNS,
+certificate/SNI, listener ownership, then upstream application. If Homepage
+and Preview work but standalone navigation fails, inspect the generated link
+before restarting Tailscale or widening firewall policy. DERP relay alone is
+not evidence of failure. A complete resilience proof still needs a controlled
+reboot test and actual phone mobile-data acceptance; neither is implied by
+server-local HTTP 200 probes.
 
 ## Fallback
 

@@ -18,6 +18,7 @@ install -d -o root -g root -m 0755 "$APP_DIR"
 
 rsync -a --delete \
   --exclude '.venv' \
+  --exclude 'venv' \
   --exclude '__pycache__' \
   "$APP_SRC"/ "$APP_DIR"/
 

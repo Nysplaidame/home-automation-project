@@ -1,0 +1,22 @@
+nfs: omv-backups
+	export /srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/proxmox
+	path /mnt/pve/omv-backups
+	prune-backups keep-daily=7,keep-monthly=6
+vzdump: 34c415cb-dd1b-47c4-b764-69a01aa87312
+	enabled 1
+	prune-backups keep-daily=7,keep-monthly=6
+	schedule 02:00
+	storage omv-backups
+	vmid 100,102,103
+vzdump: a8c84d38-2a73-4d9d-bf34-111114000001
+	enabled 1
+	prune-backups keep-daily=7,keep-monthly=6
+	schedule 04:00
+	storage omv-backups
+	vmid 111,114
+192.168.40.50:/export/frigate /mnt/omv/frigate nfs defaults,_netdev 0 0
+      - /opt/frigate/storage:/media/frigate
+      - /mnt/nas/frigate:/media/frigate/recordings
+#   /opt/frigate/storage/     Local Frigate media root for non-recording data
+#   /mnt/nas/frigate is a bind mount into unprivileged CT 111 from a
+STDERR: 

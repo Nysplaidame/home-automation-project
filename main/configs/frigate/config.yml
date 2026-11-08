@@ -90,6 +90,8 @@ detect:
 
 cameras:
   cam_01_annke_c500:
+    # Intentionally disconnected. Enable only for camera reconnection acceptance.
+    enabled: false
     detect:
       width: 1280
       height: 720
@@ -113,6 +115,7 @@ cameras:
         Main Stream: cam_01_annke_c500
         Sub Stream: cam_01_annke_c500_sub
   cam_02_gate:
+    enabled: false
     detect:
       enabled: true
       width: 1280
@@ -137,6 +140,7 @@ cameras:
         Main Stream: cam_02_gate
         Sub Stream: cam_02_gate_sub
   cam_03_patio:
+    enabled: false
     detect:
       enabled: true
       width: 1280

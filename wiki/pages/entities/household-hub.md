@@ -3,7 +3,7 @@ title: "Household Knowledge Hub"
 category: entity
 tags: [software, knowledge, rag, recipes, mealie, searxng, grocy, obsidian, nextcloud]
 created: 2026-08-09
-updated: 2026-08-09
+updated: 2026-09-18
 sources: [project-readme, project-todo]
 status: active
 ---
@@ -23,6 +23,13 @@ discovery, and [[entities/llm-host]] supplies local chat and embeddings. The app
 owns household knowledge indexing, transcript RAG, recipe research and
 provenance, without replacing Mealie, Grocy, GardenKeeper or Home Assistant as
 their domains' systems of record.
+
+Its production Compose mirror is not the application source. On 2026-09-18,
+the owner authorized a new local recovery repository at
+`main/apps/household-hub-recovery`, seeded from the protected 2026-09-11 source
+archive. The original Git remote/history remains unknown; the recovery
+repository has no remote and must not be presented as recovered upstream
+provenance.
 
 ## Key Properties
 
@@ -59,8 +66,18 @@ their domains' systems of record.
   Grocy/Obsidian/CalDAV probes, desktop/mobile checks and a clean browser console.
 - NAS app-data run `20260809T130054Z` captured the Grocy key state and added the
   persistent Markdown outbox to `latest/household-hub-exports`.
+- The protected source archive was readable and its recovery source family had
+  prior isolated restore and offline-build evidence. The new local repository's
+  initial commit is `c463bd9`; it excludes runtime secrets, data and generated
+  build artifacts.
 
 ## Open Questions
+
+- October2: recurring cold-checkpoint source has ten isolated passing tests,
+  service/timer templates and successful live read-only mount/container preflight.
+  It is not installed or enabled. The September15 matched backup remains one-off;
+  new-job generation/restore and recurring schedule need a maintenance window.
+  Canonical procedure: [[../../../main/docs/procedures/household-hub-coordinated-backup]].
 
 - [ ] Move YouTube transcript import and indexing into durable Redis-backed jobs
   with progress, retries and visible failure state.
@@ -68,6 +85,8 @@ their domains' systems of record.
   ingestion is later required; do not write raw LiveSync CouchDB documents.
 - [ ] Deploy Nextcloud and create a dedicated app credential before enabling
   non-dry-run CalDAV uploads.
+- [ ] Identify the original repository/history only if historical provenance or
+  a remote collaboration path becomes necessary; do not guess a remote.
 
 ## Change Log
 
@@ -75,3 +94,6 @@ their domains' systems of record.
   production migration and browser-authentication repairs went live.
 - 2026-08-09: Added live read-only Grocy, persistent Obsidian Markdown outbox and
   downloadable Nextcloud-compatible `.ics` projections.
+- 2026-09-18: Created a clearly labelled local recovery repository from the
+  protected source archive. It is a project-owned recovery baseline, not the
+  original upstream repository.

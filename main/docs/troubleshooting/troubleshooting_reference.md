@@ -547,7 +547,7 @@ docker ps
 > printer, not the other way around.
 > Bambuddy currently remains on host networking. Its explicit
 > `10.240.23.0/24` bridge and routed UFW rules are prepared, but migration is
-> blocked until VM 103 itself can reach P1S ports `21` and `8883`.
+> blocked until VM 103 itself can reach P1S ports `990` and `8883`.
 
 ### Bambuddy container not starting
 
@@ -581,7 +581,7 @@ Run on: docker-host VM103 shell.
 ```bash
 # From VM 103 (docker-host):
 nc -zv 192.168.35.200 8883    # should say open
-nc -zv 192.168.35.200 21      # FTP/control path used by the integration
+nc -zv 192.168.35.200 990     # Implicit FTPS path used by the integration
 ping 192.168.35.200            # basic reachability
 ```
 - Printer not at 192.168.35.200: check DHCP leases on router, confirm P1S is on HomePrinters SSID

@@ -26,6 +26,16 @@ done
 iptables -A DOCKER-USER -p tcp -m conntrack \
   --ctorigdst 192.168.20.104 --ctorigdstport 8082 -j DROP
 
+# Obico failure detection is a machine-to-machine API.  Only Bambuddy on
+# docker-host may submit snapshot-classification requests; the ML API itself
+# fetches frames back from Bambuddy over the already allowed port 8000 path.
+for source in 192.168.20.102/32; do
+  iptables -A DOCKER-USER -s "$source" -p tcp -m conntrack \
+    --ctorigdst 192.168.20.104 --ctorigdstport 3333 -j RETURN
+done
+iptables -A DOCKER-USER -p tcp -m conntrack \
+  --ctorigdst 192.168.20.104 --ctorigdstport 3333 -j DROP
+
 for port in 10200 10300 10400; do
   for source in 192.168.20.101/32 192.168.60.10/32; do
     iptables -A DOCKER-USER -s "$source" -p tcp -m conntrack \

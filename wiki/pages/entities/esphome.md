@@ -3,7 +3,7 @@ title: "ESPHome"
 category: entity
 tags: [software, esphome, esp32, firmware, iot]
 created: 2026-04-07
-updated: 2026-05-30
+updated: 2026-11-04
 sources: [project-readme, ventsys-technical-specs, troubleshooting-reference]
 status: active
 ---
@@ -39,6 +39,11 @@ on the TLS path, not by reintroducing a plain-MQTT router exception.
 - VentSys bundle: `ventsys/ventsys_bundle_updated/`.
 - HA-side secrets: `/config/esphome/secrets.yaml` (live, contains secrets; do not commit).
 - Repo secrets template/source: `configs/esphome/secrets.yaml` (must not contain live-only untracked secret material beyond intended placeholders/managed values).
+- Windows PlatformIO Core, packages, toolchains and ESP-IDF environment:
+  `K:\PlatformIO`. Keep `PLATFORMIO_CORE_DIR=K:\PlatformIO` and
+  `PLATFORMIO_PACKAGES_DIR=K:\PlatformIO\packages` in the user environment.
+  The former `C:\Users\Admin\.platformio` core was removed after a clean
+  ESP-IDF/Arduino build passed on 2026-11-04.
 
 ## Important Config Details
 
@@ -54,7 +59,7 @@ on the TLS path, not by reintroducing a plain-MQTT router exception.
 
 | Device | IP | MQTT | HA entity | Notes |
 |---|---|---|---|---|
-| `ventsys-main-valve-1` | `192.168.50.51` | target `192.168.20.101:8883` | `number.main_duct_valve_1` | Historical valve-1 state needs TLS-path revalidation before being treated as live |
+| `ventsys-main-valve-1` | `192.168.50.51` | TLS connected to `192.168.20.101:8883` | `number.garage_ventsys_main_duct_valve_1_valve_position` | New board added to HA on 2026-09-27; servo disconnected and uncalibrated. Separate MQTT control: `number.main_duct_valve_1` |
 
 ## Troubleshooting
 
@@ -62,10 +67,18 @@ on the TLS path, not by reintroducing a plain-MQTT router exception.
 - Not publishing MQTT: check ESPHome logs for "MQTT connected".
 - ESPHome dashboard shows offline despite live logs: restart ESPHome add-on to clear stale MQTT discovery cache.
 - Re-flash needed: device won't adopt OTA — must USB flash again.
+- After changing PlatformIO environment variables, restart VS Code, ESPHome and
+  terminals before compiling. Do not use `K:\Documents\Cache Folders\platformio`
+  or `K:\PlatformIOCache`: both are historical, non-active copies. ESP-IDF paths
+  must not contain spaces.
 - See [[sources/troubleshooting-reference]].
 
 ## Change Log
 
+- 2026-11-04: PlatformIO/ESP-IDF build state migrated from C: to the tested
+  `K:\PlatformIO` core; the former C: core was removed after a clean hybrid
+  ESP-IDF/Arduino firmware rebuild.
+- 2026-09-27: Recorded the new Main Valve 1 board's verified ESPHome/HA identity; hardware actuation remains pending.
 - 2026-05-30: Synced planning baseline: VentSys hardware/entities are treated as unbuilt until revalidated, and remaining rollout should use MQTT TLS rather than plain `1883`.
 - 2026-05-18: Updated for live `ventsys-main-valve-1`, mixed MQTT/TLS state, and `mqtt_ca_cert` blocker for remaining TLS-ready YAMLs.
 - 2026-04-07: Page created from project-wide ingest.

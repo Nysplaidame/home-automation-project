@@ -3,7 +3,7 @@ title: Written Diagnostic Walkthroughs
 description: Offline companion to the five read-only troubleshooting app investigations
 tags: [troubleshooting, diagnostics, evidence, diagrams]
 created: 2026-09-10
-modified: 2026-09-10
+modified: 2026-09-30
 type: runbook
 status: active
 ---
@@ -20,9 +20,11 @@ covers rebuild acceptance and controlled recovery drills.
 ## Recorded baseline and evidence
 
 The [canonical inventory](../reference/current-live-state.md) records the
-September 7 baseline. Cameras and the Zyxel were deliberately disconnected,
-P1S was uncommissioned, and VentSys hardware acceptance remained pending.
-Confirm whether the owner has changed that state before interpreting a failure.
+September camera baseline records the Zyxel/cameras deliberately disconnected.
+The current inventory records P1S commissioned on VLAN35 with Bambuddy and HA
+MQTT telemetry; the older uncommissioned P1S context is superseded. VentSys
+physical acceptance remains device-specific. Confirm current owner/device
+state before interpreting a failure.
 Frigate, storage, Bambuddy and MQTT must still be assessed independently.
 
 The dashboard is staged at [management port 8094](http://192.168.20.102:8094/).
@@ -188,8 +190,8 @@ Disconnected cameras cannot prove new recording/playback acceptance. Follow
 Diagrams: [VLAN placement](../diagrams/network/vlan_architecture_clean.mermaid)
 and [docker-host placement](../diagrams/infrastructure/docker-host-service-placement.mermaid).
 
-First confirm P1S has actually been commissioned on HomePrinters/VLAN35.
-`192.168.35.200` is the intended address, not proof of a live printer.
+P1S is commissioned on HomePrinters/VLAN35. Confirm it is powered and connected
+now; the recorded `192.168.35.200` address is not fresh reachability evidence.
 
 Run on: docker-host VM 103 shell.
 
@@ -198,7 +200,7 @@ cd /opt/stacks/bambuddy
 docker compose ps
 docker compose logs --tail=60 bambuddy
 nc -zv 192.168.35.200 8883
-nc -zv 192.168.35.200 21
+nc -zv 192.168.35.200 990
 nc -zv 192.168.20.101 8883
 ```
 

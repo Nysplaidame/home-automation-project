@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
-exec /opt/transferportal/venv/bin/python -m transferportal.root_helper
+# Ignore caller cwd, PYTHONPATH and user-site imports across the sudo boundary.
+exec /opt/transferportal/venv/bin/python -I -m transferportal.root_helper
 

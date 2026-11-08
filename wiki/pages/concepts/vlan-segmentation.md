@@ -3,7 +3,7 @@ title: "11-Segment Network Segmentation"
 category: concept
 tags: [network, vlan, security, openwrt, architecture]
 created: 2026-04-07
-updated: 2026-09-04
+updated: 2026-09-27
 sources: [network-architecture-decision, project-readme, troubleshooting-reference]
 status: stable
 ---
@@ -51,6 +51,10 @@ isolated while allowing only narrow, documented inter-VLAN paths.
 - **CCTV switch access standard:** Zyxel port 1 is the router trunk, ports 2-7
   are untagged VLAN 30/PVID 30 PoE camera ports, and port 8 remains the VLAN 40
   spare storage access port; OMV is directly on router LAN4.
+- **Admin PC on router LAN5:** LAN5 carries tagged VLAN 10 for the PC's Realtek
+  NIC (VLAN ID 10) while retaining untagged VLAN 1 as its recovery PVID. Router
+  LAN3 remains the managed-switch trunk. See
+  [[../../../main/docs/reference/current-live-state]].
 
 ## Inter-VLAN Traffic Rules (Key)
 
@@ -72,6 +76,8 @@ VLANs, then the printer VLAN decision added VLAN 35, making the active
 architecture 10 segments.
 
 - 2026-09-04: Added cloud IoT VLAN55 for Hive, bringing the design to 11 segments.
+- 2026-09-27: Added tagged management VLAN 10 to router LAN5 for the wired
+  admin PC, preserving untagged VLAN 1 recovery on that port.
 - 2026-08-25: Reconciled the live GS1900/OMV physical path and four-route plus
   fixed-proxy remote-access model.
 

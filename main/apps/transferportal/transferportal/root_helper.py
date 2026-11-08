@@ -310,12 +310,25 @@ def _mount_unit_name(path: Path) -> str:
 
 
 def _mount_unit(source: Path, target: Path) -> str:
+    # What=/Where= are literal path directives, not shell argument lists.
+    # Quotes would become part of the path. Escape specifiers and reject unit
+    # line continuation/trimming hazards before writing any unit.
+    def unit_path(path: Path) -> str:
+        value = path.as_posix()
+        if any(ord(char) < 32 or ord(char) == 127 for char in value):
+            raise HelperInputError("mount paths cannot contain control characters")
+        if "\\" in value or value != value.strip():
+            raise HelperInputError("mount paths cannot contain backslashes or edge whitespace")
+        return value.replace("%", "%%")
+
+    source_value = unit_path(source)
+    target_value = unit_path(target)
     return f"""[Unit]
-Description=Transfer Portal bind mount for {target}
+Description=Transfer Portal bind mount
 
 [Mount]
-What={source}
-Where={target}
+What={source_value}
+Where={target_value}
 Type=none
 Options=bind
 

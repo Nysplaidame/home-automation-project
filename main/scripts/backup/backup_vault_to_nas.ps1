@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [string]$SourcePath = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")),
-    [string]$DestinationPath = "\\192.168.40.50\NAS\configs\home-automation-project",
+    [string]$DestinationPath = "\\192.168.40.50\Media\configs\home-automation-project",
     [switch]$Execute,
     [string]$LogPath = (Join-Path $env:LOCALAPPDATA "HomeAutomationProject\logs\vault-backup.log")
 )
@@ -9,7 +9,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $source = [System.IO.Path]::GetFullPath($SourcePath).TrimEnd("\")
-$approvedDestinationRoot = "\\192.168.40.50\NAS\configs"
+$approvedDestinationRoot = "\\192.168.40.50\Media\configs"
 $destination = $DestinationPath.TrimEnd("\")
 
 if (-not (Test-Path -LiteralPath $source -PathType Container)) {

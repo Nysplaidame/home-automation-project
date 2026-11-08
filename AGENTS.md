@@ -43,5 +43,17 @@
 - Prefer targeted reads based on `main/PROJECT-INDEX.md`.
 - Keep durable project state in project files, not in chat-only memory.
 - When work materially changes current state, update the relevant handoff, task list, or decision document rather than creating a parallel summary.
+- Keep durable service facts in the canonical service manual and
+  `main/docs/reference/current-live-state.md`, not in an indefinitely growing
+  handoff. Close a handoff with a short current-state/resume section when its
+  implementation thread ends. Start a new handoff only for genuinely active
+  session work that needs continuity; do not use handoffs as permanent logs.
+- Track source, configuration, runbooks, and deliberately selected release
+  artifacts only. Ignore or keep outside the vault build caches, extracted
+  release trees, transfer archives, generated dependency trees, and local
+  runtime state. When a tool introduces a new generated path, add the narrowest
+  safe ignore rule rather than committing the output.
+- Keep `main/_archive/` as the single bounded historical area. Do not create
+  additional archive trees; use Git history for disposable intermediate drafts.
 - If work changes durable concepts, entities, or relationships, update the project wiki after canonical docs are current.
 - If wiki claims conflict with project docs, project docs win and the wiki should be repaired.

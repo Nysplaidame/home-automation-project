@@ -1,0 +1,14 @@
+# Merge this service into /opt/monitoring/docker-compose.yml on VM 102.
+# TLS material is generated and retained only in /opt/monitoring/loki/certs/.
+services:
+  loki:
+    image: grafana/loki@sha256:00981fd9455db8589c3aa6d06744af3138c4b2c32fdec62101e92c7a704b2642
+    container_name: loki
+    restart: unless-stopped
+    command: -config.file=/etc/loki/config.yml
+    ports:
+      - "192.168.60.10:3100:3100"
+    volumes:
+      - ./loki/config.yml:/etc/loki/config.yml:ro
+      - ./loki/data:/loki
+      - ./loki/certs:/etc/loki/certs:ro

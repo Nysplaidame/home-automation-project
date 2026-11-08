@@ -4,7 +4,7 @@ description: Implementation tasks, operational evidence and owner-gated follow-u
 tags: [tasks, implementation]
 aliases: [TODO, Tasks]
 created: 2025-09-15
-modified: 2026-09-14
+modified: 2026-10-11
 type: task-list
 status: active
 ---
@@ -13,16 +13,419 @@ status: active
 
 **Links:** [[README|Overview]] | [[PROJECT-INDEX|Index]]
 
+- [ ] Reconcile the historical storage-migration cutover renderer with the
+  current OMV backup script: its test fails because the script now uses
+  `actual_uuid` rather than the former `mount_source` guard. Do not reuse the
+  renderer for a cutover until its generated artifacts are revalidated.
+
 ---
 
+
+- [ ] Fix confirmed interrupted mode-release recovery: desired intent is saved
+  before valve closures; retry can omit the released valves and shared paths.
+  Preserve pending ownership durably; replace misleading retry guidance.
+- [ ] Decide normal-mode fan speed after the last purge ends; current planner
+  leaves the last purge speed in place while another mode remains active.
+- [x] Add tested offline firmware-report comparator and MAC-guarded read-only
+  capture; image-acceptance verification remains manual and OTA coupling pending.
+- [ ] Implement and verify commissioned-node ntfy alerts, dashboard stale-state
+  improvements, no-motion reference UI and automatic firmware-update checks;
+  November4 mode review documented in dashboard manual, not yet implementation.
+- [x] November4 owner confirms standard print, enclosure and main valve physical
+  and displayed travel is 0–100%; 360 intakes remain a distinct raw30–60 mapping.
+- [x] November4: deploy UI20261104-4 normalized360 opening, integer RPM/gas,
+  upward flow arrows and FDM sensor reassignment (firmware and HA labels).
+- [x] November4: repair recurring E2 HA host and stale router MAC reservation;
+  temporary connection/identity monitor later stopped by owner; cause unproven.
+- [x] November4: both C6 intake GPIO2 digital touch firmware updated; SLA60
+  known-command reference restored without PWM and accepted-image restart verified.
+- [ ] Physically test both external360 touch inputs, loaded travel and all other
+  boards' restart retention. Require pre/post native-value acceptance on every OTA.
+- [x] October20: deploy VentSys independent grouped modes and purge strengths,
+  single value confirmation and larger entity labels. See dashboard service manual.
+- [x] October27: resolve E2 identity/host discrepancy: COM4 MAC verified, MQTT TLS
+  online at `.52`, HA reconfigured from `.51`; native dashboard0% recovered.
+- [x] October28: flash/adopt normal FDM print valve COM4, MAC
+  `EC:E3:34:B4:76:A4`, `.55`; native report and MQTT TLS verified.
+- [x] October29: flash/adopt normal SLA print valve COM4, MAC
+  `EC:E3:34:1B:DB:2C`, `.56`; original4MB backup, write hashes, MQTT TLS and
+  command-free native startup verified. Physical movement/load testing remains pending.
+- [ ] Add dashboard/other-valve manual reference UI (bounded no-motion API exists
+  for360 intakes only); calibration action: no
+  PWM on acknowledgement, label operator-reported state, preserve unknown physical
+  position status; map actual closed/open pulse endpoints before future motion.
+- [ ] Verify FDM print touch, remote actuation and sustained operation under servo load
+  when available; owner confirms its physical/display endpoints are 0–100%.
+- [ ] Physically retest corrected remote control routing and mode transitions
+  after required controllers are available; local E2 touch response is owner reported.
+- [ ] Commission expected-open AND expected-closed airflow baselines for VentSys,
+  agree danger thresholds and deploy deduplicated ntfy incidents with phone proof.
+
+- [x] October27: activate explicit VentSys Setup/test option for available valves,
+  reviewed exact targets/skips, fan exclusion, intent locks and bounded reports.
+  Live review/cancel verified without commands; normal mode full-path checks kept.
+
 ## Next project steps
+
+- [x] November 6: flash SLA pipe air ESP32-C6 `CC:BA:97:F0:C3:0C` on COM3
+  with BME680 SDA/SCL on GPIO4/5 (I2C address `0x77`) and CO on GPIO3;
+  verify factory-image hash, encrypted API, BME readings, and HA adoption in Garage.
+- [ ] Physically diagnose SLA pipe CO output/wiring before commissioning: after
+  warm-up ADC remained near 3.3 V, briefly settled near 1.03 V after a power
+  cycle, then returned to 3.307 V with CO detection and fault active. Confirm
+  wiring/output stability; capture a clean-air baseline only when valid.
+  November 8: owner removed packaging cover and possible signal-to-VCC wire
+  strand; voltage then about 0.300 V with detection/fault off, latch still on.
+  Watch stability and verify physical wiring before baseline capture.
+- [ ] Correct installed FDM enclosure air sensor `.32` CO channel: owner
+  identified the fitted component as CO on November 8, but flashed firmware,
+  HA and dashboard still label GPIO3 as smoke and use an uncalibrated raw
+  threshold. Candidate `configs/esphome/ventsys_fdm_sensor_co.yaml` now uses
+  the SLA CO/BME680 pinout and compiled under ESPHome 2026.9.1. On November 8
+  HA still reported the board offline, `.32` did not answer, and Windows had no
+  USB serial device; no flash occurred. Connect the MAC `CC:BA:97:F0:D0:C0`
+  board, verify its actual status LED wiring, flash and validate native CO/BME
+  readings, then correct dashboard and HA entity references and alarm rules.
+- [x] November 7: deploy VentSys Clear alarms popup listing live latched boards,
+  with per-board acknowledgment blocked for active alarms and faults.
+- [x] November 7: add read-only VentSys Diagnostics tab with searchable live
+  HA entity states, CO voltage and board/controller stats; live view verified
+  with 294 exposed entities. Add rail/servo supply telemetry only after hardware
+  and firmware expose those measurements.
+- [x] November 7: deploy SLA pipe board dropout warning and two-minute ntfy
+  alert with 30-second recovery, plus dashboard warning for its CO-voltage
+  entity disappearing while the board is online. Live rule loading verified;
+  induced outage and phone receipt remain untested.
+- [x] Define a 12-board expected-online VentSys roster and per-board maintenance
+  switches. Deploy general dropout/recovery ntfy for 11 boards; SLA pipe keeps
+  its separate rule. Live maintenance on/off control verified. Critical
+  non-board entity availability still needs its own severity rules.
+- [ ] Induce a controlled VentSys board dropout/recovery and verify the dashboard,
+  HA log, maintenance suppression and ntfy delivery after the phone subscription
+  is connected.
+- [ ] Complete the severity matrix and durable incident manager in the VentSys
+  dashboard manual. Frontend `20261107-4` now displays live orange/red incidents
+  and source outlines; HA publishes SLA CO hardware fault and failsafe transitions
+  to ntfy. Validate phone delivery after reconnecting its subscription, then
+  commission remaining rules, deduplication and bounded reminders.
+- [ ] Make invalid CO ADC readings report fault before detection in firmware;
+  bench-verify both paths. SLA dashboard `20261107-4` now uses adopted BME680
+  IDs and labels the channel CO.
+
+- [x] October21: reassign old FDM airflow `CC:BA:97:F0:D0:A0` to Booth `.43`
+  by MAC-verified OTA; flash replacement `CC:BA:97:F0:E3:DC` as FDM `.41`
+  over COM5 with verified hashes. Both encrypted APIs confirm correct identity
+  and live zero-flow readings; Builder sources synchronized.
+- [ ] Verify HA adoption/entity naming after airflow MAC/role reassignment,
+  MQTT broker delivery and physical pulse response. See current-live-state.
+
+- [x] Print/Media operational storage migration: fourth-disk extended SMART test confirmed
+  passed October21 14:38 BST, serial `3HG402GN`, no sector errors. Full layout audit
+  completed with five ACL merge policies; independent-copy risk accepted.
+  Guarded copy/rename/recovery/final verification tools and cutover templates
+  prepared; 75 Linux tests pass. October21 refreshed preflight passed; new
+  Media RAID1 created on fourth disk only (second slot missing), OMV mount/
+  persistence configured, and original-Z warm copy started under systemd.
+  Warm staging passed October22 23:30 BST. October23 source frozen read-only,
+  affected services stopped and cold sync/hash runner started under systemd.
+  Final proof passed; October25 scoped NFS/SMB/Compose cutover completed and
+  owner confirmed application access. Original Z repurposed as second Media
+  member; both mirrors healthy. October27 Y full and combined proof passed,
+  non-Print published to Media, originals retained privately, Print flattened
+  and empty wrapper proof-removed. Print/Media SMB, scoped NFS/backups and
+  Filebrowser live; owner Y/Immich/Filebrowser access confirmed. Fresh backups,
+  isolated app/config restore and full never-booted Frigate CT restore passed.
+  October27 23:19 GMT retained-source/quarantine retirement completed with exact
+  manifests/journals; about654GiB freed on Y. Bounded operational text audit
+  corrected vault, Hub and GW script paths; live monitoring regenerated.
+  See [[docs/audits/2026-10-20-storage-migration/README|audit and execution progress]].
+
+- [ ] Offline/native CAD/slicer/binary embedded-path acceptance after Print/Media
+  migration: bounded text audits and usual-file owner checks passed; unknown
+  binary formats/offline clients were not automatically rewritten. Refresh
+  noncanonical copied checkouts before future deployment/use. Preserve intentional
+  `Y:\Models\Telegram` deletion. See final reference disposition in migration audit.
+
+- [x] October 19: flash SLA airflow ESP32-C6 `CC:BA:97:F0:D3:10` over COM9,
+  verify hashes and API reachability at `.42`, adopt in HA Garage and sync
+  Builder YAML. Correct GPIO0 pulse/GPIO1 LED mapping and reflash with verified
+  hashes after owner wiring clarification. Physical airflow/pulse response and
+  four-blade pulses per revolution still need testing.
+- [x] October18: restore full 0–100 VentSys dashboard/control range and all
+  mode-script open targets; deploy the narrow live patch, validate HA config,
+  reload scripts and verify served bytes. No physical movement test performed.
+- [x] October 18–19: deploy the authenticated VentSys card, remove/revoke the
+  exposed credential, replace optimistic/offline/stale displays, correct smoke
+  precedence and pressure/gas/flow semantics, add exact native controller
+  inventory and serialized reviewed commands, and validate desktop/phone and
+  keyboard operation. 20 model + 10 backend + 19 browser tests passed; real HA
+  startup sent no commands. See [[docs/procedures/ventsys-dashboard]].
+- [x] October 19: add VentSys to Homepage Home & Security with Open tab through
+  the existing authenticated HA proxy. Navigation, 390 px action bounds and
+  served card bytes passed; no new port, credential or control iframe added.
+- [x] October 19: activate and verify `20261019-1` through normal HA sign-in:
+  bind FDM `.62`/`a0:85:e3:ae:5b:c8` to legacy `ventsys_sla_360...` entity IDs,
+  and SLA `.61`/`cc:ba:97:f0:e3:ec` to legacy `ventsys_fdm_360...` IDs. Keep the
+  already-correct MQTT topics and accepted 30–60 firmware unchanged. Show
+  uninstalled devices as expected setup notes. See [[docs/procedures/ventsys-dashboard]].
+- [x] October 19: add read-only semantic mode-script deployment comparison;
+  three regression tests passed. Live comparison isolates fire-safe speed drift;
+  all 12 manual modes and helper match. See dashboard audit/runbook.
+- [x] October 19: deploy backend `20261019-arbitration-1`: shared normal
+  dispatcher, per-publish failsafe gate and fire preemption; reconcile explicit
+  fire-response main-fan 100%. Eight arbitration + 11 backend + three drift tests
+  and isolated real-HA no-MQTT contention/preemption probe passed.
+- [x] October 19: deploy frontend `20261019-2` with dispatcher busy/unavailable
+  messages, immediate takeover interruption and explicit alarm headings. Four new
+  regressions; 24 browser tests passed; real HA connected/ready, no commands.
+- [x] October 19: deploy frontend `20261019-3`: three-column Environment
+  comparison (Ambient/FDM/SLA) and System log with actual session events.
+  26 browser tests passed; desktop/mobile and signed-in HA verified; no commands.
+- [x] October 19: deploy separate seven-inch touch view, preserving standard
+  layout and all diagram coordinates. Restore original-style title/header and
+  bottom status bar with truthful telemetry; fix protruding highlight strips and
+  enlarge log text. 30 browser tests passed; live popup/config/hash checks passed.
+- [x] October 19 owner-reported control failure repair: verify running-firmware
+  intake subscriptions and correct crossed command topics in dashboard/all modes;
+  reconfigure E2 HA host `.51`→`.52`; allow exact reviewed available-controller
+  mode subsets and explicit same-target resends. Deploy frontend `20261019-5` /
+  backend `20261019-command-repair-1`; software/HA read-only validation passed.
+- [x] October 19: restore saturated valve colours and align four diagram box
+  bottoms in frontend `20261019-6`; 34 browser tests passed, visual-only change.
+- [ ] Physical retest after repair: verify each 360 separately in both directions,
+  E2 actuation, and an available-controller mode subset. Earlier tests only proved
+  UI/policy behaviour and missed the wrong runtime topics. No actuation was sent
+  during diagnosis/repair. Keep 360 firmware/endpoints unchanged.
+- [ ] Verify touch view on the physical seven-inch screen; software tested at
+  800×480 and 1024×600. Use `/dashboard-ventsys/touch`, optional Full screen.
+- [ ] Continue installation as planned and physical sequence/commissioning
+  acceptance separately. Direct MQTT/native controls bypass script arbitration.
+  The accepted 360 firmware and firmware/HA role swap remain unchanged.
+
+- [x] October11: deploy Resource Health on the existing VM103 troubleshooting
+  app and add Homepage Monitoring entry; retain independent Proxmox alerts and
+  VLAN restrictions. Add named ping/DNS/TCP/HTTP checks, console input/output,
+  route TCP buttons and incident-report evidence.20 model and10 API tests plus
+  desktop/mobile guided and HTTPS live-tools smoke passed.
+- [x] October11: add certificate trust/expiry checks, nine guided bundles for
+  all37 investigations, and bounded30-day/1,000-event history with timed
+  Grafana/log links. Backend and live desktop/mobile extension checks passed;
+  primary alerts remain independent.
+- [x] Plan Home Local CA replacement/distribution with critical CA key-usage
+  extension. Strict Python3.13 verification flags current CA code92; separate
+  legacy chain/name/date verification passes for Homepage/HA/Frigate/Vault.
+  See [[docs/procedures/ssl_tls_guide|TLS procedure]]; preserve endpoint/client
+  trust during a staged maintenance rollout.
+- [ ] Execute the staged CA migration after signer/backup and additional
+  Windows/Android/device trust are prepared; MQTT firmware dependencies and
+  Frigate maintenance remain deferred. No live certificate changed in planning.
+
+- [x] October11: harden resource-monitor timeout/retry/recovery handling;
+  remove notifier start-limit latch, preserve fresh partial coverage and OOM
+  baselines, queue undelivered incidents through recovery, add supported status
+  output and update watchdog. Ten tests and live six-system collection passed.
+
+- [x] October10: audit all VMs/CTs after Frigate recovery; increase VM102 to6GiB
+  after a historical Grafana OOM, expand VM103 root online to128GiB, deploy the
+  every-minute host/guest pressure monitor and hourly collector watchdog.
+  Six-system coverage and authenticated ntfy test passed. See
+  [[docs/procedures/resource_pressure_monitor]].
+- [ ] Verify resource-monitor alert presentation on the subscribed phone;
+  October11 labelled alert/recovery received HTTP200, but owner received neither.
+  ntfy reported zero subscribers; phone is on mobile data with Tailscale connected
+  and its ntfy subscription disconnected. Diagnose its connection error before
+  repeating the background-notification test. See ntfy service manual.
+
+- [x] October4: add saved Recomp routine schedule projection and versioned
+  four-source Today bundle, retaining three-source compatibility. Weekday/move
+  semantics, unknown completion/readiness and privacy boundaries pass45 unit
+  tests and three1440/320px browser suites. No personal records fetched or writes;
+  household pilot, diagnostic/recovery composition and live release remain open.
+  See [[docs/procedures/read-only-product-release-plan]].
+
+- [x] October4: combine saved GardenKeeper, Grocy and Mealie sources in one
+  explicit local bundle. Independent freshness, unavailable isolation, atomic
+  rejection and reserved source summaries pass38 unit tests plus three browser
+  suites at1440/320px. No API requests or source writes; real-data pilot, Recomp
+  and diagnostic/recovery composition remain open under
+  [[docs/procedures/read-only-product-release-plan]].
+
+- [x] October4: implement saved Mealie meal-plan import from its verified public
+  paginated schema. Explicit date selection, privacy, freshness and unknown
+  ingredient availability survive; partial pages do not certify coverage.
+  All33 unit tests and three1440/320px browser suites pass. No household records,
+  credentials or source writes; real-data pilot/live release remain open under
+  [[docs/procedures/read-only-product-release-plan]].
+
+- [x] October4: unify strict saved-source time validation; health imports can
+  no longer mark24:00 rollover or slightly future observations healthy.
+  Microsecond source timestamps remain supported. All28 unit tests and three
+  desktop/320px browser suites pass, including backup/recovery unknown states.
+  No live changes; [[docs/procedures/read-only-product-release-plan]].
+
+- [x] October4: fix local Workbench overlapping-import state: Clear,
+  demonstration and newer selections invalidate earlier reads and errors.
+  Dependency counters now state their scope. Controlled delayed-read browser
+  checks pass at1440/320px, along with25 unit tests and all three browser suites.
+  See [[docs/procedures/read-only-product-release-plan]]; no live deployment.
+
+- [x] October4: implement saved GardenKeeper task imports in the existing local
+  Workbench, against the verified read-only API schema. Only pending tasks,
+  validated UTC due times and scoped freshness survive; private fields are
+  omitted. All25 unit tests, dedicated1440/320px checks and general/recovery/Grocy
+  browser regressions pass. Shared credential-fragment filtering and list
+  indentation are repaired. Real-data pilot and live release remain open under
+  [[docs/procedures/read-only-product-release-plan]].
+
+- [x] October4: implement local Solar Observatory foundations: Horizons fixtures,
+  interpolation, shared path transforms, camera maths, expiring read-only
+  safety receiver and local cache publication. Typecheck and 25 tests pass;
+  no dashboard/card or live deployment changes. See
+  [[docs/procedures/ventsys_solar_screensaver]].
+- [x] October4: add the single-renderer Earth/Moon, Jupiter/Io and Saturn
+  geometry preview. Build, 26 unit tests and seven Chromium tests pass at
+  compact desktop/mobile sizes; screenshot review corrected Saturn framing.
+  It remains a local matte-geometry study, not a deployed screensaver.
+- [x] October4: wire the separate read-only Solar Observatory candidate host
+  and labelled simulation harness. Build, 29 unit and 14 browser tests pass,
+  including heartbeat expiry and reload-persistent alert acknowledgement.
+  No authenticated HA acceptance or deployment is claimed.
+- [x] October4: add local NASA Earth/Moon 2K surface maps and a muted
+  photographic ESO Milky Way backdrop, visible credits and bounded shared
+  texture loading with geometry fallback. Orientation remains illustrative;
+  other bodies and rings still need final assets.
+- [x] October4: implement approximate IAU Earth/Moon surface attitude and
+  bounded UTC-to-TDB conversion. Build, 49 unit and 19 browser tests pass;
+  independent SPICE fixtures verify the model, not precision navigation accuracy.
+  Time coverage ends July1 2027 pending leap-second review. No live changes.
+- [ ] Continue Solar Observatory with authenticated host acceptance,
+  complete orbital coverage/orientations/assets and actual Pi performance
+  gates before broad catalogue expansion or deployment.
+
+- [x] October4 audit batch: repair four historical navigation targets and all11
+  unresolved wiki links, with source-backed optional-tool stubs and corrected
+  RAG methodology wording. Review20 existing deleted paths without restoring
+  deliberate copies; retained Mermaid release passes five hashes and16-diagram
+  desktop/mobile browser verification. See
+  [[docs/audits/2026-10-02-roadmap-code-file-audit]].
+  Reproduce the complete local TransferPortal suite with external dependencies:
+  62 pass,2 Windows symlink skips; live hardening remains undeployed.
+
+- [x] October4: reconcile monitoring-roadmap historical/live wording and refresh
+  CT114 package-path blockers read-only. Fail2ban/proxy remain absent; CT114
+  cache probe times out and loopback upstream metadata still returns503.
+  No deployment; [[docs/procedures/ct114-package-path-repair]] retains the gates.
+  Read-only Proxmox configuration also confirms6 cores/28 GiB/no swap; conflicting
+  current AI-host guide/wiki descriptions and rebuild parameters are corrected.
+
+- [x] October4 batch: prepare guarded current-state Flux queries, independent
+  producer/timer input and a consolidated manual acceptance/rollback checklist.
+  Nineteen synthetic cases (32 actual Flux executions) verify retained-value
+  suppression, age expiry, partial evidence, no-data and unit-state handling.
+  No bucket writes or live configuration changes; end-to-end delivery and UI
+  acceptance remain open under [[docs/procedures/omv-health-collector-preparation]].
+
+- [x] October4: prepare the dedicated OMV-local Telegraf input fragment and
+  repeatable synthetic parser rehearsal. All five cases match exact labels,
+  fields and values using Telegraf1.38.3 in output-free test mode;18 Linux tests
+  remain passing. OMV consumer permissions, delivery and dashboard acceptance
+  remain open under [[docs/procedures/omv-health-collector-preparation]].
+
+- [x] October4: prepare the OMV snapshot-to-Prometheus stdout adapter with
+  missing/invalid/stale signals, bounded stable labels and unknown readings
+  omitted. All18 Linux tests pass. Integration, shipping and live activation
+  remain open; see [[docs/procedures/omv-health-collector-preparation]].
+
+- [x] October4: prepare OMV atomic snapshot publisher and restricted service/timer
+  templates. Eleven Linux tests and unit syntax checks pass; no live install,
+  group, schedule or metrics shipping. See [[docs/procedures/omv-health-collector-preparation]].
+
+- [x] October2: repair verified code-audit source defects in TransferPortal,
+  router tooling, HA integrations, VentSys templates, displays and monitoring.
+  See [[docs/audits/2026-10-02-code-audit-verification|repair evidence and limits]].
+- [x] October2: TransferPortal matched stopped NAS checkpoint and isolated VM
+  restore/history/preview/copy/helper-denial acceptance passed for both generations.
+  Evidence: [[docs/audits/2026-10-02-code-audit-verification]]. Test VM removed.
+- [ ] Deploy the hardened TransferPortal app/helper/policy together after refreshed
+  idle-state/checkpoint checks. Live OMV still runs the older vulnerable helper.
+- [ ] Accept VentSys endpoint/power-cut/sensor coverage before enabling safety
+  automations; review socket/NAS privilege and upstream Mealie fetch boundaries.
+
+- [x] October 2: audit roadmap/source/files and add the repeatable Git-aware
+  checker at `tools/repository-audit/`; fix Transfer Portal's predictable
+  session-secret fallback locally, Hub lint and the Obico manual link. See
+  [[docs/audits/2026-10-02-roadmap-code-file-audit|Audit and verification]].
+  Production deployment and full feature acceptance are separate.
+- [x] October2: diagnose CT114 package/security/Fail2ban state read-only and
+  prepare the host-only cache permission helper, proxy template and tested
+  [[docs/procedures/ct114-package-path-repair|repair procedure]]. No live changes.
+  Fail2ban is absent, June security indexes expired, UFW blocks CT114 cache
+  access and cache upstream metadata currently returns503.
+- [x] October2: prepare recurring coordinated Hub backup logic, ten isolated
+  tests and service/timer templates; live read-only mount/container preflight passes.
+  See [[docs/procedures/household-hub-coordinated-backup|activation and rollback]].
+- [ ] Accept a manual generation/isolated restore and recurring Hub schedule in
+  an approved maintenance window. Prepared source is not deployed or enabled.
+- [x] October2: curate seven dated recovery records for the local Workbench
+  and generate a scope-preserving offline index using `recovery-pack.mjs`.
+  Twelve unit tests and desktop/320px import checks pass. Historical backup
+  success stays stale; component/boot restore proof does not certify full recovery.
+  Live evidence adapters, complete emergency-pack coverage and deployment remain open.
+- [x] October2: prepare saved Hub Grocy overview conversion for local Today at
+  Home imports. Sixteen Workbench tests and desktop/320px fresh/stale/unavailable
+  checks pass; notes/unknown fields are omitted and best-before semantics preserved.
+  Real-data pilot, live adapters and integrated product acceptance remain open.
+- [x] October2: accept saved Grocy envelopes directly in the existing file picker,
+  recalculating freshness on import. Verify BOM files, error/oversize handling,
+  previous-evidence preservation and Clear at desktop/320px; no CLI step required.
+- [x] October2: build the portable recovery runbook pack for seven curated
+  systems with 13 selected documents, clickable index, link manifest and checksums.
+  Twenty unit tests and independent verification of all17 checksummed files pass.
+  Omitted dependencies are explicit; full-estate executable recovery stays open.
+- [x] October2: inspect dashboard8094 IPv6 bind/bridge/rules/counters and prepare
+  the tested source-only deny policy. Current publish is IPv4-only; failed client
+  probes do not certify firewall denial. See the IPv6 publication guard procedure.
+- [x] October2: prepare the host-local OMV JSON collector and six isolated tests;
+  verify a live one-off read-only snapshot for load/memory, five disks, md0,
+  exact UUID mounts and four daemon states. Preserve historical SMART warnings.
+  Scheduling, least-privilege shipping and NAS dashboard delivery remain open.
+
+- [x] Reconcile the current non-hardware roadmap against September15–17 evidence
+  and create bounded contracts for the first read-only household release,
+  recovery readiness, hardening/resilience, SMB case-collision recovery, the
+  dashboard IPv6 guard, and the VentSys card/page bridge (2026-09-18). These
+  plans do not authorize live deployment, credential rotation, firewall edits,
+  deletion, or safety controls.
+
+- [x] September16: scheduled Watchtower report reached ntfy; corrected the
+  available-update count from Updated to Stale after comparing the report with
+  scan logs. Isolated stale-image delivery test passed; correction deployed.
+- [x] September15–16: coordinated Hub cold backup/restore passed; ten executable
+  images preserved; all six app images also rebuilt offline from source using
+  preserved base images, Python wheels and npm cache. Runbooks contain NAS paths.
+- [ ] Confirm phone receipt of the September17 corrected Watchtower report. Server
+  delivery is proven: the04:02:49 UTC cached report says31 scanned,2 updates
+  available,0 updated,0 failed and8 skipped, matching the04:02:48 UTC scan.
+- [x] September16: persist GardenKeeper journal media at the effective
+  `/data/journal-media` path. The zero-file host directory is now root-only,
+  mounted into the recreated API and included in the normal OMV app-data backup;
+  API health/ready passed and worker/web were unchanged. A matched-dump/current-
+  image isolated synthetic upload survived API recreation with the same hash.
+- [ ] Prove full-system/integration and real-user GardenKeeper upload recovery.
+  The first scheduled OMV media-inventory check is queued; it will prove path
+  coverage, not a production journal-entry or external-integration recovery. Hub's
+  coordinated checkpoint remains one-off; recurring coverage is a separate task.
 
 - [x] Verify September15 archives: VM100/102/103 decompression plus VMA verify,
   CT111/114 decompression plus tar traversal. Last result durably recorded
   September16. These checks do not establish application-consistent recovery.
-- [ ] Execute the documented isolated monitoring VM102 restore drill using a
-  freshly checked unused ID, no NICs, onboot disabled and console-only checks.
-  September15/16 preflight passed; no restore has been performed in this batch.
+- [x] September17: execute the documented isolated monitoring VM102 restore
+  drill from `vzdump-qemu-102-2026_09_17-02_01_27.vma.zst` into freshly checked
+  ID9102 on `local-lvm`. The copy had no NIC, `onboot: 0`, no inherited startup,
+  passthrough or hook; the serial console emitted no output, but its guest agent
+  became ready after about 100 seconds and proved Debian 13 plus mounted EFI and root
+  filesystems. Guest-agent shutdown passed. Leave the stopped temporary ID9102 in
+  place pending explicit owner confirmation before any destruction.
 
 
 - [x] Verify dedicated Proxmox workstation SSH after owner key installation
@@ -44,9 +447,8 @@ status: active
   seven tests/live success, SearXNG semantic template verification, six recovered
   source builds, isolated PostgreSQL/API and Qdrant restores, MediaMTX scheduled
   configuration checkpoint/restore and owner-selected manual recording review.
-- [ ] Preserve dependency artifacts for offline rebuilds and establish coordinated
-  multi-store/worker/integration recovery where required; run the full system
-  rehearsal separately from the successful component tests.
+- [x] Preserve offline source-build dependencies and prove coordinated Hub
+  multi-store recovery (September15–16); full-system integration proof remains open.
 
 
 - [x] Capture protected off-VM GardenKeeper/Hub scoped source snapshots and
@@ -66,6 +468,10 @@ status: active
 - [x] Apply local Vaultwarden hosts entry and verify normal browser HTTPS
   (September14). September15 confirms Mullvad custom DNS remains disabled
   with the same content filters; public DNS behavior was preserved.
+- [ ] Apply the prepared exact hosts mappings for Home Assistant, Frigate,
+  Grafana, and Uptime Kuma from an elevated PC shell; verify each local HTTPS
+  name while Mullvad remains connected. See the DNS resolver decision and
+  `scripts/setup/windows/set-local-core-service-names.ps1`.
 - [x] Distinguish DNS/network/TLS/timeout collector failures and add VPN/SNI
   troubleshooting guidance (2026-09-11). Revocation availability remains separate.
 
@@ -103,8 +509,10 @@ status: active
 - [x] Expand ntfy, Watchtower, SearXNG and Whoogle lifecycle manuals against
   tracked source, with Mermaid links (2026-09-11). Backup/restore boundaries
   and notification failures remain explicit; no new live acceptance claimed.
-- [ ] Recover SearXNG effective settings, preserve a sanitized source template
-  and establish protected off-VM configuration backup; see the install checklist.
+- [x] Recover SearXNG effective settings, preserve a sanitized source template,
+  and establish protected off-VM configuration backup. Semantic loading verified
+  the sanitized snapshot on 2026-09-12; see the SearXNG service manual. No new
+  live search acceptance is implied.
 
 
 - [x] Add troubleshooting evidence-age checks, visibly separate example data,
@@ -117,9 +525,11 @@ status: active
 - [x] Install dedicated Proxmox dashboard collector through authorized SSH
   (September14); fresh mount/backup evidence and browser import pass September15.
   Preserve the original scheduled monitor and its different probe set.
-- [ ] Reconcile the pre-existing IPv6 DOCKER-USER Tailscale exception for8094
-  with the dashboard's management-only intent before any IPv6 publication.
-  Current stack binds IPv4 only and its bridge has IPv6 disabled.
+- [ ] Apply the approval-gated IPv6 reconciliation for the pre-existing
+  DOCKER-USER Tailscale exception on port8094. The dashboard remains IPv4-only
+  with bridge IPv6 disabled; follow
+  `docs/procedures/troubleshooting-dashboard-ipv6-publication-guard.md` before
+  any IPv6 publication or firewall change.
 
 
 - [x] Simplify all 11 canonical Mermaid diagrams, preserve dedicated detail
@@ -141,20 +551,23 @@ status: active
   The September7 access gap was historical: Proxmox SSH and fresh guest-backup
   evidence now pass; OMV SMART proof remains separate.
 - [x] Obtain fresh Proxmox guest-backup evidence through owner-authorized SSH.
-- [ ] Obtain OMV SMART evidence through an authorized management route; retain
-  the separate storage-health gate.
+- [x] Obtain OMV SMART evidence through restored `omv-lan` key access on
+  October 2: five disks passed, 30–47 C, no reported pending/uncorrectable sectors;
+  md0 `[UU]` with an existing consistency check running. This is not restore or
+  disk self-test proof; stable disk identity is needed before CRC comparisons.
 - [ ] Restore CT114's approved package path in a bounded maintenance change:
-  no APT proxy, TCP3142 timeout and direct Debian HTTP failure confirmed
-  2026-09-07; cached security/update metadata dates to June19. Then re-evaluate
-  candidates and complete the deferred Fail2ban rollout.
-- [ ] Repair Watchtower-to-ntfy notification delivery: monitor-only scans
-  succeed but September6/7 notifications fail with attachment-policy error40014.
-  Prove payload/template formatting locally before a separately authorized
-  notification acceptance test; retain the existing no-attachments policy.
-- [ ] Complete and review the VentSys authenticated card/page bridge contract
-  before any dashboard deployment. Local startup error is fixed and five
-  browser tests pass; public credentials remain prohibited and the page stays
-  offline. The draft card is not connected to the page and is not accepted.
+  October2 confirms no proxy, native cache-host UFW rejection and upstream503;
+  security/update indexes expired June26. The prepared repair procedure retains
+  the maintenance gate. Refresh signed metadata before trusting candidates,
+  then simulate/review Fail2ban installation; no blind full upgrade.
+- [x] Repair Watchtower-to-ntfy notification delivery: September15–17 server
+  acceptance and corrected scheduled counts supersede September6/7 error40014.
+  Retain the no-attachments policy; owner phone receipt remains separately open.
+- [ ] Implement and review the VentSys authenticated card/page bridge against
+  `docs/procedures/ventsys-card-page-bridge-contract.md` before any dashboard
+  deployment. Local startup error is fixed and five browser tests pass; public
+  credentials remain prohibited and the page stays offline. The draft card is
+  not connected to the page and is not accepted.
 
 - [x] Restore HomeGuest 2.4 GHz broadcast after its UCI section type was
   invalid; `phy0-ap4` and SSID activation validated after a wireless reload
@@ -172,8 +585,9 @@ status: active
   recover Homepage/AdGuard/Immich/Dozzle and verify NFS/container health.
 - [x] Retire disconnected Zyxel Wi-Fi uplink; all five 2.4 GHz APs restored.
 - [x] Repair WAN6 device mapping and required IPv6 control-traffic firewall.
-- [ ] Ask Zen to confirm/enable IPv6 allocation: live DHCPv6 replies are
-  NoAddrsAvail / NoPrefixAvail, including a prefix-only /48 request.
+- [x] Activate Zen IPv6 and verify it live (2026-09-11): DHCPv6-PD leases the
+  supplied `/48`; the supplied ND `/64` and Zen link-local gateway provide the
+  WAN address/default route. IPv4 and IPv6 internet pings pass after reload.
 - [x] Reconcile rebuild WAN with untagged PPPoE on eth1; fail deployment when
   local PPPoE secrets are missing. Lint, previews and four regression tests pass.
 - [x] OMV verified directly on LAN4; LAN2 moved to isolated cloud IoT VLAN55,
@@ -181,7 +595,9 @@ status: active
 - [ ] Resolve Hive's existing app/account offline issue: owner still sees it
   offline despite established internet connections. Try the vendor's app
   force-close workaround, then check model/LED and Manage → Devices status.
-- [ ] Set up P1S on HomePrinters when ready; currently not installed (owner).
+- [x] Set up P1S on HomePrinters: commissioned VLAN35/Bambuddy MQTT, HA
+  dashboard and notification baseline are recorded in current-live-state.
+  Camera and physical safety-interlock acceptance remain separate.
 - [ ] Reconnect Zyxel and cameras when ready, then rerun CCTV acceptance.
 
 1. [x] Add the Installation Manual Suite v1 canonical entrypoint under `docs/install/START-HERE.md`
@@ -270,8 +686,8 @@ Planning baseline until explicitly revalidated:
 
 ## Hardening and resilience roadmap
 
-1. [ ] Plan the whole-system hardening run before changing credentials or access paths: inventory all admin surfaces, service accounts, API tokens, SSH keys, certificates, Tailscale/WireGuard paths, OpenWrt rules, host firewalls, and password-manager records.
-2. [ ] Plan the whole-system resilience run before live drills: define recovery goals, access routes, trusted backups, restore order, and stop/ask gates for Mini PC, OMV, router, Home Assistant, docker-host, Frigate, llm-host, monitoring, Tailscale, local CA, and credential-loss scenarios.
+1. [x] Plan the whole-system hardening run before changing credentials or access paths: inventory all admin surfaces, service accounts, API tokens, SSH keys, certificates, Tailscale/WireGuard paths, OpenWrt rules, host firewalls, and password-manager records. See `docs/procedures/hardening-resilience-planning-runbook.md` (2026-09-18).
+2. [x] Plan the whole-system resilience run before live drills: define recovery goals, access routes, trusted backups, restore order, and stop/ask gates for Mini PC, OMV, router, Home Assistant, docker-host, Frigate, llm-host, monitoring, Tailscale, local CA, and credential-loss scenarios. See `docs/procedures/hardening-resilience-planning-runbook.md` (2026-09-18).
 3. [ ] Prove backup and restore readiness before broad credential rotation: Proxmox VM/LXC restore evidence, HA backup restore path, OMV export/config recovery path, and repo/config backup coverage. Docker-host app-data backup/restore smoke passed on 2026-07-07.
 4. [ ] Execute hardening run in a controlled window: rotate infrastructure passwords, API tokens, long-lived HA tokens, app bootstrap credentials, SSH keys, and service secrets; validate each dependent service before revoking old credentials.
 5. [ ] Execute resilience tabletop scenarios before disruptive tests: document what still works, what fails, first diagnostic commands, recovery route, rollback path, and "do not touch" boundaries for each major failure scenario.
@@ -348,7 +764,7 @@ Planning baseline until explicitly revalidated:
 
 ### Household, workshop and operations product roadmap
 
-- [ ] Deliver the phased [[docs/procedures/household-workshop-operations-roadmap|Household, Workshop and Operations Product Roadmap]]. Begin with the read-only evidence contract, then Today at Home and the recovery/troubleshooting extension. Keep system-of-record ownership, confirmation gates and VentSys safety boundaries intact.
+- [ ] Deliver the phased [[docs/procedures/household-workshop-operations-roadmap|Household, Workshop and Operations Product Roadmap]]. The read-only Today at Home/recovery-release contract is prepared in `docs/procedures/read-only-product-release-plan.md`; the owner-authorized local Hub recovery repository now provides the source baseline, while historical Git provenance remains unknown (see `docs/procedures/household-hub-source-recovery-register.md`). Obtain a bounded deployment decision before live adapters. Keep system-of-record ownership, confirmation gates and VentSys safety boundaries intact.
   - [x] Build and verify the local, import-only [[apps/home-operations-workbench/README|Home Operations Workbench]] proof of concept for Today, diagnostics, recovery, meal availability and VentSys commissioning. It has no live integration or deployment path yet.
   - [x] Add offline Windows/Proxmox health-snapshot adapters with explicit
     timestamp/freshness handling, unknown missing checks and separate
@@ -358,7 +774,9 @@ Planning baseline until explicitly revalidated:
     [[docs/audits/2026-07-full-system-audit/08-resilience-test-cards]] for major
     host, network, storage, application, monitoring and credential-loss scenarios.
     This is paper review; live drills and owner-selected RPO/RTO remain gated.
-  - [ ] Collect a fresh read-only Proxmox health snapshot, validate it with [[scripts/monitoring/validate_proxmox_snapshot.py]], and import it into the staged Troubleshooting Dashboard to accept its mount and backup-freshness evidence.
+  - [x] September14–15: collect and validate the Proxmox snapshot and accept
+    its real mount/backup evidence through the dashboard browser import. Fresh
+    future snapshots and application-consistent restores remain separate.
 
 ### Tier 1 - near-term core
 
@@ -458,15 +876,17 @@ Planning baseline until explicitly revalidated:
   Jellyfin (read-only libraries), Calibre-Web and Atsumeru foundations with
   explicit non-overlapping Docker IPAM, restart proofs and NAS-backed app-data
   backup; completed 2026-07-29.
-- [ ] Resolve the 14 TB SMB case-collision using an explicit, reversible
-  recovery plan: server-side inspection on 2026-08-02 proved `Media` is the
+- [ ] Execute the approved 14 TB SMB case-collision recovery plan only after
+  owner approval and preflight evidence. Server-side inspection on 2026-08-02 proved `Media` is the
   populated canonical library and `media` is a distinct, empty wrapper created
   eight minutes earlier that contains only `media/Media`. Windows SMB
   case-insensitive lookup aliases both spellings to the populated `Media`
   object, causing intermittent Explorer failures. OMV proved `/export/media`
   correctly bind-mounts only the canonical `Media` path, and no active
   NFS/systemd/fstab configuration references the stray wrapper. Do not delete
-  or rename either path until a rollback path is documented and approved.
+  or rename either path until the rollback path in
+  `docs/procedures/smb-media-case-collision-recovery-plan.md` is reviewed and
+  approved.
 - [ ] Implement the allow-listed Immich album exporter into
   `jellyfin/immich-curated` with a manifest and review queue. Immich remains the
   photo system of record; do not mount its live library into Jellyfin. The
@@ -621,9 +1041,9 @@ must work without HACS.
 - [x] Add the real MQTT password
 - [x] Start Bambuddy with `docker compose up -d` from `/opt/stacks/bambuddy`
 - [x] Confirm Bambuddy UI at `http://192.168.20.102:8000`
-- [ ] Keep P1S integration parked until printer details are available
-- [ ] Add P1S details and Home Assistant token in the Bambuddy web UI when physically available
-- [ ] Do not deploy `configs/home-assistant/bambuddy_p1s_package.yaml` until `<P1S_SERIAL>` is replaced and MQTT topics are confirmed
+- [x] Commission P1S MQTT telemetry in Bambuddy and verify the authenticated TLS relay
+- [x] Deploy the instantiated P1S Home Assistant package, dashboard and phone-notification automations
+- [x] Confirm the live Bambuddy MQTT topics and P1S serial mapping in Home Assistant
 - [x] Remove deprecated InfluxDB connection/auth keys from HA YAML after confirming the UI-managed Influx connection
 - [ ] Create `/opt/frigate/.env` after camera RTSP and MQTT credentials/certs are ready
 - [x] Design `apt-cacher-ng` on docker-host for package caching
@@ -778,9 +1198,9 @@ must work without HACS.
   health, stricter/relaxed profile, home/away profile, alarm enablement, known
   person and known vehicle handling, while keeping auditable rules in source
   config rather than only in UI state.
-- [ ] Copy `configs/home-assistant/bambuddy_p1s_package.yaml` to `/config/packages/` on HA
-- [ ] Replace `<P1S_SERIAL>` placeholder in bambuddy_p1s_package.yaml with real serial
-- [ ] Confirm `binary_sensor.p1s_printing` and print state entities appear in HA
+- [x] Deploy the instantiated `bambuddy_p1s_package.yaml` to `/config/packages/` on HA
+- [x] Replace the P1S serial placeholder in the live package
+- [x] Confirm P1S telemetry, print-state entities and Bambuddy connectivity in HA
 - [x] Map shared Intel render/card devices into unprivileged CT 111 and CT 114; PCI passthrough/IOMMU is not required
 
 ---
@@ -790,18 +1210,23 @@ must work without HACS.
 ### Hardware procurement
 - [ ] 2× ESP32-DevKitC (sensor boards — ventsys-fdm-sensor, ventsys-sla-sensor)
 - [ ] 1× ESP32-DevKitC (fan controller — already wired to GPIO23)
-- [ ] 1× ESP32-DevKitC (valve controller — already wired to GPIO18)
+- [ ] Feedback-capable classic ESP32 valve controllers for the standard valves
+  (ESP32 D1 Mini/carrier design; GPIO16 PWM and GPIO35/ADC1_CH7 feedback)
 - [ ] 4× DS18B20 waterproof temperature probe
 - [ ] 2× BME680 I2C breakout (temp/humidity/pressure/IAQ gas)
 - [ ] 2× MQ-135 (VOC / air quality)
 - [ ] 2× MQ-2 (smoke detection)
 - [ ] 2× differential pressure sensor (for duct airflow)
-- [ ] 4× MG90S servo (butterfly valves — check if already in PrintAirPipe kit)
+- [ ] Feedback-capable analog servos for the standard butterfly valves (confirm
+  four-wire feedback lead, travel range and supply voltage before purchase)
 - [ ] 1× 125mm inline duct fan with PWM control
 - [ ] PrintAirPipe STL files (€29, nerdiy.de)
 - [ ] 2kg PLA+ filament + 1kg PLA-HT (fire-retardant)
 - [ ] 2× smart plugs with energy monitoring (VLAN 50 compatible)
-- [ ] Resistors: 4.7kΩ (DS18B20 pull-ups, I2C pull-ups), 10kΩ/20kΩ (ADC voltage dividers)
+- [ ] Resistors/capacitors: 4.7kΩ (DS18B20/I2C pull-ups); one 10kΩ series
+  resistor, 20kΩ ADC-to-GND resistor and 100nF ADC-to-GND capacitor per
+  standard-valve feedback channel; 470uF–1000uF bulk capacitor at each servo
+  power split
 - [ ] Fan driver MOSFET (e.g. IRLZ44N) or dedicated PWM fan controller board
 
 ### 3D printing
@@ -815,29 +1240,109 @@ must work without HACS.
 - [ ] Wire FDM sensor board per `ventsys_wiring_reference.md`
 - [ ] Wire SLA sensor board per `ventsys_wiring_reference.md`
 - [ ] Wire fan controller (GPIO23 → MOSFET → fan)
-- [ ] Wire valve controller servos
+- [ ] Wire each feedback-capable standard valve controller: GPIO16 PWM plus feedback lead through
+  the 10k/20k/100nF network to GPIO35/ADC1_CH7; measure the ADC node at full travel
+  and confirm it remains at or below 3.3V before connection. The E2 branch now
+  uses a normal three-wire servo and has no feedback lead or ADC network.
+- [ ] Bench-calibrate each feedback-capable standard valve's raw feedback-voltage range against
+  physical closed/open stops before using it as a position measurement or safety input
+- [x] Calibrate the E2 branch board's linked normal-servo endpoints: 940 µs closed
+  (operator-accepted small springback after PWM release) and 2000 µs fully
+  open, with one-second endpoint detach and no double-close compensation. Its HA
+  position is the last command, not measured feedback. Earlier feedback-servo
+  tests are superseded by the three-wire servo; details are in
+  `docs/reference/current-live-state.md`.
+- [ ] With E2 branch installed on its pipe and under load, supervise an
+  intermediate-position holding test. The 2026-10-05 firmware holds PWM at
+  1–99 until another command or power loss; 0/100 detach after one second.
+  Check sustained sound, temperature, supply stability, and post-reset
+  behavior before accepting this as an unattended operating mode.
 - [ ] Note DS18B20 addresses after first flash, update ESPHome YAML
 - [ ] MQ sensor 24–48h burn-in before calibrating thresholds
 
 ### ESPHome flashing and adoption
 - [ ] Flash fan controller via USB (`ventsys_fan_controller.yaml`)
-- [ ] Flash valve controller via USB (`ventsys_valve_controller.yaml`)
+- [ ] Flash each standard valve controller via USB using its dedicated active
+  `configs/esphome/ventsys_*_valve.yaml` file; do not use the historical bundle
+  `ventsys_valve_controller.yaml` as the production source
+  - [x] Correct Main Duct Valve 2's device identity by flashing
+    `ventsys_main_valve2.yaml`; completed over COM4 on 2026-09-25. Serial and HA
+    verification confirmed `.52`, GPIO35 feedback, Valve 2 entities and
+    `ventsys/main/valve2/*`; stale native Valve 1 registry IDs were removed.
+  - [x] Fully erase and reinstall Main Duct Valve 2 after an apparent dropout;
+    completed over COM4 on 2026-09-25. The fresh factory image passed write
+    verification, Wi-Fi/MQTT/API reconnection, and one complete temperature-alert
+    sequence without a reboot or connectivity loss. No movement was commanded.
+  - [x] Reflash the MAC-bound Valve 2 board on COM4 on 2026-10-04 with the
+    three-wire servo image; verify HA online at `.52`, Valve Position 100,
+    feedback entities removed, and retained ESPHome/VentSys MQTT state at 100.
+  - [x] Reassign MAC `ec:e3:34:b4:79:7c` from the provisional Main Valve 2
+    identity to E2/SLA branch on 2026-10-06. Flash
+    `ventsys_sla_branch_valve.yaml` at `.52`, move MQTT control/state to
+    `ventsys/sla/branch/*`, and verify the same HA device is online.
+  - [x] Assign the separate board MAC `ec:e3:34:67:a0:18` to MAIN-2 on
+    2026-10-06. Flash `ventsys_main_valve2.yaml` over COM4 at `.57`, verify
+    native HA and MQTT control/diagnostic entities, and correct the board's
+    previous Valve 1 HA registry identity. No movement commanded.
+  - [x] Flash and adopt E1/FDM branch board MAC `EC:E3:34:67:0D:28` at `.53`
+    on 2026-10-11, using the normal three-wire servo image without feedback.
+    HA identifies it as VentSys E1 Branch Valve in Garage; no servo command
+    was sent during adoption.
+  - [ ] Bench-calibrate E1's physical closed/open stops with the free horn
+    under direct observation, then verify its linked valve range. The copied
+    940–2000 µs window and fresh-board displayed value 50 are provisional.
+  - [x] Correct E1's logical Open/Closed defaults from 50/50 to 100/0;
+    compile and reflash over COM4 on 2026-10-12. HA confirmed targets 100/0,
+    position 50, and PWM inactive. No motion command was sent.
+  - [ ] Verify E1's GPIO33 touch toggle under supervision. The earlier serial
+    watch repeatedly commanded 50% because both targets were seeded at 50;
+    the operator may have touched GPIO33, so false triggering is unproven.
+    Investigate the later serial-port closure and Wi-Fi inactivity dropout
+    before linking the valve.
+  - [ ] Bench-calibrate MAIN-2's physical open and closed stops under direct
+    observation before linking 0–100 to valve travel. Current 940–2000 µs
+    range is copied from E2 and remains provisional for MAIN-2.
+  - [x] Flash and adopt MAIN-1 board MAC `EC:E3:34:67:8C:9C` at `.51` on
+    2026-10-12 with the normal three-wire servo profile and no feedback ADC.
+    HA shows 26 native entities, Open/Closed 100/0, position 50 and PWM off.
+    No movement command was sent.
+  - [ ] Bench-calibrate MAIN-1's physical stops with the free horn before
+    linking the valve. Its 940–2000 µs window is provisional.
+  - [x] Flash the compiled E2 MQTT number-parser correction over COM4 on
+    2026-10-06; HA confirmed the new build online at `.52`, restored position
+    0, and PWM inactive after reboot.
 - [x] Create remaining controller YAMLs -- all exist in `configs/esphome/`:
   ventsys_main_valve1/2, fdm/sla_branch_valve, fdm/sla_print_valve, fdm/sla_360_valve (8 valves), ventsys_booth_fan.yaml (spray fan)
 - [ ] Flash FDM sensor board via USB (`ventsys_fdm_sensor.yaml`)  # A5-3: per-device YAML now exists (A4-4)
 - [ ] Flash SLA sensor board via USB (`ventsys_sla_sensor.yaml`)  # A5-3: per-device YAML now exists (A4-4)
 - [ ] Flash booth sensor board via USB (`ventsys_booth_sensor.yaml`)  # A5-3: per-device YAML now exists (A4-4)
 - [ ] Add `mqtt_ca_cert` to both repo and HA-side ESPHome `secrets.yaml` as part of the VentSys TLS migration path
-- [ ] Migrate `ventsys_main_valve1.yaml` from MQTT `1883` to `8883` with `certificate_authority: !secret mqtt_ca_cert`
+- [x] Keep `ventsys_main_valve1.yaml` on MQTT `8883` with
+  `certificate_authority: !secret mqtt_ca_cert`; the historical plaintext-1883
+  migration task is obsolete
 - [x] Remove valve-1 temporary plain-MQTT firewall follow-up task because no live/source `1883` exception is present
-- [ ] Bench-calibrate the 360 intake v2 Nerdiy candidates before deployment: current latest profile uses ESP32-C6, servo PWM on GPIO0, LED data on GPIO1, Nerdiy one-sided servo mapping limited to `0-35`, logical `open=35` / `closed=0`, forced servo writes for buttons/MQTT/direct number changes, and 1s PWM detach at fully open or fully closed; local touch toggle is parked until C6-compatible input wiring is confirmed
+- [ ] Bench-calibrate the 360 intake v2 Nerdiy candidates before deployment. The board previously labeled FDM at `.61` (MAC `CC:BA:97:F0:E3:EC`, now assigned SLA) was reflashed on 2026-10-09 to remove a raw LEDC `turn_on()` full-duty transient; its Open/Close directions were confirmed under the old label. Endpoint travel still needs calibration. Current firmware defaults are closed=30/open=60; servo PWM GPIO0, LED data GPIO1, endpoint detach after 1s. Local touch toggle is parked until C6-compatible input wiring is confirmed.
+- [x] OTA flash the SLA-profile 360 intake raw-LEDC correction on 2026-10-10; owner later identified that board as the SLA unit.
+- [ ] Confirm SLA 360 physical Open/Close direction and endpoint travel.
+- [x] Integrate position persistence into all production valve variants and restart/shutdown into production firmware and controller bundles; configuration and source gates pass.
+- [x] OTA update all six reachable boards (.61/.62/.52/.57/.41/.32); verify native identity/build and board controls. Restore installed SLA sensor's archived C6 wiring and BME680 0x77; valid readings and fault=false confirmed.
+- [ ] Resolve installed SLA .32 versus planned FDM array 2 address conflict before deployment.
+- [ ] Validate MAIN-2 repeated cold starts and sustained operation on independent supply with actual servo load. One software restart passed in 7.7 s with saved settings/PWM inactive; USB reset/power cause remains unproven. Reset/heap/loop diagnostics flashed.
 - [ ] Adopt all devices in ESPHome add-on (17 ESP32 boards + plugs)
+- [x] Add shared native Power Off Board and Restart Board buttons to production VentSys ESPHome firmware sources, including shared sensor firmware. Power Off enters deep sleep; waking requires physical reset/power cycling. See [[docs/procedures/ventsys-board-power-controls]].
+- [x] Compile and flash the 360 intake C6 at `.61` over COM8 on 2026-10-10. esptool confirmed MAC `CC:BA:97:F0:E3:EC` and verified written data; HA showed fresh Wi-Fi telemetry. The owner later corrected this board's identity to SLA. No valve movement was commanded. At 09:52:11, HA logged the new Restart Board entity changing from `Unavailable` to `Unknown` and displayed “Pressed”; activity details record no cause, so this is not evidence of button activation.
+- [x] Sync the ESPHome Builder FDM/SLA 360 v2 configs with canonical sources after correcting the role/IP/MAC mapping.
+- [ ] Once no printer job relies on the intake control, OTA the swapped identities in place: FDM `.62`/`A0:85:E3:AE:5B:C8`, SLA `.61`/`CC:BA:97:F0:E3:EC`. Both live boards still run their old name/topic and were offline in Builder at the last check. OTA each at its existing IP, then verify HA names, IPs, MACs, and MQTT topics before using either valve.
+- [ ] After the collision-safe FDM/SLA 360 firmware reassignment, test Power Off on FDM only after confirming no active printer/process relies on its valve; then physically reset/power-cycle and verify reconnect. VentSys remains uncommissioned and under testing.
+- [ ] Build and flash the board-management firmware to remaining offline boards; six online devices updated on 2026-10-10; verify awake-state buttons and physical restart. Do not shut down boards while relying on their sensing or actuator control.
 - [ ] Verify MQTT topics publishing: `mosquitto_sub -t 'ventsys/#' -v`
 - [ ] Confirm automations fire on test sensor triggers
 - [ ] Test emergency power cutoff sequence end-to-end
 - [ ] Evaluate `mode: restart` on the 12 VentSys HA mode scripts if rapid mode-click queueing causes oscillation in practice
 - [x] Harden dashboard page-init to use command-free renderers; static/mock contract tests prove initialization cannot enter an MQTT publish path
-- [ ] Revisit `restore_value` behavior for valve position entities so device restarts do not assume `0%` after physical movement
+- [ ] Verify E2 branch restores a deliberately commanded non-100 position
+  after power loss once its physical range is calibrated; its `restore_value`
+  firmware and 100 first-boot seed are deployed, but the non-100 test is open.
 - [ ] Stand up the garage Pi 5 desktop/kiosk for the VentSys dashboard using `docs/install/garage-pi-desktop-setup-guide.md` once the display hardware is ready
 
 ---
@@ -864,6 +1369,20 @@ must work without HACS.
 ---
 
 ## Phase 5 — NVR / Cameras ⏳
+
+- [x] October 10: diagnose and recover CT 111 memory/file-cache thrashing.
+  Confirmed idle ZeroMQ configuration publisher retains capture-reconnect
+  cleanup work; live event-drain experiment and isolated reproduction pass.
+  CT temporarily received12GiB; after lifecycle repair it is reassessed to6GiB.
+  Existing image is pinned, and disconnected cameras are
+  disabled in source/live configuration. See `docs/install/phases/04-frigate.md`.
+- [x] Deploy permanent local single-owner configuration publisher lifecycle
+  repair. Functional tests,3600 isolated and12000 live reconnects passed;
+  synthetic three720p/10fps OpenVINO/recording and two capture recoveries passed.
+  Working set~1.2GiB supports6GiB with generous cache/workload margin.
+- [ ] Before production camera re-enable, perform physical unavailable/recovered
+  RTSP, VA-API decode, sustained memory/recording/playback and HA acceptance.
+  The bounded synthetic test does not certify long-term real-stream load.
 
 - [ ] Select the model and requirements for the remaining camera rollout.
   Three ANNKE C500 cameras are already proven with Frigate; keep H.265, RTSP,
@@ -906,6 +1425,22 @@ must work without HACS.
 - [x] Configure Proxmox native metrics export to InfluxDB and add `Proxmox Resource Overview` Grafana dashboard
 - [x] Deploy docker-host Telegraf host/container metrics to InfluxDB bucket `dockerhost`
 - [x] Add Docker-host/container panels to `Proxmox Resource Overview`
+- [x] Add the provisioned `Infrastructure Fleet` Grafana dashboard from the
+  existing Proxmox and docker-host metrics (five running guests, CPU, disk,
+  state and guest CPU history)
+- [x] Expand the provisioned `Central Logs` dashboard with Bambuddy and
+  docker-host error tables plus OpenWrt warning/error syslog
+- [x] Collect Bambuddy Prometheus-format metrics locally through docker-host
+  Telegraf and add the provisioned Grafana `Bambuddy Metrics` dashboard
+- [ ] Add least-privilege central collectors for Proxmox task/backup logs, HA,
+  Frigate and CT 114 service logs; do not widen guest access just for Grafana
+- [x] Restore OMV desktop management key access (September30); read-only SMART/
+  RAID evidence refreshed October 2.
+- [ ] Prepare the OMV host/SMART/RAID/filesystem/service collector and replace
+  the NAS dashboard shell after bounded collector/deployment review.
+  October2 host-local JSON source/six tests/live one-off read-only proof are
+  complete; scheduled least-privilege production, metrics shipping and dashboard
+  acceptance remain open. See [[docs/procedures/omv-health-collector-preparation]].
 - [x] Add `Service Availability`, `Network DNS`, and `Security Posture` Grafana dashboards
 - [x] Export Uptime Kuma monitor state to InfluxDB bucket `uptimekuma`
 - [x] Export docker-host Fail2ban counters to InfluxDB bucket `dockerhost`
@@ -973,6 +1508,29 @@ must work without HACS.
 
 ## Ongoing / maintenance
 
+- [x] October18: deploy Pocketry1.5.1 with matching Homepage Tools card;
+  hosting smoke checks and browser cutout3D passed. See `docs/install/services/pocketry.md`.
+- [ ] Verify Pocketry8211 over mobile data; review narrow Tailscale grant if
+  blocked. Real-tool physical-fit acceptance is separate.
+
+- [x] Enable Bambuddy-only scheduled offline updates via workstation/WSL staging
+  and VM103 idle-gated timer; first1.2.5.5→1.2.5.6 update passed NAS checkpoint,
+  isolated copied-data migration, image/network identity and P1S reconnection
+  on2026-10-02. See `docs/procedures/bambuddy_offline_updates.md`.
+- [ ] Confirm the first unattended Bambuddy staging/install window; manual
+  end-to-end update and Task Scheduler no-update run are the initial proof.
+
+- [x] Repair September 30 mobile Homepage standalone navigation: use the same
+  scoped HTTPS routes as Preview, separate Bambuddy browser `8207` from native
+  Serve `8181`, and add `homepage/tests/access-contract.cjs` as a release gate.
+- [x] Owner confirmed September 30 general phone mobile-data acceptance.
+- [x] Owner confirmed Grocy's follow-up Host/redirect fix works on the phone.
+- [ ] Perform a controlled VM103 reboot proof for DNS, Homepage, browser `8207`, native `8181`.
+- [x] Expand the live troubleshooting dashboard to 37 routes from recurring
+  conversation themes; add guidance search and shareable route links, correct
+  commissioned P1S/FTPS990 context, regenerate offline routes and verify
+  model plus desktop/mobile behavior (2026-09-30).
+
 - [ ] Rotate infrastructure passwords, API credentials and SSH keys together;
   update password-manager records and validate every dependent service before
   revoking old credentials
@@ -993,7 +1551,19 @@ must work without HACS.
   manual proof passed on 2026-07-06
 - [ ] Weekly: append an entry to `docs/procedures/update_review_log.md` (Watchtower monitor-only signals + host package candidates + planned patch window)
 - [ ] Next patch window: update docker-host packages from the current candidate list, reboot if kernel package changes, and rerun router/health/Grafana checks
+- [x] Rebuild/recreate Recomp Tracker with durable null-session recovery and
+  reliability/UI/alarm improvements; deployed 2026-09-17 using the installed
+  runtime and a source-only build (see stack HANDOFF.md).
+- [ ] Repair docker-host's missing default `docker0` bridge for normal dependency
+  builds. Recomp Tracker no longer depends on a running-container hotfix.
 - [ ] After any config change: `git add -A && git commit && git push`
 - [ ] When hardware arrives: update MAC addresses in `dhcp-config.conf`
 - [ ] When cameras confirmed: update RTSP URLs in `configs/frigate/config.yml`
 - [ ] When sensors connected: update DS18B20 addresses in ESPHome YAML
+
+- [x] October 3: synthetic GardenKeeper PostgreSQL dump/restore and separately
+  copied journal media passed isolated API, notification and calendar restart
+  acceptance. See `tools/gardenkeeper-recovery/README.md`. The full-system/live
+  integration and real-user recovery gate above remains open.
+
+- [ ] After VentSys installation, execute [[docs/procedures/ventsys-relative-airflow-baselines|relative airflow baseline matrix]]: verify trunk routing/endpoints and fan-step mapping, then nine configurations at ten speeds with repeats; add mixed/booth configurations when used.

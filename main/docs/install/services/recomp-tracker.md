@@ -3,7 +3,7 @@ title: Recomp Tracker Operations
 description: Installation, data protection, notification boundaries and recovery for the self-hosted tracker
 tags: [install, tracker, sqlite, backup, recovery]
 created: 2026-09-10
-modified: 2026-09-10
+modified: 2026-10-19
 type: install-guide
 status: active
 ---
@@ -144,6 +144,43 @@ df -h /opt/stacks/recomp-tracker/data
 | Direct access works, portal fails | Fixed `8209` upstream and source grant | Use the written Homepage diagnostic path |
 
 ## Update and rollback
+
+The current 2026-10-19 release is r16 (`2026.10.19-r16`, service-worker v35),
+running as `recomp-tracker:release-r16-20261019`
+(`sha256:86608efd4836d0cafd7349b4ccc3794de5a32d47000f6c55385f255c15f3f521`).
+It adds date-specific custom one-time meal estimates: a description, inclusion
+tick and manually entered calories, protein, carbs and fat. They contribute to
+that day's totals but never create Food Library records and are deliberately
+excluded when copying a previous diet day. Server validation bounds the entry
+count, description and nutrition values. There is no database migration. The
+consistent pre-update checkpoint is
+`/opt/stacks/recomp-tracker/data/recomp-pre-one-time-meals-20261019.db`.
+
+The preceding 2026-10-13 frontend release is r15 (`2026.10.13-r15`,
+service-worker v34), running as `recomp-tracker:release-r15-20261013`
+(`sha256:1af9a1c40438448979cd064f2c6071c45c190481208797c8c989fc7b03b783c6`).
+It correctly rescales archived per-100g/ml constant snapshots using their
+recorded day quantity, rather than treating them as 100g. A recorded day that
+still contains checked archived constants now identifies each contribution and
+offers an explicit per-day removal; the archived snapshot remains available for
+audit. There is no schema migration. A consistent pre-correction SQLite
+checkpoint is `/opt/stacks/recomp-tracker/data/recomp-pre-archived-constants-20261013.db`.
+
+The 2026-10-10 frontend release is r14 (`2026.10.10-r14`, service-worker v33).
+It adds local English nutrition-photo OCR with explicit review and persistent
+collapsible Diet/Food library sections. Choices are per browser/device; they
+are not shared household settings. r14 fixes split-line calorie extraction, uses a 1.98MB fast language model and prepares/reuses the reader. The root /service-worker.js route enables OCR asset caching. Bundled assets
+and require no backend dependency or database migration. Direct/proxy mobile
+browser checks and synthetic-label OCR passed without production writes;
+real-label/phone-camera acceptance remains open. The r14 image and checkpoint
+remain available only as an older predecessor for the current r16 rollback path.
+
+The 2026-09-17 release is a complete source-only image, not a container hotfix.
+While docker-host's default bridge is missing, `Dockerfile.runtime` can reuse an
+explicit installed runtime with `--network none --pull=false --provenance=false`.
+Only use this path when requirements match the selected runtime; dependency
+changes require the normal Dockerfile. Exact release tags, backup locations,
+build commands and validation evidence are in the stack's `HANDOFF.md`.
 
 Review the source changes and data migrations, save the checkpoint above, and
 build the candidate from a recorded revision. Recreate only this service and

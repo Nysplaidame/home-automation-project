@@ -3,7 +3,7 @@ title: Mermaid Diagram Viewer
 description: Internal read-only web viewer for canonical Mermaid diagrams
 tags: [install, docker-host, diagrams, mermaid]
 created: 2026-07-09
-modified: 2026-09-11
+modified: 2026-09-25
 type: install-guide
 status: active
 ---
@@ -28,13 +28,18 @@ sources under `docs/diagrams/`.
 /opt/stacks/mermaid-viewer/
 ```
 
-## Rebuildable template
+## Canonical source and release artifact
 
 ```text
-configs/docker-host/stacks/mermaid-viewer/
+main/apps/mermaid-viewer/
 ```
 
-Live layout:
+This is the only repository tree for the service. Editable frontend files live
+in `src/`. The generated `dist/` directory is the single checked-in release
+artifact. Compose, Nginx configuration and release tooling live beside it.
+There is intentionally no mirror under `configs/docker-host/stacks/`.
+
+Live layout remains:
 
 ```text
 /opt/stacks/mermaid-viewer/
@@ -47,34 +52,45 @@ Live layout:
 - Browser-side Mermaid renderer.
 - Copy-link and search helpers.
 
-## Files to deploy
+## Release contents
 
 - `main/apps/mermaid-viewer/dist/` (HTML, CSS, JS, diagram data and vendor runtime)
-- `main/configs/docker-host/stacks/mermaid-viewer/docker-compose.yml`
-- `main/configs/docker-host/stacks/mermaid-viewer/nginx.conf`
+- `main/apps/mermaid-viewer/docker-compose.yml`
+- `main/apps/mermaid-viewer/nginx.conf`
 
 Editable frontend sources are in `main/apps/mermaid-viewer/src/`; diagram
-sources are in `main/docs/diagrams/`. See the app README for verification and
-atomic diagram-only updates to the existing bind-mounted live stack.
+sources are in `main/docs/diagrams/`. `dist/SHA256SUMS` binds the generated
+files into one verifiable release.
 
-## Build steps
+## Package and verification
 
 Run on: admin workstation in the canonical repository checkout.
 
 ```sh
 cd main/apps/mermaid-viewer
-npm ci
-npm run build
+npm run release
 ```
 
-The build copies Mermaid into `dist/vendor/` so the viewer does not need a CDN or
+The command performs `npm ci`, rebuilds from canonical diagram and frontend
+sources, writes deterministic content hashes, and runs the browser verification.
+The build copies Mermaid into `dist/vendor/`, so the viewer needs no CDN or
 runtime internet access.
 
 ## Deployment
 
-1. Build the app in `main/apps/mermaid-viewer`.
-2. Copy `dist/` into `/opt/stacks/mermaid-viewer/`.
-3. Start the container with `docker compose up -d` from the stack directory.
+Run on the canonical Windows workstation:
+
+```powershell
+cd main/apps/mermaid-viewer
+npm run release -- -DeployHost docker-host-lan
+```
+
+This is the sole routine packaging/deployment command. It deploys only after
+the local browser gate passes, uploads the verified release to a
+content-addressed staging directory, verifies hashes and Compose remotely,
+checkpoints the previous complete stack, and swaps the release. A failed start
+restores the previous stack. After success, verify the LAN endpoint, Homepage
+proxy and representative desktop/mobile diagram renders.
 
 ## Notes
 
@@ -86,7 +102,7 @@ runtime internet access.
 
 ## Versioned recovery and update acceptance
 
-Keep the source commit, lockfile, complete built `dist/` directory, Compose,
+Keep the source commit, lockfile, complete checked-in `dist/` release, Compose,
 Nginx configuration and deployed image digest together outside VM103. The
 viewer has no authoritative server database: canonical diagram sources in the
 vault are the recovery source, while a retained build permits offline recovery.
@@ -99,12 +115,10 @@ restore, serve a copied `dist` on loopback in a disposable container with unique
 name/network and no production proxy. Confirm diagram count, representative
 deep links, source text and offline rendering without CDN access.
 
-For diagram-only changes follow the app README's hash-checked single-file
-replacement. For a full build, keep the old complete `dist` checkpoint and stop
-the serving container during the reviewed directory replacement; recreate it
-so its bind mount resolves the intended directory. Validate LAN and fixed HTTPS
-proxy content plus a browser render. On failure restore the previous complete
-build/config and image, recreate, and repeat those checks. Do not combine assets
+Use the app README's release command for routine diagram and frontend changes.
+The deploy helper retains a complete timestamped backup under `/opt/backups/`
+and rolls back automatically when the replacement stack does not start. Validate
+LAN and fixed HTTPS proxy content plus a browser render. Do not combine assets
 from different builds. Record source/build hashes and acceptance date.
 
 Diagrams: [library](../../diagrams/README.md) and

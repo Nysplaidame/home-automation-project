@@ -1,0 +1,72 @@
+{
+  "output": "/root/storage-migration-20261020-v6kra242/layout.sqlite",
+  "entries": 1134167,
+  "issues": {
+    "directory-merge-review": 5
+  },
+  "warning": "Live snapshot only. No hashes, ACL/xattr capture, copy verification or deletion authorization.",
+  "issue_details": [
+    [
+      "directory-merge-review",
+      "Z",
+      "_codex_diagnostics",
+      "[[\"Y\", \"_codex_diagnostics\", \"_codex_diagnostics\", \"directory\", 1533, 1006, 100], [\"Z\", \"_codex_diagnostics\", \"_codex_diagnostics\", \"directory\", 1533, 1006, 100]]"
+    ],
+    [
+      "directory-merge-review",
+      "Z",
+      "_codex_diagnostics/actual-necrons-20261001-215428",
+      "[[\"Y\", \"_codex_diagnostics/actual-necrons-20261001-215428\", \"_codex_diagnostics/actual-necrons-20261001-215428\", \"directory\", 1533, 1006, 100], [\"Z\", \"_codex_diagnostics/actual-necrons-20261001-215428\", \"_codex_diagnostics/actual-necrons-20261001-215428\", \"directory\", 1533, 1006, 100]]"
+    ],
+    [
+      "directory-merge-review",
+      "Z",
+      "_codex_diagnostics/focused-20261001-213336",
+      "[[\"Y\", \"_codex_diagnostics/focused-20261001-213336\", \"_codex_diagnostics/focused-20261001-213336\", \"directory\", 1533, 1006, 100], [\"Z\", \"_codex_diagnostics/focused-20261001-213336\", \"_codex_diagnostics/focused-20261001-213336\", \"directory\", 1533, 1006, 100]]"
+    ],
+    [
+      "directory-merge-review",
+      "Z",
+      "_codex_diagnostics/sevenzip-20261001-213911",
+      "[[\"Y\", \"_codex_diagnostics/sevenzip-20261001-213911\", \"_codex_diagnostics/sevenzip-20261001-213911\", \"directory\", 1533, 1006, 100], [\"Z\", \"_codex_diagnostics/sevenzip-20261001-213911\", \"_codex_diagnostics/sevenzip-20261001-213911\", \"directory\", 1533, 1006, 100]]"
+    ],
+    [
+      "directory-merge-review",
+      "Z",
+      "backups",
+      "[[\"Y\", \"backups\", \"backups\", \"directory\", 1533, 0, 100], [\"Z\", \"Media/backups\", \"backups\", \"directory\", 509, 996, 100]]"
+    ]
+  ],
+  "entry_kinds": [
+    [
+      "Y",
+      "directory",
+      74530
+    ],
+    [
+      "Y",
+      "file",
+      657386
+    ],
+    [
+      "Y",
+      "socket",
+      17
+    ],
+    [
+      "Y",
+      "symlink",
+      1
+    ],
+    [
+      "Z",
+      "directory",
+      44461
+    ],
+    [
+      "Z",
+      "file",
+      357772
+    ]
+  ]
+}

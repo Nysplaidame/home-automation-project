@@ -6,7 +6,7 @@ This folder contains a provisional 3D-printable recessed wiring carrier for the
 The LED section and all LED-related wires are intentionally omitted. The carrier
 covers only:
 
-- ESP32 D1 Mini edge exits: 5V, GND, PWM, ADC / GPIO36
+- ESP32 D1 Mini edge exits: 5V, GND, PWM, ADC / GPIO35
 - Servo edge exits: 5V, GND, PWM, feedback
 - 10k series resistor on the feedback path
 - 20k resistor from the ADC side of the 10k to GND

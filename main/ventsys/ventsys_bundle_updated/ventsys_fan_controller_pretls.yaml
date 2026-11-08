@@ -89,3 +89,6 @@ fan:
 # mqtt_pass: "your-mqtt-password"
 # api_key: "your-32-byte-base64-api-key"
 # ota_password: "your-ota-password"
+
+packages:
+  board_management: !include ../../configs/esphome/ventsys_board_management.yaml

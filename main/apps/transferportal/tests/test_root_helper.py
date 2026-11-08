@@ -29,6 +29,19 @@ def test_root_helper_rejects_non_rsync_command():
         action_run_rsync({"command": ["bash", "-lc", "id"], "log_path": "/tmp/job.log"})
 
 
+@pytest.mark.parametrize("path", ["/srv/data\n[Service]", "/srv/data\rWhat=/etc", "/srv/data\x00", "/srv/data\t"])
+def test_mount_unit_rejects_control_characters(path):
+    with pytest.raises(HelperInputError, match="control characters"):
+        root_helper._mount_unit(Path(path), Path("/srv/transferportal/test/source"))
+
+
+def test_mount_unit_uses_literal_paths_and_escapes_systemd_specifiers():
+    unit = root_helper._mount_unit(Path('/srv/100% data/"photos"'), Path("/srv/transferportal/test/source"))
+    assert '100%% data' in unit
+    assert '"photos"' in unit
+    assert 'Where=/srv/transferportal/test/source' in unit
+
+
 def test_root_helper_rejects_rsync_paths_outside_portal_base(tmp_path, monkeypatch):
     portal_base = tmp_path / "portal"
     set_root_policy(monkeypatch, portal_base, tmp_path)

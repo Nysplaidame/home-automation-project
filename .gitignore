@@ -18,3 +18,33 @@ whoami.txt
 
 # Google Drive transient upload staging
 .tmp.driveupload/
+
+# Local application transfer/build staging
+.obico-transfer-*/
+
+# Generated dependencies, caches and local runtime artefacts
+**/node_modules/
+**/__pycache__/
+**/.pytest_cache/
+**/.cache/
+**/.esphome/
+**/coverage/
+*.py[cod]
+*.log
+*.tmp
+
+# Transfer packages belong outside the vault. Deliberately versioned release
+# artefacts must be explicitly unignored beside their owning source tree.
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+
+# Local browser verification output
+main/tools/playwright-smoke/test-results/
+main/tools/playwright-smoke/playwright-report/
+/test-results/
+
+# Local PlatformIO Core/toolchains; regenerated from PlatformIO package metadata.
+main/PlatformIO/

@@ -2,7 +2,7 @@
 set -eu
 umask 077
 TARGET=/mnt/omv/docker-host-backups
-EXPECTED_SOURCE=192.168.40.50:/srv/dev-disk-by-uuid-fdb92af7-371c-4793-8d98-ff47e961498d/backups/docker-host
+EXPECTED_SOURCE=192.168.40.50:/export/backups-docker-host
 mountpoint -q "$TARGET"
 test "$(findmnt -n -o SOURCE -T "$TARGET")" = "$EXPECTED_SOURCE"
 case "$(findmnt -n -o FSTYPE -T "$TARGET")" in nfs|nfs4) ;; *) exit 1 ;; esac

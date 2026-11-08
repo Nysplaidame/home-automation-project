@@ -160,6 +160,12 @@ make the whole update path permanently internet-free.
 
 ## Client configuration
 
+October2 CT114 diagnosis and prepared host-only rule/proxy are in
+[CT114 package-path repair](ct114-package-path-repair.md). The native cache is
+active, but UFW blocks CT114 input and a loopback Debian metadata fetch returns503.
+Client permission, proxy and upstream egress are three separate acceptance
+boundaries. This source preparation does not add live access or refresh APT.
+
 ### docker-host
 
 Use local loopback:

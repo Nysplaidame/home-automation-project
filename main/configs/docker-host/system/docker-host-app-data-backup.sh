@@ -116,6 +116,7 @@ backup_sqlite /opt/stacks/recomp-tracker/data/recomp.db \
 backup_path recomp-tracker "$recomp_tracker_stage"
 backup_path obsidian-livesync /opt/stacks/obsidian-livesync/data
 backup_path gardenkeeper /opt/stacks/gardenkeeper/backups
+backup_path gardenkeeper-media /opt/stacks/gardenkeeper/journal-media
 backup_path ntfy "$ntfy_stage"
 backup_path jellyfin /opt/stacks/jellyfin/config
 backup_path calibre-web /opt/stacks/calibre-web/config

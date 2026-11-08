@@ -4,7 +4,7 @@ description: Master navigation hub for all project documentation
 tags: [index, navigation, home-automation]
 aliases: [Project Index, Documentation Hub]
 created: 2025-09-15
-modified: 2026-09-14
+modified: 2026-10-02
 type: index
 status: active
 ---
@@ -12,6 +12,31 @@ status: active
 # Project Documentation Index
 
 **Overview:** [[README|README]] | **Tasks:** [[TO-DO|TO-DO]] | **Repo:** https://github.com/Nysplaidame/home-automation-project
+
+## Current delivery contracts
+
+- [[docs/audits/2026-10-20-storage-migration/README|Print / Media storage migration audit]] — October27 operational cutover/verification/retirement complete, both mirrors healthy, Print/Media and backups live; offline/native binary acceptance bounds recorded
+
+- [[docs/procedures/ventsys-dashboard|VentSys authenticated dashboard]] — deployed direct HA card; legacy token revoked. Owner accepts 360 firmware; standard and separate seven-inch touch views live; shared command arbitration deployed; physical setup/testing continues
+- [[docs/audits/2026-10-18-ventsys-dashboard|VentSys dashboard audit and range restoration]] — historical findings with software remediation and remaining hardware/control dispositions
+
+- [[apps/troubleshooting-dashboard/README|Troubleshooting and Resource Health]] — live VM103 viewer, Homepage card, bounded connection/TLS console, guided bundles, event timeline and independent Proxmox metrics publication
+
+- [[docs/procedures/ventsys_solar_screensaver|Solar Observatory rebuild]] - local Earth/Moon imagery with approximate IAU attitude, photographic sky and mock-tested read-only host; live HA acceptance, remaining assets/body attitudes and Pi acceptance remain open
+
+- [[docs/procedures/omv-health-collector-preparation|OMV collector preparation]] — tested read-only host/storage/service JSON contract and remaining least-privilege shipping/dashboard gates
+
+- [[docs/procedures/household-hub-coordinated-backup|Recurring Hub checkpoint]] — tested cold-copy source, read-only preflight and maintenance-gated activation/rollback
+
+- [[docs/procedures/ct114-package-path-repair|CT114 package-path repair]] — verified blockers, dry-run host-only helper and maintenance/rollback sequence
+- [[docs/audits/2026-10-02-roadmap-code-file-audit|October 2 roadmap, code and file audit]] — current feature disposition, verified checks and independent next work
+- [[docs/audits/2026-10-02-code-audit-verification|October 2 independent code-audit verification]] — worktree findings checked against canonical source, corrections and deployment limitations
+- [[docs/procedures/read-only-product-release-plan|Read-only household operations release]] — Today at Home and recovery-readiness delivery boundary
+- [[docs/procedures/household-hub-source-recovery-register|Household Hub source recovery]] — protected source generation and unresolved provenance boundary
+- [[docs/procedures/hardening-resilience-planning-runbook|Hardening and resilience planning]] — non-destructive preparation for controlled operational work
+- [[docs/procedures/smb-media-case-collision-recovery-plan|SMB Media case-collision recovery]] — approval-gated, reversible storage recovery plan
+- [[docs/procedures/troubleshooting-dashboard-ipv6-publication-guard|Troubleshooting Dashboard IPv6 guard]] — management-only publication boundary
+- [[docs/procedures/ventsys-card-page-bridge-contract|VentSys card/page bridge contract]] — draft authentication and safety review boundary
 
 ---
 
@@ -66,6 +91,7 @@ Written coverage is not verified rebuild or current restore acceptance.
 ### Frigate NVR
 - [[configs/frigate/config.yml]] — cameras, MQTT, retention, detector
 - [[configs/frigate/docker-compose.yml]] — Frigate service, volumes, env vars
+- [[scripts/validation/frigate_zmq_idle_pub_repro.py]] — bounded isolated reproduction of idle configuration publisher retention; October 10 evidence/recovery is in [[docs/install/phases/04-frigate]]
 - [[configs/frigate/frigate.env.example]] — required environment keys for RTSP and MQTT credentials
 - [[configs/frigate/system/frigate-nvr-fail2ban-sshd.local]] — CT 111 Fail2ban SSH jail baseline
 
@@ -73,6 +99,8 @@ Written coverage is not verified rebuild or current restore acceptance.
 - [[configs/local-ai/docker-compose.yml]] — CT 114 llama.cpp, Open WebUI and Wyoming services
 
 ### Monitoring VM
+- [[configs/monitoring/docker-compose.yml]] — live monitoring stack source,
+  including Loki and Grafana's internal query proxy
 - [[configs/monitoring/system/monitoring-firewall.sh]] — VM 102 source-scoped
   `DOCKER-USER` policy for docker-host Homepage access to Grafana and Uptime Kuma
 - [[configs/monitoring/system/monitoring-firewall.service]] — rebuilds the
@@ -93,13 +121,18 @@ Written coverage is not verified rebuild or current restore acceptance.
 - [[configs/docker-host/stacks/vaultwarden/README.md]] — live HTTPS Vaultwarden foundation and onboarding gate
 
 - [[docs/install/services/gridfinity-layout-tool.md]] — live local Gridfinity Layout Tool portal
+- [[docs/install/services/pocketry.md]] — local photo tracing and Gridfinity tool cutout bins, Homepage Tools card
 - [[configs/docker-host/stacks/recomp-tracker/README.md]] — live Recomp Tracker service and recovery notes
 
 ### Monitoring / Grafana
+- [[configs/frigate/patches/README.md]] — deployed single-owner publisher
+  lifecycle overlay, pinned-image compatibility and regression tests
+- [[docs/procedures/resource_pressure_monitor.md]] — live host/guest memory,
+  OOM, disk-stall and capacity alerts; audit, thresholds and watchdog operations
 - [[configs/grafana/README.md]] — rebuildable source exports for Grafana dashboards
 - [[configs/grafana/dashboards/]] — architecture dashboard JSON exports
 - [[apps/troubleshooting-dashboard/README.md]] — management-only staged
-  troubleshooting service driven by local health-check JSON
+  troubleshooting service with 37 read-only routes, search/deep links and local JSON evidence
 - [[apps/troubleshooting-dashboard/design-system.md]] — operational UI,
   accessibility and no-remediation contract for the POC
 - [[apps/home-operations-workbench/README.md]] — verified local import-only
@@ -112,14 +145,16 @@ Written coverage is not verified rebuild or current restore acceptance.
 - [[configs/home-assistant/lovelace/monitoring-grafana-links.yaml]] — HA Lovelace direct-link snippet for Grafana/Kuma
 
 ### Bambuddy / P1S
+- [[docs/procedures/bambuddy_offline_updates.md]] — scheduled stable-image staging, offline VM103 installation and matched-data rollback
 - [[configs/home-assistant/bambuddy_p1s_package.yaml]] — HA MQTT sensors, binary sensors, automations for P1S
 - [[scripts/setup/proxmox/docker_host_setup_guide.md]] — VM 103 Docker host, stack layout, Bambuddy workload
 - [[scripts/setup/proxmox/bambuddy_vm_setup_guide.md]] — compatibility shim for Bambuddy-specific links
 
 ### ESPHome
 - [[configs/esphome/ventsys_air_sensor_base.yaml]] — shared enclosure sensor-board package (temperature, smoke, VOC, pressure)
-- [[configs/esphome/ventsys_fdm_360_valve_v2_nerdiy.yaml]] — 360 intake v2 candidate for ESP32-C6 Zero using GPIO0 servo PWM, GPIO1 LED data, Nerdiy one-sided servo mapping limited to `0-35`, and 1s endpoint PWM detach
-- [[configs/esphome/ventsys_sla_360_valve_v2_nerdiy.yaml]] — 360 intake v2 candidate for ESP32-C6 Zero using GPIO0 servo PWM, GPIO1 LED data, Nerdiy one-sided servo mapping limited to `0-35`, and 1s endpoint PWM detach
+- [[configs/esphome/ventsys_board_management.yaml]] — shared board shutdown/restart buttons; shutdown suspends all sensing/control until physical reset or power cycle; [[docs/procedures/ventsys-board-power-controls|operational boundary and deployment status]]
+- [[configs/esphome/ventsys_fdm_360_valve_v2_nerdiy.yaml]] — FDM 360 profile at `.62` / MAC `A0:85:E3:AE:5B:C8`; ESP32-C6 GPIO0 servo, GPIO1 LED, calibrated-value contract 30–60, and 1s endpoint PWM detach
+- [[configs/esphome/ventsys_sla_360_valve_v2_nerdiy.yaml]] — SLA 360 profile at `.61` / MAC `CC:BA:97:F0:E3:EC`; ESP32-C6 GPIO0 servo, GPIO1 LED, calibrated-value contract 30–60, and 1s endpoint PWM detach
 - [[ventsys/ventsys_bundle_updated/ventsys_fan_controller.yaml]] — fan PWM control
 - [[ventsys/ventsys_bundle_updated/ventsys_valve_controller.yaml]] — valve servo control
 - [[ventsys/ventsys_bundle_updated/ventsys_ha_package.yaml]] — HA entities + automations
@@ -218,6 +253,7 @@ Written coverage is not verified rebuild or current restore acceptance.
 
 ## Architecture reference
 
+- [[docs/reference/windows-admin-pc-routes]] — five persistent desktop routes, recovery commands and October 20 Orca investigation
 - [[docs/decisions/01-network-architecture.md]] — original 9-VLAN decision, superseded by the printer VLAN update
 - [[docs/decisions/02-printer-vlan-architecture.md]] — current printer VLAN 35 extension
 - [[docs/decisions/03-docker-host-service-policy.md]] — VM 103 service placement policy
@@ -259,3 +295,14 @@ Written coverage is not verified rebuild or current restore acceptance.
 ---
 
 **Updated:** 2026-09-10
+
+## October 3 isolated recovery tooling
+
+- [[tools/gardenkeeper-recovery/README|GardenKeeper synthetic recovery rehearsal]]
+  — real PostgreSQL checkpoint/restore, photo hash, queued notification and
+  calendar restart acceptance; production recovery remains open.
+
+- [[configs/esphome/ventsys_sla_sensor.yaml]] — installed legacy SLA C6 sensor hardware authority (BME680 0x77); distinct from new-carrier arrays.
+- [[tools/validate_ventsys_firmware.py]] — production persistence and shared board-control source gate.
+
+- [[docs/procedures/ventsys-relative-airflow-baselines]] — relative commissioning matrix: nine valve configurations × ten physical fan steps, optional mixed/booth rows.

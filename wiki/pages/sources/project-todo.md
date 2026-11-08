@@ -3,7 +3,7 @@ title: "Project Task List"
 category: source
 tags: [tasks, implementation, phases, todo]
 created: 2026-04-07
-updated: 2026-09-14
+updated: 2026-10-02
 status: stable
 ---
 
@@ -149,3 +149,87 @@ and two Hub Qdrant snapshots restored. SearXNG settings were semantically verifi
 MediaMTX config backup is scheduled and verified; owner retained manual recording
 review with deletion disabled. Audit now36 Written/6 Candidates, with full-system
 and remaining workflow proofs explicitly separate. See canonical handoff for paths.
+
+## September 15 recovery follow-up
+
+Canonical [[../../../main/TO-DO]] records Watchtower server acceptance, a coordinated
+Hub store/configuration/export checkpoint and isolated restore, and a ten-image
+NAS bundle tested in an empty Docker image store. Phone receipt, next scheduled
+notification, independent offline source builds and full-system integration proof
+remain open. The coordinated checkpoint is one-off, not scheduled.
+
+## September 16 offline builds and scheduled notifications
+
+[[../../../main/TO-DO]] records six successful offline source builds from saved
+wheels/npm cache/base images. The scheduled Watchtower report reached ntfy, but
+its available-update count needed correction from Updated to Stale; an isolated
+stale-image regression passed before deployment. Phone receipt, next corrected
+scheduled count, full-system integrations and upload recovery remain open.
+
+## Recovery follow-up ownership
+
+The current [[../../../main/HANDOFF-2026-07-27-portal-services]] separates the
+owner's phone receipt check from agent work: scheduled report verification,
+GardenKeeper uploads, recurring Hub backup coverage, isolated integrations and
+full-system rehearsal. No automatic follow-up is scheduled. Offline app source
+builds and the coordinated checkpoint restore are complete; older open-item
+entries are historical. Physical/downtime actions need specific instructions.
+
+## September 16 GardenKeeper journal-media recovery
+
+Canonical [[../../../main/docs/install/services/gardenkeeper]] now records the
+GardenKeeper journal-media correction. The API had no mounted media path, but
+no historical uploads existed. Its root-only host directory is now mounted into
+the API and included in the normal dated OMV app-data inventory. A disposable
+restoration of the checked database with the matched API image proved a
+synthetic authenticated PNG survives API recreation through that path. This is
+not a complete user-workflow or full-system recovery certification.
+
+## October 2 audit reconciliation
+
+Canonical [[../../../main/TO-DO]] and
+[[../../../main/docs/audits/2026-10-02-roadmap-code-file-audit]] close the stale
+Watchtower server-delivery, P1S commissioning, Proxmox-import and OMV-access/
+SMART blockers with dated evidence. Owner phone acceptance, real stock/album/
+workshop choices, full recovery workflows and physical safety proof stay open.
+Independent next work is CT114 read-only package/security diagnosis, isolated
+recurring-Hub-backup preparation and curated local recovery evidence.
+Transfer Portal's known session-secret fallback is removed in tested source;
+it is not a deployment or live credential rotation.
+
+CT114 follow-up diagnosis/preparation is now complete. Its update-path repair
+remains maintenance-gated: no proxy, native cache-host UFW rejection, stale/
+expired security indexes and absent Fail2ban are freshly verified. The cache
+also returns503 for upstream Debian metadata. Canonical scope and rollback:
+[[../../../main/docs/procedures/ct114-package-path-repair]]. No live repair occurred.
+
+The local recovery-evidence task is also complete for seven named systems:
+[[entities/home-operations-workbench]] imports curated historical records and
+exports an offline index with scope/source/runbook references. Twelve unit
+tests and desktop/320px import checks pass. Full estate pack coverage and live
+adapters remain separate. Recurring coordinated Hub backup preparation is now
+complete with ten isolated tests, unit templates and a successful live read-only
+preflight. No live cold stop, new checkpoint or scheduled job is claimed; see
+[[../../../main/docs/procedures/household-hub-coordinated-backup]].
+
+Saved Grocy overview conversion is now prepared for the local Workbench's Today
+view. Sixteen total unit tests and desktop/320px fresh/stale/unavailable imports
+pass using synthetic data. Best-before semantics, bounded display fields and
+unknown/stale source states are preserved; no real inventory or live adapter is
+claimed. Contract: [[../../../main/docs/procedures/read-only-product-release-plan]].
+
+The selected-runbook bundle is also complete for the seven curated systems:
+13 documents, clickable offline index, link manifest and17 checksummed files.
+Twenty unit tests and independent verification pass. Omitted dependencies stay
+visible; complete data/image/configuration and full-estate recovery remain open.
+
+Dashboard8094 IPv6 read-only preflight and tested source preparation are now
+complete. The live bind remains IPv4-only and bridge IPv6 disabled; the old
+tailnet exception is still live. Failed client probes are not denial proof.
+Maintenance-gated rule/persistence reconciliation remains open under the
+[[../../../main/docs/procedures/troubleshooting-dashboard-ipv6-publication-guard|IPv6 guard]].
+
+OMV host-local JSON collector preparation is complete with six isolated tests
+and live one-off read-only storage/service evidence. Scheduled least-privilege
+collection, metric shipping, logs/backup evidence and NAS dashboard acceptance
+remain open. Contract: [[../../../main/docs/procedures/omv-health-collector-preparation]].

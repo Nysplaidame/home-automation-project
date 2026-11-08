@@ -27,7 +27,7 @@ The STL was exported with the local OpenSCAD install at
 Visual concept labels:
 
 - `FB` = servo feedback wire enters this side.
-- `ADC` = protected analog signal exits to ESP32 `SVP / GPIO36`.
+- `ADC` = protected analog signal exits to ESP32 `GPIO35 / ADC1_CH7`.
 - `GND` = shared ground return.
 
 The generated STL has no lettering, perimeter rim, or raised pads. It uses

@@ -1,0 +1,27 @@
+{
+  "Y": {
+    "counts": {
+      "directories": 72610,
+      "files": 646492,
+      "symlinks": 1,
+      "special": 17
+    },
+    "symlinks": [
+      [
+        "backups/configs/omv-config/latest",
+        "runs/20261020T003629Z"
+      ]
+    ],
+    "case_collisions": [],
+    "errors": []
+  },
+  "Z": {
+    "counts": {
+      "directories": 44461,
+      "files": 357772
+    },
+    "symlinks": [],
+    "case_collisions": [],
+    "errors": []
+  }
+}

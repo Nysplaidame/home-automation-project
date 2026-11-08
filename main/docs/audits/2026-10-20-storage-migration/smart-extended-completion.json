@@ -1,0 +1,40 @@
+{
+  "observed_at": "2026-10-21T14:38:54+01:00",
+  "host": "omv-lan",
+  "device": "/dev/disk/by-id/ata-WDC_WD160EDGZ-11B2DA0_3HG402GN",
+  "model": "WDC WD160EDGZ-11B2DA0",
+  "serial": "3HG402GN",
+  "capacity_bytes": 16000900661248,
+  "command": "smartctl -i -c -l selftest -H -A /dev/disk/by-id/ata-WDC_WD160EDGZ-11B2DA0_3HG402GN",
+  "command_exit_code": 0,
+  "execution_status": 0,
+  "overall_health": "PASSED",
+  "selftest_log": {
+    "entry": 1,
+    "description": "Extended offline",
+    "status": "Completed without error",
+    "remaining_percent": 0,
+    "lifetime_hours": 27578,
+    "lba_of_first_error": null
+  },
+  "previous_observation": {
+    "observed_at": "2026-10-21T13:41:48+01:00",
+    "execution_status": 241,
+    "remaining_percent": 10,
+    "selftests_logged": 0
+  },
+  "test_started_approximately": "2026-10-20T14:38:00+01:00",
+  "exact_completion_wall_time": "not exposed; between previous and current observations",
+  "attributes_raw": {
+    "5_Reallocated_Sector_Ct": 0,
+    "196_Reallocated_Event_Count": 0,
+    "197_Current_Pending_Sector": 0,
+    "198_Offline_Uncorrectable": 0,
+    "199_UDMA_CRC_Error_Count": 0,
+    "194_Temperature_Celsius": 36,
+    "9_Power_On_Hours": 27579
+  },
+  "automation": "check-media-mirror-disk-test deleted after terminal result",
+  "migration_actions_performed": false,
+  "independent_recovery_copy": "owner waiver preserved"
+}

@@ -1,0 +1,1 @@
+{"scope_tokens": ["/"], "path_tokens": ["/", "/.transferportal-smoke-destination/", "/Print/", "/_codex_diagnostics/", "/backups/", "/configs/", "/frigate/", "/ha-backups/", "/immich/", "/srv"], "limitation": "BoltDB string inventory; does not establish which records are active."}

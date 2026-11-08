@@ -3,7 +3,7 @@ title: Weekly Update Review Log
 description: Execution log for weekly update-candidate review and post-check outcomes
 tags: [operations, updates, maintenance, watchtower, docker-host]
 created: 2026-05-28
-modified: 2026-09-07
+modified: 2026-10-02
 type: procedure
 status: active
 ---
@@ -24,7 +24,28 @@ Current planning baseline:
 
 Do not infer current camera or VentSys acceptance from historical deployment.
 
-## 2026-09-07 — Read-only maintenance and backup review
+## 2026-10-02 — CT114 package/security-path diagnosis
+
+- Read-only desktop SSH confirms CT114 has no APT proxy and Fail2ban is not
+  installed. Security/update InRelease files date to June19 and expired June26.
+  The displayed 56 upgrade candidates use stale metadata; no current candidate
+  certification or package installation is implied. `dpkg --audit` is clean;
+  no reboot-required marker was present at this check.
+- docker-host's enabled/active native cache serves its loopback report page
+  with HTTP200. CT114 cache requests receive no HTTP response; docker-host's
+  kernel log explicitly records UFW blocking `.104 -> .102 TCP3142` SYNs.
+  Both hosts share the directly attached automation subnet, so no router
+  inter-VLAN rule is the missing client permission.
+- A Debian InRelease request through cache loopback returns503; direct Debian
+  HTTP from docker-host and HTTP/HTTPS from CT114 fail. CT114 DNS resolution
+  succeeds. A future approved cache-host maintenance egress still needs positive
+  upstream validation; no root cause for the503 is claimed from status alone.
+- All seven AI containers remain running. No packages, live configuration,
+  firewall, service or reboot were changed. Prepared scoped source and rollback:
+  [[ct114-package-path-repair]]. Five isolated Linux host-helper/backup tests
+  pass; helper previews by default and requires an explicit `--apply`.
+
+## 2026-09-07 — Read-only maintenance and backup review (historical)
 
 - Operator: Codex on canonical K: checkout; no patch window, restart, pull,
   credential change, backup execution or restore drill performed.

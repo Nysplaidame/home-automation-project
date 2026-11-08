@@ -17,6 +17,19 @@ purchases, consumption and expiry. Recipes remain in Mealie.
 
 ## Runs on
 
+Canonical browser/mobile route: `https://homepage.home.local:8198/`.
+September 30 corrected the dedicated Homepage proxy to send `Host $http_host`
+and preserve the external port. The generic proxy's backend Host header caused
+Grocy to redirect to `https://192.168.20.102:9283/stockoverview`, an unreachable
+mobile destination whose raw backend speaks HTTP. Grocy's `BASE_URL` remains
+`/`, so both canonical-name and LAN-IP HTTPS proxies can generate matching
+redirects. Database and authentication configuration were unchanged.
+
+Acceptance must follow redirects with normal certificate validation and
+confirm every Location remains on the proxy origin; HTTP 302 alone is not
+proof of a usable service. The Homepage access-contract test also checks
+Grocy's distinct Host policy.
+
 - docker-host over SSH at `192.168.20.102` for Compose and backup work;
 - a trusted HomeAdmin/Tailscale browser for Grocy administration.
 

@@ -1,8 +1,8 @@
 # VentSys Butterfly Valve Controller
 # Adapted from ventsys_butterfly_valve.yaml (known working hardware)
 # Adds MQTT integration for VentSys system control while preserving retained
-# features: LED colour coding, die-temperature alerts, touch sensor toggle,
-# configurable open/close positions, PWM auto-shutdown.
+# features: LED colour coding, touch toggle, die-temperature alerts, configurable
+# open/close positions, endpoint PWM shutdown, and command/PWM diagnostics.
 #
 # Direct-TLS deployment: keep MQTT on 8883 and trust the local CA from first flash.
 #
@@ -13,7 +13,7 @@
 substitutions:
   device_name: ventsys-main-valve-2
   friendly_name: "VentSys Main Duct Valve 2"
-  device_ip: "192.168.50.52"
+  device_ip: "192.168.50.57"
   mqtt_command_topic: "ventsys/main/valve2/control"
   mqtt_state_topic:   "ventsys/main/valve2/state"
   servo_gpio: GPIO16
@@ -21,6 +21,10 @@ substitutions:
 esphome:
   name: ${device_name}
   friendly_name: ${friendly_name}
+
+# Persist commanded position promptly for display after a power interruption.
+preferences:
+  flash_write_interval: 1ms
 
 esp32:
   board: esp32dev
@@ -31,6 +35,10 @@ esp32:
 logger:
   logs:
     internal_temperature.esp32: INFO
+
+# Read-only diagnostics for intermittent reset/reconnection investigation.
+debug:
+  update_interval: 30s
 
 api:
   encryption:
@@ -51,7 +59,7 @@ wifi:
     subnet: 255.255.255.0
     dns1: 192.168.50.1
   ap:
-    ssid: "VentSys Valve 2 Fallback"
+    ssid: "VentSys Main Valve 2 Fallback"
     password: !secret ota_password
 
 captive_portal:
@@ -65,35 +73,56 @@ mqtt:
   discover_ip: false
   certificate_authority: !secret mqtt_ca_cert
   on_message:
-    # Receive 0-100 percent from HA number entity
+    # Receive a finite 0-100 value from the VentSys MQTT number entity.
     - topic: ${mqtt_command_topic}
       qos: 0
       then:
-        # Route through the number entity — this triggers set_action which
-        # handles servo write, PWM enable, and LED colour update in one call.
-        - number.set:
-            id: valve_position_direct_control_number
-            value: !lambda 'return (float)atoi(x.c_str());'
-        - mqtt.publish:
-            topic: ${mqtt_state_topic}
-            payload: !lambda 'return x;'
-            retain: true
+        - if:
+            condition:
+              lambda: |-
+                if (x.empty() || x.size() > 8) return false;
+                char *end = nullptr;
+                const float value = strtof(x.c_str(), &end);
+                return end != x.c_str() && *end == '\0' && std::isfinite(value)
+                    && value >= 0.0f && value <= 100.0f;
+            then:
+              - lambda: 'id(command_source) = 1;'
+              # Route through the number entity so all accepted writes are audited.
+              - number.set:
+                  id: valve_position_direct_control_number
+                  value: !lambda 'return strtof(x.c_str(), nullptr);'
+            else:
+              - lambda: 'ESP_LOGW("valve_audit", "Rejected invalid MQTT position command");'
   on_connect:
-    # Republish current state on reconnect so HA stays in sync
+    # The MQTT connect callback can run before the client marks itself ready
+    # to publish. Defer the restored state until the connection is usable.
+    - delay: 1s
     - mqtt.publish:
         topic: ${mqtt_state_topic}
         payload: !lambda 'return to_string((int)id(valve_position_direct_control_number).state);'
         retain: true
 
 globals:
-  - id: pwm_enabled
-    type: bool
-    restore_value: no
-    initial_value: 'true'
   - id: temp_alert_level
     type: int
     restore_value: no
     initial_value: '0'
+  - id: command_source
+    type: int
+    restore_value: no
+    initial_value: '0'  # 0=HA/API, 1=MQTT, 2=touch, 3=open button, 4=close button
+  - id: pwm_expected
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: position_commanded_this_boot
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: last_command_source
+    type: std::string
+    restore_value: no
+    initial_value: '"None since boot"'
 
 time:
   - platform: homeassistant
@@ -111,37 +140,59 @@ output:
 servo:
   - id: valve_servo
     output: valve_servo_pwm_output
+    restore: false  # Restore displayed command only; keep PWM detached at boot.
+    # Endpoint release is handled by endpoint_pwm_release. Keep 1-99% actively
+    # driven until another command or power loss for the loaded-valve test.
+    auto_detach_time: 0s
+    # Initial calibration window copied from E2: 940-2000 us; MAIN-2 valve stops are unverified.
+    min_level: 4.7%
+    idle_level: 7.5%
+    max_level: 10%
 
 script:
-  - id: check_pwm_shutdown
+  - id: endpoint_pwm_release
     mode: restart
     then:
-      - delay: 2s
+      - delay: 1s
+      - servo.detach: valve_servo
       - lambda: |-
-          if (id(valve_position_direct_control_number).state == 0.0) {
-            id(valve_servo_pwm_output).turn_off();
-            id(pwm_enabled) = false;
-          }
+          id(pwm_expected) = false;
+          ESP_LOGI("valve_audit", "PWM detached at endpoint; physical position remains unverified");
 
 number:
   - platform: template
     name: "Valve Position"
     id: valve_position_direct_control_number
+    restore_value: true
     min_value: 0
-    initial_value: 0
+    # Restore the last command for HA/MQTT display. Initial 50 is the seed
+    # before the first saved value; setup does not trigger set_action.
+    initial_value: 50
     max_value: 100
     step: 1
     optimistic: true
     set_action:
       then:
         - lambda: |-
-            if (!id(pwm_enabled)) {
-              id(valve_servo_pwm_output).turn_on();
-              id(pwm_enabled) = true;
-            }
+            const char *source = id(command_source) == 1 ? "MQTT" :
+                                 id(command_source) == 2 ? "Touch" :
+                                 id(command_source) == 3 ? "Open button" :
+                                 id(command_source) == 4 ? "Close button" : "HA/API";
+            id(last_command_source) = source;
+            id(position_commanded_this_boot) = true;
+            ESP_LOGI("valve_audit", "Accepted %s command: %.0f%%; enabling PWM", source, x);
+            id(command_source) = 0;
+        # Cancel a pending endpoint detach before any new position command.
+        - script.stop: endpoint_pwm_release
         - servo.write:
             id: valve_servo
             level: !lambda 'return (x / 100.0) * 2.0 - 1.0;'
+        - lambda: 'id(pwm_expected) = true;'
+        - if:
+            condition:
+              lambda: 'return x <= 0.0f || x >= 100.0f;'
+            then:
+              - script.execute: endpoint_pwm_release
         - lambda: |-
             float red, green, blue;
             if (x >= id(valve_opened_position).state) { red=0.0; green=1.0; blue=0.0; }
@@ -152,11 +203,11 @@ number:
             topic: ${mqtt_state_topic}
             payload: !lambda 'return to_string((int)x);'
             retain: true
-        - script.execute: check_pwm_shutdown
 
   - platform: template
     name: "Valve Open Position"
     id: valve_opened_position
+    restore_value: true
     min_value: 0
     initial_value: 50
     max_value: 100
@@ -167,8 +218,9 @@ number:
   - platform: template
     name: "Valve Closed Position"
     id: valve_closed_position
+    restore_value: true
     min_value: 0
-    initial_value: 0
+    initial_value: 50
     max_value: 100
     step: 1
     optimistic: true
@@ -181,17 +233,10 @@ button:
     on_press:
       then:
         - lambda: |-
-            if (!id(pwm_enabled)) {
-              id(valve_servo_pwm_output).turn_on();
-              id(pwm_enabled) = true;
-            }
-        - servo.write:
-            id: valve_servo
-            level: !lambda 'return (id(valve_closed_position).state / 100.0) * 2.0 - 1.0;'
+            if (id(command_source) != 2) id(command_source) = 4;
         - number.set:
             id: valve_position_direct_control_number
             value: !lambda 'return id(valve_closed_position).state;'
-        - script.execute: check_pwm_shutdown
 
   - platform: template
     name: "Open Valve"
@@ -199,13 +244,7 @@ button:
     on_press:
       then:
         - lambda: |-
-            if (!id(pwm_enabled)) {
-              id(valve_servo_pwm_output).turn_on();
-              id(pwm_enabled) = true;
-            }
-        - servo.write:
-            id: valve_servo
-            level: !lambda 'return (id(valve_opened_position).state / 100.0) * 2.0 - 1.0;'
+            if (id(command_source) != 2) id(command_source) = 3;
         - number.set:
             id: valve_position_direct_control_number
             value: !lambda 'return id(valve_opened_position).state;'
@@ -226,6 +265,11 @@ button:
         - lambda: id(temp_alert_level) = 0;
 
 binary_sensor:
+  - platform: template
+    name: "PWM Commanded Active"
+    entity_category: diagnostic
+    lambda: 'return id(pwm_expected);'
+
   - platform: esp32_touch
     name: "Touch Toggle"
     pin: GPIO33
@@ -233,6 +277,7 @@ binary_sensor:
     on_press:
       then:
         - lambda: |-
+            id(command_source) = 2;
             if (id(valve_position_direct_control_number).state >= 50)
               id(close_valve_button).press();
             else
@@ -257,6 +302,11 @@ binary_sensor:
     lambda: 'return id(internal_temp).state >= 80.0;'
 
 sensor:
+  - platform: debug
+    free:
+      name: "Free Heap"
+    loop_time:
+      name: "Loop Time"
   - platform: internal_temperature
     name: "Internal Temperature"
     id: internal_temp
@@ -282,6 +332,23 @@ sensor:
     name: Uptime
 
 text_sensor:
+  - platform: debug
+    reset_reason:
+      name: "Reset Reason"
+  - platform: template
+    name: "Position Confidence"
+    entity_category: diagnostic
+    update_interval: 1s
+    lambda: |-
+      if (id(position_commanded_this_boot)) return {"Commanded only; unverified"};
+      return {"Restored command; physical position unknown"};
+
+  - platform: template
+    name: "Last Command Source"
+    entity_category: diagnostic
+    update_interval: 1s
+    lambda: 'return {id(last_command_source)};'
+
   - platform: template
     name: "Temperature Alert Level"
     id: temp_alert_level_text
@@ -351,3 +418,5 @@ interval:
               id(status_led).turn_off().perform();
             }
           }
+packages:
+  board_management: !include ventsys_board_management.yaml

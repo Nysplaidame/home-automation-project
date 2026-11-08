@@ -3,7 +3,7 @@ title: "Homepage"
 category: entity
 tags: [dashboard, docker, docker-host]
 created: 2026-05-23
-updated: 2026-08-25
+updated: 2026-10-19
 sources: [project-readme, project-todo]
 status: active
 ---
@@ -16,12 +16,23 @@ status: active
 
 ## Overview
 
+On October 19, VentSys was added to Home & Security with an Open tab action
+through the existing HA proxy on 8188. It uses normal HA sign-in and adds no
+public credential or embedded control frame. Canonical acceptance and rollback:
+[[../../../main/docs/install/services/homepage]] and
+[[../../../main/docs/procedures/ventsys-dashboard]].
+
 Homepage is the live `Home Operations` dashboard for docker-host and core
 home-automation links. It provides seven task-oriented tabs, fixed-target
 embedded previews, container status, portal-runtime metrics, and a responsive
 teal-glass interface.
 
 ## Key Properties
+
+- October18: Tools includes Pocketry for photo tracing and Gridfinity tool
+  cutout bins at `https://homepage.home.local:8211/`, with shared card/Preview.
+  Desktop/embedded checks passed; mobile-data8211 remains unverified. Canonical
+  source: `main/docs/install/services/pocketry.md`.
 
 - Stack path: `/opt/stacks/homepage/`
 - Canonical URL: `https://homepage.home.local/` locally and remotely through
@@ -45,6 +56,13 @@ teal-glass interface.
   secret is stored in Homepage configuration
 
 ## Change Log
+
+- 2026-09-30: Corrected the September 25 raw-IP `Direct` action to open the
+  same HTTPS proxy as Preview in a standalone tab. Browser Bambuddy moved to
+  `8207`; native Tailscale Serve retains `8181`, with the old Nginx listener
+  restricted to the LAN address. Added an access-contract release test.
+  Owner confirmed general mobile-data acceptance. Grocy's remaining backend-
+  address redirect was repaired separately by preserving the proxy Host/port.
 
 - 2026-08-25: Reconfirmed the canonical named URL and aligned the wiki with the
   reconciled architecture references.

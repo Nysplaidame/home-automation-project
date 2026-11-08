@@ -238,3 +238,12 @@ September16 acceptance: all six API/worker/web source builds passed with
 `--network none --no-cache --pull=false`. Both source archives were readable,
 all bundle checksums passed and saved base images loaded successfully. Production
 application images were not replaced. Docker-host root had12GB free afterward.
+
+## Recurring checkpoint preparation — October 2
+
+The [[../../../../docs/procedures/household-hub-coordinated-backup|recurring checkpoint procedure]]
+now supplies tested cold-copy source and service/timer
+templates. Ten isolated tests and live read-only mount/container/volume preflight
+pass. No live service was stopped and no new generation was created. The job is
+not installed or scheduled; September15's checkpoint remains one-off. Manual
+generation, isolated restore and an approved outage schedule remain acceptance gates.

@@ -278,6 +278,27 @@ ufw --force enable
 ufw status verbose
 ```
 
+If Bambuddy Virtual Printer is enabled for OrcaSlicer/Bambu Studio, also permit
+the slicer client zones to reach the virtual-printer listeners. SSDP discovery
+does not cross VLANs, so clients use the Docker-host IP manually.
+
+For the first P1S virtual printer, add the persistent secondary address
+`192.168.20.103/24` to `eth0` in `/etc/netplan/50-cloud-init.yaml` alongside the
+Docker host's primary `192.168.20.102/24`, then run `netplan generate && netplan apply`.
+Use `.103` as the virtual printer's Bind IP; retain `.102` for the Bambuddy web UI.
+
+```bash
+for subnet in 192.168.1.0/24 192.168.10.0/24; do
+  ufw allow from "$subnet" to any port 3000 proto tcp comment "Bambuddy VP detect"
+  ufw allow from "$subnet" to any port 3002 proto tcp comment "Bambuddy VP detect TLS"
+  ufw allow from "$subnet" to any port 8883 proto tcp comment "Bambuddy VP MQTT"
+  ufw allow from "$subnet" to any port 990 proto tcp comment "Bambuddy VP FTPS"
+  ufw allow from "$subnet" to any port 6000 proto tcp comment "Bambuddy VP camera"
+  ufw allow from "$subnet" to any port 2024:2026 proto tcp comment "Bambuddy VP P1S"
+  ufw allow from "$subnet" to any port 50000:50009 proto tcp comment "Bambuddy VP FTPS data"
+done
+```
+
 Current Tier 1 service additions:
 
 ```bash
@@ -480,6 +501,12 @@ Remote access model:
 
 ## Phase 6 - Connect Bambuddy
 
+For Orca on the Admin desktop with Mullvad, see
+[[../../../docs/reference/windows-admin-pc-routes|the desktop route inventory]].
+Physical P1S `.35.200` needs its local `/32` route via `.10.1`; virtual printer
+`.20.103` is covered by the automation `/24`. VM103 ping can be rejected while
+MQTT/FTPS remain reachable; test TCP8883/990 separately.
+
 Use the Bambuddy web UI as the canonical place to add:
 
 - P1S printer IP: `192.168.35.200`
@@ -557,7 +584,7 @@ After the P1S is physically ready, also test:
 
 ```bash
 nc -zv 192.168.35.200 8883
-nc -zv 192.168.35.200 21
+nc -zv 192.168.35.200 990
 ```
 
 ---
