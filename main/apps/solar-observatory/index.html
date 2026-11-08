@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <link rel="icon" href="data:,">
+    <title>Quiet Observatory | Visual Preview</title>
+  </head>
+  <body>
+    <main id="app">
+      <header>
+        <div><p class="eyebrow">QUIET OBSERVATORY <span> / VISUAL STUDY</span></p><h1 id="title">Earth</h1></div>
+        <div class="data"><strong id="data-state">Loading ephemerides</strong><time id="epoch"></time></div>
+      </header>
+      <section id="viewport" aria-label="Solar system geometry preview">
+        <img id="sky" src="./assets/milky-way.jpg" alt="" aria-hidden="true">
+        <canvas id="scene" aria-label="Three-dimensional planetary view"></canvas>
+        <div class="image-credits">Surfaces: <a href="https://science.nasa.gov/resource/blue-marble-2002/" target="_blank" rel="noopener">NASA</a> / <a href="https://svs.gsfc.nasa.gov/4720/" target="_blank" rel="noopener">NASA's Scientific Visualization Studio</a><br>Sky: <a href="https://www.eso.org/public/images/eso0932a/" target="_blank" rel="noopener">ESO/S. Brunier</a> (muted/cropped)</div>
+        <div id="labels" aria-hidden="true"></div>
+        <p id="failure" role="alert" hidden></p>
+        <div id="welcome" role="region" aria-label="Dashboard and alerts"><h2 id="welcome-title">Dashboard preview</h2><p id="welcome-note">No Home Assistant connection or controls.</p><button id="resume">Return to observatory</button></div>
+      </section>
+      <nav aria-label="View controls">
+        <label class="sr-only" for="target">Focus target</label>
+        <select id="target"><option value="earth">Earth / Moon</option><option value="jupiter">Jupiter / Io</option><option value="saturn">Saturn / rings</option></select>
+        <button id="mode" aria-pressed="false">System view</button>
+        <button id="next">Next focus</button>
+        <button id="dashboard">Dashboard</button>
+      </nav>
+      <aside class="notes"><span id="view-note">Portrait / matte geometry</span><span id="coverage">Source: JPL Horizons</span></aside>
+      <footer id="safety-strip" role="status"><span class="status-dot"></span><strong id="safety-title">VentSys offline</strong><span id="safety-note">Live safety status unavailable</span><span id="safety-tag" class="preview-tag">LOCAL PREVIEW</span></footer>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
