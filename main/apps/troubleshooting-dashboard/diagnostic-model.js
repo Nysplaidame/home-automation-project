@@ -125,8 +125,8 @@ export const symptoms = Object.freeze([
       pathNode('HA MQTT', 'mqtt'),
     ],
     steps: [
-      step('printer', 'Device', 'Confirm the printer is online', 'VM 103 / docker-host', 'ping 192.168.35.200', 'The printer answers when powered and connected.', 'The accepted blocker is currently VM103-to-P1S reachability; do not bypass VLAN policy.'),
-      step('ports', 'Network', 'Test the two printer-side dependencies from VM 103', 'VM 103 / docker-host', 'nc -zvw3 192.168.35.200 21 8883', 'FTP 21 and printer MQTT 8883 are reachable.', 'If both fail, stop at the controlled network/firewall remediation boundary.'),
+      step('printer', 'Device', 'Confirm the printer is online', 'VM 103 / docker-host', 'ping 192.168.35.200', 'The commissioned printer answers when powered and connected.', 'Confirm power, current reservation and signal before diagnosing VLAN policy. An ICMP response does not prove authenticated printer access.'),
+      step('ports', 'Network', 'Test the two printer-side dependencies from VM 103', 'VM 103 / docker-host', 'nc -zvw3 192.168.35.200 990 8883', 'Implicit FTPS 990 and printer MQTT TLS 8883 are reachable.', 'A listening port does not prove the access code is valid. Plain FTP 21 is not the current P1S transfer contract.'),
       step('bambuddy', 'Service', 'Read Bambuddy state without restarting it', 'VM 103 / docker-host', 'docker inspect bambuddy --format "{{.State.Status}} {{.HostConfig.NetworkMode}}"', 'The container is running; host networking remains the documented temporary exception.', 'Do not migrate to the prepared bridge until both printer ports pass from VM 103.'),
       step('ha-mqtt', 'Dependency', 'Confirm HA-side MQTT TLS separately', 'VM 103 / docker-host', 'nc -zvw3 192.168.20.101 8883', 'The HA MQTT TLS listener is reachable.', 'A pass here with failed printer ports isolates the incident away from HA.'),
     ],
@@ -173,6 +173,25 @@ export const symptoms = Object.freeze([
 ].map((symptom, index) => ({ ...symptom, order: String(index + 1).padStart(2, '0'), category: symptom.category ?? ({homepage: 'Network and access', backups: 'Hosts and storage'}[symptom.id] ?? 'Home and devices') })));
 
 const acceptedStatuses = new Set(['pass', 'fail', 'warn', 'unknown', 'skipped']);
+
+// Search all guidance, so ordinary symptoms and exact errors both find a route.
+export function routeMatches(symptom, query) {
+  const terms = String(query ?? '').toLowerCase().trim().split(/\s+/).filter(Boolean);
+  const text = [symptom.id, symptom.title, symptom.short, symptom.description,
+    ...symptom.checks.map(item => item.label),
+    ...symptom.steps.flatMap(item => [item.title, item.runOn, item.command, item.expected, item.failure])]
+    .join(' ').toLowerCase();
+  return terms.every(term => text.includes(term));
+}
+
+export function routeIdFromHash(hash) {
+  try {
+    const id = decodeURIComponent(String(hash).replace(/^#route=/, ''));
+    return symptoms.some(item => item.id === id) ? id : symptoms[0].id;
+  } catch {
+    return symptoms[0].id;
+  }
+}
 
 function normalizeStatus(value) {
   const candidate = typeof value === 'object' && value !== null ? value.status : value;
@@ -238,7 +257,7 @@ export function snapshotFreshness(snapshot, now = Date.now()) {
 
 export const expectedStates = Object.freeze({
   camera: 'Recorded 7 September 2026: Zyxel and cameras intentionally disconnected. Confirm this still applies before investigating camera reachability. Frigate and recording-mount checks remain relevant.',
-  p1s: 'Recorded 7 September 2026: P1S not commissioned. An unavailable printer may be expected; confirm its current power and connection state. Bambuddy and HA MQTT checks remain relevant.',
+  p1s: 'Canonical state reviewed 30 September 2026: P1S (Da Printor) is commissioned on VLAN 35 with Bambuddy and HA MQTT telemetry. Confirm current power and connection state; an unavailable printer must not be dismissed as uncommissioned. Camera and physical safety acceptance remain separate.',
 });
 
 export function checkAssessment(key, snapshot) {
@@ -317,6 +336,7 @@ export function buildIncidentReport(symptom, snapshot, notes = '') {
   const status = evaluateSymptom(symptom, snapshot);
   const lines = [
     `Incident: ${symptom.title}`,
+    `Route: ${symptom.id}`,
     `Assessment: ${statusMeta[status].label}`,
     `Snapshot: ${snapshot?.timestamp ?? 'not loaded'}`,
     `Evidence age: ${snapshotFreshness(snapshot).label}`,

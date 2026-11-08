@@ -158,3 +158,26 @@ code { font-family: var(--font-mono); font-size: 1rem; }
 .route-filters label, #route-count { font-size: 1rem; color: var(--text-secondary); }
 .route-group > summary { padding: 18px 20px; color: var(--accent); font-weight: 700; border-top: 1px solid var(--border); }
 .empty-routes { padding: 20px; color: var(--text-secondary); }
+/* Live tools retain the investigation workspace's existing colour tokens. */
+.operations { max-width: 1500px; margin: 0 auto 24px; padding: 24px; background: #111922; border: 1px solid #354856; border-radius: 12px; }
+.operations-nav, .probe-actions, .probe-controls, .console-input { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.operations-nav { padding-bottom: 20px; }
+.operations a { color: #67d5c2; }
+.resource-table { overflow-x: auto; margin: 20px 0; }
+.mobile-table-hint { display: none; }
+.resource-table table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.resource-table th, .resource-table td { text-align: left; padding: 12px; border-bottom: 1px solid #354856; white-space: nowrap; }
+.connection-tools { margin-top: 24px; border-top: 1px solid #354856; padding-top: 20px; }
+.connection-tools summary { font-size: 22px; font-weight: 650; cursor: pointer; padding: 12px 0; }
+.probe-controls, .probe-actions { margin: 16px 0; }
+.operations input, .operations select { background: #0b1015; color: #edf4f7; border: 1px solid #354856; border-radius: 6px; padding: 12px; font: inherit; min-height: 48px; }
+.console-input input { flex: 1; min-width: 160px; }
+#console-output { background: #0b1015; border: 1px solid #354856; padding: 16px; min-height: 100px; max-height: 380px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 16px; }
+.bundle-tools { border-top: 1px solid #354856; padding: 16px 0; margin-top: 20px; }
+.bundle-tools select { display: block; max-width: 100%; margin-top: 8px; }
+#history-events { padding-left: 24px; max-height: 600px; overflow: auto; }
+#history-events li { border-bottom: 1px solid #354856; padding: 12px 0; }
+#history-events summary { font-size: 18px; padding: 8px; }
+#history-events p { white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 760px) { .operations { margin: 12px; padding: 16px; } .probe-controls { align-items: stretch; } .probe-controls select { max-width: 100%; } .resource-table th, .resource-table td { padding: 10px; } }
+@media (max-width: 760px) { .mobile-table-hint { display: block; } }

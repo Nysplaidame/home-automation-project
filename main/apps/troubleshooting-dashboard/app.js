@@ -8,6 +8,8 @@ import {
   evaluateKeys,
   evaluateSymptom,
   normalizeSnapshot,
+  routeMatches,
+  routeIdFromHash,
   sampleSnapshots,
   snapshotSummary,
   statusMeta,
@@ -15,7 +17,7 @@ import {
 } from './diagnostic-model.js';
 
 const state = {
-  activeId: symptoms[0].id,
+  activeId: routeIdFromHash(window.location.hash),
   snapshot: null,
   completed: new Set(),
 };
@@ -75,8 +77,7 @@ function renderSymptoms() {
   list.replaceChildren();
   const search = byId('route-search').value.trim().toLowerCase();
   const category = byId('route-category').value;
-  const matches = symptoms.filter(item => (!category || item.category === category) &&
-    `${item.title} ${item.short} ${item.description} ${item.checks.map(check => check.label).join(' ')}`.toLowerCase().includes(search));
+  const matches = symptoms.filter(item => (!category || item.category === category) && routeMatches(item, search));
   byId('route-count').textContent = `${matches.length} of ${symptoms.length} routes`;
   if (!matches.length) list.append(make('p', 'empty-routes', 'No matching routes. Try another service name or choose All areas.'));
   for (const area of [...new Set(matches.map(item => item.category))]) {
@@ -92,6 +93,7 @@ function renderSymptoms() {
       button.setAttribute('aria-pressed', String(symptom.id === state.activeId));
       button.addEventListener('click', () => {
         state.activeId = symptom.id;
+        window.location.hash = `route=${encodeURIComponent(symptom.id)}`;
         render();
         byId('active-title').focus({ preventScroll: true });
         if (matchMedia('(max-width: 760px)').matches) byId('load-evidence').scrollIntoView({ block: 'start' });
@@ -147,6 +149,12 @@ function renderSteps(symptom) {
     copyButton.type = 'button';
     copyButton.addEventListener('click', () => copyText(item.command, `Copied step ${index + 1} command.`));
     commandRow.append(copyButton);
+    for (const match of item.command.matchAll(/Test-NetConnection\s+(\d+\.\d+\.\d+\.\d+)\s+-Port\s+(\d+)/g)) {
+      const probeButton = make('button', 'copy-command', `Test TCP ${match[1]}:${match[2]} from VM103`);
+      probeButton.type = 'button';
+      probeButton.addEventListener('click', () => window.dispatchEvent(new CustomEvent('connection-test', { detail: { ip: match[1], port: Number(match[2]) } })));
+      commandRow.append(probeButton);
+    }
     const interpretation = make('dl', 'interpretation');
     interpretation.append(make('dt', '', 'Expected'), make('dd', '', item.expected), make('dt', '', 'If not'), make('dd', '', item.failure));
     body.append(heading, context, commandRow, interpretation, checkWrap);
@@ -213,6 +221,7 @@ function renderInvestigation() {
   renderSteps(symptom);
   renderEvidence(symptom);
   renderReferences(symptom);
+  window.dispatchEvent(new CustomEvent('investigation-changed', { detail: { id: symptom.id } }));
 }
 
 function render() {
@@ -279,7 +288,29 @@ byId('clear-snapshot').addEventListener('click', () => {
 });
 
 byId('copy-report').addEventListener('click', () => {
-  copyText(buildIncidentReport(activeSymptom(), state.snapshot, byId('notes').value), 'Incident report copied.');
+  const live = `\n\nResource monitor evidence\n${byId('resource-status').textContent}\n${byId('resource-summary').textContent}\n${byId('resource-alerts').textContent}`;
+  const console = byId('console-output').textContent;
+  copyText(buildIncidentReport(activeSymptom(), state.snapshot, byId('notes').value) + live + (console ? `\n\nConnection checks\n${console}` : ''), 'Incident report copied.');
+});
+
+byId('copy-route').addEventListener('click', () => {
+  const url = new URL(window.location.href);
+  // Share the investigation only: never include notes, evidence or query values.
+  url.search = '';
+  url.hash = `route=${encodeURIComponent(state.activeId)}`;
+  copyText(url.href, 'Route link copied. Notes and evidence are not included.');
+});
+
+window.addEventListener('hashchange', () => {
+  // In-page accessibility/help anchors must not switch the investigation.
+  if (window.location.hash && !window.location.hash.startsWith('#route=')) return;
+  const id = routeIdFromHash(window.location.hash);
+  if (id === state.activeId) { byId('investigation').scrollIntoView({ block: 'start' }); return; }
+  state.activeId = id;
+  byId('route-search').value = '';
+  byId('route-category').value = '';
+  render();
+  byId('investigation').scrollIntoView({ block: 'start' });
 });
 
 for (const category of [...new Set(symptoms.map(item => item.category))]) {
@@ -291,6 +322,7 @@ byId('route-search').addEventListener('input', renderSymptoms);
 byId('route-category').addEventListener('change', renderSymptoms);
 initSamples();
 render();
+if (window.location.hash.startsWith('#route=')) byId('investigation').scrollIntoView({ block: 'start' });
 
 // Refresh age-sensitive assessments without rebuilding steps or disturbing focus.
 setInterval(() => {

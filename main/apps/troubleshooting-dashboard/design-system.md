@@ -2,14 +2,14 @@
 
 ## Direction
 
-- Product type: read-only operational diagnosis workspace.
+- Product type: operational diagnosis workspace with read-only evidence and bounded connection tests.
 - Primary audience: the system owner diagnosing an incident without specialist
   infrastructure knowledge.
 - Workflow density: reading-first, with a numbered journey and one expanded
   diagnostic check initially.
 - Voice and tone: calm, factual and explicit about uncertainty.
-- The UI must not become a generic status-page card grid, a command runner, or
-  an automatic remediation console.
+- Retain guided investigations alongside Resource Health and a named diagnostic
+  console. Do not expose arbitrary shell execution or automatic remediation.
 
 ## Stack
 

@@ -88,7 +88,7 @@ try {
   await desktop.locator('#route-search').fill('P1S');
   await desktop.getByRole('button', { name: /P1S telemetry/ }).click();
   assert.match(await desktop.locator('#active-status').textContent(), /Action needed/);
-  assert.match(await desktop.locator('#expected-state').textContent(), /P1S not commissioned/);
+  assert.match(await desktop.locator('#expected-state').textContent(), /is commissioned/);
   assert.match(await desktop.locator('#evidence-list').textContent(), /P1S reachable/);
   assert.equal(await desktop.locator('#evidence-list .status-fail').count(), 1);
   assert.equal(await desktop.locator('#dependency-path .status-border-fail').count(), 2);

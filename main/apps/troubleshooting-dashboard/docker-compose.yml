@@ -6,6 +6,8 @@ services:
     ports:
       - "192.168.20.102:8094:80"
     read_only: true
+    volumes:
+      - /run/troubleshooting-api:/run/troubleshooting-api:ro
     tmpfs:
       - /var/cache/nginx
       - /var/run
@@ -24,6 +26,7 @@ services:
 networks:
   troubleshooting-dashboard:
     name: troubleshooting-dashboard
+    enable_ipv6: false
     ipam:
       config:
         - subnet: 10.240.32.0/24

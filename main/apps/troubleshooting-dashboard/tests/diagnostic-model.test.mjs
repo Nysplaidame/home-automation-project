@@ -10,11 +10,38 @@ import {
   evaluateKeys,
   evaluateSymptom,
   normalizeSnapshot,
+  routeMatches,
+  routeIdFromHash,
   snapshotSummary,
   symptoms,
 } from '../diagnostic-model.js';
 
 const homepage = symptoms.find(({ id }) => id === 'homepage');
+
+test('search finds multiword symptoms and exact errors inside guidance', () => {
+  for (const [id, query] of [['smb-access', 'SMB permission'], ['printer-queue', 'Clear Bed'],
+    ['frontend-cache', 'crypto.randomUUID'], ['listener-collision', 'address already in use'],
+    ['dns-after-reboot', 'AdGuard reboot'], ['proxy-redirect', 'Grocy 9283']]) {
+    assert.equal(routeMatches(symptoms.find(item => item.id === id), query), true, query);
+  }
+  assert.equal(routeMatches(homepage, 'unrelated-not-present'), false);
+  assert.equal(routeMatches(homepage, '  '), true);
+});
+
+test('route links select a known investigation and safely reject unknown/malformed hashes', () => {
+  assert.equal(routeIdFromHash('#route=smb-access'), 'smb-access');
+  assert.equal(routeIdFromHash('#route=listener-collision'), 'listener-collision');
+  for (const hash of ['', '#route=missing', '#route=%ZZ', '#route=<script>']) {
+    assert.equal(routeIdFromHash(hash), 'homepage');
+  }
+});
+
+test('P1S guidance matches the commissioned FTPS/TLS deployment', () => {
+  const route = symptoms.find(item => item.id === 'p1s');
+  assert.match(expectedStates.p1s, /is commissioned/);
+  assert.match(route.steps.find(item => item.id === 'ports').command, /990 8883/);
+  assert.doesNotMatch(route.steps.find(item => item.id === 'ports').command, /\b21\b/);
+});
 
 test('normalizes supported scalar and object statuses', () => {
   const snapshot = normalizeSnapshot({

@@ -1,0 +1,31 @@
+[Unit]
+Description=Read-only home troubleshooting diagnostics
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=troubleshooting-api
+Group=troubleshooting-api
+ExecStart=/usr/bin/python3 /opt/stacks/troubleshooting-dashboard/diagnostic_api.py
+Restart=on-failure
+RestartSec=5
+RuntimeDirectory=troubleshooting-api
+RuntimeDirectoryMode=0755
+RuntimeDirectoryPreserve=yes
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+MemoryMax=128M
+TasksMax=32
+ReadWritePaths=/run/troubleshooting-api /var/lib/troubleshooting-api
+
+[Install]
+WantedBy=multi-user.target
