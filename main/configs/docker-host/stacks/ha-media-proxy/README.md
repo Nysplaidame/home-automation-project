@@ -20,8 +20,12 @@ Router requirements (OpenWrt):
 - DNS: `ha-media.home.arpa` -> `192.168.20.102` (non-`.local` name).
 - Firewall: allow `iot_sensors` `192.168.50.108` -> `automation` `192.168.20.102` TCP `8124`.
 
-docker-host UFW: `ufw allow from 192.168.50.108 to any port 8124 proto tcp` (+ management
-`192.168.10.0/24` for testing).
+docker-host UFW allows 8124 from `192.168.50.108` (PE), `192.168.20.101` (HA itself: its
+`ffmpeg_proxy` re-fetches the source TTS via `internal_url`; without this the PE gets a 5-byte
+stream and stays silent) and `192.168.10.0/24` (management testing).
+
+Applied live 2026-11-11 (router backups `/etc/config/{firewall,dhcp}.bak-20261111-ha-media`);
+verified: announcement streamed 143 KB FLAC and played.
 
 Side effect: anything else HA hands out via `internal_url` (outside these two paths) 404s through
 this proxy. Revert with HA Settings > System > Network > Home Assistant URL.

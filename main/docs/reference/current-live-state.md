@@ -48,7 +48,7 @@ while its replacement LXC is running.
   `/ssl/fullchain.pem` and `/ssl/privkey.pem`, signed by local
   `/ssl/ca.crt` (`Home Local CA`). HTTP on port `8123` is no longer the active
   HA UI.
-- `homeassistant.internal_url` is `https://homeassistant.home.local:8123` (2026-11-11). It was found empty after the 2026.11 SSL-profile migration; with SSL enabled HA ignores IP-only URLs when building media URLs for devices (Voice PE replies failed with "Unable to determine Home Assistant URL"), so it must be the hostname in the cert SAN;
+- `homeassistant.internal_url` is `http://ha-media.home.arpa:8124` (2026-11-11): the docker-host `ha-media-proxy` that exposes only TTS/announcement media paths over plain HTTP for ESPHome voice satellites. It was found empty after the 2026.11 SSL-profile migration; HA ignores IP-only URLs under SSL, ESP32s cannot resolve `*.local` via unicast DNS, and stock Voice PE firmware does not trust the private CA. See `configs/docker-host/stacks/ha-media-proxy/README.md`;
   `external_url` is intentionally unset.
 - Mosquitto, File Editor, Terminal & SSH and ESPHome Device Builder are live.
 - The Home Assist pipeline uses Home Assistant's built-in conversation agent.
