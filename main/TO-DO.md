@@ -278,6 +278,7 @@ must work without HACS.
 - [ ] HA: reload the Wyoming openWakeWord integration and set the Overwatch pipeline wake word to `overwatch` (custom model live on CT 114)
 - [x] Voice PE `home-assistant-voice-0ae52a` on IoT VLAN 50 (`HomeIoT`) at `192.168.50.108`; mDNS discovery does not cross VLANs, so added to HA's ESPHome integration by IP (like the VentSys boards); assistant select set to `Overwatch` (2026-11-11).
 - [x] Voice PE replies play: HA `internal_url` -> `ha-media-proxy` (docker-host 8124), router DNS `ha-media.home.arpa`, IoT->proxy rule, DHCP reservation `.108` (2026-11-11)
+- [ ] Faster Overwatch LLM on the Arc iGPU (already Vulkan-offloaded; ~5 tok/s, bandwidth bound): benchmark Qwen3-30B-A3B / 8B / 4B and SYCL vs Vulkan - see `HANDOFF-2026-11-11-llm-igpu-speed.md`
 - [ ] Voice PE wake word: stock firmware only offers on-device Okay Nabu / Hey Jarvis / Hey Mycroft; `overwatch` needs a microWakeWord model or adopted firmware that streams to HA openWakeWord
 - [ ] Garage voice satellite: buy a Home Assistant Voice Preview Edition (chosen over the Waveshare ESP32-S3-AUDIO-Board for its XMOS echo cancellation and noise suppression, line out and official support); feed a wired powered speaker from its 3.5 mm line out (avoids Bluetooth wake-up clipping); keep the `overwatch` wake word, either by streaming to HA openWakeWord or by training a microWakeWord model; add an optional ~0.5 s output lead-in only if the final speaker clips
 
