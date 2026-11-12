@@ -228,7 +228,8 @@ export class VentSysDashboardCard extends HTMLElement {
   }
   _expected(request) {
     if(request.kind === 'setup') return Object.fromEntries(Object.entries(setupTargets(request.target,request.value)).filter(([key])=>request.included.includes(key)));
-    return request.kind === 'operation' ? operatingPlan(operatingState(this._hass?.states || {}),request.target,request.value,request.strength).targets : commandExpected(request,this._snapshot());
+    const saved=operatingState(this._hass?.states || {});
+    return request.kind === 'operation' ? operatingPlan(saved?.pending_key ? {...saved,key:saved.pending_key} : saved,request.target,request.value,request.strength).targets : commandExpected(request,this._snapshot());
   }
   _blocked(request) {
     const backend=this._backendBlock(); if(backend) return backend;
@@ -236,7 +237,7 @@ export class VentSysDashboardCard extends HTMLElement {
       const states=this._hass?.states || {}, saved=operatingState(states), device=DEVICES[request.target], report=this._snapshot()[request.target];
       const pwm=request.target === 'fdm_360' ? 'binary_sensor.garage_ventsys_sla_360_intake_valve_pwm_commanded_active' : 'binary_sensor.garage_ventsys_fdm_360_intake_valve_pwm_commanded_active';
       if(!device?.expectedRange || !Number.isInteger(request.opening) || request.opening < 0 || request.opening > 100) return 'Enter an opening from 0 to 100%';
-      if(!saved || saved.revision !== request.revision || ['fdm','sla','booth'].some(z=>saved[z] !== 'off')) return 'Stop all operating modes first';
+      if(!saved || saved.pending_key || saved.revision !== request.revision || ['fdm','sla','booth'].some(z=>saved[z] !== 'off')) return 'Stop all operating modes first';
       if(!['fan.inline_fan','fan.spray_booth_fan'].every(id=>states[id]?.state === 'off')) return 'Both fan reports must be available and off';
       if(states['script.ventsys_record_intake_reference']?.state !== 'off') return 'Reference service unavailable or busy';
       if(states[pwm]?.state !== 'off' || !report?.available || !report.native) return 'Controller and inactive PWM reports are required';
@@ -246,7 +247,7 @@ export class VentSysDashboardCard extends HTMLElement {
       const states=this._hass?.states || {}, saved=operatingState(states);
       if(states['script.ventsys_test_valves']?.state !== 'off') return 'Setup test service unavailable or busy';
       if(!saved || saved.revision !== request.revision) return 'Operating intents changed; choose the test again';
-      if(['fdm','sla','booth'].some(z=>saved[z] !== 'off')) return 'Stop operating modes before valve setup testing';
+      if(saved.pending_key || ['fdm','sla','booth'].some(z=>saved[z] !== 'off')) return 'Reconcile pending and active modes before valve setup testing';
       if(['fan_main','fan_booth'].some(key=>this._snapshot()[key].value === 'on')) return 'Stop running fans before valve setup testing';
       if(!request.included.length) return 'No available valves for this test';
       for(const [key,value] of Object.entries(this._expected(request))) {
@@ -258,6 +259,7 @@ export class VentSysDashboardCard extends HTMLElement {
       if(this._hass?.states?.['script.ventsys_set_operating_mode']?.state !== 'off') return 'Operating mode service is unavailable or busy';
       const saved=operatingState(this._hass.states);
       if(!saved || saved.revision !== request.revision) return 'Operating intents changed; refresh and try again';
+      if(saved.pending_key && (saved.pending_request !== request.target+':'+request.value || (saved.pending_strength ?? undefined) !== request.strength)) return 'Retry the interrupted request first';
       for(const [key,value] of Object.entries(this._expected(request))) {
         const speed=key.endsWith('_speed'), name=speed ? key.slice(0,-6) : key, device=DEVICES[name];
         const reason=commandBlock(commandRequest(speed ? 'speed' : device.fan ? 'fan' : 'position',name,value),this._snapshot(),this._connected(),this._failsafe());
@@ -267,6 +269,7 @@ export class VentSysDashboardCard extends HTMLElement {
       return '';
     }
     const state=operatingState(this._hass?.states || {});
+    if(state?.pending_key) return 'Retry the interrupted mode request first';
     if(state) {
       const active=operatingPlan(state,'fdm',state.fdm).targets;
       // targets also include current active shared paths. Filter release actions
@@ -486,7 +489,7 @@ export class VentSysDashboardCard extends HTMLElement {
     const saved=operatingState(states), busy=Boolean(this._pending || window[lockKey]);
     this._text('#operating-intents',saved ? `Requested: FDM ${saved.fdm}${saved.fdm === 'purge' ? ' '+PURGE_STRENGTHS[saved.fdm_strength] : ''} · SLA ${saved.sla}${saved.sla === 'purge' ? ' '+PURGE_STRENGTHS[saved.sla_strength] : ''} · Booth ${saved.booth === 'enclosure' ? 'on' : 'off'}` : 'Operating intents unavailable');
     const result=states['input_text.ventsys_operating_result']?.state;
-    this._text('#operating-result',!result || ['unknown','unavailable'].includes(result) ? 'No operating result recorded' : result.startsWith('Applying') && states['script.ventsys_set_operating_mode']?.state === 'off' ? 'Previous transition interrupted; inspect controller reports and verify released paths. Retrying may not close them.' : 'Last result: '+result.replace('retry to reconcile','inspect controller reports and verify released paths; retry may not close them'));
+    this._text('#operating-result',!result || ['unknown','unavailable'].includes(result) ? 'No operating result recorded' : result.startsWith('Applying') && states['script.ventsys_set_operating_mode']?.state === 'off' ? saved?.pending_key ? 'Previous transition interrupted; retry the same request and verify controller reports.' : 'Previous transition interrupted; inspect controller reports and verify released paths. Retrying may not close them.' : 'Last result: '+(saved?.pending_key ? result : result.replace('retry to reconcile','inspect controller reports and verify released paths; retry may not close them')));
     this._text('#mode-help','Modes combine across enclosures. Changing a mode replaces only the selected enclosure. Fan speeds are retained.');
     const setup=this.$('#setup-mode').checked;this.$('#setup-note').hidden=!setup;
     const modeReasons=new Set();

@@ -42,11 +42,11 @@ def build():
               'fields': {**{k: {'required': True} for k in ('zone', 'operation', 'revision')}, 'strength': {'description': 'Purge level: 2,4,6,8,10; maps to 20,40,60,80,100 percent pending calibration'}}, 'sequence': [
         {'variables': {'controls': controls, 'plans': plans}},
         {'variables': {'current': "{{ states('" + HELPER + "') | from_json({'fdm':'off','sla':'off','booth':'off','revision':0}) }}"}},
-        {'variables': {'current_key': "{{ current.fdm | default('invalid') ~ '|' ~ current.sla | default('invalid') ~ '|' ~ current.booth | default('invalid') }}",
+        {'variables': {'current_key': "{{ current.pending_key | default(current.fdm | default('invalid') ~ '|' ~ current.sla | default('invalid') ~ '|' ~ current.booth | default('invalid')) }}",
                        'request_key': "{{ zone | default('invalid') ~ ':' ~ operation | default('invalid') }}"}},
         guard("{{ not (" + allowed[3:-3] + ") }}", 'Failsafe active/unknown or fire response running'),
         guard("{{ not is_state('script.ventsys_normal_command','off') or not is_state('script.ventsys_dashboard_command','off') or not is_state('script.ventsys_record_intake_reference','off') }}", 'Another command is running'),
-        guard("{{ current_key not in plans or request_key not in plans.get(current_key,{}) or revision is not integer or revision != current.revision | default(-1) or states('input_text.ventsys_operating_state') not in ['', 'unknown'] and states('input_text.ventsys_operating_state') | from_json(none) is none or operation == 'purge' and (strength | default(none) is not integer or strength not in [2,4,6,8,10]) or operation != 'purge' and strength | default(none) is not none }}", 'Invalid or stale mode request; choose a valid purge strength and refresh controller state'),
+        guard("{{ current_key not in plans or request_key not in plans.get(current_key,{}) or revision is not integer or revision != current.revision | default(-1) or (current.pending_request is defined and (request_key != current.pending_request or strength | default(none) != current.pending_strength | default(none))) or states('input_text.ventsys_operating_state') not in ['', 'unknown'] and states('input_text.ventsys_operating_state') | from_json(none) is none or operation == 'purge' and (strength | default(none) is not integer or strength not in [2,4,6,8,10]) or operation != 'purge' and strength | default(none) is not none }}", 'Invalid or stale mode request; choose a valid purge strength and refresh controller state'),
         {'variables': {'plan': """{% set base=plans[current_key][request_key] %}
 {% set f=(strength if zone in ['fdm','both'] else current.fdm_strength | default(6)) if base.desired.fdm == 'purge' else 0 %}
 {% set s=(strength if zone in ['sla','both'] else current.sla_strength | default(6)) if base.desired.sla == 'purge' else 0 %}
@@ -59,7 +59,8 @@ def build():
         # Do not guess a speed. Fan-on with a zero/unknown retained speed cannot
         # establish a usable extraction request.
         guard("{% set ns=namespace(bad=false) %}{% for key,value in expected.items() %}{% if key.startswith('fan_') and value == 'on' and key ~ '_speed' not in expected %}{% set report=states[controls[key].entity] %}{% if report is none or report.attributes.get('percentage',0) | float(0) <= 0 %}{% set ns.bad=true %}{% endif %}{% endif %}{% endfor %}{{ ns.bad }}", 'Set a nonzero extraction fan speed before starting this mode'),
-        {'action': 'input_text.set_value', 'target': {'entity_id': HELPER}, 'data': {'value': "{{ dict(plan.desired, revision=current.revision + 1) | to_json }}"}},
+        {'action': 'input_text.set_value', 'target': {'entity_id': HELPER}, 'data': {'value': "{{ dict(plan.desired, revision=current.revision + 1, pending_key=current_key, pending_request=request_key, pending_strength=strength | default(none)) | to_json }}"}},
+        {'action': 'homeassistant.save_persistent_states'},
         {'action': 'input_text.set_value', 'target': {'entity_id': 'input_text.ventsys_operating_result'}, 'data': {'value': 'Applying; controller reports pending'}},
         {'repeat': {'for_each': '{{ plan.phases }}', 'sequence': [
             guard("{{ not (" + allowed[3:-3] + ") }}", 'Emergency interrupted operating transition'),
@@ -69,10 +70,12 @@ def build():
             {'action': 'script.ventsys_normal_command', 'data': {'operating': True, 'commands': "{% set ns=namespace(batch=[]) %}{% for key,value in expected.items() %}{% set speed=key.endswith('_speed') %}{% set device=controls[key[:-6] if speed else key] %}{% set ns.batch=ns.batch + [{'topic':device.speedTopic if speed else device.topic,'payload':value | string}] %}{% endfor %}{{ ns.batch }}"}},
             {'wait_template': confirmed, 'timeout': '00:00:08', 'continue_on_timeout': True},
             {'if': [{'condition': 'template', 'value_template': '{{ not wait.completed }}'}], 'then': [
-                {'action': 'input_text.set_value', 'target': {'entity_id': 'input_text.ventsys_operating_result'}, 'data': {'value': 'Failed: controller report timeout; requested intents retained; retry to reconcile'}},
+                {'action': 'input_text.set_value', 'target': {'entity_id': 'input_text.ventsys_operating_result'}, 'data': {'value': 'Failed: controller report timeout; retry the same request to reconcile'}},
                 stop('Operating transition stopped: controller report timeout')]},
         ]}},
         guard("{{ not (" + allowed[3:-3] + ") }}", 'Emergency interrupted operating transition'),
+        {'action': 'input_text.set_value', 'target': {'entity_id': HELPER}, 'data': {'value': "{{ dict(plan.desired, revision=current.revision + 1) | to_json }}"}},
+        {'action': 'homeassistant.save_persistent_states'},
         {'action': 'input_text.set_value', 'target': {'entity_id': 'input_text.ventsys_operating_result'}, 'data': {'value': 'Targets confirmed by controller reports'}},
     ]}
     test_script = {'alias':'VentSys — setup valve test (not ventilation)', 'mode':'single', 'max_exceeded':'error',
@@ -82,7 +85,7 @@ def build():
                       'request_key':"{{ zone | default('invalid') ~ ':' ~ operation | default('invalid') }}"}},
         guard("{{ not (" + allowed[3:-3] + ") }}", 'Failsafe/fire blocks setup tests'),
         guard("{{ not is_state('script.ventsys_set_operating_mode','off') or not is_state('script.ventsys_normal_command','off') or not is_state('script.ventsys_dashboard_command','off') or not is_state('script.ventsys_record_intake_reference','off') }}", 'Another command is running'),
-        guard("{{ current.fdm | default('invalid') != 'off' or current.sla | default('invalid') != 'off' or current.booth | default('invalid') != 'off' or revision is not integer or revision != current.revision | default(-1) }}", 'Stop operating intents before setup testing; stale requests are rejected'),
+        guard("{{ current.pending_key is defined or current.fdm | default('invalid') != 'off' or current.sla | default('invalid') != 'off' or current.booth | default('invalid') != 'off' or revision is not integer or revision != current.revision | default(-1) }}", 'Stop operating intents before setup testing; stale requests are rejected'),
         guard("{{ is_state('fan.inline_fan','on') or is_state('fan.spray_booth_fan','on') }}", 'Stop running fans before valve setup testing'),
         guard("{% set ns=namespace(bad=false) %}{% if request_key not in test_targets or included is not defined or included is string or included is mapping or included is not sequence %}true{% elif included | count < 1 or included | count > 8 or included | unique | list | count != included | count %}true{% else %}{% for key in included %}{% if key is not string or key not in test_targets[request_key] %}{% set ns.bad=true %}{% endif %}{% endfor %}{{ ns.bad }}{% endif %}", 'Invalid setup valve subset'),
         {'variables':{'expected':"{% set ns=namespace(result={}) %}{% for key in included %}{% set ns.result=dict(ns.result,**{key:test_targets[request_key][key]}) %}{% endfor %}{{ ns.result }}"}},
@@ -104,6 +107,7 @@ def build():
 {% set owner=operating | default(false) %}
 {% set tester=testing | default(false) %}
 {% set ns=namespace(bad=not is_state('script.ventsys_record_intake_reference','off') or active_key not in operating_required or raw == 'unavailable' or raw not in ['', 'unknown'] and raw | from_json(none) is none or owner is not boolean or owner != is_state('script.ventsys_set_operating_mode','on') or states('script.ventsys_set_operating_mode') not in ['on','off']) %}
+{% if saved.pending_key is defined and not owner %}{% set ns.bad=true %}{% endif %}
 {% if tester is not boolean or tester != is_state('script.ventsys_test_valves','on') or states('script.ventsys_test_valves') not in ['on','off'] or tester and owner %}{% set ns.bad=true %}{% endif %}
 {% if tester and (is_state('fan.inline_fan','on') or is_state('fan.spray_booth_fan','on') or saved.fdm | default('invalid') != 'off' or saved.sla | default('invalid') != 'off' or saved.booth | default('invalid') != 'off') %}{% set ns.bad=true %}{% endif %}
 {% if tester %}{% for c in commands %}{% if c.topic not in valve_topics %}{% set ns.bad=true %}{% endif %}{% endfor %}{% endif %}

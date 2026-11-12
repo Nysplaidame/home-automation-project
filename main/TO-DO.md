@@ -18,7 +18,9 @@ status: active
 
 - [ ] Fix confirmed interrupted mode-release recovery: desired intent is saved
   before valve closures; retry can omit the released valves and shared paths.
-  Preserve pending ownership durably; replace misleading retry guidance.
+  Preserve pending ownership durably; replace misleading retry guidance. Local
+  recovery candidate and regression tests complete; deployment and HA restart
+  acceptance remain outstanding.
 - [ ] Decide normal-mode fan speed after the last purge ends; current planner
   leaves the last purge speed in place while another mode remains active.
 - [x] Add tested offline firmware-report comparator and MAC-guarded read-only

@@ -442,6 +442,8 @@ script:
           or owner != is_state(''script.ventsys_set_operating_mode'',''on'') or states(''script.ventsys_set_operating_mode'')
           not in [''on'',''off'']) -%}
 
+          {%- if saved.pending_key is defined and not owner %}{% set ns.bad=true %}{% endif %}
+
           {%- if tester is not boolean or tester != is_state(''script.ventsys_test_valves'',''on'') or states(''script.ventsys_test_valves'')
           not in [''on'',''off''] or tester and owner -%}{%- set ns.bad=true -%}{%- endif -%}
 
@@ -505,6 +507,8 @@ script:
               in operating_required or raw == ''unavailable'' or raw not in ['''', ''unknown''] and raw | from_json(none)
               is none or owner is not boolean or owner != is_state(''script.ventsys_set_operating_mode'',''on'') or states(''script.ventsys_set_operating_mode'')
               not in [''on'',''off'']) -%}
+
+              {%- if saved.pending_key is defined and not owner %}{% set ns.bad=true %}{% endif %}
 
               {%- if tester is not boolean or tester != is_state(''script.ventsys_test_valves'',''on'') or states(''script.ventsys_test_valves'')
               not in [''on'',''off''] or tester and owner -%}{%- set ns.bad=true -%}{%- endif -%}

@@ -848,18 +848,15 @@ and pre/post firmware-update retention checks. These are not delivered merely
 by this review. Flow/jam thresholds require commissioned baselines; unconfigured
 nodes must not cause alert storms. ntfy phone delivery was previously unproven.
 
-### Confirmed interrupted-release retry gap
+### Interrupted-release recovery candidate
 
-The manager saves desired intents before completing transition phases. Example:
-FDM Print + SLA Purge -> SLA Off first plans to close SLA branch/print/360.
-If execution stops before those closures, SLA is already recorded off. Repeating
-SLA Off from that saved state no longer includes any SLA valves, so the current
-UI's “retry to reconcile” message is not generally reliable. The same ownership
-loss can affect shared main-path release. Existing mode-intent preservation tests
-pass but do not prove interruption recovery. Do not assume a retry sealed the
-released path; inspect available reports and verify the actual path. A durable
-pending-transition record plus explicit recovery semantics is needed before
-claiming a fix; preserve unaffected intent ownership and emergency priority.
-Direct local touch/MQTT can also override an active mode outside HA arbitration.
+The local candidate retains the previous ownership key and exact request with the
+new desired intent, and saves persistent states before issuing transition phases.
+After interruption or restart, repeat that same request and strength to reconstruct
+its original release plan, including shared paths. Other normal commands and setup
+tests are blocked until controller reports confirm the transition. Emergency
+preemption remains available; there is no automatic replay. Controller reports do
+not establish physical valve position. This candidate is not deployed; the live
+release still has the interrupted-release gap described above.
 
 November4 release20261104-4: enclosure air-sensor symbols derive availability from the configured group of temperature, humidity, pressure, gas and smoke entities; a missing individual reading does not grey an otherwise online device. No available entity greys that sensor. Flow arrows remain vivid red when no fresh positive flow is available and animate blue on fresh positive flow; the circle itself is dimmed for an unavailable wheel entity. Tests cover online/offline, partial measurements and colours. Prior assets are in `/config/backups/ventsys-ui-20261104-3`; restore them and resource20261104-3 to roll back.

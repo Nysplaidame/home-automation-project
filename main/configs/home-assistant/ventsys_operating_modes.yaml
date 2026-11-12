@@ -11476,8 +11476,8 @@ script:
         current: '{{ states(''input_text.ventsys_operating_state'') | from_json({''fdm'':''off'',''sla'':''off'',''booth'':''off'',''revision'':0})
           }}'
     - variables:
-        current_key: '{{ current.fdm | default(''invalid'') ~ ''|'' ~ current.sla | default(''invalid'') ~ ''|'' ~ current.booth
-          | default(''invalid'') }}'
+        current_key: '{{ current.pending_key | default(current.fdm | default(''invalid'') ~ ''|'' ~ current.sla | default(''invalid'')
+          ~ ''|'' ~ current.booth | default(''invalid'')) }}'
         request_key: '{{ zone | default(''invalid'') ~ '':'' ~ operation | default(''invalid'') }}'
     - if:
       - condition: template
@@ -11497,10 +11497,11 @@ script:
     - if:
       - condition: template
         value_template: '{{ current_key not in plans or request_key not in plans.get(current_key,{}) or revision is not integer
-          or revision != current.revision | default(-1) or states(''input_text.ventsys_operating_state'') not in ['''', ''unknown'']
-          and states(''input_text.ventsys_operating_state'') | from_json(none) is none or operation == ''purge'' and (strength
-          | default(none) is not integer or strength not in [2,4,6,8,10]) or operation != ''purge'' and strength | default(none)
-          is not none }}'
+          or revision != current.revision | default(-1) or (current.pending_request is defined and (request_key != current.pending_request
+          or strength | default(none) != current.pending_strength | default(none))) or states(''input_text.ventsys_operating_state'')
+          not in ['''', ''unknown''] and states(''input_text.ventsys_operating_state'') | from_json(none) is none or operation
+          == ''purge'' and (strength | default(none) is not integer or strength not in [2,4,6,8,10]) or operation != ''purge''
+          and strength | default(none) is not none }}'
       then:
       - stop: Invalid or stale mode request; choose a valid purge strength and refresh controller state
         error: true
@@ -11555,7 +11556,9 @@ script:
       target:
         entity_id: input_text.ventsys_operating_state
       data:
-        value: '{{ dict(plan.desired, revision=current.revision + 1) | to_json }}'
+        value: '{{ dict(plan.desired, revision=current.revision + 1, pending_key=current_key, pending_request=request_key,
+          pending_strength=strength | default(none)) | to_json }}'
+    - action: homeassistant.save_persistent_states
     - action: input_text.set_value
       target:
         entity_id: input_text.ventsys_operating_result
@@ -11619,7 +11622,7 @@ script:
             target:
               entity_id: input_text.ventsys_operating_result
             data:
-              value: 'Failed: controller report timeout; requested intents retained; retry to reconcile'
+              value: 'Failed: controller report timeout; retry the same request to reconcile'
           - stop: 'Operating transition stopped: controller report timeout'
             error: true
     - if:
@@ -11629,6 +11632,12 @@ script:
       then:
       - stop: Emergency interrupted operating transition
         error: true
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.ventsys_operating_state
+      data:
+        value: '{{ dict(plan.desired, revision=current.revision + 1) | to_json }}'
+    - action: homeassistant.save_persistent_states
     - action: input_text.set_value
       target:
         entity_id: input_text.ventsys_operating_result
@@ -11875,9 +11884,9 @@ script:
         error: true
     - if:
       - condition: template
-        value_template: '{{ current.fdm | default(''invalid'') != ''off'' or current.sla | default(''invalid'') != ''off''
-          or current.booth | default(''invalid'') != ''off'' or revision is not integer or revision != current.revision |
-          default(-1) }}'
+        value_template: '{{ current.pending_key is defined or current.fdm | default(''invalid'') != ''off'' or current.sla
+          | default(''invalid'') != ''off'' or current.booth | default(''invalid'') != ''off'' or revision is not integer
+          or revision != current.revision | default(-1) }}'
       then:
       - stop: Stop operating intents before setup testing; stale requests are rejected
         error: true

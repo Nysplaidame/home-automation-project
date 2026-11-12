@@ -90,7 +90,7 @@ class OperatingPackageTests(unittest.TestCase):
                     actual=self.render(template,current=old,current_key=key,request_key=zone+':'+mode,zone=zone,strength=level)
                     expected=with_strength(transition({k:old[k] for k in EMPTY},zone,mode),old,zone,mode,level)
                     self.assertEqual(actual,expected)
-        phase=self.sequence[13]['repeat']['sequence'][4]['data']['commands']
+        phase=self.sequence[14]['repeat']['sequence'][4]['data']['commands']
         self.assertEqual(self.render(phase,expected={'fan_main_speed':80}),[{'topic':'ventsys/fan/percent','payload':'80'}])
 
     def test_dispatcher_rejects_conflicting_batches_before_any_publish(self):
@@ -134,7 +134,7 @@ class OperatingPackageTests(unittest.TestCase):
 
     def test_failure_and_emergency_do_not_advance_transition(self):
         self.assertEqual(self.script['mode'], 'single')
-        phases = self.sequence[13]['repeat']['sequence']
+        phases = self.sequence[14]['repeat']['sequence']
         self.assertIn('Emergency', phases[0]['then'][0]['stop'])
         self.assertEqual(phases[5]['timeout'], '00:00:08')
         failure = phases[6]['then']
@@ -143,6 +143,31 @@ class OperatingPackageTests(unittest.TestCase):
         self.assertIn('script.ventsys_set_operating_mode', fire[0]['target']['entity_id'])
         self.assertTrue(all(entry['action'] == 'mqtt.publish' for entry in fire[1:]))
         self.assertNotIn('initial', self.package['input_text']['ventsys_operating_state'])
+
+    def test_interrupted_release_retains_ownership_and_retries_original_plan(self):
+        old = {'fdm': 'print', 'sla': 'purge', 'booth': 'off', 'fdm_strength': 0, 'sla_strength': 6, 'revision': 3}
+        plan = with_strength(transition({k: old[k] for k in EMPTY}, 'sla', 'off'), old, 'sla', 'off', None)
+        saved = self.render(self.sequence[11]['data']['value'], plan=plan, current=old,
+                            current_key='print|purge|off', request_key='sla:off')
+        saved = json.loads(saved) if isinstance(saved, str) else saved
+        self.assertEqual(saved['sla'], 'off')
+        self.assertEqual(saved['pending_key'], 'print|purge|off')
+        self.assertEqual(self.sequence[12]['action'], 'homeassistant.save_persistent_states')
+        self.assertEqual(self.sequence[14]['repeat']['for_each'], '{{ plan.phases }}')
+        self.mapping['input_text.ventsys_operating_state'] = SimpleNamespace(state=json.dumps(saved))
+        current = self.render(self.sequence[1]['variables']['current'])
+        values = {'current': current, 'zone': 'sla', 'operation': 'off', 'revision': 4}
+        for key, template in self.sequence[2]['variables'].items(): values[key] = self.render(template, **values)
+        self.assertEqual(values['current_key'], 'print|purge|off')
+        self.assertFalse(self.render(self.sequence[5]['if'][0]['value_template'], **values))
+        retry = self.render(self.sequence[6]['variables']['plan'], **values)
+        self.assertEqual(retry, plan)
+        self.assertTrue({'sla_branch', 'sla_print', 'sla_360', 'main1'} <= set(retry['targets']))
+        self.assertEqual(retry['targets']['main1'], 0)
+        values['request_key'] = 'fdm:off'
+        self.assertTrue(self.render(self.sequence[5]['if'][0]['value_template'], **values))
+        self.assertEqual(self.sequence[-2]['action'], 'homeassistant.save_persistent_states')
+        self.assertNotIn('pending_key', self.render(self.sequence[-3]['data']['value'], plan=plan, current=current))
 
     def test_setup_contract_rejects_fans_stale_and_active_modes(self):
         script=self.package['script']['ventsys_test_valves']; seq=script['sequence']

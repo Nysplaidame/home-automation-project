@@ -28,7 +28,7 @@ script:
             value_template: >-
               {{ target | default('') not in devices or opening is not integer or opening < 0 or opening > 100
                  or saved is not mapping or revision is not integer or saved.revision | default(-1) != revision
-                 or saved.fdm | default('invalid') != 'off' or saved.sla | default('invalid') != 'off'
+                 or saved.pending_key is defined or saved.fdm | default('invalid') != 'off' or saved.sla | default('invalid') != 'off'
                  or saved.booth | default('invalid') != 'off'
                  or not is_state('input_boolean.ventsys_failsafe','off')
                  or not is_state('script.ventsys_mode_fire_safe','off')
