@@ -318,3 +318,7 @@ prove bootloader acceptance from uptime alone. Mocked identity/missing-evidence
 tests and a read-only E2 `.52` native capture passed. Older boards without a
 PWM diagnostic fail indeterminate rather than claiming success. OTA upload and
 post-update comparison are not yet automatically coupled.
+
+## FDM CO firmware — November 10
+
+The FDM `.32` board (MAC `CC:BA:97:F0:D0:C0`) now runs the CO-capable `ventsys_fdm_sensor.yaml` after encrypted OTA. It retains GPIO2 plain status LED, GPIO3 CO input, GPIO4/5 BME680 at `0x77`, device identity and 40 C threshold. ESPHome 2026.9.1 build `11:02:34 +0000`, config hash `0x1585cc4c`; the HA Builder source matches. The former smoke-labelled channel was removed. Allow 180 seconds after boot, check CO fault is off and voltage stable, then use the CO clean-air baseline button; verify the resulting Rs/R0 ratio and full notification path. No smoke sensor or calibrated ppm measurement is implied.

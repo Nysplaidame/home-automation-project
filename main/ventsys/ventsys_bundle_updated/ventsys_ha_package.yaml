@@ -435,6 +435,9 @@ mqtt:
     #  ->  Risk state ────────────────────────────────────────────────────────────
 
 
+    # F-28 RESOLVED: ventsys/{fdm,sla}/risk/state is now published by the HA automations
+    # ventsys_{fdm,sla}_risk_publish in ventsys_array_mqtt.yaml (load that package too).
+    # Booth still has no publisher. Original warning kept below for history.
     # F-28 WARNING: These sensors subscribe to risk/state topics, but NO firmware
 
 
@@ -646,7 +649,7 @@ mqtt:
       unique_id: ventsys_garage_temperature
 
 
-      state_topic: "ventsys/garage/temperature"
+      state_topic: "ventsys/garage/air/temperature"
 
 
       unit_of_measurement: "°C"
@@ -666,7 +669,7 @@ mqtt:
       unique_id: ventsys_garage_humidity
 
 
-      state_topic: "ventsys/garage/humidity"
+      state_topic: "ventsys/garage/air/humidity"
 
 
       unit_of_measurement: "%"
@@ -686,7 +689,7 @@ mqtt:
       unique_id: ventsys_garage_baro_pressure
 
 
-      state_topic: "ventsys/garage/baro_pressure"
+      state_topic: "ventsys/garage/air/baro_pressure"
 
 
       unit_of_measurement: "hPa"
@@ -706,7 +709,7 @@ mqtt:
       unique_id: ventsys_garage_iaq
 
 
-      state_topic: "ventsys/garage/iaq"
+      state_topic: "ventsys/garage/air/iaq"
 
 
       unit_of_measurement: "Ω"

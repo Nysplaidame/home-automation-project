@@ -17,6 +17,10 @@ background:
   opacity: 38
 cardBlur: sm
 layout:
+  Service Health:
+    tab: Home
+    style: row
+    columns: 1
   Reference Links:
     tab: Home
     style: row

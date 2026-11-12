@@ -3,7 +3,7 @@ title: "Monitoring VM"
 category: entity
 tags: [software, monitoring, grafana, proxmox, influxdb, uptime-kuma, telegraf]
 created: 2026-04-07
-updated: 2026-10-11
+updated: 2026-11-11
 sources: [proxmox-setup-guide, project-readme, project-todo]
 status: stable
 ---
@@ -132,3 +132,11 @@ and their historical green checks do not establish current stream health.
 - 2026-05-18: Corrected stale planned-state page. VM 102 is live with Grafana, InfluxDB, Telegraf, and Uptime Kuma.
 - 2026-05-08: Clarified — VM 102 never created at that point; docker-host is VM 103; monitoring still planned.
 - 2026-04-07: Page created as stub from proxmox-setup-guide ingest.
+
+
+November11 canonical monitoring roadmap records eight additional Kuma checks,
+all currently passing. Kuma now trusts the existing local CA through
+NODE_EXTRA_CA_CERTS. All eight new checks have ntfy routes and two retries. Homepage widget is deployed using status slug home-operations and all 43
+monitors. Owner completed browser checks and the heartbeat API reports 40 Up
+and 3 Down for the intentionally disconnected cameras.
+See [[../../../main/docs/procedures/monitoring_roadmap]].

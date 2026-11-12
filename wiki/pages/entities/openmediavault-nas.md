@@ -25,7 +25,7 @@ Verified retained originals/quarantines retired October27 23:19 GMT; about654GiB
 freed on Y. Operational text references corrected; offline/native embedded links
 remain a documented acceptance limit. Older
 dated topology below is historical. Canonical [[../../../main/docs/reference/current-live-state]]
-and storage migration audit hold exact proof and acceptance limits.
+holds the operational details and acceptance limits.
 
 OpenMediaVault is the project's live NAS at `192.168.40.50` on VLAN 40. It
 provides storage shares for Home Assistant
@@ -62,23 +62,6 @@ on [[entities/docker-host]] under `/opt/stacks/<service>/`.
   heartbeat on 2026-07-29
 
 - Desktop SSH: root key login via local alias `omv-lan` verified 2026-09-30; existing public key installed while preserving other entries. See [[../../../main/scripts/setup/nas/omv_nas_setup_guide]] for management access. Credentials remain outside the vault.
-
-- SMB backing storage verified 2026-09-30: Y:/NAS uses `md0` RAID1 (two members); Z:/14tb uses a separate data disk. Durable filesystem UUIDs are in [[../../../main/scripts/setup/nas/omv_nas_setup_guide]].
-
-- October25 migration state: Z now maps `Media`, ext4 UUID
-  `a8843f98-c937-48a8-aefa-4cd0fb80667c`, with five scoped media NFS exports.
-  Full staging/layout hashes passed, services switched/running and owner
-  confirmed application acceptance. Calibre is at Media root/calibre-library.
-  Original Z serial `3GHV81YE` partition1 was cleanly retired after unchanged-
-  generation proof and added to Media RAID1 `/dev/md/media` (currently md127),
-  rebuilding from verified serial `3HG402GN` partition1. Expected `[U_]` until
-  synchronization completes. No independent original-Z rollback remains,
-  explicitly owner-waived. Y/md0 stays healthy and its NAS/Print layout intact.
-  Y non-Print warm copy is queued behind a healthy fully synchronized mirror.
-  Filebrowser remains paused pending composite view; legacy TransferPortal
-  service/binds are retired. Print flattening and final restore/cleanup gates
-  remain outstanding.
-  [[../../../main/docs/audits/2026-10-20-storage-migration/README]]
 
 ## Open Questions
 

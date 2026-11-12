@@ -1,21 +1,3 @@
-# Candidate replacement for installed FDM enclosure sensor
-# Expected board MAC CC:BA:97:F0:D0:C0, static IP 192.168.50.32.
-# Owner confirmed the same CO/BME680 wiring as the SLA pipe air board:
-# CO analog GPIO3, BME680 SDA GPIO4 / SCL GPIO5, I2C address 0x77.
-# Verify the board MAC and the status LED hardware before flashing.
-# This replaces the legacy firmware's incorrectly named smoke GPIO3 channel.
-# CO readings are qualitative and require clean-air baseline verification.
-
-substitutions:
-  device_name: ventsys-fdm-sensor
-  entity_prefix: "FDM Enclosure Sensor"
-  device_ip: "192.168.50.32"
-  mqtt_topic_prefix: "ventsys/fdm"
-  temp_threshold: "40.0" # Retain the installed FDM board's present conservative limit.
-  co_gpio: GPIO3
-  bme680_address: "0x77"
-  log_level: DEBUG
-
+# Compatibility wrapper: installed FDM CO firmware is maintained in ventsys_fdm_sensor.yaml.
 packages:
-  base: !include ventsys_air_sensor_co_only_base.yaml
-  co: !include ventsys_air_sensor_co.yaml
+  base: !include ventsys_fdm_sensor.yaml

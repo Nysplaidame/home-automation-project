@@ -11,8 +11,7 @@ three backup exports and dormant configs/ha-backups binds use Media UUID
 HA nas_backups default and Proxmox omv-backups storage identity preserved.
 Filebrowser uses guarded `/srv/filebrowser/{Print,Media}` composite, generated
 Podman UID994:100/account/port preserved. Fresh backup/isolated restore checks
-passed; see migration audit/current-live-state for exact proof and limits.
-Retained originals/quarantines are private and not yet deleted.
+passed; see current-live-state for operational details and limits.
 
 - `nfs-exports.json` records the intended live NFS dataset/client/root-mapping
   contract after the 2026-07-11 F-011 remediation.
@@ -52,35 +51,3 @@ sanitized contract and the reproducible backup mechanism.
 
 The local md0 copy improves rebuild readiness but is not an independent or
 off-site backup. That residual common-mode risk is owner-accepted.
-
-## Print / Media transition — October21
-
-**Current October25 state:** Z share is Media on new filesystem UUID
-`a8843f98-c937-48a8-aefa-4cd0fb80667c`; five scoped media NFS exports replace
-the broad `/export/media`. VM103 consumers switched and running; owner confirmed
-application acceptance. Original Z was cleanly retired and its exact partition
-serial `3GHV81YE` added as second Media member after full proof. Mirror is
-rebuilding; md0/Y stays healthy and unchanged. No independent old-Z rollback
-copy remains (owner-waived). Y warm copy is queued behind healthy mirror.
-See the audit for exact evidence; earlier preparation states below are historical.
-
-New Media RAID1 `/dev/md/media` (currently md127), MD UUID
-`fd8de871:2fcb43a8:d97ff800:008ccb6b`, has only fourth-disk serial `3HG402GN`
-partition1 and one intentionally missing slot. New ext4 filesystem UUID
-`a8843f98-c937-48a8-aefa-4cd0fb80667c`, label Media, is registered/mounted
-through OMV; mdadm/fstab/initramfs were deployed. Existing md0 and original Z
-remain intact; current exports/backup paths above remain live until cutover.
-
-Original-Z warm staging copy completed successfully October22 23:30 BST via
-`household-storage-copy-z-20261021.service`, with private state under
-`/root/household-storage-state-20261021/`. Do not add original Z until cold
-copy/hash/layout and service verification pass. Follow
-[[../../docs/audits/2026-10-20-storage-migration/README]] and
-[[../../tools/storage-migration/cutover-runbook]]. No share/path switch yet.
-October23 final-sync/hash runner is active under
-`household-storage-cold-z-20261023.service`. Original Z and all bind aliases
-are read-only; Filebrowser/TransferPortal are stopped/runtime-masked. VM103
-media consumers are stopped and old NFS mount unmounted/runtime-masked. Exact
-before-state and recovery evidence on each host is private under
-`/root/household-storage-cold-z-20261023/`; do not restart writers until the
-runbook's proof and mount gates pass.

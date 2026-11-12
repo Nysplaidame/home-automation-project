@@ -1,6 +1,6 @@
 [Unit]
 Description=Apply monitoring Docker published-port firewall policy
-After=docker.service
+After=docker.service monitoring-docker-firewall.service
 Requires=docker.service
 
 [Service]

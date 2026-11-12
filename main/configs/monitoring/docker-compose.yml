@@ -80,6 +80,9 @@ services:
       - "192.168.60.10:3001:3001"
     volumes:
       - ./uptime-kuma:/app/data
+      - ./certs/home-local-ca.crt:/etc/ssl/home-local-ca.crt:ro
+    environment:
+      NODE_EXTRA_CA_CERTS: /etc/ssl/home-local-ca.crt
 
   loki:
     image: grafana/loki@sha256:00981fd9455db8589c3aa6d06744af3138c4b2c32fdec62101e92c7a704b2642

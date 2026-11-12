@@ -14,7 +14,7 @@
 | Main fan controller | `ventsys-main-fan` | 192.168.50.21 | `ventsys_fan_controller.yaml` |
 | Booth fan controller | `ventsys-booth-fan` | 192.168.50.22 | `ventsys_booth_fan.yaml` |
 | FDM sensor array 1 | `ventsys-fdm-array-1` | 192.168.50.31 | `ventsys_fdm_array_1.yaml` |
-| FDM sensor array 2 | `ventsys-fdm-array-2` | 192.168.50.32 | `ventsys_fdm_array_2.yaml` |
+| FDM sensor array 2 (planned; IP conflict) | `ventsys-fdm-array-2` | 192.168.50.32 | `ventsys_fdm_array_2.yaml` |
 | SLA sensor array 1 | `ventsys-sla-array-1` | 192.168.50.33 | `ventsys_sla_array_1.yaml` |
 | SLA sensor array 2 | `ventsys-sla-array-2` | 192.168.50.34 | `ventsys_sla_array_2.yaml` |
 | Garage air sensor | `ventsys-garage-air-sensor` | 192.168.50.35 | `ventsys_garage_air_sensor.yaml` |
@@ -52,18 +52,16 @@ single controller unless its ESPHome configuration is deliberately redesigned.
 | Controller family | Devices | Servo PWM | Feedback ADC | Touch toggle | Status LED |
 |---|---|---|---|---|---|
 | Standard ESP32 valve controller | Main 1 `.51`, E2/SLA branch `.52`, FDM branch `.53`, FDM print `.55`, SLA print `.56`, Main 2 `.57` | GPIO16 | GPIO35 (ADC1_CH7) only on feedback variants | GPIO33 | GPIO21 (WS2812) |
-| Legacy 360° intake valve controller | SLA 360 `.61`, FDM 360 `.62` | GPIO4 | Not part of the legacy design | GPIO33 | GPIO21 (WS2812) |
+| ESP32-C6 360° intake v2 | Physical SLA `.61`, FDM `.62` | GPIO0 | None | GPIO2 external digital module | GPIO1 (WS2812) |
 
-The unconfirmed `*_360_valve_v2_nerdiy.yaml` variants are not wiring sources;
-they use provisional GPIO0/GPIO1 substitutions and must not be flashed or wired
-until the installed board is physically identified.
+The C6 v2 files use GPIO0/GPIO1 and GPIO2 digital touch. Physical SLA is `.61` and FDM `.62`; deployed names/topics still need collision-safe reassignment. Confirm the actual firmware and connections before wiring or driving either valve. Endpoints require physical calibration.
 
-| Connection | Standard valve boards | Legacy 360° valve boards | Notes |
+| Connection | Standard valve boards | C6 360° v2 boards | Notes |
 |---|---|---|---|
-| Servo signal | GPIO16 | GPIO4 | 50Hz PWM |
+| Servo signal | GPIO16 | GPIO0 | 50Hz PWM |
 | Servo feedback | GPIO35 / ADC1_CH7 through the feedback network | Not part of the legacy design | Raw voltage, calibrated position, disconnected-wire and position-mismatch diagnostics |
-| Touch input | GPIO33 | GPIO33 | Optional local toggle |
-| WS2812 DIN | GPIO21 | GPIO21 | On-board status LED |
+| Touch input | GPIO33 | GPIO2 digital OUT | Optional local toggle |
+| WS2812 DIN | GPIO21 | GPIO1 | On-board status LED |
 | Servo ground | Common GND | Common GND | Share with ESP32 and 5V supply |
 | Servo power | Dedicated 5V rail | Dedicated 5V rail | Do not use ESP32 3.3V rail |
 | ESP32 power | 5V/VIN or USB | 5V/VIN or USB | Size supply for board and servo load |
@@ -135,7 +133,7 @@ board, confirm the carrier output never exceeds the ESP32's 3.3V ADC limit.
 
 ## Air Sensor and Sensor Array Boards (192.168.50.31-37)
 
-The three air sensors and four sensor arrays share `ventsys_air_sensor_base.yaml`.
+The planned carrier arrays and smoke-based air sensors use `ventsys_air_sensor_base.yaml`; the installed SLA pipe board uses the CO-only base, and the installed FDM .32 is a separate legacy build.
 The four enclosure arrays use the printed sensor carrier (Waveshare ESP32-C6-Zero,
 Pimoroni BME680, DFRobot SEN0570 MEMS smoke, DFRobot SEN0564 MEMS CO) and also
 include `ventsys_air_sensor_co.yaml` for the CO channel. Two optional packages
@@ -304,14 +302,14 @@ PrintAirPipe 125mm butterfly valves use MG90S micro servos mounted in printed ho
 | Main duct valve 2 (bench board) | `ventsys/main/valve2/control` | GPIO16 PWM; no feedback ADC | `.57` |
 | E1 / FDM branch valve (bench board) | `ventsys/fdm/branch/control` | GPIO16 PWM; no feedback ADC | `.53` |
 | FDM enclosure / print valve | `ventsys/fdm/valve/control` | GPIO16 PWM + GPIO35 feedback ADC | `.55` |
-| FDM 360 intake valve | `ventsys/fdm/360/control` | GPIO4 PWM only | `.62` |
+| FDM 360 intake valve | `ventsys/fdm/360/control` | GPIO0 PWM | `.62` |
 | SLA enclosure / print valve | `ventsys/sla/valve/control` | GPIO16 PWM + GPIO35 feedback ADC | `.56` |
-| SLA 360 intake valve | `ventsys/sla/360/control` | GPIO4 PWM only | `.61` |
+| SLA 360 intake valve | `ventsys/sla/360/control` | GPIO0 PWM | `.61` |
 
 Repeated GPIO assignments are intentional because each valve controller is a
 separate ESP32. The installed standard-valve bench boards use GPIO16 PWM
 without feedback; GPIO35 applies only to future feedback-capable variants.
-GPIO4 is the active legacy 360°-valve assignment.
+The C6 v2 360° firmware uses GPIO0; confirm deployed firmware before wiring.
 
 ## Airflow sensor boards (192.168.50.41-43)
 
@@ -360,3 +358,7 @@ Keep ESP 3.3V logic and servo/fan power separate. A noisy motor rail can cause E
 - [ ] Fan driver MOSFET or driver board fitted
 - [ ] Common GND shared between ESP boards, sensors, and motor drivers
 - [ ] ESPHome `secrets.yaml` filled in with WiFi, MQTT, API, OTA, and TLS CA values
+
+## Installed FDM sensor
+
+The installed FDM sensor at `.32` (MAC `CC:BA:97:F0:D0:C0`) uses GPIO4/5 for BME680 at `0x77`, GPIO3 for the owner-identified CO module and GPIO2 for a plain LED. The CO firmware provides voltage, fault, detection, and a clean-air baseline button after a 180-second warm-up. The former smoke-labelled channel is removed; CO is qualitative and does not establish a smoke measurement. Planned FDM array 2 also claims `.32`; resolve the address before adoption. See the [legacy Mermaid diagram](../ventsys/esp32-c6-installed-fdm-sensor-wiring.mermaid) and `configs/esphome/ventsys_fdm_sensor.yaml`.

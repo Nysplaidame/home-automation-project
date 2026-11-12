@@ -15,11 +15,11 @@
 # HOW DIFFERENTIAL PRESSURE IS MEASURED:
 #   - Enclosure pressure: BME680 on the sensor array board (enc1/enc2).
 #     Published by printairpipe-controller.yaml to:
-#       ventsys/fdm/baro_pressure  (FDM enclosure, hPa)
-#       ventsys/sla/baro_pressure  (SLA enclosure, hPa)
+#       ventsys/fdm/array_1/baro_pressure  (FDM enclosure, hPa)
+#       ventsys/sla/array_1/baro_pressure  (SLA enclosure, hPa)
 #   - Reference pressure: BME680 on the garage ambient sensor board (.34).
 #     Published by the garage sensor ESPHome YAML to:
-#       ventsys/garage/baro_pressure  (hPa)
+#       ventsys/garage/air/baro_pressure  (hPa)
 #   - Differential: calculated here in HA as a template sensor:
 #       pressure_diff = enclosure_pressure - garage_pressure  (hPa)
 #     A negative value means the enclosure is at lower pressure than the
@@ -32,9 +32,9 @@
 #
 # PREREQUISITES BEFORE LOADING:
 #   1. printairpipe-controller.yaml deployed and publishing baro_pressure
-#      to ventsys/fdm/baro_pressure and ventsys/sla/baro_pressure
+#      to ventsys/fdm/array_1/baro_pressure and ventsys/sla/array_1/baro_pressure
 #   2. Garage ambient sensor ESPHome YAML written and deployed, publishing
-#      to ventsys/garage/baro_pressure
+#      to ventsys/garage/air/baro_pressure
 #   3. sensor.ventsys_fdm_baro_pressure, sensor.ventsys_sla_baro_pressure,
 #      and sensor.ventsys_garage_baro_pressure confirmed as available
 #      entities in HA Developer Tools before adding the template sensors
@@ -44,9 +44,9 @@
 # not exist in any currently deployed firmware. Before loading, the following
 # ESPHome devices must be deployed AND publishing to their MQTT topics:
 #   - printairpipe-controller.yaml (ventsys-fdm-sensor + ventsys-sla-sensor boards)
-#     Must publish to: ventsys/fdm/baro_pressure, ventsys/sla/baro_pressure
+#     Must publish to: ventsys/fdm/array_1/baro_pressure, ventsys/sla/array_1/baro_pressure
 #   - ventsys_garage_sensor.yaml (ventsys-garage-sensor board)
-#     Must publish to: ventsys/garage/baro_pressure
+#     Must publish to: ventsys/garage/air/baro_pressure
 # Neither board publishes these topics with default config — baro_pressure
 # publishing must be verified in the ESPHome YAML before flashing.
 #
@@ -60,14 +60,14 @@ mqtt:
   sensor:
     - name: FDM Baro Pressure
       unique_id: ventsys_fdm_baro_pressure
-      state_topic: "ventsys/fdm/baro_pressure"
+      state_topic: "ventsys/fdm/array_1/baro_pressure"
       unit_of_measurement: "hPa"
       device_class: pressure
       expire_after: 120
 
     - name: SLA Baro Pressure
       unique_id: ventsys_sla_baro_pressure
-      state_topic: "ventsys/sla/baro_pressure"
+      state_topic: "ventsys/sla/array_1/baro_pressure"
       unit_of_measurement: "hPa"
       device_class: pressure
       expire_after: 120
@@ -77,7 +77,7 @@ mqtt:
       # Unique ID is intentionally distinct from the main package's
       # ventsys_garage_baro_pressure entity for the same topic. The generated
       # entity_id (sensor.garage_ambient_pressure) is referenced below.
-      state_topic: "ventsys/garage/baro_pressure"
+      state_topic: "ventsys/garage/air/baro_pressure"
       unit_of_measurement: "hPa"
       device_class: pressure
       expire_after: 120

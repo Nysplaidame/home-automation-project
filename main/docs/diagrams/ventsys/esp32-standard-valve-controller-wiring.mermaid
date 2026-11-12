@@ -19,7 +19,7 @@ flowchart LR
         Led["WS2812 status LED"]
         Touch["Touch pad"]
     end
-    Note["Servo power must not come from the ESP32 3.3V rail.<br/>The servo and ESP32 must share ground.<br/>Check the board 5V path and USB supply under servo load."]
+    Note["Servo power must not come from the ESP32 3.3V rail.<br/>The servo and ESP32 must share ground.<br/>Check the board 5V path and USB supply under servo load.<br/>Optional feedback variants need a protected GPIO35 network; see wiring reference.<br/>E2, MAIN-1 and MAIN-2 use three-wire servos without feedback."]
     PSU --> ESPVin
     PSU --> ESPGnd
     ESPVin --- ServoV

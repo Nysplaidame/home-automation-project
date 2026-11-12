@@ -2,7 +2,7 @@
 flowchart LR
     %% GPIO differs by active board configuration; source of truth: ventsys_*_airflow.yaml.
     %% Layout: ESP pins (left) --- peripheral pins (right) --- power (far right). Solid = FDM/SLA board, dashed = Booth board.
-    Note["Choose only the GPIO pair matching the installed airflow board.<br/>If the pulse sensor output exceeds 3.3V, level-shift it before the ESP32-C6 input."]
+    Note["Choose only the GPIO pair matching the installed airflow board.<br/>Verify sensor supply and output before connection; level-shift outputs above 3.3V."]
     subgraph ESP["ESP32-C6 AIRFLOW-SENSOR FAMILY"]
         FdmPulse["FDM / SLA · GPIO0<br/>pulse input · inverted INPUT_PULLUP"]
         BoothPulse["Booth · GPIO10<br/>pulse input · inverted INPUT_PULLUP"]
@@ -21,11 +21,11 @@ flowchart LR
         LedG["GND"]
         LedV["5V power"]
     end
-    PSU["Suitable regulated LED power rail"]
+    PSU["Regulated supply matched to LED and sensor ratings"]
     Note ~~~ ESP
     FdmPulse --- MeterOut
     BoothPulse -.- MeterOut
-    V33 --- MeterV
+    PSU -. "sensor supply only if rated appropriately" .- MeterV
     GND --- MeterG
     GND --- LedG
     FdmLed --- LedDin

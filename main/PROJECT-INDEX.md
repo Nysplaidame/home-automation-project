@@ -15,7 +15,6 @@ status: active
 
 ## Current delivery contracts
 
-- [[docs/audits/2026-10-20-storage-migration/README|Print / Media storage migration audit]] — October27 operational cutover/verification/retirement complete, both mirrors healthy, Print/Media and backups live; offline/native binary acceptance bounds recorded
 
 - [[docs/procedures/ventsys-dashboard|VentSys authenticated dashboard]] — deployed direct HA card; legacy token revoked. Owner accepts 360 firmware; standard and separate seven-inch touch views live; shared command arbitration deployed; physical setup/testing continues
 - [[docs/audits/2026-10-18-ventsys-dashboard|VentSys dashboard audit and range restoration]] — historical findings with software remediation and remaining hardware/control dispositions
@@ -306,3 +305,6 @@ Written coverage is not verified rebuild or current restore acceptance.
 - [[tools/validate_ventsys_firmware.py]] — production persistence and shared board-control source gate.
 
 - [[docs/procedures/ventsys-relative-airflow-baselines]] — relative commissioning matrix: nine valve configurations × ten physical fan steps, optional mixed/booth rows.
+
+- [[docs/procedures/ventsys-temporary-mqtt-logging|VentSys server identity monitor and temporary MQTT capture]] — VM102 systemd/ntfy deployment and rollback.
+- [[docs/audits/2026-11-10-monitoring-network-access|Monitoring VM access audit]] — missing endpoint allowances and repaired OMV SMART heartbeat.

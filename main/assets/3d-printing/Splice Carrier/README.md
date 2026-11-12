@@ -54,3 +54,16 @@ pockets, concept PNG generated from the SCAD variables).
    - `cap10_*` / `cap100_*` / `r10k_*` set pocket position/size and branch placement.
 2. Regenerate the concept PNG: `python generate_concept.py`
 3. Rebuild the STL / preview in OpenSCAD.
+
+## v2 - feedback-carrier dimensions
+
+`ventsys_i2c_power_splice_v2.scad` is the same circuit (3V3 / GND / LDR rails, 10uF + 100nF
+ceramics across 3V3-GND, 10k from GND to the LDR rail) redrawn with the dimensions of
+`../Feedback Carrier/ventsys_feedback_carrier.scad`:
+
+- Plate `1.8mm`, recess `0.75mm`, plate corners `0.65mm`, pocket corners `0.35mm`
+- `100nF` pocket `4.8 x 5.9mm` and `10k` pocket `6.3 x 2.15mm`, both copied from the feedback carrier
+- `10uF` ceramic uses the same `4.8 x 5.9mm` pocket - **measure your part**
+- Rails `1.5mm` uniform, leg channels `0.7mm`, `14mm` of extra rail (`joint_len`) for the sensor wire joints
+- Footprint `27.1 x 18.55mm`; 3V3 rail on the bottom edge (dimple marks that corner), GND middle, LDR top
+- Files: `ventsys_i2c_power_splice_v2.scad`, `.stl`, `_preview.png`

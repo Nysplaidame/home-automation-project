@@ -1,3 +1,15 @@
+- Service Health:
+    - Uptime Kuma Summary:
+        id: portal-kuma-summary
+        icon: uptime-kuma.png
+        href: https://homepage.home.local:8186/status/home-operations
+        description: Service availability and uptime
+        widget:
+          type: uptimekuma
+          url: http://192.168.60.10:3001
+          slug: home-operations
+          fields: [up, down, uptime, incident]
+
 - Home & Security:
     - Home Assistant:
         id: portal-home-assistant

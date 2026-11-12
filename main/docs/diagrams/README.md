@@ -51,9 +51,10 @@ endpoint retained at `http://192.168.20.102:8092/`.
 | Diagram | Purpose |
 |---|---|
 | [ventsys-control-and-safety-flow.mermaid](ventsys/ventsys-control-and-safety-flow.mermaid) | VentSys control loop, MQTT/ESPHome path, airflow, safety behavior |
-| [esp32-c6-air-sensor-wiring.mermaid](ventsys/esp32-c6-air-sensor-wiring.mermaid) | ESP32-C6 air sensor / enclosure array: BME680 I2C, analog smoke/VOC and 3.3V limits |
+| [esp32-c6-air-sensor-wiring.mermaid](ventsys/esp32-c6-air-sensor-wiring.mermaid) | Planned C6-Zero carrier, optional sensors and installed SLA pipe exception |
+| [esp32-c6-installed-fdm-sensor-wiring.mermaid](ventsys/esp32-c6-installed-fdm-sensor-wiring.mermaid) | Installed FDM sensor: BME680, CO channel and baseline caveat |
 | [esp32-standard-valve-controller-wiring.mermaid](ventsys/esp32-standard-valve-controller-wiring.mermaid) | Standard ESP32 valve controller: GPIO16 servo, GPIO33 touch and GPIO21 status LED |
-| [esp32-360-valve-controller-wiring.mermaid](ventsys/esp32-360-valve-controller-wiring.mermaid) | Legacy 360° intake valve controller: GPIO4 servo, GPIO33 touch and GPIO21 status LED |
+| [esp32-360-valve-controller-wiring.mermaid](ventsys/esp32-360-valve-controller-wiring.mermaid) | C6 360° intake v2: GPIO0 servo, GPIO2 digital touch and GPIO1 status LED |
 | [esp32-c6-airflow-sensor-wiring.mermaid](ventsys/esp32-c6-airflow-sensor-wiring.mermaid) | ESP32-C6 airflow sensor GPIO variants, pulse sensor and WS2812 wiring |
 | [esp32-fan-controller-wiring.mermaid](ventsys/esp32-fan-controller-wiring.mermaid) | ESP32 fan controller: GPIO23 PWM and driver/power safety boundary |
 | [ventsys_wiring_reference.md](wiring-diagrams/ventsys_wiring_reference.md) | ESP32 wiring, GPIO assignments, power notes, first-power checklist |

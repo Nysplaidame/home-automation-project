@@ -3,12 +3,24 @@ title: "VentSys — Fire Safety Ventilation System"
 category: entity
 tags: [ventsys, esphome, mqtt, safety, ventilation, 3d-printing]
 created: 2026-04-07
-updated: 2026-11-07
+updated: 2026-11-10
 sources: [project-readme, ventsys-technical-specs, ventsys-implementation-roadmap, troubleshooting-reference]
 status: active
 ---
 
 # VentSys — Fire Safety Ventilation System
+
+November10 broker audit also removed the obsolete retained SLA sensor
+discovery record for MAC `CC:BA:97:F0:D0:C0`, now the FDM enclosure sensor at
+`.32`. A fresh subscription showed only correctly paired FDM sensor `.32` and
+SLA airflow `.42` discovery records. Retained `ventsys/#` state and alarm
+values carry no timestamp; the SLA pipe latch still advertises `latched` and
+was left intact. Continuous discovery alerts/capture and five-minute HA host/MAC/E2 checks
+now run on VM102 via systemd, publishing only incidents/recovery to ntfy.
+Desktop capture stopped and the Codex heartbeat is paused. The interim VM103
+installation was removed after migration and verification on VM102. Temporary broker
+debug and payload capture need explicit rollback; see the canonical
+[[../../../main/docs/procedures/ventsys-temporary-mqtt-logging|monitor procedure]].
 
 **Type:** integration — custom fire safety ventilation subsystem
 **Status:** 🧪 Under testing, not commissioned — E1, E2, MAIN-1, MAIN-2, and both 360 intake controller boards are adopted; 360 firmware/HA roles accepted; dashboard legacy-ID correction deployed; physical commissioning separate
@@ -112,6 +124,15 @@ but the FDM board was offline and no USB serial device was present, so the
 smoke-labelled image was not replaced. Physical status LED wiring still needs
 verification because the legacy record says GPIO2 plain LED while the new
 shared source assumes GPIO8 WS2812. See the canonical live-state record.
+
+On 2026-11-10, E2's HA ESPHome entry again held MAIN-1's `.51` address while
+E2 was reachable at `.52`. Direct encrypted probes verified each board's MAC.
+An authenticated HA config-flow correction restored `.52` and fresh E2 native
+reports; the graphical form had aborted against MAIN-1. A broker audit then
+found retained `esphome/discover/ventsys-main-valve-1` advertising `.51` with
+E2's MAC. HA's ESPHome MQTT discovery can update the MAC-matched entry's host
+from that payload. The bad retained record was removed and verified absent;
+normal restart/reconnect persistence remains to be checked.
 
 ## Solar Observatory Display Rebuild
 
@@ -318,3 +339,7 @@ no feedback; calibration, touch/remote travel and loaded stability remain pendin
 FDM sensor identity and E2 router/HA reservations corrected; E2 was temporarily monitored; the owner stopped that monitor. Both 360 intake GPIO2 digital touch inputs were deployed. SLA raw60 survived an accepted-image restart and both intakes retained reports through final OTA with PWM off. Dashboard normalizes30–60 to0–100 and shows red arrows for zero flow, blue moving arrows for detected flow, grey for offline. Physical touch and position remain unverified. See [[../../../main/docs/procedures/ventsys-dashboard|dashboard manual]] and [[../../../main/docs/procedures/ventsys-board-power-controls|board procedure]].
 
 **November4 owner correction:** Standard print, enclosure/branch and main valves have physical and displayed endpoints of 0–100%. Earlier uncalibrated statements describe historical bench state. The 360 intakes separately map raw30–60 to displayed0–100%. No physical position feedback is fitted.
+
+## November 10 FDM CO firmware
+
+Installed FDM enclosure sensor `.32` / `CC:BA:97:F0:D0:C0` now runs CO-capable firmware with GPIO3 CO, GPIO2 plain status LED and BME680 on GPIO4/5 at `0x77`. The former smoke-labelled channel was removed. A clean-air baseline and end-to-end alert verification remain open; the qualitative sensor is not a certified CO alarm. See [[../../../main/docs/reference/current-live-state|current live state]] and [[../../../main/docs/procedures/ventsys-board-power-controls|board procedure]].

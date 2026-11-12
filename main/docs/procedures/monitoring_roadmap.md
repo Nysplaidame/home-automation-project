@@ -316,3 +316,56 @@ The monitoring stack is “good enough” when:
 - historical metrics exist for HA / VentSys / core hosts
 - router syslog reaches a central place
 - alerts go somewhere you will actually notice
+
+## November10 identity monitor and access review
+
+VentSys identity checks and continuous MQTT evidence capture now run on VM102 via enabled `ventsys-monitor.service`; the desktop heartbeat is paused and collector stopped. See [[ventsys-temporary-mqtt-logging]] for service paths, credentials, validation, incident-only ntfy notifications and temporary logging rollback.
+
+[[../audits/2026-11-10-monitoring-network-access|Monitoring network audit]] found missing VM102 router access to MQTT8883, ntfyHTTPS8193, HomepageHTTPS443, Hub8100 and four already monitoring-approved media/download endpoints. No router rules were changed. Additional health checks for newer services are absent from Kuma. OMV SMART heartbeat was repaired by preserving its existing allowance in the full Docker firewall rebuild and ordering the augmentation unit after it; sender and Kuma recovery verified.
+
+November10 follow-up: confirmed MQTT/HTTPS/Hub/media/download access gaps are now closed with VM102-specific router rules and HTTPS host rules. Both VentSys functions moved from interim VM103 to VM102; old dedicated installation and key were removed. Additional Kuma service checks and Homepage metric integration remain tasks.
+
+
+## November11 Kuma coverage and Homepage work
+
+Kuma monitors37–44 were created for Jellyfin Health, Calibre-Web, Household
+Hub, qBittorrent UI, Homepage HTTPS, ntfy HTTPS, Atsumeru and HA MQTT TLS Port.
+Latest checks all pass. Atsumeru accepts its HTTP401 authentication challenge.
+The MQTT Kuma check tests TCP8883 reachability. The independent VentSys service
+continues to validate an authenticated TLS MQTT subscription.
+
+Kuma now mounts the existing Home Local CA at `/etc/ssl/home-local-ca.crt`
+and sets `NODE_EXTRA_CA_CERTS`. Its two new HTTPS checks pass with TLS
+verification enabled. Compose source is current. Protected rollback checkpoint
+on VM102 is `/root/kuma-homepage-20261111/` with SQLite backup and prior Compose.
+
+Only Jellyfin37 and Calibre38 currently have ntfy Monitoring enabled and two
+retries. The remaining six notification routes and retry settings require the
+owner's signed-in browser. Owner requested doing browser actions themselves.
+
+Homepage source now contains a Service Health group on the Home tab using the
+native uptimekuma widget with slug `home-operations`, fields up/down/uptime/
+incident, and a status-page link through8186. YAML validates. This source
+change is prepared and has not been deployed. Kuma has no saved status page
+at this checkpoint. Owner needs to create Home Operations / home-operations,
+add all monitors in a group, and save with monitor URLs hidden. Then deploy
+the narrow Homepage additions, revalidate and verify the widget response.
+
+
+November11 follow-up: the owner saved status page `home-operations`, with all
+43 monitors in its Services group and monitor URLs hidden. The prepared native
+widget was deployed to the Homepage Home tab in Service Health, with a backup at
+`/opt/backups/homepage-kuma-20261111/`. YAML and Homepage revalidation passed;
+Homepage services API includes the widget and Kuma heartbeat API returns all
+43 monitors. Browser display verification remains pending. At verification,
+monitors39–44 still had no ntfy route and zero retries; owner was asked to
+complete those six through Kuma. Do not claim notification setup complete.
+
+November11 final verification: owner completed ntfy and retry settings for
+monitors39–44 and checked Homepage. All eight monitors37–44 have ntfy route1,
+two retries and latest status Up. Home Operations status API reports40 Up and
+3 Down, the latter the known disconnected cameras. Homepage services API
+contains the deployed widget. Notification server delivery and phone display
+remain separate acceptance checks. Roll back the card by restoring the backed-up
+services.yaml and settings.yaml in `/opt/backups/homepage-kuma-20261111/`, then
+call Homepage `/api/revalidate` with an allowed Host header.

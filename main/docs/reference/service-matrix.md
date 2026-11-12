@@ -143,3 +143,7 @@ workers, and databases use Compose DNS only and do not receive LAN aliases.
 | `grafana.home.local` | `192.168.60.10` | Grafana on 3000 |
 | `uptime-kuma.home.local` | `192.168.60.10` | Uptime Kuma on 3001 |
 | `influxdb.home.local` | `192.168.60.10` | InfluxDB on 8086; not remotely exposed |
+
+## VentSys identity monitor
+
+VM102 runs `ventsys-monitor.service`: continuous MQTT discovery evaluation, temporary broker attribution capture, and five-minute HA identity/E2 checks. Incident and recovery alerts go to ntfy `monitoring`. Configuration and state are protected outside Git; desktop copies are stopped/paused. Operation, limits and rollback: [monitor procedure](../procedures/ventsys-temporary-mqtt-logging.md).

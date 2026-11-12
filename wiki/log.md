@@ -1144,11 +1144,6 @@ owner input; technical recovery follow-up remains agent work. No raw files chang
   valve tests, exact subset confirmation, fan exclusion/intent locks, deployment
   and test evidence. Normal mode full-path checks remain; no actuation sent.
 
-## [2026-10-27] update | Storage migration retirement complete
-
-- Reconciled [[pages/entities/openmediavault-nas]] from canonical final proof: exact retained-source and staging retirement passed, roughly654GiB freed on Y, active script/monitoring paths corrected. Offline/native binary acceptance remains bounded; user Telegram deletion preserved. Raw sources unchanged.
-
-
 ## [2026-10-29] update | FDM print valve installation
 
 - Updated [[pages/entities/ventsys]] from canonical installation evidence: normal
@@ -1185,3 +1180,24 @@ owner input; technical recovery follow-up remains agent work. No raw files chang
 - 2026-11-07: Updated [[ventsys]] from the canonical dashboard manual with the 12-board expected-online roster, per-board maintenance controls, and general dropout notifications (`20261107-8`).
 - 2026-11-08: Corrected [[ventsys]] FDM .32 physical gas-channel identity to owner-observed CO; archived/flashed smoke naming remains an open firmware and dashboard mismatch.
 - 2026-11-08: Added [[ventsys]] CO-only FDM candidate build status from canonical live state; compiled but not flashed because the board was unreachable and no USB serial port was present.
+- 2026-11-10: Updated [[ventsys]] with E2's recurrent HA `.51` host mismatch, MAC-verified `.52` recovery, and unresolved rewrite mechanism from canonical live state.
+- 2026-11-10: Resolved [[ventsys]] E2 discovery cause: stale retained MAIN-1 ESPHome MQTT record contained E2 MAC and `.51`; removed and verified absent, with restart persistence still open.
+- 2026-11-10: Reconciled [[ventsys]] after removing the obsolete retained SLA sensor discovery identity for the FDM `.32` board; recorded the two remaining discovery identities and planned roster monitoring from canonical live state.
+
+## [2026-11-08] update | Remove completed storage migration material
+
+- Removed the completed migration references and reconciled [[entities/openmediavault-nas]] with current storage documentation.
+
+- 2026-11-10: Recorded temporary VentSys MQTT discovery/client-attribution logging and explicit rollback task in canonical procedure/current live state.
+- 2026-11-10: Updated [[ventsys]] after migration to VM103 systemd/ntfy, desktop shutdown, and temporary diagnostic rollback documentation. Monitoring access audit records missing VM102 endpoint permissions and repaired OMV SMART heartbeat firewall regression.
+- 2026-11-10: Owner-authorized VM102 access remediation deployed for MQTT/HTTPS/Hub/media/download endpoints. Migrated both VentSys monitor functions, state and evidence from interim VM103 to VM102; removed old dedicated artifacts and revoked old SSH key. Updated [[ventsys]] and canonical manuals; Homepage Kuma metrics/status integration remains a requested task.
+
+## 2026-11-10 — VentSys FDM CO firmware
+
+Updated [[pages/entities/ventsys|VentSys]] to reflect the installed FDM CO firmware and remaining baseline and alert verification, following canonical current-live-state and board procedure.
+
+- 2026-11-11: Reconciled [[monitoring-vm]] with eight live Kuma checks, CA trust fix, two enabled alert routes and pending owner browser/status-page work from the canonical monitoring roadmap.
+
+- 2026-11-11: Updated [[monitoring-vm]] after the Home Operations Kuma status page and Homepage widget were deployed. Six new ntfy routes and visual verification remain pending.
+
+- 2026-11-11: Reconciled [[monitoring-vm]] after owner completed Kuma ntfy routes/retries and Homepage check. Eight new checks are Up; Home status data includes 43 monitors.

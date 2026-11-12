@@ -13,8 +13,7 @@ status: active
 **October27 acceptance:** scoped Media mounts verified and containers recreated;
 new backup export `/export/backups-docker-host` active. Fresh app-data checkpoint
 20261027T192711Z completed; isolated Calibre-Web app.db/gdrive.db and Atsumeru
-users.db/library.db restore quick_check passed. Restore schedule states recorded
-in storage migration audit; no credential or image change made at this cutover.
+users.db/library.db restore quick_check passed. No credential or image change was made during acceptance.
 
 This is the shared operating manual for the three media services on VM 103.
 The adjacent stack READMEs record service-specific history; the Compose files
@@ -27,13 +26,13 @@ Diagrams: [service placement](../../diagrams/infrastructure/docker-host-service-
 
 ## Service and data contract
 
-October25 migration: broad `/export/media` is retired. VM103 mounts scoped
+VM103 mounts scoped
 `/export/media-jellyfin`, `/export/media-comics` and `/export/calibre-library`
 from new Media UUID `a8843f98-c937-48a8-aefa-4cd0fb80667c`. The parent
 `/mnt/omv/media` is now a plain directory; always assert exact child mounts.
 Calibre integrity/counts and scoped read/write boundaries pass; owner confirmed
 Calibre/Atsumeru access. Jellyfin has no configured users, so no household playback
-is claimed. See the storage migration audit for current mirror/Y-stage state.
+is claimed.
 
 | Service | Source | Host listener | Persistent application data | OMV library and permission |
 |---|---|---|---|---|

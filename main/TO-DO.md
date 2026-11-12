@@ -11,15 +11,10 @@ status: active
 
 # Project Task List
 
+- [x] Integrate Kuma status on Homepage Home, verify its status data and
+  complete notification routes/retries for the eight new checks.
+
 **Links:** [[README|Overview]] | [[PROJECT-INDEX|Index]]
-
-- [ ] Reconcile the historical storage-migration cutover renderer with the
-  current OMV backup script: its test fails because the script now uses
-  `actual_uuid` rather than the former `mount_source` guard. Do not reuse the
-  renderer for a cutover until its generated artifacts are revalidated.
-
----
-
 
 - [ ] Fix confirmed interrupted mode-release recovery: desired intent is saved
   before valve closures; retry can omit the released valves and shared paths.
@@ -37,6 +32,22 @@ status: active
   upward flow arrows and FDM sensor reassignment (firmware and HA labels).
 - [x] November4: repair recurring E2 HA host and stale router MAC reservation;
   temporary connection/identity monitor later stopped by owner; cause unproven.
+- [x] Investigate recurring E2 HA `.51` host rewrite: retained MQTT ESPHome
+  discovery for MAIN-1 advertised `.51` with E2's MAC. Removed that stale
+  retained record on November10 and verified it absent. Direct HA config-flow
+  correction restored E2 `.52` and fresh telemetry. Graphical reconfigure had
+  twice aborted against MAIN-1 even after showing `.52`.
+- [ ] On the next normal HA restart or E2 reconnect, verify E2's HA host stays
+  `.52` and the stale `esphome/discover/ventsys-main-valve-1` topic is not
+  republished. Server monitor now checks ongoing identity; normal restart
+  persistence still awaits that event.
+- [x] November10 retained-discovery follow-up: remove obsolete
+  `ventsys-sla-sensor` advertisement for the board now assigned to FDM `.32`;
+  fresh broker subscription contains only the matching FDM sensor and SLA
+  airflow discovery identities. Preserve retained VentSys state/alarm topics.
+- [x] November10: migrate continuous discovery alerts/capture and five-minute
+  HA identity/E2 checks to VM102 systemd with ntfy; interim VM103 install removed. Desktop collector stopped
+  and Codex heartbeat paused; temporary broker logging rollback remains open.
 - [x] November4: both C6 intake GPIO2 digital touch firmware updated; SLA60
   known-command reference restored without PWM and accepted-image restart verified.
 - [ ] Physically test both external360 touch inputs, loaded travel and all other
@@ -118,33 +129,6 @@ status: active
   and live zero-flow readings; Builder sources synchronized.
 - [ ] Verify HA adoption/entity naming after airflow MAC/role reassignment,
   MQTT broker delivery and physical pulse response. See current-live-state.
-
-- [x] Print/Media operational storage migration: fourth-disk extended SMART test confirmed
-  passed October21 14:38 BST, serial `3HG402GN`, no sector errors. Full layout audit
-  completed with five ACL merge policies; independent-copy risk accepted.
-  Guarded copy/rename/recovery/final verification tools and cutover templates
-  prepared; 75 Linux tests pass. October21 refreshed preflight passed; new
-  Media RAID1 created on fourth disk only (second slot missing), OMV mount/
-  persistence configured, and original-Z warm copy started under systemd.
-  Warm staging passed October22 23:30 BST. October23 source frozen read-only,
-  affected services stopped and cold sync/hash runner started under systemd.
-  Final proof passed; October25 scoped NFS/SMB/Compose cutover completed and
-  owner confirmed application access. Original Z repurposed as second Media
-  member; both mirrors healthy. October27 Y full and combined proof passed,
-  non-Print published to Media, originals retained privately, Print flattened
-  and empty wrapper proof-removed. Print/Media SMB, scoped NFS/backups and
-  Filebrowser live; owner Y/Immich/Filebrowser access confirmed. Fresh backups,
-  isolated app/config restore and full never-booted Frigate CT restore passed.
-  October27 23:19 GMT retained-source/quarantine retirement completed with exact
-  manifests/journals; about654GiB freed on Y. Bounded operational text audit
-  corrected vault, Hub and GW script paths; live monitoring regenerated.
-  See [[docs/audits/2026-10-20-storage-migration/README|audit and execution progress]].
-
-- [ ] Offline/native CAD/slicer/binary embedded-path acceptance after Print/Media
-  migration: bounded text audits and usual-file owner checks passed; unknown
-  binary formats/offline clients were not automatically rewritten. Refresh
-  noncanonical copied checkouts before future deployment/use. Preserve intentional
-  `Y:\Models\Telegram` deletion. See final reference disposition in migration audit.
 
 - [x] October 19: flash SLA airflow ESP32-C6 `CC:BA:97:F0:D3:10` over COM9,
   verify hashes and API reachability at `.42`, adopt in HA Garage and sync
@@ -1567,3 +1551,12 @@ must work without HACS.
   integration and real-user recovery gate above remains open.
 
 - [ ] After VentSys installation, execute [[docs/procedures/ventsys-relative-airflow-baselines|relative airflow baseline matrix]]: verify trunk routing/endpoints and fan-step mapping, then nine configurations at ten speeds with repeats; add mixed/booth configurations when used.
+
+- [ ] Revert temporary November10 Mosquitto debug logging and server diagnostic capture after conflict investigation; follow docs/procedures/ventsys-temporary-mqtt-logging.md.
+- [x] Close confirmed VM102 network access gaps for MQTT8883, ntfyHTTPS8193, HomepageHTTPS443, Hub8100 and approved media/download services; move both VentSys monitoring functions to VM102 and remove dedicated VM103 installation/key/credentials/state.
+- [x] Finish Kuma/Homepage integration. Eight checks37–44 are Up with ntfy
+  and two retries; local CA trust, status page and Home widget are deployed.
+  See monitoring roadmap November11 section.
+- [x] November10: repair OMV SMART heartbeat by preserving its existing Kuma3001 allowance through monitoring Docker firewall rebuild; verify sender success and Kuma recovery.
+
+- [ ] FDM CO firmware OTA succeeded November 10; after warm-up capture and verify a clean-air baseline and test the complete alert path. Resolve planned FDM-array-2 `.32` conflict before adoption. CO is qualitative; the removed smoke-labelled channel was not a smoke sensor.

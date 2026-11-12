@@ -340,6 +340,50 @@ while its replacement LXC is running.
   DNS/router reachability/HA host verified. Plausible discovery-confusion source,
   actual host-rewrite cause unproven. A five-minute Codex heartbeat monitored HA host, router reservation and
   connectivity temporarily; it was stopped and deleted at the owner’s request.
+- November10 E2 recurrence: HA's stored ESPHome entry again pointed at MAIN-1
+  `.51`, and E2 native entities had been unavailable since November5 21:11 UTC
+  (with a brief state transition then). A direct encrypted API probe from the
+  Windows host verified `.52` is E2 MAC `EC:E3:34:B4:79:7C` and `.51` is MAIN-1
+  MAC `EC:E3:34:67:8C:9C`; HA terminal could open `.52:6053`. HA's graphical
+  reconfigure form twice showed `.52` before submission yet aborted as if it
+  reached MAIN-1. The equivalent authenticated HA config-flow REST request
+  accepted `.52` and returned `reconfigure_successful`; HA storage then held
+  `.52`, and fresh native E2 uptime, valve 0%, Wi-Fi -79 dBm and IP `.52`
+  appeared. A subsequent broker audit found the cause: retained MQTT topic
+  `esphome/discover/ventsys-main-valve-1` advertised name MAIN-1 and IP `.51`
+  but carried E2 MAC `ece334b4797c`. HA's ESPHome MQTT discovery handler uses
+  the advertised MAC to find the existing entry and updates its host from the
+  payload. That stale record was cleared with an empty retained publish and a
+  fresh subscription confirmed it absent; E2's HA entry remained `.52`.
+  Current canonical E2 and MAIN-1 firmware set `discovery: false` and
+  `discover_ip: false`, and router reservations pair each board with its proper
+  MAC/IP. The retained message likely came from the earlier period when the
+  E2 board ran MAIN-1 identity; its original publication time is unavailable.
+  Recheck the retained topic and HA host if another recurrence is observed.
+- November10 follow-up retained-topic audit: the obsolete
+  `esphome/discover/ventsys-sla-sensor` record still advertised the former SLA
+  name for MAC `CC:BA:97:F0:D0:C0` at `.32`, now the FDM enclosure sensor.
+  Cleared it with an empty retained publish and verified a fresh subscription
+  shows only `ventsys-fdm-sensor` (`.32`, matching MAC) and
+  `ventsys-sla-airflow` (`.42`, MAC `CC:BA:97:F0:D3:10`) in
+  `esphome/discover/#`. No retained `homeassistant/#` topics appeared.
+  Sixteen retained `ventsys/#` state/airflow/alarm topics remain; they have no
+  publication timestamps, so their age cannot be inferred from the broker
+  snapshot. In particular `ventsys/sla/pipe_air/alarm_latched` says `latched`;
+  this audit did not clear or reinterpret a safety latch.
+- November10 standing monitor is now server-side on VM102, enabled
+  `ventsys-monitor.service`, unprivileged and restarting on failure/boot.
+  Continuous discovery capture plus five-minute HA host-roster/E2 checks send
+  deduplicated incidents/recovery to ntfy `monitoring`; healthy checks are silent.
+  MQTT, broker log stream, HA roster/telemetry and authenticated HTTPS ntfy test
+  passed. Phone reception remains unverified. Desktop collector stopped and
+  Codex heartbeat paused. Temporary broker debug/payload capture still needs
+  explicit rollback; see `docs/procedures/ventsys-temporary-mqtt-logging.md`.
+  At08:31UTC migrated both functions/state/evidence from interim VM103 to VM102.
+  Verified MQTT, restricted SSH, HA telemetry, tests and ntfy HTTPS delivery
+  acceptance. VM103 dedicated service/account/key/config/program/state/logs and
+  newly installed Paho package removed; old key revoked in HA current/persistent
+  authorization. Temporary broker debug capture remains active on HA/VM102.
 - November4: both MAC-bound C6 intakes updated with GPIO2 external digital touch,
   LED1/servo0 preserved. SLA known raw60 restored WITHOUT PWM and survived
   accepted-image restart; final OTA retained SLA60 and FDM30 plus endpoints,
@@ -416,28 +460,19 @@ while its replacement LXC is running.
   v2 MQTT/button paths also save through number.set. The SLA-profile 360 raw-LEDC fix
   is flashed; physical direction acceptance remains pending. Offline boards
   remain deployment targets. See [[../procedures/ventsys-board-power-controls]].
-- Installed sensor .32 is legacy ESP32-C6 `cc:ba:97:f0:d0:c0`, now assigned to
-  FDM, with SDA4, SCL5, BME680 0x77, analog gas input ADC3 and status LED2.
-  Archived firmware described that input as smoke; on 2026-11-08 the owner
-  physically identified the installed component as a CO detector. The flashed
-  firmware and HA/dashboard still use smoke naming and a fixed uncalibrated
-  raw threshold, so their smoke/CO alarm meaning is not validated. Confirm the
-  exact module model, electrical interface and output behavior before changing
-  firmware or relying on that channel. An initial incorrect 0x76 maintenance image
-  caused the BME fault; final build 10:32:58 BST restored valid readings and
-  sensor_fault=false. Canonical standalone ventsys_sla_sensor.yaml and HA
-  Builder now match. Resolve the planned FDM-array-2 .32 inventory conflict.
-  On 2026-11-08 the owner confirmed the FDM enclosure board uses the same CO
-  GPIO3/BME680 GPIO4/5 pinout as the SLA pipe air sensor. A CO-only replacement
-  source was added as `configs/esphome/ventsys_fdm_sensor_co.yaml`, retaining
-  FDM identity, `.32`, MQTT prefix and the existing 40 C limit. ESPHome 2026.9.1
-  configuration and factory/OTA compilation passed (config hash `0x4cb76d52`).
-  Factory SHA-256: `71987EBD5F40EA2489333E7FB1D8265C1ACCBDF2A78C34A4765C1D27215090FD`.
-  It was not flashed: HA native FDM enclosure entities remained unavailable,
-  `.32` was unreachable, and Windows exposed no USB serial device beyond COM1.
-  Existing flashed smoke-labelled firmware remains active if the board returns.
-  The new source assumes the SLA base's GPIO8 WS2812 status LED, which conflicts
-  with the older GPIO2 plain-LED record; verify physical LED wiring before use.
+- Installed FDM sensor `.32`, MAC `CC:BA:97:F0:D0:C0`, uses BME680
+  SDA4/SCL5 at `0x77`, 3.3 V CO on GPIO3, and a plain GPIO2 status LED.
+  On 2026-11-10 the owner confirmed the CO module and 3.3 V supply. Firmware
+  `configs/esphome/ventsys_fdm_sensor.yaml` was compiled with ESPHome 2026.9.1
+  (build `11:02:34 +0000`, config hash `0x1585cc4c`) and encrypted OTA
+  succeeded after native API MAC verification. Builder source matches. CO
+  voltage, fault, detection, ratio and clean-air baseline button are exposed;
+  the wrongly named smoke channel was removed. After 182 seconds uptime the
+  CO voltage was approximately 0.140 V, CO and combined faults were off, and
+  the ratio remained unknown with no baseline captured. The baseline and
+  physical alarm/notification response remain to be verified. CO is qualitative and does not
+  replace a certified alarm. The planned FDM-array-2 `.32` allocation conflicts
+  and must be resolved before adoption.
 - MAIN-2 final diagnostic build 10:25:40 BST adds reset reason, heap and loop
   telemetry. Independent power was stable beyond five minutes and one native
   restart recovered with saved 0/75/0 settings and PWM inactive within 7.7 s.
@@ -1538,276 +1573,15 @@ application acceptance is pending. Inventory and recovery commands:
 
 Root key authentication from the Admin Windows desktop is verified with `ssh -o BatchMode=yes omv-lan`. The existing local SSH alias targets `192.168.40.50` as root using the desktop OMV Ed25519 identity. Its public key was added to `/root/.ssh/authorized_keys`, preserving existing entries; directory/file permissions are 700/600. No SSH service, password-login policy, firewall or SMB settings changed. Keep private keys and passwords outside tracked files. Live hostname returned `omvnas`. For transfer diagnostics, `vmstat` and `/proc/diskstats` are available; `iostat` is absent.
 
-### Validated SMB backing devices — 2026-09-30
+### OMV Print and Media storage
 
-Live Samba configuration and lsblk confirmed `NAS`/Windows Y: on filesystem UUID `fdb92af7-371c-4793-8d98-ff47e961498d`, backed by RAID1 md0 (`sda` + `sde`); `14tb`/Windows Z: is filesystem UUID `a216b8bb-708e-4342-a5be-a415cdc465fa` on separate disk `sdd1`. RAID status was `[UU]` with no rebuild reported. Device names are observational and can change across boots; use UUIDs for durable identification.
-
-October20 read-only revalidation: Y remains healthy two-member RAID1.
-The same Z filesystem UUID is now observed on `sdc1`, still standalone ext4.
-All four 16 TB disks are present; the fourth (`sdd1` at observation) is unmounted
-NTFS with only Windows housekeeping found by recursive listing. All four SMART
-health assessments pass, with zero pending/reallocated/offline-uncorrectable
-sectors. Requested Print/Media share renames, flattening and Calibre relocation
-have not been executed. New Media staging began October21 as recorded below. See
-[[../audits/2026-10-20-storage-migration/README|storage migration audit]]
-for evidence, dependency coverage and execution gates. The owner subsequently
-accepted the temporary single-copy interval and waived an independent full-data
-recovery copy. Verification and exact-device safeguards remain required.
-
-October20 at approximately 14:38 BST: started the fourth disk's extended SMART
-self-test using stable identity `ata-WDC_WD160EDGZ-11B2DA0_3HG402GN`; running
-status confirmed. The original completion estimate was October21 22:20 BST.
-**October21 14:38:54 BST: confirmed completed without error**, exact serial
-`3HG402GN`. New extended-offline log entry #1 has 00% remaining, lifetime
-27578 hours and no failing LBA; execution status 0 and overall SMART PASSED.
-Reallocated sectors/events, pending sectors, offline-uncorrectable sectors and
-CRC errors all remain zero; temperature 36 C. At13:41:48 BST the test was still
-running with10% remaining and no logged tests, distinguishing this new result
-from older tests. Exact completion time lies between those observations.
-Evidence: audit `smart-extended-completion.json`. Completed-test heartbeat was
-deleted; that completed test is no longer polled. Subsequent migration progress
-is recorded below.
-
-**October21 about15:48 BST: migration started.** Fourth-disk partition1, serial
-`3HG402GN`, now backs RAID1 `/dev/md/media` (currently md127), MD UUID
-`fd8de871:2fcb43a8:d97ff800:008ccb6b`, with one intentionally missing member.
-New ext4 label `Media`, UUID `a8843f98-c937-48a8-aefa-4cd0fb80667c`, is managed/
-mounted through OMV at its `/srv/dev-disk-by-uuid-...` path. OMV mdadm/fstab/
-initramfs deployment succeeded. Original Z is unchanged on serial `3GHV81YE`;
-Y md0 remains healthy `[UU]`. No share rename or service cutover has occurred.
-Warm Z copy ran independently under `household-storage-copy-z-20261021.service`
-into private `.household-migration/household-20261021/stage-z/` on new Media.
-State: `/root/household-storage-state-20261021/`; private OS checkpoint/tools/
-fresh inventory: `/root/storage-migration-preflight-20261021T144508Z/`.
-Fresh inventory has1,139,650 entries and only the same five reviewed merges.
-Existing services/SMB stay live. **October23 09:06 BST confirmation:** warm copy
-finished October22 23:30:54 BST, systemd exit0 and active/exited/MainPID0.
-Session journal records code0, role z, final:false. Rsync transferred
-357,772 regular files,8,381,330,552,140 bytes;402,234 total entries, zero deletions.
-Target UUID confirmed; available space7.52TB. Original Z remains present, md0
-healthy `[UU]`, new Media intentionally `[U_]`, no matching kernel I/O/filesystem
-errors since preflight. Evidence: audit `warm-copy-completion.json` and private
-copy log in the session state directory. Completed monitor `check-media-warm-copy`
-deleted. No cold verification or service/share cutover yet; next is quiesced
-reconciliation, cold sync and full verification under the runbook.
-**October23 09:19:55 BST:** authorized cold runner
-`household-storage-cold-z-20261023.service` started: stale-copy reconciliation,
-final rsync and full SHA256/metadata verification, failing closed on errors and
-checking original Z remains read-only before each step. No publication/cutover.
-Original Z and its three bind aliases confirmed read-only at both VFS and
-filesystem layers. VM103 Watchtower plus Calibre-Web/Jellyfin/Atsumeru/
-qBittorrent/MediaMTX stopped, MediaMTX backup timer paused; original media NFS
-cleanly unmounted and its mount/automount runtime-masked. Atsumeru required
-graceful SIGTERM to its verified Java child because PID1 shell did not forward
-the Docker stop signal; no SIGKILL. OMV Filebrowser/TransferPortal stopped and
-runtime-masked. Private before-state/config and stopped Filebrowser checkpoints
-on both hosts: `/root/household-storage-cold-z-20261023/`. Services remain paused
-and original Z read-only pending verified namespace/cutover steps. Y filesystem
-unchanged. Hourly `check-media-cold-sync-and-verification` watches terminal proof/
-errors quietly. Cold verification may run into tomorrow. Remove old media fstab
-entry before clearing VM103 mount masks; unmask Filebrowser only after its new
-view is checked. Preserve stopped-state records when selecting services to resume.
-October24 15:55 BST: owner-authorized continuation queued under
-`household-storage-layout-z-20261024.service`, waiting for cold-unit exit0 and
-explicit staged-verification completion. Then it checks freeze/array/writers,
-uses the tested flatten-z/publish-z rename journal, and verifies the final mapped
-layout with SHA256/metadata. No service activation, share changes or disk erase.
-Logs/runner/command: `/root/household-storage-layout-z-20261024/`; six-hour waiting
-deadline and no restart. At queue time8.29TB checked, zero issues, incomplete.
-Monitor now follows both jobs through terminal final-layout proof. Original Z
-stays read-only, services paused; stop layout unit before any thaw/recovery.
-NFS/SMB/Compose cutover and application gates remain pending.
-**October25 16:37 GMT terminal confirmation:** final Z layout passed at
-09:46:47 GMT with402,233 entries and zero issues; complete terminal record and
-sealed SHA256 receipt in `final-z-5cd23de76ddc418a81e7f557f42ce2b2.jsonl` under
-the session state directory. SHA256:
-`20fee82a1e9b2c88196f6ea5090c3e7a73723ec31e22c9ebc510a1b622d5f71a`.
-Staged copy passed October24 16:11 BST with402,234 entries/all8.38TB; journaled
-flatten/publish completed16:12 BST. One redundant Media wrapper is excluded from
-the published namespace. Calibre now resides at new Media root/calibre-library.
-Both cold/layout jobs are active/exited, MainPID0, exit0. No activation/share
-switch: original Z/all bind aliases remain read-only; affected writers and
-services stay stopped/runtime-masked. md0 `[UU]`, new Media intentionally `[U_]`,
-7.52TB available; no matching kernel I/O/filesystem errors. Monitor
-`check-media-cold-sync-and-verification` deleted after terminal result. Evidence:
-audit `final-z-completion.json`. Next: reviewed scoped OMV/NFS/SMB/Compose
-cutover and application checks before original-Z retirement. Recovery waiver
-unchanged. Times use GMT after the October25 UK clock change.
-**October25 19:49 GMT cutover/member-add supersedes the preceding paused state:**
-Z now maps `\\192.168.40.50\Media` on new ext4 UUID
-`a8843f98-c937-48a8-aefa-4cd0fb80667c`; old14tb/broad `/export/media` retired.
-Five scoped VM103 NFS mounts resolve to that UUID. Calibre-Web host path is now
-`/mnt/omv/calibre-library:/books`; integrity ok,10548 books/11031 formats.
-Five media containers recreated/running; qBittorrent VPN Mullvad-recognized,
-monitor-only Watchtower and MediaMTX backup timer restored. Owner confirmed
-Calibre-Web/Atsumeru library/login and qBittorrent login. Automated credential
-probe returned401, no password changed or successful API probe claimed.
-Scoped writable/read-only boundaries pass; synthetic MediaMTX authenticated
-record/view/decode and completed recording decode pass. Jellyfin has no users;
-household playback not claimed. Filebrowser remains paused/runtime-masked until
-its composite view; TransferPortal/all four legacy bind units stopped/disabled.
-Original Z passed unchanged-generation proof for402234 entries, then all old
-references/aliases were retired and filesystem cleanly unmounted. Exact serial
-`3GHV81YE` partition1 was rechecked, signatures removed and added to Media MD
-UUID `fd8de871:2fcb43a8:d97ff800:008ccb6b` (md127). It is rebuilding from
-serial `3HG402GN` partition1; no independent original-Z rollback copy remains,
-as explicitly waived. md0/Y remains healthy `[UU]`, Y stays NAS until Print
-stage. mdadm/initramfs persistence succeeded. Initial mirror ETA about22h is
-only an estimate. Do not stage Y until new mirror degraded=0/sync_action=idle.
-`household-storage-stage-y-20261025.service` enforces that gate, then ONLY warm
-copies Y except Print, preserving Y sources. Logs `/root/household-storage-y-stage-20261025/`;
-quiet hourly monitor `check-media-rebuild-and-y-staging` follows both stages.
-
-**October27 09:05 GMT supersedes the preceding rebuild/queue status:** Media
-mirror is `[UU]`, degraded=0/sync_action=idle with both expected members; Y md0
-also `[UU]`. Runner confirmed healthy mirror at01:00:10 GMT and started Y warm
-staging, then failed at02:51:49 GMT: rsync24 because seven live source backup
-files vanished (six Proxmox dump/log files and one Immich database backup).
-Controller correctly refused success; no cold/full verification or Y namespace
-change is implied. Both Media disks pass SMART with sector/CRC attributes zero,
-no new kernel storage errors, target6.3TiB free. Y sources and Print layout
-remain in place; no retry or cutover performed. Private copy log:
-`/root/household-storage-state-20261021/copy-y-6b3aa73e0e5143c083a75b66995f7cfa.log`.
-Terminal monitor removed. Resume with backup-retention/writer and conflict review
-before planned frozen-source reconciliation/final sync/full verification.
-Owner's independent full-data recovery waiver remains in force.
-
-**October27 about09:14 GMT continuation:** owner authorized resumption. Warm-only
-retry `household-storage-warm-y-retry-20261027.service` is running against the
-same Y source/private stage; no competing copy, writer shutdown or namespace
-change. Proxmox02:00 backup/prune overlaps the failed pass. Refreshed live scan
-found only five approved directory merges, no new collisions/read errors
-(Y non-Print10233 entries, current Media402235). Evidence and retry log under
-`/root/household-storage-y-stage-20261025/`. Full frozen-source acceptance remains
-pending after warm staging.
-
-**October27 23:19 GMT retirement complete supersedes private-retention notes:**
-Y exact retained-source job removed10233 verified entries/empty wrappers at
-23:18:29 GMT, status0. Reviewed312 sealed expired/superseded staging backup
-entries and8 empty staging directories removed23:19:09 GMT, status0. Live roots
-untouched, both private migration trees absent; Y about4.4TiB free. All52 live
-deltas accounted for by merges/fresh backups/Immich markers/Frigate parent.
-Operational text paths fixed (vault helper, twelve Hub scripts, seven GW audit
-text files); generated monitoring refreshed. Both mirrors healthy, mappings and
-services live, Telegram deletion preserved. Exact evidence in retirement-review
-directory; final-reference-disposition.json records historical/noncanonical and
-native-binary limitations. Known synthetic/SMB fixtures retained; no current
-backups deleted. No further migration jobs/monitors pending. Offline/native
-embedded-link checks remain a client acceptance limitation.
-
-**October27 20:43 GMT retained proof terminal:**10233 retained entries and
-701454752741B rehashed, zero issues; completed20:42:30 GMT/unit exited0.
-10181 live destination generations unchanged,52 changed for review, none missing
-or type-changed. No deletion. Both mirrors/SMART healthy, no new kernel errors.
-Reference inventory finished7026 text files/five hosts with zero read errors;
-matches still need disposition. Private evidence in retirement-review directory
-below; completed monitor removed. Owner's `Y:\Models\Telegram` deletion is
-intentional and must not be restored; other unspecified deletions remain review.
-
-**October27 about19:40 GMT retirement review:** live shares/apps remain available.
-Read-only `household-storage-retained-proof-20261027.service` rehashes private Y
-originals against sealed receipt and records live destination changes separately;
-no deletion. Evidence `/root/household-storage-retirement-review-20261027/`.
-Refreshed local/five-host reference scan output private Windows directory
-`C:\Users\Admin\.codex\storage-migration-final-reference-20261027`.
-Retained originals/quarantines remain pending exact candidate review/disposition.
-
-**October27 about19:33 GMT live cutover supersedes paused state:** Y maps
-`\\192.168.40.50\Print`, Z maps Media; Print contents at Y root, no wrapper.
-Both SMB create/read/remove tests and owner Y/Immich/Filebrowser login access
-pass. Publish-y/flatten-print activated. All service/export aliases use new Media
-except Print root/composite Print bind on original healthy md0. Three scoped
-backup exports active; HA nas_backups/default restored, Proxmox omv-backups ID
-preserved. Media/Immich containers and Frigate CT111 healthy, Watchtower restored,
-backup jobs/timers/Bambuddy prior states restored. Filebrowser composite active,
-admin scope unchanged, actual UID994:100 preserved and UUID mount guard passes.
-TransferPortal retired. Fresh OMV/HA/VM103/MediaMTX/Proxmox backups passed;
-offline HA/OMV config restore, four app SQLite checks and full isolated CT111
-restore to never-booted CT105/config hash comparison passed; CT105 removed.
-Evidence `/root/household-storage-cutover-y-20261027/` (OMV/Proxmox), VM103
-`/root/household-storage-cold-y-20261027/isolated-app-restore/`. No camera recording
-or full HA booted restore claimed. Retained originals/quarantines remain private;
-final retirement/native embedded-path disposition still pending. Both mirrors
-healthy, independent recovery waiver unchanged.
-
-**October27 19:23 GMT terminal layout confirmation:** combined verification
-passed16:06:57 GMT,412464 entries/zero issues; report
-`final-combined-55c5f9af35a04df89d581bfa782d5201.jsonl` in migration state,
-SHA256 `664f314d8d650be27991ed38ed2060686062a71c3b9826b17528ff62d12e51cb`.
-Y originals retained privately (root-owned2700 .household-retained/session),
-Print children moved to Y root, wrapper removed only after complete journal
-proof. Y refrozen16:07:05 GMT; layout unit exited0, both mirrors `[UU]`.
-No retained data deleted. All maintenance/masks persist; share/client/config
-cutover and service/backup/restore acceptance still outstanding. Monitor removed.
-
-**October27 14:45 GMT layout in progress:** owner authorized continuation;
-publish-y journal prepare/apply completed, combined verification running under
-`household-storage-layout-y-20261027.service`. On success only, its guarded
-runner temporarily makes Y root controller-writable, retains originals privately,
-flattens Print and removes wrapper only after complete inode/empty proof, then
-refreezes Y RO. Export aliases stay VFS RO. No services/shares activated or
-retained data deleted. Logs `/root/household-storage-layout-y-20261027/`.
-All prior maintenance/masks/job pauses/HA mount detachment remain in effect;
-do not issue competing layout commands. Reviewed service cutover follows proof.
-
-**October27 14:26 GMT terminal cold-proof confirmation:** Y verification passed
-12:41:21 GMT,10234 entries/zero issues; fresh current Media identity baseline
-passed12:41:58 GMT,402236 entries/zero issues. Unit active/exited status0.
-Receipts under `/root/household-storage-state-20261021/`:
-`verify-y-a4c7e264801c47f9910fa96af026e108.jsonl` SHA256
-`c6713191e7ec270d8a058750a913b3eddc2a8c0f9121a75ddb41bf998a09733e`,
-`live-z-e2eb363549cc4a6a83814cca586f164f.jsonl` SHA256
-`f41a5554e7b4109601d336bc15a3e7b379bac5c006a49f7432d627478afa8927`.
-Reconcile sealed312 stale-stage entries privately, no deletion. Both mirrors
-healthy, Media degraded0/idle, SMART sector/CRC zero, no new storage errors.
-Y remains frozen and all recorded services/mounts/jobs remain paused. No Y
-publication or Print flattening; next reviewed section C cutover. Cold monitor
-removed. Baseline is identity proof, not fresh full-Media hashes/recovery copy.
-
-**October27 10:21 GMT cold Y maintenance:** unit
-`household-storage-cold-y-20261027.service` frozen audit passed only five merges;
-reconciliation/final copy exit0, full hashes running then snapshot-live-z. No
-publication/Print moves. Y root/all aliases VFS+FS RO; Media export aliases VFS
-RO, target root writable. smbd runtime-masked, OMV backup timer paused. VM103
-Watchtower/four Immich/five Media apps stopped; app-data/MediaMTX/Bambuddy timers
-paused, seven NFS mount+automount paths runtime-masked after clean unmount.
-Proxmox backup jobs/storage disabled temporarily, CT111 stopped/NFS unmounted.
-HA safety/Core live; NAS backup mount detached/default null, schedule unchanged
-daily03:00/14 copies. Restore saved mount/default only after retargeting. Private
-checkpoints/logs all four hosts `/root/household-storage-cold-y-20261027/`.
-Both mirrors healthy; recovery waiver unchanged. Services remain paused pending
-proof and reviewed cutover. Do not restore old source mounts prematurely.
-
-**October27 10:14 GMT terminal warm-retry confirmation:** retry finished09:25:21
-GMT, unit active/exited status0, session copy-finish y code0 final=false. Report
-`/root/household-storage-state-20261021/copy-y-9989cc20c5d444058ff7040fe7e4f84c.log`:
-10234 entries,701454752762B logical,254 regular files transferred, zero deletions.
-Both mirrors `[UU]`, Media degraded0/idle; both Media disks pass SMART with
-sector/CRC attributes zero, no new kernel storage errors,6.2TiB free. Monitor
-removed. Y originals/Print unchanged; cold final sync, full verification and
-publication remain pending. Owner's independent-recovery waiver is unchanged.
-Z private proof/config/member-add logs: `/root/household-storage-cutover-z-20261025/`.
-Live diagnostics rebuilt with scoped mount commands, nginx validates; prepared
-collector source updated but collector scheduling/shipping remains undeployed.
-Owned fixtures retained:531431B synthetic recording and17B hidden SMB probe
-`.migration-smb-probe-9772835e4ef34a609105a72164f5fcbb` at Media root; automatic
-approval review blocked hidden-probe cleanup with only “blocked by policy”.
-Next: healthy mirror/Y warm staging, then refreshed audit/cold proof/live-Media
-baseline before Y merge/retention/Print flattening. No Y original data moved yet.
-Warm success is not cold/hash/application acceptance. Do not repurpose original
-Z until cold sync, verification, final-layout and service gates pass. Degraded
-new Media `[U_]` is expected for this stage; do not confuse it with failed md0.
-
-October20 waiting-time preparation: guarded storage copy/rename/recovery tools,
-scoped NFS/backup/Filebrowser configuration templates and cutover runbook are
-ready for review; 75 Linux disposable tests pass (Windows 19 pass, 56 skips).
-The active Filebrowser database has one admin scoped to `/srv` + `/`; a
-network-isolated real-image fixture confirmed composite Print/Media binds work
-as UID1006. Hardware preparation/warm staging began October21 as above;
-remaining configuration deployment and application/backup/restore acceptance
-are pending.
-See the audit for evidence and
-`main/tools/storage-migration/cutover-runbook.md` for the execution sequence.
+Both data mirrors were healthy at the last recorded acceptance. Windows Y: maps
+Print and Z: maps Media. Media filesystem UUID is
+`a8843f98-c937-48a8-aefa-4cd0fb80667c`; scoped NFS exports serve the media
+libraries and backup clients. HA `nas_backups` and Proxmox `omv-backups`
+retain their storage identities. Filebrowser uses the guarded Print/Media
+composite view. Owner access and isolated backup restore checks passed. Native
+application links on offline clients have not all been verified.
 
 October2 at21:30 BST: the prepared host-local JSON collector produced one-off
 read-only evidence for five disks, both expected UUID mounts, root capacity,
@@ -1865,3 +1639,15 @@ Print and Media SMB bins retain files 30 days; unrestricted max size. Share extr
 
 ### Windows development-tool storage — 2026-11-04
 Windows Admin user Conda config (`C:\Users\Admin\.condarc`) now prefers `K:\Documents\Cache Folders\conda\envs` and `...\conda\pkgs`, retaining C: fallback paths and existing voice310/facefusion environments. PlatformIO Core is fully migrated to the space-free `K:\Documents\Obsidian\home-automation-project\main\PlatformIO`: user `PLATFORMIO_CORE_DIR` resolves to that directory and `PLATFORMIO_PACKAGES_DIR` to its `packages` child, including tools, package cache, PlatformIO's virtual environment and the ESP-IDF dependency environment. The generated core is intentionally Git-ignored. On November5 the PlatformIO6.1.19 launcher was rebuilt at its existing version after the relocation, then `pio system info` and the global package inventory passed against this core (14 installed platform/tool dependencies); no PlatformIO, framework or toolchain versions were upgraded. A clean ESP-IDF/Arduino `ventsys-main-valve-1` rebuild completed from the K: core on November4, generating `firmware.bin` (1,139,344bytes) without using `C:\Users\Admin\.platformio`; no firmware was flashed. ESP-IDF rejects paths containing spaces, so the earlier `K:\Documents\Cache Folders\platformio` copy is not the active location. The original C: core was manually removed after this proof; restart VS Code/ESPHome or any open terminals so they inherit the new user settings. PlatformIO test junction `K:\PlatformIOCache` points at the earlier spaced folder and remains because automatic review blocked its removal; it is not the active package path. The Visual Studio temporary staging folder `C:\Users\Admin\AppData\Local\Temp\k1bdwnii` remains after the same review blocked deletion.
+
+- November10 monitoring access audit: existing VM102 checks largely reachable, but missing MQTT/HTTPS/new-service router permissions recorded in `docs/audits/2026-11-10-monitoring-network-access.md`; router unchanged. Repaired OMV SMART heartbeat timeout caused by a missing DOCKER-USER allowance after chain rebuild; full source now preserves it and service ordering is explicit. Kuma recovered at08:22:55UTC, all five disks healthy.
+
+- November10: confirmed VM102 access gaps closed with exact-source/destination router rules for HA MQTT8883 and VM103 HTTPS443/8193, Hub8100, Jellyfin8096, Calibre8083, Atsumeru31337 and qBittorrent8084. HTTPS host UFW rules persist. All eight TCP paths verified; protocol-level MQTT/HA/ntfy checks passed. Optional restricted endpoints in the audit remain intentionally outside these allowances.
+
+- November11 Kuma monitors37–44 check the eight newly reachable endpoints.
+  All latest states pass with ntfy routes and two retries configured. Existing
+  local CA trust was added to Kuma for verified HTTPS checks. Owner completed
+  Homepage browser checks. The deployed home-operations widget covers 43
+  monitors and the heartbeat API reports 40 Up and 3 Down, the disconnected
+  cameras. See the monitoring roadmap for rollback and delivery limits.
+

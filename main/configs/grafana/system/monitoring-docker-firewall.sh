@@ -7,6 +7,9 @@ iptables -N DOCKER-USER 2>/dev/null || true
 iptables -F DOCKER-USER
 iptables -A DOCKER-USER -m conntrack --ctstate RELATED,ESTABLISHED -j RETURN
 
+# OMV's existing SMART-health push must survive every full chain rebuild.
+iptables -A DOCKER-USER -p tcp -s 192.168.40.50 -m conntrack --ctorigdst 192.168.60.10 --ctorigdstport 3001 -j RETURN
+
 # Grafana and Uptime Kuma: management, the Homepage HTTPS preview proxy,
 # HA health checks, and Tailscale clients.
 for port in 3000 3001; do
