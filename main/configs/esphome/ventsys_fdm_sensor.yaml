@@ -126,9 +126,8 @@ sensor:
   # resistance is used here to avoid that dependency — it carries the same
   # information and can be processed in HA or Node-RED if needed.
   #
-  # MQ sensor role: fast combustion/smoke alarm ONLY (binary, not IAQ).
-  # The two sensors are complementary — BME680 for air quality trend,
-  # MQ for rapid threshold detection.
+  # CO is qualitative; baseline and fallback thresholds are configured in
+  # ventsys_air_sensor_co.yaml. BME680 gas resistance tracks air quality.
   - platform: bme680
     address: 0x77   # SDO tied HIGH; use 0x76 if SDO is tied to GND
     update_interval: 30s

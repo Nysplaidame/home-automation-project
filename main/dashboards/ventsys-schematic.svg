@@ -447,7 +447,7 @@
 <line x1="30" y1="391" x2="406" y2="391" stroke="rgba(255,255,255,0.12)"/>
 <text x="30" y="414" fill="#a9b8d0" font-family="Orbitron" font-size="14">SMOKE/CO</text>
 <text id="env-ambient-smoke" x="156" y="414" fill="#00ffff" font-family="Orbitron" font-size="17" text-anchor="middle" aria-label="AMBIENT smoke: unavailable">—</text>
-<text id="env-fdm-smoke" x="256" y="414" fill="#00ff88" font-family="Orbitron" font-size="17" text-anchor="middle" aria-label="FDM smoke: unavailable">—</text>
+<text id="env-fdm-smoke" x="256" y="414" fill="#00ff88" font-family="Orbitron" font-size="17" text-anchor="middle" aria-label="FDM CO: unavailable">—</text>
 <text id="env-sla-smoke" x="356" y="414" fill="#ffee00" font-family="Orbitron" font-size="17" text-anchor="middle" aria-label="SLA CO: unavailable">—</text>
 <line x1="30" y1="425" x2="406" y2="425" stroke="rgba(255,255,255,0.12)"/>
 <text x="30" y="448" fill="#a9b8d0" font-family="Orbitron" font-size="16">GAS kΩ</text>

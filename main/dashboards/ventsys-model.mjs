@@ -138,7 +138,7 @@ export const SENSORS = {
     label: 'FDM enclosure', temperature: ['sensor.'+FDM_INSTALLED+'temperature','sensor.'+FDM_LEGACY+'temperature','sensor.ventsys_fdm_pipe_air_temperature', 'sensor.fdm_temperature'],
     humidity: ['sensor.'+FDM_INSTALLED+'humidity','sensor.'+FDM_LEGACY+'humidity','sensor.ventsys_fdm_pipe_air_humidity'], baro: ['sensor.'+FDM_INSTALLED+'pressure','sensor.'+FDM_LEGACY+'pressure','sensor.ventsys_fdm_pipe_air_baro_pressure'],
     differential: ['sensor.fdm_pressure_differential'], gas: ['sensor.'+FDM_INSTALLED+'iaq_gas_resistance','sensor.'+FDM_LEGACY+'iaq_gas_resistance','sensor.ventsys_fdm_pipe_air_iaq_gas_resistance', 'sensor.fdm_iaq'],
-    smoke: ['binary_sensor.'+FDM_INSTALLED+'smoke_detected','binary_sensor.'+FDM_LEGACY+'smoke_detected','binary_sensor.ventsys_fdm_pipe_air_smoke_detected', 'sensor.fdm_smoke'],
+    smoke: ['binary_sensor.garage_fdm_enclosure_sensor_co_detected', 'binary_sensor.'+FDM_INSTALLED+'co_detected', 'sensor.fdm_co'], alarmLabel: 'CO',
     wheel: ['sensor.ventsys_fdm_airflow_sensor_flow_meter_wheel_speed', 'sensor.fdm_airflow_wheel_speed'],
   },
   sla: {
@@ -164,7 +164,7 @@ export function freshnessTime(id, state, states) {
   // Binary sensors can remain unchanged for days while their ESPHome board is
   // online. A recent temperature report from the same exact sensor prefix is
   // a heartbeat; never borrow freshness from another device or MQTT alias.
-  const sibling = String(id || '').replace(/^[^.]+\./, 'sensor.').replace(/_(smoke_detected|humidity|baro_pressure|pressure|iaq_gas_resistance)$/, '_temperature');
+  const sibling = id === 'binary_sensor.garage_fdm_enclosure_sensor_co_detected' ? 'sensor.' + FDM_INSTALLED + 'temperature' : String(id || '').replace(/^[^.]+\./, 'sensor.').replace(/_(co_detected|smoke_detected|humidity|baro_pressure|pressure|iaq_gas_resistance)$/, '_temperature');
   const own = timestamp(state), heartbeat = known(states[sibling]) ? timestamp(states[sibling]) : null;
   return Math.max(own ?? 0, heartbeat ?? 0) || null;
 }

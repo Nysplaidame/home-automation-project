@@ -88,15 +88,12 @@ status: active
   November 8: owner removed packaging cover and possible signal-to-VCC wire
   strand; voltage then about 0.300 V with detection/fault off, latch still on.
   Watch stability and verify physical wiring before baseline capture.
-- [ ] Correct installed FDM enclosure air sensor `.32` CO channel: owner
-  identified the fitted component as CO on November 8, but flashed firmware,
-  HA and dashboard still label GPIO3 as smoke and use an uncalibrated raw
-  threshold. Candidate `configs/esphome/ventsys_fdm_sensor_co.yaml` now uses
-  the SLA CO/BME680 pinout and compiled under ESPHome 2026.9.1. On November 8
-  HA still reported the board offline, `.32` did not answer, and Windows had no
-  USB serial device; no flash occurred. Connect the MAC `CC:BA:97:F0:D0:C0`
-  board, verify its actual status LED wiring, flash and validate native CO/BME
-  readings, then correct dashboard and HA entity references and alarm rules.
+- [ ] Commission installed FDM enclosure air sensor `.32` CO channel: the
+  November 10 OTA replaced the incorrect smoke channel with qualitative CO on
+  GPIO3. Dashboard and MQTT source references now use CO; deploy and verify HA
+  entity IDs and alert rules, then capture a valid clean-air baseline and test
+  the full alert path. Resolve the planned FDM-array-2 `.32` conflict before
+  adopting that additional board. See current-live-state for OTA evidence.
 - [x] November 7: deploy VentSys Clear alarms popup listing live latched boards,
   with per-board acknowledgment blocked for active alarms and faults.
 - [x] November 7: add read-only VentSys Diagnostics tab with searchable live

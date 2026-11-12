@@ -272,7 +272,7 @@ automation:
           - binary_sensor.fdm_array_2_alarm_latched
           - binary_sensor.fdm_array_2_co
           - binary_sensor.fdm_array_2_high_temperature
-          - sensor.fdm_smoke
+          - sensor.fdm_co
           - binary_sensor.fdm_array_2_smoke
       - platform: homeassistant
         event: start
@@ -289,7 +289,7 @@ automation:
               is_state('binary_sensor.fdm_array_2_alarm_latched', 'on'),
               is_state('binary_sensor.fdm_array_2_co', 'on'),
               is_state('binary_sensor.fdm_array_2_high_temperature', 'on'),
-              is_state('sensor.fdm_smoke', 'detected'),
+              is_state('sensor.fdm_co', 'detected'),
               is_state('binary_sensor.fdm_array_2_smoke', 'on'),
             ] %}
             {{ 'FIRE_RISK' if true in hot else 'NORMAL' }}

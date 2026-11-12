@@ -456,7 +456,7 @@ mqtt:
     #      "FIRE_RISK" / "NORMAL" to ventsys/{enc}/risk/state based on smoke/temp thresholds.
 
 
-    #   B) Add a HA automation that watches sensor.fdm_smoke / sensor.fdm_iaq and
+    #   B) Add a HA automation that watches sensor.fdm_co / sensor.fdm_iaq and
 
 
     #      publishes to ventsys/fdm/risk/state via mqtt.publish.
@@ -609,13 +609,13 @@ mqtt:
 
 
 
-    - name: FDM Smoke
+    - name: FDM CO
 
 
-      unique_id: ventsys_fdm_smoke
+      unique_id: ventsys_fdm_co
 
 
-      state_topic: "ventsys/fdm/array_1/smoke"
+      state_topic: "ventsys/fdm/co"
 
 
       expire_after: 120
