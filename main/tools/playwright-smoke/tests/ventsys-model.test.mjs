@@ -91,3 +91,16 @@ test('intake UI opening maps endpoints and midpoint without changing controller 
     assert.equal(openingPercent(device,null),null);
   }
 });
+
+test('CO fault is an orange incident and simultaneous detection is unverified', async () => {
+  const { activeIncidents } = await import('../../../dashboards/ventsys-model.mjs');
+  const prefix = 'garage_ventsys_sla_pipe_air_sensor';
+  const states = { [`binary_sensor.${prefix}_co_sensor_fault`]: state('on'), [`binary_sensor.${prefix}_sensor_fault`]: state('on'), [`binary_sensor.${prefix}_co_detected`]: state('off') };
+  const incidents = activeIncidents(states, true);
+  assert.equal(incidents.length, 1);
+  assert.equal(incidents[0].severity, 'orange');
+  assert.equal(incidents[0].label, 'co sensor fault');
+  assert.equal(incidents[0].fault, true);
+  states[`binary_sensor.${prefix}_co_detected`] = state('on');
+  assert.match(activeIncidents(states, true).find(i => i.severity === 'red').label, /unverified signal/);
+});

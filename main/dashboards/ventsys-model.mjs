@@ -49,7 +49,7 @@ export function activeIncidents(states, connected) {
   });
   for (const [id, entity] of Object.entries(states)) {
     if (entity.state !== 'on') continue;
-    const match = /^binary_sensor\.((?:garage_)?ventsys_[a-z0-9_]+)_(co_detected|smoke_detected|high_temperature|sensor_fault|co_sensor_fault|bme680_fault|temperature_rising_fast|alarm_latched)$/.exec(id);
+    const match = /^binary_sensor\.((?:garage_)?ventsys_[a-z0-9_]+?)_(co_detected|smoke_detected|high_temperature|sensor_fault|co_sensor_fault|bme680_fault|temperature_rising_fast|alarm_latched)$/.exec(id);
     if (!match) continue;
     const [, prefix, kind] = match;
     if (kind === 'sensor_fault' && states[`binary_sensor.${prefix}_co_sensor_fault`]?.state === 'on') continue;

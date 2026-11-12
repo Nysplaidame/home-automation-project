@@ -634,9 +634,14 @@ in the dashboard, but label the hardware reading unverified and do not use it
 as a calibrated CO incident or capture a baseline. A certified CO alarm remains
 the independent safety device. The dashboard's SLA sensor panel uses the
 adopted `garage_ventsys_sla_pipe_air_sensor_*` entities and labels the channel
-CO instead of smoke. Firmware should
-classify an out-of-range CO voltage as a fault before CO detection, so a clipped
-ADC does not appear to prove CO exposure; verify that behavior on a bench.
+CO instead of smoke. The shared CO firmware candidate classifies non-finite voltage and readings below
+0.02 V or above 3.25 V as a sensor fault, including during warm-up. It checks
+the same sample before detection or baseline capture, without the former
+15-second fault delay or five-reading moving average. Detection still has its
+5-second on and 15-second off delays, so an existing alarm can remain active
+briefly after a fault; the dashboard labels that combination unverified. The
+dashboard displays the CO fault as an orange incident. This candidate has not
+been deployed or bench-verified; verify both fault and detection paths on a bench.
 
 Beyond the deployed CO hardware fault and failsafe notifications, these ntfy
 delivery rules remain proposed:

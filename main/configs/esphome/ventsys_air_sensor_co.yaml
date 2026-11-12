@@ -62,10 +62,7 @@ sensor:
     samples: 16
     update_interval: ${gas_update_interval}
     accuracy_decimals: 3
-    filters:
-      - sliding_window_moving_average:
-          window_size: 5
-          send_every: 1
+    # Do not smooth away an invalid sample before fault classification.
 
   - platform: template
     name: "co_rs_r0_ratio"
@@ -76,7 +73,7 @@ sensor:
     lambda: |-
       const float vs = ${gas_supply_voltage}f;
       const float v = id(co_voltage).state;
-      if (std::isnan(v) || v <= 0.01f || v >= vs || id(co_r0) <= 0.0f) return NAN;
+      if (!std::isfinite(v) || v < ${gas_fault_low_v}f || v > (vs - ${gas_fault_high_margin_v}f) || id(co_r0) <= 0.0f) return NAN;
       const float rs = ${gas_load_resistance}f * (vs - v) / v;
       return rs / id(co_r0);
 
@@ -88,10 +85,10 @@ binary_sensor:
     lambda: |-
       if (!id(gas_sensors_ready) || id(co_fault).state) return false;
       const float v = id(co_voltage).state;
-      if (std::isnan(v)) return false;
+      if (!std::isfinite(v) || v < ${gas_fault_low_v}f || v > (${gas_supply_voltage}f - ${gas_fault_high_margin_v}f)) return false;
       if (id(co_r0) > 0.0f) {
-        const float r = id(co_ratio).state;
-        return !std::isnan(r) && r < id(co_ratio_num).state;
+        const float r = ${gas_load_resistance}f * (${gas_supply_voltage}f - v) / v / id(co_r0);
+        return std::isfinite(r) && r < id(co_ratio_num).state;
       }
       return v > id(co_voltage_num).state;
     filters:
@@ -115,11 +112,8 @@ binary_sensor:
     device_class: problem
     entity_category: diagnostic
     lambda: |-
-      if (!id(gas_sensors_ready)) return false;
       const float v = id(co_voltage).state;
-      return std::isnan(v) || v < ${gas_fault_low_v}f || v > (${gas_supply_voltage}f - ${gas_fault_high_margin_v}f);
-    filters:
-      - delayed_on: 15s
+      return !std::isfinite(v) || v < ${gas_fault_low_v}f || v > (${gas_supply_voltage}f - ${gas_fault_high_margin_v}f);
     on_state:
       - lambda: 'id(extra_fault_active) = x;'
 
@@ -132,7 +126,7 @@ button:
       - lambda: |-
           const float vs = ${gas_supply_voltage}f;
           const float v = id(co_voltage).state;
-          if (!id(gas_sensors_ready) || id(co_fault).state || std::isnan(v) || v <= 0.01f || v >= vs) {
+          if (!id(gas_sensors_ready) || id(co_fault).state || !std::isfinite(v) || v < ${gas_fault_low_v}f || v > (vs - ${gas_fault_high_margin_v}f)) {
             ESP_LOGW("gas", "CO baseline not captured: sensor not warmed up, faulted or out of range");
             return;
           }
