@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { DEVICE_LIST, DEVICES, deviceState, numeric, sensorValue, measurement, smokeState, commandRequest, commandBlock, matchesExpected, deriveMode, airflowWarnings, MODE_EXPECTED } from '../../../dashboards/ventsys-model.mjs';
+import { DEVICE_LIST, DEVICES, SENSORS, freshnessTime, deviceState, numeric, sensorValue, measurement, smokeState, commandRequest, commandBlock, matchesExpected, deriveMode, airflowWarnings, MODE_EXPECTED } from '../../../dashboards/ventsys-model.mjs';
 const now = Date.now();
 const state = (value, unit = '', age = 0, attrs = {}) => ({ state: String(value), last_updated: new Date(now - age).toISOString(), attributes: { unit_of_measurement: unit, ...attrs } });
 function snapshot(value = 0) { return Object.fromEntries(DEVICE_LIST.map(d => [d.key, { available: true, native: true, value: d.fan ? 'off' : d.expectedRange && value === 0 ? 30 : d.expectedRange && value === 100 ? 60 : value, speed: 50, min: d.expectedRange?.min ?? 0, max: d.expectedRange?.max ?? 100, timestamp: now }])); }
@@ -40,6 +40,15 @@ test('smoke alarm survives unavailable primary or disconnect', () => {
   assert.equal(smokeState(['a'], { a: state('off') }, false, true, now).alarm, true);
 });
 test('fresh explicit primary clear can clear previous alarm', () => assert.equal(smokeState(['a','b'], { a: state('off'), b: state('clear') }, true, true, now).alarm, false));
+test('FDM CO entities and heartbeat use the installed sensor', () => {
+  const id = 'binary_sensor.garage_fdm_enclosure_sensor_co_detected';
+  const temperature = 'sensor.garage_fdm_enclosure_sensor_fdm_enclosure_sensor_temperature';
+  assert.deepEqual(SENSORS.fdm.smoke, [id, 'binary_sensor.garage_fdm_enclosure_sensor_fdm_enclosure_sensor_co_detected', 'sensor.fdm_co']);
+  assert.equal(SENSORS.fdm.alarmLabel, 'CO');
+  const alarm = state('off', '', 900000);
+  assert.equal(freshnessTime(id, alarm, { [temperature]: state(20) }), now);
+  assert.equal(freshnessTime(id, alarm, { 'sensor.other_temperature': state(20) }), now - 900000);
+});
 test('unchanged native binary sensor uses only its own board heartbeat', () => {
   const id='binary_sensor.board_smoke_detected';
   assert.equal(smokeState([id], { [id]: state('off','',900000), 'sensor.board_temperature': state(20,'°C') }, true, false, now).label, 'Clear');
