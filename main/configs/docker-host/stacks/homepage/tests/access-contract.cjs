@@ -26,7 +26,10 @@ for (const host of ['homepage.home.local', '192.168.20.102', '100.94.122.18']) {
   assert.equal(context.getDirectHref({id:'portal-ventsys'}, 'https://homepage.home.local:8188/dashboard-ventsys/0'), `https://${host}:8188/dashboard-ventsys/0`);
 }
 const yaml = fs.readFileSync(path.join(root, 'config/services.yaml'), 'utf8');
+// Known exception: Filebrowser is linked directly on the NAS (no HTTPS proxy listener yet).
+const PLAIN_HTTP_EXCEPTIONS = new Set(['http://192.168.40.50:3670/']);
 for (const match of yaml.matchAll(/^\s+href:\s+(\S+)/gm)) {
+  if (PLAIN_HTTP_EXCEPTIONS.has(match[1])) continue;
   const url = new URL(match[1]);
   assert.equal(url.protocol, 'https:');
   assert.ok(['homepage.home.local', 'vault.home.local'].includes(url.hostname));
