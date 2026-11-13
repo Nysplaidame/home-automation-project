@@ -28,4 +28,14 @@ Applied live 2026-11-11 (router backups `/etc/config/{firewall,dhcp}.bak-2026111
 verified: announcement streamed 143 KB FLAC and played.
 
 Side effect: anything else HA hands out via `internal_url` (outside these two paths) 404s through
-this proxy. Revert with HA Settings > System > Network > Home Assistant URL.
+this proxy.
+
+**Where the setting lives (found 2026-11-13):** `homeassistant: internal_url` in the live
+`/config/configuration.yaml` must be `http://ha-media.home.arpa:8124`. It was first set only in the UI
+(Settings > System > Network), but a value in YAML overrides the UI value at every HA start, and the YAML
+still said `https://192.168.20.101:8123`. After the next restart HA could not build a media URL again and the
+Voice PE heard its wake word, played the tone, then did nothing: the pipeline run died at its first event with
+`Unable to determine Home Assistant URL to send to device` (`assist_satellite` ->
+`async_process_play_media_url`, visible under Settings > System > Logs and in the pipeline debug view). The YAML is
+fixed (backup `backups/configuration.yaml.bak-20261113-pre-internal-url`). To revert, change the YAML line, not the
+UI. Quick check of the effective value: `GET /api/config` -> `internal_url`.
