@@ -70,7 +70,7 @@ Completed live:
   admin/DNS ports stay scoped despite Docker DNAT bypassing normal UFW input.
 - Tailscale installed and `tailscaled` active; docker-host is authenticated as
   `100.94.122.18` and advertises only `192.168.20.101/32`,
-  `192.168.30.20/32`, `192.168.40.50/32`, and `192.168.60.10/32`. Stale broad route preference
+  `192.168.20.104/32`, `192.168.30.20/32`, `192.168.40.50/32`, and `192.168.60.10/32`. Stale broad route preference
   `192.168.20.0/24` was removed on 2026-07-02.
 - `/etc/apt/apt.conf.d/01proxy` keeps HTTP apt traffic through apt-cacher-ng and
   sends HTTPS apt traffic direct because apt-cacher-ng rejects HTTPS CONNECT.
@@ -477,7 +477,7 @@ Tailscale is installed on the host OS, not inside Docker.
 Target route advertisement:
 
 ```bash
-tailscale up --accept-dns=false --hostname=docker-host --advertise-routes=192.168.20.101/32,192.168.30.20/32,192.168.40.50/32,192.168.60.10/32
+tailscale up --accept-dns=false --hostname=docker-host --advertise-routes=192.168.20.101/32,192.168.20.104/32,192.168.30.20/32,192.168.40.50/32,192.168.60.10/32
 ```
 
 Approve each host route in the Tailscale admin console. Do not advertise broad
@@ -487,6 +487,7 @@ VLAN routes such as `192.168.20.0/24`, `192.168.40.0/24`, or
 Remote access model:
 
 - Home Assistant through `192.168.20.101/32`.
+- llm-host (Voice Mixer `7860`, Open WebUI `3002`) through `192.168.20.104/32`.
 - Frigate authenticated HTTPS through `192.168.30.20/32`; keep internal API
   port `5000` denied remotely.
 - OMV through `192.168.40.50/32`.

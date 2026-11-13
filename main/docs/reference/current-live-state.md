@@ -221,12 +221,21 @@ while its replacement LXC is running.
   `/ssl/fullchain.pem` and `/ssl/privkey.pem`, signed by local
   `/ssl/ca.crt` (`Home Local CA`). HTTP on port `8123` is no longer the active
   HA UI.
-- `homeassistant.internal_url` is set to `https://192.168.20.101:8123`;
+- `homeassistant.internal_url` is `http://ha-media.home.arpa:8124` (2026-11-11; set in `configuration.yaml` since 2026-11-13, because a UI-only value is overwritten by the YAML key on every restart): the docker-host `ha-media-proxy` that exposes only TTS/announcement media paths over plain HTTP for ESPHome voice satellites. It was found empty after the 2026.11 SSL-profile migration; HA ignores IP-only URLs under SSL, ESP32s cannot resolve `*.local` via unicast DNS, and stock Voice PE firmware does not trust the private CA. See `configs/docker-host/stacks/ha-media-proxy/README.md`;
   `external_url` is intentionally unset.
 - Mosquitto, File Editor, Terminal & SSH and ESPHome Device Builder are live.
 - The Home Assist pipeline uses Home Assistant's built-in conversation agent.
 - The Overwatch Assist pipeline points at `llamacpp_conversation`, a local
   Home Assistant custom conversation agent for llama.cpp's OpenAI-compatible API.
+  Since 2026-11-13 (decision 10, phase 1) it offers every configured tool API on every turn with one prompt
+  (`configs/home-assistant/overwatch-prompt.txt`), answers device state, recipe, shopping and clock questions in
+  code, warms the llama.cpp prompt cache at start-up and after midnight, and strips oversized length bounds from
+  tool schemas because llama.cpp rejects them ("failed to parse grammar"). Voice currently runs against a
+  Qwen3-30B-A3B trial container on CT 114 (the production `llama-cpp` container is stopped); see
+  `HANDOFF-2026-11-11-llm-igpu-speed.md` before changing the model or tool schemas.
+- The Voice PE `home-assistant-voice-0ae52a` runs the stock 26.9.0 firmware plus an on-device "Overwatch" wake word
+  (flashed 2026-11-13 from `configs/esphome/home-assistant-voice-0ae52a.yaml` via the ESPHome Device Builder);
+  Okay Nabu stays active in the first wake word slot until Overwatch is proven by voice.
 - The bounded read-only SearXNG search tool, Mealie recipe tools, and Grocy
   add/list shopping-list tools are enabled for local LLM conversation agents
   through the `llamacpp_conversation` config.
@@ -937,7 +946,9 @@ is not proof. Evidence and rollback files remain host-only in CT 111 at
   Hub.
 - Live llama.cpp image digest:
   `ghcr.io/ggml-org/llama.cpp@sha256:4e784358f638549d95bd22fb814c1afeed1af71fbd4b70c25f23eae01caaa6af`.
-- Whisper starts offline from persistent model/tokenizer data.
+- Wyoming STT (`wyoming-whisper`, port 10300) runs NVIDIA Parakeet TDT 0.6B v2 int8 via sherpa-onnx since 2026-11-05 (~0.2 s/command; faster-whisper `base-int8` kept for rollback), starting offline from model data pre-placed in `./whisper`.
+- Metrocop Wyoming TTS `metrocop-tts` on port 10201 (voice-mixer stack); Piper also serves `en_GB-metrocop2-medium`.
+- SearXNG: Brave/DuckDuckGo/Startpage are blocked upstream; Bing + Yandex enabled (2026-11-05).
 - HA can reach ports 8081, 10200, 10300 and 10400 through source-scoped
   host and Docker firewall policy. HA uses `192.168.20.104:8081/v1` for the
   llama.cpp conversation agent.
@@ -947,6 +958,39 @@ is not proof. Evidence and rollback files remain host-only in CT 111 at
 - SearXNG web search is reachable at docker-host port 8087, including from Home
   Assistant after the 2026-07-07 HA Supervisor-network docker-host firewall
   update.
+- Voice Mixer (decision 09) is **live** since 2026-10-11 as container
+  `voice-mixer` (`/opt/stacks/voice-mixer`, image `voice-mixer:local` with CPU
+  RVC, `cpus 2`, `mem_limit 4g`) on `192.168.20.104:7860`. The stack holds the RVC
+  model/index, 325 metropolice clips and the 697-clip dataset; the Piper voice is
+  mounted read-only from `/opt/stacks/local-ai/piper`. Port `7860` is scoped by
+  the `DOCKER-USER` block in `/usr/local/sbin/llm-host-firewall.sh` (backup
+  `*.bak-20261010-*-pre-voice-mixer`). Piper→RVC on CPU takes ~30 s per sentence;
+  the container idles at ~155 MB and peaked at ~0.5 GB. Homepage portal:
+  `https://homepage.home.local:8210/` (docker-host UFW `8210`). docker-host
+  Tailscale advertises `192.168.20.104/32`, approved and active 2026-10-11.
+  Since 2026-11-05 the mixer uses the Metrocop bleep set at `clips/bleeps`
+  (overwatch `on3` start; random end blip from three cuts of
+  `prison_soldier_bunker1.wav` plus overwatch `off2`) and ships a `metrocop`
+  preset (mid + 200/120 ms gaps, bleeps at speech level), which is the default
+  preset (`default_preset`). Live config backup:
+  `data/config.json.bak-20261105-pre-bleepset`. The running image
+  `voice-mixer:local` was patched in place on CT 114 (files copied in and
+  `docker commit`) because Docker Desktop is no longer installed on the desktop;
+  the previous image is tagged `voice-mixer:pre-default-preset`. The next full
+  rebuild from the repo supersedes the patch.
+- Custom wake word: `wyoming-openwakeword` runs with `--custom-model-dir /custom`
+  and loads `/opt/stacks/local-ai/openwakeword/overwatch.tflite` (trained
+  2026-11-05, see `voice/wakeword/README.md`; threshold 0.5). Compose backup:
+  `docker-compose.yml.bak-20261105-pre-overwatch-wakeword`. HA pipeline
+  assignment is done in the UI.
+- Incident 2026-10-08 → 2026-10-10 (resolved): CT 111 Frigate's main process
+  reached ~5.3 GB RSS inside the 6 GiB CT limit (2 OOM kills), leaving ~60 MB
+  page cache, so the CT re-read its own files constantly (~1,000 reads/s on the
+  shared NVMe, CT I/O pressure ~99%, host load ~100 with ~78 D-state tasks in
+  `dm_thin_find_block`). NVMe SMART healthy; thin pool 26% data / 1% metadata.
+  CT 111 was temporarily raised to 12 GiB and Frigate restarted; on 2026-10-11
+  the CT is back at its configured 6 GiB with ~1 GB in use, host load ~1–2 and no
+  D-state tasks. The Frigate memory growth is unexplained and may recur.
 
 ## Docker host
 

@@ -1,0 +1,21 @@
+{
+  "host": "0.0.0.0",
+  "port": 7860,
+  "python": "/usr/local/bin/python",
+  "piper_voice": "/voices/en_GB-alba-medium.onnx",
+  "piper_length_scale": 1.0,
+  "rvc_cli": "/app/voice_mixer/vendor/rvc_cli.py",
+  "rvc_model": "/models/combine_soldierv2.pth",
+  "rvc_index": "/models/added_IVF292_Flat_nprobe_1_combine_s2_v2.index",
+  "rvc_device": "cpu",
+  "rvc_method": "rmvpe",
+  "rvc_timeout_s": 900,
+  "bleep_dir": "/clips/bleeps",
+  "game_clips_dir": "/clips/vo",
+  "dataset_dir": "/dataset",
+  "presets_dir": "/data/presets",
+  "cache_dir": "/data/cache",
+  "output_dir": "/data/outputs",
+  "default_preset": "metrocop",
+  "batch_roots": []
+}

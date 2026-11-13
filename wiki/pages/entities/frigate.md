@@ -3,7 +3,7 @@ title: "Frigate NVR"
 category: entity
 tags: [software, frigate, cctv, docker, nvr]
 created: 2026-04-07
-updated: 2026-10-10
+updated: 2026-10-11
 sources: [project-readme, frigate-vm-setup-guide, igpu-passthrough-guide]
 status: active
 ---

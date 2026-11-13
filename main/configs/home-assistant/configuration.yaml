@@ -25,7 +25,8 @@ script: !include scripts.yaml
 scene: !include scenes.yaml
 
 homeassistant:
-  internal_url: https://192.168.20.101:8123
+  # Voice PE media proxy (configs/docker-host/stacks/ha-media-proxy); must be in YAML, see its README.
+  internal_url: http://ha-media.home.arpa:8124
   packages: !include_dir_named packages
 
 http:

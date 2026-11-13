@@ -193,9 +193,9 @@ class FindRecipesTool(MealieTool):
     description = "Search recipes already saved in Mealie."
     parameters = vol.Schema(
         {
-            vol.Required("query", description="Recipe search text"): vol.All(
-                cv.string, vol.Length(min=1, max=200)
-            )
+            vol.Required(
+                "query", description="Recipe search text (empty string lists all saved recipes)"
+            ): vol.All(cv.string, vol.Length(min=0, max=200))
         }
     )
 
@@ -223,6 +223,7 @@ class FindRecipesTool(MealieTool):
         return {
             "success": bool(recipes),
             "query": query,
+            "total": payload.get("total") if isinstance(payload, dict) else None,
             "recipes": [_recipe_summary(recipe) for recipe in recipes],
         }
 

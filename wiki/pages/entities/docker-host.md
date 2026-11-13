@@ -55,7 +55,8 @@ maintenance window.
 - Docker networks: every project bridge uses an explicit, non-overlapping CIDR
   and canonical name; Bambuddy's empty `10.240.23.0/24` bridge is prepared but
   its container remains in host mode until P1S connectivity returns
-- Tailscale routes: exactly `192.168.20.101/32`, `192.168.30.20/32`,
+- Tailscale routes: exactly `192.168.20.101/32`,
+  `192.168.20.104/32` (llm-host), `192.168.30.20/32`,
   `192.168.40.50/32`, and `192.168.60.10/32`; Frigate remote routing is HTTPS
   `8971` only and its API `5000` remains denied
 - Metrics: Docker-host Telegraf writes to InfluxDB bucket `dockerhost`
@@ -91,6 +92,7 @@ docker-host is the live Tailscale daily-access node. It advertises host routes
 only:
 
 - `192.168.20.101/32` for Home Assistant
+- `192.168.20.104/32` for [[entities/llm-host]] ([[entities/voice-mixer]], Open WebUI)
 - `192.168.30.20/32` for authenticated Frigate HTTPS `8971` only
 - `192.168.40.50/32` for OMV
 - `192.168.60.10/32` for Grafana and Uptime Kuma only

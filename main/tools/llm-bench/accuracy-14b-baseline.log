@@ -1,0 +1,70 @@
+== rep 1
+  [PASS] list_names                17.4s  'Here are 3 saved recipes:\n1. Creamy Tarragon Chicken.\n2. Creamy Tarragon Chicken (1).\n3. Ultimate Chicken Soup'
+  [PASS] recall_first               9.8s  'The name of the first recipe I found is Creamy Tarragon Chicken.'
+  [PASS] recall_third              12.7s  'The name of the third recipe I found is Ultimate Chicken Soup.'
+  [PASS] recall_count              19.6s  'I found 3 recipes.'
+  [PASS] pick_ingredients          12.0s  'The ingredients for Creamy Tarragon Chicken (1) are:\n- 4 small boneless, skinless chicken breasts, about 1 ¾ p'
+  [FAIL] recall_first_after_pick   19.3s  'The first recipe in the list was Creamy Tarragon Chicken (1).'
+  [PASS] recall_picked             18.9s  'You picked the recipe named "Creamy Tarragon Chicken (1)".'
+  [PASS] ingredient_qty             0.0s  'For Creamy Tarragon Chicken (1), 1¾ teaspoons kosher salt.'
+  [PASS] repeat_step                0.0s  'Step 2 for Creamy Tarragon Chicken (1) is: Heat 1 tablespoon of the oil in a large skillet over medium. Once t'
+  [PASS] capital                    6.7s  'The capital of France is Paris.'
+  [FAIL] identity                  10.5s  'I am your Home Assistant voice assistant, here to help with your home, garden, and recipes. Let me know how I '
+  [PASS] math1                      5.9s  'Two plus two times three equals eight.'
+  [PASS] math2                      6.1s  'Fifteen percent of eighty is twelve.'
+  [PASS] echo                       5.2s  'The quick brown fox.'
+  [PASS] time                       6.3s  'It is 12:01 PM.'
+  [FAIL] no_device_state            8.5s  'No, the flux capacitor is not switched on. Would you like me to turn it on?'
+  [PASS] no_device_garage          92.2s  "I don't have information about the current state of the garage door. Let me know if you'd like me to check ano"
+  [PASS] no_device_action           9.5s  'I don\'t have access to a device called "flux capacitor" in your home. Let me know if you\'d like assistance wit'
+  [PASS] shopping                  16.9s  'The shopping list has: acceptance test cheese.'
+  [PASS] saved_recipes             17.5s  'Here are 5 saved recipes:\n1. Lentil soup.\n2. Fluffy Homemade Pancakes.\n3. Creamy Tarragon Chicken.\n4. Creamy T'
+  [PASS] web_height                11.4s  'Mount Everest is 8,848.86 meters (29,031.7 feet) tall above sea level.'
+== rep 2
+  [PASS] list_names                16.7s  'Here are 3 saved recipes:\n1. Creamy Tarragon Chicken.\n2. Creamy Tarragon Chicken (1).\n3. Ultimate Chicken Soup'
+  [PASS] recall_first               9.8s  'The name of the first recipe I found is Creamy Tarragon Chicken.'
+  [PASS] recall_third              12.1s  'The third recipe I found is Ultimate Chicken Soup.'
+  [PASS] recall_count              20.2s  'I found 3 recipes.'
+  [PASS] pick_ingredients          12.1s  'The ingredients for Creamy Tarragon Chicken (1) are:\n- 4 small boneless, skinless chicken breasts, about 1 ¾ p'
+  [FAIL] recall_first_after_pick   19.3s  'The first recipe in the list was Creamy Tarragon Chicken (1).'
+  [PASS] recall_picked             19.4s  'You picked the second recipe, which is also Creamy Tarragon Chicken (1).'
+  [PASS] ingredient_qty             0.0s  'For Creamy Tarragon Chicken (1), 1¾ teaspoons kosher salt.'
+  [PASS] repeat_step                0.0s  'Step 2 for Creamy Tarragon Chicken (1) is: Heat 1 tablespoon of the oil in a large skillet over medium. Once t'
+  [PASS] capital                    6.7s  'The capital of France is Paris.'
+  [FAIL] identity                  10.6s  "I'm your Home Assistant voice assistant, here to help with your home, garden, and recipes. Let me know how I c"
+  [PASS] math1                      5.9s  'Two plus two times three equals eight.'
+  [PASS] math2                      6.1s  'Fifteen percent of eighty is twelve.'
+  [PASS] echo                       5.2s  'The quick brown fox.'
+  [PASS] time                       6.8s  'The current time is 12:06 PM.'
+  [PASS] no_device_state            9.8s  "I don't have information about a flux capacitor in your home. Let me know if you'd like help with something el"
+  [PASS] no_device_garage          74.8s  "I don't have access to the current state of the garage door. Would you like me to check it for you?"
+  [PASS] no_device_action           9.5s  'I don\'t have access to a device called "flux capacitor" in your home. Let me know if you\'d like assistance wit'
+  [PASS] shopping                  16.8s  'The shopping list has: acceptance test cheese.'
+  [PASS] saved_recipes             17.6s  'Here are 5 saved recipes:\n1. Lentil soup.\n2. Fluffy Homemade Pancakes.\n3. Creamy Tarragon Chicken.\n4. Creamy T'
+  [PASS] web_height                10.0s  'Mount Everest is 8,848.86 meters tall, which is approximately 29,031 feet.'
+
+=== accuracy by check
+list_names                 2/2  avg  17.0s
+recall_first               2/2  avg   9.8s
+recall_third               2/2  avg  12.4s
+recall_count               2/2  avg  19.9s
+pick_ingredients           2/2  avg  12.1s
+recall_first_after_pick    0/2  avg  19.3s
+recall_picked              2/2  avg  19.1s
+ingredient_qty             2/2  avg   0.0s
+repeat_step                2/2  avg   0.0s
+capital                    2/2  avg   6.7s
+identity                   0/2  avg  10.6s
+math1                      2/2  avg   5.9s
+math2                      2/2  avg   6.1s
+echo                       2/2  avg   5.2s
+time                       2/2  avg   6.5s
+no_device_state            1/2  avg   9.2s
+no_device_garage           2/2  avg  83.5s
+no_device_action           2/2  avg   9.5s
+shopping                   2/2  avg  16.9s
+saved_recipes              2/2  avg  17.6s
+web_height                 2/2  avg  10.7s
+
+OVERALL 37/42 = 88%   total wall 596s
+wrote accuracy-14b-baseline-2026-11-12.json

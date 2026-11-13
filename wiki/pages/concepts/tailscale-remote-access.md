@@ -3,7 +3,7 @@ title: "Tailscale Remote Access"
 category: concept
 tags: [tailscale, vpn, remote-access, subnet-router]
 created: 2026-05-23
-updated: 2026-09-30
+updated: 2026-10-11
 sources: [project-readme, project-todo]
 status: active
 ---
@@ -21,9 +21,15 @@ Daily remote access should use docker-host's Tailscale node identity/MagicDNS
 for docker-host services, plus narrow approved host routes:
 
 - `192.168.20.101/32` for Home Assistant
+- `192.168.20.104/32` for [[entities/llm-host]] (Voice Mixer `7860`, Open WebUI `3002`; added 2026-10-11)
+- `192.168.30.20/32` for Frigate HTTPS `8971` only
 - `192.168.40.50/32` for OMV
 - `192.168.60.10/32` for Grafana and Uptime Kuma only
 - `192.168.30.20/32` for authenticated Frigate HTTPS only
+
+All five routes were approved and active on 2026-10-11. Routed traffic is SNATed
+to docker-host `192.168.20.102`, so destination hosts scope access by that
+source (e.g. CT 114 `DOCKER-USER`), and the tailnet policy is device-scoped.
 
 Off-LAN validation passed on 2026-05-28 for docker-host and routed Home
 Assistant/OMV host paths.

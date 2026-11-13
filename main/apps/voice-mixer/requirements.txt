@@ -1,0 +1,6 @@
+# Mixer + Piper (CPU). Versions match the desktop voice310 env where this was tested.
+numpy==1.23.5
+scipy==1.15.3
+soundfile==0.14.0
+gradio==6.30.0
+piper-tts==1.8.0

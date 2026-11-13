@@ -1,6 +1,6 @@
 services:
   searxng:
-    image: searxng/searxng@sha256:cd22dbf7fac8b25d5e39e65af53a4b47009df5ad3162e270c477fd5b30ce03f2
+    image: searxng/searxng@sha256:ffad724acd87b8dd312328d18da88ddd42e5c4b1d23231594662620053c13cae  # 2026.11.5-3e95f6cd2 (live pin; update + re-probe engines)
     container_name: searxng
     restart: unless-stopped
     ports:

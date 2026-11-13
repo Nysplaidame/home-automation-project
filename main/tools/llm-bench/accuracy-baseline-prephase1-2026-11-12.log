@@ -1,0 +1,118 @@
+== rep 1
+  [PASS] list_names                 0.0s  'Here are 3 saved recipes:\n1. Creamy Tarragon Chicken.\n2. Creamy Tarragon Chicken (1).\n3. Ultimate Chicken Soup'
+  [PASS] recall_first               0.0s  'The first recipe was Creamy Tarragon Chicken.'
+  [PASS] recall_third               0.0s  'The third recipe was Ultimate Chicken Soup.'
+  [PASS] recall_count               0.0s  'I found 3 recipes.'
+  [PASS] pick_ingredients           0.0s  'The ingredients for Creamy Tarragon Chicken (1) are:\n- 4 small boneless, skinless chicken breasts, about 1 ¾ p'
+  [PASS] recall_first_after_pick    0.0s  'The first recipe was Creamy Tarragon Chicken.'
+  [PASS] recall_picked              0.0s  'You picked Creamy Tarragon Chicken (1).'
+  [PASS] ingredient_qty             0.0s  'For Creamy Tarragon Chicken (1), 1¾ teaspoons kosher salt.'
+  [PASS] repeat_step                0.0s  'Step 2 for Creamy Tarragon Chicken (1) is: Heat 1 tablespoon of the oil in a large skillet over medium. Once t'
+  [PASS] repick_third               0.0s  'The ingredients for Ultimate Chicken Soup are:\n- 2 tablespoons extra virgin olive oil.\n- 4 medium carrots (pee'
+  [PASS] recall_picked_after_repick   0.0s  'You picked Ultimate Chicken Soup.'
+  [PASS] capital                    6.2s  'The capital of France is Paris.'
+  [PASS] identity                   3.6s  'I am Overwatch, your home assistant.'
+  [PASS] math1                      3.8s  'Two plus two times three equals eight.'
+  [PASS] math2                      3.9s  'Fifteen percent of eighty is twelve.'
+  [PASS] echo                       3.5s  'The quick brown fox.'
+  [PASS] time                       4.0s  'The current time is 23:02.'
+  [PASS] no_device_state            0.0s  'I have no device called flux capacitor.'
+  [PASS] no_device_garage           0.0s  'I have no device called garage door.'
+  [PASS] no_device_action          14.4s  'I have no such device.'
+  [PASS] shopping                   0.1s  'The shopping list has: acceptance test cheese.'
+  [PASS] saved_recipes              0.0s  'Here are 7 saved recipes:\n1. Charred sesame green beans bowl.\n2. Chicken soup.\n3. Ultimate Chicken Soup.\n4. Cr'
+  [FAIL] web_height                 8.2s  'Mount Everest is the highest mountain above sea level, but the exact height is not provided in the snippets.'
+  [PASS] web_boiling                3.6s  'The boiling point of water is 100 °C.'
+  [PASS] web_author                 5.4s  'Jane Austen wrote Pride and Prejudice.'
+  [FAIL] web_light                  3.9s  'The speed of light is approximately 300,000 kilometers per second.'
+  [PASS] web_capital                5.1s  'The capital of Australia is Canberra.'
+  [FAIL] area_temp                  6.5s  'I have no such device.'
+  [FAIL] area_humidity              3.7s  'I have no such device.'
+  [FAIL] motion_gate                3.8s  'I have no such device.'
+  [FAIL] date_math                  4.0s  'There are 67 days until Christmas.'
+  [FAIL] weather_now                3.7s  'I have no such device.'
+  [PASS] sports_result              3.9s  'I have no information about football matches.'
+  [FAIL] headlines                  7.4s  'I cannot provide the latest headlines as the available tools do not support news retrieval. Would you like me '
+  [PASS] garden_tasks               5.7s  'I have no access to current garden tasks. Please check the GardenKeeper application for your garden schedule.'
+  [PASS] calendar_honest            3.9s  'I have no access to your calendar.'
+  [PASS] joke                       4.4s  "Why don't skeletons fight each other? They don't have the guts."
+== rep 2
+  [PASS] list_names                 0.0s  'Here are 3 saved recipes:\n1. Creamy Tarragon Chicken.\n2. Creamy Tarragon Chicken (1).\n3. Ultimate Chicken Soup'
+  [PASS] recall_first               0.0s  'The first recipe was Creamy Tarragon Chicken.'
+  [PASS] recall_third               0.0s  'The third recipe was Ultimate Chicken Soup.'
+  [PASS] recall_count               0.0s  'I found 3 recipes.'
+  [PASS] pick_ingredients           0.0s  'The ingredients for Creamy Tarragon Chicken (1) are:\n- 4 small boneless, skinless chicken breasts, about 1 ¾ p'
+  [PASS] recall_first_after_pick    0.0s  'The first recipe was Creamy Tarragon Chicken.'
+  [PASS] recall_picked              0.0s  'You picked Creamy Tarragon Chicken (1).'
+  [PASS] ingredient_qty             0.0s  'For Creamy Tarragon Chicken (1), 1¾ teaspoons kosher salt.'
+  [PASS] repeat_step                0.0s  'Step 2 for Creamy Tarragon Chicken (1) is: Heat 1 tablespoon of the oil in a large skillet over medium. Once t'
+  [PASS] repick_third               0.0s  'The ingredients for Ultimate Chicken Soup are:\n- 2 tablespoons extra virgin olive oil.\n- 4 medium carrots (pee'
+  [PASS] recall_picked_after_repick   0.0s  'You picked Ultimate Chicken Soup.'
+  [PASS] capital                    3.9s  'The capital of France is Paris.'
+  [PASS] identity                   5.7s  'I am Overwatch, your home assistant. I can help you with home control, household tasks, and provide informatio'
+  [PASS] math1                      3.9s  'Two plus two times three is eight.'
+  [PASS] math2                      4.0s  'Fifteen percent of eighty is twelve.'
+  [PASS] echo                       3.6s  'The quick brown fox.'
+  [PASS] time                       4.1s  'The current time is 23:04.'
+  [PASS] no_device_state            0.0s  'I have no device called flux capacitor.'
+  [PASS] no_device_garage           0.0s  'I have no device called garage door.'
+  [PASS] no_device_action          14.4s  'I have no such device.'
+  [PASS] shopping                   0.1s  'The shopping list has: acceptance test cheese.'
+  [PASS] saved_recipes              0.0s  'Here are 7 saved recipes:\n1. Charred sesame green beans bowl.\n2. Chicken soup.\n3. Ultimate Chicken Soup.\n4. Cr'
+  [PASS] web_height                 6.8s  'Mount Everest is 8,848.86 meters tall.'
+  [PASS] web_boiling                3.2s  'The boiling point of water is 100 °C.'
+  [PASS] web_author                 4.8s  'Jane Austen wrote Pride and Prejudice.'
+  [FAIL] web_light                  5.5s  'The speed of light in a vacuum is approximately 300,000 kilometres per second.'
+  [PASS] web_capital                2.7s  'The capital of Australia is Canberra.'
+  [FAIL] area_temp                  3.9s  'I have no such device.'
+  [FAIL] area_humidity              3.7s  'I have no such device.'
+  [FAIL] motion_gate                3.8s  'I have no such device.'
+  [FAIL] date_math                  3.9s  'There are 66 days until Christmas.'
+  [FAIL] weather_now                3.6s  'I have no such device.'
+  [PASS] sports_result              4.0s  'I have no information about football matches.'
+  [FAIL] headlines                  8.6s  'I cannot provide the latest headlines as it is outside my current capabilities. However, I can assist with rec'
+  [PASS] garden_tasks               4.7s  'I have no garden tasks due today.'
+  [PASS] calendar_honest            3.9s  'I have no access to your calendar.'
+  [PASS] joke                       4.4s  "Why don't skeletons fight each other? They don't have the guts."
+
+=== accuracy by check
+list_names                 2/2  avg   0.0s
+recall_first               2/2  avg   0.0s
+recall_third               2/2  avg   0.0s
+recall_count               2/2  avg   0.0s
+pick_ingredients           2/2  avg   0.0s
+recall_first_after_pick    2/2  avg   0.0s
+recall_picked              2/2  avg   0.0s
+ingredient_qty             2/2  avg   0.0s
+repeat_step                2/2  avg   0.0s
+repick_third               2/2  avg   0.0s
+recall_picked_after_repick 2/2  avg   0.0s
+capital                    2/2  avg   5.0s
+identity                   2/2  avg   4.7s
+math1                      2/2  avg   3.8s
+math2                      2/2  avg   4.0s
+echo                       2/2  avg   3.5s
+time                       2/2  avg   4.0s
+no_device_state            2/2  avg   0.0s
+no_device_garage           2/2  avg   0.0s
+no_device_action           2/2  avg  14.4s
+shopping                   2/2  avg   0.1s
+saved_recipes              2/2  avg   0.0s
+web_height                 1/2  avg   7.5s
+web_boiling                2/2  avg   3.4s
+web_author                 2/2  avg   5.1s
+web_light                  0/2  avg   4.7s
+web_capital                2/2  avg   3.9s
+area_temp                  0/2  avg   5.2s
+area_humidity              0/2  avg   3.7s
+motion_gate                0/2  avg   3.8s
+date_math                  0/2  avg   4.0s
+weather_now                0/2  avg   3.7s
+sports_result              2/2  avg   4.0s
+headlines                  0/2  avg   8.0s
+garden_tasks               2/2  avg   5.2s
+calendar_honest            2/2  avg   3.9s
+joke                       2/2  avg   4.4s
+
+OVERALL 59/74 = 80%   total wall 220s
+wrote accuracy-baseline-prephase1-2026-11-12.json

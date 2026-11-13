@@ -1,0 +1,653 @@
+{
+  "label": "30b-round2",
+  "rows": [
+    {
+      "id": "list_names",
+      "rep": 1,
+      "user": "Find three chicken curry recipes and give me just their names.",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "Here are 3 saved recipes:\n1. Creamy Tarragon Chicken.\n2. Creamy Tarragon Chicken (1).\n3. Ultimate Chicken Soup."
+    },
+    {
+      "id": "recall_first",
+      "rep": 1,
+      "user": "What was the name of the first recipe you found?",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "The first recipe was Creamy Tarragon Chicken."
+    },
+    {
+      "id": "recall_third",
+      "rep": 1,
+      "user": "And what was the third one?",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "The third recipe was Ultimate Chicken Soup."
+    },
+    {
+      "id": "recall_count",
+      "rep": 1,
+      "user": "How many recipes did you find?",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "I found 3 recipes."
+    },
+    {
+      "id": "pick_ingredients",
+      "rep": 1,
+      "user": "Pick the second one and read me the ingredient list.",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "The ingredients for Creamy Tarragon Chicken (1) are:\n- 4 small boneless, skinless chicken breasts, about 1 \u00be pound.\n- 1\u00be teaspoons kosher salt.\n- 2 tablespoons extra-virgin olive oil.\n- 2 large shallots, thinly sliced.\n- 3 garlic cloves, minced.\n- \u00be cup white wine.\n- 1 cup heavy cream.\n- 1 cup chicken stock.\n- 1 teaspoon chicken Better than Bouillon, or 1 chicken bouillon cube.\n- 3 tablespoons fresh tarragon, chopped.\n- 1 teaspoon Dijon mustard.\n- 1 teaspoon lemon zest.\n- 1 tablespoon cornstarch.\n- \u00bc teaspoon freshly cracked black pepper.\n- cooked pasta, or mashed potatoes, for serving (optional)."
+    },
+    {
+      "id": "recall_first_after_pick",
+      "rep": 1,
+      "user": "Remind me, what was the first recipe in that list?",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "The first recipe was Creamy Tarragon Chicken."
+    },
+    {
+      "id": "recall_picked",
+      "rep": 1,
+      "user": "Which recipe did I pick?",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "You picked Creamy Tarragon Chicken (1)."
+    },
+    {
+      "id": "ingredient_qty",
+      "rep": 1,
+      "user": "How much salt does it need?",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "For Creamy Tarragon Chicken (1), 1\u00be teaspoons kosher salt."
+    },
+    {
+      "id": "repeat_step",
+      "rep": 1,
+      "user": "Repeat step two.",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "Step 2 for Creamy Tarragon Chicken (1) is: Heat 1 tablespoon of the oil in a large skillet over medium. Once the oil is glistening, add the chicken and cook about 5 minutes per side, or until golden brown. Transfer the chicken to a plate."
+    },
+    {
+      "id": "repick_third",
+      "rep": 1,
+      "user": "Actually, pick the third one and read me the ingredients.",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "The ingredients for Ultimate Chicken Soup are:\n- 2 tablespoons extra virgin olive oil.\n- 4 medium carrots (peeled and sliced).\n- 3 parsnips (peeled and sliced).\n- 3 celery ribs (sliced).\n- \u00bd medium onion (diced).\n- 1 leek (halved lengthwise, sliced, and rinsed).\n- 4 garlic cloves (minced).\n- 1 teaspoon kosher salt.\n- \u00bd teaspoon freshly ground black pepper.\n- 2 boneless skinless chicken breasts.\n- 2 sprigs fresh thyme.\n- 2 sprigs fresh tarragon.\n- 1 bay leaf.\n- 5 cups low-sodium chicken broth.\n- \u00bc cup roughly chopped fresh parsley."
+    },
+    {
+      "id": "recall_picked_after_repick",
+      "rep": 1,
+      "user": "Which recipe did I pick?",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "You picked Ultimate Chicken Soup."
+    },
+    {
+      "id": "capital",
+      "rep": 1,
+      "user": "What is the capital of France?",
+      "wall_s": 3.8,
+      "ok": true,
+      "reply": "The capital of France is Paris."
+    },
+    {
+      "id": "identity",
+      "rep": 1,
+      "user": "Who are you?",
+      "wall_s": 5.2,
+      "ok": true,
+      "reply": "I am Overwatch, your home assistant. I can help with household tasks, answer questions, and provide information. How can I assist you today?"
+    },
+    {
+      "id": "math1",
+      "rep": 1,
+      "user": "What is two plus two times three?",
+      "wall_s": 3.7,
+      "ok": true,
+      "reply": "Two plus two times three equals eight."
+    },
+    {
+      "id": "math2",
+      "rep": 1,
+      "user": "What is fifteen percent of eighty?",
+      "wall_s": 3.8,
+      "ok": true,
+      "reply": "Fifteen percent of eighty is twelve."
+    },
+    {
+      "id": "echo",
+      "rep": 1,
+      "user": "Say exactly: the quick brown fox.",
+      "wall_s": 3.4,
+      "ok": true,
+      "reply": "The quick brown fox."
+    },
+    {
+      "id": "time",
+      "rep": 1,
+      "user": "What time is it?",
+      "wall_s": 3.8,
+      "ok": true,
+      "reply": "The current time is 13:48."
+    },
+    {
+      "id": "no_device_state",
+      "rep": 1,
+      "user": "Is the flux capacitor switched on?",
+      "wall_s": 3.6,
+      "ok": true,
+      "reply": "I have no such device."
+    },
+    {
+      "id": "no_device_garage",
+      "rep": 1,
+      "user": "Is the garage door open?",
+      "wall_s": 21.5,
+      "ok": false,
+      "reply": "The garage door is not detected by the system. Please check if it is open or closed manually."
+    },
+    {
+      "id": "no_device_action",
+      "rep": 1,
+      "user": "Turn on the flux capacitor.",
+      "wall_s": 1.9,
+      "ok": true,
+      "reply": "I have no such device."
+    },
+    {
+      "id": "shopping",
+      "rep": 1,
+      "user": "What is on my shopping list?",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "The shopping list has: acceptance test cheese."
+    },
+    {
+      "id": "saved_recipes",
+      "rep": 1,
+      "user": "What recipes do I have saved?",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "Here are 7 saved recipes:\n1. Charred sesame green beans bowl.\n2. Chicken soup.\n3. Ultimate Chicken Soup.\n4. Creamy Tarragon Chicken (1).\n5. Creamy Tarragon Chicken.\n6. Fluffy Homemade Pancakes.\n7. Lentil soup."
+    },
+    {
+      "id": "web_height",
+      "rep": 1,
+      "user": "Search the web for how tall Mount Everest is.",
+      "wall_s": 4.9,
+      "ok": true,
+      "reply": "Mount Everest is 8,848.86 meters tall."
+    },
+    {
+      "id": "web_boiling",
+      "rep": 1,
+      "user": "Search the web for the boiling point of water in Celsius.",
+      "wall_s": 4.3,
+      "ok": false,
+      "reply": "The boiling point of water is 100 \u00b0C."
+    },
+    {
+      "id": "web_author",
+      "rep": 1,
+      "user": "Search the web for who wrote Pride and Prejudice.",
+      "wall_s": 3.4,
+      "ok": true,
+      "reply": "Jane Austen wrote Pride and Prejudice."
+    },
+    {
+      "id": "web_light",
+      "rep": 1,
+      "user": "Search the web for the speed of light in kilometres per second.",
+      "wall_s": 4.2,
+      "ok": true,
+      "reply": "The speed of light in a vacuum is 299,792 kilometres per second."
+    },
+    {
+      "id": "web_capital",
+      "rep": 1,
+      "user": "Search the web for the capital of Australia.",
+      "wall_s": 3.2,
+      "ok": true,
+      "reply": "The capital of Australia is Canberra."
+    },
+    {
+      "id": "list_names",
+      "rep": 2,
+      "user": "Find three chicken curry recipes and give me just their names.",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "Here are 3 saved recipes:\n1. Creamy Tarragon Chicken.\n2. Creamy Tarragon Chicken (1).\n3. Ultimate Chicken Soup."
+    },
+    {
+      "id": "recall_first",
+      "rep": 2,
+      "user": "What was the name of the first recipe you found?",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "The first recipe was Creamy Tarragon Chicken."
+    },
+    {
+      "id": "recall_third",
+      "rep": 2,
+      "user": "And what was the third one?",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "The third recipe was Ultimate Chicken Soup."
+    },
+    {
+      "id": "recall_count",
+      "rep": 2,
+      "user": "How many recipes did you find?",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "I found 3 recipes."
+    },
+    {
+      "id": "pick_ingredients",
+      "rep": 2,
+      "user": "Pick the second one and read me the ingredient list.",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "The ingredients for Creamy Tarragon Chicken (1) are:\n- 4 small boneless, skinless chicken breasts, about 1 \u00be pound.\n- 1\u00be teaspoons kosher salt.\n- 2 tablespoons extra-virgin olive oil.\n- 2 large shallots, thinly sliced.\n- 3 garlic cloves, minced.\n- \u00be cup white wine.\n- 1 cup heavy cream.\n- 1 cup chicken stock.\n- 1 teaspoon chicken Better than Bouillon, or 1 chicken bouillon cube.\n- 3 tablespoons fresh tarragon, chopped.\n- 1 teaspoon Dijon mustard.\n- 1 teaspoon lemon zest.\n- 1 tablespoon cornstarch.\n- \u00bc teaspoon freshly cracked black pepper.\n- cooked pasta, or mashed potatoes, for serving (optional)."
+    },
+    {
+      "id": "recall_first_after_pick",
+      "rep": 2,
+      "user": "Remind me, what was the first recipe in that list?",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "The first recipe was Creamy Tarragon Chicken."
+    },
+    {
+      "id": "recall_picked",
+      "rep": 2,
+      "user": "Which recipe did I pick?",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "You picked Creamy Tarragon Chicken (1)."
+    },
+    {
+      "id": "ingredient_qty",
+      "rep": 2,
+      "user": "How much salt does it need?",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "For Creamy Tarragon Chicken (1), 1\u00be teaspoons kosher salt."
+    },
+    {
+      "id": "repeat_step",
+      "rep": 2,
+      "user": "Repeat step two.",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "Step 2 for Creamy Tarragon Chicken (1) is: Heat 1 tablespoon of the oil in a large skillet over medium. Once the oil is glistening, add the chicken and cook about 5 minutes per side, or until golden brown. Transfer the chicken to a plate."
+    },
+    {
+      "id": "repick_third",
+      "rep": 2,
+      "user": "Actually, pick the third one and read me the ingredients.",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "The ingredients for Ultimate Chicken Soup are:\n- 2 tablespoons extra virgin olive oil.\n- 4 medium carrots (peeled and sliced).\n- 3 parsnips (peeled and sliced).\n- 3 celery ribs (sliced).\n- \u00bd medium onion (diced).\n- 1 leek (halved lengthwise, sliced, and rinsed).\n- 4 garlic cloves (minced).\n- 1 teaspoon kosher salt.\n- \u00bd teaspoon freshly ground black pepper.\n- 2 boneless skinless chicken breasts.\n- 2 sprigs fresh thyme.\n- 2 sprigs fresh tarragon.\n- 1 bay leaf.\n- 5 cups low-sodium chicken broth.\n- \u00bc cup roughly chopped fresh parsley."
+    },
+    {
+      "id": "recall_picked_after_repick",
+      "rep": 2,
+      "user": "Which recipe did I pick?",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "You picked Ultimate Chicken Soup."
+    },
+    {
+      "id": "capital",
+      "rep": 2,
+      "user": "What is the capital of France?",
+      "wall_s": 6.5,
+      "ok": true,
+      "reply": "The capital of France is Paris."
+    },
+    {
+      "id": "identity",
+      "rep": 2,
+      "user": "Who are you?",
+      "wall_s": 4.0,
+      "ok": true,
+      "reply": "I am Overwatch, your local voice assistant for this home."
+    },
+    {
+      "id": "math1",
+      "rep": 2,
+      "user": "What is two plus two times three?",
+      "wall_s": 3.9,
+      "ok": true,
+      "reply": "Two plus two times three equals eight."
+    },
+    {
+      "id": "math2",
+      "rep": 2,
+      "user": "What is fifteen percent of eighty?",
+      "wall_s": 4.0,
+      "ok": true,
+      "reply": "Fifteen percent of eighty is twelve."
+    },
+    {
+      "id": "echo",
+      "rep": 2,
+      "user": "Say exactly: the quick brown fox.",
+      "wall_s": 3.6,
+      "ok": true,
+      "reply": "The quick brown fox."
+    },
+    {
+      "id": "time",
+      "rep": 2,
+      "user": "What time is it?",
+      "wall_s": 4.1,
+      "ok": true,
+      "reply": "The current time is 13:49."
+    },
+    {
+      "id": "no_device_state",
+      "rep": 2,
+      "user": "Is the flux capacitor switched on?",
+      "wall_s": 3.8,
+      "ok": true,
+      "reply": "I have no such device."
+    },
+    {
+      "id": "no_device_garage",
+      "rep": 2,
+      "user": "Is the garage door open?",
+      "wall_s": 22.2,
+      "ok": false,
+      "reply": "The garage door is not reported as open. Would you like me to check any other area or device?"
+    },
+    {
+      "id": "no_device_action",
+      "rep": 2,
+      "user": "Turn on the flux capacitor.",
+      "wall_s": 1.9,
+      "ok": true,
+      "reply": "I have no such device."
+    },
+    {
+      "id": "shopping",
+      "rep": 2,
+      "user": "What is on my shopping list?",
+      "wall_s": 0.1,
+      "ok": true,
+      "reply": "The shopping list has: acceptance test cheese."
+    },
+    {
+      "id": "saved_recipes",
+      "rep": 2,
+      "user": "What recipes do I have saved?",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "Here are 7 saved recipes:\n1. Charred sesame green beans bowl.\n2. Chicken soup.\n3. Ultimate Chicken Soup.\n4. Creamy Tarragon Chicken (1).\n5. Creamy Tarragon Chicken.\n6. Fluffy Homemade Pancakes.\n7. Lentil soup."
+    },
+    {
+      "id": "web_height",
+      "rep": 2,
+      "user": "Search the web for how tall Mount Everest is.",
+      "wall_s": 6.7,
+      "ok": true,
+      "reply": "Mount Everest is 8,848.86 meters tall."
+    },
+    {
+      "id": "web_boiling",
+      "rep": 2,
+      "user": "Search the web for the boiling point of water in Celsius.",
+      "wall_s": 5.0,
+      "ok": false,
+      "reply": "The boiling point of water is 100 degrees Celsius."
+    },
+    {
+      "id": "web_author",
+      "rep": 2,
+      "user": "Search the web for who wrote Pride and Prejudice.",
+      "wall_s": 3.3,
+      "ok": true,
+      "reply": "Jane Austen wrote Pride and Prejudice."
+    },
+    {
+      "id": "web_light",
+      "rep": 2,
+      "user": "Search the web for the speed of light in kilometres per second.",
+      "wall_s": 5.0,
+      "ok": true,
+      "reply": "The speed of light in a vacuum is 299,792 kilometres per second."
+    },
+    {
+      "id": "web_capital",
+      "rep": 2,
+      "user": "Search the web for the capital of Australia.",
+      "wall_s": 4.0,
+      "ok": true,
+      "reply": "The capital of Australia is Canberra."
+    },
+    {
+      "id": "list_names",
+      "rep": 3,
+      "user": "Find three chicken curry recipes and give me just their names.",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "Here are 3 saved recipes:\n1. Creamy Tarragon Chicken.\n2. Creamy Tarragon Chicken (1).\n3. Ultimate Chicken Soup."
+    },
+    {
+      "id": "recall_first",
+      "rep": 3,
+      "user": "What was the name of the first recipe you found?",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "The first recipe was Creamy Tarragon Chicken."
+    },
+    {
+      "id": "recall_third",
+      "rep": 3,
+      "user": "And what was the third one?",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "The third recipe was Ultimate Chicken Soup."
+    },
+    {
+      "id": "recall_count",
+      "rep": 3,
+      "user": "How many recipes did you find?",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "I found 3 recipes."
+    },
+    {
+      "id": "pick_ingredients",
+      "rep": 3,
+      "user": "Pick the second one and read me the ingredient list.",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "The ingredients for Creamy Tarragon Chicken (1) are:\n- 4 small boneless, skinless chicken breasts, about 1 \u00be pound.\n- 1\u00be teaspoons kosher salt.\n- 2 tablespoons extra-virgin olive oil.\n- 2 large shallots, thinly sliced.\n- 3 garlic cloves, minced.\n- \u00be cup white wine.\n- 1 cup heavy cream.\n- 1 cup chicken stock.\n- 1 teaspoon chicken Better than Bouillon, or 1 chicken bouillon cube.\n- 3 tablespoons fresh tarragon, chopped.\n- 1 teaspoon Dijon mustard.\n- 1 teaspoon lemon zest.\n- 1 tablespoon cornstarch.\n- \u00bc teaspoon freshly cracked black pepper.\n- cooked pasta, or mashed potatoes, for serving (optional)."
+    },
+    {
+      "id": "recall_first_after_pick",
+      "rep": 3,
+      "user": "Remind me, what was the first recipe in that list?",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "The first recipe was Creamy Tarragon Chicken."
+    },
+    {
+      "id": "recall_picked",
+      "rep": 3,
+      "user": "Which recipe did I pick?",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "You picked Creamy Tarragon Chicken (1)."
+    },
+    {
+      "id": "ingredient_qty",
+      "rep": 3,
+      "user": "How much salt does it need?",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "For Creamy Tarragon Chicken (1), 1\u00be teaspoons kosher salt."
+    },
+    {
+      "id": "repeat_step",
+      "rep": 3,
+      "user": "Repeat step two.",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "Step 2 for Creamy Tarragon Chicken (1) is: Heat 1 tablespoon of the oil in a large skillet over medium. Once the oil is glistening, add the chicken and cook about 5 minutes per side, or until golden brown. Transfer the chicken to a plate."
+    },
+    {
+      "id": "repick_third",
+      "rep": 3,
+      "user": "Actually, pick the third one and read me the ingredients.",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "The ingredients for Ultimate Chicken Soup are:\n- 2 tablespoons extra virgin olive oil.\n- 4 medium carrots (peeled and sliced).\n- 3 parsnips (peeled and sliced).\n- 3 celery ribs (sliced).\n- \u00bd medium onion (diced).\n- 1 leek (halved lengthwise, sliced, and rinsed).\n- 4 garlic cloves (minced).\n- 1 teaspoon kosher salt.\n- \u00bd teaspoon freshly ground black pepper.\n- 2 boneless skinless chicken breasts.\n- 2 sprigs fresh thyme.\n- 2 sprigs fresh tarragon.\n- 1 bay leaf.\n- 5 cups low-sodium chicken broth.\n- \u00bc cup roughly chopped fresh parsley."
+    },
+    {
+      "id": "recall_picked_after_repick",
+      "rep": 3,
+      "user": "Which recipe did I pick?",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "You picked Ultimate Chicken Soup."
+    },
+    {
+      "id": "capital",
+      "rep": 3,
+      "user": "What is the capital of France?",
+      "wall_s": 6.5,
+      "ok": true,
+      "reply": "The capital of France is Paris."
+    },
+    {
+      "id": "identity",
+      "rep": 3,
+      "user": "Who are you?",
+      "wall_s": 4.2,
+      "ok": true,
+      "reply": "I am Overwatch, your home assistant. How can I assist you?"
+    },
+    {
+      "id": "math1",
+      "rep": 3,
+      "user": "What is two plus two times three?",
+      "wall_s": 4.0,
+      "ok": true,
+      "reply": "Two plus two times three equals eight."
+    },
+    {
+      "id": "math2",
+      "rep": 3,
+      "user": "What is fifteen percent of eighty?",
+      "wall_s": 4.0,
+      "ok": true,
+      "reply": "Fifteen percent of eighty is twelve."
+    },
+    {
+      "id": "echo",
+      "rep": 3,
+      "user": "Say exactly: the quick brown fox.",
+      "wall_s": 3.7,
+      "ok": true,
+      "reply": "The quick brown fox."
+    },
+    {
+      "id": "time",
+      "rep": 3,
+      "user": "What time is it?",
+      "wall_s": 4.1,
+      "ok": true,
+      "reply": "The current time is 13:50."
+    },
+    {
+      "id": "no_device_state",
+      "rep": 3,
+      "user": "Is the flux capacitor switched on?",
+      "wall_s": 3.7,
+      "ok": true,
+      "reply": "I have no such device."
+    },
+    {
+      "id": "no_device_garage",
+      "rep": 3,
+      "user": "Is the garage door open?",
+      "wall_s": 21.2,
+      "ok": true,
+      "reply": "The garage door is not equipped with a sensor or device that can report its current state."
+    },
+    {
+      "id": "no_device_action",
+      "rep": 3,
+      "user": "Turn on the flux capacitor.",
+      "wall_s": 1.9,
+      "ok": true,
+      "reply": "I have no such device."
+    },
+    {
+      "id": "shopping",
+      "rep": 3,
+      "user": "What is on my shopping list?",
+      "wall_s": 0.1,
+      "ok": true,
+      "reply": "The shopping list has: acceptance test cheese."
+    },
+    {
+      "id": "saved_recipes",
+      "rep": 3,
+      "user": "What recipes do I have saved?",
+      "wall_s": 0.0,
+      "ok": true,
+      "reply": "Here are 7 saved recipes:\n1. Charred sesame green beans bowl.\n2. Chicken soup.\n3. Ultimate Chicken Soup.\n4. Creamy Tarragon Chicken (1).\n5. Creamy Tarragon Chicken.\n6. Fluffy Homemade Pancakes.\n7. Lentil soup."
+    },
+    {
+      "id": "web_height",
+      "rep": 3,
+      "user": "Search the web for how tall Mount Everest is.",
+      "wall_s": 5.0,
+      "ok": true,
+      "reply": "Mount Everest is 8,848.86 meters tall."
+    },
+    {
+      "id": "web_boiling",
+      "rep": 3,
+      "user": "Search the web for the boiling point of water in Celsius.",
+      "wall_s": 5.7,
+      "ok": false,
+      "reply": "The boiling point of water is 100 \u00b0C."
+    },
+    {
+      "id": "web_author",
+      "rep": 3,
+      "user": "Search the web for who wrote Pride and Prejudice.",
+      "wall_s": 2.9,
+      "ok": true,
+      "reply": "Jane Austen wrote Pride and Prejudice."
+    },
+    {
+      "id": "web_light",
+      "rep": 3,
+      "user": "Search the web for the speed of light in kilometres per second.",
+      "wall_s": 2.7,
+      "ok": true,
+      "reply": "The speed of light in a vacuum is 299,792 kilometres per second."
+    },
+    {
+      "id": "web_capital",
+      "rep": 3,
+      "user": "Search the web for the capital of Australia.",
+      "wall_s": 2.7,
+      "ok": true,
+      "reply": "The capital of Australia is Canberra."
+    }
+  ]
+}

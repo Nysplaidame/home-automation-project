@@ -45,7 +45,10 @@ only these host routes:
 
 ```text
 192.168.20.101/32  # Home Assistant
+192.168.20.104/32  # llm-host CT 114 (Voice Mixer, Open WebUI; DOCKER-USER scoped) — added 2026-10-11, decision 09
+192.168.30.20/32   # Frigate HTTPS 8971 only
 192.168.40.50/32   # OMV NAS
+192.168.60.10/32   # Grafana / Uptime Kuma 3000, 3001 only
 ```
 
 Docker-host services are reached through docker-host's own Tailscale identity

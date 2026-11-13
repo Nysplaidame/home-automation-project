@@ -1,0 +1,31 @@
+== v3_draft_0.6b: server exited
+0.00.286.621 I common_init_result: fitting params to device memory ...
+0.00.286.622 I common_init_result: (for bugs during this step try to reproduce them with -fit off, or provide --verbose logs if the bug only occurs with -fit on)
+0.00.566.749 W load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden
+0.15.543.706 W llama_context: n_ctx_seq (65536) > n_ctx_train (40960) -- possible training context overflow
+0.16.372.975 I common_init_from_params: warming up the model with an empty run - please wait ... (--no-warmup to disable)
+0.18.948.133 I srv    load_model: loading draft model '/models/Qwen3-0.6B-Q8_0.gguf'
+0.19.057.560 W load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden
+0.19.447.401 W llama_context: n_ctx_seq (65536) > n_ctx_train (40960) -- possible training context overflow
+=== v3b_ngram_mod  [ | --ctx-size 65536 --cache-type-k q8_0 --cache-type-v q8_0 | --spec-type ngram-mod]  mem: 24334 MiB used
+ 1 prompt  1058 tok   11.5s (  91.6 tok/s) | gen   24 tok   2.2s ( 11.0 tok/s) | wall  13.8s
+ 2 prompt  1350 tok   14.5s (  93.1 tok/s) | gen    7 tok   0.6s ( 12.3 tok/s) | wall  15.4s
+TOTAL v3b_ngram_mod: prompt 2408 tok in 26.1s = 92.4 tok/s; gen 31 tok in 2.8s = 11.2 tok/s; wall 29.2s
+chat_short         wall   6.61s  gen 12.64 tok/s  prompt   39.5 tok/s  tool_ok=None
+tool_call_light    wall   6.52s  gen 12.33 tok/s  prompt   93.7 tok/s  tool_ok=True
+web_summary        wall   3.95s  gen 13.17 tok/s  prompt   82.8 tok/s  tool_ok=None
+=== v4_f16_ctx48k  [ | --ctx-size 49152 --cache-type-k f16 --cache-type-v f16 | ]  mem: 25648 MiB used
+ 1 prompt  1058 tok   10.0s ( 106.1 tok/s) | gen   24 tok   2.1s ( 11.6 tok/s) | wall  12.1s
+ 2 prompt  1350 tok   12.5s ( 107.8 tok/s) | gen    7 tok   0.5s ( 13.0 tok/s) | wall  13.7s
+TOTAL v4_f16_ctx48k: prompt 2408 tok in 22.5s = 107.1 tok/s; gen 31 tok in 2.6s = 11.9 tok/s; wall 25.8s
+chat_short         wall   5.14s  gen 13.02 tok/s  prompt   40.6 tok/s  tool_ok=None
+tool_call_light    wall   6.15s  gen 12.65 tok/s  prompt   99.9 tok/s  tool_ok=True
+web_summary        wall   4.06s  gen 13.14 tok/s  prompt   83.3 tok/s  tool_ok=None
+=== v5_kf16_vq8_ctx64k  [ | --ctx-size 65536 --cache-type-k f16 --cache-type-v q8_0 | ]  mem: 25763 MiB used
+ 1 prompt  1058 tok   10.7s (  99.2 tok/s) | gen   24 tok   2.2s ( 11.1 tok/s) | wall  12.9s
+ 2 prompt  1350 tok   13.5s ( 100.2 tok/s) | gen    7 tok   0.6s ( 12.5 tok/s) | wall  14.5s
+TOTAL v5_kf16_vq8_ctx64k: prompt 2408 tok in 24.1s = 99.7 tok/s; gen 31 tok in 2.7s = 11.4 tok/s; wall 27.4s
+chat_short         wall   4.81s  gen 12.87 tok/s  prompt   41.8 tok/s  tool_ok=None
+tool_call_light    wall   6.35s  gen 12.23 tok/s  prompt   97.2 tok/s  tool_ok=True
+web_summary        wall   3.83s  gen 13.06 tok/s  prompt   82.2 tok/s  tool_ok=None
+EXPERIMENTS_DONE

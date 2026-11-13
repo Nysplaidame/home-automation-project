@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "voice-mixer",
+      "runtimeExecutable": "C:/Users/Admin/miniconda3/envs/voice310/python.exe",
+      "runtimeArgs": ["main/apps/voice-mixer/voice_mixer/__main__.py", "--host", "127.0.0.1", "--port", "7860"],
+      "port": 7860
+    },
+    {
+      "name": "mermaid-viewer-dist",
+      "runtimeExecutable": "C:/Users/Admin/miniconda3/envs/voice310/python.exe",
+      "runtimeArgs": ["-m", "http.server", "8765", "--bind", "127.0.0.1", "--directory", "main/apps/mermaid-viewer/dist"],
+      "port": 8765
+    }
+  ]
+}

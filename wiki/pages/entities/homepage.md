@@ -1,7 +1,7 @@
 ---
 title: "Homepage"
 category: entity
-tags: [dashboard, docker, docker-host]
+tags: [dashboard, docker, docker-host, portal, nginx]
 created: 2026-05-23
 updated: 2026-10-19
 sources: [project-readme, project-todo]
@@ -10,9 +10,9 @@ status: active
 
 # Homepage
 
-**Type:** service - internal dashboard
+**Type:** service - internal dashboard / portal
 **Status:** Live Tier 1 docker-host service
-**Related:** [[entities/docker-host]], [[entities/qbittorrent]]
+**Related:** [[entities/docker-host]], [[entities/qbittorrent]], [[entities/voice-mixer]], [[entities/llm-host]]
 
 ## Overview
 
@@ -35,6 +35,8 @@ teal-glass interface.
   source: `main/docs/install/services/pocketry.md`.
 
 - Stack path: `/opt/stacks/homepage/`
+- Voice Mixer portal: `https://homepage.home.local:8210/` → CT 114 `7860`
+  (`siteMonitor` health check; docker-host UFW has a separate `8210` rule).
 - Canonical URL: `https://homepage.home.local/` locally and remotely through
   split DNS; direct local `https://192.168.20.102/` also works
 - Rollback URL: `http://192.168.20.102:3001/`
@@ -56,6 +58,8 @@ teal-glass interface.
   secret is stored in Homepage configuration
 
 ## Change Log
+
+- 2026-10-11: Voice Mixer added on portal port `8210`.
 
 - 2026-09-30: Corrected the September 25 raw-IP `Direct` action to open the
   same HTTPS proxy as Preview in a standalone tab. Browser Bambuddy moved to

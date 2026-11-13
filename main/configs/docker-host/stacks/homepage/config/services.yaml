@@ -95,6 +95,12 @@
         href: https://homepage.home.local:8200/
         description: Local AI chat and model interface
         siteMonitor: http://192.168.20.104:3002/
+    - Voice Mixer:
+        id: portal-voice-mixer
+        icon: mdi-waveform
+        href: https://homepage.home.local:8210/
+        description: Metrocop radio voice tuning
+        siteMonitor: http://192.168.20.104:7860/
     - Gridfinity Layout Tool:
         id: portal-gridfinity
         icon: mdi-grid

@@ -1,0 +1,48 @@
+== rep 1
+  [PASS] list_names                 9.1s  'Here are 3 saved recipes:\n1. Creamy Tarragon Chicken.\n2. Creamy Tarragon Chicken (1).\n3. Ultimate Chicken Soup'
+  [PASS] recall_first               6.7s  'The first recipe I found was "Creamy Tarragon Chicken."'
+  [PASS] recall_third               7.9s  'The third recipe was "Ultimate Chicken Soup."'
+  [PASS] recall_count              12.8s  'I found 3 recipes.'
+  [PASS] pick_ingredients           9.0s  'The ingredients for Creamy Tarragon Chicken (1) are:\n- 4 small boneless, skinless chicken breasts, about 1 ¾ p'
+  [FAIL] recall_first_after_pick   14.8s  'The first recipe was "Ultimate Chicken Soup."'
+  [PASS] recall_picked             12.8s  'You picked "Creamy Tarragon Chicken (1)."'
+  [PASS] ingredient_qty             0.0s  'For Creamy Tarragon Chicken (1), 1¾ teaspoons kosher salt.'
+  [PASS] repeat_step                1.0s  'Step 2 for Creamy Tarragon Chicken (1) is: Heat 1 tablespoon of the oil in a large skillet over medium. Once t'
+  [PASS] capital                    4.6s  'The capital of France is Paris.'
+  [FAIL] identity                   5.0s  'I am your Home Assistant voice assistant, here to help you manage your home. How can I assist you today?'
+  [PASS] math1                      3.9s  'Two plus two times three is eight.'
+  [PASS] math2                      4.0s  'Fifteen percent of eighty is twelve.'
+  [PASS] echo                       3.6s  'The quick brown fox.'
+  [PASS] time                       4.1s  'The current time is 13:28.'
+  [PASS] no_device_state            5.1s  "The flux capacitor is not part of this home's systems. How can I assist you with something else?"
+  [PASS] no_device_garage          59.1s  'The garage door is not listed in the available devices. Please check if there is a specific sensor or device n'
+  [PASS] no_device_action           4.6s  'I\'m sorry, but I don\'t recognize the term "flux capacitor." Could you please clarify what you\'re referring to?'
+  [PASS] shopping                   9.8s  'The shopping list has: acceptance test cheese.'
+  [FAIL] saved_recipes              9.2s  "I'll check the recipes you have saved. One moment please."
+  [PASS] web_height                 3.7s  'Mount Everest is 8,848.86 meters tall.'
+
+=== accuracy by check
+list_names                 1/1  avg   9.1s
+recall_first               1/1  avg   6.7s
+recall_third               1/1  avg   7.9s
+recall_count               1/1  avg  12.8s
+pick_ingredients           1/1  avg   9.0s
+recall_first_after_pick    0/1  avg  14.8s
+recall_picked              1/1  avg  12.8s
+ingredient_qty             1/1  avg   0.0s
+repeat_step                1/1  avg   1.0s
+capital                    1/1  avg   4.6s
+identity                   0/1  avg   5.0s
+math1                      1/1  avg   3.9s
+math2                      1/1  avg   4.0s
+echo                       1/1  avg   3.6s
+time                       1/1  avg   4.1s
+no_device_state            1/1  avg   5.1s
+no_device_garage           1/1  avg  59.1s
+no_device_action           1/1  avg   4.6s
+shopping                   1/1  avg   9.8s
+saved_recipes              0/1  avg   9.2s
+web_height                 1/1  avg   3.7s
+
+OVERALL 18/21 = 86%   total wall 191s
+wrote accuracy-30b-capture-run-2026-11-12.json

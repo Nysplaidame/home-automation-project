@@ -11,7 +11,7 @@ flowchart TB
     end
     subgraph Admin["APPROVED HOST ROUTES"]
         direction TB
-        Routes["HA · 192.168.20.101/32<br/>Frigate · 192.168.30.20/32 · HTTPS8971<br/>OMV · 192.168.40.50/32<br/>Monitoring · 192.168.60.10/32 · 3000/3001"]
+        Routes["HA · 192.168.20.101/32<br/>llm-host · 192.168.20.104/32 · 7860/3002<br/>Frigate · 192.168.30.20/32 · HTTPS8971<br/>OMV · 192.168.40.50/32<br/>Monitoring · 192.168.60.10/32 · 3000/3001"]
         RouteLimit["Identity + host firewall still apply<br/>No broad VLAN40 route<br/>No default public app exposure"]
         Routes --- RouteLimit
     end

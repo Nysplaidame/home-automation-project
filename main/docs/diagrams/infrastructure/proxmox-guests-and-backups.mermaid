@@ -11,7 +11,7 @@ flowchart LR
     subgraph CTs["PROXMOX · PRODUCTION LXCS"]
         direction TB
         Frigate["CT111 · FRIGATE<br/>.30.20 · 2 vCPU · 6 GiB RAM · 32 GiB disk"]
-        AI["CT114 · LOCAL AI<br/>.20.104 · 4 vCPU · 20 GiB RAM · 100 GiB disk"]
+        AI["CT114 · LOCAL AI<br/>.20.104 · 6 vCPU · 28 GiB RAM · 100 GiB disk"]
         GPU["Shared Intel iGPU device access<br/>renderD128 + card0<br/>No PCI passthrough"]
         Frigate ~~~ AI ~~~ GPU
     end

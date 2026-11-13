@@ -176,6 +176,8 @@ Written coverage is not verified rebuild or current restore acceptance.
 - [[docs/install/oled-screen-setup-guide.md]] — 52Pi/GeeekPi case OLED setup and `minitower_oled.service`
 - [[docs/diagrams/README.md]] — canonical install and architecture diagram library
 - [[docs/install/services/mermaid-viewer.md]] — live internal Mermaid diagram browser for canonical `.mermaid` sources
+- [[docs/install/services/voice-mixer.md]] — draft CT 114 install for the Metrocop Voice Mixer
+- [[apps/voice-mixer/README.md]] — Voice Mixer app: voicefx library, Gradio UI, presets, CLI, tests
 - [[docs/install/reference/command-location-legend.md]] — where every command runs
 - [[docs/install/reference/secrets-placeholder-ledger.md]] — central placeholder and secret ledger
 - [[docs/install/reference/package-dependency-matrix.md]] — packages, hosts, install commands, verification commands
@@ -260,6 +262,7 @@ Written coverage is not verified rebuild or current restore acceptance.
 - [[docs/decisions/04-dns-resolver-and-adblocking.md]] — non-Google DNS and network-wide filtering strategy
 - [[docs/decisions/05-self-hosted-services-remote-access.md]] — OMV, docker-host apps, Tailscale host routes, WireGuard fallback
 - [[docs/decisions/07-shared-igpu-lxc-infrastructure.md]] — deployed CT 111/114 shared-iGPU architecture and rollback boundary
+- [[docs/decisions/09-voice-mixer-placement.md]] — Voice Mixer on CT 114 (CPU, port 7860, Homepage portal 8210); live since 2026-10-11
 - [[docs/reference/service-matrix.md]] — service, port, DNS, backup, monitoring, and runbook matrix
 - [[docs/reference/access-matrix.md]] — OpenWrt, Tailscale, host firewall, and service auth access intent
 - [[docs/diagrams/README.md]] — canonical diagram library

@@ -1,0 +1,2 @@
+# Optional RVC support (image build arg WITH_RVC=1). CPU torch is installed separately first.
+rvc-python==0.1.5

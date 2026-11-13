@@ -108,6 +108,11 @@ Recovery: stop VM 104 and disable its autostart. If CT 114 already exists, use
 the rebuild/restore decision rather than `pct create`. If DRM nodes are absent,
 repair host graphics support before creating or modifying the CT.
 
+Optional: the Metrocop Voice Mixer runs as a separate stack on this CT
+(`/opt/stacks/voice-mixer`, port `7860`); see
+[[docs/install/services/voice-mixer|voice-mixer install guide]] and
+[[docs/decisions/09-voice-mixer-placement|decision 09]].
+
 ## 2. Create the unprivileged CT shell
 
 Skip creation when rebuilding an already restored CT 114. Confirm the selected

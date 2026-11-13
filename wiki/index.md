@@ -70,7 +70,8 @@ reconciled in [[pages/entities/openmediavault-nas]].
 ### Software / integrations
 - [[entities/home-assistant]] - HAOS on VM 100; three-camera Frigate integration and camera-health alerts live
 - [[entities/frigate]] - CT111 Frigate0.17.1 with publisher lifecycle repair; reconnect/synthetic-load tests passed, RAM reassessed to6GiB; disconnected cameras disabled
-- [[entities/llm-host]] - CT 114 llama.cpp/Open WebUI/Wyoming host with shared-iGPU Vulkan
+- [[entities/llm-host]] - CT 114 llama.cpp/Open WebUI/Wyoming host with shared-iGPU Vulkan; also runs the Voice Mixer
+- [[entities/voice-mixer]] - Metrocop radio voice tuning app (Piper/RVC/voicefx) on CT 114, portal 8210
 - [[entities/bambuddy]] - Bambu P1S bridge on docker-host
 - [[entities/adguard-home]] - Live DNS filtering/adblocking service on docker-host
 - [[entities/immich]] - Live gallery/photos service with OMV-backed media storage

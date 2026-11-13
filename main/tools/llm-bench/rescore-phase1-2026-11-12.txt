@@ -1,0 +1,15 @@
+== accuracy-baseline-prephase1-2026-11-12.json
+  recipe   raw 22/22  rescored 22/22
+  general  raw 29/32  rescored 31/32
+  breadth  raw 8/20  rescored 5/20
+  TOTAL    raw 59/74 = 80%  rescored 58/74 = 78%
+    changed web_light: FAIL -> PASS  'The speed of light is approximately 300,000 kilometers per second.'
+    changed sports_result: PASS -> FAIL  'I have no information about football matches.'
+    changed garden_tasks: PASS -> FAIL  'I have no access to current garden tasks. Please check the GardenKeeper application for yo'
+    changed web_light: FAIL -> PASS  'The speed of light in a vacuum is approximately 300,000 kilometres per second.'
+    changed sports_result: PASS -> FAIL  'I have no information about football matches.'
+== accuracy-phase1-fixed-2026-11-12.json
+  recipe   raw 22/22  rescored 22/22
+  general  raw 31/32  rescored 31/32
+  breadth  raw 18/24  rescored 18/24
+  TOTAL    raw 71/78 = 91%  rescored 71/78 = 91%

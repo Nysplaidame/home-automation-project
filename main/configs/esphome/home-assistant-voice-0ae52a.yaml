@@ -1,0 +1,29 @@
+# Home Assistant Voice PE "home-assistant-voice-0ae52a" (IoT VLAN 50, 192.168.50.108) with the custom
+# "Overwatch" wake word added on-device.
+#
+# This is the stock Nabu Casa firmware package, pinned to the release the device already runs (26.9.0), plus
+# three changes: the extra microWakeWord model, the Wi-Fi credentials (ESPHome 2026.10 refuses a config
+# without an SSID, and the device is on the same IoT network as the VentSys boards), and the device address
+# (mDNS does not cross VLANs, so the add-on cannot find the device by name). The API encryption key that Home
+# Assistant set on the device ("encryption:" with no key in the package) is not overridden, so it is kept.
+#
+# Deploy: copy this file to /config/esphome/ on Home Assistant (\\<ha>\config\esphome\), and copy
+# wake_words/overwatch.json + overwatch.tflite (from voice/wakeword-micro/) to /config/esphome/wake_words/,
+# then Install -> Wirelessly in the ESPHome Device Builder (or `esphome run` inside the add-on).
+# Model: microWakeWord streaming mixednet trained 2026-11-12, see voice/wakeword-micro/README.md.
+#
+# Roll back to the stock firmware: delete the micro_wake_word block below and install again (or install the
+# official 26.9.0 factory image from the Voice PE release page).
+
+packages:
+  Nabu Casa.Home Assistant Voice PE: github://esphome/home-assistant-voice-pe/home-assistant-voice.yaml@26.9.0
+
+wifi:
+  ssid: !secret wifi_ssid       # the IoT network (HomeIoT); the stock package leaves the SSID to the adopter
+  password: !secret wifi_pass   # from /config/esphome/secrets.yaml, shared with the VentSys boards
+  use_address: 192.168.50.108
+
+micro_wake_word:
+  models:
+    - model: /config/esphome/wake_words/overwatch.json   # absolute path inside the add-on container
+      id: overwatch

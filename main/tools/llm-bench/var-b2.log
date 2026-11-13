@@ -1,0 +1,51 @@
+[recipe_flow]  23.9s  U: Find three chicken curry recipes and give me just their names.
+                A: 1. Creamy Tarragon Chicken.  
+2. Creamy Tarragon Chicken (1).  
+3. Ultimate Chicken Soup.
+[recipe_flow]   5.8s  U: Pick the second one and read me the ingredient list.
+                A: The ingredients for Creamy Tarragon Chicken (1) are:
+- 4 small boneless, skinless chicken breasts, about 1 ¾ pound.
+- 1¾ teaspoons kosher salt.
+- 2 tablespoons extra-virgin olive oil.
+- 2 large shallots, thinly sliced.
+- 3 garlic cloves, minced.
+- ¾ cup white wine.
+- 1 cup heavy cream.
+- 1 cup chick
+[recipe_flow]   0.0s  U: Now read me the steps.
+                A: The steps for Creamy Tarragon Chicken (1) are:
+1. Pat the chicken dry. Season all over with 1½ teaspoons of the salt.
+2. Heat 1 tablespoon of the oil in a large skillet over medium. Once the oil is glistening, add the chicken and cook about 5 minutes per side, or until golden brown. Transfer the chi
+[recipe_flow]   0.0s  U: Repeat the ingredients.
+                A: The ingredients for Creamy Tarragon Chicken (1) are:
+- 4 small boneless, skinless chicken breasts, about 1 ¾ pound.
+- 1¾ teaspoons kosher salt.
+- 2 tablespoons extra-virgin olive oil.
+- 2 large shallots, thinly sliced.
+- 3 garlic cloves, minced.
+- ¾ cup white wine.
+- 1 cup heavy cream.
+- 1 cup chick
+[recipe_flow]   0.0s  U: Repeat step two.
+                A: Step 2 for Creamy Tarragon Chicken (1) is: Heat 1 tablespoon of the oil in a large skillet over medium. Once the oil is glistening, add the chicken and cook about 5 minutes per side, or until golden brown. Transfer the chicken to a plate.
+[recipe_flow]  13.8s  U: What was the name of the first recipe you found?
+                A: The name of the first recipe I found is "Creamy Tarragon Chicken".
+[house_queries]   5.0s  U: What time is it?
+                A: It is 11:08 AM.
+[house_queries]   6.3s  U: Is the flux capacitor switched on?
+                A: The flux capacitor is not part of this home's systems. How can I assist you?
+[house_queries]  10.9s  U: What is on my shopping list?
+                A: The shopping list has: acceptance test cheese.
+[house_queries]  30.5s  U: What recipes do I have saved?
+                A: You have the following recipes saved:  
+
+- Lentil soup.  
+- Fluffy Homemade Pancakes.  
+- Creamy Tarragon Chicken.  
+- Creamy Tarragon Chicken (1).  
+- Chicken soup.  
+
+Let me know if you'd like to see details about any of these.
+[web]  13.3s  U: Search the web for how tall Mount Everest is.
+                A: Mount Everest is 8,848.86 meters tall.
+wrote accept-30b-b2-2026-11-12.json

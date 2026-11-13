@@ -1,0 +1,12 @@
+# Overwatch-style wording for intents that Home Assistant handles locally
+# (Overwatch pipeline has "Prefer handling commands locally" on). Terse, flat, authoritative.
+# Applies to every pipeline that uses the built-in conversation agent, including "Home".
+# Deploy to: \\192.168.20.101\config\custom_sentences\en\overwatch_responses.yaml
+# then call the conversation.reload service (no restart needed).
+language: "en"
+responses:
+  intents:
+    HassTurnOn:
+      default: "Compliance confirmed. {{ slots.name }} is active."
+    HassTurnOff:
+      default: "Compliance confirmed. {{ slots.name }} is deactivated."

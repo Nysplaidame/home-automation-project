@@ -48,3 +48,6 @@ main/tools/playwright-smoke/playwright-report/
 
 # Local PlatformIO Core/toolchains; regenerated from PlatformIO package metadata.
 main/PlatformIO/
+
+# Home Assistant long-lived access token (local only)
+.ha-token

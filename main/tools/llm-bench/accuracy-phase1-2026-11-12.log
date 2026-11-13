@@ -1,0 +1,123 @@
+== rep 1
+  [PASS] list_names                 0.0s  'Here are 3 saved recipes:\n1. Creamy Tarragon Chicken.\n2. Creamy Tarragon Chicken (1).\n3. Ultimate Chicken Soup'
+  [PASS] recall_first               0.0s  'The first recipe was Creamy Tarragon Chicken.'
+  [PASS] recall_third               0.0s  'The third recipe was Ultimate Chicken Soup.'
+  [PASS] recall_count               0.0s  'I found 3 recipes.'
+  [PASS] pick_ingredients           0.0s  'The ingredients for Creamy Tarragon Chicken (1) are:\n- 4 small boneless, skinless chicken breasts, about 1 ¾ p'
+  [PASS] recall_first_after_pick    0.0s  'The first recipe was Creamy Tarragon Chicken.'
+  [PASS] recall_picked              0.0s  'You picked Creamy Tarragon Chicken (1).'
+  [PASS] ingredient_qty             0.0s  'For Creamy Tarragon Chicken (1), 1¾ teaspoons kosher salt.'
+  [PASS] repeat_step                0.0s  'Step 2 for Creamy Tarragon Chicken (1) is: Heat 1 tablespoon of the oil in a large skillet over medium. Once t'
+  [PASS] repick_third               0.0s  'The ingredients for Ultimate Chicken Soup are:\n- 2 tablespoons extra virgin olive oil.\n- 4 medium carrots (pee'
+  [PASS] recall_picked_after_repick   0.0s  'You picked Ultimate Chicken Soup.'
+  [FAIL] capital                    0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [FAIL] identity                   0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [FAIL] math1                      0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [FAIL] math2                      0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [PASS] echo                       0.0s  'the quick brown fox.'
+  [FAIL] time                       0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [PASS] no_device_state            0.0s  'I have no device called flux capacitor.'
+  [PASS] no_device_garage           0.0s  'I have no device called garage door.'
+  [FAIL] no_device_action           0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [PASS] shopping                   0.1s  'The shopping list has: acceptance test cheese.'
+  [PASS] saved_recipes              0.1s  'Here are 7 saved recipes:\n1. Charred sesame green beans bowl.\n2. Chicken soup.\n3. Ultimate Chicken Soup.\n4. Cr'
+  [FAIL] web_height                 5.9s  'Mount Everest is the highest mountain above sea level, but the exact height is not provided in the snippets.'
+  [PASS] web_boiling                3.6s  'The boiling point of water is 100 degrees Celsius.'
+  [PASS] web_author                 3.3s  'Jane Austen wrote Pride and Prejudice.'
+  [PASS] web_light                  4.1s  'The speed of light is approximately 300,000 kilometers per second.'
+  [PASS] web_capital                3.7s  'The capital of Australia is Canberra.'
+  [FAIL] area_temp                  0.1s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [FAIL] area_humidity              0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [FAIL] motion_gate                0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [FAIL] date_math                  0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [FAIL] weather_now                0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [PASS] sports_result              0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [PASS] headlines                  0.1s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [FAIL] garden_tasks               0.1s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [FAIL] calendar_honest            0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [PASS] joke                       0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+== rep 2
+  [PASS] list_names                 0.0s  'Here are 3 saved recipes:\n1. Creamy Tarragon Chicken.\n2. Creamy Tarragon Chicken (1).\n3. Ultimate Chicken Soup'
+  [PASS] recall_first               0.0s  'The first recipe was Creamy Tarragon Chicken.'
+  [PASS] recall_third               0.0s  'The third recipe was Ultimate Chicken Soup.'
+  [PASS] recall_count               0.0s  'I found 3 recipes.'
+  [PASS] pick_ingredients           0.0s  'The ingredients for Creamy Tarragon Chicken (1) are:\n- 4 small boneless, skinless chicken breasts, about 1 ¾ p'
+  [PASS] recall_first_after_pick    0.0s  'The first recipe was Creamy Tarragon Chicken.'
+  [PASS] recall_picked              0.0s  'You picked Creamy Tarragon Chicken (1).'
+  [PASS] ingredient_qty             0.0s  'For Creamy Tarragon Chicken (1), 1¾ teaspoons kosher salt.'
+  [PASS] repeat_step                0.0s  'Step 2 for Creamy Tarragon Chicken (1) is: Heat 1 tablespoon of the oil in a large skillet over medium. Once t'
+  [PASS] repick_third               0.0s  'The ingredients for Ultimate Chicken Soup are:\n- 2 tablespoons extra virgin olive oil.\n- 4 medium carrots (pee'
+  [PASS] recall_picked_after_repick   0.0s  'You picked Ultimate Chicken Soup.'
+  [FAIL] capital                    0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [FAIL] identity                   0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [FAIL] math1                      0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [FAIL] math2                      0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [PASS] echo                       0.0s  'the quick brown fox.'
+  [FAIL] time                       0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [PASS] no_device_state            0.0s  'I have no device called flux capacitor.'
+  [PASS] no_device_garage           0.0s  'I have no device called garage door.'
+  [FAIL] no_device_action           0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [PASS] shopping                   0.1s  'The shopping list has: acceptance test cheese.'
+  [PASS] saved_recipes              0.0s  'Here are 7 saved recipes:\n1. Charred sesame green beans bowl.\n2. Chicken soup.\n3. Ultimate Chicken Soup.\n4. Cr'
+  [PASS] web_height                 4.0s  'Mount Everest is 8,848.86 meters tall.'
+  [PASS] web_boiling                3.3s  'The boiling point of water is 100 °C.'
+  [PASS] web_author                 2.1s  'Jane Austen wrote Pride and Prejudice.'
+  [PASS] web_light                  2.5s  'The speed of light is approximately 300,000 kilometers per second.'
+  [PASS] web_capital                1.8s  'The capital of Australia is Canberra.'
+  [FAIL] area_temp                  0.2s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [FAIL] area_humidity              0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [FAIL] motion_gate                0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [FAIL] date_math                  0.1s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [FAIL] weather_now                0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [PASS] sports_result              0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [PASS] headlines                  0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [FAIL] garden_tasks               0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [FAIL] calendar_honest            0.0s  'I could not complete that request. The local assistant hit an error before it could respond.'
+  [PASS] joke                       0.1s  'I could not complete that request. The local assistant hit an error before it could respond.'
+
+=== accuracy by check
+list_names                 2/2  avg   0.0s
+recall_first               2/2  avg   0.0s
+recall_third               2/2  avg   0.0s
+recall_count               2/2  avg   0.0s
+pick_ingredients           2/2  avg   0.0s
+recall_first_after_pick    2/2  avg   0.0s
+recall_picked              2/2  avg   0.0s
+ingredient_qty             2/2  avg   0.0s
+repeat_step                2/2  avg   0.0s
+repick_third               2/2  avg   0.0s
+recall_picked_after_repick 2/2  avg   0.0s
+capital                    0/2  avg   0.0s
+identity                   0/2  avg   0.0s
+math1                      0/2  avg   0.0s
+math2                      0/2  avg   0.0s
+echo                       2/2  avg   0.0s
+time                       0/2  avg   0.0s
+no_device_state            2/2  avg   0.0s
+no_device_garage           2/2  avg   0.0s
+no_device_action           0/2  avg   0.0s
+shopping                   2/2  avg   0.1s
+saved_recipes              2/2  avg   0.1s
+web_height                 1/2  avg   5.0s
+web_boiling                2/2  avg   3.5s
+web_author                 2/2  avg   2.7s
+web_light                  2/2  avg   3.3s
+web_capital                2/2  avg   2.8s
+area_temp                  0/2  avg   0.2s
+area_humidity              0/2  avg   0.0s
+motion_gate                0/2  avg   0.0s
+date_math                  0/2  avg   0.1s
+weather_now                0/2  avg   0.0s
+sports_result              2/2  avg   0.0s
+headlines                  2/2  avg   0.1s
+garden_tasks               0/2  avg   0.1s
+calendar_honest            0/2  avg   0.0s
+joke                       2/2  avg   0.1s
+
+OVERALL 47/74 = 64%   total wall 35s
+wrote accuracy-phase1-2026-11-12.json
+== accuracy-phase1-2026-11-12.json
+  recipe   raw 22/22  rescored 22/22
+  general  raw 19/32  rescored 19/32
+  breadth  raw 6/20  rescored 6/20
+  TOTAL    raw 47/74 = 64%  rescored 47/74 = 64%
