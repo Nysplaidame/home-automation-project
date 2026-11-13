@@ -54,4 +54,9 @@ for source in 192.168.10.0/24 192.168.1.0/24 192.168.20.0/24; do
 done
 "$UFW_BIN" allow in on tailscale0 to any port 8211 proto tcp comment "Pocketry Homepage preview" >/dev/null
 
+for source in 192.168.10.0/24 192.168.1.0/24 192.168.20.0/24; do
+    "$UFW_BIN" allow from "$source" to any port 8212 proto tcp comment "Filebrowser Homepage preview" >/dev/null
+done
+"$UFW_BIN" allow in on tailscale0 to any port 8212 proto tcp comment "Filebrowser Homepage preview" >/dev/null
+
 echo "Applied Homepage preview UFW rules"

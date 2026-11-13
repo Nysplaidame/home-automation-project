@@ -224,7 +224,7 @@
     - Filebrowser:
         id: portal-filebrowser
         icon: mdi-folder-multiple-outline
-        href: http://192.168.40.50:3670/
+        href: https://homepage.home.local:8212/
         description: Browse and manage NAS files
     - Transfer Portal:
         id: portal-transfer
