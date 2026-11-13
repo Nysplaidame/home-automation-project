@@ -351,6 +351,32 @@ class ClockAndDateTests(unittest.TestCase):
                      "What is the time zone in Tokyo?", "Is it time to eat?", "What's the weather this time of year?"):
             self.assertIsNone(M._maybe_direct_clock_answer(text, self.at(20, 3)), text)
 
+    def test_plain_sums_are_answered_in_code(self):
+        cases = {
+            "What is 12 times 7?": "That is 84.",
+            "what's 15 plus 27": "That is 42.",
+            "How much is 144 divided by 12?": "That is 12.",
+            "What is 18 percent of 64?": "That is 11.52.",
+            "What's 18% of 64?": "That is 11.52.",
+            "Calculate 1,200 minus 350": "That is 850.",
+            "What is the square root of 144?": "That is 12.",
+            "What is 9 squared?": "That is 81.",
+            "What is 2 to the power of 10?": "That is 1024.",
+            "Hey Overwatch, what is 3 x 4?": "That is 12.",
+            "What is 5 and 7?": "That is 12.",
+            "What is 10 divided by 3?": "That is about 3.3333.",
+            "What does 6 times 7 equal?": "That is 42.",
+        }
+        for text, expected in cases.items():
+            self.assertEqual(M._maybe_direct_math_answer(text), expected, text)
+
+    def test_anything_that_is_not_purely_a_sum_goes_to_the_model(self):
+        for text in ("What is 5?", "What is 12 times the temperature?", "What is 20 degrees in Fahrenheit?",
+                     "What is twelve times seven?", "What is 2026-12-25?", "What is 25/12/2026?",
+                     "What is 1 divided by 0?", "What is the weather?", "Add 2 litres of milk to my list",
+                     "What is 5 and 7 and 9 percent?", "Set a timer for 5 minutes", "12 times 7", ""):
+            self.assertIsNone(M._maybe_direct_math_answer(text), text)
+
     def test_date_line_is_ground_truth_and_changes_daily(self):
         line = M._date_line(self.at(20, 3))
         self.assertTrue(line.startswith("Today's date is Thursday, 12 November 2026."))
@@ -457,6 +483,108 @@ class RemovedGatesTests(unittest.TestCase):
                      "_configured_api_set", "_selected_apis", "ASSIST_RE", "WEB_RE", "RECIPE_RE",
                      "HEALTH_STATUS_RE", "PRODUCTION_APP_RE"):
             self.assertFalse(hasattr(M, name), f"{name} should have been removed")
+
+
+class FakeChatLog:
+    """Records the deltas a streamed reply hands to Home Assistant."""
+
+    def __init__(self):
+        self.deltas = []
+
+    async def async_add_delta_content_stream(self, agent_id, stream):
+        async for delta in stream:
+            self.deltas.append(delta)
+        yield "added"
+
+    @property
+    def spoken(self):
+        return "".join(d.get("content", "") for d in self.deltas)
+
+
+async def _events(pieces, message=None):
+    text = ""
+    for piece in pieces:
+        text += piece
+        yield piece
+    yield {"choices": [{"message": message or {"role": "assistant", "content": text}}]}
+
+
+def _run_stream(pieces, tools=(), clean=None, message=None):
+    import asyncio
+
+    log = FakeChatLog()
+    result = asyncio.run(M._speak_or_collect("agent", log, _events(pieces, message), list(tools), clean))
+    return result, log
+
+
+class SentenceStreamingTests(unittest.TestCase):
+    def test_split_waits_for_whitespace_after_the_full_stop(self):
+        self.assertEqual(M._split_speech("The garage is 3.5 degrees right now."), ("", "The garage is 3.5 degrees right now."))
+        self.assertEqual(M._split_speech("The garage is 3.5 degrees right now. The fan"),
+                         ("The garage is 3.5 degrees right now. ", "The fan"))
+
+    def test_short_fragments_travel_with_the_next_sentence(self):
+        self.assertEqual(M._split_speech("Yes. It "), ("", "Yes. It "))
+        self.assertEqual(M._split_speech("Yes. It is open right now. And"), ("Yes. It is open right now. ", "And"))
+
+    def test_one_sentence_reply_is_returned_whole_and_not_streamed(self):
+        (response, spoken, ran_tools), log = _run_stream(["The inline ", "fan is off."])
+        self.assertFalse(spoken)
+        self.assertEqual(response["choices"][0]["message"]["content"], "The inline fan is off.")
+        self.assertEqual(log.deltas, [])
+
+    def test_multi_sentence_reply_is_released_in_whole_sentences(self):
+        pieces = ["Why don't scientists ", "trust atoms? Because ", "they make up ", "everything. Here is ", "another one for you."]
+        (response, spoken, ran_tools), log = _run_stream(pieces)
+        self.assertTrue(spoken)
+        self.assertIsNone(response)
+        self.assertFalse(ran_tools)
+        self.assertEqual(log.deltas[0], {"role": "assistant"})
+        self.assertEqual([d["content"] for d in log.deltas[1:]],
+                         ["Why don't scientists trust atoms? ", "Because they make up everything. ", "Here is another one for you."])
+        self.assertEqual(log.spoken, "".join(pieces))
+
+    def test_nothing_is_spoken_until_text_follows_the_first_sentence(self):
+        # "Let me check that for you." followed only by a tool call must not be spoken on its own.
+        message = {"role": "assistant", "content": "Let me check that for you.\n", "tool_calls": []}
+        (response, spoken, _), log = _run_stream(["Let me check that for you.", "\n"], message=message)
+        self.assertFalse(spoken)
+        self.assertEqual(log.deltas, [])
+
+    def test_suspicious_openings_are_never_streamed(self):
+        tools = [{"function": {"name": "web_search"}}]
+        for pieces in (["Call web_search with query football scores today. ", "Then read the result out."],
+                       ["- Milk for the week ahead. ", "- Eggs for the weekend."],
+                       ['"The weather is fine today. ', 'It will stay dry all day."'],
+                       ["First line of a list:\nitem one is the milk. ", "Second sentence here."]):
+            (response, spoken, _), log = _run_stream(pieces, tools)
+            self.assertFalse(spoken, pieces)
+            self.assertEqual(log.deltas, [], pieces)
+            self.assertEqual(response["choices"][0]["message"]["content"], "".join(pieces))
+
+    def test_summary_pieces_are_cleaned_and_line_breaks_flattened(self):
+        pieces = ["A storm hit the coast overnight [1]. **Mar", "kets** rose\nsharply today [2]. ", "A new bridge opened."]
+        (_, spoken, _), log = _run_stream(pieces, clean=M._clean_summary_piece)
+        self.assertTrue(spoken)
+        self.assertEqual(log.spoken, "A storm hit the coast overnight . Markets rose sharply today . A new bridge opened.")
+
+    def test_stream_chunks_assemble_text_and_tool_calls(self):
+        message, calls = {"role": "assistant", "content": ""}, {}
+        chunks = [
+            {"choices": [{"delta": {"role": "assistant", "content": None}}]},
+            {"choices": [{"delta": {"content": "Hel"}}]},
+            {"choices": [{"delta": {"content": "lo"}}]},
+            {"choices": [{"delta": {"tool_calls": [{"index": 0, "id": "c1", "function": {"name": "web_search", "arguments": ""}}]}}]},
+            {"choices": [{"delta": {"tool_calls": [{"index": 0, "function": {"arguments": '{"query": '}}]}}]},
+            {"choices": [{"delta": {"tool_calls": [{"index": 0, "function": {"arguments": '"news"}'}}]}}]},
+            {"choices": [], "usage": {"total_tokens": 9}},
+            {"choices": [{"delta": {}, "finish_reason": "tool_calls"}]},
+        ]
+        pieces = [M._merge_stream_chunk(message, calls, chunk) for chunk in chunks]
+        self.assertEqual([p for p in pieces if p], ["Hel", "lo"])
+        self.assertEqual(message["content"], "Hello")
+        self.assertEqual(calls, {0: {"type": "function", "id": "c1",
+                                     "function": {"name": "web_search", "arguments": '{"query": "news"}'}}})
 
 
 if __name__ == "__main__":

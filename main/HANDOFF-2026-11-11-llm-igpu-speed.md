@@ -441,6 +441,59 @@ SearXNG search), with no invented entities, before considering a switch.
     the live one and restart HA; cache: restore `docker-compose.yml.bak-20261113-pre-cache2048` and
     `docker compose up -d --no-deps llama-cpp` (then re-warm with the probe).
   - "acceptance test cheese" is confirmed on the agent's (Grocy) shopping list: delete it in Grocy.
+  - **2026-11-13 plain sums in code, DEPLOYED (owner: "deploy").** `_maybe_direct_math_answer` answers a question that
+    reduces to digits and operators (times, plus, minus, divided by, percent of, square root, squared, power) with the
+    existing `_safe_calculate`; number words, units and dates still go to the model. Live file equalled repo HEAD before
+    the copy; backup `backups/llamacpp_conversation__init__.py.bak-20261113-pre-math`; `check_config` valid; HA restarted
+    (42 s). As the Voice PE: "What is 12 times 7?" 0.1 s, "18 percent of 64" 0.0 s (was ~10 s via `calculate`). The first
+    model turn after that restart ("Tell me a short joke.") took 48.8 s, so the post-restart warm-up had not covered it.
+    Offline tests 58 + 19 pass; `accuracy.py` not re-run. Rollback: copy the backup back and restart HA.
+  - **2026-11-13 sentence-by-sentence speech DEPLOYED (owner: "Deploy both"); the entry below describes the build.**
+    CT 114: `voice-mixer:local` re-tagged `voice-mixer:pre-tts-stream`, derived image built offline in
+    `/opt/stacks/voice-mixer/tts-stream-build/` (Dockerfile + `wyoming_tts.py` + `deploy_tts.sh`), only `metrocop-tts`
+    recreated (the `voice-mixer` UI container still runs the old image id `21117b014bea`). HA: backup
+    `backups/llamacpp_conversation__init__.py.bak-20261113-pre-stream`, component copied, `check_config` valid, restart 41 s.
+    Measured with the new `tools/llm-bench/tts_stream_probe.py` (intent + TTS as the Voice PE, fetching the TTS stream
+    URL; `probe-tts-stream-2026-11-13.json`): three moon facts (3 sentences, 16 s of audio) - first sentence released
+    to TTS at 4.1 s while the model was still writing (`tts_start_streaming`), intent end 8.0 s, **first audio 9.7 s**,
+    audio complete 19.6 s; before, the whole 16 s would have been rendered after 8.0 s (about 15 s at the measured
+    real-time rate), i.e. first audio at roughly 23 s (estimate, not measured). Two-sentence joke: split and streamed,
+    first audio 14.9 s of which 12.3 s was a cold model prompt after the restart. "What is 12 times 7?": 0.0 s answer,
+    first audio 1.7 s (plain `synthesize` path, unchanged). The TTS log shows one render per sentence (5.49 s of audio
+    in 5.59 s, 5.35 in 5.10, 5.11 in 4.52). NOT verified: nobody has listened to it - sentence joins, a single start
+    bleep/end blip, and playback on the real Voice PE are untested by ear.
+    **Now the bottleneck is the TTS render, and its container is capped at one CPU** (`docker inspect metrocop-tts`:
+    `NanoCpus 1000000000`; CT 114 has 6 cores; onnxruntime logs `pthread_setaffinity_np failed` at start). Raising the
+    cap is the obvious next lever (owner decision: it competes with llama.cpp's 4 threads now that model and TTS overlap).
+    **Rollback:** TTS: `docker tag voice-mixer:pre-tts-stream voice-mixer:local && cd /opt/stacks/voice-mixer && docker
+    compose up -d --no-deps metrocop-tts`; component: copy the `pre-stream` backup back and restart HA (the component
+    alone can be rolled back; the TTS change is harmless without it).
+  - **2026-11-13 sentence-by-sentence speech, build notes (written before the deploy above).**
+    Why it matters more than expected: the Metrocop TTS renders at about real time (CT 114 `docker logs metrocop-tts`:
+    17.95 s of audio in 17.90 s, 19.55 s in 23.29 s), and it rendered the whole reply before sending any audio, so a
+    long reply waited 18-23 s in TTS on top of the model. Protocol checked against HA core `wyoming/tts.py` and
+    `conversation/chat_log.py` (dev branch): HA sends `synthesize-start`, `synthesize-chunk`..., a compatibility
+    `synthesize` with the full text, `synthesize-stop`, and reads audio until `synthesize-stopped`; it only does so when
+    the TTS program advertises `supports_synthesize_streaming` AND the reply reaches the chat log through
+    `async_add_delta_content_stream` (replies added with `async_add_assistant_content_without_tools`, i.e. every
+    code-answered reply, still go as one whole `synthesize`).
+    `apps/voice-mixer/voice_mixer/wyoming_tts.py`: `StreamedReply` splits text at sentence ends (fragments under 20
+    characters join the next sentence), renders each sentence, and uses the pipeline's `lead`/`speech_len` to play the
+    start bleep once, each sentence body, then one squelch tail + end blip (`synthesize_parts`, one seed per reply).
+    Plain `synthesize` is unchanged. Tests: `tests/test_wyoming_stream.py` (8, fake engine; real audio not listened to).
+    `llamacpp_conversation`: `_completion_events` posts `stream: true` and yields text fragments then the assembled
+    response; `_speak_or_collect` holds text until one complete sentence is followed by more text, checks it
+    (`_opening_is_speakable`: no list/quote/markup opening, no raw or described tool call), then releases whole
+    sentences through `async_add_delta_content_stream`. One-sentence replies, tool calls and anything suspicious take
+    the old path unchanged. The news summary streams the same way (`SUMMARY_ALREADY_SPOKEN`). `_attr_supports_streaming
+    = True`. Streamed text skips `_normalize_assistant_text` (line breaks are flattened instead). Offline tests 66 + 19
+    pass. Live llama.cpp check (`stream: true`, port 8081): text and tool-call deltas arrive in the expected OpenAI shape
+    and fold correctly. NOT verified: HA's own threshold for starting streamed TTS (believed 60 characters), the Voice PE
+    playing a streamed response, how the per-sentence joins sound.
+    Deploy plan: on CT 114 tag `voice-mixer:local` as `voice-mixer:pre-tts-stream`, build a derived image (`FROM
+    voice-mixer:local`, `COPY wyoming_tts.py /app/voice_mixer/wyoming_tts.py`; CT 114 has no egress, so no full rebuild),
+    `docker compose up -d --no-deps metrocop-tts` in `/opt/stacks/voice-mixer`; back up and copy the component, restart HA
+    (also refreshes the Wyoming info); probe as the Voice PE and compare `metrocop-tts` log times.
 
 ## Open owner decisions
 

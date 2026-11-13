@@ -16,6 +16,7 @@ import json
 import logging
 import os
 import random
+import re
 import threading
 import time
 import wave
@@ -69,7 +70,17 @@ class Engine:
         if sr != SR:
             log.warning("voice sample rate %s != pipeline %s; audio will be resampled", sr, SR)
 
-    def synthesize(self, text):
+    def synthesize(self, text, seed=None):
+        """One whole announcement: start bleep, speech, squelch, end blip."""
+        head, body, ending = self.synthesize_parts(text, seed)
+        return head + body + ending
+
+    def synthesize_parts(self, text, seed=None):
+        """(head, body, ending) as PCM: start bleep and gap / the speech alone / squelch tail, gap and end blip.
+
+        A streamed reply plays head + body of its first sentence, the body of each later one, and one ending,
+        so the radio keys up and down once per reply rather than around every sentence.
+        """
         from piper import SynthesisConfig
 
         t0 = time.perf_counter()
@@ -86,24 +97,109 @@ class Engine:
                 from voicefx.audio import resample
                 a = resample(a, sr, SR)
             # fresh seed per announcement so the end blip (and static) vary like the game
-            params = {**self.params, "bleeps.seed": random.randint(0, 9999)}
-            out = self.pipeline.render(Pipeline.prepare_source(a), params).audio
-        pcm = (np.clip(out, -1, 1) * 32767).astype(np.int16).tobytes()
+            params = {**self.params, "bleeps.seed": random.randint(0, 9999) if seed is None else seed}
+            render = self.pipeline.render(Pipeline.prepare_source(a), params)
+        out = render.audio
+        pcm = (np.clip(out, -1, 1) * 32767).astype(np.int16)
+        lead, speech_len = split_points(len(pcm), render.info.get("lead"), render.info.get("speech_len"))
         log.info("synth %.2fs audio in %.2fs: %r", len(out) / SR, time.perf_counter() - t0, text[:60])
-        return pcm
+        return pcm[:lead].tobytes(), pcm[lead:lead + speech_len].tobytes(), pcm[lead + speech_len:].tobytes()
+
+
+def split_points(total, lead, speech_len):
+    """Clamp the pipeline's (lead, speech_len) to the rendered length; with no info everything is body."""
+    lead = min(max(int(lead or 0), 0), total)
+    speech_len = total - lead if not speech_len else min(max(int(speech_len), 0), total - lead)
+    return lead, speech_len
+
+
+# ---------------------------------------------------------------- sentence splitting
+# A sentence ends at . ! ? (plus closing quotes/brackets) followed by whitespace, so "3.5" and a
+# not-yet-finished "Dr." at the very end of the buffer are left alone until more text arrives.
+_SENTENCE_END_RE = re.compile(r"[.!?…]+[\"'”’)\]]*\s+")
+MIN_SENTENCE_CHARS = 20   # "1." or "Yes." alone would be a choppy fragment: it is spoken with what follows
+
+
+def split_sentences(buffer):
+    """Return (complete sentences, remainder). The remainder is kept until more text or the end arrives."""
+    sentences, start = [], 0
+    for match in _SENTENCE_END_RE.finditer(buffer):
+        if match.end() - start < MIN_SENTENCE_CHARS:
+            continue
+        sentences.append(buffer[start:match.end()].strip())
+        start = match.end()
+    return sentences, buffer[start:]
+
+
+def speakable(text):
+    return bool(re.search(r"\w", text or ""))
 
 
 def info_event():
     voice = {"name": NAME, "description": "Metrocop radio voice (Piper + voicefx)", "attribution": ATTR,
              "installed": True, "version": "1.0", "languages": ["en_GB", "en"]}
     return {"tts": [{"name": "metrocop", "description": "Metrocop TTS", "attribution": ATTR,
-                     "installed": True, "version": "1.0", "voices": [voice]}],
+                     "installed": True, "version": "1.1", "voices": [voice],
+                     "supports_synthesize_streaming": True}],
             "asr": [], "handle": [], "intent": [], "wake": [], "mic": [], "snd": []}
 
 
 # ---------------------------------------------------------------- server
+FMT = {"rate": SR, "width": 2, "channels": 1}
+
+
+def write_pcm(writer, pcm):
+    step = CHUNK_SAMPLES * 2
+    for i in range(0, len(pcm), step):
+        writer.write(encode_event("audio-chunk", FMT, pcm[i:i + step]))
+
+
+class StreamedReply:
+    """One synthesize-start ... synthesize-stop exchange: audio leaves as each sentence completes.
+
+    Home Assistant sends synthesize-start, synthesize-chunk (text, in arbitrary pieces), then the whole text
+    again as a plain synthesize for servers that cannot stream (ignored here), then synthesize-stop; it reads
+    audio until synthesize-stopped.
+    """
+
+    def __init__(self, engine, writer):
+        self.engine, self.writer = engine, writer
+        self.buffer = ""
+        self.seed = random.randint(0, 9999)   # one seed per reply: same bleeps and static throughout
+        self.started = False
+        self.ending = b""
+
+    async def _speak(self, sentence):
+        if not speakable(sentence):
+            return
+        head, body, ending = await asyncio.to_thread(self.engine.synthesize_parts, sentence, self.seed)
+        if not self.started:
+            self.writer.write(encode_event("audio-start", FMT))
+            write_pcm(self.writer, head)
+            self.started = True
+        write_pcm(self.writer, body)
+        self.ending = ending
+        await self.writer.drain()
+
+    async def feed(self, text):
+        self.buffer += text
+        sentences, self.buffer = split_sentences(self.buffer)
+        for sentence in sentences:
+            await self._speak(sentence)
+
+    async def finish(self):
+        rest, self.buffer = self.buffer.strip(), ""
+        await self._speak(rest)
+        if not self.started:
+            self.writer.write(encode_event("audio-start", FMT))
+        write_pcm(self.writer, self.ending)
+        self.writer.write(encode_event("audio-stop"))
+        self.writer.write(encode_event("synthesize-stopped"))
+
+
 async def handle(engine, reader, writer):
     peer = writer.get_extra_info("peername")
+    stream = None
     try:
         while True:
             ev = await read_event(reader)
@@ -112,14 +208,20 @@ async def handle(engine, reader, writer):
             etype, data = ev
             if etype == "describe":
                 writer.write(encode_event("info", info_event()))
+            elif etype == "synthesize-start":
+                stream = StreamedReply(engine, writer)
+            elif etype == "synthesize-chunk" and stream is not None:
+                await stream.feed(data.get("text") or "")
+            elif etype == "synthesize-stop" and stream is not None:
+                await stream.finish()
+                stream = None
+            elif etype == "synthesize" and stream is not None:
+                pass  # the compatibility copy of text already received as chunks
             elif etype == "synthesize":
                 text = (data.get("text") or "").strip()
                 pcm = await asyncio.to_thread(engine.synthesize, text) if text else b""
-                fmt = {"rate": SR, "width": 2, "channels": 1}
-                writer.write(encode_event("audio-start", fmt))
-                step = CHUNK_SAMPLES * 2
-                for i in range(0, len(pcm), step):
-                    writer.write(encode_event("audio-chunk", fmt, pcm[i:i + step]))
+                writer.write(encode_event("audio-start", FMT))
+                write_pcm(writer, pcm)
                 writer.write(encode_event("audio-stop"))
             else:
                 log.debug("ignoring %s from %s", etype, peer)

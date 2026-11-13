@@ -440,7 +440,9 @@ class OverwatchUtilityAPI(llm.API):
 class LlamaCppConversationEntity(conversation.ConversationEntity):
     """Conversation agent backed by a local llama.cpp server endpoint."""
 
-    _attr_supports_streaming = False
+    # Multi-sentence model replies are streamed to Home Assistant sentence by sentence (see
+    # _async_speak_or_collect); with a TTS engine that accepts streamed text, speech starts after the first.
+    _attr_supports_streaming = True
 
     def __init__(self, settings: dict[str, Any]) -> None:
         """Initialize the llama.cpp conversation entity."""
@@ -546,6 +548,12 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
             self._remember_trace("direct_clock", user_text)
             return
 
+        math_answer = _maybe_direct_math_answer(user_text)
+        if math_answer:
+            self._say_direct(agent_id, chat_log, math_answer, "direct_math")
+            self._remember_trace("direct_math", user_text)
+            return
+
         weather_scope = _weather_scope(user_text)
         if weather_scope is not None:
             try:
@@ -647,7 +655,7 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
                 self._assistant_state,
             )
             tools = _format_tools(chat_log.llm_api)
-            response = await self._async_chat_completion(
+            events = self._chat_completion_events(
                 session,
                 messages,
                 tools,
@@ -658,6 +666,14 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
                 "required" if forced_tool else "auto",
             )
             forced_tool = None
+            response, spoken, ran_tools = await self._async_speak_or_collect(agent_id, chat_log, events, tools)
+            if spoken:
+                # A multi-sentence reply was spoken as it was written. If it ended in a tool call (rare), the
+                # tool has run and the model gets another turn to answer from the result.
+                if ran_tools:
+                    continue
+                self._remember_trace("llm_response_streamed", user_text)
+                return
             message = _extract_message(response)
             tool_inputs = _extract_tool_inputs(message)
             content = message.get("content")
@@ -700,8 +716,10 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
                     if web_answer:
                         self._remember_web_search(_tool_result)
                         summary = await self._async_summarize_web_search(
-                            session, user_text, _tool_result
+                            session, user_text, _tool_result, agent_id, chat_log
                         )
+                        if summary is SUMMARY_ALREADY_SPOKEN:
+                            return
                         chat_log.async_add_assistant_content_without_tools(
                             conversation.AssistantContent(
                                 agent_id=agent_id,
@@ -983,8 +1001,11 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
             if web_answer:
                 self._remember_web_search(tool_result)
                 summary = await self._async_summarize_web_search(
-                    session, user_text, tool_result
+                    session, user_text, tool_result, agent_id, chat_log
                 )
+                if summary is SUMMARY_ALREADY_SPOKEN:
+                    self._remember_trace("direct_web_search", user_text)
+                    return True
                 chat_log.async_add_assistant_content_without_tools(
                     conversation.AssistantContent(
                         agent_id=agent_id,
@@ -1007,10 +1028,14 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
         session: aiohttp.ClientSession,
         user_text: str,
         tool_result_content: Any,
+        agent_id: str,
+        chat_log: conversation.ChatLog,
     ) -> str | None:
         """Answer the question in one or two spoken sentences from the top results.
 
-        Falls back (returns None) to the numbered result list on any failure.
+        Falls back (returns None) to the numbered result list on any failure. A multi-sentence summary (the
+        news briefing) is spoken sentence by sentence as it is written; the return value is then
+        SUMMARY_ALREADY_SPOKEN and the caller must not add it again.
         """
         tool_result = getattr(tool_result_content, "tool_result", None) or {}
         # Keep the answer to one sentence, but give the model enough evidence: with only 3 results
@@ -1048,61 +1073,101 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
         payload: dict[str, Any] = {
             "model": self._model,
             "messages": messages,
-            "stream": False,
             "temperature": 0.1,
             "max_tokens": 130 if news else 60,
             "chat_template_kwargs": {"enable_thinking": False},
         }
         try:
-            async with session.post(
-                f"{self._url}/chat/completions",
-                json=payload,
-                timeout=aiohttp.ClientTimeout(total=min(30, self._settings[CONF_TIMEOUT])),
-            ) as response:
-                response.raise_for_status()
-                data = await response.json(content_type=None)
+            data, spoken, _ran_tools = await self._async_speak_or_collect(
+                agent_id,
+                chat_log,
+                self._completion_events(session, payload, min(30, self._settings[CONF_TIMEOUT])),
+                [],
+                _clean_summary_piece,
+            )
+            if spoken:
+                return SUMMARY_ALREADY_SPOKEN
             text = data["choices"][0]["message"].get("content") or ""
-        except (aiohttp.ClientError, TimeoutError, ValueError, KeyError, IndexError) as err:
+        except (HomeAssistantError, KeyError, IndexError, TypeError) as err:
             _LOGGER.warning("web search summary failed, reading results instead: %r", err)
             return None
         text = re.sub(r"<think>.*?</think>", "", text, flags=re.S).strip()
         text = re.sub(r"\[\d+\]", "", text).replace("**", "").strip()
         return text or None
 
-    async def _async_chat_completion(
+    def _chat_completion_events(
         self,
         session: aiohttp.ClientSession,
         messages: list[dict[str, Any]],
         tools: list[dict[str, Any]],
         max_tokens: int,
         tool_choice: Any = "auto",
-    ) -> dict[str, Any]:
-        """Call the local OpenAI-compatible llama.cpp chat completion endpoint."""
+    ) -> Any:
+        """Streamed chat completion: text fragments as they arrive, then the assembled response dict."""
         payload: dict[str, Any] = {
             "model": self._model,
             "messages": messages,
-            "stream": False,
             "temperature": self._settings[CONF_TEMPERATURE],
             "max_tokens": max_tokens,
         }
         if tools:
             payload["tools"] = tools
             payload["tool_choice"] = tool_choice
+        return self._completion_events(session, payload, self._settings[CONF_TIMEOUT])
 
+    async def _completion_events(
+        self,
+        session: aiohttp.ClientSession,
+        payload: dict[str, Any],
+        timeout: float,
+    ) -> Any:
+        """POST a streamed completion. Yields each text fragment (str) and, last, the whole response (dict).
+
+        The final dict has the non-streamed shape ({"choices": [{"message": ...}]}), so everything that
+        inspects a finished reply (tool calls, guards, direct answers) works the same either way.
+        """
+        message: dict[str, Any] = {"role": "assistant", "content": ""}
+        calls: dict[int, dict[str, Any]] = {}
         try:
             async with session.post(
                 f"{self._url}/chat/completions",
-                json=payload,
-                timeout=aiohttp.ClientTimeout(total=self._settings[CONF_TIMEOUT]),
+                json={**payload, "stream": True},
+                timeout=aiohttp.ClientTimeout(total=timeout),
             ) as response:
                 response.raise_for_status()
-                return await response.json(content_type=None)
+                async for raw in response.content:
+                    line = raw.decode("utf-8", "replace").strip()
+                    if not line.startswith("data:"):
+                        continue
+                    data = line[5:].strip()
+                    if data == "[DONE]":
+                        break
+                    chunk = json.loads(data)
+                    if isinstance(chunk, dict) and chunk.get("error"):
+                        raise HomeAssistantError(f"llama.cpp request failed: {chunk['error']}")
+                    piece = _merge_stream_chunk(message, calls, chunk)
+                    if piece:
+                        yield piece
         except aiohttp.ClientResponseError as err:
             raise HomeAssistantError(
                 f"llama.cpp request failed: HTTP {err.status} {err.message}"
             ) from err
         except (aiohttp.ClientError, TimeoutError, ValueError) as err:
             raise HomeAssistantError(f"llama.cpp request failed: {err!r}") from err
+        if calls:
+            message["tool_calls"] = [calls[index] for index in sorted(calls)]
+        yield {"choices": [{"message": message}]}
+
+    async def _async_speak_or_collect(
+        self,
+        agent_id: str,
+        chat_log: conversation.ChatLog,
+        events: Any,
+        tools: list[dict[str, Any]],
+        clean: Any = None,
+    ) -> tuple[dict[str, Any] | None, bool, bool]:
+        """Consume a streamed completion; see _speak_or_collect."""
+        return await _speak_or_collect(agent_id, chat_log, events, tools, clean)
 
     async def _async_maybe_direct_recipe_import(
         self,
@@ -1409,6 +1474,141 @@ def _sanitize_tool_schema(node: Any) -> Any:
     return node
 
 
+def _merge_stream_chunk(message: dict[str, Any], calls: dict[int, dict[str, Any]], chunk: Any) -> str:
+    """Fold one streamed chunk into `message`/`calls`; returns the new text fragment ('' if none)."""
+    try:
+        delta = chunk["choices"][0].get("delta") or {}
+    except (KeyError, IndexError, TypeError, AttributeError):
+        return ""  # usage/timings-only chunks
+    for call in delta.get("tool_calls") or []:
+        if not isinstance(call, dict):
+            continue
+        index = call.get("index")
+        entry = calls.setdefault(
+            index if isinstance(index, int) else len(calls),
+            {"type": "function", "function": {"name": "", "arguments": ""}},
+        )
+        if call.get("id"):
+            entry["id"] = call["id"]
+        function = call.get("function") or {}
+        if function.get("name"):
+            entry["function"]["name"] = function["name"]
+        if isinstance(function.get("arguments"), str):
+            entry["function"]["arguments"] += function["arguments"]
+    piece = delta.get("content")
+    if isinstance(piece, str) and piece:
+        message["content"] += piece
+        return piece
+    return ""
+
+
+# --- Sentence-by-sentence speech -------------------------------------------------------------------------
+# Text is released to Home Assistant in whole sentences. A sentence ends at . ! ? followed by whitespace
+# (so "3.5" and an unfinished "Dr." at the end of the buffer wait for more text), and fragments shorter than
+# STREAM_MIN_SENTENCE_CHARS ("Yes.", "1.") travel with the sentence after them.
+_SPEECH_BOUNDARY_RE = re.compile(r"[.!?…]+[\"'”’)\]]*\s+")
+STREAM_MIN_SENTENCE_CHARS = 20
+
+
+def _split_speech(buffer: str) -> tuple[str, str]:
+    """(everything up to the last complete sentence, the unfinished remainder)."""
+    cut = 0
+    for match in _SPEECH_BOUNDARY_RE.finditer(buffer):
+        if match.end() - cut >= STREAM_MIN_SENTENCE_CHARS:
+            cut = match.end()
+    return buffer[:cut], buffer[cut:]
+
+
+def _opening_is_speakable(ready: str, held: str, tools: list[dict[str, Any]]) -> bool:
+    """May the first complete sentence(s) be spoken before the rest of the reply exists?"""
+    opening = ready.strip()
+    if not opening or "\n" in opening or opening[0] in "\"'“‘<{[-*#•":
+        return False  # lists, quoted or marked-up replies are normalised as a whole instead
+    if _looks_like_raw_tool_call(held) or _described_tool_call(opening, tools):
+        return False
+    return not RAW_TOOL_EXPLANATION_RE.search(held)
+
+
+SUMMARY_ALREADY_SPOKEN = "<summary already spoken>"  # sentinel, compared with `is`
+
+
+def _clean_summary_piece(text: str) -> str:
+    """Source markers and bold marks have no place in speech."""
+    return re.sub(r"\[\d+\]", "", text).replace("**", "")
+
+
+def _speech_piece(text: str, clean: Any = None) -> str:
+    """A released piece with line breaks flattened, so the spoken text reads as running sentences."""
+    text = re.sub(r"\s*\n+\s*", " ", text)
+    return clean(text) if clean else text
+
+
+async def _speech_deltas(ready: str, rest: str, events: Any, clean: Any, outcome: dict[str, Any]) -> Any:
+    """Chat-log deltas for a reply being spoken as it is written: the opening, then each further sentence."""
+    yield {"role": "assistant"}
+    yield {"content": _speech_piece(ready, clean)}
+    pending = rest
+    message: dict[str, Any] = {}
+    async for event in events:
+        if isinstance(event, dict):
+            message = _extract_message(event)
+            break
+        pending += event
+        if _looks_like_raw_tool_call(pending):
+            _LOGGER.warning("llama.cpp wrote tool-call markup mid-reply; the spoken reply stops before it")
+            return
+        done, pending = _split_speech(pending)
+        if done:
+            yield {"content": _speech_piece(done, clean)}
+    if pending.strip() and not _looks_like_raw_tool_call(pending):
+        yield {"content": _speech_piece(pending.rstrip(), clean)}
+    tool_inputs = _extract_tool_inputs(message) if message else []
+    if tool_inputs:
+        outcome["tools"] = True
+        yield {"tool_calls": tool_inputs}
+
+
+async def _speak_or_collect(
+    agent_id: str,
+    chat_log: Any,
+    events: Any,
+    tools: list[dict[str, Any]],
+    clean: Any = None,
+) -> tuple[dict[str, Any] | None, bool, bool]:
+    """Consume a streamed completion. Returns (response, spoken, ran_tools).
+
+    A reply of two or more sentences is handed to Home Assistant sentence by sentence as it is written, so
+    speech starts after the first sentence instead of after the last (spoken=True, response=None). The first
+    sentence is held back until it is complete and has passed the same guards a finished reply gets; a
+    one-sentence reply, a tool call, or anything suspicious is returned whole (spoken=False) and takes the
+    normal path.
+    """
+    held = ""
+    blocked = False
+    try:
+        async for event in events:
+            if isinstance(event, dict):
+                return event, False, False
+            held += event
+            if blocked:
+                continue
+            ready, rest = _split_speech(held)
+            if not ready or not re.search(r"\w", rest):
+                continue
+            if not _opening_is_speakable(ready, held, tools):
+                blocked = True
+                continue
+            outcome = {"tools": False}
+            async for _added in chat_log.async_add_delta_content_stream(
+                agent_id, _speech_deltas(ready, rest, events, clean, outcome)
+            ):
+                pass
+            return None, True, outcome["tools"]
+    finally:
+        await events.aclose()
+    raise HomeAssistantError("llama.cpp returned no response content")
+
+
 def _extract_message(response: dict[str, Any]) -> dict[str, Any]:
     """Extract the first assistant message from a chat completion response."""
     try:
@@ -1687,6 +1887,57 @@ def _maybe_direct_clock_answer(user_text: str, now: Any) -> str | None:
         return None
     hour = now.hour % 12 or 12
     return f"It is {hour}:{now.minute:02d} {'AM' if now.hour < 12 else 'PM'}."
+
+
+# Plain sums ("what is 12 times 7", "18 percent of 64") cost two model rounds through the `calculate` tool
+# (about 10 s). When the whole question reduces to digits and operators it is evaluated here with the same
+# evaluator; anything with a word left over (units, "the temperature", number words) goes to the model.
+MATH_LEAD_RE = re.compile(
+    r"^\s*(?:(?:hey|ok|okay)\s+\w+[,\s]+)?(?:please\s+)?"
+    r"(?:what(?:'s|’s|\s+is|\s+does)|how\s+much\s+is|calculate|compute|work\s+out)\s+",
+    re.IGNORECASE,
+)
+_MATH_NUM = r"(\d+(?:\.\d+)?)"
+_MATH_REWRITES = (
+    (re.compile(r"(?<=\d),(?=\d{3}(?!\d))"), ""),
+    (re.compile(_MATH_NUM + r"\s*(?:%|percent|per\s+cent)\s+of\s+" + _MATH_NUM, re.I), r"(\1/100*\2)"),
+    (re.compile(r"(?:the\s+)?square\s+root\s+of\s+" + _MATH_NUM, re.I), r"sqrt(\1)"),
+    (re.compile(_MATH_NUM + r"\s+squared\b", re.I), r"(\1**2)"),
+    (re.compile(_MATH_NUM + r"\s+cubed\b", re.I), r"(\1**3)"),
+    (re.compile(r"\s+to\s+the\s+power\s+of\s+", re.I), "**"),
+    (re.compile(r"\s+(?:multiplied\s+by|times)\s+", re.I), "*"),
+    (re.compile(r"(?<=\d)\s*[x×]\s*(?=\d)", re.I), "*"),
+    (re.compile(r"\s+(?:divided\s+by|over)\s+", re.I), "/"),
+    (re.compile(r"\s*÷\s*"), "/"),
+    (re.compile(r"\s+(?:plus|and)\s+", re.I), "+"),
+    (re.compile(r"\s+minus\s+", re.I), "-"),
+)
+_MATH_ALLOWED_RE = re.compile(r"^(?:sqrt\(|[\d.\s+\-*/()])+$")
+_MATH_DATE_RE = re.compile(r"\b\d{1,4}\s*[-/]\s*\d{1,2}\s*[-/]\s*\d{1,4}\b")
+
+
+def _maybe_direct_math_answer(user_text: str) -> str | None:
+    """'What is 12 times 7?' answered by the calculator, no model; None unless it is purely a sum."""
+    lead = MATH_LEAD_RE.match(user_text or "")
+    if not lead:
+        return None
+    body = re.sub(r"(?:\s+(?:equals?|make|makes|is))?[\s?.!=]*$", "", user_text[lead.end():])
+    if not body or len(body) > 80 or _MATH_DATE_RE.search(body):
+        return None
+    if re.search(r"\d\s+and\s+\d", body, re.I) and not re.match(r"^\s*\d[\d.,]*\s+and\s+\d[\d.,]*\s*$", body):
+        return None  # "and" only means plus in the bare "what is 5 and 7"
+    for pattern, replacement in _MATH_REWRITES:
+        body = pattern.sub(replacement, body)
+    if not _MATH_ALLOWED_RE.match(body) or not re.search(r"\d\s*(?:[+\-*/])|sqrt\(", body):
+        return None
+    try:
+        value = _safe_calculate(body)
+    except (ValueError, SyntaxError, ZeroDivisionError, TypeError, OverflowError):
+        return None
+    if isinstance(value, float):
+        shown = f"{value:.4f}".rstrip("0").rstrip(".")
+        return f"That is {'about ' if float(shown) != value else ''}{shown}."
+    return f"That is {value}."
 
 
 # --- Home weather, from the Home Assistant weather entity ----------------------------------------------
