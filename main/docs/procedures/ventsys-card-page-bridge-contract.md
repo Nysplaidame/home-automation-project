@@ -91,6 +91,19 @@ expiry, reload/replay, malformed/foreign messages, WebGL failure and command-fre
 operation. Real HA lifecycle, exact deployed URL/entity review, release asset
 inspection, dashboard routing and physical acceptance remain promotion gates.
 
+## Local VentSys bridge candidate
+
+`main/dashboards/ventsys-bridge-card.js`, `ventsys-bridge-page.html` and
+`ventsys-bridge-page.js` provide a separate local read-only candidate. The sole
+entity allowlisted is `input_boolean.ventsys_failsafe`, mapped to the fixed
+`failsafe` display field. The page has no command path or credential access.
+The Node receiver test covers valid state, rejected foreign and malformed
+messages, replay, expiry and offline clearing; the browser spec exercises the
+card and frame lifecycle. Browser suite acceptance remains open until it runs
+with Playwright and Chromium installed. HA lifecycle, exact URLs and entity
+review, release asset inspection and physical safety acceptance remain gates
+before any promotion.
+
 ## Related work
 
 - [Draft status](../../dashboards/ventsys-card-status.md)

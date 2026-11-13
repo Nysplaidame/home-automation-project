@@ -553,8 +553,9 @@ status: active
   credentials remain prohibited and the page stays offline. The draft card is
   not connected to the page and is not accepted. A separate local read-only
   bridge candidate now sends only failsafe display state; receiver checks pass,
-  but Playwright dependencies were unavailable offline, so browser and HA
-  lifecycle acceptance remain open. The direct dashboard remains unchanged.
+  but `npm ci` and Chromium installation failed because required packages were
+  unavailable in the offline npm cache; browser and HA lifecycle acceptance
+  remain open. The direct dashboard remains unchanged.
 
 - [x] Restore HomeGuest 2.4 GHz broadcast after its UCI section type was
   invalid; `phy0-ap4` and SSID activation validated after a wireless reload
