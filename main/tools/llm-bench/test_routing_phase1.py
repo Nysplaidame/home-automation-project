@@ -216,6 +216,101 @@ class ClockAndDateTests(unittest.TestCase):
         self.assertEqual(line, M._date_line(self.at(6, 45)))  # same all day, so the prefix stays cached
 
 
+import datetime as _dt
+
+TODAY = _dt.date(2026, 11, 13)
+WEATHER = {  # shaped like the live weather.forecast_home entity and its daily forecast
+    "current": {"condition": "partlycloudy", "temperature": 0.4, "unit": "°C"},
+    "daily": [
+        {"date": _dt.date(2026, 11, 12), "condition": "partlycloudy", "temperature": 0.4, "templow": 0.4, "precipitation": 0.0},
+        {"date": TODAY, "condition": "cloudy", "temperature": 3.0, "templow": -1.2, "precipitation": 0.0},
+        {"date": _dt.date(2026, 11, 14), "condition": "rainy", "temperature": 6.0, "templow": 2.0, "precipitation": 2.4},
+        {"date": _dt.date(2026, 11, 15), "condition": "sunny", "temperature": 8.0, "templow": 3.0, "precipitation": 0.0},
+    ],
+}
+
+
+class WeatherTests(unittest.TestCase):
+    def test_questions_about_the_weather_at_home(self):
+        cases = {
+            "What's the weather today?": ("today", False),
+            "what's the weather": ("today", False),
+            " the we what's the weather today?": ("today", False),   # speech-to-text junk in front
+            "What is the weather like at the moment?": ("today", False),
+            "How's the weather?": ("today", False),
+            "Will it rain tomorrow?": ("tomorrow", True),
+            "Do I need an umbrella?": ("today", True),
+            "Is it going to rain tonight?": ("today", True),
+            "Is it cold outside?": ("today", False),
+            "How cold is it outside?": ("today", False),
+            "How cold is it out there?": ("today", False),
+            "Is it cold out?": ("today", False),
+            "How warm is it?": ("today", False),
+            "What's the temperature outside?": ("today", False),
+            "What's the weather forecast for tomorrow?": ("tomorrow", False),
+        }
+        for text, expected in cases.items():
+            self.assertEqual(M._weather_scope(text), expected, text)
+
+    def test_other_questions_are_left_to_the_model(self):
+        for text in (
+            "What's the weather like in London?", "weather in Paris today", "Will it rain on Saturday?",
+            "What's the weather this weekend?", "What was the weather like yesterday?", "Is it going to rain next week?",
+            "Play rain sounds", "Set the rain sensor to wet", "Add rain boots to my shopping list",
+            "What is the temperature in the garage?", "What is the capital of France?", "Is the garage door open?",
+            "How hot is the oven?", "Is it cold in the garage?", "How cold is it in the freezer?",
+            "What is the P1S nozzle temperature?", "How warm is the FDM enclosure?",
+            "Tell me everything you know about how weather forecasting models are built and trained please",
+        ):
+            self.assertIsNone(M._weather_scope(text), text)
+
+    def test_today(self):
+        self.assertEqual(
+            M._weather_answer(("today", False), WEATHER, TODAY),
+            "It is currently partly cloudy and 0 degrees Celsius. Today's high is 3 and the low is minus 1.",
+        )
+
+    def test_tomorrow(self):
+        self.assertEqual(
+            M._weather_answer(("tomorrow", False), WEATHER, TODAY),
+            "Tomorrow's forecast is rain, with a high of 6 and a low of 2.",
+        )
+
+    def test_rain_questions(self):
+        self.assertEqual(M._weather_answer(("today", True), WEATHER, TODAY), "No, no rain or snow is expected today.")
+        self.assertEqual(M._weather_answer(("tomorrow", True), WEATHER, TODAY),
+                         "Yes, rain is expected tomorrow, about 2.4 millimetres.")
+        raining = {**WEATHER, "current": {"condition": "rainy", "temperature": 4.0, "unit": "°C"}}
+        self.assertEqual(M._weather_answer(("today", True), raining, TODAY), "Yes, it is raining now.")
+
+    def test_missing_forecast_degrades_safely(self):
+        no_daily = {"current": WEATHER["current"], "daily": []}
+        self.assertEqual(M._weather_answer(("today", False), no_daily, TODAY), "It is currently partly cloudy and 0 degrees Celsius.")
+        self.assertIsNone(M._weather_answer(("tomorrow", False), no_daily, TODAY))  # no data: let the model try
+        self.assertIsNone(M._weather_answer(("tomorrow", True), no_daily, TODAY))
+        self.assertIsNone(M._weather_answer(("today", False), {"current": {}, "daily": []}, TODAY))
+
+    def test_number_words(self):
+        self.assertEqual([M._wx_number(v) for v in (0.4, 0.6, -0.4, -1.2, -1.6, 12.5, None, "x")],
+                         ["0", "1", "0", "minus 1", "minus 2", "13", None, None])
+
+
+class SatelliteWarmupTests(unittest.TestCase):
+    class E:
+        def __init__(self, domain, entity_id, device_id, disabled_by=None):
+            self.domain, self.entity_id, self.device_id, self.disabled_by = domain, entity_id, device_id, disabled_by
+
+    def test_warms_as_each_enabled_satellite(self):
+        entries = [self.E("light", "light.x", "d0"), self.E("assist_satellite", "assist_satellite.b", "d2"),
+                   self.E("assist_satellite", "assist_satellite.a", "d1"),
+                   self.E("assist_satellite", "assist_satellite.off", "d3", disabled_by="user")]
+        self.assertEqual(M._satellite_contexts_from(entries), [("d1", "assist_satellite.a"), ("d2", "assist_satellite.b")])
+
+    def test_no_satellite_means_one_plain_warmup(self):
+        self.assertEqual(M._satellite_contexts_from([self.E("light", "light.x", "d0")]), [(None, None)])
+        self.assertEqual(M._satellite_contexts_from([]), [(None, None)])
+
+
 class RemovedGatesTests(unittest.TestCase):
     def test_keyword_gates_are_gone(self):
         for name in ("_filter_assist_tools", "_is_direct_response_request", "_is_web_search_affirmation",

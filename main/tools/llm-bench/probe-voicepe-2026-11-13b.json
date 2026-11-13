@@ -1,0 +1,51 @@
+[
+  {
+    "id": "ask1",
+    "user": "How cold is it outside?",
+    "wall_s": 0.1,
+    "local": false,
+    "reply": "It is currently partly cloudy and 0 degrees Celsius. Today's high is 6 and the low is 0."
+  },
+  {
+    "id": "ask2",
+    "user": "Is it cold out?",
+    "wall_s": 0.0,
+    "local": false,
+    "reply": "It is currently partly cloudy and 0 degrees Celsius. Today's high is 6 and the low is 0."
+  },
+  {
+    "id": "ask3",
+    "user": "What's the weather today?",
+    "wall_s": 0.0,
+    "local": false,
+    "reply": "It is currently partly cloudy and 0 degrees Celsius. Today's high is 6 and the low is 0."
+  },
+  {
+    "id": "ask4",
+    "user": "Is it going to rain today?",
+    "wall_s": 0.0,
+    "local": false,
+    "reply": "No, no rain or snow is expected today."
+  },
+  {
+    "id": "ask5",
+    "user": "How hot is the oven?",
+    "wall_s": 5.5,
+    "local": false,
+    "reply": "The oven is not listed in the available devices. Please check if the oven is connected to the home system or provide its name and domain for further assistance."
+  },
+  {
+    "id": "ask6",
+    "user": "Tell me a short joke.",
+    "wall_s": 3.5,
+    "local": false,
+    "reply": "Why don't skeletons fight each other? They don't have the guts."
+  },
+  {
+    "id": "ask7",
+    "user": "What's the weather tomorrow?",
+    "wall_s": 0.0,
+    "local": false,
+    "reply": "Tomorrow's forecast is cloudy, with a high of 8 and a low of 3."
+  }
+]

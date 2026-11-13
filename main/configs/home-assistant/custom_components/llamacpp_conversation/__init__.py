@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import datetime
 import json
 import logging
 import re
@@ -35,7 +36,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import Context, CoreState, HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import config_validation as cv, llm
+from homeassistant.helpers import config_validation as cv, entity_registry as er, llm
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import async_track_time_change
 from homeassistant.helpers.typing import ConfigType
@@ -201,8 +202,11 @@ async def _async_warm_prefix(
     """Prime llama.cpp's KV cache with the real prompt prefix (after start-up and after midnight).
 
     Every turn sends the same system prompt and tool set, which llama.cpp reuses from its cache. The
-    first request after a restart has to read all of it (~55 s for ~5.5k tokens on the iGPU), so one
-    ordinary turn is run in the background and nobody has to wait for it.
+    first request after a restart has to read all of it (~55-80 s for ~6k tokens on the iGPU), so one
+    ordinary turn is run in the background and nobody has to wait for it. A voice satellite's turns carry
+    a different prompt and tool list from a plain chat (it adds the timer tools and drops "this device is
+    not able to start timers"), so the warm-up is run as each satellite: warming without that context left
+    the first spoken question to read everything cold (79.9 s).
     """
     if startup:
         if hass.state is not CoreState.running:
@@ -210,33 +214,52 @@ async def _async_warm_prefix(
             hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, lambda _event: started.set())
             await started.wait()
         await asyncio.sleep(WARMUP_DELAY_SECONDS)
-    began = time.monotonic()
-    try:
-        result = await async_converse(
-            hass,
-            WARMUP_TEXT,
-            None,
-            Context(),
-            language="en",
-            agent_id=entity.entity_id,
+    for device_id, satellite_id in _satellite_contexts(hass):
+        began = time.monotonic()
+        try:
+            result = await async_converse(
+                hass,
+                WARMUP_TEXT,
+                None,
+                Context(),
+                language="en",
+                agent_id=entity.entity_id,
+                device_id=device_id,
+                satellite_id=satellite_id,
+            )
+            speech = _result_speech(result)
+        except Exception:  # warming is best effort; a failure only means the first real turn is slow
+            _LOGGER.warning("Prompt-prefix warm-up failed", exc_info=True)
+            return
+        if not speech or speech == ERROR_SPEECH:
+            # The warm-up is also a canary: it sends the same prompt and every tool schema as real turns, so a
+            # rejection here (for example llama.cpp refusing a tool schema) would break every question.
+            _LOGGER.error("Overwatch warm-up turn failed (%r); every model turn is likely failing", speech)
+            persistent_notification.async_create(
+                hass,
+                "The warm-up turn to llama.cpp failed, so model-answered questions are likely failing. "
+                "Check the Home Assistant log for 'llama.cpp conversation failed' and the tool schemas.",
+                title="Overwatch voice assistant",
+                notification_id=f"{DOMAIN}_warmup_failed",
+            )
+            return
+        _LOGGER.info(
+            "Prompt prefix warmed for %s in %.1f s", satellite_id or "no device", time.monotonic() - began
         )
-        speech = _result_speech(result)
-    except Exception:  # warming is best effort; a failure only means the first real turn is slow
-        _LOGGER.warning("Prompt-prefix warm-up failed", exc_info=True)
-        return
-    if not speech or speech == ERROR_SPEECH:
-        # The warm-up is also a canary: it sends the same prompt and every tool schema as real turns, so a
-        # rejection here (for example llama.cpp refusing a tool schema) would break every question.
-        _LOGGER.error("Overwatch warm-up turn failed (%r); every model turn is likely failing", speech)
-        persistent_notification.async_create(
-            hass,
-            "The warm-up turn to llama.cpp failed, so model-answered questions are likely failing. "
-            "Check the Home Assistant log for 'llama.cpp conversation failed' and the tool schemas.",
-            title="Overwatch voice assistant",
-            notification_id=f"{DOMAIN}_warmup_failed",
-        )
-        return
-    _LOGGER.info("Prompt prefix warmed in %.1f s", time.monotonic() - began)
+
+
+def _satellite_contexts(hass: HomeAssistant) -> list[tuple[str | None, str | None]]:
+    """(device id, satellite entity id) of each Assist satellite, or [(None, None)] when there is none."""
+    return _satellite_contexts_from(er.async_get(hass).entities.values())
+
+
+def _satellite_contexts_from(entries: Any) -> list[tuple[str | None, str | None]]:
+    found = sorted(
+        (entry.device_id, entry.entity_id)
+        for entry in entries
+        if entry.domain == "assist_satellite" and not entry.disabled_by
+    )
+    return found or [(None, None)]
 
 
 def _result_speech(result: Any) -> str:
@@ -338,6 +361,21 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
             self._say_direct(agent_id, chat_log, clock_answer, "direct_clock")
             self._remember_trace("direct_clock", user_text)
             return
+
+        weather_scope = _weather_scope(user_text)
+        if weather_scope is not None:
+            try:
+                snapshot = await _async_weather_snapshot(self.hass)
+                weather_answer = (
+                    _weather_answer(weather_scope, snapshot, dt_util.now().date()) if snapshot else None
+                )
+            except Exception:  # a shortcut must never break the turn; the model path still works
+                _LOGGER.warning("direct weather lookup failed; falling back to the model", exc_info=True)
+                weather_answer = None
+            if weather_answer:
+                self._say_direct(agent_id, chat_log, weather_answer, "direct_weather")
+                self._remember_trace("direct_weather", user_text)
+                return
 
         # Recall and picking must run before the history answer, which would otherwise read
         # out the previously chosen recipe when the user picks a different one.
@@ -1427,6 +1465,153 @@ def _maybe_direct_clock_answer(user_text: str, now: Any) -> str | None:
         return None
     hour = now.hour % 12 or 12
     return f"It is {hour}:{now.minute:02d} {'AM' if now.hour < 12 else 'PM'}."
+
+
+# --- Home weather, from the Home Assistant weather entity ----------------------------------------------
+# Weather is one of the most common voice questions and the model refuses it ("I cannot check the current
+# weather", or after an 80 s wait "the current weather is not available") instead of searching. The home
+# already has a weather entity with a forecast, so today's and tomorrow's weather at home is answered in
+# code. Another place, or a longer range ("this week", "on Saturday"), is left to the model and web search.
+WEATHER_TOPIC_RE = re.compile(
+    r"\b(weather|forecast|rain|raining|rainy|snow|snowing|umbrella|outside temperature|temperature outside|"
+    r"how\s+(?:cold|warm|hot|chilly)\s+is\s+it|is\s+it\s+(?:cold|warm|hot|chilly|freezing)|"
+    r"(?:cold|warm|hot|chilly|freezing)\s+(?:out|outside|out\s+there))\b",
+    re.IGNORECASE,
+)
+# Not weather at home: a command, a device or room, or an appliance ("how hot is the oven").
+WEATHER_SKIP_RE = re.compile(
+    r"\b(play|set|turn|sounds?|music|alarm|timers?|sensors?|history|record|log|station|app|add|remove|recipes?|"
+    r"garage|house|room|kitchen|bedroom|inside|indoors?|fridge|freezer|oven|printer|booth|enclosure|chamber|nozzle|bed)\b",
+    re.IGNORECASE,
+)
+WEATHER_OTHER_PLACE_RE = re.compile(
+    r"\b(?:in|at|for|near)\s+(?!today\b|tomorrow\b|tonight\b|the\b|my\b|our\b|this\b|here\b|a\b|an\b|case\b|time\b)\w+",
+    re.IGNORECASE,
+)
+WEATHER_FAR_RE = re.compile(
+    r"\b(week|weekend|month|monday|tuesday|wednesday|thursday|friday|saturday|sunday|next|days|yesterday|last)\b",
+    re.IGNORECASE,
+)
+WEATHER_RAIN_RE = re.compile(r"\b(rain|raining|rainy|snow|snowing|umbrella)\b", re.IGNORECASE)
+_WEATHER_WORDS = {
+    "clear-night": "clear", "cloudy": "cloudy", "exceptional": "exceptional", "fog": "foggy", "hail": "hailing",
+    "lightning": "thundery", "lightning-rainy": "thundery with rain", "partlycloudy": "partly cloudy",
+    "pouring": "pouring with rain", "rainy": "raining", "snowy": "snowing", "snowy-rainy": "sleeting",
+    "sunny": "sunny", "windy": "windy", "windy-variant": "windy and cloudy",
+}
+# Noun forms for forecast sentences ("Tomorrow's forecast is rain"); other conditions read fine as adjectives.
+_WEATHER_NOUNS = {
+    "fog": "fog", "hail": "hail", "lightning": "thunder", "lightning-rainy": "thunderstorms",
+    "pouring": "heavy rain", "rainy": "rain", "snowy": "snow", "snowy-rainy": "sleet",
+}
+_WEATHER_WET = frozenset({"rainy", "pouring", "lightning-rainy", "snowy", "snowy-rainy", "hail"})
+_WEATHER_UNITS = {"°C": "Celsius", "°F": "Fahrenheit"}
+
+
+def _weather_scope(user_text: str) -> tuple[str, bool] | None:
+    """('today'|'tomorrow', rain_focus) for a short question about the weather at home, else None."""
+    text = user_text.strip()
+    if len(text.split()) > 14 or not WEATHER_TOPIC_RE.search(text):
+        return None
+    if WEATHER_SKIP_RE.search(text) or WEATHER_OTHER_PLACE_RE.search(text) or WEATHER_FAR_RE.search(text):
+        return None
+    day = "tomorrow" if re.search(r"\btomorrow\b", text, re.IGNORECASE) else "today"
+    return day, bool(WEATHER_RAIN_RE.search(text))
+
+
+def _wx_number(value: Any) -> str | None:
+    """Whole number for speech, 'minus' for negatives."""
+    try:
+        whole = int(float(value) + 0.5) if float(value) >= 0 else -int(-float(value) + 0.5)
+    except (TypeError, ValueError):
+        return None
+    return f"minus {-whole}" if whole < 0 else str(whole)
+
+
+def _wx_is_wet(entry: dict[str, Any]) -> bool:
+    return (
+        entry.get("condition") in _WEATHER_WET
+        or (entry.get("precipitation") or 0) > 0
+        or (entry.get("precipitation_probability") or 0) >= 50
+    )
+
+
+def _weather_answer(scope: tuple[str, bool], snapshot: dict[str, Any], today: Any) -> str | None:
+    """Spoken weather for today or tomorrow from a snapshot {'current': {...}, 'daily': [{'date': ...}, ...]}."""
+    day, rain_focus = scope
+    current = snapshot.get("current") or {}
+    target = today + datetime.timedelta(days=1) if day == "tomorrow" else today
+    entry = next((item for item in snapshot.get("daily") or [] if item.get("date") == target), None)
+    if entry is None and day == "tomorrow":
+        return None
+    label = day  # "today" or "tomorrow"
+
+    if rain_focus:
+        subject = entry or current
+        if day == "today" and _wx_is_wet(current):
+            return f"Yes, it is {_WEATHER_WORDS.get(current.get('condition'), 'wet')} now."
+        if not subject:
+            return None
+        if _wx_is_wet(subject):
+            word = "Snow" if subject.get("condition") in ("snowy", "snowy-rainy") else "Rain"
+            amount = subject.get("precipitation") or 0
+            extra = f", about {amount:.1f}".rstrip("0").rstrip(".") + " millimetres" if amount >= 0.1 else ""
+            return f"Yes, {word.lower()} is expected {label}{extra}."
+        return f"No, no rain or snow is expected {label}."
+
+    parts: list[str] = []
+    if day == "today":
+        temperature = _wx_number(current.get("temperature"))
+        condition = _WEATHER_WORDS.get(current.get("condition"), "")
+        if temperature is not None:
+            unit = _WEATHER_UNITS.get(str(current.get("unit") or ""), "")
+            lead = f"{condition} and " if condition else ""
+            parts.append(f"It is currently {lead}{temperature} degrees{(' ' + unit) if unit else ''}.")
+    if entry:
+        high, low = _wx_number(entry.get("temperature")), _wx_number(entry.get("templow"))
+        key = entry.get("condition")
+        condition = _WEATHER_NOUNS.get(key) or _WEATHER_WORDS.get(key, "")
+        if day == "today" and high is not None:
+            parts.append(f"Today's high is {high}" + (f" and the low is {low}." if low is not None else "."))
+        elif day == "tomorrow":
+            sentence = f"Tomorrow's forecast is {condition}" if condition else "Tomorrow"
+            if high is not None:
+                sentence += f", with a high of {high}" + (f" and a low of {low}" if low is not None else "")
+            parts.append(sentence + ".")
+        if _wx_is_wet(entry) and entry.get("condition") not in _WEATHER_WET:
+            parts.append("Some rain is expected.")
+    return " ".join(parts) or None
+
+
+async def _async_weather_snapshot(hass: HomeAssistant) -> dict[str, Any] | None:
+    """Current conditions plus the daily forecast from the home's weather entity, or None."""
+    states = hass.states.async_all("weather")
+    if not states:
+        return None
+    state = next((s for s in states if s.entity_id == "weather.forecast_home"), states[0])
+    if state.state in ("unavailable", "unknown"):
+        return None
+    attrs = state.attributes
+    snapshot: dict[str, Any] = {
+        "current": {
+            "condition": state.state,
+            "temperature": attrs.get("temperature"),
+            "unit": attrs.get("temperature_unit"),
+        },
+        "daily": [],
+    }
+    try:
+        response = await hass.services.async_call(
+            "weather", "get_forecasts", {"entity_id": state.entity_id, "type": "daily"},
+            blocking=True, return_response=True,
+        )
+        for item in (response or {}).get(state.entity_id, {}).get("forecast", []):
+            moment = dt_util.parse_datetime(str(item.get("datetime", "")))
+            if moment is not None:
+                snapshot["daily"].append({**item, "date": dt_util.as_local(moment).date()})
+    except Exception:  # current conditions alone still answer "what's the weather"
+        _LOGGER.debug("weather forecast lookup failed", exc_info=True)
+    return snapshot
 
 
 def _date_line(now: Any) -> str:

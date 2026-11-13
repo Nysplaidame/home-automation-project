@@ -15,6 +15,7 @@ import argparse
 import asyncio
 import json
 import ssl
+import sys
 import time
 
 import websockets
@@ -54,7 +55,7 @@ RECIPE_FLOW = [
 ]
 
 
-async def main_async(token, pipeline, out):
+async def main_async(token, pipeline, out, device_id=None, asks=None):
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
@@ -73,6 +74,8 @@ async def main_async(token, pipeline, out):
                    "input": {"text": text}, "pipeline": pipeline}
             if conv_id:
                 msg["conversation_id"] = conv_id
+            if device_id:  # same prompt and tool list as a spoken question to that satellite
+                msg["device_id"] = device_id
             t0 = time.perf_counter()
             await ws.send(json.dumps(msg))
             local, speech, conv, err = None, "", conv_id, None
@@ -97,6 +100,14 @@ async def main_async(token, pipeline, out):
                     break
             return round(time.perf_counter() - t0, 1), local, (speech if err is None else f"ERROR {err}"), conv
 
+        if asks:  # custom questions only, each in a fresh conversation
+            for i, text in enumerate(asks, 1):
+                secs, local, speech, _ = await turn(text)
+                rows.append({"id": f"ask{i}", "user": text, "wall_s": secs, "local": local, "reply": speech})
+                print(f"{secs:5.1f}s {text[:52]!r:56} -> {speech[:150]!r}")
+            if out:
+                json.dump(rows, open(out, "w", encoding="utf-8"), indent=2)
+            return
         for cid, text in SINGLE:
             secs, local, speech, _ = await turn(text)
             rows.append({"id": cid, "user": text, "wall_s": secs, "local": local, "reply": speech})
@@ -116,9 +127,12 @@ def main():
     ap.add_argument("--token-file", required=True)
     ap.add_argument("--pipeline", default=PIPELINE)
     ap.add_argument("--out")
+    ap.add_argument("--device-id", help="send as this device (e.g. the Voice PE) so the prompt matches a spoken turn")
+    ap.add_argument("--ask", action="append", help="ask only this question (repeatable) instead of the standard battery")
     a = ap.parse_args()
     token = open(a.token_file, encoding="utf-8").read().strip()
-    asyncio.run(main_async(token, a.pipeline, a.out))
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    asyncio.run(main_async(token, a.pipeline, a.out, a.device_id, a.ask))
 
 
 if __name__ == "__main__":

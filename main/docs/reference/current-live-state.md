@@ -55,8 +55,8 @@ while its replacement LXC is running.
 - The Overwatch Assist pipeline points at `llamacpp_conversation`, a local
   Home Assistant custom conversation agent for llama.cpp's OpenAI-compatible API.
   Since 2026-11-13 (decision 10, phase 1) it offers every configured tool API on every turn with one prompt
-  (`configs/home-assistant/overwatch-prompt.txt`), answers device state, recipe, shopping and clock questions in
-  code, warms the llama.cpp prompt cache at start-up and after midnight, and strips oversized length bounds from
+  (`configs/home-assistant/overwatch-prompt.txt`), answers device state, recipe, shopping, clock and home-weather
+  questions in code, warms the llama.cpp prompt cache (as each Assist satellite) at start-up and after midnight, and strips oversized length bounds from
   tool schemas because llama.cpp rejects them ("failed to parse grammar"). Voice currently runs against a
   Qwen3-30B-A3B trial container on CT 114 (the production `llama-cpp` container is stopped); see
   `HANDOFF-2026-11-11-llm-igpu-speed.md` before changing the model or tool schemas.

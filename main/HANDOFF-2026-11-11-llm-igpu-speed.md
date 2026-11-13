@@ -371,6 +371,27 @@ SearXNG search), with no invented entities, before considering a switch.
     `backups/configuration.yaml.bak-20261113-pre-internal-url`, `check_config` valid, no restart needed); the repo copy and
     the `ha-media-proxy` README now say it belongs in YAML. Verified HA builds `http://ha-media.home.arpa:8124/api/tts_proxy/...`.
     Not verified by voice. Side effect is the one the README already lists (non-TTS URLs from `internal_url` 404).
+  - **Voice PE test, "stuck on today's weather" (2026-11-13 00:27).** The time question worked (STT heard it, the clock
+    reflex answered in 0.1 s, TTS played), so the `internal_url` fix held. The weather question took **79.9 s** and then
+    the model refused ("The current weather is not available. Please check a weather service"), without searching.
+    Two causes. (1) The warm-up used a plain context but a Voice PE turn carries a different prompt and tool list (35
+    tools including the timer tools, no "This device is not able to start timers" line), so llama.cpp's cached prefix
+    stopped matching about 500 tokens in and the whole ~6.5k-token prompt was read cold. The warm-up now runs as each
+    Assist satellite (`device_id` + `satellite_id`, `_satellite_contexts`); after that a Voice PE model turn takes
+    about 3.5 s (the joke test) and the warm-up after an HA restart took 1.9 s because llama.cpp kept the cache. (2) The
+    model refuses weather instead of calling `web_search` (the accuracy suite showed the same, `weather_now` 0/2), so
+    home weather is now answered in code from `weather.forecast_home` plus `weather.get_forecasts` (daily): today,
+    tomorrow, rain/snow and "how cold is it outside" in 0.0-0.1 s (`_weather_scope`, `_weather_answer`, 53 offline
+    tests); another place or a longer range goes to the model, and "weather in London" came back via web search in
+    14.6 s. The weather entity is not exposed to Assist and is read directly (public information, not a device).
+    Also seen: Whisper heard "the we what's the weather today?" (leading junk; the matching tolerates it).
+    **Cache caveat:** each different prompt context evicts the previous one (`--cache-ram 1024` holds about one 6.5k-token
+    prefix), so running `accuracy.py` (plain REST context) or using the HA chat box leaves the next spoken question
+    cold (60-80 s) until the Voice PE context is warmed again; re-warm with
+    `python pipeline_probe.py --token-file F --device-id 0400adefe0d3d378682adb9154ffba06 --ask "Tell me a short joke."`.
+    Probe results: `probe-voicepe-2026-11-13.json`, `probe-voicepe-2026-11-13b.json`. Backups: component before this change
+    `backups/llamacpp_conversation__init__.py.bak-20261113-pre-weather-warmup`. NOT yet re-run through `accuracy.py` (it
+    would have evicted the Voice PE's cache while it is in use).
   - "acceptance test cheese" is confirmed on the agent's (Grocy) shopping list: delete it in Grocy.
 
 ## Open owner decisions

@@ -1,0 +1,51 @@
+[
+  {
+    "id": "ask1",
+    "user": "What's the weather today?",
+    "wall_s": 0.1,
+    "local": false,
+    "reply": "It is currently partly cloudy and 0 degrees Celsius. Today's high is 6 and the low is 0."
+  },
+  {
+    "id": "ask2",
+    "user": "Will it rain tomorrow?",
+    "wall_s": 0.0,
+    "local": false,
+    "reply": "No, no rain or snow is expected tomorrow."
+  },
+  {
+    "id": "ask3",
+    "user": "Tell me a short joke.",
+    "wall_s": 3.5,
+    "local": false,
+    "reply": "Why don't skeletons fight each other? They don't have the guts."
+  },
+  {
+    "id": "ask4",
+    "user": "What's the weather like in London?",
+    "wall_s": 14.6,
+    "local": false,
+    "reply": "The weather in London is currently 10\u00b0C with light rain."
+  },
+  {
+    "id": "ask5",
+    "user": "What time is it?",
+    "wall_s": 0.0,
+    "local": true,
+    "reply": "12:34 AM"
+  },
+  {
+    "id": "ask6",
+    "user": "Is the garage door open?",
+    "wall_s": 0.0,
+    "local": false,
+    "reply": "I have no device called garage door."
+  },
+  {
+    "id": "ask7",
+    "user": "How cold is it outside?",
+    "wall_s": 5.5,
+    "local": false,
+    "reply": "What is the current temperature outside?"
+  }
+]
