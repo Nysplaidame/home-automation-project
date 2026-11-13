@@ -1,0 +1,3 @@
+production stopped 11:07:26
+30B up after 25s (-b 2048 -ub 1024 --flash-attn on) 11:07:46
+Mem:           28672       25108         128       21350       24785        3563

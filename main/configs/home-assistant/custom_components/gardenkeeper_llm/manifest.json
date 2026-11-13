@@ -1,0 +1,8 @@
+{
+  "domain": "gardenkeeper_llm",
+  "name": "GardenKeeper LLM Tools",
+  "version": "0.1.0",
+  "documentation": "https://www.home-assistant.io/integrations/conversation/",
+  "dependencies": ["conversation"],
+  "codeowners": []
+}

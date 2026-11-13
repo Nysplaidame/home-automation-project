@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import re
@@ -19,8 +20,8 @@ except ImportError:  # HA 2026.11+ replaced voluptuous with probatio (to_openapi
     def convert(schema, custom_serializer=None):
         return probatio.to_openapi(schema, custom_serializer=custom_serializer)
 
-from homeassistant.components import conversation
-from homeassistant.components.conversation.agent_manager import get_agent_manager
+from homeassistant.components import conversation, persistent_notification
+from homeassistant.components.conversation.agent_manager import async_converse, get_agent_manager
 from homeassistant.components.conversation.const import DATA_COMPONENT
 from homeassistant.const import (
     CONF_LLM_HASS_API,
@@ -29,13 +30,16 @@ from homeassistant.const import (
     CONF_PROMPT,
     CONF_TIMEOUT,
     CONF_URL,
+    EVENT_HOMEASSISTANT_STARTED,
     MATCH_ALL,
 )
-from homeassistant.core import HomeAssistant
+from homeassistant.core import Context, CoreState, HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv, llm
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.event import async_track_time_change
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.util import dt as dt_util
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -51,32 +55,20 @@ DEFAULT_MAX_HISTORY = 8
 DEFAULT_MAX_TOKENS = 256
 DEFAULT_TEMPERATURE = 0.1
 MAX_TOOL_ITERATIONS = 10
+WARMUP_DELAY_SECONDS = 10
+WARMUP_TEXT = "Reply with the single word ready."
+ERROR_SPEECH = (
+    "I could not complete that request. The local assistant hit an error before it could respond."
+)
 ASSISTANT_STATE_RETENTION_SECONDS = 48 * 60 * 60
 MAX_COMPACT_TRACE_ITEMS = 30
 RAW_TOOL_EXPLANATION_RE = re.compile(
     r"\b(json object|speech field|response_type|action_done|data field)\b",
     re.IGNORECASE,
 )
-EXACT_RESPONSE_RE = re.compile(
-    r"^\s*(reply|respond|answer)\s+(exactly|verbatim)\b",
-    re.IGNORECASE,
-)
-SAY_RESPONSE_RE = re.compile(
-    r"^\s*(say|repeat|read)\b",
-    re.IGNORECASE,
-)
-AFFIRMATIVE_RE = re.compile(
-    r"^\s*(yes|yeah|yep|please|do that|go ahead|ok|okay|sure)\s*[.!?]?\s*$",
-    re.IGNORECASE,
-)
 RAW_TOOL_CALL_RE = re.compile(
     r"(</tool_call>|\btool_call\b|^\s*\{\s*\"name\"\s*:\s*\"[^\"]+\")",
     re.IGNORECASE | re.DOTALL,
-)
-RECIPE_RE = re.compile(
-    r"\b(recipe|recipes|ingredient|ingredients|step|steps|method|cook|cooking|"
-    r"mealie|mealy|melee|lentil|soup|serving|servings)\b",
-    re.IGNORECASE,
 )
 RECIPE_INGREDIENTS_RE = re.compile(
     r"\b(ingredient|ingredients|shopping|need|how much|how many|quantity|amount)\b",
@@ -96,16 +88,6 @@ RECIPE_STEP_NUMBER_RE = re.compile(
 )
 SHOPPING_LIST_RE = re.compile(
     r"\b(shopping list|shopping-list|grocy)\b",
-    re.IGNORECASE,
-)
-HEALTH_STATUS_RE = re.compile(
-    r"\b(healthy|health|online|offline|reachable|up|down|running|status)\b",
-    re.IGNORECASE,
-)
-PRODUCTION_APP_RE = re.compile(
-    r"\b(uptime kuma|kuma|grafana|llm host|llm-host|mealie|grocy|searxng|"
-    r"whoogle|frigate|omv|proxmox|immich|dozzle|homepage|adguard|open webui|"
-    r"openwebui|piper|whisper|openwakeword)\b",
     re.IGNORECASE,
 )
 ACTIVE_RECIPE_REF_RE = re.compile(
@@ -138,18 +120,23 @@ RECIPE_IMPORT_RE = re.compile(
     r"\brecipe\b.*\b(mealie|mealy|melee|merely)\b)",
     re.IGNORECASE,
 )
+# Explicit web-search requests ("search the web for X", "look up X online") skip the first
+# LLM round and go straight to the SearXNG tool. Requires an explicit web/internet/online
+# so "search for a chicken recipe" still goes to the model (it may mean Mealie).
+WEB_SEARCH_DIRECT_RES = (
+    re.compile(
+        r"^\s*(?:(?:hey|ok|okay)\s+\w+[,\s]+)?(?:please\s+)?(?:search|look|google)\s+"
+        r"(?:up\s+)?(?:the\s+)?(?:web|internet|online)\s+for\s+(?P<q>.+?)[\s?.!]*$",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"^\s*(?:please\s+)?(?:search\s+for|look\s+up|google)\s+(?P<q>.+?)\s+"
+        r"(?:on\s+the\s+(?:web|internet)|online)[\s?.!]*$",
+        re.IGNORECASE,
+    ),
+)
 ORDINAL_RE = re.compile(
     r"\b(?P<ordinal>first|second|third|1st|2nd|3rd|one|two|three)\b",
-    re.IGNORECASE,
-)
-WEB_RE = re.compile(
-    r"\b(search|web|internet|online|latest|news|current|look up|find me)\b",
-    re.IGNORECASE,
-)
-ASSIST_RE = re.compile(
-    r"\b(turn|switch|set|open|close|lock|unlock|start|stop|cancel|pause|resume|"
-    r"increase|decrease|dim|brighten|fan|light|timer|scene|script|broadcast|"
-    r"add .+ list|remove .+ list)\b",
     re.IGNORECASE,
 )
 BULLET_RE = re.compile(r"^(\s*(?:[-*•]|\d+[.)])\s+)(\S.*?)(\s*)$")
@@ -192,7 +179,72 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     hass.data[DOMAIN] = entity
     get_agent_manager(hass).async_set_agent(DOMAIN, entity)
     await hass.data[DATA_COMPONENT].async_add_entities([entity])
+    hass.async_create_background_task(
+        _async_warm_prefix(hass, entity, startup=True), f"{DOMAIN}_warm_prefix"
+    )
+
+    @callback
+    def _warm_after_midnight(_now: Any) -> None:
+        # The date line in the system prompt changes at midnight; re-prime the cache so the first
+        # question of the day is not the one that pays for it.
+        hass.async_create_background_task(
+            _async_warm_prefix(hass, entity, startup=False), f"{DOMAIN}_warm_prefix_midnight"
+        )
+
+    async_track_time_change(hass, _warm_after_midnight, hour=0, minute=1, second=0)
     return True
+
+
+async def _async_warm_prefix(
+    hass: HomeAssistant, entity: LlamaCppConversationEntity, *, startup: bool
+) -> None:
+    """Prime llama.cpp's KV cache with the real prompt prefix (after start-up and after midnight).
+
+    Every turn sends the same system prompt and tool set, which llama.cpp reuses from its cache. The
+    first request after a restart has to read all of it (~55 s for ~5.5k tokens on the iGPU), so one
+    ordinary turn is run in the background and nobody has to wait for it.
+    """
+    if startup:
+        if hass.state is not CoreState.running:
+            started = asyncio.Event()
+            hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, lambda _event: started.set())
+            await started.wait()
+        await asyncio.sleep(WARMUP_DELAY_SECONDS)
+    began = time.monotonic()
+    try:
+        result = await async_converse(
+            hass,
+            WARMUP_TEXT,
+            None,
+            Context(),
+            language="en",
+            agent_id=entity.entity_id,
+        )
+        speech = _result_speech(result)
+    except Exception:  # warming is best effort; a failure only means the first real turn is slow
+        _LOGGER.warning("Prompt-prefix warm-up failed", exc_info=True)
+        return
+    if not speech or speech == ERROR_SPEECH:
+        # The warm-up is also a canary: it sends the same prompt and every tool schema as real turns, so a
+        # rejection here (for example llama.cpp refusing a tool schema) would break every question.
+        _LOGGER.error("Overwatch warm-up turn failed (%r); every model turn is likely failing", speech)
+        persistent_notification.async_create(
+            hass,
+            "The warm-up turn to llama.cpp failed, so model-answered questions are likely failing. "
+            "Check the Home Assistant log for 'llama.cpp conversation failed' and the tool schemas.",
+            title="Overwatch voice assistant",
+            notification_id=f"{DOMAIN}_warmup_failed",
+        )
+        return
+    _LOGGER.info("Prompt prefix warmed in %.1f s", time.monotonic() - began)
+
+
+def _result_speech(result: Any) -> str:
+    """Plain speech text of a ConversationResult, or '' if it has none."""
+    try:
+        return str(result.response.speech["plain"]["speech"] or "")
+    except (AttributeError, KeyError, TypeError):
+        return ""
 
 
 class LlamaCppConversationEntity(conversation.ConversationEntity):
@@ -229,18 +281,22 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
     ) -> conversation.ConversationResult:
         """Process a conversation turn through llama.cpp."""
         llm_hass_api = _select_llm_hass_api(
-            user_input.text,
             self._settings.get(CONF_LLM_HASS_API),
-            chat_log,
+            {api.id for api in llm.async_get_apis(self.hass)},
         )
-        _LOGGER.debug("Selected LLM API set for utterance: %s", llm_hass_api)
+        _LOGGER.debug("LLM API set for utterance: %s", llm_hass_api)
 
+        # The date goes last in the system message (Home Assistant appends the extra prompt after
+        # everything else), so a date change only invalidates the cached prompt once a day.
+        extra_prompt = "\n".join(
+            part for part in (user_input.extra_system_prompt, _date_line(dt_util.now())) if part
+        )
         try:
             await chat_log.async_provide_llm_data(
                 user_input.as_llm_context(DOMAIN),
                 llm_hass_api,
                 self._settings.get(CONF_PROMPT),
-                user_input.extra_system_prompt,
+                extra_prompt,
             )
         except conversation.ConverseError as err:
             return err.as_conversation_result()
@@ -256,10 +312,7 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
             chat_log.async_add_assistant_content_without_tools(
                 conversation.AssistantContent(
                     agent_id=user_input.agent_id,
-                    content=(
-                        "I could not complete that request. The local assistant "
-                        "hit an error before it could respond."
-                    ),
+                    content=ERROR_SPEECH,
                 )
             )
 
@@ -273,6 +326,39 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
     ) -> None:
         """Send the chat log to llama.cpp and execute requested HA tools."""
         self._prune_assistant_state()
+
+        echo_answer = _maybe_direct_echo_answer(user_text)
+        if echo_answer:
+            self._say_direct(agent_id, chat_log, echo_answer, "direct_echo")
+            self._remember_trace("direct_echo", user_text)
+            return
+
+        clock_answer = _maybe_direct_clock_answer(user_text, dt_util.now())
+        if clock_answer:
+            self._say_direct(agent_id, chat_log, clock_answer, "direct_clock")
+            self._remember_trace("direct_clock", user_text)
+            return
+
+        # Recall and picking must run before the history answer, which would otherwise read
+        # out the previously chosen recipe when the user picks a different one.
+        recall_answer = _maybe_direct_recipe_recall_answer(
+            user_text,
+            chat_log,
+            self._assistant_state,
+        )
+        if recall_answer:
+            chat_log.async_add_assistant_content_without_tools(
+                conversation.AssistantContent(
+                    agent_id=agent_id,
+                    content=_normalize_assistant_text(recall_answer),
+                    native={"source": "recipe_recall_direct"},
+                )
+            )
+            self._remember_trace("direct_recipe_recall", user_text)
+            return
+
+        if await self._async_maybe_direct_recipe_pick(agent_id, user_text, chat_log):
+            return
 
         direct_history_answer = _maybe_direct_recipe_history_answer(
             user_text,
@@ -297,6 +383,12 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
         if direct_import_done:
             return
 
+        if await self._async_maybe_direct_shopping(agent_id, user_text, chat_log):
+            return
+
+        if await self._async_maybe_direct_recipe_search(agent_id, user_text, chat_log):
+            return
+
         direct_web_answer = _maybe_direct_web_recipe_followup_answer(
             user_text,
             chat_log,
@@ -312,6 +404,17 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
             self._remember_trace("direct_web_history", user_text)
             return
 
+        direct_search_done = await self._async_maybe_direct_web_search(
+            agent_id,
+            user_text,
+            chat_log,
+        )
+        if direct_search_done:
+            return
+
+        if await self._async_maybe_direct_state(agent_id, user_text, chat_log):
+            return
+
         session = async_get_clientsession(self.hass)
         for _ in range(MAX_TOOL_ITERATIONS):
             messages = _trim_messages(
@@ -324,7 +427,7 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
                 session,
                 messages,
                 tools,
-                _max_tokens_for_turn(user_text, tools, self._settings[CONF_MAX_TOKENS]),
+                _max_tokens_for_turn(user_text, self._settings[CONF_MAX_TOKENS]),
             )
             message = _extract_message(response)
             tool_inputs = _extract_tool_inputs(message)
@@ -440,6 +543,226 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
 
         raise HomeAssistantError("llama.cpp exceeded the Home Assistant tool loop limit")
 
+    async def _async_call_tool_direct(
+        self,
+        agent_id: str,
+        chat_log: conversation.ChatLog,
+        tool_name: str,
+        tool_args: dict[str, Any],
+    ) -> Any | None:
+        """Call one HA LLM tool without asking the model; returns the tool-result content."""
+        tools = getattr(chat_log.llm_api, "tools", None) or []
+        actual_name = next(
+            (
+                tool.name
+                for tool in tools
+                if getattr(tool, "name", None) == tool_name
+                or str(getattr(tool, "name", "")).endswith("__" + tool_name)
+            ),
+            None,
+        )
+        if actual_name is None:
+            return None
+        assistant_content = conversation.AssistantContent(
+            agent_id=agent_id,
+            content=None,
+            tool_calls=[llm.ToolInput(tool_name=actual_name, tool_args=tool_args)],
+            native={"source": f"direct_{tool_name}"},
+        )
+        async for tool_result in chat_log.async_add_assistant_content(assistant_content):
+            return tool_result
+        return None
+
+    def _say_direct(self, agent_id: str, chat_log: conversation.ChatLog, text: str, source: str) -> None:
+        """Add a final spoken answer produced by code."""
+        chat_log.async_add_assistant_content_without_tools(
+            conversation.AssistantContent(
+                agent_id=agent_id,
+                content=_normalize_assistant_text(text),
+                native={"source": source},
+            )
+        )
+
+    async def _async_maybe_direct_shopping(
+        self,
+        agent_id: str,
+        user_text: str,
+        chat_log: conversation.ChatLog,
+    ) -> bool:
+        """Read or add to the Grocy shopping list from a clear request, skipping the model."""
+        if not SHOPPING_LIST_RE.search(user_text) and not re.search(
+            r"\b(shopping|grocery) list\b", user_text, re.I
+        ):
+            return False
+
+        add_match = SHOPPING_ADD_RE.match(user_text)
+        if add_match:
+            parsed = _shopping_item_and_amount(add_match.group("item"))
+            if parsed is None:
+                return False
+            item, amount = parsed
+            tool_args: dict[str, Any] = {"item": item, "amount": amount}
+            tool_name = "add_grocy_shopping_item"
+        elif SHOPPING_READ_RE.match(user_text) and not SHOPPING_WRITE_RE.search(user_text):
+            tool_name, tool_args = "list_grocy_shopping_list", {}
+        else:
+            return False
+
+        result = await self._async_call_tool_direct(agent_id, chat_log, tool_name, tool_args)
+        if result is None:
+            return False
+        tool_error = _tool_error_response(result)
+        answer = tool_error or _maybe_direct_action_done(result)
+        if not answer:
+            return False
+        self._say_direct(agent_id, chat_log, answer, f"direct_{tool_name}")
+        self._remember_trace(f"direct_{tool_name}", user_text)
+        return True
+
+    async def _async_maybe_direct_recipe_pick(
+        self,
+        agent_id: str,
+        user_text: str,
+        chat_log: conversation.ChatLog,
+    ) -> bool:
+        """'Pick the second one [and read the ingredients]' resolved from the spoken list."""
+        if not _PICK_VERB_RE.search(user_text) or _PICK_BLOCK_RE.search(user_text):
+            return False
+        position = _requested_recipe_position(user_text)
+        names = _latest_spoken_recipe_list(chat_log)
+        if position is None or not names:
+            return False
+        index = position if position >= 0 else len(names) - 1
+        if not 0 <= index < len(names):
+            return False
+        name = names[index]
+        slug = _latest_recipe_slugs(chat_log).get(name)
+        result = await self._async_call_tool_direct(
+            agent_id, chat_log, "get_saved_recipe", {"slug": slug or name}
+        )
+        if result is None:
+            return False
+        tool_error = _tool_error_response(result)
+        if tool_error:
+            self._say_direct(agent_id, chat_log, tool_error, "tool_error_direct")
+            return True
+        self._remember_recipe_tool_result(result)
+        answer = _maybe_direct_recipe_answer(user_text, result) or (
+            f"Selected {name}. I can read the ingredients or the steps."
+        )
+        self._say_direct(agent_id, chat_log, answer, "direct_recipe_pick")
+        self._remember_trace("direct_recipe_pick", user_text)
+        return True
+
+    async def _async_maybe_direct_recipe_search(
+        self,
+        agent_id: str,
+        user_text: str,
+        chat_log: conversation.ChatLog,
+    ) -> bool:
+        """Search saved Mealie recipes from a clear request and speak the names directly."""
+        query = _recipe_search_query(user_text)
+        if query is None:
+            return False
+        result = await self._async_call_tool_direct(
+            agent_id, chat_log, "find_saved_recipes", {"query": query}
+        )
+        if result is None:
+            return False
+        tool_error = _tool_error_response(result)
+        if tool_error:
+            self._say_direct(agent_id, chat_log, tool_error, "tool_error_direct")
+            return True
+        answer = _maybe_direct_recipe_answer(user_text, result)
+        if not answer:
+            return False  # nothing saved or details wanted: let the model answer with the result
+        self._say_direct(agent_id, chat_log, answer, "direct_recipe_search")
+        self._remember_trace("direct_recipe_search", user_text)
+        return True
+
+    async def _async_maybe_direct_state(
+        self,
+        agent_id: str,
+        user_text: str,
+        chat_log: conversation.ChatLog,
+    ) -> bool:
+        """Answer 'is X on/open?' and 'what is the X temperature?' from live state, no model."""
+        if _parse_state_question(user_text) is None:
+            return False
+        try:
+            answer = _direct_state_answer(user_text, _exposed_state_snapshot(self.hass))
+        except Exception:  # a shortcut must never break the turn; the model path still works
+            _LOGGER.warning("direct state lookup failed; falling back to the model", exc_info=True)
+            return False
+        if not answer:
+            return False
+        self._say_direct(agent_id, chat_log, answer, "direct_state")
+        self._remember_trace("direct_state", user_text)
+        return True
+
+    async def _async_maybe_direct_web_search(
+        self,
+        agent_id: str,
+        user_text: str,
+        chat_log: conversation.ChatLog,
+    ) -> bool:
+        """Run web_search directly for an explicit search request, skipping the first LLM round."""
+        query = None
+        for pattern in WEB_SEARCH_DIRECT_RES:
+            match = pattern.search(user_text)
+            if match:
+                query = match.group("q").strip()
+                break
+        if not query or len(query) < 3:
+            return False
+
+        tools = getattr(chat_log.llm_api, "tools", None) or []
+        if not any(getattr(tool, "name", None) == "web_search" for tool in tools):
+            return False
+
+        tool_input = llm.ToolInput(tool_name="web_search", tool_args={"query": query})
+        assistant_content = conversation.AssistantContent(
+            agent_id=agent_id,
+            content=None,
+            tool_calls=[tool_input],
+            native={"source": "direct_web_search", "query": query},
+        )
+        session = async_get_clientsession(self.hass)
+        async for tool_result in chat_log.async_add_assistant_content(assistant_content):
+            tool_error = _tool_error_response(tool_result)
+            if tool_error:
+                chat_log.async_add_assistant_content_without_tools(
+                    conversation.AssistantContent(
+                        agent_id=agent_id,
+                        content=tool_error,
+                        native={"source": "tool_error_direct", "tool_name": "web_search"},
+                    )
+                )
+                return True
+
+            web_answer = _maybe_direct_web_search_answer(tool_result)
+            if web_answer:
+                self._remember_web_search(tool_result)
+                summary = await self._async_summarize_web_search(
+                    session, user_text, tool_result
+                )
+                chat_log.async_add_assistant_content_without_tools(
+                    conversation.AssistantContent(
+                        agent_id=agent_id,
+                        content=_normalize_assistant_text(summary or web_answer),
+                        native={
+                            "source": "direct_web_search_summary"
+                            if summary
+                            else "direct_web_search_tool",
+                            "tool_name": "web_search",
+                        },
+                    )
+                )
+                self._remember_trace("direct_web_search", user_text)
+                return True
+        # Tool ran but gave nothing usable: let the model handle it with the result in the log.
+        return False
+
     async def _async_summarize_web_search(
         self,
         session: aiohttp.ClientSession,
@@ -451,14 +774,15 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
         Falls back (returns None) to the numbered result list on any failure.
         """
         tool_result = getattr(tool_result_content, "tool_result", None) or {}
-        # CPU llama.cpp generates ~5 tokens/s, so keep input to 3 short snippets and the
-        # answer to one sentence (adds ~5-8 s to a search reply).
-        results = [r for r in tool_result.get("results") or [] if isinstance(r, dict)][:3]
+        # Keep the answer to one sentence, but give the model enough evidence: with only 3 results
+        # cut at 200 characters it sometimes answered "the snippets do not say" (the figure was in
+        # a later result). 5 results x 220 characters is ~300 prompt tokens (~3 s on the 30B).
+        results = [r for r in tool_result.get("results") or [] if isinstance(r, dict)][:5]
         if not results:
             return None
         sources = "\n".join(
             f"[{i}] {_clean_spoken_title(r.get('title')) or ''}: "
-            f"{(_clean_spoken_snippet(r.get('snippet')) or '')[:200]}"
+            f"{(_clean_spoken_snippet(r.get('snippet')) or '')[:220]}"
             for i, r in enumerate(results, start=1)
         )
         messages = [
@@ -799,14 +1123,42 @@ def _format_tools(
                 "function": {
                     "name": tool.name,
                     "description": tool.description or "",
-                    "parameters": convert(
-                        tool.parameters,
-                        custom_serializer=llm_api.custom_serializer,
+                    "parameters": _sanitize_tool_schema(
+                        convert(
+                            tool.parameters,
+                            custom_serializer=llm_api.custom_serializer,
+                        )
                     ),
                 },
             }
         )
     return tools
+
+
+# llama.cpp compiles every advertised tool schema into a sampling grammar and rejects the WHOLE request
+# (HTTP 400 "failed to parse grammar") when a string may be longer than about 1,500 characters. With every
+# tool offered on every turn, one such schema (garden_tasks' 2,000-character confirmation_token) breaks all
+# turns. The tools validate their own arguments when called, so oversized length bounds are dropped from
+# what the model is shown.
+MAX_GRAMMAR_STRING_LENGTH = 1000
+
+
+def _sanitize_tool_schema(node: Any) -> Any:
+    """Return a copy of a JSON schema without string length bounds that llama.cpp cannot compile."""
+    if isinstance(node, dict):
+        return {
+            key: _sanitize_tool_schema(value)
+            for key, value in node.items()
+            if not (
+                key == "maxLength"
+                and isinstance(value, int)
+                and not isinstance(value, bool)
+                and value > MAX_GRAMMAR_STRING_LENGTH
+            )
+        }
+    if isinstance(node, list):
+        return [_sanitize_tool_schema(item) for item in node]
+    return node
 
 
 def _extract_message(response: dict[str, Any]) -> dict[str, Any]:
@@ -863,38 +1215,45 @@ def _trim_messages(
     max_history: int,
     assistant_state: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
-    """Keep the system prompt and the most recent chat history."""
-    messages = _inject_assistant_state_context(messages, assistant_state)
-    if len(messages) <= max_history + 1:
-        return messages
-
+    """Keep the system prompt and the most recent chat history, then add the follow-up hint."""
     if messages and messages[0].get("role") == "system":
-        if len(messages) > 1 and messages[1].get("role") == "system":
-            return [messages[0], messages[1], *messages[-max_history:]]
-        return [messages[0], *messages[-max_history:]]
+        head, rest = messages[:1], messages[1:]
+    else:
+        head, rest = [], messages
+    return _inject_assistant_state_context([*head, *rest[-max_history:]], assistant_state)
 
-    return messages[-max_history:]
+
+# Words that suggest a follow-up about the remembered recipe or web results. Anything else (a device
+# question, the weather, chit-chat) gets no hint, so the hint never inflates unrelated prompts.
+_STATE_HINT_CUE_RE = re.compile(
+    r"\b(recipes?|ingredients?|steps?|cook|cooking|servings?|first|second|third|fourth|last|one|ones|"
+    r"it|that|this|those|these|them|results?|articles?|links?|page|search)\b",
+    re.IGNORECASE,
+)
 
 
 def _inject_assistant_state_context(
     messages: list[dict[str, Any]],
     assistant_state: dict[str, Any] | None,
 ) -> list[dict[str, Any]]:
-    """Add a compact structured state hint without consuming large context."""
+    """Insert the follow-up hint just before the newest user message, and only when it can help.
+
+    Placing it last (not right after the system prompt) keeps the system prompt, the tools and the
+    older history byte-identical from turn to turn, so llama.cpp can reuse them from its KV cache.
+    """
     if not assistant_state:
         return messages
-
+    last_user = next(
+        (i for i in range(len(messages) - 1, -1, -1) if messages[i].get("role") == "user"), None
+    )
+    if last_user is None:
+        return messages
+    if not _STATE_HINT_CUE_RE.search(str(messages[last_user].get("content") or "")):
+        return messages
     context = _assistant_state_prompt(assistant_state)
     if not context:
         return messages
-
-    state_message = {
-        "role": "system",
-        "content": context,
-    }
-    if messages and messages[0].get("role") == "system":
-        return [messages[0], state_message, *messages[1:]]
-    return [state_message, *messages]
+    return [*messages[:last_user], {"role": "system", "content": context}, *messages[last_user:]]
 
 
 def _assistant_state_prompt(assistant_state: dict[str, Any]) -> str:
@@ -908,7 +1267,11 @@ def _assistant_state_prompt(assistant_state: dict[str, Any]) -> str:
         name = str(active_recipe.get("name") or "").strip()
         slug = str(active_recipe.get("slug") or "").strip()
         if name or slug:
-            lines.append(f"Active recipe: {name or slug}.")
+            lines.append(
+                f"Recipe the user selected to cook: {name or slug} (this is NOT necessarily "
+                "the first recipe in any list you read out; for 'first/second/third' questions "
+                "use the numbered list you spoke)."
+            )
             if slug:
                 lines.append(f"Active recipe slug: {slug}.")
 
@@ -938,6 +1301,8 @@ def _assistant_state_prompt(assistant_state: dict[str, Any]) -> str:
         if result_lines:
             lines.append("Recent web results: " + " | ".join(result_lines) + ".")
 
+    if len(lines) == 1:  # only the header: nothing worth sending
+        return ""
     return "\n".join(lines)
 
 
@@ -959,6 +1324,21 @@ def _compact_tool_result_for_prompt(tool_name: Any, tool_result: Any) -> Any:
                 for result in results
                 if isinstance(result, dict)
             ][:3]
+        return compact
+
+    if "find_saved_recipes" in name:
+        compact = {"success": tool_result.get("success"), "query": tool_result.get("query")}
+        recipes = tool_result.get("recipes")
+        if isinstance(recipes, list):
+            compact["recipes"] = [
+                {
+                    "name": recipe.get("name"),
+                    "slug": recipe.get("slug"),
+                    "description": str(recipe.get("description") or "")[:80],
+                }
+                for recipe in recipes
+                if isinstance(recipe, dict)
+            ][:10]
         return compact
 
     if "get_saved_recipe" in name:
@@ -993,87 +1373,68 @@ def _compact_tool_result_for_prompt(tool_name: Any, tool_result: Any) -> Any:
 
 
 def _select_llm_hass_api(
-    text: str,
     configured_apis: str | list[str] | None,
-    chat_log: conversation.ChatLog | None = None,
+    registered_ids: set[str] | None = None,
 ) -> str | list[str] | None:
-    """Select the smallest useful tool set for the user's utterance."""
-    configured = _configured_api_set(configured_apis)
-    if not configured:
+    """Offer every configured API on every turn, in configured order.
+
+    What the assistant can do is never decided by keywords in the utterance. A fixed tool set also
+    gives the model a byte-stable prompt prefix, which llama.cpp reuses from its KV cache, so prompt
+    processing is paid once instead of on every turn, and a question nobody wrote a rule for can still
+    reach a tool. APIs that are configured but not registered (an integration that failed to load) are
+    skipped rather than failing every turn.
+    """
+    if not configured_apis:
         return None
-
-    if _is_web_search_affirmation(text, chat_log):
-        return _selected_apis(configured, ["searxng_search"])
-
-    wants_shopping_list = bool(SHOPPING_LIST_RE.search(text))
-    if wants_shopping_list and "grocy_household" in configured:
-        return _selected_apis(configured, ["grocy_household"])
-
-    if HEALTH_STATUS_RE.search(text) and PRODUCTION_APP_RE.search(text):
-        return _selected_apis(configured, ["assist"])
-
-    wants_recipe = bool(RECIPE_RE.search(text))
-    wants_web = bool(WEB_RE.search(text))
-
-    if wants_recipe and wants_web:
-        return _selected_apis(configured, ["searxng_search", "mealie_recipes"])
-
-    if wants_recipe:
-        return _selected_apis(configured, ["mealie_recipes"])
-
-    if wants_web:
-        return _selected_apis(configured, ["searxng_search"])
-
-    if ASSIST_RE.search(text):
-        return _selected_apis(configured, ["assist"])
-
-    if _is_direct_response_request(text):
+    ids = [configured_apis] if isinstance(configured_apis, str) else list(dict.fromkeys(configured_apis))
+    if registered_ids is not None:
+        ids = [api_id for api_id in ids if api_id in registered_ids]
+    if not ids:
         return None
-
-    return None
-
-
-def _configured_api_set(configured_apis: str | list[str] | None) -> set[str]:
-    """Return configured API ids as a set."""
-    if configured_apis is None:
-        return set()
-    if isinstance(configured_apis, str):
-        return {configured_apis}
-    return set(configured_apis)
+    return ids[0] if len(ids) == 1 else ids
 
 
-def _selected_apis(configured: set[str], candidates: list[str]) -> str | list[str] | None:
-    """Return configured API ids from a candidate list."""
-    selected = [api for api in candidates if api in configured]
-    if not selected:
+ECHO_RE = re.compile(
+    r"^\s*(?:reply|respond|answer|say|repeat)\s+(?:exactly|verbatim)\s*[:,\-]?\s*[\"'“]?(?P<text>.+?)[\"'”]?\s*$",
+    re.IGNORECASE | re.DOTALL,
+)
+
+
+def _maybe_direct_echo_answer(user_text: str) -> str | None:
+    """'Say exactly: X' is answered with X by code; no model, no chance to embellish."""
+    match = ECHO_RE.match(user_text)
+    if not match:
         return None
-    if len(selected) == 1:
-        return selected[0]
-    return selected
+    text = match.group("text").strip()
+    return text if re.search(r"\w", text) else None  # "Say exactly:" alone is not an instruction
 
 
-def _is_direct_response_request(text: str) -> bool:
-    """Return true when the user is asking for text, not tools."""
-    return bool(EXACT_RESPONSE_RE.match(text) or SAY_RESPONSE_RE.match(text))
+# The model has no clock and invents a time when asked ("10:30"), so the time of day is read from Home
+# Assistant. Today's date is handed to the model in its prompt instead (see _date_line), which it uses well
+# for "what day is it" but not for date arithmetic.
+CLOCK_RE = re.compile(
+    r"^\s*(?:(?:hey|ok|okay)\s+\w+[,\s]+)?(?:please\s+|(?:can|could) you tell me\s+)?"
+    r"(?:what(?:'s|’s|\s+is)\s+the\s+(?:current\s+)?time|what\s+time\s+is\s+it|"
+    r"tell\s+me\s+the\s+(?:current\s+)?time|do you (?:have|know) the time)"
+    r"(?:\s+(?:right\s+now|now|currently|please))?[\s?.!]*$",
+    re.IGNORECASE,
+)
 
 
-def _is_web_search_affirmation(
-    text: str,
-    chat_log: conversation.ChatLog | None,
-) -> bool:
-    """Return true when the user accepts the assistant's web-search offer."""
-    if chat_log is None or not AFFIRMATIVE_RE.match(text):
-        return False
+def _maybe_direct_clock_answer(user_text: str, now: Any) -> str | None:
+    """'What time is it?' answered from the local clock."""
+    if not CLOCK_RE.match(user_text):
+        return None
+    hour = now.hour % 12 or 12
+    return f"It is {hour}:{now.minute:02d} {'AM' if now.hour < 12 else 'PM'}."
 
-    for item in reversed(chat_log.content):
-        if getattr(item, "role", None) != "assistant":
-            continue
-        content = getattr(item, "content", None)
-        if not isinstance(content, str):
-            return False
-        return bool(re.search(r"\bsearch (?:the )?web\b", content, re.IGNORECASE))
 
-    return False
+def _date_line(now: Any) -> str:
+    """One sentence of ground truth appended to the system prompt; it changes once a day."""
+    return (
+        f"Today's date is {now.strftime('%A')}, {now.day} {now.strftime('%B %Y')}. "
+        "Use it for date questions; for the time of day call GetDateTime."
+    )
 
 
 def _looks_like_raw_tool_call(content: str) -> bool:
@@ -1211,6 +1572,8 @@ def _maybe_direct_recipe_answer(user_text: str, tool_result_content: Any) -> str
         return None
 
     tool_name = getattr(tool_result_content, "tool_name", None)
+    if isinstance(tool_name, str) and "find_saved_recipes" in tool_name:
+        return _maybe_direct_recipe_list_answer(user_text, tool_result_content)
     if not isinstance(tool_name, str) or "get_saved_recipe" not in tool_name:
         return None
 
@@ -1241,6 +1604,513 @@ def _maybe_direct_recipe_answer(user_text: str, tool_result_content: Any) -> str
                 f"- {ingredient}" for ingredient in ingredients
             )
 
+    return None
+
+
+RECIPE_LIST_DETAIL_RE = re.compile(
+    r"\b(describe|description|details?|tell me (?:more )?about|summari[sz]e|"
+    r"how long|cook time|prep time|servings?|source|link|url)\b",
+    re.IGNORECASE,
+)
+RECIPE_LIST_MAX = 8
+_NUMBER_WORDS = {
+    "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
+    "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
+}
+
+
+def _requested_recipe_count(user_text: str) -> int | None:
+    """Return an explicit count such as 'three recipes' or '3 recipes', if any."""
+    match = re.search(
+        r"\b(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\b(?:\s+\w+){0,3}?\s+recipes?\b",
+        user_text,
+        re.IGNORECASE,
+    )
+    if not match:
+        return None
+    token = match.group(1).lower()
+    count = int(token) if token.isdigit() else _NUMBER_WORDS.get(token)
+    return count if count and count > 0 else None
+
+
+def _maybe_direct_recipe_list_answer(user_text: str, tool_result_content: Any) -> str | None:
+    """Speak saved-recipe search results as a numbered list of names, skipping a second LLM round.
+
+    The model otherwise writes out every description at ~4-13 tok/s (30+ s on the 14B).
+    Falls back to the model (None) when nothing was found or the user asked for details.
+    """
+    if RECIPE_LIST_DETAIL_RE.search(user_text):
+        return None
+    tool_result = getattr(tool_result_content, "tool_result", None)
+    if not isinstance(tool_result, dict) or not tool_result.get("success"):
+        return None
+    recipes = tool_result.get("recipes")
+    if not isinstance(recipes, list):
+        return None
+    names = [
+        str(recipe.get("name") or "").strip()
+        for recipe in recipes
+        if isinstance(recipe, dict) and str(recipe.get("name") or "").strip()
+    ]
+    if not names:
+        return None
+    requested = _requested_recipe_count(user_text)
+    shown = names[: min(requested or RECIPE_LIST_MAX, RECIPE_LIST_MAX)]
+    header = (
+        f"Here are {len(shown)} saved recipes:" if len(shown) != 1 else "Here is one saved recipe:"
+    )
+    total = tool_result.get("total")
+    total = total if isinstance(total, int) and total >= len(names) else len(names)
+    extra = total - len(shown)
+    more = f"\n{extra} more saved." if extra > 0 and requested is None else ""
+    return header + "\n" + "\n".join(f"{i}. {name}." for i, name in enumerate(shown, start=1)) + more
+
+
+# ---------------------------------------------------------------------------------------------
+# Deterministic answers for recall and for clear shopping/recipe requests. These need no language
+# understanding beyond a pattern match, so they skip the model (faster) and cannot hallucinate.
+# ---------------------------------------------------------------------------------------------
+_ORDINAL_POS = {
+    "first": 0, "1st": 0, "second": 1, "2nd": 1, "third": 2, "3rd": 2,
+    "fourth": 3, "4th": 3, "fifth": 4, "5th": 4, "last": -1,
+}
+_ORDINAL_WORD_RE = re.compile(r"\b(first|1st|second|2nd|third|3rd|fourth|4th|fifth|5th|last)\b", re.I)
+RECIPE_RECALL_CUE_RE = re.compile(r"\b(what|which|name|called|again|remind|repeat|tell me)\b", re.I)
+RECIPE_RECALL_BLOCK_RE = re.compile(
+    r"\b(pick|choose|chose|select|open|read|cook|make|save|send|import|add|steps?|"
+    r"ingredients?|minutes?|hours?|temperature|servings?|calories?)\b",
+    re.I,
+)
+RECIPE_COUNT_RE = re.compile(r"\bhow many\b.*\b(recipes?|did you (?:find|list|give)|were there|options)\b", re.I)
+RECIPE_RELIST_RE = re.compile(
+    r"\b(what were|list|read|repeat|say)\b.*\b(recipes|names|them|those|options)\b.*"
+    r"\b(again|back|before|earlier|just now)\b|"
+    r"\b(what were)\b.*\b(recipes|options)\b",
+    re.I,
+)
+RECIPE_PICKED_RE = re.compile(
+    r"\bwhich (?:recipe|one)\b.*\b(?:did i|have i|was)\b.*\b(?:pick|picked|choose|chose|chosen|select|selected)\b|"
+    r"\bwhat (?:recipe )?(?:am i|are we) (?:making|cooking)\b|"
+    r"\bwhat (?:was |is )?(?:the )?(?:recipe )?(?:i|we) (?:picked|chose|selected)\b",
+    re.I,
+)
+_SPOKEN_LIST_HEADER_RE = re.compile(r"^Here (?:are \d+ saved recipes|is one saved recipe):", re.I)
+_SPOKEN_LIST_LINE_RE = re.compile(r"^\s*(?:[-*]\s*)?\d+\.\s*(.+?)\.?\s*$")
+
+SHOPPING_READ_RE = re.compile(
+    r"^\s*(?:please\s+)?(?:what(?:'s|\s+is|\s+are|\s+do\s+i\s+have)|show|read|list|tell\s+me|give\s+me|check)\b",
+    re.I,
+)
+SHOPPING_WRITE_RE = re.compile(
+    r"\b(add|remove|delete|clear|put|buy|bought|mark|tick|cross|empty|got)\b", re.I
+)
+SHOPPING_ADD_RE = re.compile(
+    r"^\s*(?:please\s+)?(?:add|put)\s+(?P<item>.+?)\s+(?:to|on|onto|in|into)\s+(?:my|the|our)\s+"
+    r"(?:shopping|grocery)\s+list[\s.!?]*$",
+    re.I,
+)
+_COUNT_WORD = r"\d+|one|two|three|four|five|six|seven|eight|nine|ten"
+RECIPES_ALL_RE = re.compile(
+    r"^\s*(?:please\s+)?(?:"
+    r"(?:what|which)\s+recipes\s+do\s+(?:i|we)\s+have(?:\s+(?:saved|stored|in\s+mealie))?|"
+    r"(?:list|show|read)(?:\s+me)?(?:\s+(?:all|out))?\s+(?:of\s+)?(?:my|our|the)\s+(?:saved\s+)?recipes|"
+    r"what(?:'s|\s+is)\s+in\s+(?:my|our)\s+(?:recipe\s+book|mealie)"
+    r")[\s?.!]*$",
+    re.I,
+)
+RECIPES_FIND_RE = re.compile(
+    r"^\s*(?:please\s+)?(?:find|search\s+for|look\s+for|get|show|give)(?:\s+me)?\s+"
+    r"(?:(?:" + _COUNT_WORD + r"|a|an|some)\s+)?(?P<q>[\w'\- ]+?)\s+recipes?\b"
+    r"(?:\s+(?:from|in)\s+(?:my\s+)?(?:saved\s+)?(?:recipes|mealie|collection))?"
+    r"(?:\s+and\s+.*)?[\s?.!]*$",
+    re.I,
+)
+RECIPES_FIND_FOR_RE = re.compile(
+    r"^\s*(?:please\s+)?(?:find|search\s+for|look\s+for|get|show|give)(?:\s+me)?\s+"
+    r"(?:a\s+|an\s+|some\s+|the\s+)?recipes?\s+(?:for|with|using|containing)\s+(?P<q>[\w'\- ]+?)"
+    r"(?:\s+and\s+.*)?[\s?.!]*$",
+    re.I,
+)
+# Only explicit web wording counts here ("find me a recipe" may mean Mealie, so it is not a web request).
+RECIPE_WEB_GUARD_RE = re.compile(r"\b(search the|web|internet|online|latest|news|current|look up)\b", re.I)
+_GENERIC_RECIPE_QUERIES = {"", "saved", "my", "my saved", "all", "all my", "all of my", "the", "some", "any", "good"}
+_ITEM_UNIT_RE = re.compile(
+    r"^(?:packs?|packets?|bottles?|cans?|boxes|box|bags?|loaves|loaf|jars?|cartons?|tins?|"
+    r"kg|g|l|litres?|liters?|ml|pints?|dozen|bunch(?:es)?)\b",
+    re.I,
+)
+
+
+def _parse_spoken_recipe_list(text: str) -> list[str] | None:
+    """Parse the numbered recipe list produced by _maybe_direct_recipe_list_answer."""
+    lines = [line for line in str(text or "").splitlines() if line.strip()]
+    if not lines or not _SPOKEN_LIST_HEADER_RE.match(lines[0].strip()):
+        return None
+    names = []
+    for line in lines[1:]:
+        match = _SPOKEN_LIST_LINE_RE.match(line)
+        if match:
+            names.append(match.group(1).strip())
+    return names or None
+
+
+def _latest_spoken_recipe_list(chat_log: Any) -> list[str] | None:
+    """Return the most recent recipe list that was read out in this conversation."""
+    for item in reversed(list(getattr(chat_log, "content", []) or [])):
+        if getattr(item, "role", None) != "assistant":
+            continue
+        parsed = _parse_spoken_recipe_list(getattr(item, "content", None))
+        if parsed:
+            return parsed
+    return None
+
+
+def _maybe_direct_recipe_recall_answer(
+    user_text: str,
+    chat_log: Any,
+    assistant_state: dict[str, Any] | None,
+) -> str | None:
+    """Answer 'what was the first recipe', 'how many did you find', 'which did I pick' from history."""
+    if RECIPE_PICKED_RE.search(user_text):
+        active = (assistant_state or {}).get("active_recipe")
+        name = str(active.get("name") or "").strip() if isinstance(active, dict) else ""
+        return f"You picked {name}." if name else None
+
+    names = _latest_spoken_recipe_list(chat_log)
+    if not names:
+        return None
+
+    if RECIPE_COUNT_RE.search(user_text):
+        count = len(names)
+        return f"I found {count} recipe{'s' if count != 1 else ''}."
+
+    ordinal = _ORDINAL_WORD_RE.search(user_text)
+    if (
+        ordinal
+        and RECIPE_RECALL_CUE_RE.search(user_text)
+        and not RECIPE_RECALL_BLOCK_RE.search(user_text)
+        and re.search(r"\b(recipes?|ones?|options?|results?|dish(?:es)?)\b", user_text, re.I)
+    ):
+        position = _ORDINAL_POS[ordinal.group(1).lower()]
+        index = position if position >= 0 else len(names) - 1
+        label = ordinal.group(1).lower()
+        if 0 <= index < len(names):
+            return f"The {label} recipe was {names[index]}."
+        return f"I only listed {len(names)} recipe{'s' if len(names) != 1 else ''}."
+
+    if RECIPE_RELIST_RE.search(user_text) and not RECIPE_RECALL_BLOCK_RE.search(user_text):
+        return "The recipes were:\n" + "\n".join(f"{i}. {n}." for i, n in enumerate(names, start=1))
+
+    return None
+
+
+_PICK_VERB_RE = re.compile(
+    r"\b(pick|choose|chose|select|go with|going with|let'?s (?:do|make|cook|have|go with)|"
+    r"i'?ll (?:take|have|go with|do)|take|use|open|show)\b",
+    re.I,
+)
+_PICK_BLOCK_RE = re.compile(r"\b(what|which|how many|name|called|remind|again|why)\b", re.I)
+_NUMBER_OPTION_RE = re.compile(r"\b(?:number|no\.?|option|#)\s*(\d|one|two|three|four|five)\b", re.I)
+
+
+def _requested_recipe_position(user_text: str) -> int | None:
+    """Zero-based position for 'the second one' / 'number two'; -1 means last."""
+    match = _ORDINAL_WORD_RE.search(user_text)
+    if match:
+        return _ORDINAL_POS[match.group(1).lower()]
+    match = _NUMBER_OPTION_RE.search(user_text)
+    if match:
+        token = match.group(1).lower()
+        number = int(token) if token.isdigit() else _NUMBER_WORDS.get(token)
+        return number - 1 if number and number > 0 else None
+    return None
+
+
+def _latest_recipe_slugs(chat_log: Any) -> dict[str, str]:
+    """Map recipe name -> slug from the latest saved-recipe search in this conversation."""
+    for item in reversed(list(getattr(chat_log, "content", []) or [])):
+        if getattr(item, "role", None) != "tool_result":
+            continue
+        if "find_saved_recipes" not in str(getattr(item, "tool_name", "") or ""):
+            continue
+        result = getattr(item, "tool_result", None)
+        recipes = result.get("recipes") if isinstance(result, dict) else None
+        if isinstance(recipes, list):
+            return {
+                str(r.get("name") or "").strip(): str(r.get("slug") or "").strip()
+                for r in recipes
+                if isinstance(r, dict) and r.get("name") and r.get("slug")
+            }
+    return {}
+
+
+def _shopping_item_and_amount(raw_item: str) -> tuple[str, float] | None:
+    """Split 'two eggs' into ('eggs', 2.0). Returns None for multi-item or empty requests."""
+    item = re.sub(r"^(?:some|a|an|the)\s+", "", raw_item.strip(), flags=re.I).strip(" .,!?")
+    if not item or re.search(r"\band\b|,|&|\bplus\b", item, re.I):
+        return None
+    match = re.match(r"^(\d+(?:\.\d+)?|" + "|".join(_NUMBER_WORDS) + r")\s+(.+)$", item, re.I)
+    if match and not _ITEM_UNIT_RE.match(match.group(2)):
+        token = match.group(1).lower()
+        amount = float(token) if token.replace(".", "", 1).isdigit() else float(_NUMBER_WORDS[token])
+        if 0 < amount <= 1000:
+            return match.group(2).strip(), amount
+    return item, 1.0
+
+
+def _recipe_search_query(user_text: str) -> str | None:
+    """Return a Mealie search query for a clear 'find/list recipes' request ('' = list all)."""
+    if (
+        RECIPE_WEB_GUARD_RE.search(user_text)
+        or RECIPE_IMPORT_RE.search(user_text)
+        or re.search(r"\b(save|send|import|add|delete|remove)\b", user_text, re.I)
+    ):
+        return None
+    if RECIPES_ALL_RE.match(user_text):
+        return ""
+    for pattern in (RECIPES_FIND_FOR_RE, RECIPES_FIND_RE):
+        match = pattern.match(user_text)
+        if match:
+            query = re.sub(r"\s+", " ", match.group("q")).strip().lower()
+            query = re.sub(r"^(?:" + _COUNT_WORD + r")\s+", "", query)
+            return "" if query in _GENERIC_RECIPE_QUERIES else query
+    return None
+
+
+# --- Model-free answers for "is X on/open?" and "what is the X temperature?" ---------------------
+# A cold 30B turn for these costs ~20 s (about 1.7k prompt tokens plus a second model call to word
+# the answer), yet the answer is a lookup in the exposed entities. Answer it in code. A device that
+# clearly does not exist gets a deterministic "no such device"; anything ambiguous or unfamiliar
+# falls through to the model unchanged.
+_STATE_WANT = (
+    r"on|off|open|opened|closed|shut|locked|unlocked|running|active|"
+    r"(?:switched|turned|powered)\s+(?:on|off)"
+)
+_STATE_LEAD = r"^\s*(?:(?:hey|ok|okay)\s+\w+[,\s]+)?(?:please\s+|tell me\s+|can you tell me\s+)?"
+_STATE_NAME_CHARS = r"[\w\s'’.\-]"
+STATE_BOOL_RE = re.compile(
+    _STATE_LEAD
+    + r"(?:is|are|was)\s+(?:the\s+|my\s+|our\s+)?(?P<name>" + _STATE_NAME_CHARS + r"+?)\s+"
+    r"(?:currently\s+|still\s+)?(?P<want>" + _STATE_WANT + r")"
+    r"(?:\s+(?:right now|currently|at the moment|now))?[\s?.!]*$",
+    re.IGNORECASE,
+)
+_STATE_QUANTITY = (
+    r"temperature|humidity|pressure|battery|level|power|energy|voltage|reading|speed|brightness|"
+    r"airflow|state|status"
+)
+STATE_VALUE_RE = re.compile(
+    _STATE_LEAD
+    + r"(?:what(?:'s|’s|\s+is|\s+was))\s+(?:the\s+|my\s+|our\s+)?"
+    r"(?P<name>" + _STATE_NAME_CHARS + r"*?\b(?:" + _STATE_QUANTITY + r")\b" + _STATE_NAME_CHARS + r"*?)"
+    r"(?:\s+(?:right now|currently|at the moment|now))?[\s?.!]*$",
+    re.IGNORECASE,
+)
+# Phrases that are about recipes, lists or timers rather than a device: never answer these here.
+STATE_NOT_DEVICE_RE = re.compile(
+    r"\b(recipes?|shopping|lists?|steps?|ingredients?|timers?|alarms?|reminders?|or|and|whether|if)\b",
+    re.IGNORECASE,
+)
+_STATE_PRONOUNS = frozenset(
+    {"it", "that", "this", "they", "them", "these", "those", "everything", "anything", "something",
+     "all", "any", "one", "there"}
+)
+_STATE_STOPWORDS = frozenset({"the", "my", "our", "a", "an", "of", "in", "at", "on", "for", "to", "is", "are", "and"})
+STATE_ROUTE_DOMAINS = frozenset(
+    {"binary_sensor", "sensor", "switch", "fan", "light", "lock", "cover", "input_boolean",
+     "automation", "media_player"}
+)
+_STATE_BINARY_WORDS: dict[str, tuple[str, str]] = {
+    # device_class -> (word when 'on', word when 'off')
+    "door": ("open", "closed"),
+    "garage_door": ("open", "closed"),
+    "opening": ("open", "closed"),
+    "window": ("open", "closed"),
+    "lock": ("unlocked", "locked"),
+    "motion": ("detecting motion", "clear"),
+    "occupancy": ("occupied", "clear"),
+    "presence": ("detecting presence", "clear"),
+    "moisture": ("wet", "dry"),
+    "smoke": ("detecting smoke", "clear"),
+    "gas": ("detecting gas", "clear"),
+    "connectivity": ("connected", "disconnected"),
+    "problem": ("reporting a problem", "clear"),
+    "tamper": ("tampered with", "clear"),
+    "plug": ("plugged in", "unplugged"),
+}
+_STATE_UNITS = {
+    "°C": " degrees Celsius",
+    "°F": " degrees Fahrenheit",
+    "%": " percent",
+    "W": " watts",
+    "kW": " kilowatts",
+    "kWh": " kilowatt hours",
+    "V": " volts",
+    "A": " amps",
+    "hPa": " hectopascals",
+    "ppm": " parts per million",
+}
+
+
+def _state_tokens(text: Any) -> set[str]:
+    """Lower-case content words of a device phrase, with a crude plural fold."""
+    cleaned = str(text).lower().replace("'s", "").replace("’s", "")
+    tokens: set[str] = set()
+    for token in re.findall(r"[a-z0-9]+", cleaned):
+        if token in _STATE_STOPWORDS:
+            continue
+        if len(token) > 3 and token.endswith("s") and not token.endswith("ss"):
+            token = token[:-1]
+        tokens.add(token)
+    return tokens
+
+
+def _parse_state_question(user_text: str) -> tuple[str, str] | None:
+    """Return ('bool'|'value', device phrase) for a clear single-device state question."""
+    text = user_text.strip()
+    for kind, pattern in (("bool", STATE_BOOL_RE), ("value", STATE_VALUE_RE)):
+        match = pattern.match(text)
+        if not match:
+            continue
+        phrase = re.sub(r"\s+", " ", match.group("name")).strip(" .'-")
+        words = re.findall(r"[a-z0-9]+", phrase.lower())
+        if (
+            not words
+            or len(words) > 8
+            or all(word in _STATE_PRONOUNS or word in _STATE_STOPWORDS for word in words)
+            or STATE_NOT_DEVICE_RE.search(phrase)
+        ):
+            return None
+        return kind, phrase
+    return None
+
+
+def _match_state_entity(
+    phrase: str, entities: list[dict[str, Any]]
+) -> tuple[str, dict[str, Any] | None]:
+    """Find the one exposed entity a spoken phrase names.
+
+    Returns ('match', entity); ('none', None) when nothing resembles the phrase; or
+    ('unsure', None) when it is ambiguous or only partly resembles something, which the caller
+    must leave to the model. An area word may complete a name ("garage inline fan") but never
+    matches on its own.
+    """
+    asked = _state_tokens(phrase)
+    if not asked:
+        return "unsure", None
+    matches: list[tuple[dict[str, Any], bool]] = []
+    related = False
+    for entity in entities:
+        area_tokens = _state_tokens(entity.get("area") or "")
+        best: bool | None = None
+        for name in entity.get("names") or []:
+            name_tokens = _state_tokens(name)
+            if not name_tokens:
+                continue
+            if asked & name_tokens:
+                related = True
+                if asked <= (name_tokens | area_tokens):
+                    exact = name_tokens == asked
+                    best = exact if best is None else (best or exact)
+        if best is not None:
+            matches.append((entity, best))
+    if not matches:
+        return ("unsure", None) if related else ("none", None)
+    exact_matches = [entity for entity, exact in matches if exact]
+    if len(exact_matches) == 1:
+        return "match", exact_matches[0]
+    if not exact_matches and len(matches) == 1:
+        return "match", matches[0][0]
+    return "unsure", None
+
+
+def _format_state_number(value: float) -> str:
+    return f"{value:.1f}".rstrip("0").rstrip(".")
+
+
+def _spoken_state_name(name: str) -> str:
+    """HA builds names as '<device> <device> <entity>'; speak the repeated prefix once."""
+    return re.sub(r"^(?P<p>.+?)\s+(?P=p)\b", r"\g<p>", name, count=1, flags=re.IGNORECASE)
+
+
+def _state_predicate(entity: dict[str, Any]) -> str | None:
+    """Spoken predicate ('is off', 'reads 23.5 degrees Celsius') for an entity, or None."""
+    domain = entity.get("domain")
+    state = str(entity.get("state") or "")
+    attrs = entity.get("attrs") or {}
+    if state in ("unavailable", "unknown"):
+        return f"is {state}"
+    if domain == "binary_sensor":
+        on_word, off_word = _STATE_BINARY_WORDS.get(str(attrs.get("device_class") or ""), ("on", "off"))
+        return f"is {on_word if state == 'on' else off_word}" if state in ("on", "off") else None
+    if domain in ("switch", "fan", "light", "input_boolean", "automation"):
+        return f"is {state}" if state in ("on", "off") else None
+    if domain == "lock" or domain == "cover":
+        return f"is {state}" if re.fullmatch(r"[a-z_]{3,12}", state) else None
+    if domain == "media_player":
+        return f"is {state}" if re.fullmatch(r"[a-z_]{2,12}", state) else None
+    if domain == "sensor":
+        try:
+            number = float(state)
+        except ValueError:
+            return f"is {state}" if 0 < len(state) <= 40 else None
+        unit = str(attrs.get("unit_of_measurement") or "")
+        return f"reads {_format_state_number(number)}{_STATE_UNITS.get(unit, f' {unit}' if unit else '')}"
+    return None
+
+
+def _exposed_state_snapshot(hass: HomeAssistant) -> list[dict[str, Any]]:
+    """Entities exposed to the voice assistant, with names, aliases, area and live state."""
+    from homeassistant.components.homeassistant.exposed_entities import async_should_expose
+    from homeassistant.helpers import area_registry as ar
+    from homeassistant.helpers import device_registry as dr
+    from homeassistant.helpers import entity_registry as er
+
+    ent_reg, dev_reg, area_reg = er.async_get(hass), dr.async_get(hass), ar.async_get(hass)
+    assistant = getattr(conversation, "DOMAIN", "conversation")
+    snapshot: list[dict[str, Any]] = []
+    for state in hass.states.async_all():
+        if state.domain not in STATE_ROUTE_DOMAINS:
+            continue
+        if not async_should_expose(hass, assistant, state.entity_id):
+            continue
+        names = [state.name]
+        area_id = None
+        entry = ent_reg.async_get(state.entity_id)
+        if entry is not None:
+            names += sorted(str(alias) for alias in (entry.aliases or ()))
+            area_id = entry.area_id
+            if not area_id and entry.device_id:
+                device = dev_reg.async_get(entry.device_id)
+                area_id = device.area_id if device else None
+        area = area_reg.async_get_area(area_id) if area_id else None
+        snapshot.append(
+            {
+                "entity_id": state.entity_id,
+                "domain": state.domain,
+                "names": names,
+                "area": area.name if area else "",
+                "state": state.state,
+                "attrs": dict(state.attributes),
+            }
+        )
+    return snapshot
+
+
+def _direct_state_answer(
+    user_text: str, entities: list[dict[str, Any]]
+) -> str | None:
+    """Answer a clear device-state question from a snapshot, or None to leave it to the model."""
+    parsed = _parse_state_question(user_text)
+    if parsed is None:
+        return None
+    kind, phrase = parsed
+    status, entity = _match_state_entity(phrase, entities)
+    if status == "match" and entity is not None:
+        predicate = _state_predicate(entity)
+        return f"The {_spoken_state_name(entity['names'][0])} {predicate}." if predicate else None
+    if status == "none" and kind == "bool":
+        return f"I have no device called {phrase}."
     return None
 
 
@@ -1626,20 +2496,12 @@ def _extract_entity_names(value: Any) -> list[str]:
     return names
 
 
-def _max_tokens_for_turn(
-    user_text: str,
-    tools: list[dict[str, Any]],
-    configured_max_tokens: int,
-) -> int:
+def _max_tokens_for_turn(user_text: str, configured_max_tokens: int) -> int:
     """Use smaller voice budgets unless the turn clearly needs more text."""
     if RECIPE_REPEAT_STEPS_RE.search(user_text):
         return min(configured_max_tokens, 256)
     if RECIPE_STEPS_RE.search(user_text) or RECIPE_INGREDIENTS_RE.search(user_text):
         return min(configured_max_tokens, 192)
-    if tools:
-        return min(configured_max_tokens, 128)
-    if ASSIST_RE.search(user_text):
-        return min(configured_max_tokens, 96)
     return min(configured_max_tokens, 160)
 
 

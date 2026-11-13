@@ -1,0 +1,70 @@
+== rep 1
+  [PASS] list_names                15.1s  'Here are 3 saved recipes:\n1. Creamy Tarragon Chicken.\n2. Creamy Tarragon Chicken (1).\n3. Ultimate Chicken Soup'
+  [PASS] recall_first               7.1s  'The name of the first recipe I found is "Creamy Tarragon Chicken."'
+  [PASS] recall_third               9.1s  'The third recipe was "Ultimate Chicken Soup."'
+  [PASS] recall_count              14.7s  'I found 3 recipes.'
+  [PASS] pick_ingredients           9.9s  'The ingredients for Creamy Tarragon Chicken (1) are:\n- 4 small boneless, skinless chicken breasts, about 1 ¾ p'
+  [FAIL] recall_first_after_pick   13.9s  'The first recipe was "Ultimate Chicken Soup."'
+  [PASS] recall_picked             13.5s  'You picked "Creamy Tarragon Chicken (1)."'
+  [PASS] ingredient_qty             0.0s  'For Creamy Tarragon Chicken (1), 1¾ teaspoons kosher salt.'
+  [PASS] repeat_step                0.0s  'Step 2 for Creamy Tarragon Chicken (1) is: Heat 1 tablespoon of the oil in a large skillet over medium. Once t'
+  [PASS] capital                    4.7s  'The capital of France is Paris.'
+  [FAIL] identity                   5.5s  'I am your home assistant, here to help you with your home tasks and answer your questions. How can I assist yo'
+  [PASS] math1                      4.1s  'Two plus two times three is eight.'
+  [PASS] math2                      4.2s  'Fifteen percent of eighty is twelve.'
+  [PASS] echo                       3.8s  'The quick brown fox.'
+  [PASS] time                       4.0s  'It is 1:20 PM.'
+  [PASS] no_device_state            5.3s  'The flux capacitor is not part of my home automation system. How can I assist you with your home?'
+  [FAIL] no_device_garage          61.3s  'The garage door is not listed in the available devices. Please check if there is a specific name or device for'
+  [FAIL] no_device_action           4.6s  'I\'m sorry, but I don\'t recognize the term "flux capacitor." Could you please clarify what you\'re referring to?'
+  [PASS] shopping                  10.6s  'The shopping list has: acceptance test cheese.'
+  [FAIL] saved_recipes              9.8s  "I'll check the recipes you have saved. One moment please."
+  [PASS] web_height                 7.4s  'Mount Everest is 8,848.86 meters tall.'
+== rep 2
+  [PASS] list_names                10.4s  'Here are 3 saved recipes:\n1. Creamy Tarragon Chicken.\n2. Creamy Tarragon Chicken (1).\n3. Ultimate Chicken Soup'
+  [PASS] recall_first               7.2s  'The name of the first recipe I found was "Creamy Tarragon Chicken."'
+  [PASS] recall_third               9.4s  'The third recipe was "Ultimate Chicken Soup."'
+  [PASS] recall_count              14.8s  'I found 3 recipes.'
+  [PASS] pick_ingredients           9.2s  'The ingredients for Creamy Tarragon Chicken (1) are:\n- 4 small boneless, skinless chicken breasts, about 1 ¾ p'
+  [FAIL] recall_first_after_pick   14.2s  'The first recipe in the list was "Ultimate Chicken Soup."'
+  [PASS] recall_picked             13.2s  'You picked the "Creamy Tarragon Chicken (1)" recipe.'
+  [PASS] ingredient_qty             0.0s  'For Creamy Tarragon Chicken (1), 1¾ teaspoons kosher salt.'
+  [PASS] repeat_step                0.0s  'Step 2 for Creamy Tarragon Chicken (1) is: Heat 1 tablespoon of the oil in a large skillet over medium. Once t'
+  [PASS] capital                    4.8s  'The capital of France is Paris.'
+  [FAIL] identity                   5.7s  'I am your home assistant, here to help you with your home automation, recipes, and household tasks. How can I '
+  [PASS] math1                      4.2s  'Two plus two times three is eight.'
+  [PASS] math2                      4.2s  'Fifteen percent of eighty is twelve.'
+  [PASS] echo                       3.8s  'The quick brown fox.'
+  [PASS] time                       4.3s  'The current time is 13:23.'
+  [PASS] no_device_state            5.3s  "The flux capacitor is not part of this home's systems. How can I assist you with something else?"
+  [FAIL] no_device_garage          61.9s  'The garage door is not listed in the available devices. However, I can check the status of the garage area if '
+  [FAIL] no_device_action           6.1s  "I'm sorry, but I can't turn on the flux capacitor as it's not a device in our home. Let me know if there's any"
+  [PASS] shopping                  10.5s  'The shopping list has: acceptance test cheese.'
+  [FAIL] saved_recipes              9.9s  "I'll check the recipes you have saved. One moment please."
+  [PASS] web_height                 4.2s  'Mount Everest is 8,848.86 meters tall.'
+
+=== accuracy by check
+list_names                 2/2  avg  12.8s
+recall_first               2/2  avg   7.2s
+recall_third               2/2  avg   9.2s
+recall_count               2/2  avg  14.8s
+pick_ingredients           2/2  avg   9.6s
+recall_first_after_pick    0/2  avg  14.1s
+recall_picked              2/2  avg  13.3s
+ingredient_qty             2/2  avg   0.0s
+repeat_step                2/2  avg   0.0s
+capital                    2/2  avg   4.8s
+identity                   0/2  avg   5.6s
+math1                      2/2  avg   4.2s
+math2                      2/2  avg   4.2s
+echo                       2/2  avg   3.8s
+time                       2/2  avg   4.2s
+no_device_state            2/2  avg   5.3s
+no_device_garage           0/2  avg  61.6s
+no_device_action           0/2  avg   5.3s
+shopping                   2/2  avg  10.6s
+saved_recipes              0/2  avg   9.9s
+web_height                 2/2  avg   5.8s
+
+OVERALL 32/42 = 76%   total wall 412s
+wrote accuracy-30b-baseline-2026-11-12.json

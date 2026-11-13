@@ -48,12 +48,21 @@ while its replacement LXC is running.
   `/ssl/fullchain.pem` and `/ssl/privkey.pem`, signed by local
   `/ssl/ca.crt` (`Home Local CA`). HTTP on port `8123` is no longer the active
   HA UI.
-- `homeassistant.internal_url` is `http://ha-media.home.arpa:8124` (2026-11-11): the docker-host `ha-media-proxy` that exposes only TTS/announcement media paths over plain HTTP for ESPHome voice satellites. It was found empty after the 2026.11 SSL-profile migration; HA ignores IP-only URLs under SSL, ESP32s cannot resolve `*.local` via unicast DNS, and stock Voice PE firmware does not trust the private CA. See `configs/docker-host/stacks/ha-media-proxy/README.md`;
+- `homeassistant.internal_url` is `http://ha-media.home.arpa:8124` (2026-11-11; set in `configuration.yaml` since 2026-11-13, because a UI-only value is overwritten by the YAML key on every restart): the docker-host `ha-media-proxy` that exposes only TTS/announcement media paths over plain HTTP for ESPHome voice satellites. It was found empty after the 2026.11 SSL-profile migration; HA ignores IP-only URLs under SSL, ESP32s cannot resolve `*.local` via unicast DNS, and stock Voice PE firmware does not trust the private CA. See `configs/docker-host/stacks/ha-media-proxy/README.md`;
   `external_url` is intentionally unset.
 - Mosquitto, File Editor, Terminal & SSH and ESPHome Device Builder are live.
 - The Home Assist pipeline uses Home Assistant's built-in conversation agent.
 - The Overwatch Assist pipeline points at `llamacpp_conversation`, a local
   Home Assistant custom conversation agent for llama.cpp's OpenAI-compatible API.
+  Since 2026-11-13 (decision 10, phase 1) it offers every configured tool API on every turn with one prompt
+  (`configs/home-assistant/overwatch-prompt.txt`), answers device state, recipe, shopping and clock questions in
+  code, warms the llama.cpp prompt cache at start-up and after midnight, and strips oversized length bounds from
+  tool schemas because llama.cpp rejects them ("failed to parse grammar"). Voice currently runs against a
+  Qwen3-30B-A3B trial container on CT 114 (the production `llama-cpp` container is stopped); see
+  `HANDOFF-2026-11-11-llm-igpu-speed.md` before changing the model or tool schemas.
+- The Voice PE `home-assistant-voice-0ae52a` runs the stock 26.9.0 firmware plus an on-device "Overwatch" wake word
+  (flashed 2026-11-13 from `configs/esphome/home-assistant-voice-0ae52a.yaml` via the ESPHome Device Builder);
+  Okay Nabu stays active in the first wake word slot until Overwatch is proven by voice.
 - The bounded read-only SearXNG search tool, Mealie recipe tools, and Grocy
   add/list shopping-list tools are enabled for local LLM conversation agents
   through the `llamacpp_conversation` config.

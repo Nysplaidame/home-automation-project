@@ -1,0 +1,118 @@
+{
+  "label": "qwen3-30b-a3b-vulkan",
+  "url": "http://127.0.0.1:8091",
+  "results": {
+    "chat_short": {
+      "runs": [
+        {
+          "wall_s": 7.91,
+          "prompt_n": 95,
+          "prompt_tps": 23.3,
+          "gen_n": 49,
+          "gen_tps": 12.91,
+          "tool_calls": [],
+          "text": "I am Overwatch, your home's authoritative assistant. I manage and control the systems within your home, ensuring efficiency and order. I am not a person, but a system designed to operate with precision. What would you like me to do?"
+        },
+        {
+          "wall_s": 2.45,
+          "prompt_n": 1,
+          "prompt_tps": 13.0,
+          "gen_n": 32,
+          "gen_tps": 13.54,
+          "tool_calls": [],
+          "text": "I am Overwatch, your home's authoritative assistant. I manage and control the systems within your home, ensuring efficiency and order. How may I assist you?"
+        }
+      ],
+      "wall_median_s": 5.18,
+      "gen_tps_median": 13.225,
+      "prompt_tps_median": 18.15,
+      "tool_call_ok": null
+    },
+    "tool_call_light": {
+      "runs": [
+        {
+          "wall_s": 6.78,
+          "prompt_n": 314,
+          "prompt_tps": 84.9,
+          "gen_n": 39,
+          "gen_tps": 12.71,
+          "tool_calls": [
+            "HassTurnOn"
+          ],
+          "text": ""
+        },
+        {
+          "wall_s": 3.04,
+          "prompt_n": 1,
+          "prompt_tps": 12.5,
+          "gen_n": 38,
+          "gen_tps": 12.85,
+          "tool_calls": [
+            "HassTurnOn"
+          ],
+          "text": ""
+        }
+      ],
+      "wall_median_s": 4.91,
+      "gen_tps_median": 12.780000000000001,
+      "prompt_tps_median": 48.7,
+      "tool_call_ok": true
+    },
+    "tool_call_search": {
+      "runs": [
+        {
+          "wall_s": 3.19,
+          "prompt_n": 19,
+          "prompt_tps": 14.4,
+          "gen_n": 24,
+          "gen_tps": 12.92,
+          "tool_calls": [
+            "web_search"
+          ],
+          "text": ""
+        },
+        {
+          "wall_s": 1.94,
+          "prompt_n": 1,
+          "prompt_tps": 12.1,
+          "gen_n": 24,
+          "gen_tps": 13.0,
+          "tool_calls": [
+            "web_search"
+          ],
+          "text": ""
+        }
+      ],
+      "wall_median_s": 2.565,
+      "gen_tps_median": 12.96,
+      "prompt_tps_median": 13.25,
+      "tool_call_ok": true
+    },
+    "web_summary": {
+      "runs": [
+        {
+          "wall_s": 3.94,
+          "prompt_n": 203,
+          "prompt_tps": 81.9,
+          "gen_n": 18,
+          "gen_tps": 13.71,
+          "tool_calls": [],
+          "text": "To boil an egg for a soft yolk, cook it for 6 minutes."
+        },
+        {
+          "wall_s": 1.16,
+          "prompt_n": 1,
+          "prompt_tps": 12.7,
+          "gen_n": 15,
+          "gen_tps": 13.97,
+          "tool_calls": [],
+          "text": "For a soft yolk, boil an egg for 6 minutes."
+        }
+      ],
+      "wall_median_s": 2.55,
+      "gen_tps_median": 13.84,
+      "prompt_tps_median": 47.300000000000004,
+      "tool_call_ok": null
+    }
+  }
+}

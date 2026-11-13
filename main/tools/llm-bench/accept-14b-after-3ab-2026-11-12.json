@@ -1,0 +1,77 @@
+{
+  "label": "14b-after-3ab",
+  "results": {
+    "recipe_flow": [
+      {
+        "user": "Find three chicken curry recipes and give me just their names.",
+        "wall_s": 13.8,
+        "type": "action_done",
+        "reply": "I'll find three chicken curry recipes for you. Let me search my database."
+      },
+      {
+        "user": "Pick the second one and read me the ingredient list.",
+        "wall_s": 8.4,
+        "type": "action_done",
+        "reply": "The ingredients for Lentil soup are:\n- 2 litres vegetable or ham stock.\n- 150g red lentils.\n- 6 carrots finely chopped.\n- 2 medium leeks sliced (about 300g).\n- small handful of chopped parsley to serve."
+      },
+      {
+        "user": "Now read me the steps.",
+        "wall_s": 0.0,
+        "type": "action_done",
+        "reply": "The steps for Lentil soup are:\n1. Heat the stock in a large pan and add the lentils.\n2. Bring to the boil and allow the lentils to soften for a few minutes.\n3. Add the carrots and leeks, and season (don't add salt if you use ham stock as it will make it too salty). Bring to the boil, then reduce the heat, cover and simmer for 45 mins-1 hr until the lentils have broken down.\n4. Scatter over the parsley and serve with buttered bread, if you like."
+      },
+      {
+        "user": "Repeat the ingredients.",
+        "wall_s": 0.0,
+        "type": "action_done",
+        "reply": "For Lentil soup, 150g red lentils."
+      },
+      {
+        "user": "Repeat step two.",
+        "wall_s": 0.0,
+        "type": "action_done",
+        "reply": "Step 2 for Lentil soup is: Bring to the boil and allow the lentils to soften for a few minutes."
+      },
+      {
+        "user": "What was the name of the first recipe you found?",
+        "wall_s": 11.1,
+        "type": "action_done",
+        "reply": "The first recipe I found was Lentil soup."
+      }
+    ],
+    "house_queries": [
+      {
+        "user": "What time is it?",
+        "wall_s": 6.4,
+        "type": "action_done",
+        "reply": "It is 11:23 AM."
+      },
+      {
+        "user": "Is the flux capacitor switched on?",
+        "wall_s": 6.7,
+        "type": "action_done",
+        "reply": "No, the flux capacitor is not switched on."
+      },
+      {
+        "user": "What is on my shopping list?",
+        "wall_s": 16.9,
+        "type": "action_done",
+        "reply": "The shopping list has: acceptance test cheese."
+      },
+      {
+        "user": "What recipes do I have saved?",
+        "wall_s": 37.8,
+        "type": "action_done",
+        "reply": "You have the following recipes saved:  \n1. Lentil soup.  \n2. Ultimate Chicken Soup.  \n3. Chicken soup."
+      }
+    ],
+    "web": [
+      {
+        "user": "Search the web for how tall Mount Everest is.",
+        "wall_s": 9.0,
+        "type": "action_done",
+        "reply": "Mount Everest is 8,848.86 meters (29,031 feet 8.5 inches) tall."
+      }
+    ]
+  }
+}

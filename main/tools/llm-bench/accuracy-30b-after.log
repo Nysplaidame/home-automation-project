@@ -1,0 +1,70 @@
+== rep 1
+  [PASS] list_names                 0.0s  'Here are 3 saved recipes:\n1. Creamy Tarragon Chicken.\n2. Creamy Tarragon Chicken (1).\n3. Ultimate Chicken Soup'
+  [PASS] recall_first               0.0s  'The first recipe was Creamy Tarragon Chicken.'
+  [PASS] recall_third               0.0s  'The third recipe was Ultimate Chicken Soup.'
+  [PASS] recall_count               0.0s  'I found 3 recipes.'
+  [PASS] pick_ingredients          17.6s  'The ingredients for Creamy Tarragon Chicken (1) are:\n- 4 small boneless, skinless chicken breasts, about 1 ¾ p'
+  [PASS] recall_first_after_pick    0.0s  'The first recipe was Creamy Tarragon Chicken.'
+  [PASS] recall_picked              0.0s  'You picked Creamy Tarragon Chicken (1).'
+  [PASS] ingredient_qty             0.0s  'For Creamy Tarragon Chicken (1), 1¾ teaspoons kosher salt.'
+  [PASS] repeat_step                0.0s  'Step 2 for Creamy Tarragon Chicken (1) is: Heat 1 tablespoon of the oil in a large skillet over medium. Once t'
+  [PASS] capital                    4.6s  'The capital of France is Paris.'
+  [PASS] identity                   5.1s  'I am Overwatch, your home assistant. I can help with home control, recipes, and household tasks. How can I ass'
+  [PASS] math1                      3.7s  'Two plus two times three is eight.'
+  [PASS] math2                      3.8s  'Fifteen percent of eighty is twelve.'
+  [PASS] echo                       3.4s  'The quick brown fox.'
+  [PASS] time                       3.9s  'The current time is 13:42.'
+  [PASS] no_device_state            3.8s  'I have no such device.'
+  [FAIL] no_device_garage          21.2s  'The garage door is not equipped with a sensor to check its status.'
+  [PASS] no_device_action           1.9s  'I have no such device.'
+  [PASS] shopping                   0.0s  'The shopping list has: acceptance test cheese.'
+  [FAIL] saved_recipes              0.0s  'Here are 5 saved recipes:\n1. Charred sesame green beans bowl.\n2. Chicken soup.\n3. Ultimate Chicken Soup.\n4. Cr'
+  [FAIL] web_height                 8.3s  'Mount Everest is the tallest mountain above sea level, but the exact height is not provided in the snippets.'
+== rep 2
+  [PASS] list_names                 0.0s  'Here are 3 saved recipes:\n1. Creamy Tarragon Chicken.\n2. Creamy Tarragon Chicken (1).\n3. Ultimate Chicken Soup'
+  [PASS] recall_first               0.0s  'The first recipe was Creamy Tarragon Chicken.'
+  [PASS] recall_third               0.0s  'The third recipe was Ultimate Chicken Soup.'
+  [PASS] recall_count               0.0s  'I found 3 recipes.'
+  [PASS] pick_ingredients          13.9s  'The ingredients for Creamy Tarragon Chicken (1) are:\n- 4 small boneless, skinless chicken breasts, about 1 ¾ p'
+  [PASS] recall_first_after_pick    0.0s  'The first recipe was Creamy Tarragon Chicken.'
+  [PASS] recall_picked              0.0s  'You picked Creamy Tarragon Chicken (1).'
+  [PASS] ingredient_qty             0.0s  'For Creamy Tarragon Chicken (1), 1¾ teaspoons kosher salt.'
+  [PASS] repeat_step                0.0s  'Step 2 for Creamy Tarragon Chicken (1) is: Heat 1 tablespoon of the oil in a large skillet over medium. Once t'
+  [PASS] capital                    4.9s  'The capital of France is Paris.'
+  [PASS] identity                   4.2s  'I am Overwatch, your home assistant. How can I assist you?'
+  [PASS] math1                      4.0s  'Two plus two times three equals eight.'
+  [PASS] math2                      4.0s  'Fifteen percent of eighty is twelve.'
+  [PASS] echo                       3.7s  'The quick brown fox.'
+  [PASS] time                       4.0s  'The current time is 13:43.'
+  [PASS] no_device_state            3.8s  'I have no such device.'
+  [FAIL] no_device_garage          21.3s  'The garage door is not equipped with a sensor or device that can report its current state.'
+  [PASS] no_device_action           1.9s  'I have no such device.'
+  [PASS] shopping                   0.1s  'The shopping list has: acceptance test cheese.'
+  [FAIL] saved_recipes              0.0s  'Here are 5 saved recipes:\n1. Charred sesame green beans bowl.\n2. Chicken soup.\n3. Ultimate Chicken Soup.\n4. Cr'
+  [PASS] web_height                 4.5s  'Mount Everest is 8,848 meters tall.'
+
+=== accuracy by check
+list_names                 2/2  avg   0.0s
+recall_first               2/2  avg   0.0s
+recall_third               2/2  avg   0.0s
+recall_count               2/2  avg   0.0s
+pick_ingredients           2/2  avg  15.8s
+recall_first_after_pick    2/2  avg   0.0s
+recall_picked              2/2  avg   0.0s
+ingredient_qty             2/2  avg   0.0s
+repeat_step                2/2  avg   0.0s
+capital                    2/2  avg   4.8s
+identity                   2/2  avg   4.7s
+math1                      2/2  avg   3.9s
+math2                      2/2  avg   3.9s
+echo                       2/2  avg   3.5s
+time                       2/2  avg   4.0s
+no_device_state            2/2  avg   3.8s
+no_device_garage           0/2  avg  21.2s
+no_device_action           2/2  avg   1.9s
+shopping                   2/2  avg   0.1s
+saved_recipes              0/2  avg   0.0s
+web_height                 1/2  avg   6.4s
+
+OVERALL 37/42 = 88%   total wall 148s
+wrote accuracy-30b-after-deploy-2026-11-12.json

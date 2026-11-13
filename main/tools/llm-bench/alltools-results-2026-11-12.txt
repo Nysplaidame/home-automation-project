@@ -1,0 +1,96 @@
+# All-tools stable-prefix experiment, 30B, 2026-11-12 (run inside CT 114 via the capture proxy)
+# python3 - v1|v2 < alltools_exp.py   (first call only; no tool is executed)
+
+## v1: lean prompt, no routing hints, first 18 utterances, v1 static tail (earlier script revision)
+tools: 25 tool tokens: 3537 system tokens: 573
+== pass 1
+[PASS] fan_state     39.7s new= 4201 cached=    8 gen= 32 call=['homeassistant__GetLiveContext'] text=''
+[PASS] area_temp      4.8s new=   17 cached= 4194 gen= 31 call=['homeassistant__GetLiveContext'] text=''
+[FAIL] garage_door    3.6s new=   15 cached= 4194 gen= 21 call=- text='I cannot check the status of the garage door. Please check t'
+[FAIL] time           2.7s new=   14 cached= 4194 gen= 13 call=- text='The current time is 10:30 AM.'
+[PASS] days_xmas      6.6s new=   15 cached= 4194 gen= 49 call=['llm__GetDateTime'] text='To calculate the number of days until Christmas, I will chec'
+[FAIL] weather        3.6s new=   16 cached= 4194 gen= 21 call=- text='I cannot provide real-time weather information. Please check'
+[FAIL] rain           3.5s new=   14 cached= 4194 gen= 20 call=- text='I cannot check the weather forecast. Please check a weather '
+[FAIL] news           4.7s new=   17 cached= 4194 gen= 31 call=- text="I don't have access to live sports results or historical mat"
+[PASS] recipes        3.7s new=   16 cached= 4194 gen= 22 call=['find_saved_recipes'] text=''
+[FAIL] shop_read      4.7s new=   15 cached= 4195 gen= 31 call=['todo__get_items'] text=''
+[FAIL] shop_add       4.9s new=   16 cached= 4194 gen= 33 call=['todo__HassListAddItem'] text=''
+[PASS] web            3.8s new=   18 cached= 4194 gen= 22 call=['web_search'] text=''
+[PASS] control        4.8s new=   15 cached= 4194 gen= 32 call=['intent__HassTurnOn'] text=''
+[PASS] volume         4.3s new=   16 cached= 4194 gen= 27 call=['media_player__HassSetVolume'] text=''
+[PASS] chat           2.3s new=   16 cached= 4194 gen=  8 call=- text='The capital of France is Paris.'
+[PASS] echo           2.0s new=   17 cached= 4194 gen=  6 call=- text='The quick brown fox.'
+[PASS] math           2.5s new=   16 cached= 4194 gen= 10 call=- text='Fifteen percent of eighty is twelve.'
+[PASS] calendar       3.1s new=   15 cached= 4195 gen= 16 call=- text='I cannot access your calendar information. Please check your'
+== pass 2
+[PASS] calendar       2.0s new=    1 cached= 4209 gen= 19 call=- text="I don't have access to your calendar. Please check your cale"
+[PASS] math           2.4s new=   15 cached= 4195 gen= 10 call=- text='Fifteen percent of eighty is twelve.'
+[PASS] echo           2.1s new=   17 cached= 4194 gen=  6 call=- text='The quick brown fox.'
+[PASS] chat           2.3s new=   16 cached= 4194 gen=  8 call=- text='The capital of France is Paris.'
+[PASS] volume         4.3s new=   16 cached= 4194 gen= 27 call=['media_player__HassSetVolume'] text=''
+[PASS] control        4.7s new=   15 cached= 4194 gen= 32 call=['intent__HassTurnOn'] text=''
+[PASS] web            3.8s new=   18 cached= 4194 gen= 22 call=['web_search'] text=''
+[FAIL] shop_add       4.9s new=   16 cached= 4194 gen= 33 call=['todo__HassListAddItem'] text=''
+[FAIL] shop_read      4.7s new=   16 cached= 4194 gen= 31 call=['todo__get_items'] text=''
+[PASS] recipes        3.6s new=   15 cached= 4195 gen= 22 call=['find_saved_recipes'] text=''
+[FAIL] news           4.7s new=   17 cached= 4194 gen= 31 call=- text="I don't have access to live sports results or historical mat"
+[FAIL] rain           3.5s new=   14 cached= 4194 gen= 20 call=- text='I cannot check the weather forecast. Please check a weather '
+[FAIL] weather        3.8s new=   16 cached= 4194 gen= 21 call=- text='I cannot provide real-time weather information. Please check'
+[PASS] days_xmas      5.9s new=   15 cached= 4194 gen= 42 call=['llm__GetDateTime'] text="To calculate the number of days until Christmas, I'll need t"
+[FAIL] time           2.7s new=   14 cached= 4194 gen= 13 call=- text='The current time is 10:30 AM.'
+[FAIL] garage_door    3.6s new=   15 cached= 4194 gen= 21 call=- text='I cannot check the status of the garage door. Please check t'
+[PASS] area_temp      4.7s new=   17 cached= 4194 gen= 31 call=['homeassistant__GetLiveContext'] text=''
+[PASS] fan_state      4.8s new=   15 cached= 4194 gen= 32 call=['homeassistant__GetLiveContext'] text=''
+TOOL CHOICE 22/36
+
+## v2: routing-aware prompt + static device list, 23 utterances x 2 passes (corrected tail)
+ha_tail tokens: 457 | tools: 25 tool tokens: 3537 system tokens: 653
+== pass 1
+[PASS] fan_state     40.6s new= 4091 cached=  198 gen= 31 call=['homeassistant__GetLiveContext'] text=''
+[PASS] area_temp      4.7s new=   17 cached= 4274 gen= 31 call=['homeassistant__GetLiveContext'] text=''
+[PASS] garage_door    4.9s new=   15 cached= 4274 gen= 33 call=['homeassistant__GetLiveContext'] text=''
+[FAIL] time           2.7s new=   14 cached= 4274 gen= 13 call=- text='The current time is 10:30 AM.'
+[PASS] days_xmas      5.3s new=   15 cached= 4274 gen= 37 call=['llm__GetDateTime'] text='To calculate the number of days until Christmas, I will chec'
+[PASS] weather        4.2s new=   16 cached= 4274 gen= 26 call=['web_search'] text=''
+[PASS] rain           3.9s new=   14 cached= 4274 gen= 24 call=['web_search'] text=''
+[FAIL] news           3.9s new=   17 cached= 4274 gen= 23 call=- text='I cannot provide information on past sports results. Please '
+[PASS] recipes        3.7s new=   16 cached= 4274 gen= 22 call=['find_saved_recipes'] text=''
+[PASS] shop_read      3.6s new=   15 cached= 4275 gen= 21 call=['list_grocy_shopping_list'] text=''
+[PASS] shop_add       4.8s new=   16 cached= 4274 gen= 32 call=['add_grocy_shopping_item'] text=''
+[PASS] web            3.8s new=   18 cached= 4274 gen= 22 call=['web_search'] text=''
+[PASS] control        4.7s new=   15 cached= 4274 gen= 32 call=['intent__HassTurnOn'] text=''
+[PASS] volume         4.3s new=   16 cached= 4274 gen= 27 call=['media_player__HassSetVolume'] text=''
+[PASS] chat           2.3s new=   16 cached= 4274 gen=  8 call=- text='The capital of France is Paris.'
+[PASS] echo           2.6s new=   17 cached= 4274 gen= 11 call=- text='The quick brown fox jumps over the lazy dog.'
+[PASS] math           2.5s new=   16 cached= 4274 gen= 10 call=- text='Fifteen percent of eighty is twelve.'
+[PASS] calendar       3.2s new=   15 cached= 4275 gen= 17 call=- text='I cannot access your calendar. Please check your calendar ap'
+[PASS] motion         5.2s new=   18 cached= 4274 gen= 36 call=['homeassistant__GetLiveContext'] text=''
+[PASS] humidity       4.8s new=   17 cached= 4274 gen= 31 call=['homeassistant__GetLiveContext'] text=''
+[PASS] how_warm       4.1s new=   17 cached= 4274 gen= 25 call=['homeassistant__GetLiveContext'] text=''
+[PASS] headlines      4.9s new=   15 cached= 4274 gen= 33 call=['web_search'] text='I will search for the latest headlines. One moment please.\n'
+[PASS] joke           3.7s new=   15 cached= 4274 gen= 22 call=- text="Sure, here's a short joke: Why don't scientists trust atoms?"
+== pass 2
+[PASS] joke           2.3s new=    1 cached= 4288 gen= 22 call=- text="Sure, here's a short joke: Why don't scientists trust atoms?"
+[PASS] headlines      4.9s new=   15 cached= 4274 gen= 33 call=['web_search'] text='I will search for the latest headlines. One moment please.\n'
+[PASS] how_warm       4.1s new=   17 cached= 4274 gen= 25 call=['homeassistant__GetLiveContext'] text=''
+[PASS] humidity       4.8s new=   17 cached= 4274 gen= 31 call=['homeassistant__GetLiveContext'] text=''
+[PASS] motion         5.2s new=   18 cached= 4274 gen= 36 call=['homeassistant__GetLiveContext'] text=''
+[PASS] calendar       3.2s new=   16 cached= 4274 gen= 17 call=- text='I cannot access your calendar. Please check your calendar ap'
+[PASS] math           2.5s new=   15 cached= 4275 gen= 10 call=- text='Fifteen percent of eighty is twelve.'
+[PASS] echo           2.6s new=   17 cached= 4274 gen= 11 call=- text='The quick brown fox jumps over the lazy dog.'
+[PASS] chat           2.3s new=   16 cached= 4274 gen=  8 call=- text='The capital of France is Paris.'
+[PASS] volume         4.3s new=   16 cached= 4274 gen= 27 call=['media_player__HassSetVolume'] text=''
+[PASS] control        4.7s new=   15 cached= 4274 gen= 32 call=['intent__HassTurnOn'] text=''
+[PASS] web            3.8s new=   18 cached= 4274 gen= 22 call=['web_search'] text=''
+[PASS] shop_add       4.8s new=   16 cached= 4274 gen= 32 call=['add_grocy_shopping_item'] text=''
+[PASS] shop_read      3.6s new=   16 cached= 4274 gen= 21 call=['list_grocy_shopping_list'] text=''
+[PASS] recipes        3.7s new=   15 cached= 4275 gen= 22 call=['find_saved_recipes'] text=''
+[FAIL] news           4.0s new=   17 cached= 4274 gen= 23 call=- text='I cannot provide information on past sports results. Please '
+[PASS] rain           4.0s new=   14 cached= 4274 gen= 24 call=['web_search'] text=''
+[PASS] weather        4.2s new=   16 cached= 4274 gen= 26 call=['web_search'] text=''
+[PASS] days_xmas      6.4s new=   15 cached= 4274 gen= 47 call=['llm__GetDateTime'] text="To calculate the number of days until Christmas, I'll check "
+[FAIL] time           2.7s new=   14 cached= 4274 gen= 13 call=- text='The current time is 10:30 AM.'
+[PASS] garage_door    4.8s new=   15 cached= 4274 gen= 33 call=['homeassistant__GetLiveContext'] text=''
+[PASS] area_temp      4.7s new=   17 cached= 4274 gen= 31 call=['homeassistant__GetLiveContext'] text=''
+[PASS] fan_state      4.7s new=   15 cached= 4274 gen= 31 call=['homeassistant__GetLiveContext'] text=''
+TOOL CHOICE 42/46

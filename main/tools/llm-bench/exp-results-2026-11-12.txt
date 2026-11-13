@@ -1,0 +1,31 @@
+=== v0_baseline  [ | --ctx-size 65536 --cache-type-k q8_0 --cache-type-v q8_0 | ]  mem: 24909 MiB used
+ 1 prompt  1058 tok   11.5s (  92.1 tok/s) | gen   24 tok   2.2s ( 10.9 tok/s) | wall  13.7s
+ 2 prompt  1350 tok   14.5s (  92.9 tok/s) | gen    7 tok   0.6s ( 12.3 tok/s) | wall  15.5s
+TOTAL v0_baseline: prompt 2408 tok in 26.0s = 92.6 tok/s; gen 31 tok in 2.8s = 11.2 tok/s; wall 29.2s
+chat_short         wall   6.54s  gen 12.52 tok/s  prompt   41.5 tok/s  tool_ok=None
+tool_call_light    wall   6.57s  gen 12.14 tok/s  prompt   93.9 tok/s  tool_ok=True
+web_summary        wall   3.75s  gen 13.11 tok/s  prompt   81.7 tok/s  tool_ok=None
+=== v1_kv_f16_ctx32k  [ | --ctx-size 32768 --cache-type-k f16 --cache-type-v f16 | ]  mem: 24650 MiB used
+ 1 prompt  1058 tok   10.0s ( 106.3 tok/s) | gen   24 tok   2.1s ( 11.6 tok/s) | wall  12.1s
+ 2 prompt  1350 tok   12.5s ( 107.6 tok/s) | gen    7 tok   0.5s ( 13.1 tok/s) | wall  13.7s
+TOTAL v1_kv_f16_ctx32k: prompt 2408 tok in 22.5s = 107.0 tok/s; gen 31 tok in 2.6s = 11.9 tok/s; wall 25.8s
+chat_short         wall   5.05s  gen 13.10 tok/s  prompt   42.2 tok/s  tool_ok=None
+tool_call_light    wall   6.14s  gen 12.62 tok/s  prompt  100.6 tok/s  tool_ok=True
+web_summary        wall   4.00s  gen 13.31 tok/s  prompt   84.6 tok/s  tool_ok=None
+=== v2_prefer_host_mem  [-e GGML_VK_PREFER_HOST_MEMORY=1 | --ctx-size 65536 --cache-type-k q8_0 --cache-type-v q8_0 | ]  mem: 24917 MiB used
+ 1 prompt  1058 tok   11.5s (  92.0 tok/s) | gen   24 tok   2.2s ( 11.0 tok/s) | wall  13.7s
+ 2 prompt  1350 tok   14.6s (  92.4 tok/s) | gen    7 tok   0.6s ( 12.3 tok/s) | wall  15.6s
+TOTAL v2_prefer_host_mem: prompt 2408 tok in 26.1s = 92.2 tok/s; gen 31 tok in 2.8s = 11.2 tok/s; wall 29.3s
+chat_short         wall   6.54s  gen 12.50 tok/s  prompt   42.3 tok/s  tool_ok=None
+tool_call_light    wall   6.59s  gen 12.09 tok/s  prompt   93.8 tok/s  tool_ok=True
+web_summary        wall   4.02s  gen 12.90 tok/s  prompt   81.3 tok/s  tool_ok=None
+== v3_draft_0.6b: server exited
+
+usage:
+--draft, --draft-n, --draft-max N       the argument has been removed. use --spec-draft-n-max or
+                                        --spec-ngram-mod-n-max
+                                        (env: LLAMA_ARG_DRAFT_MAX)
+
+
+to show complete usage, run with -h
+EXPERIMENTS_DONE

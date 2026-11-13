@@ -1,0 +1,118 @@
+{
+  "label": "baseline-2026-11-11",
+  "url": "http://192.168.20.104:8081",
+  "results": {
+    "chat_short": {
+      "runs": [
+        {
+          "wall_s": 15.34,
+          "prompt_n": 90,
+          "prompt_tps": 40.1,
+          "gen_n": 60,
+          "gen_tps": 4.7,
+          "tool_calls": [],
+          "text": "I am Overwatch, your home assistant. I am designed to help you manage and control various devices and systems within your home. My current status is operational, and I am monitoring the following areas: kitchen, living room, and garage. As of now, the kitchen ceiling light is on, the living"
+        },
+        {
+          "wall_s": 12.91,
+          "prompt_n": 1,
+          "prompt_tps": 4.7,
+          "gen_n": 60,
+          "gen_tps": 4.73,
+          "tool_calls": [],
+          "text": "I am Overwatch, your home assistant. I am designed to help you manage and control various devices and systems within your home. My current status is operational, and I am monitoring the following areas: kitchen, living room, and garage. As of now, the kitchen ceiling light is on, the living"
+        }
+      ],
+      "wall_median_s": 14.125,
+      "gen_tps_median": 4.715,
+      "prompt_tps_median": 22.400000000000002,
+      "tool_call_ok": null
+    },
+    "tool_call_light": {
+      "runs": [
+        {
+          "wall_s": 12.77,
+          "prompt_n": 314,
+          "prompt_tps": 71.0,
+          "gen_n": 39,
+          "gen_tps": 4.69,
+          "tool_calls": [
+            "HassTurnOn"
+          ],
+          "text": ""
+        },
+        {
+          "wall_s": 8.56,
+          "prompt_n": 1,
+          "prompt_tps": 4.6,
+          "gen_n": 39,
+          "gen_tps": 4.69,
+          "tool_calls": [
+            "HassTurnOn"
+          ],
+          "text": ""
+        }
+      ],
+      "wall_median_s": 10.665,
+      "gen_tps_median": 4.69,
+      "prompt_tps_median": 37.8,
+      "tool_call_ok": true
+    },
+    "tool_call_search": {
+      "runs": [
+        {
+          "wall_s": 6.2,
+          "prompt_n": 19,
+          "prompt_tps": 17.9,
+          "gen_n": 24,
+          "gen_tps": 4.7,
+          "tool_calls": [
+            "web_search"
+          ],
+          "text": ""
+        },
+        {
+          "wall_s": 5.29,
+          "prompt_n": 1,
+          "prompt_tps": 4.6,
+          "gen_n": 24,
+          "gen_tps": 4.76,
+          "tool_calls": [
+            "web_search"
+          ],
+          "text": ""
+        }
+      ],
+      "wall_median_s": 5.745,
+      "gen_tps_median": 4.73,
+      "prompt_tps_median": 11.25,
+      "tool_call_ok": true
+    },
+    "web_summary": {
+      "runs": [
+        {
+          "wall_s": 7.29,
+          "prompt_n": 128,
+          "prompt_tps": 89.2,
+          "gen_n": 27,
+          "gen_tps": 4.82,
+          "tool_calls": [],
+          "text": "Boil an egg for 4 to 6 minutes for a soft yolk, depending on the egg size and fridge temperature."
+        },
+        {
+          "wall_s": 5.81,
+          "prompt_n": 1,
+          "prompt_tps": 4.7,
+          "gen_n": 27,
+          "gen_tps": 4.84,
+          "tool_calls": [],
+          "text": "Boil an egg for 4 to 6 minutes for a soft yolk, depending on the egg size and fridge temperature."
+        }
+      ],
+      "wall_median_s": 6.55,
+      "gen_tps_median": 4.83,
+      "prompt_tps_median": 46.95,
+      "tool_call_ok": null
+    }
+  }
+}

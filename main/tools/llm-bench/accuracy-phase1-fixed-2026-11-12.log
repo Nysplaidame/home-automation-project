@@ -1,0 +1,124 @@
+== rep 1
+  [PASS] list_names                 0.1s  'Here are 3 saved recipes:\n1. Creamy Tarragon Chicken.\n2. Creamy Tarragon Chicken (1).\n3. Ultimate Chicken Soup'
+  [PASS] recall_first               0.0s  'The first recipe was Creamy Tarragon Chicken.'
+  [PASS] recall_third               0.0s  'The third recipe was Ultimate Chicken Soup.'
+  [PASS] recall_count               0.0s  'I found 3 recipes.'
+  [PASS] pick_ingredients           0.1s  'The ingredients for Creamy Tarragon Chicken (1) are:\n- 4 small boneless, skinless chicken breasts, about 1 ¾ p'
+  [PASS] recall_first_after_pick    0.0s  'The first recipe was Creamy Tarragon Chicken.'
+  [PASS] recall_picked              0.0s  'You picked Creamy Tarragon Chicken (1).'
+  [PASS] ingredient_qty             0.0s  'For Creamy Tarragon Chicken (1), 1¾ teaspoons kosher salt.'
+  [PASS] repeat_step                0.0s  'Step 2 for Creamy Tarragon Chicken (1) is: Heat 1 tablespoon of the oil in a large skillet over medium. Once t'
+  [PASS] repick_third               0.0s  'The ingredients for Ultimate Chicken Soup are:\n- 2 tablespoons extra virgin olive oil.\n- 4 medium carrots (pee'
+  [PASS] recall_picked_after_repick   0.0s  'You picked Ultimate Chicken Soup.'
+  [PASS] capital                    2.5s  'The capital of France is Paris.'
+  [PASS] identity                   2.8s  'I am Overwatch, the local voice assistant for this home.'
+  [PASS] math1                      2.6s  'Two plus two times three equals eight.'
+  [PASS] math2                      2.6s  'Fifteen percent of eighty is twelve.'
+  [PASS] echo                       0.0s  'the quick brown fox.'
+  [PASS] time                       0.0s  'It is 11:51 PM.'
+  [PASS] no_device_state            0.0s  'I have no device called flux capacitor.'
+  [PASS] no_device_garage           0.0s  'I have no device called garage door.'
+  [PASS] no_device_action           4.5s  'I cannot turn on the flux capacitor as it is not a device in this home. Please specify a different device or a'
+  [PASS] shopping                   0.1s  'The shopping list has: acceptance test cheese.'
+  [PASS] saved_recipes              0.0s  'Here are 7 saved recipes:\n1. Charred sesame green beans bowl.\n2. Chicken soup.\n3. Ultimate Chicken Soup.\n4. Cr'
+  [FAIL] web_height                10.1s  'Mount Everest is the tallest mountain above sea level, but the exact height is not provided in the snippets.'
+  [PASS] web_boiling                3.5s  'The boiling point of water is 100 °C.'
+  [PASS] web_author                 3.3s  'Jane Austen wrote Pride and Prejudice.'
+  [PASS] web_light                  3.9s  'The speed of light is approximately 300,000 kilometers per second.'
+  [PASS] web_capital                3.0s  'The capital of Australia is Canberra.'
+  [PASS] area_temp                 14.0s  'The temperature in the garage is 20.7°C.'
+  [PASS] area_humidity             17.2s  'The humidity in the garage is 34.1% according to the FDM Enclosure Sensor. Another sensor, the VentSys SLA Pip'
+  [PASS] motion_gate               10.9s  'The gate camera is not detecting any motion.'
+  [PASS] date_today                 3.4s  "Today's date is Thursday, 12 November 2026."
+  [PASS] weekday                    7.3s  'Today is Thursday.'
+  [PASS] date_math                  5.5s  'Today is 12 November 2026. Christmas is on 25 December 2026. There are 43 days until Christmas.'
+  [FAIL] weather_now                3.9s  'I cannot check the current weather. Please use a weather service or app for the latest forecast.'
+  [FAIL] sports_result              9.5s  "I cannot check the result of last night's football match. Please perform a web search for the latest sports re"
+  [FAIL] headlines                 11.8s  'I cannot provide the latest headlines as the snippets do not include specific news content.'
+  [PASS] garden_tasks              10.2s  'There are no pending garden tasks due soon.'
+  [PASS] calendar_honest            3.3s  'I cannot access your calendar. Please check your calendar application for details.'
+  [PASS] joke                       3.1s  "Why don't scientists trust atoms? Because they make up everything."
+== rep 2
+  [PASS] list_names                 0.0s  'Here are 3 saved recipes:\n1. Creamy Tarragon Chicken.\n2. Creamy Tarragon Chicken (1).\n3. Ultimate Chicken Soup'
+  [PASS] recall_first               0.0s  'The first recipe was Creamy Tarragon Chicken.'
+  [PASS] recall_third               0.0s  'The third recipe was Ultimate Chicken Soup.'
+  [PASS] recall_count               0.0s  'I found 3 recipes.'
+  [PASS] pick_ingredients           0.0s  'The ingredients for Creamy Tarragon Chicken (1) are:\n- 4 small boneless, skinless chicken breasts, about 1 ¾ p'
+  [PASS] recall_first_after_pick    0.0s  'The first recipe was Creamy Tarragon Chicken.'
+  [PASS] recall_picked              0.0s  'You picked Creamy Tarragon Chicken (1).'
+  [PASS] ingredient_qty             0.0s  'For Creamy Tarragon Chicken (1), 1¾ teaspoons kosher salt.'
+  [PASS] repeat_step                0.0s  'Step 2 for Creamy Tarragon Chicken (1) is: Heat 1 tablespoon of the oil in a large skillet over medium. Once t'
+  [PASS] repick_third               0.0s  'The ingredients for Ultimate Chicken Soup are:\n- 2 tablespoons extra virgin olive oil.\n- 4 medium carrots (pee'
+  [PASS] recall_picked_after_repick   0.0s  'You picked Ultimate Chicken Soup.'
+  [PASS] capital                    2.5s  'The capital of France is Paris.'
+  [PASS] identity                   2.8s  'I am Overwatch, the local voice assistant for this home.'
+  [PASS] math1                      2.6s  'Two plus two times three equals eight.'
+  [PASS] math2                      2.6s  'Fifteen percent of eighty is twelve.'
+  [PASS] echo                       0.0s  'the quick brown fox.'
+  [PASS] time                       0.0s  'It is 11:53 PM.'
+  [PASS] no_device_state            0.0s  'I have no device called flux capacitor.'
+  [PASS] no_device_garage           0.0s  'I have no device called garage door.'
+  [PASS] no_device_action           4.4s  'I cannot turn on the flux capacitor as it is not a device in this home. Please specify a different device or a'
+  [PASS] shopping                   0.0s  'The shopping list has: acceptance test cheese.'
+  [PASS] saved_recipes              0.0s  'Here are 7 saved recipes:\n1. Charred sesame green beans bowl.\n2. Chicken soup.\n3. Ultimate Chicken Soup.\n4. Cr'
+  [PASS] web_height                 6.9s  'Mount Everest is 8,848.86 meters tall.'
+  [PASS] web_boiling                3.6s  'The boiling point of water is 100 °C.'
+  [PASS] web_author                 2.0s  'Jane Austen wrote Pride and Prejudice.'
+  [PASS] web_light                  3.8s  'The speed of light is approximately 300,000 kilometers per second.'
+  [PASS] web_capital                2.6s  'The capital of Australia is Canberra.'
+  [PASS] area_temp                 13.9s  'The temperature in the garage is 20.7°C.'
+  [PASS] area_humidity             17.3s  'The humidity in the garage is 34.1% according to the FDM Enclosure Sensor. Another sensor, the VentSys SLA Pip'
+  [PASS] motion_gate               10.7s  'The gate camera is not detecting any motion.'
+  [PASS] date_today                 3.5s  "Today's date is Thursday, 12 November 2026."
+  [PASS] weekday                    7.3s  'Today is Thursday.'
+  [PASS] date_math                  5.5s  'Today is 12 November 2026. Christmas is on 25 December 2026. There are 43 days until Christmas.'
+  [FAIL] weather_now                3.8s  'I cannot check the current weather. Please use a weather service or app for the latest forecast.'
+  [FAIL] sports_result              9.5s  "I cannot check the result of last night's football match. Please perform a web search for the latest sports re"
+  [FAIL] headlines                 12.2s  'I cannot provide the latest headlines as no specific news items are listed in the snippets.'
+  [PASS] garden_tasks              10.1s  'There are no pending garden tasks due soon.'
+  [PASS] calendar_honest            3.3s  'I cannot access your calendar. Please check your calendar application for details.'
+  [PASS] joke                       3.1s  "Why don't scientists trust atoms? Because they make up everything."
+
+=== accuracy by check
+list_names                 2/2  avg   0.1s
+recall_first               2/2  avg   0.0s
+recall_third               2/2  avg   0.0s
+recall_count               2/2  avg   0.0s
+pick_ingredients           2/2  avg   0.1s
+recall_first_after_pick    2/2  avg   0.0s
+recall_picked              2/2  avg   0.0s
+ingredient_qty             2/2  avg   0.0s
+repeat_step                2/2  avg   0.0s
+repick_third               2/2  avg   0.0s
+recall_picked_after_repick 2/2  avg   0.0s
+capital                    2/2  avg   2.5s
+identity                   2/2  avg   2.8s
+math1                      2/2  avg   2.6s
+math2                      2/2  avg   2.6s
+echo                       2/2  avg   0.0s
+time                       2/2  avg   0.0s
+no_device_state            2/2  avg   0.0s
+no_device_garage           2/2  avg   0.0s
+no_device_action           2/2  avg   4.5s
+shopping                   2/2  avg   0.1s
+saved_recipes              2/2  avg   0.0s
+web_height                 1/2  avg   8.5s
+web_boiling                2/2  avg   3.5s
+web_author                 2/2  avg   2.6s
+web_light                  2/2  avg   3.8s
+web_capital                2/2  avg   2.8s
+area_temp                  2/2  avg  13.9s
+area_humidity              2/2  avg  17.2s
+motion_gate                2/2  avg  10.8s
+date_today                 2/2  avg   3.5s
+weekday                    2/2  avg   7.3s
+date_math                  2/2  avg   5.5s
+weather_now                0/2  avg   3.8s
+sports_result              0/2  avg   9.5s
+headlines                  0/2  avg  12.0s
+garden_tasks               2/2  avg  10.1s
+calendar_honest            2/2  avg   3.3s
+joke                       2/2  avg   3.1s
+
+OVERALL 71/78 = 91%   total wall 273s
+wrote accuracy-phase1-fixed-2026-11-12.json
