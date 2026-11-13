@@ -59,7 +59,7 @@ Run from the management laptop unless a line says otherwise.
 3. Confirm router access is available for a temporary update rule:
 
    ```powershell
-   ssh -i E:\home-automation-project\main\tools\router-deploy\keys\router_deploy root@192.168.10.1 'uci show firewall | grep "Docker Host"'
+   ssh -i main\tools\router-deploy\keys\router_deploy root@192.168.10.1 'uci show firewall | grep "Docker Host"'
    ```
 
 4. Record a quick package/container baseline:
@@ -73,7 +73,7 @@ Run from the management laptop unless a line says otherwise.
 Run on the router:
 
 ```powershell
-ssh -i E:\home-automation-project\main\tools\router-deploy\keys\router_deploy root@192.168.10.1 @'
+ssh -i main\tools\router-deploy\keys\router_deploy root@192.168.10.1 @'
 uci add firewall rule
 uci set firewall.@rule[-1].name='TEMP Docker Host Update Access'
 uci set firewall.@rule[-1].src='automation'
@@ -150,7 +150,7 @@ close the update window. Do not add broad permanent registry access.
 Run on the router:
 
 ```powershell
-ssh -i E:\home-automation-project\main\tools\router-deploy\keys\router_deploy root@192.168.10.1 @'
+ssh -i main\tools\router-deploy\keys\router_deploy root@192.168.10.1 @'
 for section in $(uci show firewall | sed -n "s/^\(firewall\.[^.]*\)=rule$/\1/p"); do
     [ "$(uci -q get ${section}.name)" = "TEMP Docker Host Update Access" ] && uci delete "${section}"
 done
@@ -162,7 +162,7 @@ uci commit firewall
 Verify the temporary rule is gone:
 
 ```powershell
-ssh -i E:\home-automation-project\main\tools\router-deploy\keys\router_deploy root@192.168.10.1 'uci show firewall | grep "TEMP Docker Host Update Access" || true'
+ssh -i main\tools\router-deploy\keys\router_deploy root@192.168.10.1 'uci show firewall | grep "TEMP Docker Host Update Access" || true'
 ```
 
 ## Post-Checks

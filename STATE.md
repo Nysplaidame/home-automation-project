@@ -3,15 +3,16 @@
 Only mandatory start-of-session read. Keep under ~200 lines. `/handoff` replaces the START HERE block; history goes in `main/HANDOFF-*.md`.
 Drafted 2026-11-11 from README.md, main/TO-DO.md and the latest handoff. The owner should review it; anything marked "unconfirmed" was not checked.
 
-## ▶ START HERE (updated 2026-11-11, by Claude Sonnet 5.5, draft)
+## ▶ START HERE (updated 2026-11-13, by Claude Sonnet 5.5)
 
-- **Branch / HEAD:** `codex/portal-refinement`, `ae605c2` "feat: record home automation project updates" (in sync with remote; the working tree has uncommitted changes, see below).
+- **Branch state (2026-11-13):** `main` and `codex/portal-refinement` were merged (voice stack + VentSys/portal line) and both now point at the same merged tip. See `main/HANDOFF-2026-11-13-branch-merge-and-audit.md` for the merge record, restore tags (`pre-merge/*-20261113`), and the list of merged config sources still to verify against live hosts before deploying.
+- **Earlier snapshot (2026-11-11, may lag):** HEAD was `codex/portal-refinement` `ae605c2`; the "about 94 uncommitted changes" noted then are no longer current.
 - **Just finished (per TO-DO, 4-10 Nov):** UI20261104-4 dashboard (normalised 360 opening, integer RPM/gas, flow arrows, FDM sensor reassignment); E2 host/identity repair (stale retained MQTT discovery removed, E2 back on `.52`); continuous discovery alerts and five-minute HA identity/E2 checks moved to VM102 systemd with ntfy.
 - **In progress (exact stopping point):** verify that E2's HA host stays `.52` after the next normal HA restart or E2 reconnect and that `esphome/discover/ventsys-main-valve-1` is not republished. No NAS-stall capture is running; the paired SMB capture tooling is ready and waits for the owner to start it.
 - **Waiting on the user:** camera reconnection and CCTV acceptance; physical tests (both external 360 touch inputs, loaded travel, restart retention on all boards, FDM print touch under servo load); declaring VentSys commissioned; starting the paired SMB capture just before the next affected work.
 - **Next step (tier):** fix interrupted mode-release recovery (desired intent is saved before valve closures, so a retry can omit the released valves and shared paths) - Executor tier; then decide normal-mode fan speed after the last purge ends.
 - **Touches:** `main/ventsys/`, `main/configs/esphome/`, `main/dashboards/`, `main/docs/`, `main/TO-DO.md`, `wiki/pages/`.
-- **Uncommitted work to protect (unconfirmed what it is):** about 94 changes, including roughly 50 deleted files under `main/docs/` and `main/tools/`. Checkpoint before committing and ask the owner whether the deletions are intended.
+- **Owner action pending:** rotate the Obsidian Local REST API key and certificate (tracked in git at `.obsidian/plugins/obsidian-local-rest-api/data.json`), then untrack and gitignore the file.
 
 ## Current state
 
