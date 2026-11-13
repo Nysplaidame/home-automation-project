@@ -135,17 +135,43 @@ class StateRouteTests(unittest.TestCase):
         home = [*HOME, ent("Ceiling Fan", "fan", "on", "Bedroom")]
         self.assertEqual(answer("Is the bedroom ceiling fan on?", home), "The Ceiling Fan is on.")
 
-    # --- leave to the model
-    def test_ambiguous_goes_to_model(self):
+    # --- a phrase that fits a few devices reads all of them out (it used to cost 11-20 s via the model)
+    def test_several_devices_are_all_read_out(self):
+        self.assertEqual(answer("Is the fan on?"), "The Inline Fan is off. The Spray Booth Fan is on.")
+        self.assertEqual(
+            answer("What is the temperature in the garage?"),
+            "The FDM Enclosure Sensor Temperature reads 23.5 degrees Celsius. "
+            "The VentSys SLA Pipe Air Sensor temperature reads 21 degrees Celsius.",
+        )
+        self.assertEqual(
+            answer("What's the humidity in the garage?"),
+            "The FDM Enclosure Sensor Humidity reads 41.3 percent. "
+            "The VentSys SLA Pipe Air Sensor humidity reads 55 percent.",
+        )
+        self.assertEqual(answer("How warm is it in the garage?"), answer("What is the temperature in the garage?"))
+        self.assertEqual(
+            answer("Is the garage light on?"),
+            "The VentSys FDM Airflow Sensor Light On-Off is on. The VentSys SLA Airflow Sensor Light On-Off is off.",
+        )
+
+    def test_motion_on_a_camera(self):
+        self.assertEqual(answer("Is there any motion on the gate camera?"), "The Cam 02 Gate Motion is detecting motion.")
+        self.assertEqual(answer("Is there motion at the patio?"), "The Cam 03 Patio Motion is clear.")
+
+    def test_duplicate_names_get_their_area(self):
+        home = [ent("Light", "light", "on", "Kitchen"), ent("Light", "light", "off", "Bedroom")]
+        self.assertEqual(answer("Is the light on?", home), "The Light in the Bedroom is off. The Light in the Kitchen is on.")
+
+    # --- too many, or not understood: leave it to the model
+    def test_too_many_or_unclear_goes_to_model(self):
         for text in (
-            "Is the fan on?",
-            "Is the light on?",
-            "What is the temperature?",
-            "What is the temperature in the garage?",
-            "Is the garage fan on?",
-            "Is the garage light on?",
+            "What is the temperature?",           # five sensors fit
+            "Is the garage fan on?",              # no fan is in the garage, only a partial match
+            "Is there any motion on the moon?",   # nothing resembles it: not claimed as a missing device
         ):
             self.assertIsNone(answer(text), text)
+        home = [*HOME, ent("Garage Light Strip", "light", "on", "Garage"), ent("Garage Light Bar", "light", "off", "Garage")]
+        self.assertIsNone(answer("Is the garage light on?", home))   # four fit: more than three
 
     def test_not_a_state_question(self):
         for text in (

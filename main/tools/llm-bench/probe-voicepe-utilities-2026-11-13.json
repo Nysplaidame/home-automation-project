@@ -1,0 +1,93 @@
+[
+  {
+    "id": "ask1",
+    "user": "Tell me a short joke.",
+    "wall_s": 3.5,
+    "local": false,
+    "reply": "Why don't scientists trust atoms? Because they make up everything."
+  },
+  {
+    "id": "ask2",
+    "user": "What is an 18 percent tip on 64 dollars?",
+    "wall_s": 22.4,
+    "local": false,
+    "reply": "The 18 percent tip on 64 dollars is 11.52 dollars."
+  },
+  {
+    "id": "ask3",
+    "user": "Split 187.50 between 4 people.",
+    "wall_s": 10.8,
+    "local": false,
+    "reply": "Each person would get 46.875."
+  },
+  {
+    "id": "ask4",
+    "user": "Convert 70 miles per hour to kilometres per hour.",
+    "wall_s": 12.0,
+    "local": false,
+    "reply": "70 miles per hour is approximately 112.65 kilometres per hour."
+  },
+  {
+    "id": "ask5",
+    "user": "How many days until Christmas?",
+    "wall_s": 11.2,
+    "local": false,
+    "reply": "There are 42 days until Christmas."
+  },
+  {
+    "id": "ask6",
+    "user": "What day of the week is Christmas Day?",
+    "wall_s": 11.2,
+    "local": false,
+    "reply": "Christmas Day falls on a Friday."
+  },
+  {
+    "id": "ask7",
+    "user": "What are the latest headlines?",
+    "wall_s": 11.3,
+    "local": false,
+    "reply": "I could not find any recent headlines. Please try again later."
+  },
+  {
+    "id": "ask8",
+    "user": "Who won the football match last night?",
+    "wall_s": 4.3,
+    "local": false,
+    "reply": "Call web_search with query \"Who won the football match last night?\" and set news to true."
+  },
+  {
+    "id": "ask9",
+    "user": "Is the fan on?",
+    "wall_s": 0.0,
+    "local": false,
+    "reply": "The Inline Fan is unknown. The Spray Booth Fan is unknown."
+  },
+  {
+    "id": "ask10",
+    "user": "What's the temperature in the garage?",
+    "wall_s": 0.0,
+    "local": false,
+    "reply": "The FDM Enclosure Sensor Temperature reads 18.3 degrees Celsius. The VentSys SLA Pipe Air Sensor temperature reads 19.5 degrees Celsius."
+  },
+  {
+    "id": "ask11",
+    "user": "Is there any motion on the gate camera?",
+    "wall_s": 0.0,
+    "local": false,
+    "reply": "The Cam 02 Gate Motion is clear."
+  },
+  {
+    "id": "ask12",
+    "user": "How warm is it in the garage?",
+    "wall_s": 0.0,
+    "local": false,
+    "reply": "The FDM Enclosure Sensor Temperature reads 18.3 degrees Celsius. The VentSys SLA Pipe Air Sensor temperature reads 19.5 degrees Celsius."
+  },
+  {
+    "id": "ask13",
+    "user": "What's the weather today?",
+    "wall_s": 0.0,
+    "local": false,
+    "reply": "It is currently partly cloudy and 6 degrees Celsius. Today's high is 6 and the low is 3."
+  }
+]

@@ -410,6 +410,36 @@ SearXNG search), with no invented entities, before considering a switch.
     first. The capture proxy is gone, so `replay_bench.py` / `capture_proxy.py` experiments need a proxy container started
     again (see their headers); `/root/cap/captured.jsonl` (5 MB, personal utterances) is still on CT 114: delete it when no
     longer needed. STT is already Parakeet (sherpa-onnx), so there is nothing to upgrade there.
+  - **2026-11-13 follow-on work (owner: "30b to production, then everything else").** In order: (1) 30B to production
+    (entry above). (2) `main` merged into this branch (commit `7e35530`; `main` can fast-forward to it, nothing pushed).
+    `llamacpp_conversation` auto-merged with the portal line's hardening (turn-scoped assistant state, hint as
+    untrusted user-role data, malformed tool-call checks); "which recipe did I pick" now reads the chat log, hint test
+    updated; accuracy on the merged component 73/78 (94%). (3) Deployed `llamacpp_conversation`, `searxng_llm` and the
+    merged `mealie_llm` (+ `url_safety.py`) with a new prompt: area/multi-device state answers (`STATE_MAX_MANY = 3`;
+    "motion on the gate camera" and "how warm is it in the garage" patterns), `overwatch_utility` API
+    (`calculate` via an `ast` evaluator with no names, calls or big exponents; `date_info` with a ready-made `summary`
+    sentence that also gives the next yearly occurrence for a date that already passed, which fixed a birthday read out as
+    "36 weeks away"), `web_search(news=true)` (SearXNG news category day then week then plain; the query gets "news"
+    appended because the bare "latest headlines" returns 0 results; the summary reads three stories), a once-per-turn retry
+    when the reply is "Call <tool> with…" prose (`_described_tool_call`; llama.cpp only honours `tool_choice` `"required"`,
+    its log said "Expected 'string'" for the named object form, which is how the first attempt was found to do nothing).
+    Backups (all in `\\192.168.20.101\config\backups\`): `*.bak-20261113-pre-merge` (weather + warm-up version),
+    `*.bak-20261113-pre-utilities` (merged version; component, searxng, mealie, `configuration.yaml`), `*.bak-20261113-pre-repair`.
+    (4) `--cache-ram` 1024 -> 2048 (`docker-compose.yml.bak-20261113-pre-cache2048`): the 56 s / 91 s stalls in the earlier
+    accuracy run were prompt evictions (one 6.5k-token prompt is ~620 MB); with 2 GiB the Voice PE answered in 6.7 s right
+    after a full plain-context test run and the plain context in 5.9 s after that (state restored from RAM), CT 114
+    memory available ~2.4 GB, swap 0, no OOM events. (5) Final harness `accuracy-final-2026-11-13.json`: **86/86**
+    (recipe 22/22, general 32/32, breadth 32/32); model-answered turns mean 8.9 s, median 7.8 s, p90 12.5 s (the 66 s
+    maximum is the first call from a context that was not cached); 42 of 86 turns answered by code in 0.0-0.1 s. Honest
+    limits: the checks were extended alongside the fixes; `sports_result` accepts any non-refusal (including a question
+    back); trivial sums now take ~10 s because the prompt sends arithmetic to `calculate` (math1/math2 2.6 s -> ~10 s);
+    HA 2026.11 log files are not on the Samba share and `/api/error_log` is gone, so diagnose with `system_log/list`,
+    the pipeline debug view, and `docker logs llama-cpp` (it shows request/eval times and warnings such as the
+    `tool_choice` one). **Tools added:** `tools/esphome_dashboard.py`, `pipeline_probe.py --device-id/--ask`,
+    `rescore.py` (time-dependent checks keep their recorded verdict), 75 offline tests in `test_routing_phase1.py` and
+    `test_state_route.py`. **Rollbacks:** component or searxng/mealie: copy the matching `.bak-20261113-*` file back over
+    the live one and restart HA; cache: restore `docker-compose.yml.bak-20261113-pre-cache2048` and
+    `docker compose up -d --no-deps llama-cpp` (then re-warm with the probe).
   - "acceptance test cheese" is confirmed on the agent's (Grocy) shopping list: delete it in Grocy.
 
 ## Open owner decisions

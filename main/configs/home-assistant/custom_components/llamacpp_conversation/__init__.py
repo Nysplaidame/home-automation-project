@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import ast
 import asyncio
 import datetime
 import json
 import logging
+import math
+import operator
 import re
 import time
 from contextvars import ContextVar
@@ -179,6 +182,10 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     settings = config[DOMAIN]
     entity = LlamaCppConversationEntity(settings)
     hass.data[DOMAIN] = entity
+    try:
+        hass.data[f"{DOMAIN}_utility_api"] = llm.async_register_api(hass, OverwatchUtilityAPI(hass))
+    except HomeAssistantError:  # already registered (a reload): the existing registration keeps working
+        _LOGGER.debug("utility API already registered")
     get_agent_manager(hass).async_set_agent(DOMAIN, entity)
     await hass.data[DATA_COMPONENT].async_add_entities([entity])
     hass.async_create_background_task(
@@ -269,6 +276,165 @@ def _result_speech(result: Any) -> str:
         return str(result.response.speech["plain"]["speech"] or "")
     except (AttributeError, KeyError, TypeError):
         return ""
+
+
+# --- Exact arithmetic and calendar maths as tools ------------------------------------------------------
+# A 3B-active model gets date arithmetic wrong about as often as it gets it right ("49 days to Christmas",
+# correct 43), and larger sums are worse. Two small tools make these exact: `calculate` and `date_info`. They
+# are offered like any other API (see UTILITY_API_ID); the model decides when to call them.
+UTILITY_API_ID = "overwatch_utility"
+_CALC_FUNCTIONS = {"sqrt": math.sqrt, "round": round, "abs": abs, "min": min, "max": max}
+_CALC_CONSTANTS = {"pi": math.pi, "e": math.e}
+_CALC_BINARY = {
+    ast.Add: operator.add, ast.Sub: operator.sub, ast.Mult: operator.mul, ast.Div: operator.truediv,
+    ast.FloorDiv: operator.floordiv, ast.Mod: operator.mod, ast.Pow: operator.pow,
+}
+
+
+def _safe_calculate(expression: str) -> float | int:
+    """Evaluate plain arithmetic. Only numbers, + - * / // % **, parentheses and a few functions are allowed."""
+    text = str(expression or "").strip().replace("^", "**").replace("×", "*").replace("÷", "/")
+    if not text or len(text) > 200:
+        raise ValueError("expression is empty or too long")
+
+    def evaluate(node: ast.AST) -> float | int:
+        if isinstance(node, ast.Expression):
+            return evaluate(node.body)
+        if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)) and not isinstance(node.value, bool):
+            return node.value
+        if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.UAdd, ast.USub)):
+            value = evaluate(node.operand)
+            return value if isinstance(node.op, ast.UAdd) else -value
+        if isinstance(node, ast.BinOp) and type(node.op) in _CALC_BINARY:
+            left, right = evaluate(node.left), evaluate(node.right)
+            if isinstance(node.op, ast.Pow) and (abs(right) > 100 or abs(left) > 1e9):
+                raise ValueError("exponent too large")
+            return _CALC_BINARY[type(node.op)](left, right)
+        if isinstance(node, ast.Name) and node.id in _CALC_CONSTANTS:
+            return _CALC_CONSTANTS[node.id]
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id in _CALC_FUNCTIONS
+            and not node.keywords
+            and 1 <= len(node.args) <= 4
+        ):
+            return _CALC_FUNCTIONS[node.func.id](*[evaluate(arg) for arg in node.args])
+        raise ValueError("only plain arithmetic is supported")
+
+    value = evaluate(ast.parse(text, mode="eval"))
+    if isinstance(value, float):
+        if math.isnan(value) or math.isinf(value):
+            raise ValueError("result is not a number")
+        value = round(value, 6)
+        if value == int(value) and abs(value) < 1e15:
+            value = int(value)
+    return value
+
+
+def _date_info_result(target: str, start: str | None, today: datetime.date) -> dict[str, Any]:
+    """Weekday and day count for a date, counted from `start` (default today)."""
+    when = datetime.date.fromisoformat(str(target).strip())
+    origin = datetime.date.fromisoformat(str(start).strip()) if start else today
+    days = (when - origin).days
+    def span(count: int) -> str:
+        weeks, rest = divmod(abs(count), 7)
+        day_word = "day" if rest == 1 else "days"
+        return f"{weeks} {'week' if weeks == 1 else 'weeks'} and {rest} {day_word}" if weeks else f"{rest} {day_word}"
+
+    def days_word(count: int) -> str:
+        return f"{abs(count)} {'day' if abs(count) == 1 else 'days'}"
+
+    weekday = when.strftime("%A")
+    anchor = "today" if origin == today else origin.isoformat()
+    if days == 0:
+        summary = (
+            f"{when.isoformat()} is today, a {weekday}."
+            if anchor == "today"
+            else f"{when.isoformat()} is the same day as {anchor}, a {weekday}."
+        )
+    elif days > 0:
+        summary = f"{when.isoformat()} is {days_word(days)} after {anchor} ({span(days)}), a {weekday}."
+        summary = summary.replace(" after today", " away")
+    else:
+        summary = f"{when.isoformat()} was {days_word(days)} before {anchor}, a {weekday}."
+        summary = summary.replace(" before today", " ago")
+        # A birthday or holiday asked for in the wrong year: also give the next yearly occurrence.
+        try:
+            nxt = when.replace(year=origin.year)
+            if nxt < origin:
+                nxt = when.replace(year=origin.year + 1)
+            ahead = (nxt - origin).days
+            summary += (
+                f" If it repeats every year, the next one is {nxt.isoformat()}, a {nxt.strftime('%A')}, "
+                f"{days_word(ahead)} away ({span(ahead)})."
+            )
+        except ValueError:  # 29 February in a non-leap year
+            pass
+    return {
+        "date": when.isoformat(),
+        "weekday": weekday,
+        "from_date": origin.isoformat(),
+        "days": days,  # negative when the date is before from_date
+        "weeks_and_days": span(days),
+        "summary": summary,
+        "today": today.isoformat(),
+    }
+
+
+class CalculateTool(llm.Tool):
+    """Exact arithmetic."""
+
+    name = "calculate"
+    description = (
+        "Exact arithmetic for any sum, percentage, tip, split, average or unit conversion. Supports + - * / % "
+        "** and parentheses, and sqrt, round, abs, min, max. Write a percentage as multiplication: 18% of 64 "
+        "is 0.18 * 64. Call this instead of working numbers out yourself."
+    )
+    parameters = vol.Schema({vol.Required("expression", description="Arithmetic expression, e.g. 0.18 * 64"): vol.All(cv.string, vol.Length(min=1, max=200))})
+
+    async def async_call(self, hass: HomeAssistant, tool_input: llm.ToolInput, llm_context: llm.LLMContext) -> dict[str, Any]:
+        expression = self.parameters(tool_input.tool_args)["expression"]
+        try:
+            return {"expression": expression, "result": _safe_calculate(expression)}
+        except (ValueError, SyntaxError, ZeroDivisionError, TypeError, OverflowError) as err:
+            raise HomeAssistantError(f"Cannot calculate that: {err}") from err
+
+
+class DateInfoTool(llm.Tool):
+    """Calendar maths from today's real date."""
+
+    name = "date_info"
+    description = (
+        "Calendar maths. Pass a date as YYYY-MM-DD to get its weekday and how many days away it is from today "
+        "(negative if it is in the past). Optional from_date (YYYY-MM-DD) counts from another date instead. Use for "
+        "'how many days until...', 'how long since...', 'what day of the week is...'. Work out the date yourself "
+        "first (Christmas Day is 25 December), then read out the returned summary."
+    )
+    parameters = vol.Schema(
+        {
+            vol.Required("date", description="Target date, YYYY-MM-DD"): vol.All(cv.string, vol.Length(min=8, max=10)),
+            vol.Optional("from_date", description="Start date, YYYY-MM-DD; default today"): vol.All(cv.string, vol.Length(min=8, max=10)),
+        }
+    )
+
+    async def async_call(self, hass: HomeAssistant, tool_input: llm.ToolInput, llm_context: llm.LLMContext) -> dict[str, Any]:
+        args = self.parameters(tool_input.tool_args)
+        try:
+            return _date_info_result(args["date"], args.get("from_date"), dt_util.now().date())
+        except ValueError as err:
+            raise HomeAssistantError(f"Dates must be YYYY-MM-DD: {err}") from err
+
+
+class OverwatchUtilityAPI(llm.API):
+    """The calculator and calendar tools, offered to the voice assistant alongside the other APIs."""
+
+    def __init__(self, hass: HomeAssistant) -> None:
+        super().__init__(hass=hass, id=UTILITY_API_ID, name="Overwatch utilities")
+        self._tools = [CalculateTool(), DateInfoTool()]
+
+    async def async_get_api_instance(self, llm_context: llm.LLMContext) -> llm.APIInstance:
+        return llm.APIInstance(api=self, api_prompt="", llm_context=llm_context, tools=self._tools)
 
 
 class LlamaCppConversationEntity(conversation.ConversationEntity):
@@ -472,6 +638,8 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
             return
 
         session = async_get_clientsession(self.hass)
+        forced_tool: str | None = None  # set once if the model describes a call in words instead of making it
+        repaired = False
         for _ in range(MAX_TOOL_ITERATIONS):
             messages = _trim_messages(
                 [_content_to_openai_message(content) for content in chat_log.content],
@@ -484,10 +652,25 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
                 messages,
                 tools,
                 _max_tokens_for_turn(user_text, self._settings[CONF_MAX_TOKENS]),
+                # This llama.cpp build ignores the object form of tool_choice ("Expected 'string'") and only
+                # honours "auto"/"required"/"none", so the retry demands *a* tool call; the model has just said
+                # which one it means, so it picks that one.
+                "required" if forced_tool else "auto",
             )
+            forced_tool = None
             message = _extract_message(response)
             tool_inputs = _extract_tool_inputs(message)
             content = message.get("content")
+
+            if not tool_inputs and not repaired and isinstance(content, str):
+                described = _described_tool_call(content, tools)
+                if described:
+                    # "Call web_search with query ... and set news to true." was spoken-style text, not a call.
+                    # Ask once more with that tool forced, so the arguments come back as a real tool call.
+                    _LOGGER.info("model described a call to %s in words; forcing it once", described)
+                    repaired = True
+                    forced_tool = described
+                    continue
 
             if tool_inputs:
                 assistant_content = conversation.AssistantContent(
@@ -833,25 +1016,33 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
         # Keep the answer to one sentence, but give the model enough evidence: with only 3 results
         # cut at 200 characters it sometimes answered "the snippets do not say" (the figure was in
         # a later result). 5 results x 220 characters is ~300 prompt tokens (~3 s on the 30B).
-        results = [r for r in tool_result.get("results") or [] if isinstance(r, dict)][:5]
+        news = bool(tool_result.get("news"))
+        results = [r for r in tool_result.get("results") or [] if isinstance(r, dict)][: 6 if news else 5]
         if not results:
             return None
         sources = "\n".join(
             f"[{i}] {_clean_spoken_title(r.get('title')) or ''}: "
-            f"{(_clean_spoken_snippet(r.get('snippet')) or '')[:220]}"
+            f"{(_clean_spoken_snippet(r.get('snippet')) or '')[: 150 if news else 220]}"
             for i, r in enumerate(results, start=1)
         )
+        if news:
+            # News items are headlines: one sentence would drop all but one, so read out a few.
+            instruction = (
+                "You turn news search results into a short spoken briefing for a voice assistant. "
+                "Give the three most important distinct stories, one short sentence each, using only the "
+                "titles and snippets. No lists, numbering, URLs or markdown. If nothing relevant is "
+                "listed, say so briefly. /no_think"
+            )
+        else:
+            instruction = (
+                "You turn web search snippets into a spoken answer for a voice assistant. "
+                "Answer the user's question in ONE short sentence using only facts in the "
+                "snippets, with concrete values (numbers, units, ranges) when present. "
+                "No lists, URLs, markdown or source numbers. If the snippets do not answer "
+                "it, say so briefly. /no_think"
+            )
         messages = [
-            {
-                "role": "system",
-                "content": (
-                    "You turn web search snippets into a spoken answer for a voice assistant. "
-                    "Answer the user's question in ONE short sentence using only facts in the "
-                    "snippets, with concrete values (numbers, units, ranges) when present. "
-                    "No lists, URLs, markdown or source numbers. If the snippets do not answer "
-                    "it, say so briefly. /no_think"
-                ),
-            },
+            {"role": "system", "content": instruction},
             {"role": "user", "content": f"Question: {user_text}\n\nSnippets:\n{sources}"},
         ]
         payload: dict[str, Any] = {
@@ -859,7 +1050,7 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
             "messages": messages,
             "stream": False,
             "temperature": 0.1,
-            "max_tokens": 60,
+            "max_tokens": 130 if news else 60,
             "chat_template_kwargs": {"enable_thinking": False},
         }
         try:
@@ -884,6 +1075,7 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
         messages: list[dict[str, Any]],
         tools: list[dict[str, Any]],
         max_tokens: int,
+        tool_choice: Any = "auto",
     ) -> dict[str, Any]:
         """Call the local OpenAI-compatible llama.cpp chat completion endpoint."""
         payload: dict[str, Any] = {
@@ -895,7 +1087,7 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
         }
         if tools:
             payload["tools"] = tools
-            payload["tool_choice"] = "auto"
+            payload["tool_choice"] = tool_choice
 
         try:
             async with session.post(
@@ -1453,6 +1645,8 @@ def _select_llm_hass_api(
     if not configured_apis:
         return None
     ids = [configured_apis] if isinstance(configured_apis, str) else list(dict.fromkeys(configured_apis))
+    if UTILITY_API_ID not in ids:  # this component's own calculator and calendar tools need no configuration
+        ids.append(UTILITY_API_ID)
     if registered_ids is not None:
         ids = [api_id for api_id in ids if api_id in registered_ids]
     if not ids:
@@ -1648,6 +1842,28 @@ def _date_line(now: Any) -> str:
         f"Today's date is {now.strftime('%A')}, {now.day} {now.strftime('%B %Y')}. "
         "Use it for date questions; for the time of day call GetDateTime."
     )
+
+
+_DESCRIBED_CALL_RE = re.compile(
+    r"^\s*(?:i\s+will\s+|i'll\s+|let\s+me\s+|please\s+)?(?:call|use|run|invoke)\s+(?:the\s+)?[`\"']?(?P<tool>[A-Za-z_]\w*)[`\"']?\b",
+    re.IGNORECASE,
+)
+
+
+def _described_tool_call(content: str, tools: list[dict[str, Any]]) -> str | None:
+    """Name of the advertised tool when a short reply merely describes calling it ('Call web_search with...')."""
+    text = str(content or "")
+    if not text.strip() or len(text) > 300:
+        return None
+    match = _DESCRIBED_CALL_RE.match(text)
+    if not match:
+        return None
+    wanted = match.group("tool")
+    for tool in tools:
+        name = str(tool.get("function", {}).get("name", ""))
+        if name == wanted or name.endswith("__" + wanted):
+            return name
+    return None
 
 
 def _looks_like_raw_tool_call(content: str) -> bool:
@@ -2124,6 +2340,23 @@ STATE_VALUE_RE = re.compile(
     r"(?:\s+(?:right now|currently|at the moment|now))?[\s?.!]*$",
     re.IGNORECASE,
 )
+# "Is there any motion on the gate camera?" and "How warm is it in the garage?" are state questions too:
+# they read as "motion <place>" and "temperature <place>".
+STATE_PRESENCE_RE = re.compile(
+    _STATE_LEAD
+    + r"(?:is|are)\s+there\s+(?:any\s+)?(?:motion|movement)\s+(?:on|at|in|around|near|by)\s+(?:the\s+|my\s+|our\s+)?"
+    r"(?P<name>" + _STATE_NAME_CHARS + r"+?)(?:\s+(?:right now|currently|at the moment|now))?[\s?.!]*$",
+    re.IGNORECASE,
+)
+STATE_HOW_RE = re.compile(
+    _STATE_LEAD
+    + r"how\s+(?:warm|cold|hot)\s+is\s+it\s+(?:in|at)\s+(?:the\s+|my\s+|our\s+)?"
+    r"(?P<name>" + _STATE_NAME_CHARS + r"+?)(?:\s+(?:right now|currently|at the moment|now))?[\s?.!]*$",
+    re.IGNORECASE,
+)
+# When a phrase fits several devices ("is the fan on" with two fans, "the temperature in the garage" with
+# two sensors) all of them are read out, up to this many; more than that goes to the model.
+STATE_MAX_MANY = 3
 # Phrases that are about recipes, lists or timers rather than a device: never answer these here.
 STATE_NOT_DEVICE_RE = re.compile(
     r"\b(recipes?|shopping|lists?|steps?|ingredients?|timers?|alarms?|reminders?|or|and|whether|if)\b",
@@ -2186,11 +2419,19 @@ def _state_tokens(text: Any) -> set[str]:
 def _parse_state_question(user_text: str) -> tuple[str, str] | None:
     """Return ('bool'|'value', device phrase) for a clear single-device state question."""
     text = user_text.strip()
-    for kind, pattern in (("bool", STATE_BOOL_RE), ("value", STATE_VALUE_RE)):
+    for kind, pattern, lead in (
+        ("bool", STATE_BOOL_RE, ""),
+        ("value", STATE_VALUE_RE, ""),
+        ("value", STATE_PRESENCE_RE, "motion "),
+        ("value", STATE_HOW_RE, "temperature "),
+    ):
         match = pattern.match(text)
         if not match:
             continue
-        phrase = re.sub(r"\s+", " ", match.group("name")).strip(" .'-")
+        name = re.sub(r"\s+", " ", match.group("name")).strip(" .'-")
+        if lead == "motion ":  # "the gate camera" -> the "Gate Motion" sensor
+            name = re.sub(r"\s+(?:camera|cam)\b", "", name, flags=re.IGNORECASE)
+        phrase = lead + name
         words = re.findall(r"[a-z0-9]+", phrase.lower())
         if (
             not words
@@ -2205,13 +2446,13 @@ def _parse_state_question(user_text: str) -> tuple[str, str] | None:
 
 def _match_state_entity(
     phrase: str, entities: list[dict[str, Any]]
-) -> tuple[str, dict[str, Any] | None]:
-    """Find the one exposed entity a spoken phrase names.
+) -> tuple[str, Any]:
+    """Find the exposed entity (or entities) a spoken phrase names.
 
-    Returns ('match', entity); ('none', None) when nothing resembles the phrase; or
-    ('unsure', None) when it is ambiguous or only partly resembles something, which the caller
-    must leave to the model. An area word may complete a name ("garage inline fan") but never
-    matches on its own.
+    Returns ('match', entity); ('many', [entities]) when it fits two or three devices equally well;
+    ('none', None) when nothing resembles the phrase; or ('unsure', None) when it fits too many or only
+    partly resembles something, which the caller must leave to the model. An area word may complete a
+    name ("garage inline fan") but never matches on its own.
     """
     asked = _state_tokens(phrase)
     if not asked:
@@ -2239,6 +2480,11 @@ def _match_state_entity(
         return "match", exact_matches[0]
     if not exact_matches and len(matches) == 1:
         return "match", matches[0][0]
+    pool = exact_matches or [entity for entity, _ in matches]
+    if 2 <= len(pool) <= STATE_MAX_MANY:
+        return "many", sorted(
+            pool, key=lambda e: (str((e.get("names") or [""])[0]).lower(), str(e.get("area") or "").lower())
+        )
     return "unsure", None
 
 
@@ -2323,10 +2569,21 @@ def _direct_state_answer(
     if parsed is None:
         return None
     kind, phrase = parsed
-    status, entity = _match_state_entity(phrase, entities)
-    if status == "match" and entity is not None:
-        predicate = _state_predicate(entity)
-        return f"The {_spoken_state_name(entity['names'][0])} {predicate}." if predicate else None
+    status, found = _match_state_entity(phrase, entities)
+    if status == "match" and found is not None:
+        predicate = _state_predicate(found)
+        return f"The {_spoken_state_name(found['names'][0])} {predicate}." if predicate else None
+    if status == "many" and found:
+        spoken = [_spoken_state_name(entity["names"][0]) for entity in found]
+        sentences = []
+        for entity, name in zip(found, spoken):
+            predicate = _state_predicate(entity)
+            if not predicate:
+                return None  # one of them is not something we can phrase: let the model handle all of it
+            if spoken.count(name) > 1 and entity.get("area"):
+                name = f"{name} in the {entity['area']}"
+            sentences.append(f"The {name} {predicate}.")
+        return " ".join(sentences)
     if status == "none" and kind == "bool":
         return f"I have no device called {phrase}."
     return None

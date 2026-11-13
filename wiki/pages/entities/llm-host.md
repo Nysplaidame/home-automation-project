@@ -25,7 +25,7 @@ llama.cpp uses Vulkan and shares the Intel iGPU with Frigate CT 111.
 
 - 6 cores, 28 GiB RAM, 100 GiB root disk (live `pct config`, 2026-10-11).
 - llama.cpp chat `8081/v1` (Qwen3-30B-A3B Q4_K_M, 40,960-token context, f16 KV
-  cache, one slot, `--cache-ram 1024`; since 2026-11-13, the 14B file is kept
+  cache, one slot, `--cache-ram 2048`; since 2026-11-13, the 14B file is kept
   for rollback); embeddings `8082/v1` (source-scoped to docker-host); Open WebUI
   `3002`.
 - Speech to text is Parakeet TDT 0.6B v2 (sherpa-onnx) behind the Wyoming
@@ -48,7 +48,7 @@ llama.cpp uses Vulkan and shares the Intel iGPU with Frigate CT 111.
   pressure, leaving room for the Voice Mixer's 4 GiB cap.
 - 2026-11-13: with the 30B loaded `free` shows ~25 of 28 GiB used and ~3.5 GiB
   available (page cache included), so the llama.cpp host-RAM prompt cache must
-  stay capped (`--cache-ram 1024`; the 8 GiB default would OOM the CT).
+  stay capped (`--cache-ram 2048`; the 8 GiB default would OOM the CT).
 - 2026-11-13: prompt processing (~85-125 tok/s on the iGPU) dominates voice
   latency, not generation (~12 tok/s). The voice assistant sends one fixed
   ~6.5k-token prompt (system text plus 35 tools), which llama.cpp reuses from its
@@ -75,7 +75,7 @@ llama.cpp uses Vulkan and shares the Intel iGPU with Frigate CT 111.
 ## Change Log
 
 - 2026-11-13: Production `llama-cpp` moved from Qwen3-14B (64k, q8_0 KV) to
-  Qwen3-30B-A3B (40,960, f16 KV, `--cache-ram 1024`) after a trial; trial and
+  Qwen3-30B-A3B (40,960, f16 KV, `--cache-ram 2048`) after a trial; trial and
   capture-proxy containers removed. About 2.7x faster generation; recipe, shopping,
   weather, clock and device-state answers are now computed in code.
 - 2026-10-11: Resources corrected to 6c / 28 GiB; embeddings endpoint, Voice

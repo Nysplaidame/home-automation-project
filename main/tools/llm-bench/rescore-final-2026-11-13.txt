@@ -1,0 +1,10 @@
+== accuracy-merged-30b-prod-2026-11-13.json
+  recipe   raw 22/22  rescored 22/22
+  general  raw 30/32  rescored 30/32
+  breadth  raw 21/24  rescored 21/24
+  TOTAL    raw 73/78 = 94%  rescored 73/78 = 94%
+== accuracy-final-2026-11-13.json
+  recipe   raw 22/22  rescored 22/22
+  general  raw 32/32  rescored 32/32
+  breadth  raw 32/32  rescored 32/32
+  TOTAL    raw 86/86 = 100%  rescored 86/86 = 100%

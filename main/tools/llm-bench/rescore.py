@@ -21,7 +21,7 @@ GROUP = {c[0]: name for name, table in (("recipe", A.RECIPE_FLOW), ("general", A
 
 
 # Checks whose expected answer depends on the day or the clock when the run happened.
-TIME_DEPENDENT = {"time", "date_today", "weekday", "date_math"}
+TIME_DEPENDENT = {"time", "date_today", "weekday", "date_math", "weekday_christmas"}
 
 
 def verdict(check_id: str, reply: str, stored: bool) -> bool:

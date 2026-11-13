@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 import aiohttp
@@ -49,7 +50,14 @@ class WebSearchTool(llm.Tool):
         {
             vol.Required("query", description="Focused web search query"): vol.All(
                 cv.string, vol.Length(min=2, max=300)
-            )
+            ),
+            vol.Optional(
+                "news",
+                description=(
+                    "true for news, headlines, sports results, scores and anything from today or "
+                    "yesterday: searches recent news stories instead of general web pages"
+                ),
+            ): cv.boolean,
         }
     )
 
@@ -66,22 +74,42 @@ class WebSearchTool(llm.Tool):
         llm_context: llm.LLMContext,
     ) -> JsonObjectType:
         """Run a bounded SearXNG JSON search."""
-        query = self.parameters(tool_input.tool_args)["query"]
+        args = self.parameters(tool_input.tool_args)
+        query = args["query"]
+        news = bool(args.get("news"))
         session = async_get_clientsession(hass)
 
-        try:
-            async with session.get(
-                f"{self._url}/search",
-                params={"q": query, "format": "json"},
-                timeout=aiohttp.ClientTimeout(total=self._timeout),
-            ) as response:
-                response.raise_for_status()
-                payload: dict[str, Any] = await response.json(content_type=None)
-        except (aiohttp.ClientError, TimeoutError) as err:
-            raise HomeAssistantError(f"SearXNG search failed: {err}") from err
+        # News mode asks SearXNG's news category for the last day, then the last week, then falls back to the
+        # plain search. The default search returns news-site home pages with no headlines in them, and the
+        # news engines return nothing for a bare "latest headlines" (6 stories for "latest headlines news"),
+        # so the word "news" is added to the query when it is missing.
+        news_query = query if re.search(r"\bnews\b", query, re.IGNORECASE) else f"{query} news"
+        attempts: list[tuple[str, dict[str, str]]] = (
+            [
+                (news_query, {"categories": "news", "time_range": "day"}),
+                (news_query, {"categories": "news", "time_range": "week"}),
+                (query, {}),
+            ]
+            if news
+            else [(query, {})]
+        )
+        payload: dict[str, Any] = {}
+        for text, extra in attempts:
+            try:
+                async with session.get(
+                    f"{self._url}/search",
+                    params={"q": text, "format": "json", **extra},
+                    timeout=aiohttp.ClientTimeout(total=self._timeout),
+                ) as response:
+                    response.raise_for_status()
+                    payload = await response.json(content_type=None)
+            except (aiohttp.ClientError, TimeoutError) as err:
+                raise HomeAssistantError(f"SearXNG search failed: {err}") from err
+            if payload.get("results"):
+                break
 
         results = []
-        for result in payload.get("results", [])[: self._result_count]:
+        for result in payload.get("results", [])[: max(self._result_count, 6) if news else self._result_count]:
             results.append(
                 {
                     "title": str(result.get("title", ""))[:200],
@@ -90,11 +118,14 @@ class WebSearchTool(llm.Tool):
                 }
             )
 
-        return {
+        answer: dict[str, Any] = {
             "success": bool(results),
             "query": query,
             "results": results,
         }
+        if news:
+            answer["news"] = True
+        return answer
 
 
 class SearXNGAPI(llm.API):

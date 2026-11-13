@@ -5,6 +5,7 @@
 """
 from __future__ import annotations
 
+import datetime as _dt
 import unittest
 
 from test_state_route import M  # the component loaded with stubbed Home Assistant imports
@@ -28,22 +29,28 @@ def asst(text):
     return {"role": "assistant", "content": text}
 
 
+UTILITY = "overwatch_utility"  # the component's own calculator and calendar tools, always appended
+
+
 class ApiSelectionTests(unittest.TestCase):
     def test_every_configured_api_in_configured_order(self):
-        self.assertEqual(M._select_llm_hass_api(CONFIGURED), CONFIGURED)
+        self.assertEqual(M._select_llm_hass_api(CONFIGURED), [*CONFIGURED, UTILITY])
 
     def test_no_keyword_can_hide_an_api(self):
         # The signature takes no utterance at all: availability cannot depend on the words spoken.
-        self.assertEqual(M._select_llm_hass_api(CONFIGURED, set(CONFIGURED)), CONFIGURED)
+        self.assertEqual(M._select_llm_hass_api(CONFIGURED, {*CONFIGURED, UTILITY}), [*CONFIGURED, UTILITY])
 
     def test_single_string_and_none(self):
-        self.assertEqual(M._select_llm_hass_api("assist"), "assist")
+        self.assertEqual(M._select_llm_hass_api("assist"), ["assist", UTILITY])
         self.assertIsNone(M._select_llm_hass_api(None))
         self.assertIsNone(M._select_llm_hass_api([]))
 
+    def test_utility_api_is_not_duplicated_when_configured(self):
+        self.assertEqual(M._select_llm_hass_api(["assist", UTILITY]), ["assist", UTILITY])
+
     def test_duplicates_are_dropped_keeping_order(self):
         self.assertEqual(M._select_llm_hass_api(["assist", "searxng_search", "assist"]),
-                         ["assist", "searxng_search"])
+                         ["assist", "searxng_search", UTILITY])
 
     def test_unregistered_apis_are_skipped_not_fatal(self):
         registered = {"assist", "searxng_search"}
@@ -191,6 +198,103 @@ class WarmupCanaryTests(unittest.TestCase):
         self.assertTrue(M.ERROR_SPEECH.startswith("I could not complete that request."))
 
 
+class DescribedToolCallTests(unittest.TestCase):
+    """A reply like 'Call web_search with query ...' is a call described in words, not an answer."""
+
+    TOOLS = [{"function": {"name": "web_search"}}, {"function": {"name": "homeassistant__GetLiveContext"}},
+             {"function": {"name": "calculate"}}]
+
+    def test_described_calls_resolve_to_the_advertised_tool(self):
+        cases = {
+            'Call web_search with query "Who won the football match last night?" and set news to true.': "web_search",
+            "I will call web_search for that.": "web_search",
+            "Let me use `calculate` on that": "calculate",
+            "call GetLiveContext with name garage": "homeassistant__GetLiveContext",
+            "Please run web_search": "web_search",
+        }
+        for text, expected in cases.items():
+            self.assertEqual(M._described_tool_call(text, self.TOOLS), expected, text)
+
+    def test_ordinary_answers_are_left_alone(self):
+        for text in ("The capital of France is Paris.", "Calling hours are nine to five.", "I could not find any.",
+                     "Use the stairs on the left.",            # not an advertised tool
+                     "Call me tomorrow at nine.",              # 'me' is not a tool
+                     "", None, "x" * 400,
+                     "Call web_search " + "and more " * 40):   # long text is a real answer
+            self.assertIsNone(M._described_tool_call(text, self.TOOLS), str(text)[:40])
+
+
+class CalculateTests(unittest.TestCase):
+    def test_arithmetic(self):
+        cases = {"0.18 * 64": 11.52, "2 ** 10": 1024, "(1200 + 450) / 3": 550, "10 / 4": 2.5, "7 // 2": 3,
+                 "-3 + +5": 2, "2^3": 8, "1e3 * 2": 2000, "max(3, 9, 4)": 9, "abs(-4.5)": 4.5,
+                 "sqrt(144) + round(2.567, 1)": 14.6, "pi * 2": 6.283185, "20 * 9 / 5 + 32": 68, "7 × 6": 42}
+        for expression, expected in cases.items():
+            self.assertEqual(M._safe_calculate(expression), expected, expression)
+
+    def test_integers_stay_integers_and_floats_are_rounded(self):
+        self.assertIsInstance(M._safe_calculate("6 / 3"), int)
+        self.assertEqual(M._safe_calculate("1 / 3"), 0.333333)
+
+    def test_anything_but_arithmetic_is_refused(self):
+        for expression in ("__import__('os').system('x')", "open('/etc/passwd')", "x + 1", "'a' * 3", "True + 1",
+                           "(lambda: 1)()", "[1, 2][0]", "1 if 1 else 2", "9 ** 999", "10 ** 400", "15% of 80",
+                           "", "1" * 201, "sqrt(1, key=2)", "round()"):
+            with self.assertRaises((ValueError, SyntaxError, TypeError), msg=expression):
+                M._safe_calculate(expression)
+
+    def test_division_by_zero(self):
+        with self.assertRaises(ZeroDivisionError):
+            M._safe_calculate("1 / 0")
+
+
+class DateInfoTests(unittest.TestCase):
+    TODAY = _dt.date(2026, 11, 13)
+
+    def test_days_until_christmas(self):
+        r = M._date_info_result("2026-12-25", None, self.TODAY)
+        self.assertEqual((r["days"], r["weekday"], r["weeks_and_days"]), (42, "Friday", "6 weeks and 0 days"))
+
+    def test_past_dates_count_negative(self):
+        r = M._date_info_result("2026-11-01", None, self.TODAY)
+        self.assertEqual((r["days"], r["weekday"], r["weeks_and_days"]), (-12, "Sunday", "1 week and 5 days"))
+
+    def test_from_date(self):
+        r = M._date_info_result("2027-01-01", "2026-12-25", self.TODAY)
+        self.assertEqual((r["days"], r["from_date"], r["weeks_and_days"]), (7, "2026-12-25", "1 week and 0 days"))
+
+    def test_one_day_and_zero_days(self):
+        self.assertEqual(M._date_info_result("2026-11-14", None, self.TODAY)["weeks_and_days"], "1 day")
+        self.assertEqual(M._date_info_result("2026-11-13", None, self.TODAY)["days"], 0)
+
+    def test_summary_sentences(self):
+        s = lambda target, start=None: M._date_info_result(target, start, self.TODAY)["summary"]
+        self.assertEqual(s("2026-12-25"), "2026-12-25 is 42 days away (6 weeks and 0 days), a Friday.")
+        self.assertEqual(s("2026-11-14"), "2026-11-14 is 1 day away (1 day), a Saturday.")
+        self.assertEqual(s("2026-11-13"), "2026-11-13 is today, a Friday.")
+        self.assertEqual(s("2027-01-01", "2026-12-25"), "2027-01-01 is 7 days after 2026-12-25 (1 week and 0 days), a Friday.")
+        self.assertEqual(s("2026-12-25", "2026-12-25"), "2026-12-25 is the same day as 2026-12-25, a Friday.")
+
+    def test_a_birthday_in_the_wrong_year_gets_the_next_occurrence(self):
+        # The model asked for 3 March of the current year (already past) and read out "36 weeks away".
+        r = M._date_info_result("2026-03-03", None, self.TODAY)
+        self.assertEqual(r["days"], -255)
+        self.assertEqual(
+            r["summary"],
+            "2026-03-03 was 255 days ago, a Tuesday. If it repeats every year, the next one is 2027-03-03, "
+            "a Wednesday, 110 days away (15 weeks and 5 days).",
+        )
+
+    def test_leap_day_without_a_leap_year_does_not_crash(self):
+        r = M._date_info_result("2024-02-29", None, self.TODAY)
+        self.assertEqual(r["summary"], "2024-02-29 was 988 days ago, a Thursday.")
+
+    def test_bad_dates_raise(self):
+        for bad in ("tomorrow", "25/12/2026", "2026-13-40", ""):
+            with self.assertRaises(ValueError, msg=bad):
+                M._date_info_result(bad, None, self.TODAY)
+
+
 class RecipePickRecallTests(unittest.TestCase):
     """'Which recipe did I pick?' must come from the conversation: assistant state is scoped to one turn."""
 
@@ -253,8 +357,6 @@ class ClockAndDateTests(unittest.TestCase):
         self.assertNotIn("20:03", line)  # the time of day must never be in the cached prompt
         self.assertEqual(line, M._date_line(self.at(6, 45)))  # same all day, so the prefix stays cached
 
-
-import datetime as _dt
 
 TODAY = _dt.date(2026, 11, 13)
 WEATHER = {  # shaped like the live weather.forecast_home entity and its daily forecast

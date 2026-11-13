@@ -228,11 +228,20 @@ while its replacement LXC is running.
 - The Overwatch Assist pipeline points at `llamacpp_conversation`, a local
   Home Assistant custom conversation agent for llama.cpp's OpenAI-compatible API.
   Since 2026-11-13 (decision 10, phase 1) it offers every configured tool API on every turn with one prompt
-  (`configs/home-assistant/overwatch-prompt.txt`), answers device state, recipe, shopping, clock and home-weather
-  questions in code, warms the llama.cpp prompt cache (as each Assist satellite) at start-up and after midnight, and strips oversized length bounds from
-  tool schemas because llama.cpp rejects them ("failed to parse grammar"). Voice currently runs against a
-  Qwen3-30B-A3B trial container on CT 114 (the production `llama-cpp` container is stopped); see
-  `HANDOFF-2026-11-11-llm-igpu-speed.md` before changing the model or tool schemas.
+  (`configs/home-assistant/overwatch-prompt.txt`), plus its own `overwatch_utility` API (`calculate` for exact
+  arithmetic, `date_info` for day counts and weekdays; appended automatically, no configuration). It answers in
+  code, without the model: device state (one device, or up to three that fit a phrase such as "is the fan on" or
+  "temperature in the garage"), recipe list/pick/recall, shopping, "say exactly", the time of day and
+  today's/tomorrow's home weather (from `weather.forecast_home`). Other behaviour: assistant state is scoped to one
+  turn (two satellites or users never share recipe/search data); the follow-up hint is sent as labelled untrusted
+  reference data; `web_search` takes `news: true` (SearXNG news category, last day then week, "news" added to the
+  query) and news answers read out three stories; a reply that merely describes a tool call ("Call web_search with…")
+  is retried once with `tool_choice: "required"` (this llama.cpp build ignores the named-tool form); the prompt cache
+  is warmed as each Assist satellite at start-up and after midnight, and that warm-up doubles as a canary
+  (persistent notification if llama.cpp rejects the request); oversized string length bounds are stripped from tool
+  schemas because llama.cpp rejects them ("failed to parse grammar"). `mealie_llm` now rejects recipe-import URLs
+  that do not resolve to public addresses. Voice runs on the production `llama-cpp` container (30B, see Local AI);
+  read `HANDOFF-2026-11-11-llm-igpu-speed.md` before changing the model, the prompt or any tool schema.
 - The Voice PE `home-assistant-voice-0ae52a` runs the stock 26.9.0 firmware plus an on-device "Overwatch" wake word
   (flashed 2026-11-13 from `configs/esphome/home-assistant-voice-0ae52a.yaml` via the ESPHome Device Builder);
   Okay Nabu stays active in the first wake word slot until Overwatch is proven by voice.
@@ -938,7 +947,7 @@ is not proof. Evidence and rollback files remain host-only in CT 111 at
   `Qwen3-30B-A3B-Q4_K_M.gguf` at `192.168.20.104:8081/v1` (production `llama-cpp`
   container, `restart: unless-stopped`, since 2026-11-13); it runs with a
   `40960` token context (the model's training length), f16 KV cache, one slot,
-  `--cache-ram 1024` (the default 8 GiB would OOM the CT), reasoning disabled
+  `--cache-ram 2048` (the default 8 GiB would OOM the CT), reasoning disabled
   for normal assistant output, and Vulkan on Intel Meteor Lake graphics. Compose:
   `configs/local-ai/docker-compose.yml` (deploy to `/opt/stacks/local-ai/`; the
   pre-switch file is `docker-compose.yml.bak-20261113-pre-30b` on CT 114).

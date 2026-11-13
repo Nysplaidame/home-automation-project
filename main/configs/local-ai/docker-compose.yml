@@ -19,7 +19,10 @@ services:
     # - f16 KV cache: +16% prompt speed over q8_0 (prompt processing dominates voice latency).
     # - ctx 40960 is the model's training length; one slot, so the whole window is for one conversation.
     # - --cache-ram caps llama.cpp's host-RAM prompt cache. The default (8 GiB) would OOM this 28 GiB CT
-    #   with the 30B loaded; 1 GiB holds about one 6.5k-token voice prompt.
+    #   with the 30B loaded. A 6.5k-token voice prompt is ~620 MB; one slot holds the active prompt and this
+    #   cache keeps the others. 1 GiB held only one of them, so a third caller (the web-summary prompt, the
+    #   HA chat box, a test run) evicted another and the next question read 6.5k tokens cold (56-91 s).
+    #   2 GiB (2026-11-13) keeps the voice prompt and one other warm; memory available stayed ~2-3 GB.
     # Rollback: model Qwen3-14B-128K-Q4_K_M.gguf, ctx 65536, KV q8_0, drop --cache-ram, then
     #   `docker compose up -d llama-cpp` (the 14B file is kept in ./models).
     command:
@@ -42,7 +45,7 @@ services:
       - --cache-type-v
       - f16
       - --cache-ram
-      - "1024"
+      - "2048"
       - --n-gpu-layers
       - "99"
       - --reasoning

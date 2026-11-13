@@ -1,13 +1,18 @@
 # 10. Overwatch voice routing: from keyword gates to one general agent with reflexes
 
-Status: **Phase 1 deployed and live** (2026-11-12 to 13). Phase 0 (device-state reflex) is live too; phases 2 to 4
-are still proposals. Outcome on the 74 checks shared with the pre-Phase-1 baseline: **78% -> 91%** overall,
-breadth questions **25% -> 70%**, recipe and general questions unchanged at 98%. The first deploy failed and
-was rolled back (llama.cpp rejected the 2,000-character `confirmation_token` bound in the `garden_tasks` tool
-schema with "failed to parse grammar" on every turn); the schema sanitiser, a warm-up canary and a pre-deploy
-replay against llama.cpp came out of it. Model-answered turns got slower on average (6.2 s against 5.0 s) because
-home-state questions are now answered correctly through a tool instead of instantly and wrongly; extending the
-state reflex to area and quantity questions is the next step. Details: `HANDOFF-2026-11-11-llm-igpu-speed.md`.
+Status: **Phase 1 deployed and live, with phase 3 capabilities added** (2026-11-12 to 13). Phase 0 (device-state
+reflex) is live too; phase 2 (a declarative reflex table) and the calendar are still open. Outcome on the 74 checks
+shared with the pre-Phase-1 baseline: **78% -> 91%** overall, breadth **25% -> 70%** on 2026-11-13 morning; after the
+follow-up work the same day (multi-device and area answers in code, `calculate` and `date_info` tools, news search
+mode, a retry for tool calls described in words, and the 30B in production with a 2 GiB prompt cache) the full
+harness passed **86/86** (recipe 22/22, general 32/32, breadth 32/32). Caveats: the harness grew with the fixes, some
+checks are lenient (any non-refusal passes the sports check) and trivial sums are now slower (~10 s through
+`calculate`, was 2.6 s). The first deploy failed and was rolled back (llama.cpp rejected the 2,000-character
+`confirmation_token` bound in the `garden_tasks` tool schema with "failed to parse grammar" on every turn); the schema
+sanitiser, a warm-up canary and a pre-deploy schema check against llama.cpp came out of it. Two further llama.cpp
+facts learned: it ignores the named form of `tool_choice` (only `auto`/`required`/`none`), and prompt contexts that
+differ (Voice PE, HA chat box, tests) evict one another from a small `--cache-ram`.
+Details: `HANDOFF-2026-11-11-llm-igpu-speed.md`.
 
 ## Problem
 
