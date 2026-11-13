@@ -1,0 +1,57 @@
+[
+ {
+  "user": "Tell me three interesting facts about the moon, one sentence each.",
+  "events": {
+   "run-start": 0.0,
+   "intent-start": 0.0,
+   "first_delta": 2.4,
+   "tts_start_streaming": 2.4,
+   "intent-end": 6.4,
+   "tts-start": 6.4,
+   "tts-end": 6.4,
+   "run-end": 6.4
+  },
+  "deltas": 3,
+  "stream_response": true,
+  "first_audio_s": 4.4,
+  "reply": "The moon is Earth's only natural satellite and is the fifth largest moon in the solar system. It has no atmosphere, which means there is no weather or erosion to alter its surface. The same side of the moon always faces Earth due to its synchronous rotation.",
+  "audio_end_s": 8.3,
+  "audio_bytes": 148317
+ },
+ {
+  "user": "Tell me a short joke.",
+  "events": {
+   "run-start": 0.0,
+   "intent-start": 0.0,
+   "first_delta": 2.5,
+   "tts_start_streaming": 3.1,
+   "intent-end": 3.1,
+   "tts-start": 3.1,
+   "tts-end": 3.1,
+   "run-end": 3.1
+  },
+  "deltas": 2,
+  "stream_response": true,
+  "reply": "Why don't scientists trust atoms? Because they make up everything.",
+  "first_audio_s": 4.2,
+  "audio_end_s": 5.0,
+  "audio_bytes": 60485
+ },
+ {
+  "user": "What is 12 times 7?",
+  "events": {
+   "run-start": 0.0,
+   "intent-start": 0.0,
+   "intent-end": 0.1,
+   "tts-start": 0.1,
+   "tts-end": 0.1,
+   "run-end": 0.1
+  },
+  "deltas": 0,
+  "stream_response": true,
+  "reply": "That is 84.",
+  "first_audio_s": 0.1,
+  "audio_end_s": 0.1,
+  "audio_bytes": 29608
+ }
+]

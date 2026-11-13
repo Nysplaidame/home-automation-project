@@ -468,6 +468,13 @@ SearXNG search), with no invented entities, before considering a switch.
     **Rollback:** TTS: `docker tag voice-mixer:pre-tts-stream voice-mixer:local && cd /opt/stacks/voice-mixer && docker
     compose up -d --no-deps metrocop-tts`; component: copy the `pre-stream` backup back and restart HA (the component
     alone can be rolled back; the TTS change is harmless without it).
+  - **2026-11-13 `metrocop-tts` CPU cap 1.0 -> 3.0 (owner: "raise cap").** `/opt/stacks/voice-mixer/docker-compose.yml`
+    on CT 114 (backup `docker-compose.yml.bak-20261113-pre-tts-cpus`; repo `apps/voice-mixer/packaging/docker-compose.yml`
+    matches), only `metrocop-tts` recreated. Render per sentence: 5.43 s of audio in 1.91 s, 5.43 in 2.19, 4.97 in 1.50
+    (was 5.49 in 5.59). Same probe (`probe-tts-stream-3cpu-2026-11-13.json`, one run): three moon facts first audio
+    9.7 -> **4.4 s** (first sentence released at 2.4 s, intent end 6.4 s), complete 19.6 -> 8.3 s; joke first audio 4.2 s.
+    Model time did not get worse in that run, but overlap with llama.cpp was not benchmarked. Rollback: restore the
+    backup and `docker compose up -d --no-deps metrocop-tts`.
   - **2026-11-13 sentence-by-sentence speech, build notes (written before the deploy above).**
     Why it matters more than expected: the Metrocop TTS renders at about real time (CT 114 `docker logs metrocop-tts`:
     17.95 s of audio in 17.90 s, 19.55 s in 23.29 s), and it rendered the whole reply before sending any audio, so a

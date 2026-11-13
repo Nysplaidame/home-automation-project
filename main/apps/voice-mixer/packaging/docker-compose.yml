@@ -45,7 +45,7 @@ services:
       - /opt/stacks/local-ai/piper:/voices:ro
     healthcheck:
       disable: true                   # the image's check probes the mixer web UI on 7860
-    cpus: "1.0"
+    cpus: "3.0"     # at 1.0 a sentence rendered at about real time; at 3.0 about 3x faster (2026-11-13)
     mem_limit: 1g
     logging:
       driver: json-file
