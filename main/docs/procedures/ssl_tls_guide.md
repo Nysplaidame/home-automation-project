@@ -6,6 +6,30 @@
 
 ## Overview
 
+### October11 strict-validation finding and maintenance follow-up
+
+The live Home Local CA lacks the CA key-usage extension required by Python3.13
+strict certificate verification (`verify_code=92`). Read-only diagnostics from
+VM103 confirmed this for Homepage, Home Assistant, Frigate and Vaultwarden.
+Separate legacy-profile chain, hostname and date verification succeeds for all
+four; their new troubleshooting TLS check shows a compatibility **warning** and
+retains the strict failure. No deployed certificate or client trust was changed.
+
+Plan a trust-preserving CA replacement/distribution exercise. New CA material
+must include `basicConstraints=critical,CA:TRUE` and
+`keyUsage=critical,keyCertSign,cRLSign`, with appropriate subject/key identifiers.
+Verify strict chain, dates and SAN hostname against disposable test endpoints
+before distributing a new root to Windows/Android, HA/MQTT, Frigate and Docker
+proxies. Keep the previous trust and endpoint rollback available until both
+local and approved remote clients pass normal verification. Do not treat a
+root replacement as a leaf-only renewal.
+
+The troubleshooting service reads a root-owned public CA copy at
+`/etc/troubleshooting-api/ca.crt` on VM103. Refresh that copy when the selected
+CA changes; private CA/server keys remain confined to their existing stores.
+Service behavior, validation and rollback:
+[[../../apps/troubleshooting-dashboard/README|Troubleshooting manual]].
+
 Two separate TLS concerns:
 
 | What | Where | Method |
@@ -19,6 +43,50 @@ Two separate TLS concerns:
 > Companion App can trust Home Assistant without exposing HA publicly.
 
 ## Current HA Native HTTPS State
+
+### October 11 replacement preparation — no live cutover
+
+The current root expires May 5, 2036; Homepage and Vaultwarden leaves expire
+July 25 and July 28, 2031. This is a strict-validation compatibility repair,
+not an expiry emergency. Its SHA-256 fingerprint is
+`2F0F73AE53BF698CC66CC262AF80BC142579788390FE7A997BCD7D8B218C6613`.
+The existing root key remains on HA at `/ssl/ca.key` (0600); no key was exported.
+HA's SSH environment has no OpenSSL executable, so signing there needs an
+explicit host-local tool path before any production key work.
+
+Prepare a distinct new root/key and subject, rather than silently replacing
+the certificate under the existing CA name/key. Store the new signing key in
+the protected HA-backed CA store, outside Git, with a verified recoverable
+backup. Generate endpoint keys on their endpoint hosts and transfer only CSRs
+to the signer. Use critical CA constraints/key usage, SKI/AKI, leaf CA:false,
+serverAuth and exact existing SANs. A disposable local TLS rehearsal on VM103
+passed all seven existing TLS tests, including strict-valid chain/hostname,
+expiry, unknown CA, wrong hostname and the current legacy-root warning.
+This verifies the diagnostic contract, not a production replacement root.
+
+| Consumer | Current dependency | Migration acceptance |
+|---|---|---|
+| Windows and Android | User-installed Home Local CA | Add new root alongside old; verify each browser and HA Companion connection before any leaf switch |
+| Homepage proxy | `tls/homepage.crt`, `homepage.key`, `ca.crt`; upstream HA/Frigate verification | Preserve existing Homepage SANs including LAN/Tailscale IPs and hostnames; dual-root upstream bundle before switching either upstream |
+| Vaultwarden proxy | `tls/vault.crt`, `vault.key` | New leaf must retain `vault.home.local`; normal browser/client login connection, with existing certificate rollback |
+| Troubleshooting API | `/etc/troubleshooting-api/ca.crt` public root copy | Dual-root bundle readable as service account; new leaves must pass strict TLS checks without compatibility fallback |
+| HA HTTPS | `/ssl/fullchain.pem`, `/ssl/privkey.pem` | Preserve all current SANs, check HA config, controlled restart and Companion/websocket acceptance |
+| Mosquitto and ESPHome | `/ssl/server.crt`; firmware `mqtt_ca_cert` secret | Inventory actual connected clients; prove dual-root firmware support on a spare first; stage trust to reachable boards before broker certificate switch |
+| Frigate | HTTPS leaf and MQTT `/config/certs/ca-cert.pem` | Explicitly deferred by owner; preserve current broker compatibility and certificate until its maintenance window |
+
+Sequence: (1) enumerate live broker clients and all other CA consumers;
+(2) prepare signer/backup and new public root; (3) validate isolated new leaves
+with strict OpenSSL/Python and SAN checks; (4) distribute additional trust;
+(5) switch Homepage/Vaultwarden leaves one at a time with browser/mobile
+acceptance; (6) schedule HA/MQTT/device migration separately, preserving
+Frigate compatibility; (7) remove the old root only after every dependent
+client has migrated. Embedded ESPHome trust cannot be updated just by changing
+a server file; unreachable boards remain a broker-cutover blocker.
+
+Rollback each endpoint by restoring its selected pre-change leaf/key/chain and
+reloading only its affected service. Retain both trust roots during rollback;
+do not remove old client trust or overwrite `/ssl/ca.key`. No production root,
+leaf, trust store, firmware or listener was changed during this preparation.
 
 Live as of 2026-07-02:
 
@@ -73,7 +141,7 @@ Post-cutover validations completed:
 - Advanced Camera Card main and substream views were validated through the
   mobile views.
 - Frigate HA integration remained reachable; Frigate API version/stats returned
-  the live first camera.
+  all three live cameras.
 - VentSys dashboard assets served over HA HTTPS and still use relative
   same-origin behavior.
 - Grafana and Uptime Kuma remain direct HTTP links from HA, not embedded mixed
@@ -256,7 +324,9 @@ chmod 400 /mnt/nas/configs/ca/private/ca.key
 openssl req -new -x509 -days 3650 \
     -key /mnt/nas/configs/ca/private/ca.key \
     -out /mnt/nas/configs/ca/certs/ca.crt \
-    -subj "/O=Home Automation/CN=Home Local CA"
+    -subj "/O=Home Automation/CN=Home Local CA" \
+    -addext "basicConstraints=critical,CA:TRUE" \
+    -addext "keyUsage=critical,keyCertSign,cRLSign"
 
 echo "CA created: /mnt/nas/configs/ca/certs/ca.crt"
 ```

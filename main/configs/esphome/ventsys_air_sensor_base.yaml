@@ -1,33 +1,115 @@
-# ESPHome - VentSys shared air sensor firmware
+# ESPHome - VentSys shared air sensor firmware (package)
 #
-# Used by:
+# Hardware this file is written for (2026-10 sensor carrier build):
+#   - Waveshare ESP32-C6-Zero (ESP32-C6, native USB, WS2812 RGB LED on GPIO8)
+#   - Pimoroni BME680 breakout on I2C (GPIO4 SDA / GPIO5 SCL)
+#       default address 0x76; cut the ADDR trace for 0x77
+#   - DFRobot SEN0570 Fermion MEMS smoke sensor, analog A -> GPIO3, powered from 3V3
+#   - Optional CO channel: add the ventsys_air_sensor_co.yaml package
+#   - Optional SDP810-125Pa differential pressure: ventsys_air_sensor_dp.yaml
+#   - Optional 0.96" SSD1306 OLED + GL5528 LDR: ventsys_air_sensor_display.yaml
+#       (needs the CO package; shows ΔP when the dp package is also included)
+#
+# Used by (through small wrapper files that set substitutions):
+#   - 4 enclosure sensor arrays: FDM array 1/2, SLA array 1/2 (+ CO package)
 #   - 3 pipe/ambient air sensors: garage, FDM pipe, SLA pipe
-#   - 4 enclosure sensor arrays: FDM array 1/2, SLA array 1/2
 #
-# ESPHome device names stay hyphenated for mDNS/DHCP. Exposed entity names use
-# the `ventsys_...` prefix through entity_prefix so Home Assistant entities match
-# the VentSys dashboard nomenclature.
+# Requires ESPHome / Device Builder 2026.9.0 or newer (ota encryption,
+# esp32_rmt_led_strip channel_colors).
+#
+# Naming: ESPHome hostnames stay hyphenated. friendly_name is set to the
+# `ventsys_...` entity prefix and entity names are bare metric names, so Home
+# Assistant creates IDs such as sensor.ventsys_fdm_array_1_temperature.
+#
+# MQTT contract (ventsys_ha_package.yaml / ventsys_ha_optional.yaml):
+#   <prefix>/temperature, /humidity, /baro_pressure (hPa, offset-corrected),
+#   /pressure_pa (Pa, offset-corrected), /iaq (gas resistance, ohm),
+#   /smoke ("detected"/"clear"), /temp_alarm ("high"/"normal"),
+#   /temp_rise ("rising"/"normal"), /alarm_latched ("latched"/"clear"),
+#   /fault ("ok"/"fault"), /online.
+#   HA uses expire_after: 120, so state topics are republished every
+#   ${state_publish_interval}.
+#
+# Thresholds are Home Assistant number entities (entity_category: config) so
+# they can be changed from the garage dashboard without reflashing. The
+# substitutions below are only their first-boot values: once a board has
+# stored a value, changing the substitution does not override it.
+#
+# The MEMS gas sensors are qualitative only (DFRobot: no ppm calibration).
+# Alarms use the sensor resistance ratio Rs/R0 against a clean-air baseline
+# captured with the "capture clean air baseline" button. Until a baseline is
+# captured, a voltage threshold is used instead.
+#
+# Alarm latch: smoke, CO and high-temperature alarms set a latch that survives
+# reboots and stays on until "acknowledge_alarms" is pressed with no alarm active.
+#
+# SECRETS REQUIRED (secrets.yaml):
+#   wifi_ssid, wifi_pass, mqtt_user, mqtt_pass, mqtt_ca_cert, api_key,
+#   ota_password (used only as the fallback-AP password)
 
 substitutions:
   device_name: ventsys-air-sensor
-  friendly_name: "ventsys_air_sensor"
   entity_prefix: "ventsys_air_sensor"
-  device_ip: "192.168.50.35"
+  device_ip: "192.168.50.30"
   mqtt_topic_prefix: "ventsys/air"
-  temp_threshold: "55.0"
-  bme680_address: "0x77"
-  bme680_update_interval: "30s"
-  smoke_update_interval: "5s"
-  heartbeat_interval: "60s"
+  fallback_ap_ssid: "VentSys Air Sensor FB"
+  log_level: INFO
+
+  # Board pins (ESP32-C6-Zero left header: 5V, GND, 3V3, GP0..GP5)
+  i2c_sda_gpio: GPIO4
+  i2c_scl_gpio: GPIO5
+  smoke_gpio: GPIO3
+  status_led_gpio: GPIO8
+  status_led_channel_colors: RGB   # if red shows as green, change to GRB
+
+  # BME680
+  bme680_address: "0x76"        # Pimoroni default; 0x77 after cutting ADDR trace
+  bme680_update_interval: 10s
+  bme680_stale_after_ms: "45000"   # BME680 fault if no reading for this long
+
+  # First-boot threshold values (adjustable afterwards from Home Assistant)
+  temp_threshold: "55.0"        # degC, high-temperature alarm
+  temp_rise_alarm: "5.0"        # degC per minute (~2-minute average); tune after normal print warm-ups
+  smoke_ratio_alarm: "0.50"     # alarm when Rs/R0 falls below this (R0 = clean-air baseline)
+  smoke_voltage_alarm: "1.50"   # fallback alarm voltage until a baseline is captured
+
+  # MEMS gas sensors (shared by smoke and CO channels)
+  gas_update_interval: 5s
+  gas_supply_voltage: "3.3"     # module VCC; must be 3V3 so the A output stays ADC-safe
+  gas_load_resistance: "4700.0" # RL on the Fermion MEMS breakouts (DFRobot spec)
+  gas_warmup_time: 180s         # alarms suppressed after power-up while the heater settles
+  gas_fault_low_v: "0.02"       # below this the sensor output is treated as disconnected
+  gas_fault_high_margin_v: "0.05"  # within this of the supply = shorted / out of range
+
+  # MQTT cadence
+  state_publish_interval: 30s
 
 esphome:
   name: ${device_name}
-  friendly_name: ${friendly_name}
+  friendly_name: ${entity_prefix}
+  on_boot:
+    - priority: -100
+      then:
+        - delay: ${gas_warmup_time}
+        - lambda: 'id(gas_sensors_ready) = true;'
 
 esp32:
-  board: esp32-c6-devkitc-1
+  variant: esp32c6
+  flash_size: 4MB               # safe for both 4 MB and 8 MB C6-Zero batches
   framework:
     type: esp-idf
+
+logger:
+  level: ${log_level}
+
+api:
+  encryption:
+    key: !secret api_key
+
+# OTA uploads are encrypted with the API key (needs ESPHome / Device Builder 2026.9.0+).
+ota:
+  - platform: esphome
+    encryption:
 
 wifi:
   ssid: !secret wifi_ssid
@@ -38,8 +120,14 @@ wifi:
     gateway: 192.168.50.1
     subnet: 255.255.255.0
     dns1: 192.168.50.1
+  ap:
+    ssid: ${fallback_ap_ssid}
+    password: !secret ota_password
+
+captive_portal:
 
 mqtt:
+  id: mqtt_client
   broker: 192.168.20.101
   port: 8883
   username: !secret mqtt_user
@@ -48,40 +136,140 @@ mqtt:
   discover_ip: false
   certificate_authority: !secret mqtt_ca_cert
 
-api:
-  encryption:
-    key: !secret api_key
-
-ota:
-  platform: esphome
-  password: !secret ota_password
-
-logger:
-  level: WARN
-
 time:
   - platform: homeassistant
     id: homeassistant_time
 
-status_led:
-  pin:
-    number: GPIO2
-    inverted: false
+globals:
+  - id: gas_sensors_ready
+    type: bool
+    restore_value: no
+    initial_value: "false"
+  - id: smoke_r0
+    type: float
+    restore_value: yes
+    initial_value: "0.0"
+  # Set by optional packages (e.g. the CO channel) so the LED and latch see their alarms too
+  - id: extra_alarm_active
+    type: bool
+    restore_value: no
+    initial_value: "false"
+  - id: extra_fault_active
+    type: bool
+    restore_value: no
+    initial_value: "false"
+  # Alarm latch: survives reboots, cleared only by acknowledge_alarms
+  - id: alarm_latch
+    type: bool
+    restore_value: yes
+    initial_value: "false"
+  - id: links_ok
+    type: bool
+    restore_value: no
+    initial_value: "false"
+  - id: last_bme_ms
+    type: uint32_t
+    restore_value: no
+    initial_value: "0"
+  # Written by the optional SDP810 package (ventsys_air_sensor_dp.yaml), read by
+  # the display. NAN = no differential pressure sensor or no reading yet.
+  - id: dp_pa
+    type: float
+    restore_value: no
+    initial_value: "NAN"
+  - id: dp_fault_active
+    type: bool
+    restore_value: no
+    initial_value: "false"
 
 i2c:
-  sda: GPIO4
-  scl: GPIO5
-  scan: false
+  sda:
+    number: ${i2c_sda_gpio}
+    ignore_strapping_warning: true   # MTMS/MTDI only select the JTAG source when an eFuse enables it
+  scl:
+    number: ${i2c_scl_gpio}
+    ignore_strapping_warning: true
+  scan: true
+  frequency: 400kHz   # BME680, SDP810 and SSD1306 all support fast mode; keeps OLED refreshes short
+
+# ---- Thresholds and calibration, adjustable from Home Assistant ----
+number:
+  - platform: template
+    name: "temp_alarm_threshold"
+    id: temp_threshold_num
+    entity_category: config
+    unit_of_measurement: "°C"
+    mode: box
+    min_value: 25
+    max_value: 90
+    step: 0.5
+    optimistic: true
+    restore_value: true
+    initial_value: ${temp_threshold}
+
+  - platform: template
+    name: "temp_rise_alarm_threshold"
+    id: temp_rise_num
+    entity_category: config
+    unit_of_measurement: "°C/min"
+    mode: box
+    min_value: 0.5
+    max_value: 30
+    step: 0.1
+    optimistic: true
+    restore_value: true
+    initial_value: ${temp_rise_alarm}
+
+  - platform: template
+    name: "smoke_ratio_alarm_threshold"
+    id: smoke_ratio_num
+    entity_category: config
+    mode: box
+    min_value: 0.05
+    max_value: 0.95
+    step: 0.01
+    optimistic: true
+    restore_value: true
+    initial_value: ${smoke_ratio_alarm}
+
+  - platform: template
+    name: "smoke_voltage_alarm_threshold"
+    id: smoke_voltage_num
+    entity_category: config
+    unit_of_measurement: "V"
+    mode: box
+    min_value: 0.1
+    max_value: 3.2
+    step: 0.01
+    optimistic: true
+    restore_value: true
+    initial_value: ${smoke_voltage_alarm}
+
+  # Added to the BME680 pressure before it is published. Set it from Home
+  # Assistant (e.g. a zeroing script that runs with the fans off) so every
+  # board reads the same as the garage reference.
+  - platform: template
+    name: "pressure_offset"
+    id: pressure_offset_num
+    entity_category: config
+    unit_of_measurement: "Pa"
+    mode: box
+    min_value: -500
+    max_value: 500
+    step: 0.1
+    optimistic: true
+    restore_value: true
+    initial_value: 0
 
 sensor:
+  # ---- BME680: temperature / humidity / pressure / gas resistance ----
   - platform: bme680
     address: ${bme680_address}
     update_interval: ${bme680_update_interval}
-
+    iir_filter: 3x
     temperature:
-      name: "${entity_prefix}_temperature"
+      name: "temperature"
       id: air_temperature
-      unit_of_measurement: "°C"
       accuracy_decimals: 1
       filters:
         - filter_out: nan
@@ -89,41 +277,28 @@ sensor:
             window_size: 3
             send_every: 1
       on_value:
-        then:
-          - mqtt.publish:
-              topic: "${mqtt_topic_prefix}/temperature"
-              payload: !lambda 'return to_string(x);'
-
+        - lambda: 'id(last_bme_ms) = millis();'
+        - mqtt.publish:
+            topic: "${mqtt_topic_prefix}/temperature"
+            payload: !lambda 'return str_sprintf("%.1f", x);'
     humidity:
-      name: "${entity_prefix}_humidity"
+      name: "humidity"
       id: air_humidity
-      unit_of_measurement: "%"
       accuracy_decimals: 1
       filters:
         - filter_out: nan
       on_value:
-        then:
-          - mqtt.publish:
-              topic: "${mqtt_topic_prefix}/humidity"
-              payload: !lambda 'return to_string(x);'
-
+        - mqtt.publish:
+            topic: "${mqtt_topic_prefix}/humidity"
+            payload: !lambda 'return str_sprintf("%.1f", x);'
     pressure:
-      name: "${entity_prefix}_baro_pressure"
-      id: air_baro_pressure
-      unit_of_measurement: "hPa"
-      accuracy_decimals: 2
+      id: air_pressure_raw
+      internal: true
       filters:
         - filter_out: nan
-      on_value:
-        then:
-          - mqtt.publish:
-              topic: "${mqtt_topic_prefix}/baro_pressure"
-              payload: !lambda 'return to_string(x);'
-
     gas_resistance:
-      name: "${entity_prefix}_iaq_gas_resistance"
+      name: "iaq_gas_resistance"
       id: air_gas_resistance
-      unit_of_measurement: "Ω"
       accuracy_decimals: 0
       filters:
         - filter_out: nan
@@ -131,84 +306,336 @@ sensor:
             window_size: 3
             send_every: 1
       on_value:
-        then:
-          - mqtt.publish:
-              topic: "${mqtt_topic_prefix}/iaq"
-              payload: !lambda 'return to_string((int)x);'
+        - mqtt.publish:
+            topic: "${mqtt_topic_prefix}/iaq"
+            payload: !lambda 'return str_sprintf("%.0f", x);'
 
+  # Offset-corrected pressure, published in hPa (existing contract) and Pa
+  - platform: copy
+    source_id: air_pressure_raw
+    name: "baro_pressure"
+    id: air_baro_pressure
+    unit_of_measurement: "hPa"
+    device_class: pressure
+    state_class: measurement
+    accuracy_decimals: 3
+    filters:
+      - lambda: 'return x + id(pressure_offset_num).state / 100.0f;'
+    on_value:
+      - mqtt.publish:
+          topic: "${mqtt_topic_prefix}/baro_pressure"
+          payload: !lambda 'return str_sprintf("%.3f", x);'
+
+  - platform: copy
+    source_id: air_baro_pressure
+    name: "pressure_pa"
+    id: air_pressure_pa
+    unit_of_measurement: "Pa"
+    device_class: pressure
+    state_class: measurement
+    accuracy_decimals: 1
+    filters:
+      - multiply: 100
+    on_value:
+      - mqtt.publish:
+          topic: "${mqtt_topic_prefix}/pressure_pa"
+          payload: !lambda 'return str_sprintf("%.1f", x);'
+
+  # ---- Rate of temperature rise (degC/min, averaged over ~4 readings) ----
+  - platform: template
+    name: "temperature_rise_rate"
+    id: temp_rise_rate
+    unit_of_measurement: "°C/min"
+    icon: mdi:thermometer-chevron-up
+    accuracy_decimals: 2
+    update_interval: 30s
+    lambda: |-
+      static float prev = NAN;
+      static uint32_t prev_ms = 0;
+      const float t = id(air_temperature).state;
+      const uint32_t now = millis();
+      float rate = NAN;
+      if (!std::isnan(t) && !std::isnan(prev) && now > prev_ms)
+        rate = (t - prev) * 60000.0f / (float) (now - prev_ms);
+      if (!std::isnan(t)) { prev = t; prev_ms = now; }
+      return rate;
+    filters:
+      - filter_out: nan
+      - sliding_window_moving_average:
+          window_size: 4
+          send_every: 1
+
+  # ---- SEN0570 MEMS smoke sensor ----
   - platform: adc
-    pin: GPIO3
-    name: "${entity_prefix}_smoke_voc_raw"
-    id: smoke_voc_raw
-    unit_of_measurement: "raw"
-    accuracy_decimals: 0
-    update_interval: ${smoke_update_interval}
-    attenuation: auto
+    pin: ${smoke_gpio}
+    name: "smoke_voc_voltage"
+    id: smoke_voltage
+    attenuation: 12db
+    samples: 16
+    update_interval: ${gas_update_interval}
+    accuracy_decimals: 3
     filters:
       - sliding_window_moving_average:
           window_size: 5
           send_every: 1
 
-binary_sensor:
   - platform: template
-    name: "${entity_prefix}_smoke_detected"
+    name: "smoke_rs_r0_ratio"
+    id: smoke_ratio
+    icon: mdi:smoke
+    accuracy_decimals: 3
+    update_interval: ${gas_update_interval}
+    lambda: |-
+      const float vs = ${gas_supply_voltage}f;
+      const float v = id(smoke_voltage).state;
+      if (std::isnan(v) || v <= 0.01f || v >= vs || id(smoke_r0) <= 0.0f) return NAN;
+      const float rs = ${gas_load_resistance}f * (vs - v) / v;
+      return rs / id(smoke_r0);
+
+  - platform: wifi_signal
+    name: "wifi_signal"
+    id: wifi_rssi
+    update_interval: 60s
+    entity_category: diagnostic
+
+  - platform: uptime
+    name: "uptime"
+    id: uptime_s
+    entity_category: diagnostic
+
+binary_sensor:
+  # ---- Alarms ----
+  - platform: template
+    name: "smoke_detected"
     id: smoke_alarm
-    lambda: 'return id(smoke_voc_raw).state > 2000;'
     device_class: smoke
+    lambda: |-
+      if (!id(gas_sensors_ready) || id(smoke_fault).state) return false;
+      const float v = id(smoke_voltage).state;
+      if (std::isnan(v)) return false;
+      if (id(smoke_r0) > 0.0f) {
+        const float r = id(smoke_ratio).state;
+        return !std::isnan(r) && r < id(smoke_ratio_num).state;
+      }
+      return v > id(smoke_voltage_num).state;
     filters:
       - delayed_on: 3s
       - delayed_off: 10s
     on_press:
-      then:
-        - mqtt.publish:
-            topic: "${mqtt_topic_prefix}/smoke"
-            payload: "detected"
-    on_release:
-      then:
-        - mqtt.publish:
-            topic: "${mqtt_topic_prefix}/smoke"
-            payload: "clear"
+      - lambda: 'id(alarm_latch) = true;'
+    on_state:
+      - if:
+          condition:
+            lambda: 'return id(gas_sensors_ready);'
+          then:
+            - mqtt.publish:
+                topic: "${mqtt_topic_prefix}/smoke"
+                payload: !lambda 'return std::string(x ? "detected" : "clear");'
 
   - platform: template
-    name: "${entity_prefix}_high_temperature"
+    name: "high_temperature"
     id: high_temp_alarm
-    lambda: 'return id(air_temperature).state > ${temp_threshold}f;'
     device_class: heat
+    lambda: 'return id(air_temperature).state > id(temp_threshold_num).state;'
     filters:
       - delayed_on: 10s
     on_press:
-      then:
-        - mqtt.publish:
-            topic: "${mqtt_topic_prefix}/temp_alarm"
-            payload: "high"
-    on_release:
-      then:
-        - mqtt.publish:
-            topic: "${mqtt_topic_prefix}/temp_alarm"
-            payload: "normal"
+      - lambda: 'id(alarm_latch) = true;'
+    on_state:
+      - mqtt.publish:
+          topic: "${mqtt_topic_prefix}/temp_alarm"
+          payload: !lambda 'return std::string(x ? "high" : "normal");'
+
+  # Early warning only (not latched): orange LED + MQTT
+  - platform: template
+    name: "temperature_rising_fast"
+    id: temp_rise_alarm
+    device_class: heat
+    lambda: 'return id(temp_rise_rate).state > id(temp_rise_num).state;'
+    filters:
+      - delayed_off: 120s
+    on_state:
+      - mqtt.publish:
+          topic: "${mqtt_topic_prefix}/temp_rise"
+          payload: !lambda 'return std::string(x ? "rising" : "normal");'
+
+  - platform: template
+    name: "alarm_latched"
+    id: alarm_latched
+    device_class: safety
+    lambda: 'return id(alarm_latch);'
+    on_state:
+      - mqtt.publish:
+          topic: "${mqtt_topic_prefix}/alarm_latched"
+          payload: !lambda 'return std::string(x ? "latched" : "clear");'
+          retain: true
+
+  # ---- Sensor faults (a broken sensor must never look like "clear") ----
+  - platform: template
+    name: "bme680_fault"
+    id: bme_fault
+    device_class: problem
+    entity_category: diagnostic
+    lambda: |-
+      const uint32_t last = id(last_bme_ms);
+      if (last == 0) return millis() > ${bme680_stale_after_ms}UL;
+      return (millis() - last) > ${bme680_stale_after_ms}UL;
+
+  - platform: template
+    name: "smoke_sensor_fault"
+    id: smoke_fault
+    device_class: problem
+    entity_category: diagnostic
+    lambda: |-
+      if (!id(gas_sensors_ready)) return false;
+      const float v = id(smoke_voltage).state;
+      return std::isnan(v) || v < ${gas_fault_low_v}f || v > (${gas_supply_voltage}f - ${gas_fault_high_margin_v}f);
+    filters:
+      - delayed_on: 15s
+
+  - platform: template
+    name: "sensor_fault"
+    id: any_fault
+    device_class: problem
+    lambda: 'return id(bme_fault).state || id(smoke_fault).state || id(extra_fault_active) || id(dp_fault_active);'
+    on_state:
+      - mqtt.publish:
+          topic: "${mqtt_topic_prefix}/fault"
+          payload: !lambda 'return std::string(x ? "fault" : "ok");'
+
+  - platform: template
+    name: "gas_sensors_warmed_up"
+    entity_category: diagnostic
+    lambda: 'return id(gas_sensors_ready);'
 
   - platform: status
-    name: "${entity_prefix}_status"
-    id: device_status
+    name: "status"
+
+button:
+  - platform: template
+    name: "acknowledge_alarms"
+    icon: mdi:bell-check
+    on_press:
+      - lambda: |-
+          if (id(smoke_alarm).state || id(high_temp_alarm).state || id(extra_alarm_active)) {
+            ESP_LOGW("alarm", "Not acknowledged: an alarm is still active");
+            return;
+          }
+          id(alarm_latch) = false;
+          ESP_LOGI("alarm", "Alarm latch cleared");
+
+  - platform: template
+    name: "smoke_capture_clean_air_baseline"
+    entity_category: config
+    icon: mdi:air-filter
+    on_press:
+      - lambda: |-
+          const float vs = ${gas_supply_voltage}f;
+          const float v = id(smoke_voltage).state;
+          if (!id(gas_sensors_ready) || id(smoke_fault).state || std::isnan(v) || v <= 0.01f || v >= vs) {
+            ESP_LOGW("gas", "Smoke baseline not captured: sensor not warmed up, faulted or out of range");
+            return;
+          }
+          id(smoke_r0) = ${gas_load_resistance}f * (vs - v) / v;
+          ESP_LOGI("gas", "Smoke clean-air baseline R0 = %.0f ohm (%.3f V)", id(smoke_r0), v);
+
+  - platform: restart
+    name: "restart"
+    entity_category: config
+
+light:
+  - platform: esp32_rmt_led_strip
+    id: status_rgb
+    name: "status_led"
+    entity_category: config
+    pin:
+      number: ${status_led_gpio}
+      ignore_strapping_warning: true   # GPIO8 is the board's own WS2812 data line
+    num_leds: 1
+    chipset: WS2812
+    channel_colors: ${status_led_channel_colors}
+    restore_mode: ALWAYS_OFF
 
 text_sensor:
   - platform: version
-    name: "${entity_prefix}_esphome_version"
+    name: "esphome_version"
     entity_category: diagnostic
   - platform: wifi_info
     ip_address:
-      name: "${entity_prefix}_ip"
-      entity_category: diagnostic
-    ssid:
-      name: "${entity_prefix}_ssid"
-      entity_category: diagnostic
-    bssid:
-      name: "${entity_prefix}_bssid"
+      name: "ip"
+      id: ip_addr
       entity_category: diagnostic
 
 interval:
-  - interval: ${heartbeat_interval}
+  # Keep the HA MQTT state topics fresh (HA expire_after = 120 s)
+  - interval: ${state_publish_interval}
     then:
-      - mqtt.publish:
-          topic: "${mqtt_topic_prefix}/online"
-          payload: "true"
+      - if:
+          condition:
+            mqtt.connected:
+          then:
+            - mqtt.publish:
+                topic: "${mqtt_topic_prefix}/online"
+                payload: "true"
+            - if:
+                condition:
+                  lambda: 'return id(gas_sensors_ready);'
+                then:
+                  - mqtt.publish:
+                      topic: "${mqtt_topic_prefix}/smoke"
+                      payload: !lambda 'return std::string(id(smoke_alarm).state ? "detected" : "clear");'
+            - mqtt.publish:
+                topic: "${mqtt_topic_prefix}/temp_alarm"
+                payload: !lambda 'return std::string(id(high_temp_alarm).state ? "high" : "normal");'
+            - mqtt.publish:
+                topic: "${mqtt_topic_prefix}/temp_rise"
+                payload: !lambda 'return std::string(id(temp_rise_alarm).state ? "rising" : "normal");'
+            - mqtt.publish:
+                topic: "${mqtt_topic_prefix}/fault"
+                payload: !lambda 'return std::string(id(any_fault).state ? "fault" : "ok");'
+            - mqtt.publish:
+                topic: "${mqtt_topic_prefix}/alarm_latched"
+                payload: !lambda 'return std::string(id(alarm_latch) ? "latched" : "clear");'
+                retain: true
+
+  # Local status colour, highest priority first:
+  #   bright red = smoke / CO / high-temperature alarm active
+  #   dim red = alarm latched (cleared, waiting for acknowledge)
+  #   orange = temperature rising faster than the rise threshold
+  #   yellow = a sensor has a fault
+  #   blue = MEMS gas-sensor heaters still settling after power-up
+  #   purple = no API/MQTT connection, dim green = OK
+  - interval: 5s
+    then:
+      - if:
+          condition:
+            and:
+              - api.connected:
+              - mqtt.connected:
+          then:
+            - lambda: 'id(links_ok) = true;'
+          else:
+            - lambda: 'id(links_ok) = false;'
+      - lambda: |-
+          auto call = id(status_rgb).turn_on();
+          float r, g, b, br;
+          if (id(smoke_alarm).state || id(high_temp_alarm).state || id(extra_alarm_active)) {
+            r = 1.0f; g = 0.0f; b = 0.0f; br = 1.0f;
+          } else if (id(alarm_latch)) {
+            r = 1.0f; g = 0.0f; b = 0.0f; br = 0.25f;
+          } else if (id(temp_rise_alarm).state) {
+            r = 1.0f; g = 0.4f; b = 0.0f; br = 0.6f;
+          } else if (id(any_fault).state) {
+            r = 1.0f; g = 0.85f; b = 0.0f; br = 0.35f;
+          } else if (!id(gas_sensors_ready)) {
+            r = 0.0f; g = 0.0f; b = 1.0f; br = 0.2f;
+          } else if (!id(links_ok)) {
+            r = 0.7f; g = 0.0f; b = 1.0f; br = 0.3f;
+          } else {
+            r = 0.0f; g = 1.0f; b = 0.0f; br = 0.08f;
+          }
+          call.set_rgb(r, g, b);
+          call.set_brightness(br);
+          call.perform();
+packages:
+  board_management: !include ventsys_board_management.yaml

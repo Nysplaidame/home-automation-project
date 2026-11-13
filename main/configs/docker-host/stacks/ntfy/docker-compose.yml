@@ -1,6 +1,6 @@
 services:
   ntfy:
-    image: binwiederhier/ntfy:latest
+    image: binwiederhier/ntfy@sha256:f2419f405127afa868f10985c1a41449e673477cee1eb19994339a5ae8b592e7
     container_name: ntfy
     command: serve
     restart: unless-stopped
@@ -15,3 +15,6 @@ services:
 networks:
   alerting:
     name: local-alerting
+    ipam:
+      config:
+        - subnet: 10.240.15.0/24

@@ -1,0 +1,26 @@
+%%{init: {"theme":"base","fontFamily":"Segoe UI, sans-serif","themeVariables":{"primaryColor":"#123044","primaryTextColor":"#eef6ff","primaryBorderColor":"#58b7bf","lineColor":"#9aafc4","clusterBkg":"#0d1c2d","clusterBorder":"#38516b","tertiaryColor":"#0d1c2d","edgeLabelBackground":"#0b1929","fontSize":"18px"},"flowchart":{"curve":"basis","nodeSpacing":28,"rankSpacing":90,"padding":12,"subGraphTitleMargin":{"top":8,"bottom":16},"wrappingWidth":280,"useMaxWidth":false}}}%%
+flowchart LR
+    %% Applies to the main and booth fan controllers; source of truth: ventsys_fan_controller.yaml and ventsys_booth_fan.yaml.
+    %% Layout: power (left) --> ESP pins --- fan interface --> fan (right).
+    PSU["Correctly rated low-voltage PSU<br/>or manufacturer-approved fan supply"]
+    subgraph ESP["ESP32DEV · FAN CONTROLLER"]
+        ESPVin["5V / VIN<br/>board power"]
+        ESPGnd["GND"]
+        Pwm["GPIO23<br/>25 kHz PWM output"]
+    end
+    subgraph Driver["FAN INTERFACE"]
+        DriverGnd["Signal ground"]
+        Signal["PWM signal input<br/>or MOSFET gate driver"]
+    end
+    Fan["Inline / booth fan<br/>Power supplied separately"]
+    Note["GPIO23 is a logic-level control signal only.<br/>Never power the fan or connect mains directly to an ESP32 GPIO."]
+    PSU --> ESPVin
+    ESPGnd --- DriverGnd
+    Pwm --- Signal
+    Signal --> Fan
+    PSU -->|fan supply| Fan
+    Fan ~~~ Note
+    class ESP,Driver,Fan core
+    class PSU,Note policy
+    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa
+    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8

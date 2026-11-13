@@ -3,7 +3,7 @@ title: "LLM Wiki — Idea File"
 category: source
 tags: [meta, knowledge-management, workflow]
 created: 2026-04-07
-updated: 2026-04-07
+updated: 2026-10-04
 status: stable
 ---
 
@@ -29,12 +29,15 @@ Describes a pattern for building a persistent personal knowledge base maintained
 
 ## Entities Mentioned
 
-[[obsidian]], [[qmd]], [[marp]], [[dataview-plugin]], [[obsidian-web-clipper]]
+[[entities/obsidian]], [[entities/qmd]], [[entities/marp]], [[entities/dataview-plugin]], [[entities/obsidian-web-clipper]]
 
 ## Concepts Mentioned
 
-[[rag-vs-wiki-pattern]], [[personal-knowledge-management]], [[memex]]
+[[concepts/rag-vs-wiki-pattern]], [[concepts/personal-knowledge-management]], [[concepts/memex]]
 
 ## Contradictions / Updates
 
-None — this is the founding methodology document.
+October4: the missing optional-tool/concept stubs now exist, with adoption
+unverified. The raw idea remains unchanged. Its simplified contrast between
+RAG and wiki maintenance is qualified in [[concepts/rag-vs-wiki-pattern]]:
+persistent retrieval indexes and curated wiki pages can coexist.

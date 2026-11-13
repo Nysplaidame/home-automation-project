@@ -3,7 +3,7 @@ title: "MQTT TLS with Local Certificate Authority"
 category: concept
 tags: [mqtt, tls, security, certificates, mosquitto]
 created: 2026-04-07
-updated: 2026-05-30
+updated: 2026-08-25
 sources: [ventsys-technical-specs, ventsys-implementation-roadmap, troubleshooting-reference]
 status: stable
 ---
@@ -16,12 +16,15 @@ MQTT TLS replaces plaintext MQTT (port `1883`) with TLS-encrypted MQTT (port `88
 
 ## Relevance to This Project
 
-MQTT carries VentSys control/state, Bambuddy status, and future Frigate/automation messages. TLS matters because VLAN 50 devices are intentionally restricted and should not depend on plaintext credentials or control messages long-term.
+MQTT carries VentSys control/state, Bambuddy status, and live Frigate/automation
+messages. TLS matters because VLAN 50 devices are intentionally restricted and
+should not depend on plaintext credentials or control messages long-term.
 
 The project is TLS-oriented now: Mosquitto TLS on `8883` is live and Bambuddy
 has migrated successfully. Plain MQTT `1883` is deprecated, and canonical
 router policy should not reintroduce a VentSys `1883` exception. Remaining
-Frigate/VentSys clients should move onto `8883` before they are treated as live.
+Frigate is live on `8883`; remaining VentSys hardware must use that path before
+it is treated as adopted.
 
 ## Current Migration State
 
@@ -31,7 +34,7 @@ Frigate/VentSys clients should move onto `8883` before they are treated as live.
 | CA-based TLS pub/sub test | ✅ Verified with `/ssl/ca.crt` |
 | Bambuddy → Mosquitto | ✅ Migrated to `8883`, TLSv1.3 observed |
 | Mosquitto listener `1883` | Deprecated bootstrap/legacy path; not a router-policy dependency |
-| Frigate MQTT path | ✅ TLS path verified; app still not live |
+| Frigate MQTT path | ✅ TLS path live and verified with the three-camera CT 111 deployment |
 | VentSys devices | ⏳ TLS-ready rollout blocked until `mqtt_ca_cert` exists in ESPHome secrets and hardware is adopted/revalidated |
 | Temporary valve-1 firewall rule | ✅ No live/source valve-specific `1883` exception found in the 2026-05-28 parity check |
 

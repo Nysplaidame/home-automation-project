@@ -1,0 +1,4 @@
+{"ts": "2026-11-11T14:23:05", "task": "001", "step": "approved", "by": "user"}
+{"ts": "2026-11-11T14:23:48", "task": "001", "step": "start", "agent": "script"}
+{"ts": "2026-11-11T14:23:51", "task": "001", "step": "finish", "agent": "script", "outcome": "done"}
+{"ts": "2026-11-12T11:15:12", "task": "002", "step": "approved", "by": "user"}

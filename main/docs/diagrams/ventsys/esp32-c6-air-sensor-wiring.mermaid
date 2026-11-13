@@ -1,0 +1,32 @@
+%%{init: {"theme":"base","fontFamily":"Segoe UI, sans-serif","themeVariables":{"primaryColor":"#123044","primaryTextColor":"#eef6ff","primaryBorderColor":"#58b7bf","lineColor":"#9aafc4","clusterBkg":"#0d1c2d","clusterBorder":"#38516b","tertiaryColor":"#0d1c2d","edgeLabelBackground":"#0b1929","fontSize":"18px"},"flowchart":{"curve":"basis","nodeSpacing":28,"rankSpacing":90,"padding":12,"subGraphTitleMargin":{"top":8,"bottom":16},"wrappingWidth":260,"useMaxWidth":false}}}%%
+flowchart LR
+    %% Planned carrier: ventsys_air_sensor_base.yaml and optional packages; installed legacy board differs.
+    Note["Planned C6-Zero carrier; verify fitted options and I2C addresses.<br/>Installed FDM .32 uses a different board layout; see separate diagram.<br/>SLA pipe .37 uses CO GPIO3 and BME 0x77, no smoke."]
+    subgraph ESP["ESP32-C6-ZERO · NEW CARRIER"]
+        V["3V3"]
+        G["GND"]
+        SDA["GPIO4 · SDA"]
+        SCL["GPIO5 · SCL"]
+        SM["GPIO3 · smoke ADC"]
+        CO["GPIO2 · CO ADC when fitted"]
+        LDR["GPIO0 · light ADC when fitted"]
+        LED["GPIO8 · onboard WS2812"]
+    end
+    BME["Pimoroni BME680 · 3V3 / GND / SDA / SCL<br/>0x76 default; 0x77 if modified"]
+    SMOKE["SEN0570 smoke · 3V3 / GND / A"]
+    CARBON["SEN0564 CO · 3V3 / GND / A<br/>arrays only"]
+    DP["Optional SDP810 · 3V3 / GND / SDA / SCL · 0x25"]
+    OLED["Optional SSD1306 · 3V3 / GND / SDA / SCL · 0x3C"]
+    LIGHT["Optional LDR divider: 3V3 → LDR → GPIO0 → 10k → GND"]
+    V --- BME & SMOKE & CARBON & DP & OLED
+    G --- BME & SMOKE & CARBON & DP & OLED
+    SDA --- BME & DP & OLED
+    SCL --- BME & DP & OLED
+    SM --- SMOKE
+    CO --- CARBON
+    LDR --- LIGHT
+    Note ~~~ ESP
+    class ESP,BME,SMOKE,CARBON,DP,OLED,LIGHT core
+    class Note policy
+    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa
+    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8

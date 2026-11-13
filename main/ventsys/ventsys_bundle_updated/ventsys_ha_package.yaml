@@ -236,7 +236,7 @@ mqtt:
 
 
 
-    - name: SLA Branch Valve
+    - name: E2 Branch Valve
 
 
       unique_id: ventsys_sla_branch_valve
@@ -288,6 +288,20 @@ mqtt:
 
 
 
+    - name: Main Duct Valve 2
+
+      unique_id: ventsys_main_valve2
+
+      command_topic: "ventsys/main/valve2/control"
+
+      state_topic: "ventsys/main/valve2/state"
+
+      min: 0
+
+      max: 100
+
+      step: 1
+
     - name: Main Duct Valve 1
 
 
@@ -312,27 +326,6 @@ mqtt:
 
 
 
-
-
-    - name: Main Duct Valve 2
-
-
-      unique_id: ventsys_main_valve2
-
-
-      command_topic: "ventsys/main/valve2/control"
-
-
-      state_topic: "ventsys/main/valve2/state"
-
-
-      min: 0
-
-
-      max: 100
-
-
-      step: 1
 
 
 
@@ -442,6 +435,9 @@ mqtt:
     #  ->  Risk state ────────────────────────────────────────────────────────────
 
 
+    # F-28 RESOLVED: ventsys/{fdm,sla}/risk/state is now published by the HA automations
+    # ventsys_{fdm,sla}_risk_publish in ventsys_array_mqtt.yaml (load that package too).
+    # Booth still has no publisher. Original warning kept below for history.
     # F-28 WARNING: These sensors subscribe to risk/state topics, but NO firmware
 
 
@@ -567,7 +563,7 @@ mqtt:
       unique_id: ventsys_fdm_temperature
 
 
-      state_topic: "ventsys/fdm/temperature"
+      state_topic: "ventsys/fdm/array_1/temperature"
 
 
       unit_of_measurement: "°C"
@@ -587,7 +583,7 @@ mqtt:
       unique_id: ventsys_sla_temperature
 
 
-      state_topic: "ventsys/sla/temperature"
+      state_topic: "ventsys/sla/array_1/temperature"
 
 
       unit_of_measurement: "°C"
@@ -619,7 +615,7 @@ mqtt:
       unique_id: ventsys_fdm_smoke
 
 
-      state_topic: "ventsys/fdm/smoke"
+      state_topic: "ventsys/fdm/array_1/smoke"
 
 
       expire_after: 120
@@ -633,7 +629,7 @@ mqtt:
       unique_id: ventsys_sla_smoke
 
 
-      state_topic: "ventsys/sla/smoke"
+      state_topic: "ventsys/sla/array_1/smoke"
 
 
       expire_after: 120
@@ -653,7 +649,7 @@ mqtt:
       unique_id: ventsys_garage_temperature
 
 
-      state_topic: "ventsys/garage/temperature"
+      state_topic: "ventsys/garage/air/temperature"
 
 
       unit_of_measurement: "°C"
@@ -673,7 +669,7 @@ mqtt:
       unique_id: ventsys_garage_humidity
 
 
-      state_topic: "ventsys/garage/humidity"
+      state_topic: "ventsys/garage/air/humidity"
 
 
       unit_of_measurement: "%"
@@ -693,7 +689,7 @@ mqtt:
       unique_id: ventsys_garage_baro_pressure
 
 
-      state_topic: "ventsys/garage/baro_pressure"
+      state_topic: "ventsys/garage/air/baro_pressure"
 
 
       unit_of_measurement: "hPa"
@@ -713,7 +709,7 @@ mqtt:
       unique_id: ventsys_garage_iaq
 
 
-      state_topic: "ventsys/garage/iaq"
+      state_topic: "ventsys/garage/air/iaq"
 
 
       unit_of_measurement: "Ω"
@@ -760,7 +756,7 @@ mqtt:
       unique_id: ventsys_fdm_iaq
 
 
-      state_topic: "ventsys/fdm/iaq"
+      state_topic: "ventsys/fdm/array_1/iaq"
 
 
       unit_of_measurement: "Ω"
@@ -780,7 +776,7 @@ mqtt:
       unique_id: ventsys_sla_iaq
 
 
-      state_topic: "ventsys/sla/iaq"
+      state_topic: "ventsys/sla/array_1/iaq"
 
 
       unit_of_measurement: "Ω"

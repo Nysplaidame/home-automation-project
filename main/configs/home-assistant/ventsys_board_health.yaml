@@ -1,0 +1,153 @@
+# Adopted VentSys boards are expected online unless their maintenance helper is on.
+# Helpers restore their last state after HA restarts. Telemetry remains visible
+# during maintenance; only board-dropout push notices are paused.
+input_boolean:
+  ventsys_maintenance_booth_airflow:
+    name: VentSys Booth airflow maintenance
+    icon: mdi:wrench-clock
+  ventsys_maintenance_fdm_airflow:
+    name: VentSys FDM airflow maintenance
+    icon: mdi:wrench-clock
+  ventsys_maintenance_sla_airflow:
+    name: VentSys SLA airflow maintenance
+    icon: mdi:wrench-clock
+  ventsys_maintenance_sla_pipe_air:
+    name: VentSys SLA pipe air maintenance
+    icon: mdi:wrench-clock
+  ventsys_maintenance_main_duct_1:
+    name: VentSys Main duct valve 1 maintenance
+    icon: mdi:wrench-clock
+  ventsys_maintenance_main_duct_2:
+    name: VentSys Main duct valve 2 maintenance
+    icon: mdi:wrench-clock
+  ventsys_maintenance_fdm_branch:
+    name: VentSys FDM branch valve maintenance
+    icon: mdi:wrench-clock
+  ventsys_maintenance_sla_branch:
+    name: VentSys SLA branch valve maintenance
+    icon: mdi:wrench-clock
+  ventsys_maintenance_fdm_print:
+    name: VentSys FDM print valve maintenance
+    icon: mdi:wrench-clock
+  ventsys_maintenance_sla_print:
+    name: VentSys SLA print valve maintenance
+    icon: mdi:wrench-clock
+  ventsys_maintenance_fdm_intake:
+    name: VentSys FDM 360 intake maintenance
+    icon: mdi:wrench-clock
+  ventsys_maintenance_sla_intake:
+    name: VentSys SLA 360 intake maintenance
+    icon: mdi:wrench-clock
+
+automation:
+  - id: ventsys_adopted_board_dropout_ntfy
+    alias: VentSys adopted board dropout notification
+    mode: queued
+    max: 10
+    triggers:
+      - trigger: state
+        entity_id: &uptime_entities
+          - sensor.ventsys_fdm_airflow_sensor_uptime
+          - sensor.ventsys_fdm_airflow_sensor_uptime_2
+          - sensor.ventsys_sla_airflow_sensor_uptime
+          - sensor.ventsys_main_duct_valve_1_uptime
+          - sensor.garage_ventsys_main_duct_valve_2_uptime
+          - sensor.ventsys_e1_branch_valve_uptime
+          - sensor.ventsys_e2_branch_valve_uptime
+          - sensor.ventsys_fdm_print_valve_uptime
+          - sensor.ventsys_sla_print_valve_uptime
+          - sensor.ventsys_sla_360_intake_valve_uptime
+          - sensor.ventsys_fdm_360_intake_valve_uptime
+        to: unavailable
+        for: "00:02:00"
+        id: offline
+      - trigger: state
+        entity_id: *uptime_entities
+        to: unknown
+        for: "00:02:00"
+        id: offline
+      - trigger: state
+        entity_id: *uptime_entities
+        for: "00:00:30"
+        id: recovered
+      - trigger: state
+        entity_id:
+          - input_boolean.ventsys_maintenance_booth_airflow
+          - input_boolean.ventsys_maintenance_fdm_airflow
+          - input_boolean.ventsys_maintenance_sla_airflow
+          - input_boolean.ventsys_maintenance_main_duct_1
+          - input_boolean.ventsys_maintenance_main_duct_2
+          - input_boolean.ventsys_maintenance_fdm_branch
+          - input_boolean.ventsys_maintenance_sla_branch
+          - input_boolean.ventsys_maintenance_fdm_print
+          - input_boolean.ventsys_maintenance_sla_print
+          - input_boolean.ventsys_maintenance_fdm_intake
+          - input_boolean.ventsys_maintenance_sla_intake
+        to: "off"
+        for: "00:02:00"
+        id: maintenance_end
+    actions:
+      - variables:
+          uptime_to_key:
+            sensor.ventsys_fdm_airflow_sensor_uptime: booth_airflow
+            sensor.ventsys_fdm_airflow_sensor_uptime_2: fdm_airflow
+            sensor.ventsys_sla_airflow_sensor_uptime: sla_airflow
+            sensor.ventsys_main_duct_valve_1_uptime: main_duct_1
+            sensor.garage_ventsys_main_duct_valve_2_uptime: main_duct_2
+            sensor.ventsys_e1_branch_valve_uptime: fdm_branch
+            sensor.ventsys_e2_branch_valve_uptime: sla_branch
+            sensor.ventsys_fdm_print_valve_uptime: fdm_print
+            sensor.ventsys_sla_print_valve_uptime: sla_print
+            sensor.ventsys_sla_360_intake_valve_uptime: fdm_intake
+            sensor.ventsys_fdm_360_intake_valve_uptime: sla_intake
+          key_to_uptime:
+            booth_airflow: sensor.ventsys_fdm_airflow_sensor_uptime
+            fdm_airflow: sensor.ventsys_fdm_airflow_sensor_uptime_2
+            sla_airflow: sensor.ventsys_sla_airflow_sensor_uptime
+            main_duct_1: sensor.ventsys_main_duct_valve_1_uptime
+            main_duct_2: sensor.garage_ventsys_main_duct_valve_2_uptime
+            fdm_branch: sensor.ventsys_e1_branch_valve_uptime
+            sla_branch: sensor.ventsys_e2_branch_valve_uptime
+            fdm_print: sensor.ventsys_fdm_print_valve_uptime
+            sla_print: sensor.ventsys_sla_print_valve_uptime
+            fdm_intake: sensor.ventsys_sla_360_intake_valve_uptime
+            sla_intake: sensor.ventsys_fdm_360_intake_valve_uptime
+          key_to_name:
+            booth_airflow: Booth airflow
+            fdm_airflow: FDM airflow
+            sla_airflow: SLA airflow
+            main_duct_1: Main duct valve 1
+            main_duct_2: Main duct valve 2
+            fdm_branch: FDM branch valve
+            sla_branch: SLA branch valve
+            fdm_print: FDM print valve
+            sla_print: SLA print valve
+            fdm_intake: FDM 360 intake
+            sla_intake: SLA 360 intake
+      - variables:
+          board_key: "{{ (trigger.entity_id | replace('input_boolean.ventsys_maintenance_', '')) if trigger.id == 'maintenance_end' else uptime_to_key.get(trigger.entity_id, '') }}"
+      - variables:
+          maintenance_id: "{{ 'input_boolean.ventsys_maintenance_' ~ board_key }}"
+          uptime_id: "{{ key_to_uptime.get(board_key, '') }}"
+          board_name: "{{ key_to_name.get(board_key, board_key) }}"
+          offline: "{{ trigger.id != 'recovered' }}"
+      - condition: template
+        value_template: >-
+          {{ board_key != '' and is_state(maintenance_id, 'off') and
+             (trigger.id == 'offline' and trigger.from_state is not none and
+               trigger.from_state.state not in ['unavailable', 'unknown'] or
+              trigger.id == 'recovered' and trigger.from_state is not none and
+               trigger.from_state.state in ['unavailable', 'unknown'] and
+               trigger.to_state.state not in ['unavailable', 'unknown'] or
+              trigger.id == 'maintenance_end' and states(uptime_id) in ['unavailable', 'unknown']) }}
+      - action: logbook.log
+        data:
+          name: "{{ board_name }}"
+          message: "{{ 'Offline while expected online' if offline else 'Connection restored' }}"
+          entity_id: "{{ uptime_id }}"
+      - action: rest_command.ventsys_ntfy_incident
+        data:
+          title: "{{ board_name ~ (' offline' if offline else ' restored') }}"
+          priority: "{{ 3 if offline else 2 }}"
+          tags: "{{ 'warning' if offline else 'white_check_mark' }}"
+          message: "{{ board_name ~ (' has been offline for at least two minutes while expected online. Check the dashboard and device.' if offline else ' reconnected. Verify fresh telemetry before relying on it.') }}"

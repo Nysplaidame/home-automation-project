@@ -1,0 +1,24 @@
+%%{init: {"theme":"base","fontFamily":"Segoe UI, sans-serif","themeVariables":{"primaryColor":"#123044","primaryTextColor":"#eef6ff","primaryBorderColor":"#58b7bf","lineColor":"#9aafc4","clusterBkg":"#0d1c2d","clusterBorder":"#38516b","tertiaryColor":"#0d1c2d","edgeLabelBackground":"#0b1929","fontSize":"18px"},"flowchart":{"curve":"basis","nodeSpacing":28,"rankSpacing":90,"padding":12,"subGraphTitleMargin":{"top":8,"bottom":16},"wrappingWidth":260,"useMaxWidth":false}}}%%
+flowchart LR
+    %% Installed FDM .32: ventsys_fdm_sensor.yaml; physical CO identification 2026-11-08.
+    Note["Installed FDM .32 · MAC CC:BA:97:F0:D0:C0<br/>CO firmware on GPIO3; capture clean-air baseline after warm-up.<br/>Qualitative reading; separate certified CO alarm required.<br/>Planned FDM array 2 also claims .32; resolve before adoption."]
+    subgraph ESP["INSTALLED LEGACY ESP32-C6"]
+        V["3V3"]
+        G["GND"]
+        SDA["GPIO4 · SDA"]
+        SCL["GPIO5 · SCL"]
+        ADC["GPIO3 · analog ADC"]
+        LED["GPIO2 · plain status LED"]
+    end
+    BME["BME680 · VCC / GND / SDA / SCL<br/>I2C address 0x77"]
+    CO["Confirmed CO module · 3V3 / GND / analog A<br/>ADC input ≤ 3.3V"]
+    V --- BME & CO
+    G --- BME & CO
+    SDA --- BME
+    SCL --- BME
+    ADC --- CO
+    Note ~~~ ESP
+    class ESP,BME,CO core
+    class Note policy
+    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa
+    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8

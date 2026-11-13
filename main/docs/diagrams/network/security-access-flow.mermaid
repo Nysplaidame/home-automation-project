@@ -1,55 +1,36 @@
-flowchart TB
-    User["Trusted user devices<br/>VLAN 1"]
-    Router["OpenWrt firewall<br/>zone policy and DHCP/DNS"]
-    Mgmt["Management<br/>VLAN 10"]
-    Automation["Automation<br/>VLAN 20"]
-    NVR["NVR<br/>VLAN 30"]
-    Printers["Printers<br/>VLAN 35"]
-    Storage["Storage<br/>VLAN 40"]
-    IoT["IoT sensors<br/>VLAN 50"]
-    Monitoring["Monitoring<br/>VLAN 60"]
-    DMZ["DMZ<br/>VLAN 70"]
-    Guest["Guest<br/>VLAN 99"]
-    Tailscale["Tailscale ACLs<br/>daily remote"]
-    HostFW["Host firewalls / UFW<br/>Linux services"]
-    ServiceAuth["Service auth<br/>HA 2FA, app logins, tokens"]
-    LocalAI["llm-host CT 114<br/>llama.cpp + Wyoming<br/>approved HA entities only"]
+%%{init: {"theme":"base","fontFamily":"Segoe UI, sans-serif","themeVariables":{"primaryColor":"#123044","primaryTextColor":"#eef6ff","primaryBorderColor":"#58b7bf","lineColor":"#9aafc4","clusterBkg":"#0d1c2d","clusterBorder":"#38516b","tertiaryColor":"#0d1c2d","edgeLabelBackground":"#0b1929","fontFamily":"Segoe UI, sans-serif","fontSize":"18px"},"flowchart":{"curve":"linear","nodeSpacing":20,"rankSpacing":28,"padding":12,"subGraphTitleMargin":{"top":8,"bottom":16},"wrappingWidth":380,"useMaxWidth":false}}}%%
+flowchart LR
+    %% Selected access paths; full source/destination rules live in access-matrix.md.
+    subgraph Layers["01 · EVERY ACCESS PATH IS SCOPED"]
+        direction TB
+        Identity["TRUSTED ENTRY<br/>Local user / management identity<br/>or approved Tailscale identity"]
+        Router["OPENWRT POLICY<br/>VLAN zone + host + port rules<br/>No blanket inter-VLAN permission"]
+        HostFW["HOST FIREWALL<br/>UFW / DOCKER-USER<br/>Published ports remain source-scoped"]
+        Auth["SERVICE AUTHENTICATION<br/>HA 2FA · app login · API token<br/>Network access is not authorization"]
+        Identity --> Router --> HostFW --> Auth
+    end
+    subgraph Allowed["02 · EXPLICIT EXAMPLES"]
+        direction TB
+        HA["AUTOMATION → DEVICES<br/>VLAN20 → VLAN50: MQTT / ESPHome<br/>Bambuddy → P1S: TCP21 / 8883 only"]
+        Storage["RECORDING / STORAGE PATH<br/>Proxmox NFS → OMV<br/>CT111 bind mount → Frigate recordings"]
+        Monitor["MONITORING → SERVICES<br/>Scoped health / metrics checks<br/>HA · NVR · storage · local AI"]
+        AI["HA → LOCAL AI<br/>CT114 llama.cpp / Wyoming<br/>Approved HA entities only"]
+        Tail["REMOTE ACCESS<br/>Four approved host routes<br/>OnePlus: fixed portal DNS / 443 / 8180–8209"]
+        HA ~~~ Storage ~~~ Monitor ~~~ AI ~~~ Tail
+    end
+    subgraph Denied["03 · ISOLATION RULES"]
+        direction TB
+        Guests["VLAN99 GUEST<br/>No internal VLAN access"]
+        IoT["VLAN50 SAFETY IOT<br/>No broad initiation or internet<br/>VLAN55 CLOUD IOT<br/>WAN only; no internal forwarding"]
+        Restricted["VLAN30 NVR / VLAN40 STORAGE<br/>No broad internet<br/>VLAN35 PRINTERS<br/>Only approved OTA/cloud paths"]
+        Mobile["MOBILE PORTAL IDENTITY<br/>No broad VLAN or SSH access<br/>Fixed targets only; no arbitrary proxy"]
+        Guests ~~~ IoT ~~~ Restricted ~~~ Mobile
+    end
+    Layers ~~~ Allowed ~~~ Denied
+    class Identity,Router,HostFW,Auth core
+    class Guests,IoT,Restricted,Mobile policy
 
-    User --> Router
-    Router --> Mgmt
-    Router --> Automation
-    Router --> NVR
-    Router --> Printers
-    Router --> Storage
-    Router --> IoT
-    Router --> Monitoring
-    Router --> DMZ
-    Router --> Guest
-
-    Tailscale --> Automation
-    Tailscale --> Storage
-    Automation --> HostFW
-    Automation --> LocalAI
-    Storage --> HostFW
-    HostFW --> ServiceAuth
-    LocalAI --> ServiceAuth
-
-    Automation -.->|"MQTT / ESPHome only"| IoT
-    NVR -.->|"camera streams only"| Printers
-    NVR -.->|"recording/archive only"| Storage
-    Monitoring -.->|"health checks and metrics only"| Automation
-    Monitoring -.->|"AI service checks only"| LocalAI
-    Monitoring -.->|"health checks and metrics only"| NVR
-    Monitoring -.->|"health checks and metrics only"| Storage
-
-    GuestX["Guest cannot reach internal VLANs"]
-    IoTX["IoT cannot initiate broad access"]
-    StorageX["Storage has no broad internet"]
-    NVRX["NVR has no broad internet"]
-    PrinterX["Printers limited to required OTA/cloud paths"]
-
-    Guest -.->|"blocked"| GuestX
-    IoT -.->|"blocked"| IoTX
-    Storage -.->|"blocked"| StorageX
-    NVR -.->|"blocked"| NVRX
-    Printers -.->|"limited"| PrinterX
+    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa
+    classDef store fill:#292745,stroke:#aa99db,color:#f2edff
+    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8
+    classDef deferred fill:#1b2638,stroke:#9dabc1,color:#d3dfef,stroke-dasharray:5 4

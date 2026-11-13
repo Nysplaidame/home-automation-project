@@ -1,0 +1,14 @@
+[Unit]
+Description=Bambuddy offline update window with idle-printer retries
+
+[Timer]
+OnCalendar=*-*-* 04:30:00 Europe/London
+OnCalendar=*-*-* 05:00:00 Europe/London
+OnCalendar=*-*-* 05:30:00 Europe/London
+OnCalendar=*-*-* 06:00:00 Europe/London
+OnCalendar=*-*-* 06:30:00 Europe/London
+Persistent=false
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

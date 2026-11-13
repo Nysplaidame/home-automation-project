@@ -1,0 +1,9 @@
+[Unit]
+Description=Protected MediaMTX configuration checkpoint to OMV
+RequiresMountsFor=/mnt/omv/docker-host-backups
+After=docker.service network-online.target
+
+[Service]
+Type=oneshot
+UMask=0077
+ExecStart=/usr/local/sbin/mediamtx-config-backup.sh

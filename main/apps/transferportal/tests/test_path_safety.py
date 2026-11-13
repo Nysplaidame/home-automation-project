@@ -36,3 +36,33 @@ def test_rejects_root_filesystem():
 def test_rejects_overlapping_source_destination():
     with pytest.raises(PathValidationError, match="inside source"):
         validate_no_overlap(Path("/srv/source-disk"), Path("/srv/source-disk/subdir"))
+
+
+def test_normalises_absolute_parent_segments_before_mount_checks():
+    with pytest.raises(PathValidationError, match="blocked"):
+        validate_data_path(
+            Path("/srv/source-disk/../../etc"),
+            MOUNTS,
+            (Path("/srv"),),
+            (Path("/etc"),),
+        )
+
+
+def test_resolves_symlink_before_mount_checks(tmp_path):
+    data_mount = tmp_path / "data"
+    blocked = tmp_path / "blocked"
+    data_mount.mkdir()
+    blocked.mkdir()
+    link = data_mount / "escape"
+    try:
+        link.symlink_to(blocked, target_is_directory=True)
+    except OSError:
+        pytest.skip("symlinks are unavailable on this test host")
+
+    with pytest.raises(PathValidationError, match="blocked|mounted filesystem"):
+        validate_data_path(
+            link,
+            [MountInfo(target=data_mount, source="/dev/test", fstype="ext4")],
+            (tmp_path,),
+            (blocked,),
+        )

@@ -1,4 +1,4 @@
-# VentSys SLA pipe air sensor
+# VentSys SLA pipe air sensor — BME680 + CO on GPIO3; no smoke channel
 # Device: ventsys-sla-pipe-air-sensor  IP: 192.168.50.37  VLAN 50
 
 substitutions:
@@ -8,6 +8,10 @@ substitutions:
   device_ip: "192.168.50.37"
   mqtt_topic_prefix: "ventsys/sla/pipe_air"
   temp_threshold: "40.0"
+  co_gpio: GPIO3
+  bme680_address: "0x77"
+  log_level: DEBUG
 
 packages:
-  base: !include ventsys_air_sensor_base.yaml
+  base: !include ventsys_air_sensor_co_only_base.yaml
+  co: !include ventsys_air_sensor_co.yaml

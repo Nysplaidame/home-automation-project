@@ -82,15 +82,19 @@ def required_sections_check(files: dict[str, list]) -> None:
     domains = get_domains(dhcp)
     wifi_ifaces = get_wifi_ifaces(wifi)
 
-    required_interfaces = {"lan", "management", "automation", "nvr", "printers", "storage", "iot_sensors", "monitoring", "dmz", "guest"}
+    required_interfaces = {"lan", "management", "automation", "nvr", "printers", "storage", "iot_sensors", "cloud_iot", "monitoring", "dmz", "guest"}
     missing_ifaces = required_interfaces - set(interfaces)
     if missing_ifaces:
         err("vlan-config.conf", f"missing required interfaces: {sorted(missing_ifaces)}")
 
-    if len(bridge_vlans) < 10:
-        err("vlan-config.conf", f"expected at least 10 bridge-vlan sections, found {len(bridge_vlans)}")
+    wan6_nd = interfaces.get("wan6_nd")
+    if not wan6_nd or wan6_nd.get("device") != "@wan" or wan6_nd.get("proto") != "static":
+        err("vlan-config.conf", "Zen ND interface wan6_nd must be static on @wan")
 
-    required_zones = {"wan", "lan", "management", "automation", "nvr", "printers", "storage", "iot_sensors", "monitoring", "dmz", "guest", "vpn_clients"}
+    if len(bridge_vlans) < 11:
+        err("vlan-config.conf", f"expected at least 11 bridge-vlan sections, found {len(bridge_vlans)}")
+
+    required_zones = {"wan", "lan", "management", "automation", "nvr", "printers", "storage", "iot_sensors", "cloud_iot", "monitoring", "dmz", "guest", "vpn_clients"}
     missing_zones = required_zones - set(zones)
     if missing_zones:
         err("firewall-config.conf", f"missing required zones: {sorted(missing_zones)}")
@@ -123,7 +127,7 @@ def cross_file_consistency(files: dict[str, list]) -> None:
 
     for zname, zone in get_zones(fw).items():
         for net in zone.get_list("network"):
-            if net in {"wan", "wan6", "wg0"}:
+            if net in {"wan", "wan6", "wan6_nd", "wg0"}:
                 continue
             if net not in if_names:
                 err("firewall-config.conf", f"zone '{zname}' references unknown interface '{net}'", zone.line_no)
@@ -314,7 +318,7 @@ def architecture_policy_check(files: dict[str, list]) -> None:
     rules = {r.get("name", ""): r for r in get_rules(fw)}
     required_rules = [
         "Docker Host AdGuard Upstream DNS",
-        "Docker Host Tailscale Egress",
+        "Docker Host VPN Egress",
         "Docker Host to InfluxDB",
         "LAN to Docker Host App UIs",
         "VPN to OMV NAS",

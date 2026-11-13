@@ -14,12 +14,14 @@ function Invoke-NativeCapture {
             $PSNativeCommandUseErrorActionPreference = $false
         }
 
+        $LASTEXITCODE = $null
         $raw = & $Command 2>&1
         $exitCode = $LASTEXITCODE
+        if ($null -eq $exitCode) { $exitCode = 1 }
     }
     catch {
         $raw = @($_.Exception.Message)
-        $exitCode = if ($LASTEXITCODE -ne $null) { $LASTEXITCODE } else { 1 }
+        $exitCode = 1
     }
     finally {
         $ErrorActionPreference = $oldErrorActionPreference

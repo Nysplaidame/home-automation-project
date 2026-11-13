@@ -63,7 +63,10 @@ class PromptPrefixTests(unittest.TestCase):
         msgs = [sys_msg(), user("Hello"), asst("Hi"), user("How much salt does it need?")]
         out = M._trim_messages(msgs, 8, STATE_WITH_RECIPE)
         self.assertEqual(out[:3], msgs[:3])  # system prompt and history untouched
-        self.assertEqual(out[3]["role"], "system")
+        # Recipe titles and web results come from outside Home Assistant, so the hint is sent as labelled
+        # untrusted reference data in a user message, never as a system instruction.
+        self.assertEqual(out[3]["role"], "user")
+        self.assertTrue(out[3]["content"].startswith("Untrusted reference data"))
         self.assertIn("Ultimate Chicken Soup", out[3]["content"])
         self.assertEqual(out[4], msgs[3])
         self.assertEqual(len(out), 5)
@@ -186,6 +189,41 @@ class WarmupCanaryTests(unittest.TestCase):
 
     def test_error_speech_is_the_apology_the_canary_looks_for(self):
         self.assertTrue(M.ERROR_SPEECH.startswith("I could not complete that request."))
+
+
+class RecipePickRecallTests(unittest.TestCase):
+    """'Which recipe did I pick?' must come from the conversation: assistant state is scoped to one turn."""
+
+    class Item:
+        def __init__(self, role, **kw):
+            self.role = role
+            self.__dict__.update(kw)
+
+    class Log:
+        def __init__(self, content):
+            self.content = content
+
+    def pick(self, name, tool="get_saved_recipe"):
+        return self.Item("tool_result", tool_name=tool, tool_result={"success": True, "recipe": {"name": name}})
+
+    def test_latest_pick_from_the_chat_log(self):
+        log = self.Log([self.pick("Creamy Tarragon Chicken (1)"), self.Item("assistant", content="..."),
+                        self.pick("Ultimate Chicken Soup")])
+        self.assertEqual(M._maybe_direct_recipe_recall_answer("Which recipe did I pick?", log, {}),
+                         "You picked Ultimate Chicken Soup.")
+
+    def test_prefixed_tool_names_and_empty_state(self):
+        log = self.Log([self.pick("Lentil soup", tool="mealie_recipes__get_saved_recipe")])
+        self.assertEqual(M._maybe_direct_recipe_recall_answer("Which recipe did I pick?", log, None),
+                         "You picked Lentil soup.")
+
+    def test_nothing_picked_leaves_it_to_the_model(self):
+        self.assertIsNone(M._maybe_direct_recipe_recall_answer("Which recipe did I pick?", self.Log([]), {}))
+
+    def test_state_from_this_turn_is_a_fallback(self):
+        state = {"active_recipe": {"name": "Pad Thai", "slug": "pad-thai"}}
+        self.assertEqual(M._maybe_direct_recipe_recall_answer("Which recipe did I pick?", self.Log([]), state),
+                         "You picked Pad Thai.")
 
 
 class ClockAndDateTests(unittest.TestCase):

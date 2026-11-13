@@ -1,0 +1,15 @@
+# Shared board power controls for production VentSys ESPHome firmware.
+#
+# Power Off enters ESPHome shutdown/deep sleep. The board stops telemetry,
+# sensing, and actuator control and cannot be reached over Wi-Fi while asleep.
+# Restart Board works only while the board is awake. To wake a shut-down board,
+# press its physical reset button or cycle its power.
+
+button:
+  - platform: shutdown
+    name: "Power Off Board"
+    icon: "mdi:power"
+
+  - platform: restart
+    name: "Restart Board"
+    icon: "mdi:restart"

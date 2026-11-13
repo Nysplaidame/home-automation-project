@@ -1,0 +1,331 @@
+# VentSys array MQTT entities + fire-risk publisher
+#
+# Closes the gaps between the ESPHome array firmware (configs/esphome) and Home Assistant:
+#   * CO, differential pressure (SDP810), alarm_latched, fault and temp_alarm for BOTH arrays
+#   * array 2 temperature / humidity / IAQ / smoke (array 1 of these lives in ventsys_ha_package.yaml)
+#   * the missing ventsys/{fdm,sla}/risk/state publisher that ventsys_fire_risk_cutoff depends on
+#
+# Topic layout published by ventsys_air_sensor_base.yaml (+ _co / _dp packages):
+#   ventsys/<fdm|sla>/array_<1|2>/{temperature,humidity,iaq,smoke,co,diff_pressure,
+#                                  temp_alarm,alarm_latched,fault,online}
+#
+# Load next to ventsys_ha_package.yaml:
+#   ventsys_arrays: !include packages/ventsys_array_mqtt.yaml
+#
+# NOTE: diff_pressure only appears once the `dp:` package is enabled in the array config,
+#       and co only once the `co:` package is. Until then those entities are 'unavailable'.
+# NOTE: there is no booth board yet, so ventsys/booth/risk/state is still not published.
+
+mqtt:
+  sensor:
+    - name: FDM Array 1 Humidity
+      unique_id: ventsys_fdm_array_1_humidity
+      state_topic: "ventsys/fdm/array_1/humidity"
+      unit_of_measurement: "%"
+      device_class: humidity
+      expire_after: 120
+
+    - name: FDM Array 1 Differential Pressure
+      unique_id: ventsys_fdm_array_1_diff_pressure
+      state_topic: "ventsys/fdm/array_1/diff_pressure"
+      unit_of_measurement: "Pa"
+      device_class: pressure
+      state_class: measurement
+      expire_after: 120
+
+    - name: FDM Array 2 Temperature
+      unique_id: ventsys_fdm_array_2_temperature
+      state_topic: "ventsys/fdm/array_2/temperature"
+      unit_of_measurement: "°C"
+      device_class: temperature
+      expire_after: 120
+
+    - name: FDM Array 2 IAQ
+      unique_id: ventsys_fdm_array_2_iaq
+      state_topic: "ventsys/fdm/array_2/iaq"
+      unit_of_measurement: "Ω"
+      state_class: measurement
+      expire_after: 120
+
+    - name: FDM Array 2 Humidity
+      unique_id: ventsys_fdm_array_2_humidity
+      state_topic: "ventsys/fdm/array_2/humidity"
+      unit_of_measurement: "%"
+      device_class: humidity
+      expire_after: 120
+
+    - name: FDM Array 2 Differential Pressure
+      unique_id: ventsys_fdm_array_2_diff_pressure
+      state_topic: "ventsys/fdm/array_2/diff_pressure"
+      unit_of_measurement: "Pa"
+      device_class: pressure
+      state_class: measurement
+      expire_after: 120
+
+    - name: SLA Array 1 Humidity
+      unique_id: ventsys_sla_array_1_humidity
+      state_topic: "ventsys/sla/array_1/humidity"
+      unit_of_measurement: "%"
+      device_class: humidity
+      expire_after: 120
+
+    - name: SLA Array 1 Differential Pressure
+      unique_id: ventsys_sla_array_1_diff_pressure
+      state_topic: "ventsys/sla/array_1/diff_pressure"
+      unit_of_measurement: "Pa"
+      device_class: pressure
+      state_class: measurement
+      expire_after: 120
+
+    - name: SLA Array 2 Temperature
+      unique_id: ventsys_sla_array_2_temperature
+      state_topic: "ventsys/sla/array_2/temperature"
+      unit_of_measurement: "°C"
+      device_class: temperature
+      expire_after: 120
+
+    - name: SLA Array 2 IAQ
+      unique_id: ventsys_sla_array_2_iaq
+      state_topic: "ventsys/sla/array_2/iaq"
+      unit_of_measurement: "Ω"
+      state_class: measurement
+      expire_after: 120
+
+    - name: SLA Array 2 Humidity
+      unique_id: ventsys_sla_array_2_humidity
+      state_topic: "ventsys/sla/array_2/humidity"
+      unit_of_measurement: "%"
+      device_class: humidity
+      expire_after: 120
+
+    - name: SLA Array 2 Differential Pressure
+      unique_id: ventsys_sla_array_2_diff_pressure
+      state_topic: "ventsys/sla/array_2/diff_pressure"
+      unit_of_measurement: "Pa"
+      device_class: pressure
+      state_class: measurement
+      expire_after: 120
+
+  binary_sensor:
+    - name: FDM Array 1 CO
+      unique_id: ventsys_fdm_array_1_co
+      state_topic: "ventsys/fdm/array_1/co"
+      payload_on: "detected"
+      payload_off: "clear"
+      device_class: carbon_monoxide
+      expire_after: 120
+
+    - name: FDM Array 1 High Temperature
+      unique_id: ventsys_fdm_array_1_temp_alarm
+      state_topic: "ventsys/fdm/array_1/temp_alarm"
+      payload_on: "high"
+      payload_off: "normal"
+      device_class: heat
+      expire_after: 120
+
+    - name: FDM Array 1 Alarm Latched
+      unique_id: ventsys_fdm_array_1_alarm_latched
+      state_topic: "ventsys/fdm/array_1/alarm_latched"
+      payload_on: "latched"
+      payload_off: "clear"
+      device_class: safety
+      expire_after: 120
+
+    - name: FDM Array 1 Sensor Fault
+      unique_id: ventsys_fdm_array_1_fault
+      state_topic: "ventsys/fdm/array_1/fault"
+      payload_on: "fault"
+      payload_off: "ok"
+      device_class: problem
+      expire_after: 120
+
+    - name: FDM Array 2 Smoke
+      unique_id: ventsys_fdm_array_2_smoke
+      state_topic: "ventsys/fdm/array_2/smoke"
+      payload_on: "detected"
+      payload_off: "clear"
+      device_class: smoke
+      expire_after: 120
+
+    - name: FDM Array 2 CO
+      unique_id: ventsys_fdm_array_2_co
+      state_topic: "ventsys/fdm/array_2/co"
+      payload_on: "detected"
+      payload_off: "clear"
+      device_class: carbon_monoxide
+      expire_after: 120
+
+    - name: FDM Array 2 High Temperature
+      unique_id: ventsys_fdm_array_2_temp_alarm
+      state_topic: "ventsys/fdm/array_2/temp_alarm"
+      payload_on: "high"
+      payload_off: "normal"
+      device_class: heat
+      expire_after: 120
+
+    - name: FDM Array 2 Alarm Latched
+      unique_id: ventsys_fdm_array_2_alarm_latched
+      state_topic: "ventsys/fdm/array_2/alarm_latched"
+      payload_on: "latched"
+      payload_off: "clear"
+      device_class: safety
+      expire_after: 120
+
+    - name: FDM Array 2 Sensor Fault
+      unique_id: ventsys_fdm_array_2_fault
+      state_topic: "ventsys/fdm/array_2/fault"
+      payload_on: "fault"
+      payload_off: "ok"
+      device_class: problem
+      expire_after: 120
+
+    - name: SLA Array 1 CO
+      unique_id: ventsys_sla_array_1_co
+      state_topic: "ventsys/sla/array_1/co"
+      payload_on: "detected"
+      payload_off: "clear"
+      device_class: carbon_monoxide
+      expire_after: 120
+
+    - name: SLA Array 1 High Temperature
+      unique_id: ventsys_sla_array_1_temp_alarm
+      state_topic: "ventsys/sla/array_1/temp_alarm"
+      payload_on: "high"
+      payload_off: "normal"
+      device_class: heat
+      expire_after: 120
+
+    - name: SLA Array 1 Alarm Latched
+      unique_id: ventsys_sla_array_1_alarm_latched
+      state_topic: "ventsys/sla/array_1/alarm_latched"
+      payload_on: "latched"
+      payload_off: "clear"
+      device_class: safety
+      expire_after: 120
+
+    - name: SLA Array 1 Sensor Fault
+      unique_id: ventsys_sla_array_1_fault
+      state_topic: "ventsys/sla/array_1/fault"
+      payload_on: "fault"
+      payload_off: "ok"
+      device_class: problem
+      expire_after: 120
+
+    - name: SLA Array 2 Smoke
+      unique_id: ventsys_sla_array_2_smoke
+      state_topic: "ventsys/sla/array_2/smoke"
+      payload_on: "detected"
+      payload_off: "clear"
+      device_class: smoke
+      expire_after: 120
+
+    - name: SLA Array 2 CO
+      unique_id: ventsys_sla_array_2_co
+      state_topic: "ventsys/sla/array_2/co"
+      payload_on: "detected"
+      payload_off: "clear"
+      device_class: carbon_monoxide
+      expire_after: 120
+
+    - name: SLA Array 2 High Temperature
+      unique_id: ventsys_sla_array_2_temp_alarm
+      state_topic: "ventsys/sla/array_2/temp_alarm"
+      payload_on: "high"
+      payload_off: "normal"
+      device_class: heat
+      expire_after: 120
+
+    - name: SLA Array 2 Alarm Latched
+      unique_id: ventsys_sla_array_2_alarm_latched
+      state_topic: "ventsys/sla/array_2/alarm_latched"
+      payload_on: "latched"
+      payload_off: "clear"
+      device_class: safety
+      expire_after: 120
+
+    - name: SLA Array 2 Sensor Fault
+      unique_id: ventsys_sla_array_2_fault
+      state_topic: "ventsys/sla/array_2/fault"
+      payload_on: "fault"
+      payload_off: "ok"
+      device_class: problem
+      expire_after: 120
+
+
+# ---------------------------------------------------------------------------
+# Fire-risk publisher (Option B from the F-28 note in ventsys_ha_package.yaml).
+# FIRE_RISK when ANY array of the enclosure has: latched alarm, smoke, CO or high temperature.
+# Unavailable/unknown entities count as "no fire" so a dead board cannot cut printer power;
+# board faults are handled by the incident automations instead. Published retained.
+# ---------------------------------------------------------------------------
+automation:
+  - id: ventsys_fdm_risk_publish
+    alias: VentSys FDM risk state publisher
+    mode: queued
+    max: 5
+    trigger:
+      - platform: state
+        entity_id:
+          - binary_sensor.fdm_array_1_alarm_latched
+          - binary_sensor.fdm_array_1_co
+          - binary_sensor.fdm_array_1_high_temperature
+          - binary_sensor.fdm_array_2_alarm_latched
+          - binary_sensor.fdm_array_2_co
+          - binary_sensor.fdm_array_2_high_temperature
+          - sensor.fdm_smoke
+          - binary_sensor.fdm_array_2_smoke
+      - platform: homeassistant
+        event: start
+    action:
+      - action: mqtt.publish
+        data:
+          topic: "ventsys/fdm/risk/state"
+          retain: true
+          payload: >-
+            {% set hot = [
+              is_state('binary_sensor.fdm_array_1_alarm_latched', 'on'),
+              is_state('binary_sensor.fdm_array_1_co', 'on'),
+              is_state('binary_sensor.fdm_array_1_high_temperature', 'on'),
+              is_state('binary_sensor.fdm_array_2_alarm_latched', 'on'),
+              is_state('binary_sensor.fdm_array_2_co', 'on'),
+              is_state('binary_sensor.fdm_array_2_high_temperature', 'on'),
+              is_state('sensor.fdm_smoke', 'detected'),
+              is_state('binary_sensor.fdm_array_2_smoke', 'on'),
+            ] %}
+            {{ 'FIRE_RISK' if true in hot else 'NORMAL' }}
+
+  - id: ventsys_sla_risk_publish
+    alias: VentSys SLA risk state publisher
+    mode: queued
+    max: 5
+    trigger:
+      - platform: state
+        entity_id:
+          - binary_sensor.sla_array_1_alarm_latched
+          - binary_sensor.sla_array_1_co
+          - binary_sensor.sla_array_1_high_temperature
+          - binary_sensor.sla_array_2_alarm_latched
+          - binary_sensor.sla_array_2_co
+          - binary_sensor.sla_array_2_high_temperature
+          - sensor.sla_smoke
+          - binary_sensor.sla_array_2_smoke
+      - platform: homeassistant
+        event: start
+    action:
+      - action: mqtt.publish
+        data:
+          topic: "ventsys/sla/risk/state"
+          retain: true
+          payload: >-
+            {% set hot = [
+              is_state('binary_sensor.sla_array_1_alarm_latched', 'on'),
+              is_state('binary_sensor.sla_array_1_co', 'on'),
+              is_state('binary_sensor.sla_array_1_high_temperature', 'on'),
+              is_state('binary_sensor.sla_array_2_alarm_latched', 'on'),
+              is_state('binary_sensor.sla_array_2_co', 'on'),
+              is_state('binary_sensor.sla_array_2_high_temperature', 'on'),
+              is_state('sensor.sla_smoke', 'detected'),
+              is_state('binary_sensor.sla_array_2_smoke', 'on'),
+            ] %}
+            {{ 'FIRE_RISK' if true in hot else 'NORMAL' }}
+

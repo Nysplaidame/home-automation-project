@@ -25,10 +25,16 @@
 #   sensor.p1s_* — print progress, state, temperatures, layer, time, filename
 #   binary_sensor.p1s_printing — true while actively printing
 # Automations:
-#   Print start  → notify + log
-#   Print done   → notify + log
-#   Print failed → urgent notify + VentSys purge
-#   Bambuddy offline → notify
+#   Print start  → persistent + Companion App notification + log
+#   Print done   → persistent + Companion App notification + log
+#   Print failed → urgent persistent + Companion App notification + VentSys purge
+#   Bambuddy offline → persistent + Companion App notification
+#
+# The confirmed operator-phone notify action is `notify.mobile_app_mai_foenn`.
+# Keep the persistent notification in every automation as the no-phone fallback.
+# Each phone notification opens Bambuddy's authenticated HTTPS PWA; printer
+# commands remain in Bambuddy, rather than duplicating its authenticated API key
+# into Home Assistant configuration.
 
 mqtt:
   # ──────────────────────────────────────────────────────────────────────────
@@ -128,10 +134,12 @@ mqtt:
     - name: "Bambuddy Online"
       unique_id: bambuddy_online
       state_topic: "bambuddy/status"
+      value_template: "{{ value_json.status }}"
       payload_on: "online"
       payload_off: "offline"
       device_class: connectivity
-      expire_after: 120
+      # Bambuddy publishes this retained availability value at startup.  Do not
+      # expire it locally: the broker's retained offline LWT is authoritative.
 
 # ──────────────────────────────────────────────────────────────────────────
 # AUTOMATIONS
@@ -146,14 +154,25 @@ automation:
       - platform: mqtt
         topic: "bambuddy/printers/<P1S_SERIAL>/print/started"
     action:
-      # Use persistent_notification as a safe default. Replace with a targeted
-      # notify service once HA notifications are configured.
       - action: notify.persistent_notification
         data:
           title: "🖨️ P1S Print Started"
           message: >
             {% set payload = trigger.payload_json %}
             {{ payload.print_name | default('Unknown print') }} started.
+      - action: notify.mobile_app_mai_foenn
+        data:
+          title: "🖨️ P1S Print Started"
+          message: >
+            {% set payload = trigger.payload_json %}
+            {{ payload.print_name | default('Unknown print') }} started.
+          data:
+            channel: "P1S status"
+            tag: p1s-print
+            actions:
+              - action: URI
+                title: Open Bambuddy
+                uri: "https://docker-host.tail7012a0.ts.net:8181/"
       # Log to HA logbook
       - action: logbook.log
         data:
@@ -170,14 +189,25 @@ automation:
       - platform: mqtt
         topic: "bambuddy/printers/<P1S_SERIAL>/print/completed"
     action:
-      # Use persistent_notification as a safe default. Replace with a targeted
-      # notify service once HA notifications are configured.
       - action: notify.persistent_notification
         data:
           title: "✅ P1S Print Complete"
           message: >
             {% set payload = trigger.payload_json %}
             {{ payload.print_name | default('Print') }} finished successfully.
+      - action: notify.mobile_app_mai_foenn
+        data:
+          title: "✅ P1S Print Complete"
+          message: >
+            {% set payload = trigger.payload_json %}
+            {{ payload.print_name | default('Print') }} finished successfully.
+          data:
+            channel: "P1S status"
+            tag: p1s-print
+            actions:
+              - action: URI
+                title: Open Bambuddy
+                uri: "https://docker-host.tail7012a0.ts.net:8181/"
       - action: logbook.log
         data:
           name: "P1S Printer"
@@ -193,17 +223,28 @@ automation:
       - platform: mqtt
         topic: "bambuddy/printers/<P1S_SERIAL>/print/failed"
     action:
-      # Use persistent_notification as a safe default. Replace with a targeted
-      # notify service once HA notifications are configured.
       - action: notify.persistent_notification
         data:
           title: "❌ P1S Print Failed"
           message: >
             {% set payload = trigger.payload_json %}
             {{ payload.print_name | default('Print') }} failed.
-            Check Bambuddy for details: http://192.168.20.102:8000
+            Check Bambuddy for details.
+      - action: notify.mobile_app_mai_foenn
+        data:
+          title: "❌ P1S Print Failed"
+          message: >
+            {% set payload = trigger.payload_json %}
+            {{ payload.print_name | default('Print') }} failed. Tap to inspect and control it in Bambuddy.
           data:
+            channel: "P1S alerts"
+            tag: p1s-print-alert
+            ttl: 0
             priority: high
+            actions:
+              - action: URI
+                title: Open Bambuddy
+                uri: "https://docker-host.tail7012a0.ts.net:8181/"
       # Run VentSys purge to clear any residual fumes from a failed print
       - action: script.turn_on
         target:
@@ -226,14 +267,25 @@ automation:
         for:
           minutes: 3
     action:
-      # Use persistent_notification as a safe default. Replace with a targeted
-      # notify service once HA notifications are configured.
       - action: notify.persistent_notification
         data:
           title: "⚠️ Bambuddy Offline"
           message: >
             Bambuddy on docker-host (192.168.20.102:8000) has been unreachable for 3 minutes.
             P1S printer events are not being tracked.
+      - action: notify.mobile_app_mai_foenn
+        data:
+          title: "⚠️ Bambuddy Offline"
+          message: "Bambuddy has been unreachable for 3 minutes; P1S events are not being tracked."
+          data:
+            channel: "P1S alerts"
+            tag: bambuddy-offline
+            ttl: 0
+            priority: high
+            actions:
+              - action: URI
+                title: Open Bambuddy
+                uri: "https://docker-host.tail7012a0.ts.net:8181/"
 
   # High chamber temperature from Bambuddy data — supplements VentSys sensors
   - id: p1s_chamber_temp_high
@@ -250,14 +302,26 @@ automation:
         entity_id: binary_sensor.p1s_printing
         state: "on"
     action:
-      # Use persistent_notification as a safe default. Replace with a targeted
-      # notify service once HA notifications are configured.
       - action: notify.persistent_notification
         data:
           title: "⚠️ P1S Chamber Temp High"
           message: >
             P1S chamber at {{ states('sensor.p1s_chamber_temperature') }}°C while printing.
             VentSys fan increased.
+      - action: notify.mobile_app_mai_foenn
+        data:
+          title: "⚠️ P1S Chamber Temp High"
+          message: >
+            P1S chamber at {{ states('sensor.p1s_chamber_temperature') }}°C while printing. VentSys fan increased.
+          data:
+            channel: "P1S alerts"
+            tag: p1s-chamber-temperature
+            ttl: 0
+            priority: high
+            actions:
+              - action: URI
+                title: Open Bambuddy
+                uri: "https://docker-host.tail7012a0.ts.net:8181/"
       - action: fan.set_percentage
         target:
           entity_id: fan.inline_fan

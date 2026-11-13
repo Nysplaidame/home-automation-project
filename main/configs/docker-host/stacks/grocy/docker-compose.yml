@@ -1,6 +1,6 @@
 services:
   grocy:
-    image: lscr.io/linuxserver/grocy:4.6.0
+    image: lscr.io/linuxserver/grocy:4.6.0@sha256:1efa34ad8fbfff8a7c146e00b5af0cbd768352dfbb23acca0bad35796190d7ff
     container_name: grocy
     restart: unless-stopped
     ports:
@@ -11,4 +11,12 @@ services:
       PUID: "1000"
       PGID: "1000"
       TZ: "Europe/London"
+    networks:
+      - grocy
 
+networks:
+  grocy:
+    name: grocy
+    ipam:
+      config:
+        - subnet: 10.240.6.0/24

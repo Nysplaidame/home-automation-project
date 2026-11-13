@@ -1,0 +1,34 @@
+%%{init: {"theme":"base","fontFamily":"Segoe UI, sans-serif","themeVariables":{"primaryColor":"#123044","primaryTextColor":"#eef6ff","primaryBorderColor":"#58b7bf","lineColor":"#9aafc4","clusterBkg":"#0d1c2d","clusterBorder":"#38516b","tertiaryColor":"#0d1c2d","edgeLabelBackground":"#0b1929","fontSize":"18px"},"flowchart":{"curve":"basis","nodeSpacing":28,"rankSpacing":90,"padding":12,"subGraphTitleMargin":{"top":8,"bottom":16},"wrappingWidth":260,"useMaxWidth":false}}}%%
+flowchart LR
+    %% Applies to the ESP32-C6 v2 intake firmware; verify each physical board and deployed identity before wiring.
+    %% Layout: power (left) --> ESP pins --- peripheral pins (right). Servo 5V comes straight from the PSU.
+    PSU["Dedicated regulated 5V rail<br/>size for servo stall current"]
+    subgraph ESP["ESP32-C6 · 360° INTAKE VALVE CONTROLLER"]
+        ESPVin["5V / VIN<br/>board power"]
+        ESPGnd["GND"]
+        ServoPin["GPIO0<br/>50 Hz servo PWM"]
+        LedPin["GPIO1<br/>WS2812 status LED"]
+        TouchPin["GPIO2<br/>digital touch input"]
+    end
+    subgraph Servo["MG90S SERVO / 360° INTAKE VALVE"]
+        ServoV["Red · 5V"]
+        ServoGnd["Brown · GND"]
+        ServoSignal["Orange · signal"]
+    end
+    subgraph Aux["ON-BOARD / OPTIONAL INPUTS"]
+        Led["WS2812 status LED"]
+        Touch["External digital touch module OUT"]
+    end
+    Note["V2 physical endpoints 30–60 require calibration.<br/>Physical FDM .62 and SLA .61 still need identity reassignment; verify installed firmware before wiring."]
+    PSU --> ESPVin
+    PSU --> ESPGnd
+    PSU -->|servo 5V| ServoV
+    ESPGnd --- ServoGnd
+    ServoPin --- ServoSignal
+    LedPin --- Led
+    TouchPin --- Touch
+    Note ~~~ PSU
+    class ESP,Servo,Aux core
+    class PSU,Note policy
+    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa
+    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8

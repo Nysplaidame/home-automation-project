@@ -1,28 +1,31 @@
-flowchart TB
-    Clients["LAN, management, automation, printer, guest clients"]
-    Restricted["Restricted VLAN clients<br/>NVR, storage, IoT"]
-    Router["OpenWrt router<br/>dnsmasq + DHCP + local DNS + NTP<br/>192.168.10.1"]
-    AdGuard["AdGuard Home on docker-host<br/>192.168.20.102<br/>DNS filtering"]
-    Quad9["Quad9 public DNS<br/>9.9.9.9 preferred fallback"]
-    Cloudflare["Cloudflare public DNS<br/>secondary fallback"]
-    HA["Home Assistant<br/>time source can point at router NTP"]
-    ESPHome["ESPHome / VentSys devices<br/>router-derived time through HA and/or direct NTP when allowed"]
+%%{init: {"theme":"base","fontFamily":"Segoe UI, sans-serif","themeVariables":{"primaryColor":"#123044","primaryTextColor":"#eef6ff","primaryBorderColor":"#58b7bf","lineColor":"#9aafc4","clusterBkg":"#0d1c2d","clusterBorder":"#38516b","tertiaryColor":"#0d1c2d","edgeLabelBackground":"#0b1929","fontFamily":"Segoe UI, sans-serif","fontSize":"18px"},"flowchart":{"curve":"linear","nodeSpacing":20,"rankSpacing":28,"padding":12,"subGraphTitleMargin":{"top":8,"bottom":16},"wrappingWidth":380,"useMaxWidth":false}}}%%
+flowchart LR
+    subgraph DNS["NAME RESOLUTION"]
+        direction TB
+        Clients["CLIENTS · INCLUDING RESTRICTED VLANS<br/>Use their router gateway for DNS"]
+        RouterDNS["OPENWRT DNSMASQ<br/>Local names + DHCP authority"]
+        AdGuard["ADGUARD · VM103<br/>192.168.20.102 · filtering"]
+        Upstream["PUBLIC RESOLVERS<br/>Quad9 preferred · Cloudflare secondary<br/>No Google fallback"]
+        Clients --> RouterDNS --> AdGuard --> Upstream
+        RouterDNS -.->|"fallback if AdGuard unavailable"| Upstream
+    end
+    subgraph Time["TIME SYNCHRONIZATION"]
+        direction TB
+        NTP["OPENWRT NTP<br/>Per-zone scoped access"]
+        HA["HOME ASSISTANT<br/>Router-derived time"]
+        ESP["ESPHOME / VENTSYS<br/>Through HA or permitted direct NTP<br/>Hardware adoption remains pending"]
+        NTP --> HA --> ESP
+        NTP -.->|"where allowed"| ESP
+    end
+    subgraph Policy["CLIENT POLICY"]
+        Rules["Router remains local-name authority<br/>Enforced clients cannot bypass DNS53/853<br/>VLAN55 Hive also uses router DNS/NTP<br/>Nonstandard encrypted DNS is not excluded"]
+    end
+    DNS ~~~ Time ~~~ Policy
+    class RouterDNS,AdGuard,NTP,HA core
+    class Rules policy
+    class ESP deferred
 
-    Clients --> Router
-    Restricted --> Router
-    Router --> AdGuard
-    AdGuard --> Quad9
-    AdGuard --> Cloudflare
-    Router -.->|"automatic public DNS fallback if AdGuard unavailable"| Quad9
-    Router -.->|"secondary fallback"| Cloudflare
-
-    Router --> HA
-    Router --> ESPHome
-    HA -.->|"manages ESPHome devices and schedules"| ESPHome
-
-    LocalNames["Local hostnames and DHCP leases<br/>router remains authority"]
-    Router --- LocalNames
-
-    Blocked["No Google DNS fallback<br/>no client DNS bypass when enforcement is enabled"]
-    Clients -.->|"policy"| Blocked
-    Restricted -.->|"policy"| Blocked
+    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa
+    classDef store fill:#292745,stroke:#aa99db,color:#f2edff
+    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8
+    classDef deferred fill:#1b2638,stroke:#9dabc1,color:#d3dfef,stroke-dasharray:5 4

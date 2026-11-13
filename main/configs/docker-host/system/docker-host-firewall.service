@@ -1,0 +1,14 @@
+[Unit]
+Description=Source-scoped firewall for Docker-published services
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/docker-host-firewall.sh
+ExecReload=/usr/local/sbin/docker-host-firewall.sh
+
+[Install]
+WantedBy=multi-user.target

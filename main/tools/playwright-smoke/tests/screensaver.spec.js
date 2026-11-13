@@ -1,7 +1,4 @@
 const { test, expect } = require("@playwright/test");
-const http = require("http");
-const fs = require("fs");
-const path = require("path");
 const { PNG } = require("pngjs");
 
 test("screensaver renders with canvas and safety strip", async ({ page }) => {
@@ -10,27 +7,8 @@ test("screensaver renders with canvas and safety strip", async ({ page }) => {
     if (message.type() === "error" && !message.text().includes("favicon")) browserErrors.push(message.text());
   });
   page.on("pageerror", (error) => browserErrors.push(error.message));
-  const root = path.resolve(__dirname, "../../..");
-  const server = http.createServer((req, res) => {
-    const requested = decodeURIComponent(new URL(req.url, "http://127.0.0.1").pathname);
-    const safePath = path.normalize(requested).replace(/^(\.\.[/\\])+/, "");
-    const filePath = path.join(root, safePath === "/" ? "ventsys_solar_screensaver.html" : safePath);
-    if (!filePath.startsWith(root)) {
-      res.writeHead(403);
-      res.end("Forbidden");
-      return;
-    }
-    fs.readFile(filePath, (err, data) => {
-      if (err) {
-        res.writeHead(404);
-        res.end("Not found");
-        return;
-      }
-      const ext = path.extname(filePath);
-      res.writeHead(200, { "content-type": ext === ".js" ? "text/javascript" : ext === ".html" ? "text/html" : "application/octet-stream" });
-      res.end(data);
-    });
-  });
+  const { createPreviewServer } = require("../scripts/preview-screensaver.js");
+  const server = createPreviewServer();
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   const { port } = server.address();
 

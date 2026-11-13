@@ -1,0 +1,281 @@
+# Installed FDM sensor: MAC CC:BA:97:F0:D0:C0, 192.168.50.32.
+# BME680 GPIO4/5, 0x77; CO analog GPIO3 at 3V3; plain status LED GPIO2.
+# CO baseline is qualitative, not ppm. Separate certified CO alarm required.
+# Planned FDM array 2 also claims .32; resolve before adopting that board.
+# Preserves legacy identity and BME MQTT topics; no fabricated smoke channel.
+substitutions:
+  device_name: ventsys-fdm-sensor
+  friendly_name: "FDM Enclosure Sensor"
+  device_ip: "192.168.50.32"
+  mqtt_topic_prefix: "ventsys/fdm"
+  gas_update_interval: 5s
+  gas_supply_voltage: "3.3"
+  gas_load_resistance: "4700.0"
+  gas_fault_low_v: "0.02"
+  gas_fault_high_margin_v: "0.05"
+  state_publish_interval: 30s
+  co_gpio: GPIO3
+  # N-2 fix: temp_threshold substitution allows per-board override without modifying shared firmware.
+  # FDM board: 55.0 (default). SLA board: override to 40.0 in ventsys_sla_sensor.yaml.
+  # Resin enclosures need lower threshold -- SLA resin fumes are flammable at lower temps.
+  temp_threshold: "40.0" # Existing conservative threshold retained pending commissioning.
+
+globals:
+  - id: gas_sensors_ready
+    type: bool
+    restore_value: no
+    initial_value: "false"
+  - id: extra_alarm_active
+    type: bool
+    restore_value: no
+    initial_value: "false"
+  - id: extra_fault_active
+    type: bool
+    restore_value: no
+    initial_value: "false"
+  - id: alarm_latch
+    type: bool
+    restore_value: yes
+    initial_value: "false"
+  - id: installed_bme_last_ms
+    type: uint32_t
+    restore_value: no
+    initial_value: "0"
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  on_boot:
+    - priority: -100
+      then:
+        - delay: 180s
+        - lambda: 'id(gas_sensors_ready) = true;'
+
+esp32:
+  board: esp32-c6-devkitc-1
+  framework:
+    type: esp-idf
+
+wifi:
+  ssid: !secret wifi_ssid       # HomeIoT
+  password: !secret wifi_pass
+  manual_ip:
+    static_ip: ${device_ip}
+    gateway: 192.168.50.1
+    subnet: 255.255.255.0
+
+mqtt:
+  broker: 192.168.20.101
+  port: 8883                    # A9-7 fix: comment was backwards. Stage 1 (pre-TLS): change to 1883 for initial bring-up. Stage 2: revert to 8883. Ships as 8883 (post-TLS default).
+  username: !secret mqtt_user
+  password: !secret mqtt_pass
+  discovery: false
+  certificate_authority: !secret mqtt_ca_cert
+  on_connect:
+    - mqtt.publish:
+        topic: "ventsys/fdm/array_1/fault"
+        payload: !lambda 'return std::string(id(installed_sensor_fault).state ? "fault" : "ok");'
+        retain: true
+
+api:
+  encryption:
+    key: !secret api_key
+
+ota:
+  - platform: esphome
+    encryption:  # Retain encrypted OTA from the current maintenance build.
+
+logger:
+  level: WARN
+
+# ── TIME SYNC ────────────────────────────────────────────────────────────────
+# Required for MQTT TLS certificate validation.
+# ESP32 boots at 1970-01-01 (no hardware RTC). Without time sync, the TLS
+# handshake fails because certificates appear issued in the future.
+# Syncs from HA via the native API — no NTP server or internet access required.
+# A6-1 fix: pattern established by ventsys_fdm_airflow.yaml, now applied here.
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
+# ── STATUS LED ───────────────────────────────────────────────────────────────
+status_led:
+  pin:
+    number: GPIO2
+    inverted: false
+
+# ── I2C BUS (BME680) ─────────────────────────────────────────────────────────
+i2c:
+  sda: GPIO4
+  scl: GPIO5
+  scan: false
+
+# ── SENSORS ──────────────────────────────────────────────────────────────────
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    entity_category: diagnostic
+
+  # Humidity + barometric pressure + IAQ gas resistance (BME680 — I2C)
+  # BME680 provides temperature, humidity, pressure, and gas resistance.
+  #
+  # IAQ source: gas_resistance published to ${mqtt_topic_prefix}/iaq (ohms).
+  # Higher resistance = cleaner air. HA can invert/scale for display.
+  # Note: Bosch's proprietary BSEC2 library gives a 0-500 IAQ score but
+  # requires the ESPHome bsec2 component and a licence agreement. Raw gas
+  # resistance is used here to avoid that dependency — it carries the same
+  # information and can be processed in HA or Node-RED if needed.
+  #
+  # MQ sensor role: fast combustion/smoke alarm ONLY (binary, not IAQ).
+  # The two sensors are complementary — BME680 for air quality trend,
+  # MQ for rapid threshold detection.
+  - platform: bme680
+    address: 0x77   # SDO tied HIGH; use 0x76 if SDO is tied to GND
+    update_interval: 30s
+
+    temperature:
+      name: "${friendly_name} Temperature"
+      id: enclosure_temperature
+      unit_of_measurement: "°C"
+      accuracy_decimals: 1
+      filters:
+        - filter_out: nan
+        - sliding_window_moving_average:
+            window_size: 3
+            send_every: 1
+      on_value:
+        then:
+          - lambda: 'id(installed_bme_last_ms) = millis();'
+          - mqtt.publish:
+              topic: "${mqtt_topic_prefix}/temperature"
+              payload: !lambda 'return to_string(x);'
+
+    humidity:
+      name: "${friendly_name} Humidity"
+      id: enclosure_humidity
+      unit_of_measurement: "%"
+      accuracy_decimals: 1
+      on_value:
+        then:
+          - mqtt.publish:
+              topic: "${mqtt_topic_prefix}/humidity"
+              payload: !lambda 'return to_string(x);'
+
+    pressure:
+      name: "${friendly_name} Pressure"
+      id: enclosure_pressure
+      unit_of_measurement: "hPa"
+      accuracy_decimals: 2
+      on_value:
+        then:
+          - mqtt.publish:
+              topic: "${mqtt_topic_prefix}/baro_pressure"
+              payload: !lambda 'return to_string(x);'
+      # Absolute barometric pressure — used by ventsys_ha_optional.yaml to
+      # compute differential vs. garage ambient (ventsys/garage/baro_pressure).
+      # Separate from the ADC airflow proxy below (blocked valve detection).
+
+    gas_resistance:
+      name: "${friendly_name} IAQ Gas Resistance"
+      id: gas_resistance
+      unit_of_measurement: "Ω"
+      accuracy_decimals: 0
+      filters:
+        - filter_out: nan
+        - sliding_window_moving_average:
+            window_size: 3
+            send_every: 1
+      on_value:
+        then:
+          - mqtt.publish:
+              topic: "${mqtt_topic_prefix}/iaq"
+              payload: !lambda 'return to_string((int)x);'
+      # Requires ~5 min warm-up after boot before readings stabilise.
+      # BME680 gas resistance drifts — allow 30 min for stable baseline.
+
+# ── BINARY SENSORS ───────────────────────────────────────────────────────────
+binary_sensor:
+  # Publish validity for the current FDM array-1 fault topic as well as the
+  # retained legacy sensor topics. Missing BME data must not imply safety.
+  - platform: template
+    name: "sensor_fault"
+    id: installed_sensor_fault
+    device_class: problem
+    lambda: 'return id(installed_bme_last_ms) == 0 || (millis() - id(installed_bme_last_ms)) > 90000UL || id(extra_fault_active);'
+    on_state:
+      - mqtt.publish:
+          topic: "ventsys/fdm/array_1/fault"
+          payload: !lambda 'return std::string(x ? "fault" : "ok");'
+          retain: true
+
+  - platform: template
+    name: "CO Alarm Latched"
+    id: co_alarm_latched
+    device_class: problem
+    lambda: 'return id(alarm_latch);'
+
+  # High temperature alarm — > 55°C for FDM, > 40°C for SLA
+  # This config uses 55°C (FDM). Change to 40 in the SLA board substitution.
+  - platform: template
+    name: "${friendly_name} High Temperature"
+    id: high_temp_alarm
+    lambda: 'return id(enclosure_temperature).state > ${temp_threshold}f;'  # N-2 fix: use substitution so SLA board can override to 40.0
+    device_class: heat
+    filters:
+      - delayed_on: 10s
+    on_press:
+      then:
+        - mqtt.publish:
+            topic: "${mqtt_topic_prefix}/temp_alarm"
+            payload: "high"
+    on_release:
+      then:
+        - mqtt.publish:
+            topic: "${mqtt_topic_prefix}/temp_alarm"
+            payload: "normal"
+
+  # ESPHome API connectivity status (published for HA watchdog)
+  - platform: status
+    name: "${friendly_name} Status"
+    id: device_status
+
+# ── TEXT SENSORS ─────────────────────────────────────────────────────────────
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "${friendly_name} IP"
+    ssid:
+      name: "${friendly_name} SSID"
+    bssid:
+      name: "${friendly_name} BSSID"
+
+# ── INTERVAL: publish all readings to MQTT on boot ───────────────────────────
+interval:
+  - interval: 60s
+    then:
+      - mqtt.publish:
+          topic: "${mqtt_topic_prefix}/online"
+          payload: "true"
+
+# ── SECRETS REQUIRED IN secrets.yaml ────────────────────────────────────────
+# wifi_ssid: "HomeIoT"
+# wifi_pass: "your-homeiot-password"
+# mqtt_user: "mqtt"
+# mqtt_pass: "your-mqtt-password"
+# mqtt_ca_cert: |
+#   -----BEGIN CERTIFICATE-----
+#   ... (contents of ca.crt from local CA)
+#   -----END CERTIFICATE-----
+# api_key: "your-32-byte-base64-api-key"   # generate: openssl rand -base64 32
+# ota_password: "your-ota-password"
+
+button:
+  - platform: template
+    name: "Acknowledge CO Alarm"
+    on_press:
+      - lambda: |-
+          if (id(gas_sensors_ready) && !id(co_alarm).state && !id(co_fault).state) id(alarm_latch) = false;
+
+packages:
+  co: !include ventsys_air_sensor_co.yaml
+  board_management: !include ventsys_board_management.yaml

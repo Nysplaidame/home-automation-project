@@ -69,7 +69,7 @@ switch:
 binary_sensor:
   - platform: gpio
     name: "Button"
-    id: button
+    id: local_plug_button
     pin:
       number: GPIO13
       mode: INPUT_PULLUP
@@ -101,3 +101,5 @@ text_sensor:
       name: "IP Address"
     ssid:
       name: "SSID"
+packages:
+  board_management: !include ventsys_board_management.yaml

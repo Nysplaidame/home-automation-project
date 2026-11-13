@@ -1,4 +1,4 @@
-base-url: "http://ntfy.home.local:8085"
+base-url: "https://192.168.20.102:8193"
 listen-http: ":80"
 cache-file: "/var/cache/ntfy/cache.db"
 auth-file: "/etc/ntfy/user.db"

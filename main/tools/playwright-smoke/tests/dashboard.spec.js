@@ -1,30 +1,11 @@
-const { test, expect } = require("@playwright/test");
-const fs = require("fs");
-const path = require("path");
-
-const dashboardPath = path.resolve(__dirname, "../../../dashboards/ventsys-dashboard.html");
-
-test("dashboard startup uses command-free valve renderers", async () => {
-  const html = fs.readFileSync(dashboardPath, "utf8");
-  const init = html.match(/\/\/ Initialise all butterfly[\s\S]*?\/\/ ── Flow sensor colour/);
-  expect(init).not.toBeNull();
-  expect(init[0]).toContain("renderValveVisual(id, 0)");
-  expect(init[0]).toContain("renderIntakeVisual(1, 0)");
-  expect(init[0]).not.toContain("updateValveVisual(id, 0)");
-
-  const valveRenderer = html.match(/function renderValveVisual[\s\S]*?\n  function updateValveVisual/);
-  const intakeRenderer = html.match(/function renderIntakeVisual[\s\S]*?\n  function updateIntakeVisual/);
-  expect(valveRenderer).not.toBeNull();
-  expect(intakeRenderer).not.toBeNull();
-  expect(valveRenderer[0]).not.toContain("haPublish(");
-  expect(intakeRenderer[0]).not.toContain("haPublish(");
-});
-
-test("dashboard renders without a configured HA connection", async ({ page }) => {
-  const browserErrors = [];
-  page.on("pageerror", (error) => browserErrors.push(error.message));
-  await page.goto(`file:///${dashboardPath.replace(/\\/g, "/")}`);
-  await expect(page.locator("#current-mode")).toContainText("SEALED");
-  await expect(page.locator("#valve-main-1-pos")).toContainText("0%");
-  expect(browserErrors).toEqual([]);
+const { test, expect } = require('@playwright/test');
+const fs = require('node:fs');
+const path = require('node:path');
+test('legacy dashboard URLs lead to authenticated HA without loading credentials', async () => {
+  for (const name of ['ventsys-dashboard.html', 'ventsys-card-wrapper.html']) {
+    const html = fs.readFileSync(path.resolve(__dirname, '../../../dashboards', name), 'utf8');
+    expect(html).toContain('/dashboard-ventsys/0');
+    expect(html).not.toContain('ventsys-config.js');
+    expect(html).not.toContain('<script');
+  }
 });

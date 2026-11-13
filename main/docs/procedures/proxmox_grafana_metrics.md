@@ -3,7 +3,7 @@ title: Proxmox Grafana Metrics
 description: Native Proxmox metric export into InfluxDB v2 and Grafana dashboard state
 tags: [proxmox, grafana, influxdb, monitoring, metrics]
 created: 2026-05-29
-modified: 2026-05-31
+modified: 2026-09-25
 type: procedure
 status: active
 ---
@@ -26,6 +26,9 @@ Grafana reads those metrics through a dedicated datasource.
 - Docker-host InfluxDB bucket: `dockerhost`
 - Docker-host Grafana datasource: `InfluxDB - Docker Host`
 - Docker-host Grafana datasource UID: `influxdb-dockerhost`
+- Bambuddy metrics: scraped locally by docker-host Telegraf from
+  `http://127.0.0.1:8000/api/v1/metrics` into the `dockerhost` bucket
+- Grafana dashboard: `Bambuddy Metrics` (`/d/bambuddy-metrics/bambuddy-metrics`)
 - Grafana dashboard: `Proxmox Resource Overview`
 - Grafana dashboard URL: `http://192.168.60.10:3000/d/proxmox-resource-overview/proxmox-resource-overview`
 - Grafana paired NAS dashboard shell: `NAS Resource Overview`
@@ -129,6 +132,14 @@ Docker-host telemetry is collected by a Telegraf container at
 `/opt/stacks/telegraf` on VM 103. Rebuildable non-secret templates live under
 `configs/docker-host/stacks/telegraf/`.
 
+Bambuddy's Prometheus-format endpoint is collected by that same Telegraf
+container, which uses host networking solely to read the endpoint via
+loopback. This is intentionally a Prometheus *format* scrape into the existing
+InfluxDB/Grafana path, not a second Prometheus server, and it does not require
+an inter-VLAN firewall rule. Bambuddy must have **Prometheus Metrics** enabled
+in its settings. A non-empty Bambuddy metrics token would require a matching
+`Authorization` header in the Telegraf input before enabling collection.
+
 Live secret material:
 
 - Docker-host Telegraf write token: `/opt/stacks/telegraf/.env` on VM 103
@@ -158,10 +169,15 @@ Current baseline as of 2026-07-06:
 
 ## Memory interpretation
 
-The Proxmox host currently has about `31 GiB` RAM (`33,107,255,296` bytes).
+The Proxmox host has64GB installed and about62GiB usable RAM (October10 live
+audit); the older31GiB sample predates the upgrade.
 Linux may use free memory for cache, so the dashboard uses available memory to
 show pressure rather than treating cache as unavailable. A `RAM Pressure` value
 around one third means the hypervisor is not maxed out.
+
+Always-on actual pressure and OOM alerts are now deployed independently of
+Grafana: [[resource_pressure_monitor]]. VM102 is6GiB, VM103 is10GiB with128GiB
+root and CT111 is6GiB after lifecycle repair; use current inventory rather than historical samples.
 
 For VM cards and rows, do not display a bare percent without a metric label.
 Use labels such as `CPU`, `Guest RAM`, `Root Disk`, or `Storage` so high

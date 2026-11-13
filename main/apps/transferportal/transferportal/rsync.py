@@ -9,7 +9,6 @@ ADVANCED_ALLOWLIST = {
     "--ignore-times",
     "--whole-file",
     "--one-file-system",
-    "--inplace",
 }
 
 
@@ -30,8 +29,8 @@ def build_rsync_command(
 ) -> tuple[str, ...]:
     if options.checksum_compare and options.size_only_compare:
         raise RsyncOptionError("checksum compare and size-only compare cannot both be enabled")
-    if options.delete_destination_extras and not portal.allow_destination_delete:
-        raise RsyncOptionError("portal does not permit destination deletions")
+    if options.delete_destination_extras:
+        raise RsyncOptionError("destination deletion is disabled until root-owned portal policy is implemented")
 
     command: list[str] = ["rsync", "-r"]
     if options.preserve_permissions:
@@ -59,9 +58,6 @@ def build_rsync_command(
         command.append("--checksum")
     if options.size_only_compare:
         command.append("--size-only")
-    if options.delete_destination_extras:
-        command.append("--delete")
-
     for flag in options.advanced_flags:
         if flag not in ADVANCED_ALLOWLIST:
             raise RsyncOptionError(f"advanced flag is not allowlisted: {flag}")
@@ -69,4 +65,3 @@ def build_rsync_command(
 
     command.extend([_slash(portal.source_mount), _slash(portal.destination_mount)])
     return tuple(command)
-

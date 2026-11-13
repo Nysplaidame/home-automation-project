@@ -1,0 +1,107 @@
+services:
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb
+    restart: unless-stopped
+    ports:
+      - "192.168.60.10:8086:8086"
+    volumes:
+      - ./influxdb/data:/var/lib/influxdb2
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ORG: homelab
+      DOCKER_INFLUXDB_INIT_BUCKET: homeassistant
+      DOCKER_INFLUXDB_INIT_RETENTION: 90d
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_TOKEN}
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "192.168.60.10:3000:3000"
+    volumes:
+      - ./grafana/data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+      # Grafana runs in Homepage's HTTPS preview iframe. Explicitly permit the
+      # authenticated session cookie in that embedded context; `Secure` keeps
+      # it HTTPS-only and the existing CSRF trusted-origin policy still applies.
+      GF_SECURITY_COOKIE_SAMESITE: none
+      GF_SECURITY_COOKIE_SECURE: "true"
+      # Grafana is presented to browsers through Homepage's fixed HTTPS proxy.
+      GF_SERVER_ROOT_URL: https://homepage.home.local:8202/
+      GF_LIVE_ALLOWED_ORIGINS: https://homepage.home.local:8202
+      GF_SECURITY_CSRF_TRUSTED_ORIGINS: https://homepage.home.local:8202
+      GF_SECURITY_CSRF_ADDITIONAL_HEADERS: X-Forwarded-Host
+      # Homepage's sole Grafana entry is an authenticated embedded workspace.
+      # Do not silently replace a missing or expired session with anonymous
+      # Viewer access; send it back to Grafana's normal login screen instead.
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    depends_on:
+      - influxdb
+      - loki-query-proxy
+
+  telegraf:
+    image: telegraf:latest
+    container_name: telegraf
+    ports:
+      - "192.168.60.10:514:6514/udp"
+    restart: unless-stopped
+    user: telegraf:998
+    group_add:
+      - "989"
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - /:/hostfs:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      HOST_ETC: /hostfs/etc
+      HOST_PROC: /hostfs/proc
+      HOST_SYS: /hostfs/sys
+      HOST_VAR: /hostfs/var
+      HOST_RUN: /hostfs/run
+      HOST_MOUNT_PREFIX: /hostfs
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
+    depends_on:
+      - influxdb
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    restart: unless-stopped
+    ports:
+      - "192.168.60.10:3001:3001"
+    volumes:
+      - ./uptime-kuma:/app/data
+      - ./certs/home-local-ca.crt:/etc/ssl/home-local-ca.crt:ro
+    environment:
+      NODE_EXTRA_CA_CERTS: /etc/ssl/home-local-ca.crt
+
+  loki:
+    image: grafana/loki@sha256:00981fd9455db8589c3aa6d06744af3138c4b2c32fdec62101e92c7a704b2642
+    container_name: loki
+    restart: unless-stopped
+    command: -config.file=/etc/loki/config.yml
+    ports:
+      - "192.168.60.10:3100:3100"
+    volumes:
+      - ./loki/config.yml:/etc/loki/config.yml:ro
+      - ./loki/data:/loki
+      - ./loki/certs:/etc/loki/certs:ro
+
+  loki-query-proxy:
+    image: nginx@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10
+    container_name: loki-query-proxy
+    restart: unless-stopped
+    volumes:
+      - ./loki/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./loki/certs:/etc/nginx/certs:ro
+    depends_on:
+      - loki

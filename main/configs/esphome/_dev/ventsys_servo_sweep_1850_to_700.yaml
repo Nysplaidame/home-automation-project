@@ -1,0 +1,321 @@
+# One-use UNLOADED Valve 2 test: position to 1850 us in <=100 us steps,
+# then command one 1850 -> 700 us sweep. Do not attach the valve linkage.
+# The special Sweep button is enabled only after a completed, stable 1850 us
+# pulse; any post-release feedback jump latches a fault and blocks movement.
+substitutions:
+  device_name: ventsys-main-valve-2
+  friendly_name: "VentSys Main Duct Valve 2 Calibration"
+  device_ip: "192.168.50.52"
+  servo_gpio: GPIO16
+  feedback_gpio: GPIO35
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  on_boot:
+    priority: -100
+    then:
+      - servo.detach: calibration_servo
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+    version: recommended
+
+logger:
+
+api:
+  encryption:
+    key: !secret api_key
+  reboot_timeout: 0s
+
+ota:
+  platform: esphome
+  password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  use_address: ${device_ip}
+  manual_ip:
+    static_ip: ${device_ip}
+    gateway: 192.168.50.1
+    subnet: 255.255.255.0
+    dns1: 192.168.50.1
+  ap:
+    ssid: "VentSys Valve 2 Calibration"
+    password: !secret ota_password
+
+captive_portal:
+
+output:
+  - platform: ledc
+    id: calibration_pwm
+    pin: ${servo_gpio}
+    frequency: 50Hz
+
+servo:
+  - id: calibration_servo
+    output: calibration_pwm
+    auto_detach_time: 900ms
+    min_level: 2.5%
+    idle_level: 7.5%
+    max_level: 12.5%
+
+globals:
+  - id: command_sequence
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: sample_sum
+    type: float
+    restore_value: no
+    initial_value: '0.0f'
+  - id: sample_min
+    type: float
+    restore_value: no
+    initial_value: 'NAN'
+  - id: sample_max
+    type: float
+    restore_value: no
+    initial_value: 'NAN'
+  - id: sample_count
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: active_pulse_us
+    type: float
+    restore_value: no
+    initial_value: '1500.0f'
+  - id: last_completed_us
+    type: float
+    restore_value: no
+    initial_value: '1500.0f'
+  - id: has_completed_pulse
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: previous_mean_v
+    type: float
+    restore_value: no
+    initial_value: 'NAN'
+  - id: sweep_pending
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: sweep_done
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: release_fault
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+
+number:
+  - platform: template
+    name: "Servo Pulse Width"
+    id: target_pulse_us
+    unit_of_measurement: "µs"
+    icon: "mdi:pulse"
+    min_value: 700
+    max_value: 1850
+    step: 10
+    initial_value: 1500
+    optimistic: true
+    mode: box
+    set_action:
+      then:
+        - lambda: |-
+            // Selecting a target never energises the servo.
+            ESP_LOGI("calibration", "Selected %.0f us; press Apply Pulse to move", x);
+
+sensor:
+  - platform: adc
+    pin: ${feedback_gpio}
+    name: "Raw Feedback Voltage"
+    id: raw_feedback_v
+    unit_of_measurement: "V"
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 3
+    attenuation: auto
+    update_interval: 20ms
+    entity_category: diagnostic
+
+  - platform: template
+    name: "Last Feedback Mean"
+    id: last_feedback_mean
+    unit_of_measurement: "V"
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 3
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "Last Feedback Range"
+    id: last_feedback_range
+    unit_of_measurement: "V"
+    state_class: measurement
+    accuracy_decimals: 3
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "Last Applied Pulse"
+    id: last_applied_pulse
+    unit_of_measurement: "µs"
+    accuracy_decimals: 0
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "Command Sequence"
+    id: sequence_sensor
+    accuracy_decimals: 0
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "Last Release Shift"
+    id: last_release_shift
+    unit_of_measurement: "V"
+    accuracy_decimals: 3
+    update_interval: never
+    entity_category: diagnostic
+
+binary_sensor:
+  - platform: template
+    name: "Calibration Release Fault"
+    id: release_fault_sensor
+    device_class: problem
+    entity_category: diagnostic
+    lambda: 'return id(release_fault);'
+
+button:
+  - platform: template
+    name: "Apply Pulse"
+    on_press:
+      then:
+        - if:
+            condition:
+              script.is_running: apply_pulse_script
+            then:
+              - lambda: 'ESP_LOGW("calibration", "Apply rejected: a pulse is already active");'
+            else:
+              - if:
+                  condition:
+                    lambda: |-
+                      const float target = id(target_pulse_us).state;
+                      return id(release_fault) || id(sweep_done) ||
+                             (!id(has_completed_pulse) && target != 1500.0f) ||
+                             (id(has_completed_pulse) && fabsf(target - id(last_completed_us)) > 100.0f);
+                  then:
+                    - lambda: |-
+                        ESP_LOGW("calibration", "Apply rejected: fault/done, or first pulse not 1500 us, or step >100 us");
+                  else:
+                    - script.execute: apply_pulse_script
+
+  - platform: template
+    name: "Sweep 1850 To 700 Once"
+    on_press:
+      then:
+        - if:
+            condition:
+              lambda: |-
+                const float feedback = id(raw_feedback_v).state;
+                const float settled = id(last_feedback_mean).state;
+                return !id(apply_pulse_script).is_running() &&
+                       !id(release_fault) && !id(sweep_done) &&
+                       id(has_completed_pulse) && id(last_completed_us) == 1850.0f &&
+                       !isnan(feedback) && !isnan(settled) &&
+                       fabsf(feedback - settled) < 0.020f;
+            then:
+              - lambda: |-
+                  id(sweep_pending) = true;
+                  id(target_pulse_us).publish_state(700.0f);
+                  ESP_LOGW("calibration", "One-shot sweep armed: 1850 -> 700 us");
+              - script.execute: apply_pulse_script
+            else:
+              - lambda: 'ESP_LOGW("calibration", "Sweep rejected: stable 1850 us starting position not confirmed");'
+
+  - platform: template
+    name: "Stop Release"
+    on_press:
+      then:
+        - script.stop: apply_pulse_script
+        - servo.detach: calibration_servo
+        - lambda: |-
+            id(has_completed_pulse) = false;
+            id(sweep_pending) = false;
+            ESP_LOGW("calibration", "Stop/Release: PWM detached; range anchor cleared, reapply 1500 us before stepping");
+
+script:
+  - id: apply_pulse_script
+    mode: single
+    then:
+      - lambda: |-
+          id(command_sequence)++;
+          id(active_pulse_us) = clamp(id(target_pulse_us).state, 700.0f, 1850.0f);
+          if (id(sweep_pending)) {
+            id(sweep_pending) = false;
+            id(sweep_done) = true;
+          }
+          id(sequence_sensor).publish_state(id(command_sequence));
+          id(last_applied_pulse).publish_state(id(active_pulse_us));
+          id(sample_sum) = 0.0f;
+          id(sample_min) = NAN;
+          id(sample_max) = NAN;
+          id(sample_count) = 0;
+          ESP_LOGI("calibration", "Command %d: %.0f us; feedback before %.3f V",
+                   id(command_sequence), id(active_pulse_us), id(raw_feedback_v).state);
+      - servo.write:
+          id: calibration_servo
+          level: !lambda |-
+            const float pulse = id(active_pulse_us);
+            // Servo -1..+1 maps to 500..2500 us at 50 Hz.
+            return (pulse - 1500.0f) / 1000.0f;
+      - delay: 600ms
+      - repeat:
+          count: 10
+          then:
+            - component.update: raw_feedback_v
+            - delay: 20ms
+            - lambda: |-
+                const float sample = id(raw_feedback_v).state;
+                if (!isnan(sample)) {
+                  id(sample_sum) += sample;
+                  if (isnan(id(sample_min)) || sample < id(sample_min)) id(sample_min) = sample;
+                  if (isnan(id(sample_max)) || sample > id(sample_max)) id(sample_max) = sample;
+                  id(sample_count)++;
+                }
+      - servo.detach: calibration_servo
+      - delay: 300ms
+      - lambda: |-
+          if (id(sample_count) == 10) {
+            const float mean = id(sample_sum) / 10.0f;
+            const float range = id(sample_max) - id(sample_min);
+            const float delta = mean - id(previous_mean_v);
+            const float release_shift = id(raw_feedback_v).state - mean;
+            id(last_feedback_mean).publish_state(mean);
+            id(last_feedback_range).publish_state(range);
+            id(last_release_shift).publish_state(release_shift);
+            ESP_LOGI("calibration", "Command %d: mean %.3f V, range %.3f V, delta %.3f V, release shift %.3f V; PWM released",
+                     id(command_sequence), mean, range, delta, release_shift);
+            if (isnan(release_shift) || fabsf(release_shift) > 0.020f) {
+              id(release_fault) = true;
+              ESP_LOGE("calibration", "Post-release feedback jump: movement latched off");
+            }
+            if (id(has_completed_pulse) && fabsf(id(active_pulse_us) - id(last_completed_us)) >= 50.0f && fabsf(delta) < 0.010f) {
+              ESP_LOGW("calibration", "Small feedback change for >=50 us step: stop and inspect before moving farther");
+            }
+            id(previous_mean_v) = mean;
+            id(last_completed_us) = id(active_pulse_us);
+            id(has_completed_pulse) = true;
+          } else {
+            id(release_fault) = true;
+            ESP_LOGW("calibration", "Command %d: only %d valid samples; PWM released, result discarded",
+                     id(command_sequence), id(sample_count));
+          }

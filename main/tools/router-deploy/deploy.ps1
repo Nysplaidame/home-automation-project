@@ -89,24 +89,35 @@ function Arm-RollbackWatchdog {
     $cancelPath = "/tmp/router-deploy-watchdog-$Timestamp.cancel"
     $resultPath = "/tmp/router-deploy-watchdog-$Timestamp.result"
     $logPath = "/tmp/router-deploy-watchdog-$Timestamp.log"
+    $decisionPath = "/tmp/router-deploy-watchdog-$Timestamp.decision"
     $remoteSnap = "/tmp/router-deploy-snapshots/$Timestamp"
     $cmd = @"
 cat > '$watchdogPath' <<'EOF'
 #!/bin/sh
 set -e
 sleep $TimeoutSeconds
+# Atomic one-shot decision: either cancellation or rollback owns this directory.
+# Never remove it while this deployment is in progress.
+if ! mkdir '$decisionPath' 2>/dev/null; then
+  exit 0
+fi
 if [ -e '$cancelPath' ]; then
   exit 0
 fi
 if [ -d '$remoteSnap' ]; then
+    echo WATCHDOG_ROLLBACK_STARTED > '$resultPath'
+    trap 'echo WATCHDOG_ROLLBACK_FAILED > "$resultPath"' EXIT
     cp '$remoteSnap'/* /etc/config/
-    /etc/init.d/network restart
+    restart_failed=0
+    /etc/init.d/network restart || restart_failed=1
     sleep 5
     wifi reload || true
-    /etc/init.d/dnsmasq restart
-    /etc/init.d/firewall restart
-    /etc/init.d/sysntpd restart
+    /etc/init.d/dnsmasq restart || restart_failed=1
+    /etc/init.d/firewall restart || restart_failed=1
+    /etc/init.d/sysntpd restart || restart_failed=1
+    [ "`$restart_failed" -eq 0 ] || exit 1
     echo WATCHDOG_ROLLBACK_OK > '$resultPath'
+    trap - EXIT
 else
   echo WATCHDOG_SNAPSHOT_MISSING > '$resultPath'
 fi
@@ -129,7 +140,8 @@ echo WATCHDOG_ARMED
 function Cancel-RollbackWatchdog {
     param([string]$KeyPath, [string]$RouterIp, [string]$Timestamp)
     $cancelPath = "/tmp/router-deploy-watchdog-$Timestamp.cancel"
-    $cmd = "touch '$cancelPath' && echo WATCHDOG_CANCELLED"
+    $decisionPath = "/tmp/router-deploy-watchdog-$Timestamp.decision"
+    $cmd = "mkdir '$decisionPath' 2>/dev/null && touch '$cancelPath' && echo WATCHDOG_CANCELLED"
     $r = Invoke-RouterCommand -KeyPath $KeyPath -RouterIp $RouterIp -Command $cmd
     if ($r.ExitCode -ne 0 -or $r.Output -notmatch "WATCHDOG_CANCELLED") {
         Fail "Deployment health checks passed, but rollback watchdog could not be cancelled: $($r.Output)"
@@ -204,13 +216,17 @@ cat > '$restartPath' <<'EOF'
 #!/bin/sh
 set -e
 sleep 2
-/etc/init.d/network restart
+trap 'echo RESTART_FAILED > "$resultPath"' EXIT
+restart_failed=0
+/etc/init.d/network restart || restart_failed=1
 sleep 5
 wifi reload || true
-  /etc/init.d/dnsmasq restart
-  /etc/init.d/firewall restart
-  /etc/init.d/sysntpd restart
+  /etc/init.d/dnsmasq restart || restart_failed=1
+  /etc/init.d/firewall restart || restart_failed=1
+  /etc/init.d/sysntpd restart || restart_failed=1
+  [ "`$restart_failed" -eq 0 ] || exit 1
   echo RESTART_OK > '$resultPath'
+  trap - EXIT
 EOF
 chmod +x '$restartPath'
 rm -f '$resultPath' '$logPath'

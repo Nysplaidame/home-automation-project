@@ -1,0 +1,12 @@
+[Unit]
+Description=Publish resource monitor evidence to VM103
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/sbin/troubleshooting-monitor-publish.py
+TimeoutStartSec=20
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true

@@ -1,0 +1,485 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="diagram" viewBox="0 0 1300 820" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Ventilation duct layout with selectable controllers"><!-- ═══ SVG DEFS ═══ -->
+        <defs>
+          <!-- Horizontal pipe gradient: bright top+bottom edges, darker centre -->
+          <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#4ab8d8" stop-opacity="1"/>
+            <stop offset="15%" stop-color="#1a5878" stop-opacity="1"/>
+            <stop offset="50%" stop-color="#0b2e48" stop-opacity="1"/>
+            <stop offset="85%" stop-color="#1a5878" stop-opacity="1"/>
+            <stop offset="100%" stop-color="#4ab8d8" stop-opacity="1"/>
+          </linearGradient>
+          <!-- Vertical pipe gradient cyan -->
+          <linearGradient id="pgv" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#4ab8d8" stop-opacity="1"/>
+            <stop offset="15%" stop-color="#1a5878" stop-opacity="1"/>
+            <stop offset="50%" stop-color="#0b2e48" stop-opacity="1"/>
+            <stop offset="85%" stop-color="#1a5878" stop-opacity="1"/>
+            <stop offset="100%" stop-color="#4ab8d8" stop-opacity="1"/>
+          </linearGradient>
+
+          <!-- Vertical pipe gradient pink (enc1) -->
+          <linearGradient id="pgvgreen" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#80ffc0" stop-opacity="1"/>
+            <stop offset="15%" stop-color="#009944" stop-opacity="1"/>
+            <stop offset="50%" stop-color="#003322" stop-opacity="1"/>
+            <stop offset="85%" stop-color="#009944" stop-opacity="1"/>
+            <stop offset="100%" stop-color="#80ffc0" stop-opacity="1"/>
+          </linearGradient>
+          <linearGradient id="glassHighlightGreen" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="rgba(0,255,136,0.35)"/>
+            <stop offset="100%" stop-color="rgba(0,255,136,0.0)"/>
+          </linearGradient>
+          <linearGradient id="pgvpink" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#80ffb0" stop-opacity="1"/>
+            <stop offset="15%" stop-color="#00cc55" stop-opacity="1"/>
+            <stop offset="50%" stop-color="#004422" stop-opacity="1"/>
+            <stop offset="85%" stop-color="#00cc55" stop-opacity="1"/>
+            <stop offset="100%" stop-color="#80ffb0" stop-opacity="1"/>
+          </linearGradient>
+          <!-- Vertical pipe gradient teal (enc2) -->
+          <linearGradient id="pgvt" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#ffe060" stop-opacity="1"/>
+            <stop offset="15%" stop-color="#bb9900" stop-opacity="1"/>
+            <stop offset="50%" stop-color="#443800" stop-opacity="1"/>
+            <stop offset="85%" stop-color="#bb9900" stop-opacity="1"/>
+            <stop offset="100%" stop-color="#ffe060" stop-opacity="1"/>
+          </linearGradient>
+          <linearGradient id="pgvspink" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#ffaa40" stop-opacity="1"/>
+            <stop offset="15%" stop-color="#cc4400" stop-opacity="1"/>
+            <stop offset="50%" stop-color="#331000" stop-opacity="1"/>
+            <stop offset="85%" stop-color="#cc4400" stop-opacity="1"/>
+            <stop offset="100%" stop-color="#ffaa40" stop-opacity="1"/>
+          </linearGradient>
+          <!-- Vertical pipe gradient spray neon -->
+          <linearGradient id="pgvs" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#ffaa40" stop-opacity="1"/>
+            <stop offset="15%" stop-color="#cc6600" stop-opacity="1"/>
+            <stop offset="50%" stop-color="#4a2000" stop-opacity="1"/>
+            <stop offset="85%" stop-color="#cc6600" stop-opacity="1"/>
+            <stop offset="100%" stop-color="#ffaa40" stop-opacity="1"/>
+          </linearGradient>
+          <!-- Horizontal pipe gradient spray neon -->
+          <linearGradient id="pgs" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#ffaa40" stop-opacity="1"/>
+            <stop offset="15%" stop-color="#cc6600" stop-opacity="1"/>
+            <stop offset="50%" stop-color="#4a2000" stop-opacity="1"/>
+            <stop offset="85%" stop-color="#cc6600" stop-opacity="1"/>
+            <stop offset="100%" stop-color="#ffaa40" stop-opacity="1"/>
+          </linearGradient>
+          <!-- Glow filters -->
+          <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+            <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="strongGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+            <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="flowGlow" x="-500%" y="-500%" width="1100%" height="1100%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="coloredBlur"/>
+            <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <!-- Glass highlight gradients -->
+          <linearGradient id="glassHighlightCyan" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="rgba(0,255,255,0.3)"/>
+            <stop offset="100%" stop-color="rgba(0,255,255,0.0)"/>
+          </linearGradient>
+          <linearGradient id="glassHighlightPink" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="rgba(0,255,0,0.3)"/>
+            <stop offset="100%" stop-color="rgba(0,255,0,0.0)"/>
+          </linearGradient>
+          <linearGradient id="glassHighlightYellow" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="rgba(255,238,0,0.35)"/>
+            <stop offset="100%" stop-color="rgba(255,238,0,0.0)"/>
+          </linearGradient>
+          <linearGradient id="glassHighlightTeal" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="rgba(255,238,0,0.3)"/>
+            <stop offset="100%" stop-color="rgba(255,238,0,0.0)"/>
+          </linearGradient>
+          <linearGradient id="glassHighlightSpray" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="rgba(255,0,128,0.35)"/>
+            <stop offset="100%" stop-color="rgba(255,0,128,0.0)"/>
+          </linearGradient>
+          <!-- Flow line animations: dashed, no interruptions -->
+          <style>
+            .nflow   { stroke-dasharray: 14 8; animation: nf  0.8s linear infinite, sideGlow 2.5s ease-in-out infinite; }
+            .nflow-v { stroke-dasharray: 14 8; animation: nfv 0.8s linear infinite, sideGlow 2.5s ease-in-out infinite; }
+            @keyframes nf  { from { stroke-dashoffset: 0; } to { stroke-dashoffset: 44; } }
+            @keyframes sideGlow {
+              0%, 100% { filter: drop-shadow(0 0 2px #00ffff); opacity: 0.55; }
+              50%       { filter: drop-shadow(0 0 8px #ffffff) drop-shadow(0 0 4px #00ffff); opacity: 0.85; }
+            }
+            @keyframes spin { to { transform: rotate(360deg); } }
+          </style>
+                    <filter id="iconBlur" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+          </filter>
+</defs>
+
+        <!-- Background -->
+        <rect width="1300" height="820" fill="#05050f" opacity="0.6"/>
+
+        <!-- GRID GLOW — 6s cycle (2× slower), peak opacity +15% -->
+        <g id="grid-glow-layer" stroke="#ff0080" stroke-width="3" opacity="0">
+          <filter id="gridHalo" filterUnits="userSpaceOnUse" x="-8" y="-8" width="1316" height="836">
+            <feGaussianBlur stdDeviation="4.5"/>
+          </filter>
+          <g filter="url(#gridHalo)">
+            <line x1="0" y1="82" x2="1300" y2="82"/><line x1="0" y1="164" x2="1300" y2="164"/>
+            <line x1="0" y1="246" x2="1300" y2="246"/><line x1="0" y1="328" x2="1300" y2="328"/>
+            <line x1="0" y1="410" x2="1300" y2="410"/><line x1="0" y1="492" x2="1300" y2="492"/>
+            <line x1="0" y1="574" x2="1300" y2="574"/><line x1="0" y1="656" x2="1300" y2="656"/>
+            <line x1="0" y1="738" x2="1300" y2="738"/>
+            <line x1="118.2" y1="0" x2="118.2" y2="820"/><line x1="236.4" y1="0" x2="236.4" y2="820"/>
+            <line x1="354.5" y1="0" x2="354.5" y2="820"/><line x1="472.7" y1="0" x2="472.7" y2="820"/>
+            <line x1="590.9" y1="0" x2="590.9" y2="820"/><line x1="709.1" y1="0" x2="709.1" y2="820"/>
+            <line x1="827.3" y1="0" x2="827.3" y2="820"/><line x1="945.5" y1="0" x2="945.5" y2="820"/>
+            <line x1="1063.6" y1="0" x2="1063.6" y2="820"/><line x1="1181.8" y1="0" x2="1181.8" y2="820"/>
+          </g>
+          <!-- peak=0.52 (+15% over old 0.45), trough=0.05, 6s -->
+          <animate attributeName="opacity" values="0.05;0.52;0.05" dur="6s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1"/>
+        </g>
+        <!-- GRID LINES — high peak, near-zero trough -->
+        <g id="grid-line-layer" stroke="#ff0080" opacity="0.72" stroke-width="0.9">
+          <line x1="0" y1="82" x2="1300" y2="82"/><line x1="0" y1="164" x2="1300" y2="164"/>
+          <line x1="0" y1="246" x2="1300" y2="246"/><line x1="0" y1="328" x2="1300" y2="328"/>
+          <line x1="0" y1="410" x2="1300" y2="410"/><line x1="0" y1="492" x2="1300" y2="492"/>
+          <line x1="0" y1="574" x2="1300" y2="574"/><line x1="0" y1="656" x2="1300" y2="656"/>
+          <line x1="0" y1="738" x2="1300" y2="738"/>
+          <line x1="118.2" y1="0" x2="118.2" y2="820"/><line x1="236.4" y1="0" x2="236.4" y2="820"/>
+          <line x1="354.5" y1="0" x2="354.5" y2="820"/><line x1="472.7" y1="0" x2="472.7" y2="820"/>
+          <line x1="590.9" y1="0" x2="590.9" y2="820"/><line x1="709.1" y1="0" x2="709.1" y2="820"/>
+          <line x1="827.3" y1="0" x2="827.3" y2="820"/><line x1="945.5" y1="0" x2="945.5" y2="820"/>
+          <line x1="1063.6" y1="0" x2="1063.6" y2="820"/><line x1="1181.8" y1="0" x2="1181.8" y2="820"/>
+        
+          <!-- negative: lines darken to black at glow peak, back to pink at trough -->
+          <animate attributeName="stroke" values="#ff0080;#000000;#ff0080" dur="6s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1"/>
+        </g>
+
+        <!-- EXH BOX (doubled height, right edge at pipe left x=170) -->
+        <rect x="60" y="68" width="160" height="110" rx="8" fill="rgba(0,0,0,0.78)" stroke="#ff6600" stroke-width="1.5" style="filter:drop-shadow(0 0 12px rgba(255,102,0,0.55))"/>
+        <text x="115" y="135" fill="#ff6600" font-family="Orbitron" font-size="30" text-anchor="middle" letter-spacing="0">EXH</text>
+        
+
+        <!-- ═══ LAYER 1: GLASS ENCLOSURE BOXES ═══ -->
+<!-- ENC1 BOX 3D Glass -->
+        <rect x="471" y="264" width="280" height="537" rx="8" fill="rgba(0,0,0,0.65)" style="filter:drop-shadow(0 0 22px rgba(0,255,136,0.18))"/>
+        <rect id="enclosure1-frame" x="470" y="263" width="280" height="537" rx="8" fill="rgba(0,0,0,0.75)" stroke="rgba(0,255,136,0.75)" stroke-width="1.5" style="filter:drop-shadow(0 0 18px rgba(0,255,136,0.55))"/>
+        <rect x="470" y="263" width="280" height="49" rx="7" fill="rgba(0,255,136,0.06)"/>
+        <rect x="470" y="263" width="2" height="537" rx="1" fill="rgba(0,255,136,0.3)" opacity="0.5"/>
+        <rect x="470" y="263" width="280" height="537" rx="8" fill="none" stroke="rgba(0,255,136,0.5)" stroke-width="6" opacity="0.45" filter="url(#glow)"/>
+        <text x="608" y="782" fill="#00ff88" font-family="Orbitron" font-size="22" text-anchor="middle" letter-spacing="2" style="text-shadow:0 0 10px rgba(0,255,136,0.6)">ENCLOSURE 01</text>
+
+        
+<!-- ENC2 BOX 3D Glass -->
+        <rect x="796" y="264" width="280" height="537" rx="8" fill="rgba(0,0,0,0.65)" style="filter:drop-shadow(0 0 22px rgba(255,238,0,0.18))"/>
+        <rect id="enclosure2-frame" x="795" y="263" width="280" height="537" rx="8" fill="rgba(0,0,0,0.75)" stroke="rgba(255,238,0,0.75)" stroke-width="1.5" style="filter:drop-shadow(0 0 18px rgba(255,238,0,0.55))"/>
+        <rect x="795" y="263" width="280" height="49" rx="7" fill="rgba(255,238,0,0.06)"/>
+        <rect x="795" y="263" width="2" height="537" rx="1" fill="rgba(255,238,0,0.3)" opacity="0.5"/>
+        <rect x="795" y="263" width="280" height="537" rx="8" fill="none" stroke="rgba(255,238,0,0.5)" stroke-width="6" opacity="0.45" filter="url(#glow)"/>
+        <text x="935" y="782" fill="#ffee00" font-family="Orbitron" font-size="22" text-anchor="middle" letter-spacing="2" style="text-shadow:0 0 10px rgba(255,238,0,0.6)">ENCLOSURE 02</text>
+
+        
+<!-- Spray booth box — 100px, bottom=760, vivid spray colour -->
+        <rect x="1153" y="666" width="144" height="135" rx="8" fill="rgba(0,0,0,0.65)" style="filter:drop-shadow(0 0 22px rgba(255,102,0,0.22))"/>
+        <rect id="spray-booth-frame" x="1150" y="660" width="144" height="140" rx="8" fill="rgba(0,0,0,0.75)" stroke="rgba(255,102,0,0.8)" stroke-width="1.5" style="filter:drop-shadow(0 0 18px rgba(255,102,0,0.55))"/>
+        <rect x="1150" y="660" width="144" height="32" rx="7" fill="rgba(255,102,0,0.06)"/>
+        <rect x="1150" y="660" width="2" height="140" rx="1" fill="rgba(255,102,0,0.3)" opacity="0.5"/>
+        <rect x="1150" y="660" width="144" height="140" rx="8" fill="none" stroke="rgba(255,102,0,0.35)" stroke-width="5" opacity="0.4" filter="url(#glow)"/>
+        <!-- Two-line label inside short box -->
+        <text x="1222" y="705" fill="#ff6600" font-family="Orbitron" font-size="26" text-anchor="middle" letter-spacing="2" style="text-shadow:0 0 16px rgba(255,102,0,0.9)">SPRAY</text>
+        <text x="1222" y="740" fill="#ff6600" font-family="Orbitron" font-size="26" text-anchor="middle" letter-spacing="2" style="text-shadow:0 0 16px rgba(255,102,0,0.9)">BOOTH</text>
+
+        
+
+        <!-- ═══ LAYER 2: VERTICAL PIPES ═══ -->
+<!-- ═══════════════ ENC1 PIPE — bold 3D green ═══════════════ -->
+        <rect x="578" y="100" width="60" height="560" rx="6" fill="#001a08" stroke="#00ff88" stroke-width="1.5" opacity="0.98"/>
+        <rect x="578" y="100" width="60" height="560" rx="6" fill="url(#pgvgreen)"/>
+        <!-- Left specular highlight -->
+        <rect x="578" y="100" width="12" height="560" rx="5" fill="rgba(80,255,160,0.28)" opacity="0.95"/>
+        <!-- Neon glow stroke -->
+        <rect x="578" y="100" width="60" height="560" rx="6" fill="none" stroke="#00ff88" stroke-width="3" opacity="0.65" filter="url(#glow)"/>
+        <!-- E1 branch valve + label LEFT of pipe -->
+        <g id="valve-enc1-vert"><circle id="circle-enc1-vert" cx="608" cy="199" r="40" fill="#080818" stroke="#ff6600" stroke-width="2.5"/><ellipse id="ellipse-enc1-vert" cx="608" cy="199" rx="6" ry="30" fill="#ff6600" opacity="0.18" transform="rotate(0 608 192.2)" style="filter:drop-shadow(0 0 4px #ff6600)"/></g>
+        
+        <text x="564" y="201" fill="#00ffff" font-family="Orbitron" font-size="25" text-anchor="end" letter-spacing="2" style="text-shadow:0 0 14px rgba(0,255,255,0.9)">E1</text>
+        <text x="564" y="224" fill="#ff6600" font-family="Orbitron" font-size="25" text-anchor="end" style="text-shadow:0 0 10px rgba(255,102,0,0.9)" id="valve-enc1-vert-pos">—</text>
+
+        
+<!-- ═══════════════ ENC2 PIPE — bold 3D yellow ═══════════════ -->
+        <rect x="905" y="100" width="60" height="560" rx="6" fill="#1a1800" stroke="#ffee00" stroke-width="1.5" opacity="0.98"/>
+        <rect x="905" y="100" width="60" height="560" rx="6" fill="url(#pgvt)"/>
+        <rect x="907" y="100" width="12" height="560" rx="5" fill="rgba(255,180,80,0.28)" opacity="0.95"/>
+        <rect x="905" y="100" width="60" height="560" rx="6" fill="none" stroke="#ffee00" stroke-width="3" opacity="0.65" filter="url(#glow)"/>
+
+        <!-- E2 branch valve + label LEFT of pipe (mirrors E1) -->
+        <g id="valve-enc2-vert"><circle id="circle-enc2-vert" cx="935" cy="199" r="40" fill="#080818" stroke="#ff6600" stroke-width="2.5"/><ellipse id="ellipse-enc2-vert" cx="935" cy="199" rx="6" ry="30" fill="#ff6600" opacity="0.18" transform="rotate(0 935 192.2)" style="filter:drop-shadow(0 0 4px #ff6600)"/></g>
+        
+        <text x="891" y="201" fill="#00ffff" font-family="Orbitron" font-size="25" text-anchor="end" letter-spacing="2" style="text-shadow:0 0 14px rgba(0,255,255,0.9)">E2</text>
+        <text x="891" y="224" fill="#ff6600" font-family="Orbitron" font-size="25" text-anchor="end" style="text-shadow:0 0 10px rgba(255,102,0,0.9)" id="valve-enc2-vert-pos">—</text>
+
+        
+<!-- ═══════════════ SPRAY BOOTH — neon orange ═══════════════ -->
+        <!-- Vertical pipe 3D — vivid spray colour -->
+        <rect x="1192" y="100" width="60" height="560" rx="6" fill="#1a0500" stroke="#ff6600" stroke-width="1.5" opacity="0.98"/>
+        <rect x="1192" y="100" width="60" height="560" rx="6" fill="url(#pgvspink)"/>
+        <rect x="1194" y="100" width="12" height="560" rx="5" fill="rgba(255,102,0,0.28)" opacity="0.95"/>
+        <rect x="1192" y="100" width="60" height="560" rx="6" fill="none" stroke="#ff6600" stroke-width="3.5" opacity="0.75" filter="url(#glow)"/>
+
+        <!-- Booth fan text labels (drawn after blades so they appear on top) -->
+        <text x="1222" y="468" fill="#00ffff" font-family="Orbitron" font-size="28" text-anchor="middle" letter-spacing="2" style="text-shadow:0 0 16px rgba(0,255,255,0.9)" id="spray-fan-status">BOOTH</text>
+        <text x="1222" y="492" fill="#00ffff" font-family="Orbitron" font-size="28" text-anchor="middle" letter-spacing="2" style="text-shadow:0 0 16px rgba(0,255,255,0.9)">FAN</text>
+        <text x="1222" y="516" fill="#ff6600" font-family="Orbitron" font-size="20" text-anchor="middle" style="text-shadow:0 0 8px rgba(255,102,0,0.8)" id="spray-fan-status-sub">—</text>
+        
+
+        <!-- ═══ LAYER 3: HORIZONTAL PIPE ═══ -->
+<!-- ═══ MAIN HORIZONTAL PIPE — bold 3D ═══ -->
+        <rect x="170" y="96" width="1082" height="54" rx="9" fill="#030a14" stroke="#00ffff" stroke-width="1.5" opacity="0.98"/>
+        <rect x="170" y="97.5" width="1082" height="51" rx="8" fill="url(#pg)"/>
+        <!-- specular highlights -->
+        <rect id="main-duct-highlight-top" x="172" y="99" width="1078" height="13" rx="7" fill="rgba(140,220,255,0.28)" opacity="0.95"/>
+        <rect id="main-duct-highlight-bottom" x="172" y="134" width="1078" height="10" rx="5" fill="rgba(0,60,100,0.45)" opacity="0.85"/>
+        <!-- neon outer glow -->
+        <rect x="170" y="96" width="1082" height="54" rx="9" fill="none" stroke="#00ffff" stroke-width="3" opacity="0.7" filter="url(#glow)"/>
+
+        
+        <!-- ═══ LAYER 4: PRINTER BOXES ═══ -->
+<!-- ── FDM Printer box ── -->
+        <rect x="536" y="660" width="144" height="90" rx="8" fill="rgba(0,255,136,0.15)" stroke="rgba(0,255,136,0.6)" stroke-width="2"/>
+        <text x="608" y="715" fill="#00ff88" font-family="Orbitron" font-size="30" text-anchor="middle" letter-spacing="2" style="text-shadow:0 0 14px rgba(0,255,255,0.9)">FDM</text>
+        
+        
+        
+<!-- ── SLA Printer box ── -->
+        <rect x="863" y="660" width="144" height="88" rx="8" fill="rgba(255,238,0,0.15)" stroke="rgba(255,238,0,0.6)" stroke-width="2"/>
+        <text x="935" y="715" fill="#ffee00" font-family="Orbitron" font-size="30" text-anchor="middle" letter-spacing="2" style="text-shadow:0 0 14px rgba(255,238,0,0.9)">SLA</text>
+             
+        
+
+        <!-- ═══ LAYER 5: FLOW LINES ═══ -->
+<!-- ── FLOW LINES — section 1 (fan → enc1 T), continuous dashes ── -->
+        <line x1="176.7" y1="114" x2="638" y2="114" stroke="#40c8ff" stroke-width="2" opacity="0.7" class="nflow" id="flow-section-1a"/>
+        <line x1="176.7" y1="123" x2="638" y2="123" stroke="#e8f8ff" stroke-width="4" opacity="1.0" class="nflow" id="flow-section-1" style="filter:drop-shadow(0 0 6px #00aaff) drop-shadow(0 0 12px #0066ff)"/>
+        <line x1="176.7" y1="132" x2="638" y2="132" stroke="#40c8ff" stroke-width="2" opacity="0.7" class="nflow" id="flow-section-1b"/>
+        <!-- section 2 (enc1 T → enc2 T) -->
+        <line x1="638" y1="114" x2="965" y2="114" stroke="#40c8ff" stroke-width="2" opacity="0.7" class="nflow" id="flow-section-2a"/>
+        <line x1="638" y1="123" x2="965" y2="123" stroke="#e8f8ff" stroke-width="4" opacity="1.0" class="nflow" id="flow-section-2" style="filter:drop-shadow(0 0 6px #00aaff) drop-shadow(0 0 12px #0066ff)"/>
+        <line x1="638" y1="132" x2="965" y2="132" stroke="#40c8ff" stroke-width="2" opacity="0.7" class="nflow" id="flow-section-2b"/>
+        <!-- section 3 (enc2 T → spray) -->
+        <line x1="965" y1="114" x2="1231" y2="114" stroke="#40c8ff" stroke-width="2" opacity="0.7" class="nflow" id="flow-section-3a"/>
+        <line x1="965" y1="123" x2="1231" y2="123" stroke="#e8f8ff" stroke-width="4" opacity="1.0" class="nflow" id="flow-section-3" style="filter:drop-shadow(0 0 6px #00aaff) drop-shadow(0 0 12px #0066ff)"/>
+        <line x1="965" y1="132" x2="1231" y2="132" stroke="#40c8ff" stroke-width="2" opacity="0.7" class="nflow" id="flow-section-3b"/>
+
+        
+                                                                        
+        <!-- ═══ LAYER 9: VERTICAL FLOW LINES (topmost, above valve circles) ═══ -->
+        <!-- enc1 vertical flows -->
+        <line x1="600" y1="123" x2="600" y2="660" stroke="#40c8ff" stroke-width="2" opacity="0.7" class="nflow-v" id="flow-enc1-vertical-a"/>
+        <line x1="608" y1="123" x2="608" y2="660" stroke="#e8f8ff" stroke-width="4" opacity="1.0" class="nflow-v" id="flow-enc1-vertical" style="filter:drop-shadow(0 0 6px #00aaff) drop-shadow(0 0 12px #0066ff)"/>
+        <line x1="616" y1="123" x2="616" y2="660" stroke="#40c8ff" stroke-width="2" opacity="0.7" class="nflow-v" id="flow-enc1-vertical-b"/>
+        <!-- enc2 vertical flows -->
+        <line x1="927" y1="123" x2="927" y2="660" stroke="#40c8ff" stroke-width="2" opacity="0.7" class="nflow-v" id="flow-enc2-vertical-a"/>
+        <line x1="935" y1="123" x2="935" y2="660" stroke="#e8f8ff" stroke-width="4" opacity="1.0" class="nflow-v" id="flow-enc2-vertical" style="filter:drop-shadow(0 0 6px #00aaff) drop-shadow(0 0 12px #0066ff)"/>
+        <line x1="943" y1="123" x2="943" y2="660" stroke="#40c8ff" stroke-width="2" opacity="0.7" class="nflow-v" id="flow-enc2-vertical-b"/>
+        <!-- spray vertical flows -->
+        <line x1="1214" y1="123" x2="1214" y2="660" stroke="#40c8ff" stroke-width="2" opacity="0.7" class="nflow-v" id="flow-spray-booth-vertical-a" style="display:none"/>
+        <line x1="1222" y1="123" x2="1222" y2="660" stroke="#e8f8ff" stroke-width="4" opacity="1.0" class="nflow-v" id="flow-spray-booth-vertical" style="filter:drop-shadow(0 0 6px #00aaff) drop-shadow(0 0 12px #0066ff)"/>
+        <line x1="1230" y1="123" x2="1230" y2="660" stroke="#40c8ff" stroke-width="2" opacity="0.7" class="nflow-v" id="flow-spray-booth-vertical-b" style="display:none"/>
+        
+<!-- ═══ LAYER 10: ALL FANS, VALVES, SENSORS (topmost) ═══ -->
+        <!-- ── Valve % labels outside circles ── -->
+        
+        
+        <text id="enc1-360-pct" x="564" y="501" fill="#ff6600" font-family="Orbitron" font-size="25" text-anchor="end" dominant-baseline="middle" style="text-shadow:0 0 8px rgba(255,102,0,0.8)">—</text>
+        <text id="enc2-360-pct" x="891" y="501" fill="#ff6600" font-family="Orbitron" font-size="25" text-anchor="end" dominant-baseline="middle" style="text-shadow:0 0 8px rgba(255,102,0,0.8)">—</text>
+        <text id="enc1-print-pct" x="564" y="598" fill="#ff6600" font-family="Orbitron" font-size="25" text-anchor="end" dominant-baseline="middle" style="text-shadow:0 0 8px rgba(255,102,0,0.8)">—</text>
+        <text id="enc2-print-pct" x="891" y="598" fill="#ff6600" font-family="Orbitron" font-size="25" text-anchor="end" dominant-baseline="middle" style="text-shadow:0 0 8px rgba(255,102,0,0.8)">—</text>
+
+        <!-- ── Fan % labels (right side, vertically centred) ── -->
+        <text id="main-fan-pct" x="338" y="192" fill="#ff6600" font-family="Orbitron" font-size="25" text-anchor="middle" style="text-shadow:0 0 8px rgba(255,102,0,0.8)">—</text>
+        <text id="spray-fan-pct" x="1168" y="578" fill="#ff6600" font-family="Orbitron" font-size="25" text-anchor="end" dominant-baseline="middle" style="text-shadow:0 0 8px rgba(255,102,0,0.8)">—</text>
+
+        <!-- Spray flow sensor — matches ENC style, aligned at cy=308 -->
+        <circle cx="1222" cy="308" r="39" fill="rgba(10,10,30,0.25)" stroke="#ff6600" stroke-width="1.5" filter="url(#iconBlur)" style="backdrop-filter:blur(4px)" id="flow3-circle"/>
+        <path id="flow3-arrow-top" d="M 1212 288 L 1232 288 L 1222 276 Z" fill="#ff2200" style="filter:drop-shadow(0 0 4px rgba(255,34,0,0.8))"/>
+        <path id="flow3-arrow-ctr" d="M 1212 308 L 1232 308 L 1222 296 Z" fill="#ff2200" style="filter:drop-shadow(0 0 4px rgba(255,34,0,0.8))"/>
+        <path id="flow3-arrow-bot" d="M 1212 328 L 1232 328 L 1222 316 Z" fill="#ff2200" style="filter:drop-shadow(0 0 4px rgba(255,34,0,0.8))"/>
+        <text x="1169" y="308" fill="#ff5500" font-family="Orbitron" font-size="19" text-anchor="end" dominant-baseline="middle" id="flow3-rate" style="text-shadow:0 0 6px rgba(255,34,0,0.8)">—</text>
+
+
+
+<!-- MAIN FAN + VALVES ═══ -->
+<!-- ═══ MAIN FAN ═══ -->
+        <circle cx="338" cy="123" r="41" fill="#030a14" stroke="#00ffff" stroke-width="2.5" opacity="0.98"/>
+        <circle cx="338" cy="123" r="41" fill="none" stroke="#00ffff" stroke-width="6" opacity="0.3" filter="url(#glow)"/>
+        <g id="fan-blades" style="transform-origin:338px 123px;  ">
+          <path d="M346.7 120.6C351.6 118.3 362.5 129.1 373.5 117.2L346.7 125.4Z" fill="#00ff88" opacity="0.90"/>
+          <path d="M344.5 129.3C348.8 132.4 344.9 147.3 361.0 150.8L340.2 131.7Z" fill="#00ff88" opacity="0.88"/>
+          <path d="M335.8 131.7C335.3 137.1 320.5 141.1 325.4 156.8L331.5 129.3Z" fill="#00ff88" opacity="0.86"/>
+          <path d="M329.3 125.4C324.4 127.6 313.5 116.8 302.5 128.9L329.3 120.6Z" fill="#00ff88" opacity="0.84"/>
+          <path d="M331.5 116.7C327.2 113.6 331.1 98.7 315.0 95.2L335.8 114.3Z" fill="#00ff88" opacity="0.82"/>
+          <path d="M340.2 114.3C340.7 108.9 355.5 104.8 350.6 89.2L344.5 116.7Z" fill="#00ff88" opacity="0.80"/>
+        </g>
+        <circle cx="338" cy="123" r="8" fill="#05050f"/>
+        <text x="338" y="38" fill="#00ffff" font-family="Orbitron" font-size="32" text-anchor="middle" letter-spacing="2" style="text-shadow:0 0 14px rgba(0,255,255,0.9)" id="fan-status">MAIN FAN</text>
+        <text x="338" y="64" fill="#00ff88" font-family="Orbitron" font-size="21" text-anchor="middle" style="text-shadow:0 0 8px rgba(0,255,136,0.8)" id="fan-status-sub">—</text>
+
+        
+<!-- ═══ MAIN VALVE 1 — more vertical spacing ═══ -->
+        <g id="valve-main-1"><circle id="circle-main-1" cx="693" cy="123" r="40" fill="#080818" stroke="#ff6600" stroke-width="2.5"/><ellipse id="ellipse-main-1" cx="693" cy="123" rx="30" ry="6" fill="#ff6600" opacity="0.18" transform="rotate(0 693 123)" style="filter:drop-shadow(0 0 4px #ff6600)"/></g>
+        
+        <text x="693" y="38" fill="#00ffff" font-family="Orbitron" font-size="32" text-anchor="middle" letter-spacing="2" style="text-shadow:0 0 14px rgba(0,255,255,0.9)">MAIN-1</text>
+        <text x="693" y="66" fill="#ff6600" font-family="Orbitron" font-size="25" text-anchor="middle" style="text-shadow:0 0 10px rgba(255,102,0,0.9)" id="valve-main-1-pos">—</text>
+
+        
+<!-- ═══ MAIN VALVE 2 ═══ -->
+        <g id="valve-main-2"><circle id="circle-main-2" cx="1020" cy="123" r="40" fill="#080818" stroke="#ff6600" stroke-width="2.5"/><ellipse id="ellipse-main-2" cx="1020" cy="123" rx="30" ry="6" fill="#ff6600" opacity="0.18" transform="rotate(0 1020 123)" style="filter:drop-shadow(0 0 4px #ff6600)"/></g>
+        
+        <text x="1020" y="38" fill="#00ffff" font-family="Orbitron" font-size="32" text-anchor="middle" letter-spacing="2" style="text-shadow:0 0 14px rgba(0,255,255,0.9)">MAIN-2</text>
+        <text x="1020" y="66" fill="#ff6600" font-family="Orbitron" font-size="25" text-anchor="middle" style="text-shadow:0 0 10px rgba(255,102,0,0.9)" id="valve-main-2-pos">—</text>
+
+        
+
+        <!-- ENC SENSORS + VALVES ═══ -->
+        <!-- Spray booth fan (above flow lines) -->
+        <circle cx="1222" cy="578" r="42" fill="#1a0500" stroke="#ff6600" stroke-width="2.5" opacity="0.98"/>
+        <circle cx="1222" cy="578" r="42" fill="none" stroke="#ff6600" stroke-width="6" opacity="0.35" filter="url(#glow)"/>
+        <g id="spray-booth-fan-blades" style="transform-origin:1222px 578px;  ">
+          <path d="M1230.7 575.6C1235.7 573.3 1246.4 584.2 1257.6 572.2L1230.7 580.4Z" fill="#ff6600" opacity="0.90"/>
+          <path d="M1228.4 584.3C1232.8 587.5 1228.9 602.3 1244.9 605.8L1224.2 586.7Z" fill="#ff6600" opacity="0.88"/>
+          <path d="M1219.8 586.7C1219.3 592.1 1204.4 596.2 1209.4 611.8L1215.6 584.3Z" fill="#ff6600" opacity="0.86"/>
+          <path d="M1213.3 580.4C1208.3 582.7 1197.6 571.8 1186.4 583.8L1213.3 575.6Z" fill="#ff6600" opacity="0.84"/>
+          <path d="M1215.6 571.7C1211.2 568.5 1215.1 553.7 1199.1 550.2L1219.8 569.3Z" fill="#ff6600" opacity="0.82"/>
+          <path d="M1224.2 569.3C1224.7 563.9 1239.6 559.8 1234.6 544.2L1228.4 571.7Z" fill="#ff6600" opacity="0.80"/>
+        </g>
+        <circle cx="1222" cy="578" r="8" fill="#05050f"/>
+
+<!-- ── FLOW sensor TOPMOST — 2 arrows + value ── -->
+        <circle cx="608" cy="308" r="39" fill="rgba(10,10,30,0.25)" stroke="#8a8a8a" stroke-width="1.5" filter="url(#iconBlur)" style="backdrop-filter:blur(4px)" id="flow1-circle"/>
+        <path id="flow1-arrow-top" d="M 598 288 L 618 288 L 608 276 Z" fill="#ff2200" style="filter:drop-shadow(0 0 4px rgba(255,34,0,0.8))"/>
+        <path id="flow1-arrow-ctr" d="M 598 308 L 618 308 L 608 296 Z" fill="#ff2200" style="filter:drop-shadow(0 0 4px rgba(255,34,0,0.8))"/>
+        <text x="564" y="308" fill="#ff5500" font-family="Orbitron" font-size="19" text-anchor="end" dominant-baseline="middle" id="flow1-rate" style="text-shadow:0 0 6px rgba(255,34,0,0.8)">—</text>
+        <path id="flow1-arrow-bot" d="M 598 328 L 618 328 L 608 316 Z" fill="#ff2200" style="filter:drop-shadow(0 0 4px rgba(255,34,0,0.8))"/>
+
+        <!-- ── 360° intake valve ── -->
+        <g class="valve-360-enc1" transform="translate(608, 501)">
+          <circle id="circle-360-enc1" cx="0" cy="0" r="39" fill="#4a4a4a" stroke="rgb(255,30,30)" stroke-width="2.5" style="filter:drop-shadow(0 0 6px rgb(255,30,30))"/>
+          <line id="intake1-line" x1="0" y1="0" x2="0" y2="-24.6" stroke="rgb(255,0,0)" stroke-width="3" stroke-linecap="round"/>
+          <circle id="intake1-circle" cx="0" cy="-23.4" r="8" fill="rgb(255,0,0)"/>
+        </g>
+
+        <!-- ── PRINT valve ── -->
+        <g id="valve-enc1-print"><circle id="circle-enc1-print" cx="608" cy="598" r="39" fill="#080818" stroke="#ff6600" stroke-width="2.5"/><ellipse id="ellipse-enc1-print" cx="608" cy="598" rx="6" ry="30" fill="#ff6600" opacity="0.18" transform="rotate(0 608 598)" style="filter:drop-shadow(0 0 4px #ff6600)"/></g>
+        
+
+        <!-- ── BME sensor ── -->
+        <circle cx="608" cy="405" r="39" fill="rgba(10,10,30,0.25)" stroke="#8a8a8a" stroke-width="1.5" filter="url(#iconBlur)" id="bme1-circle"/>
+        <text x="608" y="405" fill="#ffffff" font-family="Orbitron" font-size="32" text-anchor="middle" dominant-baseline="middle" style="text-shadow:0 0 12px rgba(255,255,255,0.65)" id="bme1-label">kΩ</text>
+        <text x="538" y="405" fill="#00ff88" font-family="Orbitron" font-size="28" text-anchor="middle" dominant-baseline="middle" id="bme1-iaq">—</text>
+        
+
+        
+<!-- ── FLOW sensor TOPMOST ── -->
+        <circle cx="935" cy="308" r="39" fill="rgba(10,10,30,0.25)" stroke="#ffee00" stroke-width="1.5" filter="url(#iconBlur)" style="backdrop-filter:blur(4px)" id="flow2-circle"/>
+        <path id="flow2-arrow-top" d="M 925 288 L 945 288 L 935 276 Z" fill="#ff2200" style="filter:drop-shadow(0 0 4px rgba(255,34,0,0.8))"/>
+        <path id="flow2-arrow-ctr" d="M 925 308 L 945 308 L 935 296 Z" fill="#ff2200" style="filter:drop-shadow(0 0 4px rgba(255,34,0,0.8))"/>
+        <text x="891" y="308" fill="#ff5500" font-family="Orbitron" font-size="19" text-anchor="end" dominant-baseline="middle" id="flow2-rate" style="text-shadow:0 0 6px rgba(255,34,0,0.8)">—</text>
+        <path id="flow2-arrow-bot" d="M 925 328 L 945 328 L 935 316 Z" fill="#ff2200" style="filter:drop-shadow(0 0 4px rgba(255,34,0,0.8))"/>
+
+        <!-- ── 360° intake valve ── -->
+        <g class="valve-360-enc2" transform="translate(935, 501)">
+          <circle id="circle-360-enc2" cx="0" cy="0" r="39" fill="#4a4a4a" stroke="rgb(255,30,30)" stroke-width="2.5" style="filter:drop-shadow(0 0 6px rgb(255,30,30))"/>
+          <line id="intake2-line" x1="0" y1="0" x2="0" y2="-24.6" stroke="rgb(255,0,0)" stroke-width="3" stroke-linecap="round"/>
+          <circle id="intake2-circle" cx="0" cy="-23.4" r="8" fill="rgb(255,0,0)"/>
+        </g>
+
+        <!-- ── PRINT valve ── -->
+        <g id="valve-enc2-print"><circle id="circle-enc2-print" cx="935" cy="598" r="39" fill="#080818" stroke="#ffee00" stroke-width="2.5"/><ellipse id="ellipse-enc2-print" cx="935" cy="598" rx="6" ry="30" fill="#ff6600" opacity="0.18" transform="rotate(0 935 598)" style="filter:drop-shadow(0 0 4px #ff6600)"/></g>
+        
+
+        <!-- ── BME sensor ── -->
+        <circle cx="935" cy="405" r="39" fill="rgba(10,10,30,0.25)" stroke="#ffee00" stroke-width="1.5" filter="url(#iconBlur)" id="bme2-circle"/>
+        <text x="935" y="405" fill="#ffffff" font-family="Orbitron" font-size="32" text-anchor="middle" dominant-baseline="middle" style="text-shadow:0 0 12px rgba(255,255,255,0.65)" id="bme2-label">kΩ</text>
+        <text x="861" y="405" fill="#ffee00" font-family="Orbitron" font-size="28" text-anchor="middle" dominant-baseline="middle" id="bme2-iaq">—</text>
+        
+
+        
+
+        
+        
+        <!-- ── SMK sensor boxes — upper-right of enclosures ── -->
+        <!-- ENC1 smoke box -->
+        <rect x="671" y="268" width="43" height="38" rx="4" fill="rgba(0,255,136,0.08)" stroke="#00ff88" stroke-width="1.5" filter="url(#glow)"/>
+        <text x="692" y="290" fill="#00ff88" font-family="Orbitron" font-size="26" text-anchor="middle" dominant-baseline="middle" letter-spacing="1" style="text-shadow:0 0 8px #00ff88">A</text>
+        
+        <!-- ENC2 smoke box -->
+        <rect x="998" y="268" width="43" height="38" rx="4" fill="rgba(255,238,0,0.08)" stroke="#ffee00" stroke-width="1.5" filter="url(#glow)"/>
+        <text x="1019" y="290" fill="#ffee00" font-family="Orbitron" font-size="26" text-anchor="middle" dominant-baseline="middle" letter-spacing="1" style="text-shadow:0 0 8px #ffee00">A</text>
+        
+        <!-- ═══ LAYER 8: UI PANELS ═══ -->
+<!-- Environment comparison: three zone columns, shared row labels/units. -->
+        <g id="environment-box" role="group" aria-label="Environment readings for Ambient, FDM and SLA">
+          <rect id="environment-frame" x="20" y="225" width="396" height="240" rx="8" fill="rgba(0,0,0,0.85)" stroke="rgba(0,255,255,0.6)" stroke-width="1.5" style="filter:drop-shadow(0 0 18px rgba(0,255,255,0.55))"/>
+          <rect x="20" y="225" width="396" height="240" rx="8" fill="none" stroke="rgba(0,255,255,0.5)" stroke-width="6" opacity="0.45" filter="url(#glow)"/>
+          <rect x="20" y="225" width="396" height="32" rx="8" fill="rgba(0,255,255,0.05)"/>
+          <text x="218" y="248" fill="#00ffff" font-family="Orbitron" font-size="24" text-anchor="middle" letter-spacing="2">ENVIRONMENT</text>
+<text x="156" y="278" fill="#00ffff" font-family="Orbitron" font-size="16" text-anchor="middle">AMBIENT</text>
+<text x="256" y="278" fill="#00ff88" font-family="Orbitron" font-size="16" text-anchor="middle">FDM</text>
+<text x="356" y="278" fill="#ffee00" font-family="Orbitron" font-size="16" text-anchor="middle">SLA</text>
+<line x1="30" y1="289" x2="406" y2="289" stroke="rgba(255,255,255,0.12)"/>
+<text x="30" y="312" fill="#a9b8d0" font-family="Orbitron" font-size="16">TEMP °C</text>
+<text id="env-ambient-temperature" x="156" y="312" fill="#00ffff" font-family="Orbitron" font-size="17" text-anchor="middle" aria-label="AMBIENT temperature: unavailable">—</text>
+<text id="env-fdm-temperature" x="256" y="312" fill="#00ff88" font-family="Orbitron" font-size="17" text-anchor="middle" aria-label="FDM temperature: unavailable">—</text>
+<text id="env-sla-temperature" x="356" y="312" fill="#ffee00" font-family="Orbitron" font-size="17" text-anchor="middle" aria-label="SLA temperature: unavailable">—</text>
+<line x1="30" y1="323" x2="406" y2="323" stroke="rgba(255,255,255,0.12)"/>
+<text x="30" y="346" fill="#a9b8d0" font-family="Orbitron" font-size="16">RH %</text>
+<text id="env-ambient-humidity" x="156" y="346" fill="#00ffff" font-family="Orbitron" font-size="17" text-anchor="middle" aria-label="AMBIENT humidity: unavailable">—</text>
+<text id="env-fdm-humidity" x="256" y="346" fill="#00ff88" font-family="Orbitron" font-size="17" text-anchor="middle" aria-label="FDM humidity: unavailable">—</text>
+<text id="env-sla-humidity" x="356" y="346" fill="#ffee00" font-family="Orbitron" font-size="17" text-anchor="middle" aria-label="SLA humidity: unavailable">—</text>
+<line x1="30" y1="357" x2="406" y2="357" stroke="rgba(255,255,255,0.12)"/>
+<text x="30" y="380" fill="#a9b8d0" font-family="Orbitron" font-size="16">hPa</text>
+<text id="env-ambient-baro" x="156" y="380" fill="#00ffff" font-family="Orbitron" font-size="17" text-anchor="middle" aria-label="AMBIENT baro: unavailable">—</text>
+<text id="env-fdm-baro" x="256" y="380" fill="#00ff88" font-family="Orbitron" font-size="17" text-anchor="middle" aria-label="FDM baro: unavailable">—</text>
+<text id="env-sla-baro" x="356" y="380" fill="#ffee00" font-family="Orbitron" font-size="17" text-anchor="middle" aria-label="SLA baro: unavailable">—</text>
+<line x1="30" y1="391" x2="406" y2="391" stroke="rgba(255,255,255,0.12)"/>
+<text x="30" y="414" fill="#a9b8d0" font-family="Orbitron" font-size="14">SMOKE/CO</text>
+<text id="env-ambient-smoke" x="156" y="414" fill="#00ffff" font-family="Orbitron" font-size="17" text-anchor="middle" aria-label="AMBIENT smoke: unavailable">—</text>
+<text id="env-fdm-smoke" x="256" y="414" fill="#00ff88" font-family="Orbitron" font-size="17" text-anchor="middle" aria-label="FDM smoke: unavailable">—</text>
+<text id="env-sla-smoke" x="356" y="414" fill="#ffee00" font-family="Orbitron" font-size="17" text-anchor="middle" aria-label="SLA CO: unavailable">—</text>
+<line x1="30" y1="425" x2="406" y2="425" stroke="rgba(255,255,255,0.12)"/>
+<text x="30" y="448" fill="#a9b8d0" font-family="Orbitron" font-size="16">GAS kΩ</text>
+<text id="env-ambient-gas" x="156" y="448" fill="#00ffff" font-family="Orbitron" font-size="17" text-anchor="middle" aria-label="AMBIENT gas: unavailable">—</text>
+<text id="env-fdm-gas" x="256" y="448" fill="#00ff88" font-family="Orbitron" font-size="17" text-anchor="middle" aria-label="FDM gas: unavailable">—</text>
+<text id="env-sla-gas" x="356" y="448" fill="#ffee00" font-family="Orbitron" font-size="17" text-anchor="middle" aria-label="SLA gas: unavailable">—</text>
+</g>
+
+<!-- System log: dashboard session events only. -->
+        <g id="svg-log-box" role="group" aria-label="System log — dashboard session events">
+          <rect x="21" y="501" width="396" height="300" rx="8" fill="rgba(0,0,0,0.65)" style="filter:drop-shadow(0 0 26px rgba(255,102,0,0.25))"/>
+          <rect id="system-log-frame" x="20" y="500" width="396" height="300" rx="8" fill="rgba(0,0,0,0.75)" stroke="rgba(255,102,0,0.8)" stroke-width="1.5" style="filter:drop-shadow(0 0 20px rgba(255,102,0,0.5))"/>
+          <rect x="30" y="515" width="380" height="28" rx="8" fill="rgba(255,102,0,0.05)"/>
+          <text x="208" y="538" fill="#ff6600" font-family="Orbitron" font-size="28" text-anchor="middle" letter-spacing="2" style="text-shadow:0 0 8px rgba(255,102,0,0.5)">SYSTEM LOG</text>
+          <line x1="30" y1="555" x2="406" y2="555" stroke="rgba(255,102,0,0.5)" stroke-width="2"/>
+          <text x="30" y="585" fill="#ff0080" font-family="Orbitron" font-size="18" style="text-shadow:0 0 6px rgba(255,0,128,0.4)" id="log-ts-1"></text>
+          <text x="124" y="585" fill="#00ff88" font-family="Orbitron" font-size="20" id="log-msg-1">—</text>
+          <line x1="30" y1="595" x2="406" y2="595" stroke="#00ffff" stroke-width="1"/>
+          <text x="30" y="625" fill="#ff0080" font-family="Orbitron" font-size="18" style="text-shadow:0 0 6px rgba(255,0,128,0.4)" id="log-ts-2"></text>
+          <text x="124" y="625" fill="#00ff88" font-family="Orbitron" font-size="20" id="log-msg-2">—</text>
+          <line x1="30" y1="635" x2="406" y2="635" stroke="#00ffff" stroke-width="1"/>
+          <text x="30" y="665" fill="#ff0080" font-family="Orbitron" font-size="18" style="text-shadow:0 0 6px rgba(255,0,128,0.4)" id="log-ts-3"></text>
+          <text x="124" y="665" fill="#00ffff" font-family="Orbitron" font-size="20" id="log-msg-3">—</text>
+          <line x1="30" y1="675" x2="406" y2="675" stroke="#00ffff" stroke-width="1"/>
+          <text x="30" y="705" fill="#ff0080" font-family="Orbitron" font-size="18" style="text-shadow:0 0 6px rgba(255,0,128,0.4)" id="log-ts-4"></text>
+          <text x="124" y="705" fill="#00ffff" font-family="Orbitron" font-size="20" id="log-msg-4">—</text>
+          <line x1="30" y1="715" x2="406" y2="715" stroke="#00ffff" stroke-width="1"/>
+          <text x="30" y="745" fill="#ff0080" font-family="Orbitron" font-size="18" style="text-shadow:0 0 6px rgba(255,0,128,0.4)" id="log-ts-5"></text>
+          <text x="124" y="745" fill="#00ff88" font-family="Orbitron" font-size="20" id="log-msg-5">—</text>
+          <line x1="30" y1="755" x2="406" y2="755" stroke="#00ffff" stroke-width="1"/>
+          <text x="30" y="785" fill="#ff0080" font-family="Orbitron" font-size="18" style="text-shadow:0 0 6px rgba(255,0,128,0.4)" id="log-ts-6"></text>
+          <text x="124" y="785" fill="#00ff88" font-family="Orbitron" font-size="20" id="log-msg-6">—</text>
+        </g>
+
+        </svg>

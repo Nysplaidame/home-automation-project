@@ -39,6 +39,10 @@ CREATE TABLE IF NOT EXISTS audit_log (
 """
 
 
+class JobCapacityError(RuntimeError):
+    """Raised when an atomic job reservation would exceed the active limit."""
+
+
 class JobStore:
     def __init__(self, path: Path):
         self.path = path
@@ -110,6 +114,68 @@ class JobStore:
                 ),
             )
             return int(cur.lastrowid)
+
+    def reserve_job(
+        self,
+        portal_slug: str,
+        mode: str,
+        options: dict[str, Any],
+        command: tuple[str, ...],
+        log_path: Path,
+        status_path: Path,
+        max_active_jobs: int,
+    ) -> int:
+        active = (
+            JobStatus.QUEUED.value,
+            JobStatus.RUNNING.value,
+            JobStatus.VERIFYING.value,
+            JobStatus.WAITING_FOR_DELETE_CONFIRMATION.value,
+            JobStatus.DELETING_SOURCE.value,
+        )
+        placeholders = ",".join("?" for _ in active)
+        with self.connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            row = conn.execute(
+                f"SELECT COUNT(*) AS count FROM jobs WHERE status IN ({placeholders})",
+                active,
+            ).fetchone()
+            if int(row["count"]) >= max_active_jobs:
+                raise JobCapacityError("another transfer job is active")
+            cur = conn.execute(
+                """
+                INSERT INTO jobs (portal_slug, mode, status, options_json, command_json, current_phase, log_path, status_path)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    portal_slug,
+                    mode,
+                    JobStatus.QUEUED.value,
+                    json.dumps(options, sort_keys=True),
+                    json.dumps(list(command)),
+                    "queued",
+                    str(log_path),
+                    str(status_path),
+                ),
+            )
+            return int(cur.lastrowid)
+
+    def fail_unlaunched_jobs(self) -> int:
+        with self.connect() as conn:
+            cur = conn.execute(
+                """
+                UPDATE jobs
+                SET status = ?, current_phase = ?, ended_at = CURRENT_TIMESTAMP,
+                    error = ?
+                WHERE status = ? AND pid IS NULL
+                """,
+                (
+                    JobStatus.FAILED.value,
+                    "failed",
+                    "service restarted before the job launch was recorded",
+                    JobStatus.QUEUED.value,
+                ),
+            )
+            return int(cur.rowcount)
 
     def list_jobs(self) -> list[sqlite3.Row]:
         with self.connect() as conn:

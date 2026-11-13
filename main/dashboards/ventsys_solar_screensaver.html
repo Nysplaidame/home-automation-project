@@ -1495,6 +1495,7 @@ import * as THREE from "./assets/vendor/three.module.min.js";
       return;
     }
     let ws;
+    let authFailed = false;
     let msgId = 1;
     const send = (payload) => {
       payload.id = msgId++;
@@ -1503,7 +1504,8 @@ import * as THREE from "./assets/vendor/three.module.min.js";
 
     ws = new WebSocket(CONFIG.ha.wsUrl);
     ws.onmessage = (event) => {
-      const msg = JSON.parse(event.data);
+      let msg;
+      try { msg = JSON.parse(event.data); } catch (_) { return; }
       if (msg.type === "auth_required") {
         ws.send(JSON.stringify({ type: "auth", access_token: CONFIG.ha.token }));
         return;
@@ -1516,8 +1518,10 @@ import * as THREE from "./assets/vendor/three.module.min.js";
         return;
       }
       if (msg.type === "auth_invalid") {
+        authFailed = true;
         state.ha.connected = false;
         updateSafetyStrip();
+        ws.close();
         return;
       }
       if (msg.type === "result" && Array.isArray(msg.result)) {
@@ -1534,7 +1538,7 @@ import * as THREE from "./assets/vendor/three.module.min.js";
     ws.onclose = () => {
       state.ha.connected = false;
       updateSafetyStrip();
-      setTimeout(connectHa, 10000);
+      if (!authFailed) setTimeout(connectHa, 10000);
     };
     ws.onerror = () => {
       state.ha.connected = false;
@@ -1552,7 +1556,13 @@ import * as THREE from "./assets/vendor/three.module.min.js";
       const numeric = parseFloat(value);
       if (!Number.isNaN(numeric)) state.ha.airflowOk = numeric >= 0;
     }
-    if (state.ha.failsafe) setTimeout(wakeDashboard, 900);
+    if (state.ha.failsafe && !state.ha.wakePending) {
+      state.ha.wakePending = true;
+      setTimeout(() => {
+        state.ha.wakePending = false;
+        if (state.ha.failsafe) wakeDashboard();
+      }, 900);
+    }
   }
 
   function render(now) {

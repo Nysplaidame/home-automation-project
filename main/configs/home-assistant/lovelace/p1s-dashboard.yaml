@@ -1,0 +1,73 @@
+# Home Assistant storage-dashboard raw configuration — P1S
+#
+# Create a storage dashboard named "P1S" with the `p1s-status` URL path in
+# Home Assistant, then replace its raw configuration with this file. It uses
+# only built-in cards, so it remains functional in the Companion App without
+# HACS dependencies.
+#
+# This is a status-and-handoff dashboard. Bambuddy retains the printer-command
+# boundary because it owns the authenticated P1S connection and its API key.
+# Its button uses the tailnet-only TLS route so it also works in the native
+# mobile workflow.
+
+title: P1S
+views:
+  - title: Printer
+    path: p1s
+    icon: mdi:printer-3d
+    cards:
+      - type: markdown
+        title: Da Printor
+        content: >
+          **{{ states('sensor.p1s_state') | default('Unknown', true) }}** ·
+          {{ states('sensor.p1s_current_print') | default('No active print', true) }}
+
+      - type: gauge
+        entity: sensor.p1s_print_progress
+        name: Print progress
+        min: 0
+        max: 100
+        needle: true
+        severity:
+          green: 0
+          yellow: 80
+          red: 95
+
+      - type: entities
+        title: Current job
+        show_header_toggle: false
+        state_color: true
+        entities:
+          - entity: binary_sensor.p1s_printing
+            name: Printing
+          - entity: sensor.p1s_state
+            name: State
+          - entity: sensor.p1s_current_print
+            name: File
+          - entity: sensor.p1s_layer
+            name: Layer
+          - entity: sensor.p1s_remaining_time
+            name: Remaining
+          - entity: binary_sensor.bambuddy_online
+            name: Bambuddy connection
+
+      - type: entities
+        title: Temperatures and connection
+        show_header_toggle: false
+        entities:
+          - entity: sensor.p1s_nozzle_temperature
+            name: Nozzle
+          - entity: sensor.p1s_bed_temperature
+            name: Bed
+          - entity: sensor.p1s_chamber_temperature
+            name: Chamber
+          - entity: sensor.p1s_wifi_signal
+            name: Printer Wi-Fi
+
+      - type: button
+        name: Open Bambuddy controls
+        icon: mdi:printer-3d-nozzle
+        show_state: false
+        tap_action:
+          action: url
+          url_path: "https://docker-host.tail7012a0.ts.net:8181/"

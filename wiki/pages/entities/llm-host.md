@@ -12,7 +12,7 @@ status: active
 
 **Type:** service host
 **Status:** Operational on CT 114
-**Related:** [[entities/proxmox]], [[entities/home-assistant]], [[entities/frigate]], [[entities/voice-mixer]], [[concepts/tailscale-remote-access]]
+**Related:** [[entities/proxmox]], [[entities/home-assistant]], [[entities/frigate]], [[entities/household-hub]], [[entities/voice-mixer]], [[concepts/tailscale-remote-access]]
 
 ## Overview
 
@@ -61,9 +61,16 @@ llama.cpp uses Vulkan and shares the Intel iGPU with Frigate CT 111.
 
 ## Open Questions
 
-- [ ] Decide whether Overwatch recipes should save to Mealie or a protected
-  Obsidian ingestion service.
+- October4 package/security refresh: Fail2ban absent, no HTTP APT proxy and
+  stale June security metadata; client cache times out and active cache-host
+  upstream metadata returns503. Prepared repair is not applied.
+  [[../../../main/docs/procedures/ct114-package-path-repair]]
+
+- Household Hub now owns recipe research/provenance and confirmation-gated
+  Mealie handoff. Obsidian remains an optional export target, not the recipe
+  system of record.
 - [ ] Design the Metrocop Wyoming playback wrapper (Piper → voicefx preset → HA).
+- [ ] Revisit larger models only after a host RAM upgrade and repeat benchmarks.
 
 ## Change Log
 

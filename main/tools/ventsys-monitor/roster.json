@@ -1,0 +1,67 @@
+[
+  {
+    "mac": "cc:ba:97:f0:d0:a0",
+    "ip": "192.168.50.43",
+    "name": "ventsys-booth-airflow"
+  },
+  {
+    "mac": "a0:85:e3:ae:5b:c8",
+    "ip": "192.168.50.62",
+    "name": "ventsys-sla-360-valve"
+  },
+  {
+    "mac": "cc:ba:97:f0:e3:ec",
+    "ip": "192.168.50.61",
+    "name": "ventsys-fdm-360-valve"
+  },
+  {
+    "mac": "cc:ba:97:f0:d0:c0",
+    "ip": "192.168.50.32",
+    "name": "ventsys-fdm-sensor"
+  },
+  {
+    "mac": "ec:e3:34:b4:79:7c",
+    "ip": "192.168.50.52",
+    "name": "ventsys-sla-branch-valve"
+  },
+  {
+    "mac": "ec:e3:34:67:a0:18",
+    "ip": "192.168.50.57",
+    "name": "ventsys-main-valve-2"
+  },
+  {
+    "mac": "ec:e3:34:67:0d:28",
+    "ip": "192.168.50.53",
+    "name": "ventsys-fdm-branch-valve"
+  },
+  {
+    "mac": "ec:e3:34:67:8c:9c",
+    "ip": "192.168.50.51",
+    "name": "ventsys-main-valve-1"
+  },
+  {
+    "mac": "cc:ba:97:f0:d3:10",
+    "ip": "192.168.50.42",
+    "name": "ventsys-sla-airflow"
+  },
+  {
+    "mac": "cc:ba:97:f0:e3:dc",
+    "ip": "192.168.50.41",
+    "name": "ventsys-fdm-airflow"
+  },
+  {
+    "mac": "ec:e3:34:b4:76:a4",
+    "ip": "192.168.50.55",
+    "name": "ventsys-fdm-print-valve"
+  },
+  {
+    "mac": "ec:e3:34:1b:db:2c",
+    "ip": "192.168.50.56",
+    "name": "ventsys-sla-print-valve"
+  },
+  {
+    "mac": "cc:ba:97:f0:c3:0c",
+    "ip": "192.168.50.37",
+    "name": "ventsys-sla-pipe-air-sensor"
+  }
+]

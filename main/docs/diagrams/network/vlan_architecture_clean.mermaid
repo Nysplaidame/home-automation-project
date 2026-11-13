@@ -1,82 +1,37 @@
+%%{init: {"theme":"base","fontFamily":"Segoe UI, sans-serif","themeVariables":{"primaryColor":"#123044","primaryTextColor":"#eef6ff","primaryBorderColor":"#58b7bf","lineColor":"#9aafc4","clusterBkg":"#0d1c2d","clusterBorder":"#38516b","tertiaryColor":"#0d1c2d","edgeLabelBackground":"#0b1929","fontFamily":"Segoe UI, sans-serif","fontSize":"18px"},"flowchart":{"curve":"linear","nodeSpacing":20,"rankSpacing":28,"padding":12,"subGraphTitleMargin":{"top":8,"bottom":16},"wrappingWidth":380,"useMaxWidth":false}}}%%
 flowchart TB
-    Internet["Internet"]
-    Router["OpenWrt router<br/>GL-MT6000<br/>192.168.10.1<br/>DHCP, local DNS, firewall, NTP"]
-    Internet --- Router
-
-    subgraph Ports["Physical ports"]
-        LAN1["LAN1 trunk<br/>Proxmox VLAN trunk"]
-        LAN2["LAN2 management access"]
-        LAN3["LAN3 managed switch trunk<br/>VLANs 1,10,30,40 tagged"]
-        LAN4["LAN4 OMV NAS<br/>VLAN 40 untagged"]
-        LAN5["LAN5 LAN PC / recovery<br/>VLAN 1 untagged"]
-        EdgeSwitch["Zyxel GS1900-8HP<br/>switch mgmt VLAN 10<br/>camera/NAS/extender access ports"]
-        WiFi["Router Wi-Fi SSIDs"]
+    Router["OPENWRT SEGMENT MAP · 11 NETWORKS<br/>Every subnet is /24; router gateway is .1<br/>Membership does not imply inter-VLAN permission"]
+    subgraph Trusted["PEOPLE + ADMINISTRATION"]
+        direction TB
+        V1["VLAN1 · LAN<br/>192.168.1.0/24<br/>HomeMain · LAN5 recovery"]
+        V10["VLAN10 · MANAGEMENT<br/>192.168.10.0/24 · HomeAdmin<br/>Router .1 · Proxmox .10 · Zyxel .12"]
+        V99["VLAN99 · GUEST<br/>192.168.99.0/24 · HomeGuest<br/>Internet only; no internal VLAN access"]
+        V70["VLAN70 · DMZ<br/>192.168.70.0/24<br/>Reserved controlled public edge"]
+        V1 ~~~ V10 ~~~ V99 ~~~ V70
     end
-
-    Router --- LAN1
-    Router --- LAN2
-    Router --- LAN3
-    Router --- LAN4
-    Router --- LAN5
-    Router --- WiFi
-    LAN3 --- EdgeSwitch
-
-    subgraph VLANs["Current VLAN and subnet plan"]
-        V1["VLAN 1 LAN<br/>192.168.1.0/24<br/>trusted users"]
-        V10["VLAN 10 Management<br/>192.168.10.0/24<br/>router, Proxmox"]
-        V20["VLAN 20 Automation<br/>192.168.20.0/24<br/>Home Assistant, docker-host, llm-host"]
-        V30["VLAN 30 NVR<br/>192.168.30.0/24<br/>Frigate, cameras"]
-        V35["VLAN 35 Printers<br/>192.168.35.0/24<br/>Bambu P1S, future printers"]
-        V40["VLAN 40 Storage<br/>192.168.40.0/24<br/>OMV NAS"]
-        V50["VLAN 50 IoT<br/>192.168.50.0/24<br/>ESPHome and VentSys devices"]
-        V60["VLAN 60 Monitoring<br/>192.168.60.0/24<br/>Kuma, Grafana, InfluxDB"]
-        V70["VLAN 70 DMZ<br/>192.168.70.0/24<br/>reserved controlled public edge"]
-        V99["VLAN 99 Guest<br/>192.168.99.0/24<br/>guest Wi-Fi"]
+    subgraph Services["INFRASTRUCTURE SERVICES"]
+        direction TB
+        V20["VLAN20 · AUTOMATION<br/>192.168.20.0/24<br/>HA .101 · docker-host .102 · AI .104"]
+        V30["VLAN30 · NVR<br/>192.168.30.0/24 · Frigate .20<br/>Cameras .21–.23 disconnected; .24 future"]
+        V40["VLAN40 · STORAGE<br/>192.168.40.0/24<br/>OMV .50 · direct LAN4 access"]
+        V60["VLAN60 · MONITORING<br/>192.168.60.0/24<br/>VM102 .10 · Kuma / Grafana / InfluxDB"]
+        V20 ~~~ V30 ~~~ V40 ~~~ V60
     end
-
-    Router --- V1
-    Router --- V10
-    Router --- V20
-    Router --- V30
-    Router --- V35
-    Router --- V40
-    Router --- V50
-    Router --- V60
-    Router --- V70
-    Router --- V99
-
-    subgraph Core["Core hosts"]
-        Proxmox["Proxmox host<br/>192.168.10.10"]
-        HA["Home Assistant VM 100<br/>192.168.20.101"]
-        Frigate["Frigate CT 111<br/>192.168.30.20"]
-        DockerHost["docker-host VM 103<br/>192.168.20.102<br/>Compose apps + Tailscale subnet router"]
-        LLMHost["llm-host CT 114<br/>192.168.20.104<br/>local AI inference"]
-        OMV["OMV NAS<br/>192.168.40.50"]
+    subgraph Devices["PRINTERS + DEVICES"]
+        direction TB
+        V35["VLAN35 · PRINTERS<br/>192.168.35.0/24 · HomePrinters<br/>P1S .200 · not commissioned"]
+        V50["VLAN50 · IOT SENSORS<br/>192.168.50.0/24 · HomeIoT<br/>VentSys hardware pending; no internet"]
+        V55["VLAN55 · CLOUD IOT<br/>192.168.55.0/24 · LAN2<br/>Hive .10 · WAN only; app issue open"]
+        V35 ~~~ V50 ~~~ V55
     end
+    Router --- Trusted
+    Router --- Services
+    Router --- Devices
+    class Router core
+    class V70,V35,V50 deferred
+    class V55 policy
 
-    V10 --- Proxmox
-    Proxmox --- HA
-    Proxmox --- Frigate
-    Proxmox --- DockerHost
-    Proxmox --- LLMHost
-    V40 --- OMV
-
-    subgraph Remote["Remote access"]
-        Tailnet["Tailscale tailnet<br/>daily access"]
-        WireGuard["WireGuard fallback<br/>dormant split tunnel"]
-    end
-
-    Tailnet --> DockerHost
-    DockerHost -.->|"host routes only: HA and OMV"| HA
-    DockerHost -.->|"host route only"| OMV
-    WireGuard -.->|"fallback only; no broad storage subnet"| Router
-
-    classDef router fill:#f8f3d4,stroke:#8a6d00,stroke-width:2px
-    classDef vlan fill:#edf7ff,stroke:#2b6cb0,stroke-width:1px
-    classDef host fill:#eef8ee,stroke:#2f855a,stroke-width:1px
-    classDef remote fill:#fff0f6,stroke:#b83280,stroke-width:1px
-
-    class Router router
-    class V1,V10,V20,V30,V35,V40,V50,V60,V70,V99 vlan
-    class Proxmox,HA,Frigate,DockerHost,OMV host
-    class Tailnet,WireGuard remote
+    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa
+    classDef store fill:#292745,stroke:#aa99db,color:#f2edff
+    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8
+    classDef deferred fill:#1b2638,stroke:#9dabc1,color:#d3dfef,stroke-dasharray:5 4

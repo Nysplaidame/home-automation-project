@@ -1,0 +1,34 @@
+%%{init: {"theme":"base","fontFamily":"Segoe UI, sans-serif","themeVariables":{"primaryColor":"#123044","primaryTextColor":"#eef6ff","primaryBorderColor":"#58b7bf","lineColor":"#9aafc4","clusterBkg":"#0d1c2d","clusterBorder":"#38516b","tertiaryColor":"#0d1c2d","edgeLabelBackground":"#0b1929","fontSize":"18px"},"flowchart":{"curve":"basis","nodeSpacing":28,"rankSpacing":90,"padding":12,"subGraphTitleMargin":{"top":8,"bottom":16},"wrappingWidth":260,"useMaxWidth":false}}}%%
+flowchart LR
+    %% Applies to main, branch and enclosure valve controllers; source of truth: active ESPHome valve YAML files.
+    %% Layout: power (left) --> ESP pins --- peripheral pins (right).
+    PSU["Regulated USB 5V supply<br/>size for servo stall current"]
+    subgraph ESP["ESP32DEV · STANDARD VALVE CONTROLLER"]
+        ESPVin["5V / VIN<br/>board power"]
+        ESPGnd["GND"]
+        ServoPin["GPIO16<br/>50 Hz servo PWM"]
+        LedPin["GPIO21<br/>WS2812 status LED"]
+        TouchPin["GPIO33<br/>Touch-toggle input"]
+    end
+    subgraph Servo["MG90S SERVO / BUTTERFLY VALVE"]
+        ServoV["Red · 5V"]
+        ServoGnd["Brown · GND"]
+        ServoSignal["Orange · signal"]
+    end
+    subgraph Aux["ON-BOARD / OPTIONAL INPUTS"]
+        Led["WS2812 status LED"]
+        Touch["Touch pad"]
+    end
+    Note["Servo power must not come from the ESP32 3.3V rail.<br/>The servo and ESP32 must share ground.<br/>Check the board 5V path and USB supply under servo load.<br/>Optional feedback variants need a protected GPIO35 network; see wiring reference.<br/>E2, MAIN-1 and MAIN-2 use three-wire servos without feedback."]
+    PSU --> ESPVin
+    PSU --> ESPGnd
+    ESPVin --- ServoV
+    ESPGnd --- ServoGnd
+    ServoPin --- ServoSignal
+    LedPin --- Led
+    TouchPin --- Touch
+    Note ~~~ PSU
+    class ESP,Servo,Aux core
+    class PSU,Note policy
+    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa
+    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8

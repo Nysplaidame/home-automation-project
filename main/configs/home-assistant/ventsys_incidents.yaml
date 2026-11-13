@@ -1,0 +1,131 @@
+# VentSys incident notifications. The monitoring topic uses a write-only account;
+# credentials live only in Home Assistant secrets.yaml. No actuator actions.
+rest_command:
+  ventsys_ntfy_incident:
+    url: http://192.168.20.102:8085/monitoring
+    method: POST
+    authentication: basic
+    username: !secret ventsys_ntfy_username
+    password: !secret ventsys_ntfy_password
+    content_type: text/plain
+    headers:
+      Title: "VentSys: {{ title }}"
+      Priority: "{{ priority }}"
+      Tags: "{{ tags }}"
+      Click: https://192.168.20.101:8123/dashboard-ventsys/0
+    payload: "{{ message }}"
+    timeout: 10
+
+automation:
+  - id: ventsys_sla_pipe_board_dropout_ntfy
+    alias: VentSys SLA pipe board dropout notification
+    mode: queued
+    max: 2
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.garage_ventsys_sla_pipe_air_sensor_status
+        to: "off"
+        for: "00:02:00"
+        id: offline
+      - trigger: state
+        entity_id: binary_sensor.garage_ventsys_sla_pipe_air_sensor_status
+        to: "unavailable"
+        for: "00:02:00"
+        id: offline
+      - trigger: state
+        entity_id: binary_sensor.garage_ventsys_sla_pipe_air_sensor_status
+        to: "unknown"
+        for: "00:02:00"
+        id: offline
+      - trigger: state
+        entity_id: binary_sensor.garage_ventsys_sla_pipe_air_sensor_status
+        to: "on"
+        for: "00:00:30"
+        id: recovered
+      - trigger: state
+        entity_id: input_boolean.ventsys_maintenance_sla_pipe_air
+        to: "off"
+        for: "00:02:00"
+        id: maintenance_end
+    conditions:
+      - condition: template
+        value_template: >-
+          {{ is_state('input_boolean.ventsys_maintenance_sla_pipe_air', 'off') and
+             (trigger.id == 'maintenance_end' and states('binary_sensor.garage_ventsys_sla_pipe_air_sensor_status') in ['off', 'unavailable', 'unknown'] or
+              trigger.from_state is not none and
+              (trigger.id == 'offline' and trigger.from_state.state == 'on' or
+               trigger.id == 'recovered' and trigger.from_state.state in ['off', 'unavailable', 'unknown'])) }}
+    actions:
+      - variables:
+          offline: "{{ trigger.id != 'recovered' }}"
+      - action: logbook.log
+        data:
+          name: VentSys SLA pipe air board
+          message: "{{ 'Connection lost for two minutes; CO and BME680 readings unavailable' if offline else 'Connection restored; verify fresh readings' }}"
+          entity_id: binary_sensor.garage_ventsys_sla_pipe_air_sensor_status
+      - action: rest_command.ventsys_ntfy_incident
+        data:
+          title: "{{ 'SLA pipe air board offline' if offline else 'SLA pipe air board restored' }}"
+          priority: "{{ 3 if offline else 2 }}"
+          tags: "{{ 'warning' if offline else 'white_check_mark' }}"
+          message: "{{ 'SLA pipe air board has been offline for two minutes. CO and BME680 telemetry cannot be trusted until connection and fresh readings return. Check the board and independent CO alarm.' if offline else 'SLA pipe air board reconnected. Verify that CO voltage and BME680 readings are fresh before relying on them.' }}"
+
+  - id: ventsys_sla_pipe_co_hardware_fault_ntfy
+    alias: VentSys SLA pipe CO hardware fault notification
+    mode: queued
+    max: 2
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.garage_ventsys_sla_pipe_air_sensor_co_sensor_fault
+        to: "on"
+        for: "00:00:15"
+      - trigger: state
+        entity_id: binary_sensor.garage_ventsys_sla_pipe_air_sensor_co_sensor_fault
+        to: "off"
+        for: "00:00:30"
+    conditions:
+      - condition: template
+        value_template: "{{ trigger.from_state is not none and trigger.from_state.state in ['on', 'off'] }}"
+    actions:
+      - variables:
+          active: "{{ trigger.to_state.state == 'on' }}"
+      - action: logbook.log
+        data:
+          name: VentSys SLA pipe CO sensor
+          message: "{{ 'Hardware fault: analog output near limit; CO reading unverified' if active else 'Hardware fault cleared; sensor still uncommissioned' }}"
+          entity_id: binary_sensor.garage_ventsys_sla_pipe_air_sensor_co_sensor_fault
+      - action: rest_command.ventsys_ntfy_incident
+        data:
+          title: "{{ 'SLA pipe CO sensor fault' if active else 'SLA pipe CO sensor fault cleared' }}"
+          priority: "{{ 3 if active else 2 }}"
+          tags: "{{ 'warning' if active else 'white_check_mark' }}"
+          message: "{{ 'SLA pipe CO analog output is invalid. This is an unverified sensor fault, not a confirmed CO concentration. Check wiring and a certified CO alarm.' if active else 'SLA pipe CO analog output returned to range. Do not commission until the reading stays stable and wiring is checked.' }}"
+
+  - id: ventsys_failsafe_ntfy
+    alias: VentSys failsafe notification
+    mode: queued
+    max: 2
+    triggers:
+      - trigger: state
+        entity_id: input_boolean.ventsys_failsafe
+        to: "on"
+      - trigger: state
+        entity_id: input_boolean.ventsys_failsafe
+        to: "off"
+    conditions:
+      - condition: template
+        value_template: "{{ trigger.from_state is not none and trigger.from_state.state in ['on', 'off'] }}"
+    actions:
+      - variables:
+          active: "{{ trigger.to_state.state == 'on' }}"
+      - action: logbook.log
+        data:
+          name: VentSys failsafe
+          message: "{{ 'Activated' if active else 'Cleared' }}"
+          entity_id: input_boolean.ventsys_failsafe
+      - action: rest_command.ventsys_ntfy_incident
+        data:
+          title: "{{ 'Failsafe active' if active else 'Failsafe cleared' }}"
+          priority: "{{ 5 if active else 2 }}"
+          tags: "{{ 'rotating_light' if active else 'white_check_mark' }}"
+          message: "{{ 'VentSys failsafe is active. Check the dashboard and physical equipment.' if active else 'VentSys failsafe was cleared. Verify physical equipment state.' }}"

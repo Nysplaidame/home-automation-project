@@ -1,13 +1,16 @@
-# VentSys Spray Booth Pipe Airflow Sensor
+# VentSys Spray Booth Airflow Sensor
 # Adapted from ventsys_airflow_sensor.yaml (known to boot without crashing)
-# Adds MQTT publishing and VentSys identity. All original features retained.
-# See ventsys_fdm_airflow.yaml for full notes.
+# Adds MQTT publishing and VentSys identity. All original features retained:
+# pulse meter, wheel speed, LED running-light animation, flow-speed LED control.
 #
-# TLS-first production config. Use a dedicated `_pretls.yaml` recovery/bootstrap
-# variant only for a documented temporary plaintext MQTT exception.
+# NOTE: Hardware is ESP32-C6. Framework is esp-idf (required for C6).
+# internal_temperature is NOT available on C6 — omitted intentionally.
 #
-# SECRETS REQUIRED: wifi_ssid, wifi_pass, mqtt_user, mqtt_pass,
-#                   mqtt_ca_cert, api_key, ota_password
+# Direct-TLS deployment: keep MQTT on 8883 and trust the local CA from first flash.
+#
+# SECRETS REQUIRED (secrets.yaml):
+#   wifi_ssid, wifi_pass, mqtt_user, mqtt_pass, mqtt_ca_cert,
+#   api_key, ota_password
 
 substitutions:
   device_name: ventsys-booth-airflow
@@ -30,6 +33,7 @@ logger:
 api:
   encryption:
     key: !secret api_key
+  reboot_timeout: 0s
 
 ota:
   platform: esphome
@@ -38,10 +42,12 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_pass
+  use_address: ${device_ip}
   manual_ip:
     static_ip: ${device_ip}
     gateway: 192.168.50.1
     subnet: 255.255.255.0
+    dns1: 192.168.50.1
   ap:
     ssid: "VentSys Booth Air FB"
     password: !secret ota_password
@@ -54,8 +60,10 @@ mqtt:
   username: !secret mqtt_user
   password: !secret mqtt_pass
   discovery: false
+  discover_ip: false
   certificate_authority: !secret mqtt_ca_cert
   on_connect:
+    # Republish last known readings on reconnect so HA stays in sync
     - mqtt.publish:
         topic: ${mqtt_topic_pulses}
         payload: "0"
@@ -78,7 +86,7 @@ globals:
   - id: pulses_at_max_speed
     type: float
     restore_value: no
-    initial_value: '20.0'
+    initial_value: '20.0'    # Adjust after calibration if needed
 
 sensor:
   - platform: wifi_signal
@@ -86,6 +94,7 @@ sensor:
     id: wifi_signal_db
     update_interval: 60s
     entity_category: diagnostic
+
   - platform: copy
     source_id: wifi_signal_db
     name: "WiFi Signal Percent"
@@ -93,12 +102,14 @@ sensor:
       - lambda: return min(max(2 * (x + 100.0), 0.0), 100.0);
     unit_of_measurement: "Signal %"
     entity_category: diagnostic
+
   - platform: uptime
     name: Uptime
+
   - platform: pulse_meter
     id: flow_meter_pulse_rate
     pin:
-      number: GPIO10
+      number: GPIO0
       inverted: true
       mode: INPUT_PULLUP
     unit_of_measurement: 'pulses/s'
@@ -109,6 +120,9 @@ sensor:
     timeout: 2s
     filters:
       - lambda: return x / 60.0;
+    total:
+      name: "Flow Meter Total Pulses"
+      id: flow_meter_total_pulses
     on_value:
       then:
         - if:
@@ -117,18 +131,22 @@ sensor:
             then:
               - number.set:
                   id: animation_speed
-                  value: !lambda 'return (x / id(pulses_at_max_speed)) * 100.0;'
+                  value: !lambda 'return min(max((x / id(pulses_at_max_speed)) * 100.0f, 0.0f), 100.0f);'
+        # Publish pulse rate to HA via MQTT
         - mqtt.publish:
             topic: ${mqtt_topic_pulses}
             payload: !lambda 'return to_string((int)x);'
             retain: true
+
   - platform: template
     name: "Flow Meter Wheel Speed"
     id: flow_meter_wheel_speed
     update_interval: 1s
     accuracy_decimals: 1
     unit_of_measurement: 'rounds/s'
-    lambda: 'return id(flow_meter_pulse_rate).state / 3.0;'
+    lambda: |-
+      float rps = id(flow_meter_pulse_rate).state / 3.0;
+      return rps;
     on_value:
       then:
         - mqtt.publish:
@@ -148,6 +166,7 @@ switch:
           effect: "Running light"
     turn_off_action:
       - light.turn_off: light_1
+
   - platform: template
     name: "Control LED Animation by Flow Speed"
     id: control_anim_by_flow_speed_switch
@@ -167,6 +186,7 @@ number:
     restore_value: true
     disabled_by_default: true
     mode: slider
+
   - platform: template
     name: "Light Brightness"
     id: light_brightness
@@ -183,7 +203,7 @@ light:
     id: light_1
     rgb_order: GRB
     chipset: WS2812
-    pin: GPIO9
+    pin: GPIO1
     num_leds: 3
     name: "LEDs"
     internal: true
@@ -192,22 +212,28 @@ light:
           name: "Running light"
           update_interval: 16ms
           lambda: |-
-            if (initial_run) { it.all() = Color::BLACK; }
+            if (initial_run) {
+              it.all() = Color::BLACK;
+            }
             static int next_update;
             static int pos;
             if (next_update <= millis() && id(animation_speed).state > 0) {
+              int red = current_color.red;
+              int green = current_color.green;
+              int blue = current_color.blue;
               it.all() = Color::BLACK;
               for (int i = 0; i < it.size(); i++) {
                 float brightness = i == pos ? (id(light_brightness).state / 100.0) : 0.0;
-                it[i] = Color(brightness * current_color.red,
-                              brightness * current_color.green,
-                              brightness * current_color.blue);
+                it[i] = Color(brightness * red, brightness * green, brightness * blue);
               }
               pos = (pos + 1) % it.size();
               next_update = millis() + 1635 - (id(animation_speed).state / 100.0) * 1500;
             } else if (id(animation_speed).state == 0) {
+              int red = current_color.red;
+              int green = current_color.green;
+              int blue = current_color.blue;
               float brightness = id(light_brightness).state / 100.0;
-              it.all() = Color(brightness * current_color.red,
-                               brightness * current_color.green,
-                               brightness * current_color.blue);
+              it.all() = Color(brightness * red, brightness * green, brightness * blue);
             }
+packages:
+  board_management: !include ventsys_board_management.yaml

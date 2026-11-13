@@ -1,0 +1,23 @@
+[Unit]
+Description=VentSys identity monitor and temporary MQTT evidence capture
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=ventsys-monitor
+Group=ventsys-monitor
+ExecStart=/usr/bin/python3 /opt/ventsys-monitor/monitor.py
+Restart=always
+RestartSec=10
+StateDirectory=ventsys-monitor
+StateDirectoryMode=0700
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+MemoryMax=128M
+TasksMax=32
+
+[Install]
+WantedBy=multi-user.target

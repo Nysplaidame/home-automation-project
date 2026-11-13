@@ -1,21 +1,183 @@
 ---
 title: Project Tasks
-description: Implementation tasks by phase — updated June 2026
+description: Implementation tasks, operational evidence and owner-gated follow-ups
 tags: [tasks, implementation]
 aliases: [TODO, Tasks]
 created: 2025-09-15
-modified: 2026-07-07
+modified: 2026-11-13
 type: task-list
 status: active
 ---
 
 # Project Task List
 
+
 **Links:** [[README|Overview]] | [[PROJECT-INDEX|Index]]
 
----
+Completed items (364 as of 2026-11-13) live in
+[[2026-11-13-todo-completed|the completed-items archive]]; only open work and
+items with open sub-tasks remain here.
+
+**Known open items outside this list** (from the 2026-11-13 audit and
+[[HANDOFF-2026-11-13-branch-merge-and-audit]]):
+
+- [ ] Owner: rotate the Obsidian Local REST API key and certificate, then
+  `git rm --cached` `.obsidian/plugins/obsidian-local-rest-api/data.json` and gitignore it.
+- [ ] Deploy the Filebrowser HTTPS listener (port 8212): reload the Homepage
+  nginx and run `docker-host-ufw-homepage-previews.sh` on VM 103, then check the card.
+- [ ] Verify merged sources against live hosts before deploying: Homepage
+  (`services.yaml`, `nginx.conf`, `custom.js`), SearXNG compose, router
+  `dhcp-config.conf`, CT 114 `llm-host-firewall.sh`, `llamacpp_conversation`
+  (test a recipe/web-search follow-up), Tailscale routes (four vs five).
+- [ ] Rebuild the Mermaid Viewer and redeploy `/opt/stacks/mermaid-viewer/dist`.
+- [ ] Decide fate of unmerged local branches (`claude/mermaid-diagram-cleanup-ec1358`
+  has six wiring diagrams; `llm-igpu-speed-handoff` was discarded by the owner).
+- [ ] Docs drift: add ~95 missing files to `PROJECT-INDEX.md`; wiki pages for Solar
+  Observatory and Obico; decision numbering gap (06) and unnumbered decisions;
+  refresh stale `modified:` dates on READMEs and reference matrices.
+- [ ] Repo weight: drop `worktree-file-inventory.csv` and the Tesseract binaries
+  under `recomp-tracker/static/ocr/`; untrack `main/.obsidian/`; remove root
+  `cam_01_latest_check.jpg`; add CI for the four apps with tests.
+
+- [ ] Fix confirmed interrupted mode-release recovery: desired intent is saved
+  before valve closures; retry can omit the released valves and shared paths.
+  Preserve pending ownership durably; replace misleading retry guidance.
+- [ ] Decide normal-mode fan speed after the last purge ends; current planner
+  leaves the last purge speed in place while another mode remains active.
+- [ ] Implement and verify commissioned-node ntfy alerts, dashboard stale-state
+  improvements, no-motion reference UI and automatic firmware-update checks;
+  November4 mode review documented in dashboard manual, not yet implementation.
+- [ ] On the next normal HA restart or E2 reconnect, verify E2's HA host stays
+  `.52` and the stale `esphome/discover/ventsys-main-valve-1` topic is not
+  republished. Server monitor now checks ongoing identity; normal restart
+  persistence still awaits that event.
+- [ ] Physically test both external360 touch inputs, loaded travel and all other
+  boards' restart retention. Require pre/post native-value acceptance on every OTA.
+- [ ] Add dashboard/other-valve manual reference UI (bounded no-motion API exists
+  for360 intakes only); calibration action: no
+  PWM on acknowledgement, label operator-reported state, preserve unknown physical
+  position status; map actual closed/open pulse endpoints before future motion.
+- [ ] Verify FDM print touch, remote actuation and sustained operation under servo load
+  when available; owner confirms its physical/display endpoints are 0–100%.
+- [ ] Physically retest corrected remote control routing and mode transitions
+  after required controllers are available; local E2 touch response is owner reported.
+- [ ] Commission expected-open AND expected-closed airflow baselines for VentSys,
+  agree danger thresholds and deploy deduplicated ntfy incidents with phone proof.
+
 
 ## Next project steps
+
+- [ ] Physically diagnose SLA pipe CO output/wiring before commissioning: after
+  warm-up ADC remained near 3.3 V, briefly settled near 1.03 V after a power
+  cycle, then returned to 3.307 V with CO detection and fault active. Confirm
+  wiring/output stability; capture a clean-air baseline only when valid.
+  November 8: owner removed packaging cover and possible signal-to-VCC wire
+  strand; voltage then about 0.300 V with detection/fault off, latch still on.
+  Watch stability and verify physical wiring before baseline capture.
+- [ ] Correct installed FDM enclosure air sensor `.32` CO channel: owner
+  identified the fitted component as CO on November 8, but flashed firmware,
+  HA and dashboard still label GPIO3 as smoke and use an uncalibrated raw
+  threshold. Candidate `configs/esphome/ventsys_fdm_sensor_co.yaml` now uses
+  the SLA CO/BME680 pinout and compiled under ESPHome 2026.9.1. On November 8
+  HA still reported the board offline, `.32` did not answer, and Windows had no
+  USB serial device; no flash occurred. Connect the MAC `CC:BA:97:F0:D0:C0`
+  board, verify its actual status LED wiring, flash and validate native CO/BME
+  readings, then correct dashboard and HA entity references and alarm rules.
+- [ ] Induce a controlled VentSys board dropout/recovery and verify the dashboard,
+  HA log, maintenance suppression and ntfy delivery after the phone subscription
+  is connected.
+- [ ] Complete the severity matrix and durable incident manager in the VentSys
+  dashboard manual. Frontend `20261107-4` now displays live orange/red incidents
+  and source outlines; HA publishes SLA CO hardware fault and failsafe transitions
+  to ntfy. Validate phone delivery after reconnecting its subscription, then
+  commission remaining rules, deduplication and bounded reminders.
+- [ ] Make invalid CO ADC readings report fault before detection in firmware;
+  bench-verify both paths. SLA dashboard `20261107-4` now uses adopted BME680
+  IDs and labels the channel CO.
+
+- [ ] Verify HA adoption/entity naming after airflow MAC/role reassignment,
+  MQTT broker delivery and physical pulse response. See current-live-state.
+
+- [ ] Physical retest after repair: verify each 360 separately in both directions,
+  E2 actuation, and an available-controller mode subset. Earlier tests only proved
+  UI/policy behaviour and missed the wrong runtime topics. No actuation was sent
+  during diagnosis/repair. Keep 360 firmware/endpoints unchanged.
+- [ ] Verify touch view on the physical seven-inch screen; software tested at
+  800×480 and 1024×600. Use `/dashboard-ventsys/touch`, optional Full screen.
+- [ ] Continue installation as planned and physical sequence/commissioning
+  acceptance separately. Direct MQTT/native controls bypass script arbitration.
+  The accepted 360 firmware and firmware/HA role swap remain unchanged.
+
+- [ ] Execute the staged CA migration after signer/backup and additional
+  Windows/Android/device trust are prepared; MQTT firmware dependencies and
+  Frigate maintenance remain deferred. No live certificate changed in planning.
+
+
+- [ ] Verify resource-monitor alert presentation on the subscribed phone;
+  October11 labelled alert/recovery received HTTP200, but owner received neither.
+  ntfy reported zero subscribers; phone is on mobile data with Tailscale connected
+  and its ntfy subscription disconnected. Diagnose its connection error before
+  repeating the background-notification test. See ntfy service manual.
+
+
+- [ ] Continue Solar Observatory with authenticated host acceptance,
+  complete orbital coverage/orientations/assets and actual Pi performance
+  gates before broad catalogue expansion or deployment.
+
+
+- [ ] Deploy the hardened TransferPortal app/helper/policy together after refreshed
+  idle-state/checkpoint checks. Live OMV still runs the older vulnerable helper.
+- [ ] Accept VentSys endpoint/power-cut/sensor coverage before enabling safety
+  automations; review socket/NAS privilege and upstream Mealie fetch boundaries.
+
+- [ ] Accept a manual generation/isolated restore and recurring Hub schedule in
+  an approved maintenance window. Prepared source is not deployed or enabled.
+
+
+- [ ] Confirm phone receipt of the September17 corrected Watchtower report. Server
+  delivery is proven: the04:02:49 UTC cached report says31 scanned,2 updates
+  available,0 updated,0 failed and8 skipped, matching the04:02:48 UTC scan.
+- [ ] Prove full-system/integration and real-user GardenKeeper upload recovery.
+  The first scheduled OMV media-inventory check is queued; it will prove path
+  coverage, not a production journal-entry or external-integration recovery. Hub's
+  coordinated checkpoint remains one-off; recurring coverage is a separate task.
+
+
+- [ ] Apply the prepared exact hosts mappings for Home Assistant, Frigate,
+  Grafana, and Uptime Kuma from an elevated PC shell; verify each local HTTPS
+  name while Mullvad remains connected. See the DNS resolver decision and
+  `scripts/setup/windows/set-local-core-service-names.ps1`.
+
+
+- [ ] Apply the approval-gated IPv6 reconciliation for the pre-existing
+  DOCKER-USER Tailscale exception on port8094. The dashboard remains IPv4-only
+  with bridge IPv6 disabled; follow
+  `docs/procedures/troubleshooting-dashboard-ipv6-publication-guard.md` before
+  any IPv6 publication or firewall change.
+
+
+- [ ] Restore CT114's approved package path in a bounded maintenance change:
+  October2 confirms no proxy, native cache-host UFW rejection and upstream503;
+  security/update indexes expired June26. The prepared repair procedure retains
+  the maintenance gate. Refresh signed metadata before trusting candidates,
+  then simulate/review Fail2ban installation; no blind full upgrade.
+- [ ] Implement and review the VentSys authenticated card/page bridge against
+  `docs/procedures/ventsys-card-page-bridge-contract.md` before any dashboard
+  deployment. Local startup error is fixed and five browser tests pass; public
+  credentials remain prohibited and the page stays offline. The draft card is
+  not connected to the page and is not accepted.
+
+- [ ] Investigate HomeAdmin Wi-Fi throughput after fibre cutover: workstation
+  measured 172 Mbps HTTPS versus 558-699 Mbps from the wired monitoring VM.
+  Authenticated 2026-09-04 checks show OpenWrt 24.10.3, auto channel selecting
+  100/HE80, PC signal around -76 dBm and current download PHY 432 Mbps. Compare
+  local wired/Wi-Fi throughput and evaluate the AX210 driver update; plan the
+  OpenWrt 25.12 upgrade separately and verify full WAN speed with a wired Zen test.
+  See the current handoff for measurements and test limitations.
+- [ ] Resolve Hive's existing app/account offline issue: owner still sees it
+  offline despite established internet connections. Try the vendor's app
+  force-close workaround, then check model/LED and Manage → Devices status.
+- [ ] Reconnect Zyxel and cameras when ready, then rerun CCTV acceptance.
 
 1. [x] Add the Installation Manual Suite v1 canonical entrypoint under `docs/install/START-HERE.md`
 2. [x] Add numbered fresh-rebuild phase manuals under `docs/install/phases/`
@@ -23,19 +185,76 @@ status: active
 4. [x] Add draft docker-host service manuals for Tier 1, Tier 2, and Tier 3/evaluate services
 5. [x] Add the companion setup-documentation checklist at `docs/install/INSTALL-TO-DO.md`
 6. [x] Replace stale static diagrams with canonical Mermaid sources for architecture, install sequence, DNS/NTP, access, storage, docker-host services, and VentSys safety flow
-7. [ ] Continue expanding each install phase until every command has expected output examples and every failure mode has a tested recovery path
-8. [ ] Work through the comprehensive checklist in `docs/install/INSTALL-TO-DO.md`
-9. [ ] Run a full dry-read from `docs/install/START-HERE.md` after the next content expansion pass
-10. [x] Deploy and document shared-iGPU CT 111 Frigate and CT 114 local AI architecture
+7. [x] Deploy the reconciled 48-entry `home.local` domain inventory from `configs/openwrt/dhcp-config.conf` to live OpenWrt, restart dnsmasq, and pass `scripts/validation/validate-home-local-dns.ps1` against `192.168.10.1` (completed 2026-07-29)
+8. [ ] Continue expanding each install phase until every command has expected output examples and every failure mode has a tested recovery path
+   - Second September10 continuation adds download-gateway/Recomp operating
+     manuals and MediaMTX recovery guidance, corrects legacy authentication/
+     host-context advice, and repairs VM103/VM102 creation and pre-NAS phase
+     dependencies. Household Hub source/migration/database restore and MediaMTX
+     configuration-backup coverage remain explicit gaps in INSTALL-TO-DO.
+   - 2026-09-10 continuation: reconciled router, operator, Proxmox, OMV and
+     final-validation instructions with the September network/state records.
+     Added `docs/troubleshooting/diagnostic-walkthroughs.md` for the app's five
+     symptoms with Mermaid links and evidence boundaries, plus
+     `docs/install/services/media-libraries.md` for three media services.
+     Corrected stale recovery ports, disconnected-device claims and DNS wording;
+     incorporated the separate September10 app deployment record. This is a
+     documentation/source pass, not fresh hardware or restore acceptance.
+   - 2026-08-24 continuation: expanded Mealie, Grocy and Obsidian LiveSync with
+     pre-start/promotion gates, operator flows, consistent backups,
+     loopback-only isolated restores, updates and version/data rollback. Added a
+     last-safe-stop matrix for all 23 service manuals.
+9. [ ] Work through the comprehensive checklist in `docs/install/INSTALL-TO-DO.md`
+   - 2026-08-24 pass closed package/dependency, volatile-version,
+     decision-gate, placeholder, command-label and per-service promotion-boundary
+     coverage. Service/access-matrix review and live acceptance gates remain.
+10. [ ] Run a full dry-read from `docs/install/START-HERE.md` after the next content expansion pass
+    - 2026-08-24 structural dry-read passed 50-document link navigation, 52
+      documented placeholders, 311 shell blocks and 66 PowerShell blocks. The
+      full dry-run was blocked by a router invariant at that time. September
+      recovery lint and compiler regression tests pass; an actual credentialed
+      full rebuild and blank-hardware acceptance remain unproven.
+11. [x] Deploy and document shared-iGPU CT 111 Frigate and CT 114 local AI architecture
+12. [x] Reconcile the canonical architecture documentation on 2026-08-25:
+    update current-state/service/access/name/cabling references, active setup
+    guides, troubleshooting, monitoring and all affected Mermaid sources;
+    rebuild the Mermaid Viewer and pass all 11 browser-side Mermaid parses.
+13. [x] Build the read-only troubleshooting-dashboard proof of concept around
+    five initial symptoms: Homepage access, Home Assistant availability, one
+    camera path, P1S telemetry and backup freshness. Keep arbitrary shell and
+    automatic remediation out of v1. Completed locally on 2026-08-25 with
+    health-JSON import, honest unknown states, guided evidence collection,
+    incident-report copy, nine model tests and desktop/mobile browser smoke.
+14. [ ] Promote the troubleshooting dashboard from POC to a controlled live
+    service: review the diagnostic wording, add collector-side backup detail to
+    Windows if needed, approve DNS/Homepage exposure, deploy on staged port
+    `8094`, and complete operator acceptance before calling it operational.
+    - 2026-08-25 staged live on VM 103 at management-only
+      `http://192.168.20.102:8094/`. Real Windows 13/13 snapshot import,
+      desktop/mobile browser flow, container hardening, VLAN-10 allow,
+      LAN/Tailscale/IPv6 denial and stop/start rollback all passed.
+    - Remaining gate: authorize a workstation key on the Proxmox host and
+      accept a real Proxmox JSON snapshot for backup freshness.
+    - 2026-09-11 owner approved and deployed Homepage Tools > Troubleshooting,
+      with Preview/Open tab at `/portal-preview/troubleshooting/` over existing
+      Homepage HTTPS. No new DNS alias or firewall rule; mobile preview passed.
+15. [x] Deploy MediaMTX `1.20.1` on VM 103 as an authenticated RTSP-over-TCP
+    relay/recorder for the garage phone stream. The HomeAdmin-only firewall,
+    separate publisher/viewer accounts, live relay and OMV recording validation
+    passed on 2026-08-27.
+    - [ ] Configure Larix on the OnePlus and the garage Pi player, then accept a
+      real 30-minute session.
+    - [ ] Choose a recording retention period before unattended/frequent use;
+      automatic deletion is deliberately disabled meanwhile.
 
 Planning baseline until explicitly revalidated:
 
 - Treat OMV and Proxmox NFS backups as live. On 2026-07-05, Proxmox reported
   `omv-backups` active at 54.21% used, so the old 86-87% md0 high-water warning
   is cleared; keep normal monthly backup and SMART checks.
-- Treat Frigate as live with one bench camera ingest on CT 111; keep HA
-  integration, source cleanup, and broader camera rollout as the remaining
-  work.
+- Treat Frigate CT 111 as reachable with three previously proven cameras
+  deliberately disconnected. Reconnect the Zyxel/cameras and rerun stream,
+  recording/playback and notification acceptance before calling CCTV live.
 - Treat Home Assistant native HTTPS as live at
   `https://192.168.20.101:8123` with the local `Home Local CA`. HTTP on
   port `8123` is no longer the active HA UI.
@@ -43,8 +262,8 @@ Planning baseline until explicitly revalidated:
 
 ## Hardening and resilience roadmap
 
-1. [ ] Plan the whole-system hardening run before changing credentials or access paths: inventory all admin surfaces, service accounts, API tokens, SSH keys, certificates, Tailscale/WireGuard paths, OpenWrt rules, host firewalls, and password-manager records.
-2. [ ] Plan the whole-system resilience run before live drills: define recovery goals, access routes, trusted backups, restore order, and stop/ask gates for Mini PC, OMV, router, Home Assistant, docker-host, Frigate, llm-host, monitoring, Tailscale, local CA, and credential-loss scenarios.
+1. [x] Plan the whole-system hardening run before changing credentials or access paths: inventory all admin surfaces, service accounts, API tokens, SSH keys, certificates, Tailscale/WireGuard paths, OpenWrt rules, host firewalls, and password-manager records. See `docs/procedures/hardening-resilience-planning-runbook.md` (2026-09-18).
+2. [x] Plan the whole-system resilience run before live drills: define recovery goals, access routes, trusted backups, restore order, and stop/ask gates for Mini PC, OMV, router, Home Assistant, docker-host, Frigate, llm-host, monitoring, Tailscale, local CA, and credential-loss scenarios. See `docs/procedures/hardening-resilience-planning-runbook.md` (2026-09-18).
 3. [ ] Prove backup and restore readiness before broad credential rotation: Proxmox VM/LXC restore evidence, HA backup restore path, OMV export/config recovery path, and repo/config backup coverage. Docker-host app-data backup/restore smoke passed on 2026-07-07.
 4. [ ] Execute hardening run in a controlled window: rotate infrastructure passwords, API tokens, long-lived HA tokens, app bootstrap credentials, SSH keys, and service secrets; validate each dependent service before revoking old credentials.
 5. [ ] Execute resilience tabletop scenarios before disruptive tests: document what still works, what fails, first diagnostic commands, recovery route, rollback path, and "do not touch" boundaries for each major failure scenario.
@@ -91,7 +310,10 @@ Planning baseline until explicitly revalidated:
 35. [x] Apply `configs/home-assistant/lovelace/monitoring-grafana-links.yaml` to the live HA Monitoring dashboard through the HA UI; confirmed visible in a dashboard tab on 2026-06-01
 36. [x] Approve and retest mobile Tailscale monitoring access: docker-host now advertises `192.168.60.10/32` and has routed UFW allowances for Grafana `3000` and Uptime Kuma `3001`; route approved in Tailscale admin and mobile access to HA/Grafana/Kuma confirmed working on 2026-05-31
 37. [x] Re-export `Proxmox Resource Overview` and apply explicit labels (`Guest RAM`, `RAM Pressure`, `Root Disk`) to live/source panels; 2026-05-31 datasource check found high HA/docker-host/monitoring percentages are guest-memory values, not CPU/disk saturation
-38. [ ] Schedule controlled docker-host patch window for Docker engine/component and kernel package candidates from `docs/procedures/update_review_log.md`
+38. [x] Complete the controlled docker-host patch window for Docker/containerd,
+    Compose/Buildx, Python 3.13 and Tailscale candidates; completed 2026-08-01
+    with fresh pre/post NAS backups, no reboot required, no pending upgrades and
+    all 33 existing containers/endpoints healthy
 39. [x] Add first NAS telemetry using existing docker-host Telegraf -> InfluxDB -> Grafana pattern by exposing the OMV-backed Immich mount to Telegraf
 40. [x] Build CT 114 `llm-host` after confirming Proxmox RAM pressure was healthy enough for the local-AI workload
 41. [x] Deploy llama.cpp, Open WebUI, Wyoming Whisper, Wyoming Piper, and OpenWakeWord on CT 114 per `scripts/setup/proxmox/llm_host_setup_guide.md`
@@ -102,53 +324,77 @@ Planning baseline until explicitly revalidated:
 45. [ ] Keep Hermes Agent roadmap-only until local LLM, STT, TTS, monitoring, and safety gates are stable
 46. [ ] Keep future YouTube transcript/query app architecture undecided; VM 103 is only the expected target for future containerized query apps
 47. [x] Add Frigate camera/PoE switch pre-flight checklist at `docs/procedures/frigate_camera_preflight_checklist.md`
-48. [x] Configure Zyxel GS1900-8HP managed switch baseline: router `lan3` tagged trunk for VLANs 1/10/30/40, switch management on VLAN 10 (`192.168.10.12`), camera ports untagged VLAN 30, and switch port 8 retained as spare untagged VLAN 40; OMV now connects directly to router `lan4` on VLAN 40. TL-WA801N VLAN 1 access port remains future work
+48. [x] Configure Zyxel GS1900-8HP managed switch baseline: router `lan3` tagged trunk for VLANs 1/10/30/40, switch management on VLAN 10 (`192.168.10.12`), first camera on untagged VLAN 30, and OMV on switch port 8 untagged VLAN 40; TL-WA801N VLAN 1 access port remains future work
 49. [x] Enable Home Assistant native HTTPS with the local CA on 2026-07-02; validate browser, Companion App, CCTV mobile views, Frigate integration, VentSys static assets, Grafana/Kuma direct links, and rollback path
 50. [ ] Optional only if mobile access becomes flaky: improve Tailscale direct connectivity for off-WiFi mobile access by adding explicit UDP `41641` forwarding through the upstream router and GL-MT6000 to docker-host; current user validation on 2026-07-03 found CCTV feeds working on both home WiFi and mobile data with Tailscale
-51. [x] Restore OMV/VLAN 40 reachability, recreate the HA Supervisor backup mount `nas_backups`, and confirm Proxmox storage `omv-backups` is active again; the 2026-07-03 switch port 8 cutover restored service, then OMV moved to direct router `lan4` untagged VLAN 40 on 2026-07-16 and was revalidated
-52. [ ] Approve and validate the new Tailscale `192.168.30.20/32` Frigate host route for off-WiFi Frigate PWA access; docker-host route advertisement, docker-host UFW routed allow, and OpenWrt docker-host-to-Frigate HTTPS rule were staged on 2026-07-05
-53. [x] Add an internal web-based Mermaid diagram viewer for `docs/diagrams/` so the canonical `.mermaid` sources can be browsed without opening the Obsidian desktop vault; keep it read-only and internal-only
+51. [x] Restore OMV/VLAN 40 reachability, recreate the HA Supervisor backup mount `nas_backups`, and confirm Proxmox storage `omv-backups` is active again; fixed by moving OMV to GS1900 port 8 untagged VLAN 40 and converting router `lan3` to the planned trunk on 2026-07-03
+52. [x] Approve and validate the Tailscale `192.168.30.20/32` Frigate host route
+    for off-WiFi Frigate PWA access. On 2026-07-29 the route appeared in
+    docker-host `PrimaryRoutes`/`AllowedIPs`, the authenticated HTTPS path
+    returned the expected `401`, the unauthenticated API on `5000` remained
+    blocked, and the workstation Tailscale state was restored after testing.
 
 ---
 
 ## Docker-host app roadmap
 
+### Household, workshop and operations product roadmap
+
+- [ ] Deliver the phased [[docs/procedures/household-workshop-operations-roadmap|Household, Workshop and Operations Product Roadmap]]. The read-only Today at Home/recovery-release contract is prepared in `docs/procedures/read-only-product-release-plan.md`; the owner-authorized local Hub recovery repository now provides the source baseline, while historical Git provenance remains unknown (see `docs/procedures/household-hub-source-recovery-register.md`). Obtain a bounded deployment decision before live adapters. Keep system-of-record ownership, confirmation gates and VentSys safety boundaries intact.
+
 ### Tier 1 - near-term core
 
-- [x] Validate Tailscale from an off-LAN client after docker-host auth and route approval
-- [x] Deploy AdGuard Home under `/opt/stacks/adguard-home/`
-- [x] Deploy Immich under `/opt/stacks/immich/` with OMV-backed upload/library storage at `/mnt/omv/immich`
-- [x] Deploy Homepage under `/opt/stacks/homepage/`
-- [x] Deploy Dozzle under `/opt/stacks/dozzle/`
-- [x] Add docker-host `DOCKER-USER` guard so Dozzle is management-only despite Docker published-port forwarding
-- [x] Add Uptime Kuma checks for Homepage and Dozzle
-- [x] Add Uptime Kuma checks for AdGuard DNS and UI
-- [x] Add Uptime Kuma check for Immich UI
-- [x] Add docker-host `DOCKER-USER` guard for Immich UI on `2283`
-- [x] Expand docker-host VM disk to 32 GiB
-- [x] Add repo-side rebuild templates for live docker-host stacks and host firewall
+- [ ] Deploy the prepared Transfer Portal transfer-grid canvas through the OMV
+  native-service deployment route once OMV management access is available
+- [ ] Complete Vaultwarden owner onboarding after live `vault.home.local` DNS is
+  deployed: temporarily enable sign-up for the owner account only, disable it
+  immediately afterward, then record the 2FA/recovery-code and owner-controlled
+  emergency-access policy outside Git.
+- [ ] Execute the approved 14 TB SMB case-collision recovery plan only after
+  owner approval and preflight evidence. Server-side inspection on 2026-08-02 proved `Media` is the
+  populated canonical library and `media` is a distinct, empty wrapper created
+  eight minutes earlier that contains only `media/Media`. Windows SMB
+  case-insensitive lookup aliases both spellings to the populated `Media`
+  object, causing intermittent Explorer failures. OMV proved `/export/media`
+  correctly bind-mounts only the canonical `Media` path, and no active
+  NFS/systemd/fstab configuration references the stray wrapper. Do not delete
+  or rename either path until the rollback path in
+  `docs/procedures/smb-media-case-collision-recovery-plan.md` is reviewed and
+  approved.
+- [ ] Implement the allow-listed Immich album exporter into
+  `jellyfin/immich-curated` with a manifest and review queue. Immich remains the
+  photo system of record; do not mount its live library into Jellyfin. The
+  non-destructive source, service/timer templates and contract tests are staged;
+  a selected test album plus live Jellyfin/review/backup proof remain required.
+- [ ] Apply the 2026-08-11 docker-host network/firewall remediation in a
+  maintenance window: migrate automatic bridges to the explicit CIDR map,
+  recreate the shared alerting network only with all dependants stopped, move
+  Bambuddy from host networking to its scoped bridge, load the IPv6/8000
+  firewall policy, and prove each service/denial path. Source and a preflight
+  allocation table are ready. Live execution on 2026-08-21 completed every
+  explicit bridge recreation, including Household Hub's shared dependency
+  networks and `local-alerting`; Compose, health, HTTP, storage, dependency,
+  VPN-egress, allowed/denied and firewall-persistence checks passed. Bambuddy
+  alone remains on host networking because the P1S ports are unreachable from
+  VM 103 itself. Restore that path, migrate Bambuddy to `10.240.23.0/24`, and
+  obtain a zero-exit security audit before checking off this parent item.
+- [ ] Add Homepage service widgets where an approved, least-privilege credential
+  path exists. Prioritise already deployed Home Assistant, Frigate, Immich,
+  Mealie, Grocy, AdGuard Home, Grafana, Uptime Kuma, Proxmox, OpenWrt and
+  Tailscale; evaluate complementary Beszel/Netdata, APC UPS, Scrutiny,
+  Speedtest Tracker, Authentik and Backrest only if their supporting services
+  are deliberately adopted.
 
 ### Tier 2 - roadmap candidates
 
 - [ ] Evaluate Paperless-ngx under `/opt/stacks/paperless-ngx/`
-- [x] Deploy Mealie under `/opt/stacks/mealie/` (live 2026-06-21)
-- [x] Deploy Grocy for pantry/fridge/freezer stock and expiry tracking
-- [x] Seed Grocy household data model with core locations, quantity units, and product groups; service health reconfirmed on 2026-07-07 (`HTTP/1.1 302 Found` login redirect), database checkpoint created, and OMV app-data backup run `20260707T125454Z` captured the change
-- [x] Add Grocy voice shopping-list support to Home Assistant Assist with add/list-only LLM tools, dedicated Grocy API key, HA/dockerd firewall allowances, direct HA-to-Grocy API proof, and OMV app-data backup run `20260707T132647Z`
 - [ ] Parked: Self-hosted LiveSync client rollout; backend/client prep exists, but Obsidian is no longer part of the near-term path
-- [x] Install and prove docker-host app-data backup to OMV `backups/docker-host` covers Mealie, Grocy, Obsidian LiveSync, and GardenKeeper dumps; completed on 2026-07-07 after deploying the live OpenWrt `Docker Host to OMV NFS` rule, mounting `/mnt/omv/docker-host-backups`, running backup `20260706T231304Z`, restore-smoking to `/tmp`, and enabling the daily `03:45` systemd timer
-- [x] Deploy ntfy internal-only under `/opt/stacks/ntfy/`
-- [x] Configure Uptime Kuma ntfy notifications through a dedicated write-only topic
 - [ ] Evaluate Actual Budget under `/opt/stacks/actual-budget/`
 - [ ] Evaluate Scrypted under `/opt/stacks/scrypted/`
-- [x] Deploy SearXNG direct-access pre-flight under `/opt/stacks/searxng/`
-- [x] Deploy Whoogle direct-access pre-flight under `/opt/stacks/whoogle/`
 
 ### Tier 3 - evaluate carefully
 
-- [ ] Evaluate Vaultwarden only after a backup/security review
 - [ ] Evaluate Portainer only if its convenience beats the added admin surface
-- [x] Deploy Watchtower in monitor-only mode only
 - [ ] Revisit local registry mirror after more Compose workloads exist
 - [ ] Evaluate Node-RED only if HA native automations are insufficient
 
@@ -161,23 +407,11 @@ must work without HACS.
 
 ### Core HA tools
 
-- [x] Install Home Assistant Companion App on operator phones using `docs/procedures/home_assistant_companion_app_guide.md`
-- [x] Test push notifications and actionable notification acknowledgements
-- [x] Trust the local Home Assistant CA on the operator Android phone and confirm the app connects to `https://192.168.20.101:8123`
 - [ ] Review Companion App sensors and enable only useful presence, battery, network, and notification sensors
-- [x] Keep Mosquitto as the required MQTT broker add-on
-- [x] Keep ESPHome as the required VentSys firmware/adoption add-on
-- [x] Keep Terminal & SSH available for HA-side diagnostics
 - [ ] Prefer Studio Code Server for larger YAML/package edits; keep File Editor as fallback
 
 ### High-value candidates
 
-- [x] Install HACS only after a current HA backup exists
-- [x] Evaluate Advanced Camera Card / former Frigate Card with the first live
-  Frigate camera; manual HACS-layout asset install is live under
-  `/config/www/community/advanced-camera-card`. The CCTV dashboard now uses it
-  as the primary first-camera card, with the HA image provider plus Frigate
-  status/toggle entities exposed beside it.
 - [ ] Evaluate Mushroom Cards for general dashboards, room views, service status, printer state, and VentSys summaries
 - [ ] Evaluate apexcharts-card for temperature, VOC, airflow, pressure, power, and IAQ history
 - [ ] Evaluate auto-entities for dynamic maintenance views such as unavailable ESPHome devices or low batteries
@@ -193,6 +427,30 @@ must work without HACS.
 - [ ] Evaluate Adaptive Lighting only if smart lighting enters project scope
 - [ ] Revisit Bambu Lab / printer HACS integrations only after P1S details are confirmed and Bambuddy overlap is understood
 
+### P1S expansion (after Bambuddy baseline)
+
+- [ ] Evaluate [BambUI](https://github.com/fidoriel/BambUI) as a docker-host
+  (`/opt/stacks/bambui/`) LAN-only, mobile-friendly P1S console after Bambuddy
+  telemetry, MQTT TLS and the HA package have passed their baseline checks.
+  Keep Bambuddy/HA as the safety and automation authority; verify that the two
+  direct printer clients remain stable before retaining BambUI, use Tailscale
+  for remote access, and add its data/backup, firewall and Uptime Kuma design
+  before deployment.
+- [ ] Evaluate [BambuHelper](https://github.com/Keralots/BambuHelper) as an
+  optional physical ESP32 status display beside the P1S. Scope its Wi-Fi/VLAN
+  placement and least-privilege path to the printer first; use it for local
+  read-only status and optionally local smart-plug energy display, with any
+  power control disabled until the VentSys and emergency-cutoff safety policy
+  explicitly permits it.
+- [ ] Research [bambu-printer-mcp](https://github.com/DMontgomery40/bambu-printer-mcp)
+  for a future operator-assist workflow only. Confirm current P1S firmware,
+  LAN-only/Developer Mode and Bambu access-code requirements; assess the
+  project's maintenance, MQTT/FTPS command surface, file-storage permissions,
+  network rules and secret handling. Design confirmation-gated, auditable
+  print/pause/cancel actions with read-only status as the default. Do not
+  deploy it, give an LLM autonomous printer control, or connect it to a safety
+  or emergency-power path without an approved threat model and live test plan.
+
 ### Risk-gated automation candidates
 
 - [ ] Keep Node-RED Tier 3/evaluate unless HA native automations become insufficient
@@ -204,18 +462,9 @@ must work without HACS.
 
 ## Immediate next actions (unblocked right now)
 
-- [x] Create `/opt/stacks/bambuddy/.env` on docker-host from `.env.example`
-- [x] Add the real MQTT password
-- [x] Start Bambuddy with `docker compose up -d` from `/opt/stacks/bambuddy`
-- [x] Confirm Bambuddy UI at `http://192.168.20.102:8000`
-- [ ] Keep P1S integration parked until printer details are available
-- [ ] Add P1S details and Home Assistant token in the Bambuddy web UI when physically available
-- [ ] Do not deploy `configs/home-assistant/bambuddy_p1s_package.yaml` until `<P1S_SERIAL>` is replaced and MQTT topics are confirmed
-- [x] Remove deprecated InfluxDB connection/auth keys from HA YAML after confirming the UI-managed Influx connection
 - [ ] Create `/opt/frigate/.env` after camera RTSP and MQTT credentials/certs are ready
-- [x] Design `apt-cacher-ng` on docker-host for package caching
-- [x] Deploy `apt-cacher-ng` on docker-host and test with frigate-nvr
-- [x] Move Bambuddy MQTT relay from 1883 to TLS 8883 and verify retained `bambuddy/status`
+  (review 2026-11-13: Frigate CT 111 is live with cameras disabled pending
+  acceptance, so this may be obsolete; confirm against the Frigate section)
 - [ ] Keep Docker registry mirror parked as Tier 3/evaluate until more Compose workloads exist
 
 ---
@@ -223,25 +472,9 @@ must work without HACS.
 ## Phase 1 — Network ✅ First-flight live / source follow-up pending
 
 ### Configuration (all complete)
-- [x] 10-segment architecture designed ✅
-- [x] `vlan-config.conf` — bridge, VLANs, interfaces, WireGuard ✅
-- [x] `firewall-config.conf` — zones, inter-VLAN rules, VentSys ports ✅
-- [x] `dhcp-config.conf` — scopes, reservations, DNS ✅
-- [x] `wireless-config.conf` — 5 SSIDs, channel plan, WPA3/WPA2 ✅
-- [x] Router setup phases 1–8 documented ✅
-- [x] Network testing guide written ✅
-- [x] WireGuard fallback guide written ✅
-- [x] MQTT 1883→8883 deployment note added to firewall config ✅
-- [x] VLAN 1 port assignment bug fixed in Phase 2 script ✅
-- [x] Country code corrected GB in Phase 5 script ✅
-- [x] PVID notation (u vs u*) fixed in Phase 2 script ✅
 
 ### Deployment
-- [x] Flash/configure GL-MT6000 with router phases 1–8
-- [x] Run router validation/tests from management IP (`test.ps1`: PASS=62/WARN=0/FAIL=0; `test-connectivity.ps1`: PASS=74/WARN=0/FAIL=0)
 - [ ] Fill in MAC addresses in dhcp-config.conf (Proxmox host, VMs, NAS)
-- [x] Confirm no live valve-1 temporary plain-MQTT firewall exception exists; keep source as TLS `8883`-only for VentSys MQTT
-- [x] Remove stale valve-1 firewall-source drift items after parity verification
 - [ ] Keep WireGuard fallback clients unrolled unless Tailscale daily-access posture changes or resilience drills require activation
 - [ ] Enable DDNS on router only if WireGuard fallback endpoint maintenance becomes annoying
 
@@ -250,35 +483,14 @@ must work without HACS.
 ## Phase 2 — Core infrastructure ⏳
 
 ### Proxmox
-- [x] Install Proxmox VE on MINISFORUM M1 Pro-125H
-- [x] Configure vmbr0 VLAN-aware bridge, trunk on enp1s0
-- [x] Set static IP 192.168.10.10 on vmbr0.10
-- [x] Retire PCI iGPU passthrough/IOMMU requirement in favour of shared LXC device mapping
-- [x] Retire the pre-LXC `vm-setup.sh`; `guest-configs.md` holds the current inventory
-- [x] Move VMs 100/102/103 and CTs 111/114 to `omv-backups` with `keep-daily=7,keep-monthly=6`; 2026-07-05 check shows VM backups current, `omv-backups` at 54.21% used, and the LXC backup job fixed with `tmpdir=/var/tmp` after NFS temp-dir permission failures; manual CT 111 and CT 114 proofs passed on 2026-07-05/06
-- [x] Replace VM 104 with CT 114 `llm-host` at 192.168.20.104; retain stopped VM as rollback
-- [x] Keep `llm-host` and `openwebui` DNS aliases on 192.168.20.104
-- [x] After the 64GB RAM upgrade, resize CT 114 and move `home-assistant-llm` to Qwen3-14B-128K Q4_K_M with a 64k context; API smoke test passed on 2026-07-07
 - [ ] Run full CT 114 post-upgrade validation for the Qwen3-14B 64k profile: Home Assistant Assist text/voice, SearXNG search, Mealie recipe save/display/readout workflow, Open WebUI, host swap, and Frigate concurrency
-- [x] Build the Metrocop Voice Mixer (`apps/voice-mixer`: voicefx library, Gradio UI, presets, CLI, 37 tests) and verify it on the desktop with dataset, Piper and Piper→RVC sources (2026-10-10)
-- [x] Relieve CT 111 Frigate memory exhaustion (host-wide I/O thrash 2026-10-08 → 10): temporary 12 GiB + Frigate restart; CT back at 6 GiB with ~1 GB used, host load ~1–2
 - [ ] Find why Frigate's main process grew to ~5.3 GB RSS (3 cameras) before it recurs at the 6 GiB limit (consider a persistent `pct set 111 -memory 8192`); watch CT 111 memory, and add a Grafana/Kuma alert on CT memory near its limit and on host I/O pressure
-- [x] Decision 09 approved; CT 114 headroom checked (16.5/28 GiB), image built and verified offline (`--network none`: Piper 3.2 s, CPU RVC 29.6 s), stack assets + compose staged in `/opt/stacks/voice-mixer`, `7860` `DOCKER-USER` block live (2026-10-10)
-- [x] Voice Mixer live on CT 114 `:7860` (LAN + CPU RVC verified) with Homepage portal entry `https://homepage.home.local:8210/` (preview-proxy, `services.yaml`, docker-host UFW `8210`) (2026-10-11)
-- [x] Tailscale route `192.168.20.104/32` advertised by docker-host and approved (verified in `PrimaryRoutes` 2026-10-11)
-- [ ] When `codex/portal-refinement` merges `main`: it rewrote the Homepage template, the network/Proxmox diagrams and the Mermaid Viewer generator, so resolve conflicts by keeping its structure and carrying over the 2026-10-11 facts: Voice Mixer node + Homepage portal `8210`; Tailscale host routes now five incl. `192.168.20.104/32` and Frigate `192.168.30.20/32` approved; Wyoming Piper `10200` / Whisper `10300` (were swapped); CT 114 `6c / 28 GiB`; Homepage `services.yaml`/`nginx.conf` taken from live. Then rebuild the viewer and redeploy `/opt/stacks/mermaid-viewer/dist` (live already runs the codex generator)
+- [ ] After the `main`/`codex/portal-refinement` merge lands: rebuild the Mermaid Viewer and redeploy `/opt/stacks/mermaid-viewer/dist` (live already runs the codex generator); compare the merged Homepage, SearXNG, OpenWrt DHCP and llm-host firewall sources against the live hosts before deploying from them
 - [ ] Reconcile `configs/openwrt/firewall-config.conf` with the live router: the repo LAN → docker-host rule lists no Homepage portal ports (`8180`–`8210`)
-- [x] Resync the stale repo Homepage template (`configs/docker-host/stacks/homepage/`) with the live portal on VM 103: compose, config, custom CSS/JS, preview-proxy; secrets/TLS excluded (2026-10-10)
-- [x] Metrocop Wyoming TTS (`voice_mixer/wyoming_tts.py`, container `metrocop-tts` in `/opt/stacks/voice-mixer`, port `10201`, HA + monitoring only via UFW/DOCKER-USER): Piper `en_GB-metrocop2-medium` → `data/tts/metrocop.json` preset (no RVC), random end blip per announcement, ~1 s render (2026-11-05)
 - [ ] HA: add Wyoming Protocol integration `192.168.20.104:10201` and set the Overwatch pipeline TTS to `metrocop`; add Uptime Kuma TCP monitor for `10201`
-- [x] Metrocop Piper voice v2 trained (northern-English source, `-pi -1`, 2,459 clips, 400 epochs; best `epoch=387 val_mel=0.3386`) → `voice/tools/out/en_GB-metrocop2-medium.onnx`; approved by listening (2026-11-05)
-- [x] Voice Mixer: `bleeps.gap_static` fills bleep gaps with radio static (no digital-silence dropout); metrocop preset `gap_pre_ms` 200 → 80 (2026-11-05)
-- [x] `en_GB-metrocop2-medium` installed in CT 114 Wyoming Piper (`/opt/stacks/local-ai/piper`, plain voice without radio FX) (2026-11-05)
 - [ ] Recreate the `voice-mixer` container so the web UI picks up the gap fix (image `voice-mixer:local` already patched; rollback tag `voice-mixer:pre-metrocop-tts`)
 - [ ] HA: reload the Wyoming openWakeWord integration and set the Overwatch pipeline wake word to `overwatch` (custom model live on CT 114)
-- [x] Voice PE `home-assistant-voice-0ae52a` on IoT VLAN 50 (`HomeIoT`) at `192.168.50.108`; mDNS discovery does not cross VLANs, so added to HA's ESPHome integration by IP (like the VentSys boards); assistant select set to `Overwatch` (2026-11-11).
-- [x] Voice PE replies play: HA `internal_url` -> `ha-media-proxy` (docker-host 8124), router DNS `ha-media.home.arpa`, IoT->proxy rule, DHCP reservation `.108` (2026-11-11); re-fixed 2026-11-13: the UI-only value had been overridden by the YAML `internal_url` on restart, now set in `configuration.yaml`
-- [ ] Re-test the Voice PE by voice after the 2026-11-13 `internal_url` fix: "Overwatch", then a question; expect a spoken reply (if silent, check Settings > System > Logs for `Unable to determine Home Assistant URL`)
+- [x] Voice PE re-tested by voice after the 2026-11-13 `internal_url` fix: "Overwatch", a time question and a weather question were heard, answered and spoken (if it ever goes silent again, check Settings > System > Logs for `Unable to determine Home Assistant URL`)
 - [x] Overwatch speed 3a/3b deployed 2026-11-12: Overwatch pipeline prefers local intents; direct web-search route in `llamacpp_conversation` (web search 26.5 s -> ~10 s, time 7.4 s -> 0.5 s)
 - [x] Qwen3-30B-A3B is the production model on CT 114 (2026-11-13): compose switched (40960 ctx, f16 KV, `--cache-ram 1024`, `restart: unless-stopped`), trial and capture-proxy containers removed, voice verified through the Voice PE pipeline; 14B GGUF and `docker-compose.yml.bak-20261113-pre-30b` kept for rollback. See `HANDOFF-2026-11-11-llm-igpu-speed.md`
 - [ ] Still untested from the LLM speed work: Frigate detector speed, SYCL backend
@@ -286,79 +498,16 @@ must work without HACS.
 - [x] Phase 1 of `docs/decisions/10-overwatch-voice-routing-architecture.md` deployed 2026-11-12/13: every tool on every turn, stable cached prefix, new prompt, warm-up with failure canary (78% -> 91% on the shared checks; first deploy rolled back, see handoff)
 - [x] Overwatch weather at home answered in code from `weather.forecast_home` (today, tomorrow, rain; 0.0-0.1 s) and the warm-up now runs as the Voice PE so its first spoken question is no longer cold (79.9 s -> ~3.5 s), 2026-11-13
 - [ ] Overwatch speed: answer area/quantity state questions in code (garage temperature/humidity/motion take 11-17 s via the model now), then date arithmetic needs a small calculator/date tool, and sports/headlines still fail (web summary says "snippets do not include..."); weather for another place works through web search (about 15 s)
-- [ ] Voice cache: different prompt contexts (Voice PE, HA chat box, accuracy.py) evict each other in llama.cpp (`--cache-ram 1024` holds about one prefix); consider `--cache-ram 2048` (CT 114 has about 2.4 GiB spare with the 30B) when switching the 30B to production; re-warm after dev runs (see handoff)
-- [ ] Voice PE speech-to-text mishears now and then ("the we what's the weather today"): check which faster-whisper model CT 114 runs (a larger model or `--beam-size` may help)
+- [ ] Voice cache: different prompt contexts (Voice PE, HA chat box, accuracy.py) evict each other in llama.cpp (`--cache-ram 1024` holds about one prefix); consider `--cache-ram 2048` (CT 114 shows about 3.5 GiB available with the 30B in production; measure before raising it); re-warm after dev runs (see handoff)
+- [x] Voice PE speech-to-text: checked 2026-11-13, CT 114 already runs Parakeet TDT 0.6B v2 (sherpa-onnx), not a small Whisper, so the occasional leading junk ("the we what's the weather today") is audio onset noise, not model size; the weather matching tolerates it
 - [ ] Choose a calendar source for Overwatch (HA has no calendar integration), and expose the existing `weather` entity plus a forecast tool (decision 10, phase 3)
-- [x] `gardenkeeper_llm` and `household_hub_llm` custom components copied from live HA into `configs/home-assistant/custom_components/` (2026-11-12)
 - [ ] Delete the leftover "acceptance test cheese" item from the Grocy shopping list (left by the 2026-11-12 write-action test)
-- [x] Voice PE wake word: custom microWakeWord "Overwatch" built into the Voice PE firmware (stock 26.9.0 package + model, `configs/esphome/home-assistant-voice-0ae52a.yaml`) and flashed over the air 2026-11-13; enabled in "Wake word 2" with Okay Nabu kept in slot 1
 - [ ] Test "Overwatch" by voice on the Voice PE (model only tested on synthetic clips): if it misses, lower `probability_cutoff` (0.9 -> 0.7) or raise `tensor_arena_size` in `voice/wakeword-micro/overwatch.json`, rebuild with `tools/esphome_dashboard.py`; once happy, set "Wake word" (slot 1) to Overwatch and "Wake word 2" to `no_wake_word`
 - [ ] Garage voice satellite: buy a Home Assistant Voice Preview Edition (chosen over the Waveshare ESP32-S3-AUDIO-Board for its XMOS echo cancellation and noise suppression, line out and official support); feed a wired powered speaker from its 3.5 mm line out (avoids Bluetooth wake-up clipping); keep the `overwatch` wake word, either by streaming to HA openWakeWord or by training a microWakeWord model; add an optional ~0.5 s output lead-in only if the final speaker clips
 
 ### Home Assistant VM (VM 100)
-- [x] Start VM 100, complete HAOS onboarding wizard
-- [x] Set static IP 192.168.20.101 via nmcli
-- [x] Install add-ons: Mosquitto, File Editor, Terminal, ESPHome
-- [x] Configure MQTT integration on TLS (`localhost:8883`); keep plaintext `1883` only for explicit bootstrap exceptions
-- [x] Copy `ventsys_ha_package.yaml` and `ventsys_ha_scripts.yaml` to `/config/packages/`
-- [x] Do not copy `ventsys_ha_optional.yaml` yet (load only after its prerequisites are met)
-- [x] Copy `dashboards/ventsys-dashboard.html` to `/config/www/ventsys-dashboard.html`
-- [x] Generate Long-Lived Token → paste into `HA_CONFIG.token` in live dashboard copy
-- [x] Confirm dashboard shows ◉ HA LIVE
-- [x] Enable HA 2FA (TOTP)
-- [x] Copy `dashboards/ventsys-card-wrapper.html` to `/config/www/ventsys-card-wrapper.html`
-- [x] Add a Lovelace iframe/panel view that uses the VentSys card wrapper
-- [x] Configure NAS as HA backup mount and verify manual backup write to OMV
-- [x] Set HA automatic backup schedule: daily 03:00, keep 14, location `nas_backups`
-- [x] Validate router-local NTP for non-HA-managed restricted devices
-- [x] Stage HACS custom integration `2.0.5` manually at `/config/custom_components/hacs`
-- [x] Restart Home Assistant after staging HACS and verify the HACS setup flow opens
-- [x] Complete HACS setup in HA and finish GitHub device authentication
 
 ### Frigate (CT 111; VM 101 retained only for rollback)
-- [x] Create VM 101 from Debian 13 cloud image (hostname: frigate-nvr, SSH only)
-- [x] Set static cloud-init IP 192.168.30.20
-- [x] Note MAC and add to dhcp-config.conf (`BC:24:11:9C:25:87`)
-- [x] Install Docker (official repo)
-- [x] Deploy `configs/frigate/config.yml` to `/opt/frigate/config/`
-- [x] Stage `/opt/frigate/.env` from template with `FRIGATE_MQTT_PASSWORD` set and secure permissions (`600`)
-- [x] Set current bench-camera `FRIGATE_RTSP_PASSWORD` in `/opt/frigate/.env`; replace later if camera credentials are rotated
-- [x] Stage MQTT CA trust for Frigate at `/opt/frigate/certs/ca-cert.pem` and verify TLS (`Verify return code: 0`)
-- [x] Create host dirs: `mkdir -p /opt/frigate/db`
-- [x] Start Frigate 0.17.1 on CT 111; first-camera live baseline now supersedes the original no-camera migration-safe baseline
-- [x] Update source-controlled `configs/frigate/config.yml` from the accepted
-  first-camera live config without embedding RTSP or MQTT secrets
-- [x] Configure HTTPS/SSL for Frigate UI before regular use
-- [x] Confirm Frigate UI over HTTPS/SSL: `https://192.168.30.20:8971/api/version` requires auth and plain HTTP to port `8971` is rejected
-- [x] Configure initial go2rtc/WebRTC/audio behavior for the first camera:
-  named main/sub restreams are live, Advanced Camera Card uses the Frigate
-  go2rtc provider, and the browser negotiates WebRTC with video plus PCMU audio
-- [x] Replace Lumen-first Apple viewing plan with HA Companion App + Frigate PWA first, with Lumen/Viewu/Kapal as optional later evaluations only
-- [x] Stage Frigate HA custom integration `v5.15.4` manually at `/config/custom_components/frigate`
-- [x] Restart Home Assistant after staging Frigate and verify the Frigate setup flow opens
-- [x] Complete Frigate setup in HA at API URL `http://192.168.30.20:5000`
-- [x] Enable Frigate MQTT over TLS to HA Mosquitto so Frigate HA entities are live
-- [x] Add first-camera IR-cut mode controls in HA using ANNKE/Hikvision ISAPI
-  digest auth, with `day`, `night`, `auto`, and `schedule` options exposed on
-  the CCTV dashboard
-- [x] Add first-camera supplemental light and guarded two-way audio settings to
-  the CCTV dashboard. Supplemental light exposes mode plus white/IR brightness;
-  two-way audio exposes enable plus speaker/microphone volume, but actual
-  browser talkback still requires HTTPS/secure-context testing.
-- [x] Manage VM 103 as `docker-host` via `scripts/setup/proxmox/docker_host_setup_guide.md`
-- [x] Deploy Bambuddy as `/opt/stacks/bambuddy` on docker-host
-- [x] Confirm Bambuddy UI at http://192.168.20.102:8000
-- [x] Add Frigate integration in HA
-- [x] Remove stale ONVIF integration entry for the first camera from HA; use
-  the Frigate entity path for the CCTV dashboard
-- [x] Read-only inspect current Frigate review/event/motion history for
-  `cam_01_annke_c500` before tuning. On 2026-07-07, Codex confirmed the
-  `proxmox` SSH profile reaches CT 111 and Frigate API `0.17.1`; object
-  detection is currently disabled, the event table has no object events,
-  review history contains only three historical alert segments, and all current
-  recording segments are motion-marked with zero object segments. CT-local
-  Frigate storage was near full; the OMV recording cutover is now complete, so
-  broader tuning can proceed with detection/zone re-enable tests.
 - [ ] Define the exterior CCTV camera/zone standard for the eventual six-camera
   rollout: driveway, front door/garden, back door/patio/back garden, side
   garden, plus a possible second front door/garden view. Keep the garage
@@ -399,30 +548,35 @@ must work without HACS.
   health, stricter/relaxed profile, home/away profile, alarm enablement, known
   person and known vehicle handling, while keeping auditable rules in source
   config rather than only in UI state.
-- [ ] Copy `configs/home-assistant/bambuddy_p1s_package.yaml` to `/config/packages/` on HA
-- [ ] Replace `<P1S_SERIAL>` placeholder in bambuddy_p1s_package.yaml with real serial
-- [ ] Confirm `binary_sensor.p1s_printing` and print state entities appear in HA
-- [x] Map shared Intel render/card devices into unprivileged CT 111 and CT 114; PCI passthrough/IOMMU is not required
 
 ---
 
-## Phase 3 — VentSys fire safety ⏳ Hardware pending
+## Phase 3 — VentSys fire safety ⏳ Boards flashed and under supervised testing; not commissioned
 
 ### Hardware procurement
+> Review 2026-11-13: boards are flashed and running, so many boxes below are
+> probably already satisfied, but nothing has been checked against actual
+> inventory. Owner to tick or delete against what is physically on hand.
+
 - [ ] 2× ESP32-DevKitC (sensor boards — ventsys-fdm-sensor, ventsys-sla-sensor)
 - [ ] 1× ESP32-DevKitC (fan controller — already wired to GPIO23)
-- [ ] 1× ESP32-DevKitC (valve controller — already wired to GPIO18)
+- [ ] Feedback-capable classic ESP32 valve controllers for the standard valves
+  (ESP32 D1 Mini/carrier design; GPIO16 PWM and GPIO35/ADC1_CH7 feedback)
 - [ ] 4× DS18B20 waterproof temperature probe
 - [ ] 2× BME680 I2C breakout (temp/humidity/pressure/IAQ gas)
 - [ ] 2× MQ-135 (VOC / air quality)
 - [ ] 2× MQ-2 (smoke detection)
 - [ ] 2× differential pressure sensor (for duct airflow)
-- [ ] 4× MG90S servo (butterfly valves — check if already in PrintAirPipe kit)
+- [ ] Feedback-capable analog servos for the standard butterfly valves (confirm
+  four-wire feedback lead, travel range and supply voltage before purchase)
 - [ ] 1× 125mm inline duct fan with PWM control
 - [ ] PrintAirPipe STL files (€29, nerdiy.de)
 - [ ] 2kg PLA+ filament + 1kg PLA-HT (fire-retardant)
 - [ ] 2× smart plugs with energy monitoring (VLAN 50 compatible)
-- [ ] Resistors: 4.7kΩ (DS18B20 pull-ups, I2C pull-ups), 10kΩ/20kΩ (ADC voltage dividers)
+- [ ] Resistors/capacitors: 4.7kΩ (DS18B20/I2C pull-ups); one 10kΩ series
+  resistor, 20kΩ ADC-to-GND resistor and 100nF ADC-to-GND capacitor per
+  standard-valve feedback channel; 470uF–1000uF bulk capacitor at each servo
+  power split
 - [ ] Fan driver MOSFET (e.g. IRLZ44N) or dedicated PWM fan controller board
 
 ### 3D printing
@@ -436,105 +590,116 @@ must work without HACS.
 - [ ] Wire FDM sensor board per `ventsys_wiring_reference.md`
 - [ ] Wire SLA sensor board per `ventsys_wiring_reference.md`
 - [ ] Wire fan controller (GPIO23 → MOSFET → fan)
-- [ ] Wire valve controller servos
+- [ ] Wire each feedback-capable standard valve controller: GPIO16 PWM plus feedback lead through
+  the 10k/20k/100nF network to GPIO35/ADC1_CH7; measure the ADC node at full travel
+  and confirm it remains at or below 3.3V before connection. The E2 branch now
+  uses a normal three-wire servo and has no feedback lead or ADC network.
+- [ ] Bench-calibrate each feedback-capable standard valve's raw feedback-voltage range against
+  physical closed/open stops before using it as a position measurement or safety input
+- [ ] With E2 branch installed on its pipe and under load, supervise an
+  intermediate-position holding test. The 2026-10-05 firmware holds PWM at
+  1–99 until another command or power loss; 0/100 detach after one second.
+  Check sustained sound, temperature, supply stability, and post-reset
+  behavior before accepting this as an unattended operating mode.
 - [ ] Note DS18B20 addresses after first flash, update ESPHome YAML
 - [ ] MQ sensor 24–48h burn-in before calibrating thresholds
 
 ### ESPHome flashing and adoption
 - [ ] Flash fan controller via USB (`ventsys_fan_controller.yaml`)
-- [ ] Flash valve controller via USB (`ventsys_valve_controller.yaml`)
-- [x] Create remaining controller YAMLs -- all exist in `configs/esphome/`:
-  ventsys_main_valve1/2, fdm/sla_branch_valve, fdm/sla_print_valve, fdm/sla_360_valve (8 valves), ventsys_booth_fan.yaml (spray fan)
+- [ ] Flash each standard valve controller via USB using its dedicated active
+  `configs/esphome/ventsys_*_valve.yaml` file; do not use the historical bundle
+  `ventsys_valve_controller.yaml` as the production source
+  - [ ] Bench-calibrate E1's physical closed/open stops with the free horn
+    under direct observation, then verify its linked valve range. The copied
+    940–2000 µs window and fresh-board displayed value 50 are provisional.
+  - [ ] Verify E1's GPIO33 touch toggle under supervision. The earlier serial
+    watch repeatedly commanded 50% because both targets were seeded at 50;
+    the operator may have touched GPIO33, so false triggering is unproven.
+    Investigate the later serial-port closure and Wi-Fi inactivity dropout
+    before linking the valve.
+  - [ ] Bench-calibrate MAIN-2's physical open and closed stops under direct
+    observation before linking 0–100 to valve travel. Current 940–2000 µs
+    range is copied from E2 and remains provisional for MAIN-2.
+  - [ ] Bench-calibrate MAIN-1's physical stops with the free horn before
+    linking the valve. Its 940–2000 µs window is provisional.
 - [ ] Flash FDM sensor board via USB (`ventsys_fdm_sensor.yaml`)  # A5-3: per-device YAML now exists (A4-4)
 - [ ] Flash SLA sensor board via USB (`ventsys_sla_sensor.yaml`)  # A5-3: per-device YAML now exists (A4-4)
 - [ ] Flash booth sensor board via USB (`ventsys_booth_sensor.yaml`)  # A5-3: per-device YAML now exists (A4-4)
 - [ ] Add `mqtt_ca_cert` to both repo and HA-side ESPHome `secrets.yaml` as part of the VentSys TLS migration path
-- [ ] Migrate `ventsys_main_valve1.yaml` from MQTT `1883` to `8883` with `certificate_authority: !secret mqtt_ca_cert`
-- [x] Remove valve-1 temporary plain-MQTT firewall follow-up task because no live/source `1883` exception is present
-- [ ] Bench-calibrate the 360 intake v2 Nerdiy candidates before deployment: current latest profile uses ESP32-C6, servo PWM on GPIO0, LED data on GPIO1, Nerdiy one-sided servo mapping limited to `0-35`, logical `open=35` / `closed=0`, forced servo writes for buttons/MQTT/direct number changes, and 1s PWM detach at fully open or fully closed; local touch toggle is parked until C6-compatible input wiring is confirmed
+- [ ] Bench-calibrate the 360 intake v2 Nerdiy candidates before deployment. The board previously labeled FDM at `.61` (MAC `CC:BA:97:F0:E3:EC`, now assigned SLA) was reflashed on 2026-10-09 to remove a raw LEDC `turn_on()` full-duty transient; its Open/Close directions were confirmed under the old label. Endpoint travel still needs calibration. Current firmware defaults are closed=30/open=60; servo PWM GPIO0, LED data GPIO1, endpoint detach after 1s. Local touch toggle is parked until C6-compatible input wiring is confirmed.
+- [ ] Confirm SLA 360 physical Open/Close direction and endpoint travel.
+- [ ] Resolve installed SLA .32 versus planned FDM array 2 address conflict before deployment.
+- [ ] Validate MAIN-2 repeated cold starts and sustained operation on independent supply with actual servo load. One software restart passed in 7.7 s with saved settings/PWM inactive; USB reset/power cause remains unproven. Reset/heap/loop diagnostics flashed.
 - [ ] Adopt all devices in ESPHome add-on (17 ESP32 boards + plugs)
+- [ ] Once no printer job relies on the intake control, OTA the swapped identities in place: FDM `.62`/`A0:85:E3:AE:5B:C8`, SLA `.61`/`CC:BA:97:F0:E3:EC`. Both live boards still run their old name/topic and were offline in Builder at the last check. OTA each at its existing IP, then verify HA names, IPs, MACs, and MQTT topics before using either valve.
+- [ ] After the collision-safe FDM/SLA 360 firmware reassignment, test Power Off on FDM only after confirming no active printer/process relies on its valve; then physically reset/power-cycle and verify reconnect. VentSys remains uncommissioned and under testing.
+- [ ] Build and flash the board-management firmware to remaining offline boards; six online devices updated on 2026-10-10; verify awake-state buttons and physical restart. Do not shut down boards while relying on their sensing or actuator control.
 - [ ] Verify MQTT topics publishing: `mosquitto_sub -t 'ventsys/#' -v`
 - [ ] Confirm automations fire on test sensor triggers
 - [ ] Test emergency power cutoff sequence end-to-end
 - [ ] Evaluate `mode: restart` on the 12 VentSys HA mode scripts if rapid mode-click queueing causes oscillation in practice
-- [x] Harden dashboard page-init to use command-free renderers; static/mock contract tests prove initialization cannot enter an MQTT publish path
-- [ ] Revisit `restore_value` behavior for valve position entities so device restarts do not assume `0%` after physical movement
+- [ ] Verify E2 branch restores a deliberately commanded non-100 position
+  after power loss once its physical range is calibrated; its `restore_value`
+  firmware and 100 first-boot seed are deployed, but the non-100 test is open.
 - [ ] Stand up the garage Pi 5 desktop/kiosk for the VentSys dashboard using `docs/install/garage-pi-desktop-setup-guide.md` once the display hardware is ready
 
 ---
 
 ## Phase 4 — Storage ⏳
 
-- [x] Migrate live OMV hardware/storage to VLAN 40 at `192.168.40.50`; capacity warning cleared by the 2026-07-05 `omv-backups` check at 54.21% used, and the managed-switch recable/trunk path is live
-- [x] Follow `omv_nas_setup_guide.md` storage/user/share/export setup while preserving existing SMB shares
-- [x] Configure NFS exports (Frigate, HA, Immich, configs shares)
-- [x] Warm Frigate OMV export for future unprivileged CT cutover: allow Proxmox host `192.168.10.10` to mount `/export/frigate` and verify temporary write/read/delete/unmount
-- [x] Keep Frigate "live" recordings on MINISFORUM local storage first during first-camera proving; superseded by the 2026-07-07 OMV recording cutover
-- [x] Mount OMV Frigate export on Proxmox, bind-mount it into CT 111 at `/mnt/nas/frigate`, update docker-compose.yml volume, add the required UID `100000` ACL for the unprivileged CT root mapping, recreate Frigate, and verify fresh recordings write to OMV
-- [x] Add OMV as HA network storage → verify backup writes successfully
-- [ ] Configure robocopy or rsync scheduled task for vault backup to NAS
-- [ ] Enable SMART monitoring on NAS drives
+- [ ] Configure the scheduled vault backup only after an explicit approval,
+  first manual `-Execute` copy, and restore-to-temporary-folder proof
 
 ---
 
 ## Phase 5 — NVR / Cameras ⏳
 
-- [ ] Select PoE IP camera models (H.265, RTSP, compatible with Frigate)
-- [ ] Purchase 4× cameras and PoE switch
+- [ ] Before production camera re-enable, perform physical unavailable/recovered
+  RTSP, VA-API decode, sustained memory/recording/playback and HA acceptance.
+  The bounded synthetic test does not certify long-term real-stream load.
+
+- [ ] Select the model and requirements for the remaining camera rollout.
+  Three ANNKE C500 cameras are already proven with Frigate; keep H.265, RTSP,
+  PoE budget and Frigate compatibility as selection gates.
+- [ ] Purchase and commission the remaining fourth camera when its model is
+  selected; the GS1900 PoE switch and three ANNKE C500 cameras are live.
 - [ ] Record sourced camera and smart PoE switch model numbers, firmware lines, RTSP/substream paths, PoE budget, management VLAN behavior, and reset procedures in `docs/procedures/frigate_camera_preflight_checklist.md`
 - [ ] Bench-test one camera at a time using `docs/procedures/frigate_camera_preflight_checklist.md` before permanent mounting
-- [x] Bench-test first camera on the Zyxel switch: ANNKE C500 (`I51HJ`, firmware `v5.8.10 build 250917`) now reserved at `192.168.30.21`, with verified RTSP `/Streaming/Channels/101` and `/Streaming/Channels/102`, router-local NTP, and cloud access disabled
-- [x] Deploy router `lan3` as the managed-switch trunk after the GS1900 baseline was configured; keep future switch access-port changes gated and labelled
-- [ ] Mount cameras, run CAT6 to PoE switch access ports on VLAN 30
-- [x] Assign camera DHCP reservations: bench camera at `192.168.30.21`, Gate at `192.168.30.22`, Patio at `192.168.30.23`; reserve `.24` for a future camera
-- [x] Configure verified ANNKE RTSP main/sub paths in `configs/frigate/config.yml` for Gate and Patio
-- [x] Restart Frigate and confirm Gate and Patio main/sub streams ingest at about `10 fps` (2026-07-14); the bench camera is temporarily disconnected from port 2
-- [x] Add Gate and Patio as go2rtc-backed Frigate live cards to the HA CCTV dashboard's `Mobile Balanced` view
 - [ ] Test person detection notifications in HA
 
 ---
 
 ## Phase 6 — Security hardening
 
-- [x] Set up MQTT TLS (8883) — broker listener live, CA/broker certs installed, authenticated TLS pub/sub verified
-- [x] Keep router source TLS-oriented for MQTT: no valve-specific `1883` exception exists, and remaining clients should migrate to `8883` without reintroducing plain-MQTT router rules
-- [ ] Enable HTTPS on HA — follow `ssl_tls_guide.md` (choose Option A/B/C)
-- [x] Configure Fail2ban on docker-host (`sshd` jail baseline live at `/etc/fail2ban/jail.d/docker-host-sshd.local`)
-- [x] Configure Fail2ban on Frigate VM (`sshd` jail baseline live at `/etc/fail2ban/jail.d/frigate-nvr-sshd.local`)
-- [x] Deploy monitoring VM on VLAN 60 (Uptime Kuma, InfluxDB, Grafana, Telegraf)
-- [x] Create baseline Uptime Kuma monitors for core infrastructure
-- [x] Forward OpenWrt syslog to Telegraf/InfluxDB
-- [x] Export Home Assistant state history to InfluxDB
-- [x] Configure Grafana InfluxDB datasource and baseline Home Automation dashboard
-- [x] Configure Proxmox native metrics export to InfluxDB and add `Proxmox Resource Overview` Grafana dashboard
-- [x] Deploy docker-host Telegraf host/container metrics to InfluxDB bucket `dockerhost`
-- [x] Add Docker-host/container panels to `Proxmox Resource Overview`
-- [x] Add `Service Availability`, `Network DNS`, and `Security Posture` Grafana dashboards
-- [x] Export Uptime Kuma monitor state to InfluxDB bucket `uptimekuma`
-- [x] Export docker-host Fail2ban counters to InfluxDB bucket `dockerhost`
-- [x] Add HA Monitoring page/sidebar entry with direct links to Grafana and Kuma
-- [x] Deploy internal ntfy notification service for future HA/Kuma/Grafana alerts
-- [x] Prepare HA HTTPS certificate files without enabling HTTPS cutover
-- [x] Keep monitoring operational posture as direct-link access from HA, with embedding intentionally parked for now
+- [ ] Add least-privilege central collectors for Proxmox task/backup logs, HA,
+  Frigate and CT 114 service logs; do not widen guest access just for Grafana
+- [ ] Prepare the OMV host/SMART/RAID/filesystem/service collector and replace
+  the NAS dashboard shell after bounded collector/deployment review.
+  October2 host-local JSON source/six tests/live one-off read-only proof are
+  complete; scheduled least-privilege production, metrics shipping and dashboard
+  acceptance remain open. See [[docs/procedures/omv-health-collector-preparation]].
 - [ ] Re-open Grafana/Uptime Kuma embedding work only after same-origin HTTPS/reverse-proxy path and auth model are approved
 - [ ] Add Uptime Kuma dashboard view into Home Assistant after same-origin reverse proxy/HTTPS path exists
 - [ ] Add Grafana dashboard view into Home Assistant (Lovelace panel/iframe) once auth/embedding behavior is stable
 - [ ] Evaluate Telegraf UI integration path (direct Telegraf has no real UI; expose Influx/Grafana views in HA instead)
-- [x] Add an external health signal for monitoring VM (HA-side check) so Kuma-down is still detected
-- [x] Deploy AdGuard Home on docker-host as selected DNS filtering engine
-- [x] Add/validate router DNS enforcement rules for filtering coverage and public fallback
-- [x] Add monitoring for the DNS filtering service before making it the only resolver path
-- [x] Verify historical pre-NAS Proxmox local backup job for VMs 100/101/102/103; current recurring guest backups now use OMV `omv-backups`
-- [ ] Extend `Fail2ban` from docker-host baseline to Frigate and other applicable Linux service hosts
+- [ ] Extend `Fail2ban` beyond the live docker-host and Frigate SSH baselines
+  to other applicable Linux service hosts
 - [ ] Execute IDS/IPS progression Phase A (`docs/procedures/ids_ips_progression_plan.md`): monitor Fail2ban jails/bans and tune policy after live observation
 - [ ] After at least 30 days of baseline security-event data, decide CrowdSec pilot vs defer and document the decision
 - [ ] Add a scoped internal penetration-testing pass after hardening + update governance stabilize; record findings and remediation evidence
 - [ ] Set up WireGuard DDNS if ISP IP changes frequently
-- [x] Run staged core health baseline and deploy the expanded canonical check; the 2026-07-11 hardened systemd run passed `28/28` and JSON passed `26/26`, covering active core apps, CT root capacity, the Frigate recording mount, and five guest archive-age checks while hardware-dependent VentSys/P1S checks remain skipped
 
 ---
 
 ## Ongoing / maintenance
+
+- [ ] Verify Pocketry8211 over mobile data; review narrow Tailscale grant if
+  blocked. Real-tool physical-fit acceptance is separate.
+
+- [ ] Confirm the first unattended Bambuddy staging/install window; manual
+  end-to-end update and Task Scheduler no-update run are the initial proof.
+
+- [ ] Perform a controlled VM103 reboot proof for DNS, Homepage, browser `8207`, native `8181`.
 
 - [ ] Rotate infrastructure passwords, API credentials and SSH keys together;
   update password-manager records and validate every dependent service before
@@ -551,12 +716,18 @@ must work without HACS.
   command pattern for intentionally resetting into a new chat, and write a
   reusable handoff-document procedure so active tasks, evidence, and next
   commands can be carried into the new chat without relying on chat memory alone
-- [x] Verify CT 111/114 backup behavior after adding `tmpdir=/var/tmp` to the
-  Proxmox LXC backup job; CT 111 manual proof passed on 2026-07-05 and CT 114
-  manual proof passed on 2026-07-06
 - [ ] Weekly: append an entry to `docs/procedures/update_review_log.md` (Watchtower monitor-only signals + host package candidates + planned patch window)
 - [ ] Next patch window: update docker-host packages from the current candidate list, reboot if kernel package changes, and rerun router/health/Grafana checks
+- [ ] Repair docker-host's missing default `docker0` bridge for normal dependency
+  builds. Recomp Tracker no longer depends on a running-container hotfix.
 - [ ] After any config change: `git add -A && git commit && git push`
 - [ ] When hardware arrives: update MAC addresses in `dhcp-config.conf`
-- [x] Update RTSP URLs in `configs/frigate/config.yml` for the confirmed Gate and Patio cameras
+- [ ] When cameras confirmed: update RTSP URLs in `configs/frigate/config.yml`
 - [ ] When sensors connected: update DS18B20 addresses in ESPHome YAML
+
+
+- [ ] After VentSys installation, execute [[docs/procedures/ventsys-relative-airflow-baselines|relative airflow baseline matrix]]: verify trunk routing/endpoints and fan-step mapping, then nine configurations at ten speeds with repeats; add mixed/booth configurations when used.
+
+- [ ] Revert temporary November10 Mosquitto debug logging and server diagnostic capture after conflict investigation; follow docs/procedures/ventsys-temporary-mqtt-logging.md.
+
+- [ ] FDM CO firmware OTA succeeded November 10; after warm-up capture and verify a clean-air baseline and test the complete alert path. Resolve planned FDM-array-2 `.32` conflict before adoption. CO is qualitative; the removed smoke-labelled channel was not a smoke sensor.

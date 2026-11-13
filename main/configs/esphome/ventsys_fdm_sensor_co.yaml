@@ -1,0 +1,3 @@
+# Compatibility wrapper: installed FDM CO firmware is maintained in ventsys_fdm_sensor.yaml.
+packages:
+  base: !include ventsys_fdm_sensor.yaml

@@ -1,60 +1,36 @@
-flowchart TB
-    DockerHost["docker-host VM 103<br/>192.168.20.102<br/>Debian + Docker Engine + Compose"]
-    Stacks["/opt/stacks/<service>/"]
-    Network["Docker networks<br/>service-specific where practical"]
-    Volumes["Named volumes and bind mounts<br/>document per service"]
-    Backups["Backups<br/>OMV app-data templates<br/>live mount/job pending"]
-    Logs["Logs<br/>Dozzle + host journal"]
-
-    DockerHost --> Stacks
-    DockerHost --> Network
-    DockerHost --> Volumes
-    DockerHost --> Backups
-    DockerHost --> Logs
-
-    subgraph Tier1["Tier 1 core"]
-        AdGuard["adguard-home<br/>DNS filtering"]
-        Immich["immich<br/>photos/gallery"]
-        Homepage["homepage<br/>service dashboard"]
-        Dozzle["dozzle<br/>container logs"]
-        Bambuddy["bambuddy<br/>P1S bridge"]
-        Tailscale["tailscale<br/>subnet router"]
+%%{init: {"theme":"base","fontFamily":"Segoe UI, sans-serif","themeVariables":{"primaryColor":"#123044","primaryTextColor":"#eef6ff","primaryBorderColor":"#58b7bf","lineColor":"#9aafc4","clusterBkg":"#0d1c2d","clusterBorder":"#38516b","tertiaryColor":"#0d1c2d","edgeLabelBackground":"#0b1929","fontFamily":"Segoe UI, sans-serif","fontSize":"18px"},"flowchart":{"curve":"linear","nodeSpacing":20,"rankSpacing":28,"padding":12,"subGraphTitleMargin":{"top":8,"bottom":16},"wrappingWidth":380,"useMaxWidth":false}}}%%
+flowchart LR
+    %% This is a service inventory, not an all-to-all traffic graph.
+    subgraph Runtime["VM103 · 192.168.20.102"]
+        direction TB
+        Host["DOCKER HOST<br/>6 GiB RAM · 64 GiB disk<br/>/opt/stacks/service/"]
+        Network["NETWORK BOUNDARY<br/>Explicit 10.240.x.0/24 bridges<br/>Gridfinity: 172.32.0.0/24<br/>Bambuddy: temporary host mode"]
+        Access["ACCESS + REBUILD<br/>UFW + DOCKER-USER + app auth<br/>Secrets and live databases off Git<br/>Templates: configs/docker-host/"]
+        Host ~~~ Network ~~~ Access
     end
-
-    subgraph Tier2Live["Tier 2 live / setup pending"]
-        Mealie["mealie<br/>recipes; admin rotation pending"]
-        Grocy["grocy<br/>stock; household model pending"]
-        LiveSync["obsidian-livesync<br/>CouchDB; client rollout pending"]
-        Ntfy["ntfy<br/>internal alerts"]
-        SearXNG["searxng<br/>search pre-flight"]
-        Whoogle["whoogle<br/>search pre-flight"]
+    subgraph Services["APPLICATION GROUPS · OWNERS RETAIN THEIR DATA"]
+        direction TB
+        Home["HOUSEHOLD<br/>Immich 2283 · Mealie 9925 · Grocy 9283<br/>GardenKeeper 8090/8091<br/>Household Hub 8100/8101 · Recomp 8420"]
+        Media["MEDIA + SECURE DATA<br/>Jellyfin 8096 · Calibre-Web 8083<br/>Atsumeru 31337 · qBittorrent/VPN 8084<br/>Vaultwarden: HTTPS; raw8222 loopback"]
+        Portal["PORTALS + WORKSHOP<br/>Homepage HTTPS443; rollback3001<br/>Fixed proxies8180–8209<br/>Mermaid8092 · Gridfinity8093 · Bambuddy8000"]
+        NetworkApps["NETWORK + KNOWLEDGE<br/>AdGuard DNS53 / admin8080 · ntfy8085<br/>SearXNG8087 · Whoogle8088<br/>LiveSync5984 · Tailscale host service"]
+        Ops["OPERATIONS<br/>Dozzle · Telegraf · Watchtower monitor-only<br/>apt-cacher-ng · MediaMTX relay<br/>Troubleshooting8094: management-only"]
+        Home ~~~ Media ~~~ Portal ~~~ NetworkApps ~~~ Ops
     end
-
-    subgraph Tier2Candidates["Tier 2 candidates"]
-        Paperless["paperless-ngx"]
-        Actual["actual-budget"]
-        Scrypted["scrypted"]
+    subgraph Data["PRIVATE DATA + BACKUPS"]
+        direction TB
+        Databases["APP DEPENDENCIES<br/>Immich: PostgreSQL / Redis / ML<br/>GardenKeeper: PostgreSQL / Redis / worker<br/>Household Hub: PostgreSQL / Redis / Qdrant"]
+        Mounts["OMV MOUNTS<br/>Immich uploads / library<br/>Jellyfin read-only; books/comics writable<br/>Downloads: incomplete / complete only"]
+        Backup["DAILY APP-DATA JOB · 03:45<br/>Selected app state + database dumps<br/>OMV backups/docker-host<br/>Job status and restore proof are separate"]
+        Databases ~~~ Mounts ~~~ Backup
     end
+    Runtime -->|"hosts"| Services
+    Services -->|"scoped dependencies"| Data
+    class Host core
+    class Network,Access policy
+    class Databases,Mounts,Backup store
 
-    subgraph Tier3["Tier 3 evaluate"]
-        Vaultwarden["vaultwarden<br/>security gate"]
-        Portainer["portainer<br/>admin-surface gate"]
-        Watchtower["watchtower<br/>monitor-only"]
-        Registry["local registry mirror"]
-        NodeRED["node-red<br/>automation gate"]
-    end
-
-    subgraph Future["Future app/tool containers"]
-        QueryApps["AI-adjacent query apps<br/>app-specific design required"]
-    end
-
-    Stacks --> Tier1
-    Stacks --> Tier2Live
-    Stacks --> Tier2Candidates
-    Stacks --> Tier3
-    Stacks -.-> Future
-    Tier1 --> Backups
-    Tier2Live --> Backups
-    Tier2Candidates --> Backups
-    Tier3 --> Backups
-    Future -.-> Backups
+    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa
+    classDef store fill:#292745,stroke:#aa99db,color:#f2edff
+    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8
+    classDef deferred fill:#1b2638,stroke:#9dabc1,color:#d3dfef,stroke-dasharray:5 4

@@ -10,13 +10,15 @@ if [[ "$(id -u)" -ne 0 ]]; then
 fi
 
 id transferportal >/dev/null 2>&1 || useradd --system --home-dir /var/lib/transferportal --shell /usr/sbin/nologin transferportal
-install -d -o transferportal -g transferportal -m 0750 /var/lib/transferportal /var/log/transferportal
+install -d -o transferportal -g transferportal -m 0750 /var/lib/transferportal
+install -d -o root -g transferportal -m 0750 /var/log/transferportal
 install -d -o root -g transferportal -m 0750 /etc/transferportal
 install -d -o root -g root -m 0755 /usr/local/lib/transferportal
 install -d -o root -g root -m 0755 "$APP_DIR"
 
 rsync -a --delete \
   --exclude '.venv' \
+  --exclude 'venv' \
   --exclude '__pycache__' \
   "$APP_SRC"/ "$APP_DIR"/
 

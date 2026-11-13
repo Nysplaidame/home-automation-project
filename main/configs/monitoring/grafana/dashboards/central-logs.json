@@ -1,0 +1,85 @@
+{
+  "annotations": { "list": [] },
+  "editable": false,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "description": "Bambuddy lines classified by the collector as warning or error. Use the panel menu's Explore action for the full context.",
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 0 },
+      "id": 3,
+      "options": { "cellHeight": "sm", "showHeader": true, "sortBy": [{ "desc": true, "displayName": "Time" }] },
+      "targets": [
+        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "{job=\"bambuddy\", source=\"application\", detected_level=~\"error|warning\"}", "queryType": "range", "refId": "A" }
+      ],
+      "title": "Bambuddy errors",
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "description": "Docker-host lines classified by the collector as warning or error. Use the panel menu's Explore action for the full context.",
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 0 },
+      "id": 4,
+      "options": { "cellHeight": "sm", "showHeader": true, "sortBy": [{ "desc": true, "displayName": "Time" }] },
+      "targets": [
+        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "{host=\"docker-host\", detected_level=~\"error|warning\"}", "queryType": "range", "refId": "A" }
+      ],
+      "title": "Docker-host errors",
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "influxdb-homeassistant" },
+      "description": "OpenWrt warning and error syslog events already collected by Telegraf. Router syslog remains in InfluxDB; container/application logs remain in Loki.",
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 0 },
+      "id": 5,
+      "options": { "cellHeight": "sm", "showHeader": true, "sortBy": [{ "desc": true, "displayName": "Time" }] },
+      "targets": [
+        { "datasource": { "type": "influxdb", "uid": "influxdb-homeassistant" }, "query": "from(bucket: \"homeassistant\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"syslog\" and r._field == \"message\" and (r.severity == \"warning\" or r.severity == \"err\" or r.severity == \"crit\" or r.severity == \"alert\" or r.severity == \"emerg\")) |> keep(columns: [\"_time\", \"_value\", \"appname\", \"facility\", \"severity\"])", "refId": "A" }
+      ],
+      "title": "Router warnings and errors",
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "description": "Application log written by Bambuddy. Includes printer connection, upload, queue, and dispatch events.",
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 14, "w": 12, "x": 0, "y": 8 },
+      "id": 1,
+      "options": { "cellHeight": "sm", "showHeader": true, "sortBy": [{ "desc": true, "displayName": "Time" }] },
+      "targets": [
+        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "{job=\"bambuddy\", source=\"application\"}", "queryType": "range", "refId": "A" }
+      ],
+      "title": "Bambuddy application log",
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "description": "All Docker container output collected from docker-host.",
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 14, "w": 12, "x": 12, "y": 8 },
+      "id": 2,
+      "options": { "cellHeight": "sm", "showHeader": true, "sortBy": [{ "desc": true, "displayName": "Time" }] },
+      "targets": [
+        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "{host=\"docker-host\"}", "queryType": "range", "refId": "A" }
+      ],
+      "title": "Docker-host container log",
+      "type": "table"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 41,
+  "tags": ["logs", "loki", "bambuddy"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timezone": "browser",
+  "title": "Central Logs",
+  "uid": "central-logs",
+  "version": 1
+}

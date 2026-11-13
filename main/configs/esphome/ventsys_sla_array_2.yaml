@@ -1,13 +1,19 @@
 # VentSys SLA enclosure sensor array 2
 # Device: ventsys-sla-array-2  IP: 192.168.50.34  VLAN 50
+# Hardware: sensor carrier (ESP32-C6-Zero, Pimoroni BME680, SEN0570 smoke, SEN0564 CO)
 
 substitutions:
   device_name: ventsys-sla-array-2
-  friendly_name: "ventsys_sla_array_2"
   entity_prefix: "ventsys_sla_array_2"
   device_ip: "192.168.50.34"
   mqtt_topic_prefix: "ventsys/sla/array_2"
+  fallback_ap_ssid: "VentSys SLA Array 2 FB"
   temp_threshold: "40.0"
+  display_title: "SLA-2"
 
 packages:
   base: !include ventsys_air_sensor_base.yaml
+  co: !include ventsys_air_sensor_co.yaml
+  # Uncomment on the array(s) that have the hardware fitted:
+  # dp: !include ventsys_air_sensor_dp.yaml            # SDP810 differential pressure
+  # display: !include ventsys_air_sensor_display.yaml  # OLED + LDR (needs the co package)

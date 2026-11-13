@@ -32,6 +32,9 @@
     ['192.168.20.102:8083', 8206],
     ['192.168.20.102:31337', 8208],
     ['192.168.20.102:8420', 8209],
+    ['192.168.20.104:7860', 8210],
+    ['127.0.0.1:8098', 8211],
+    ['192.168.40.50:3670', 8212],
 
   ]);
   const PREVIEW_PROXY_PORT_SET = new Set(PREVIEW_PROXY_PORTS.values());
@@ -279,11 +282,12 @@
       const actions = document.createElement('div');
       actions.className = ACTIONS_CLASS;
 
-      // Vaultwarden forbids framing; share card styling with a direct action.
-      if (card.id === 'portal-vaultwarden') {
+      // Keep VentSys controls in their signed-in HA tab. Vaultwarden also uses
+      // standalone navigation because it forbids framing.
+      if (card.id === 'portal-vaultwarden' || card.id === 'portal-ventsys') {
         const link = document.createElement('a');
         link.className = PREVIEW_CLASS;
-        link.href = href;
+        link.href = card.id === 'portal-ventsys' ? getDirectHref(card, href) : href;
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
         link.textContent = 'Open tab';

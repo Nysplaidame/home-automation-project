@@ -131,7 +131,7 @@ sensor:
             then:
               - number.set:
                   id: animation_speed
-                  value: !lambda 'return min(max((x / id(pulses_at_max_speed)) * 100.0, 0.0f), 100.0f);'
+                  value: !lambda 'return min(max((x / id(pulses_at_max_speed)) * 100.0f, 0.0f), 100.0f);'
         # Publish pulse rate to HA via MQTT
         - mqtt.publish:
             topic: ${mqtt_topic_pulses}
@@ -235,3 +235,5 @@ light:
               float brightness = id(light_brightness).state / 100.0;
               it.all() = Color(brightness * red, brightness * green, brightness * blue);
             }
+packages:
+  board_management: !include ventsys_board_management.yaml

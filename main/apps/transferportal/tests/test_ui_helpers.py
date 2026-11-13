@@ -65,6 +65,10 @@ def test_transfer_form_does_not_preview_by_default():
 
     assert 'name="preview_only" checked' not in body
     assert "Preview command only, do not run rsync" in body
+    assert "Move unavailable" in body
+    assert 'formaction="/jobs/move" type="submit" disabled' in body
+    assert "Destination deletion is disabled" in body
+    assert "--inplace" not in body
 
 
 def test_portal_card_shows_real_backing_folders():

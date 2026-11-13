@@ -445,17 +445,19 @@ uci set dhcp.@host[-1].ip='192.168.50.56'
 uci set dhcp.@host[-1].mac='XX:XX:XX:XX:XX:XX'
 uci set dhcp.@host[-1].dns='1'
 
-# 360-degree intake valves
+# 360-degree intake valves. MACs were verified in HA device info on 2026-10-10
+# after the owner corrected the FDM/SLA board identities. Coordinate firmware
+# reassignment before applying; both live boards currently use static IPs.
 uci add dhcp host
 uci set dhcp.@host[-1].name='ventsys-fdm-360-valve'
-uci set dhcp.@host[-1].ip='192.168.50.61'
-uci set dhcp.@host[-1].mac='XX:XX:XX:XX:XX:XX'
+uci set dhcp.@host[-1].ip='192.168.50.62'
+uci set dhcp.@host[-1].mac='A0:85:E3:AE:5B:C8'
 uci set dhcp.@host[-1].dns='1'
 
 uci add dhcp host
 uci set dhcp.@host[-1].name='ventsys-sla-360-valve'
-uci set dhcp.@host[-1].ip='192.168.50.62'
-uci set dhcp.@host[-1].mac='XX:XX:XX:XX:XX:XX'
+uci set dhcp.@host[-1].ip='192.168.50.61'
+uci set dhcp.@host[-1].mac='CC:BA:97:F0:E3:EC'
 uci set dhcp.@host[-1].dns='1'
 
 # Smart plugs (.71-.78) — commercial units, ping-monitored, no ESPHome API port.

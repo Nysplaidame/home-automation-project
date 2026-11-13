@@ -15,7 +15,7 @@ status: stable
 
 ## Summary
 
-Complete DHCP and DNS configuration for all 9 VLANs. Includes all static DHCP reservations for infrastructure devices and the full VentSys ESP32 fleet (17 boards + 8 smart plugs). Also defines local DNS entries for all devices under the `home.local` domain. Contains placeholder MACs throughout — all must be replaced at deployment time.
+Complete DHCP and DNS configuration for all 9 VLANs. Includes static reservations for infrastructure and the VentSys fleet, plus local DNS entries under `home.local`. Most hardware MACs remain placeholders; the two 360-intake MACs are now identified and assigned to their corrected FDM/SLA roles.
 
 ## Key Takeaways
 
@@ -52,8 +52,8 @@ Complete DHCP and DNS configuration for all 9 VLANs. Includes all static DHCP re
 | ventsys-sla-branch-valve | 192.168.50.54 | 50 |
 | ventsys-fdm-print-valve | 192.168.50.55 | 50 |
 | ventsys-sla-print-valve | 192.168.50.56 | 50 |
-| ventsys-fdm-360-valve | 192.168.50.61 | 50 |
-| ventsys-sla-360-valve | 192.168.50.62 | 50 |
+| ventsys-fdm-360-valve | 192.168.50.62 | 50 |
+| ventsys-sla-360-valve | 192.168.50.61 | 50 |
 | plug-fdm-printer | 192.168.50.71 | 50 |
 | plug-sla-printer | 192.168.50.72 | 50 |
 | ventsys-plug-uv-1 | 192.168.50.73 | 50 |
@@ -67,6 +67,13 @@ Complete DHCP and DNS configuration for all 9 VLANs. Includes all static DHCP re
 | rpi-display-1 | 192.168.1.201 | 1 |
 | rpi-display-2 | 192.168.1.202 | 1 |
 | homeextender (AP) | 192.168.1.203 | 1 |
+
+### Verified 360-intake MAC assignments
+
+| Role | Expected IP | MAC | Identity note |
+|---|---|---|---|
+| FDM 360 intake | `192.168.50.62` | `A0:85:E3:AE:5B:C8` | Corrected role; this board was previously labeled SLA |
+| SLA 360 intake | `192.168.50.61` | `CC:BA:97:F0:E3:EC` | Corrected role; this board was previously labeled FDM and flashed over COM8 |
 
 ## Entities Mentioned
 

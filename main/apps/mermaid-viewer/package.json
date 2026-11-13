@@ -1,13 +1,14 @@
 {
-  "name": "mermaid-viewer",
-  "version": "0.1.0",
+  "name": "home-automation-mermaid-viewer",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node scripts/build.mjs"
+    "build": "node scripts/build.mjs",
+    "verify": "node scripts/verify-diagrams.mjs",
+    "release": "pwsh -NoProfile -File scripts/release.ps1"
   },
   "dependencies": {
-    "mermaid": "^10.9.1"
+    "mermaid": "11.17.2"
   }
 }
-

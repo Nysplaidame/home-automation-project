@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Architecture Diagram Viewer</title>
+  <link rel="stylesheet" href="./styles.css?v=20260724-2">
+  <script src="./vendor/mermaid.min.js?v=20260724-2"></script>
+  <script type="module" src="./app.js?v=20260724-2"></script>
+</head>
+<body>
+  <header class="hero">
+    <div>
+      <p class="eyebrow">Home operations · canonical diagrams</p>
+      <h1>Architecture Viewer</h1>
+      <p class="lede">Full project diagrams with searchable navigation, pan, zoom, fit, and shareable deep links.</p>
+    </div>
+    <div class="controls">
+      <label class="search">
+        <span class="sr-only">Search diagrams</span>
+        <input id="search" type="search" placeholder="Search diagrams, tags, or paths">
+      </label>
+      <button id="copy-current" type="button">Copy link</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <section class="panel section-panel">
+        <div class="panel-title">
+          <h2>Sections</h2>
+          <span id="diagram-count" class="count"></span>
+        </div>
+        <div id="section-list" class="chips"></div>
+      </section>
+      <section class="panel diagram-panel">
+        <h2>Diagrams</h2>
+        <div id="diagram-list" class="list"></div>
+      </section>
+    </aside>
+
+    <section id="viewer-panel" class="viewer panel">
+      <div class="viewer-head">
+        <div>
+          <p id="diagram-path" class="path"></p>
+          <h2 id="diagram-title">Select a diagram</h2>
+          <p id="diagram-summary" class="summary"></p>
+        </div>
+        <div class="actions">
+          <button id="toggle-source" type="button" aria-pressed="false">Source</button>
+          <button id="copy-markdown" type="button">Copy Markdown</button>
+          <button id="copy-path" type="button">Copy path</button>
+        </div>
+      </div>
+
+      <div class="diagram-toolbar" aria-label="Diagram view controls">
+        <button type="button" data-view-action="zoom-out" aria-label="Zoom out">−</button>
+        <output id="zoom-level" aria-live="polite">100%</output>
+        <button type="button" data-view-action="zoom-in" aria-label="Zoom in">+</button>
+        <button type="button" data-view-action="fit">Fit</button>
+        <button type="button" data-view-action="actual">100%</button>
+        <button type="button" data-view-action="fullscreen">Fullscreen</button>
+        <span class="toolbar-hint">Wheel to zoom · drag to pan · double-click to fit</span>
+      </div>
+
+      <div id="diagram-stage" class="diagram-stage" tabindex="0" aria-label="Rendered diagram; drag to pan and use the toolbar or mouse wheel to zoom">
+        <div id="diagram-canvas" class="diagram-canvas"></div>
+        <div id="render-status" class="render-status">Choose a diagram to render it here.</div>
+      </div>
+      <pre id="source-view" class="source-view" hidden></pre>
+    </section>
+  </main>
+</body>
+</html>

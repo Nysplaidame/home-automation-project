@@ -3,7 +3,7 @@ title: Home Assistant Companion App Guide
 description: Operator phone onboarding, push notification test, actionable acknowledgement test, and sensor policy
 tags: [home-assistant, companion-app, notifications, mobile]
 created: 2026-05-27
-modified: 2026-07-02
+modified: 2026-09-18
 type: procedure
 status: active
 ---
@@ -35,6 +35,10 @@ References:
   Tailscale off.
 - The operator Android phone `LE2123` was validated on 2026-07-02 after the
   local CA was trusted.
+- P1S events use `notify.mobile_app_mai_foenn` as well as a persistent
+  notification fallback. Their **Open Bambuddy** action uses Bambuddy's
+  authenticated Tailscale HTTPS address, so it works both at home and away
+  while the Tailscale app is connected.
 - Tailscale DERP relay was observed to cause intermittent Companion App
   websocket `No PONG received` drops. Prefer direct HomeMain/HomeAdmin WiFi
   while at home; use Tailscale when away.

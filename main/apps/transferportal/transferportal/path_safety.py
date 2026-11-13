@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+import posixpath
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
@@ -21,7 +23,12 @@ def _posix(path: Path) -> PurePosixPath:
     if value.startswith("//"):
         value = "/" + value.lstrip("/")
     if value.startswith("/"):
-        return PurePosixPath(value)
+        # PurePosixPath intentionally preserves ``..``. Normalise it before any
+        # prefix comparison, and resolve symlinks when running on the Linux host.
+        normalised = PurePosixPath(posixpath.normpath(value))
+        if os.name == "posix":
+            return PurePosixPath(Path(value).expanduser().resolve(strict=False).as_posix())
+        return normalised
     return PurePosixPath(Path(value).expanduser().resolve(strict=False).as_posix())
 
 

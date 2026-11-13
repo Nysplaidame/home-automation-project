@@ -1,3 +1,15 @@
+- Service Health:
+    - Uptime Kuma Summary:
+        id: portal-kuma-summary
+        icon: uptime-kuma.png
+        href: https://homepage.home.local:8186/status/home-operations
+        description: Service availability and uptime
+        widget:
+          type: uptimekuma
+          url: http://192.168.60.10:3001
+          slug: home-operations
+          fields: [up, down, uptime, incident]
+
 - Home & Security:
     - Home Assistant:
         id: portal-home-assistant
@@ -5,6 +17,11 @@
         href: https://homepage.home.local:8188/
         description: Automations, rooms and household control
         ping: 192.168.20.101
+    - VentSys:
+        id: portal-ventsys
+        icon: mdi-hvac
+        href: https://homepage.home.local:8188/dashboard-ventsys/0
+        description: Garage ventilation, valve reports and reviewed controls
     - Frigate:
         id: portal-frigate
         icon: frigate.png
@@ -91,6 +108,13 @@
         description: Drawer and Gridfinity layout planner
         server: docker-host
         container: gridfinity-layout-tool
+    - Pocketry:
+        id: portal-pocketry
+        icon: mdi-toolbox-outline
+        href: https://homepage.home.local:8211/
+        description: Photo tracing and custom Gridfinity tool cutouts
+        server: docker-host
+        container: pocketry
     - Mermaid Viewer:
         id: portal-mermaid-viewer
         icon: mdi-graph-outline
@@ -151,6 +175,13 @@
         ping: 192.168.20.102
 
 - Monitoring:
+    - Resource Health:
+        id: portal-resource-health
+        icon: mdi-heart-pulse
+        href: https://homepage.home.local/portal-preview/troubleshooting/#resource-health
+        description: Live host and guest pressure, coverage and alert delivery
+        server: docker-host
+        container: troubleshooting-dashboard
     - Grafana:
         id: portal-grafana
         icon: grafana.png
@@ -190,6 +221,11 @@
         href: https://homepage.home.local:8187/
         description: NAS storage, shares and disk health
         siteMonitor: http://192.168.40.50/
+    - Filebrowser:
+        id: portal-filebrowser
+        icon: mdi-folder-multiple-outline
+        href: https://homepage.home.local:8212/
+        description: Browse and manage NAS files
     - Transfer Portal:
         id: portal-transfer
         icon: mdi-folder-swap-outline

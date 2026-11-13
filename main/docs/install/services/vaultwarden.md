@@ -1,72 +1,103 @@
 ---
 title: Vaultwarden Install Manual
-description: Tier 3 password vault candidate with strict decision gate
+description: Live internal password vault with HTTPS, restore proof, and gated owner onboarding
 tags: [install, docker-host, vaultwarden, tier3]
 created: 2026-05-24
-modified: 2026-05-24
+modified: 2026-07-29
 type: install-guide
-status: draft-installable
+status: live-onboarding-gated
 ---
 
 # Vaultwarden Install Manual
 
 ## Purpose
 
-Evaluate Vaultwarden as a self-hosted password vault. This is high sensitivity
-and must not become live until the gate is approved.
+Operate the live internal Vaultwarden service without weakening its HTTPS,
+backup, recovery or account-enrolment boundaries.
 
 ## Runs on
 
-docker-host over SSH at `192.168.20.102` after gate approval.
+docker-host at `192.168.20.102`; production access is only
+`https://vault.home.local`.
+
+## Live deployment
+
+Follow the implementation design and gates in
+[[docs/procedures/household-services-implementation-plan|Household Services
+Implementation Plan]]. Vaultwarden `1.36.0` is live under
+`/opt/stacks/vaultwarden` with persistent `/data`, explicit Docker subnet
+`10.240.30.0/24`, and a raw listener bound only to `127.0.0.1:8222`. The fixed
+Nginx proxy terminates the dedicated local-CA certificate for
+`vault.home.local`, adds HSTS and deliberately permits no iframe embedding.
+`SIGNUPS_ALLOWED=false`; the admin endpoint is disabled because `ADMIN_TOKEN`
+is blank.
 
 ## Prerequisites
 
-- Vaultwarden decision gate complete.
-- HTTPS/reverse proxy plan documented.
-- Backup/restore tested on non-production data.
+- Deploy the staged OpenWrt DNS alias for `vault.home.local` and validate it
+  from normal local and Tailscale clients.
+- Keep the fixed proxy and source-scoped firewall in place.
+- Preserve the completed SQLite-consistent NAS backup and isolated restore
+  evidence.
+- Before importing real credentials, complete owner onboarding, 2FA,
+  recovery-code storage and owner-controlled emergency-access policy.
 
 ## Inputs
 
-- `<VAULTWARDEN_ADMIN_TOKEN>`
+- No secret input is stored in Git. The production admin endpoint remains
+  disabled unless a separately approved administration workflow is adopted.
 
 ## Commands
 
-Run on: docker-host over SSH after gate approval.
+Run on: Admin laptop from the repository checkout.
+
+```powershell
+scp main/configs/docker-host/stacks/vaultwarden/docker-compose.yml docker-host-lan:/tmp/vaultwarden-compose.yml
+ssh docker-host-lan 'sudo install -d -m 0750 /opt/stacks/vaultwarden/data; sudo install -o root -g root -m 0644 /tmp/vaultwarden-compose.yml /opt/stacks/vaultwarden/docker-compose.yml; rm -f /tmp/vaultwarden-compose.yml'
+```
+
+Validate and reconcile only after comparing live `.env` and data paths; never
+overwrite them from Git:
+
+Run on: docker-host over SSH.
 
 ```sh
-mkdir -p /opt/stacks/vaultwarden/data
 cd /opt/stacks/vaultwarden
-cat > docker-compose.yml <<'COMPOSE'
-services:
-  vaultwarden:
-    image: vaultwarden/server:latest
-    container_name: vaultwarden
-    restart: unless-stopped
-    ports:
-      - "8082:80"
-    environment:
-      SIGNUPS_ALLOWED: "false"
-      ADMIN_TOKEN: "<VAULTWARDEN_ADMIN_TOKEN>"
-    volumes:
-      - ./data:/data
-COMPOSE
-docker compose config
+docker compose up -d
+docker compose ps
 ```
 
-Run on: docker-host over SSH only after confirming the gate.
+Expected result: Compose recreates only Vaultwarden, the container is `Up`, and
+the live host-only `.env`/data remain in place.
+
+The Homepage proxy keeps Vaultwarden optional so a fresh Tier 1 rebuild does not
+depend on Tier 3 certificate files. Activate the fixed server only after the
+Vaultwarden leaf certificate, key, and loopback listener are ready.
+
+Run on: docker-host over SSH.
 
 ```sh
-docker compose up -d
+test -s /opt/stacks/homepage/tls/vault.crt
+test -s /opt/stacks/homepage/tls/vault.key
+cp /opt/stacks/homepage/preview-proxy/vaultwarden.conf.example \
+  /opt/stacks/homepage/preview-proxy/optional.d/vaultwarden.conf
+cd /opt/stacks/homepage
+docker compose exec -T preview-proxy nginx -t
+docker compose exec -T preview-proxy nginx -s reload
 ```
+
+Expected result: all file guards pass, Nginx reports that configuration syntax
+and test are successful, and reload exits `0`.
 
 ## Explanation
 
-The Compose file is draft installable, but a password vault has a higher bar:
-HTTPS, recovery, backups, and admin-token handling must be settled first.
+The tracked Compose file is the rebuild shape. Live `.env`, SQLite data,
+attachments, keys and recovery material remain host-only.
 
 ## Expected result
 
-Vaultwarden is internal-only and not used for primary passwords until restore is tested.
+Vaultwarden is internal-only, HTTPS-valid and restore-proven. It is not used for
+primary passwords until owner onboarding and recovery policy are complete.
 
 ## Validation
 
@@ -78,7 +109,10 @@ cd /opt/stacks/vaultwarden && docker compose ps
 
 ## Backup
 
-Back up `/opt/stacks/vaultwarden/data` and test restore before storing real secrets.
+`docker-host-app-data-backup.sh` creates a SQLite-consistent staged database and
+copies the complete data directory to dated OMV `backups/docker-host` runs.
+Backup run `20260729T160804Z` passed a clean restore and a separate disposable-
+account restore with integrity, exact-account-count and HTTP checks.
 
 ## Failure recovery
 
@@ -89,11 +123,18 @@ Run on: docker-host over SSH.
 ```sh
 cd /opt/stacks/vaultwarden
 docker compose down
+rm -f /opt/stacks/homepage/preview-proxy/optional.d/vaultwarden.conf
+cd /opt/stacks/homepage
+docker compose exec -T preview-proxy nginx -t
+docker compose exec -T preview-proxy nginx -s reload
 ```
 
 ## Completion checklist
 
-- [ ] Gate approved.
-- [ ] HTTPS plan approved.
-- [ ] Restore tested.
-- [ ] Signups disabled.
+- [x] Dedicated HTTPS certificate and fixed proxy proven.
+- [x] Raw HTTP bound to loopback only.
+- [x] Two isolated restore proofs passed.
+- [x] Sign-ups and admin endpoint disabled.
+- [ ] Live local and Tailscale DNS validated.
+- [ ] Owner account created during a bounded enrolment window.
+- [ ] 2FA, recovery-code storage and emergency access completed.

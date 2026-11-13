@@ -82,7 +82,7 @@ echo "2. MQTT Communication: VLAN 50 → VLAN 20:8883 (TCP)" >> /tmp/phase8_vent
 echo "3. ESPHome API + OTA: VLAN 20 → VLAN 50:6053,3232 (TCP) — both ports required" >> /tmp/phase8_ventsys_integration.txt
 echo "4. NTP (time sync): VLAN 50 → router:123 (UDP) — required for TLS cert validation" >> /tmp/phase8_ventsys_integration.txt
 echo "5. IoT Internet Block: VLAN 50 → WAN (REJECT - CRITICAL)" >> /tmp/phase8_ventsys_integration.txt
-echo "6. Bambuddy to Printer: VLAN 20 (.102) → VLAN 35 (.200) ports 8883,21 — Bambuddy bridge" >> /tmp/phase8_ventsys_integration.txt
+echo "6. Bambuddy to Printer: VLAN 20 (.102) → VLAN 35 (.200) ports 8883,990 — Bambuddy bridge" >> /tmp/phase8_ventsys_integration.txt
 echo "" >> /tmp/phase8_ventsys_integration.txt
 
 # WiFi credentials for VentSys devices

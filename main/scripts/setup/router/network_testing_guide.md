@@ -1,14 +1,14 @@
 # Network Post-Deployment Testing Guide
 # Run these tests after router VLAN cutover to verify isolation and routing
-# Prerequisite: management laptop plugged into lan2 (VLAN 10 untagged)
+# Prerequisite: management client on HomeAdmin Wi-Fi or LAN5 with NIC VLAN ID 10
 
-Current first-flight status, verified on 2026-05-07, uses the pre-switch direct
-port layout. The planned managed-switch layout below must not be deployed until
-the Zyxel GS1900-8HP is present and configured first:
-- lan5 LAN/recovery: DHCP `192.168.1.x`, gateway/DNS `192.168.1.1`
-- lan2 management: DHCP `192.168.10.x`, gateway/DNS `192.168.10.1`
+Current production status, reconciled on 2026-08-25, uses the managed switch:
+- lan5: untagged VLAN 1 recovery DHCP `192.168.1.x`; tagged VLAN 10 admin PC DHCP `192.168.10.x`
+- lan2 Hive cloud-IoT access: DHCP `192.168.55.x`, gateway/DNS `192.168.55.1`
 - lan3 managed-switch trunk: tagged VLANs `1,10,30,40`
-- lan4 OMV NAS: reservation `192.168.40.50`, gateway/DNS `192.168.40.1`
+- lan4 storage access port: OMV NAS at `192.168.40.50` on VLAN 40 untagged
+- GS1900 port 8: spare VLAN 40 access port; switch currently disconnected
+- GS1900 ports 2/3/4: Camera 1 `.21`, Patio `.23`, and Gate `.22` on VLAN 30
 - lan1 is tagged-only trunk to Proxmox; direct untagged laptop DHCP is not expected
 - first-flight WiFi interfaces are configured but disabled
 
@@ -16,7 +16,7 @@ the Zyxel GS1900-8HP is present and configured first:
 
 ## Test environment setup
 
-You need a laptop on VLAN 10 (lan2) as your base. All tests run from there unless noted.
+You need a client on VLAN 10 (HomeAdmin Wi-Fi or tagged VLAN 10 on LAN5) as your base. All tests run from there unless noted.
 
 ```bash
 # Confirm you are on VLAN 10
@@ -65,7 +65,7 @@ uci show network | grep -E "network\.@bridge-vlan\[[0-9]+\]\.(vlan|ports)"
 
 # Expected:
 # VLAN 1:  lan3:t lan5:u*
-# VLAN 10: lan1:t lan2:u* lan3:t
+# VLAN 10: lan1:t lan3:t lan5:t (current live LAN5 admin-PC addition)
 # VLAN 20: lan1:t
 # VLAN 30: lan1:t lan3:t
 # VLAN 35: lan1:t
@@ -83,10 +83,10 @@ Physical client smoke tests:
 
 | Port | Expected client result |
 |---|---|
-| lan5 | Direct LAN/recovery DHCP `192.168.1.x`, DNS `192.168.1.1`, LuCI/browser reachable at `192.168.1.1` |
-| lan2 | DHCP `192.168.10.x`, DNS `192.168.10.1`, Proxmox/admin clients live here |
+| lan5 | Untagged recovery DHCP `192.168.1.x`; NIC tagging VLAN 10 gets management DHCP `192.168.10.x` and DNS `192.168.10.1` |
+| lan2 | Hive cloud-IoT DHCP `192.168.55.x`, DNS `192.168.55.1` |
 | lan3 | Tagged trunk only; test with the managed switch, not plain laptop DHCP |
-| lan4 | Direct OMV NAS port on VLAN 40; `192.168.40.50` after OMV is connected |
+| lan4 | OMV NAS direct attachment on VLAN 40 at `192.168.40.50` |
 | lan1 | Tagged trunk only; test with Proxmox or VLAN-aware client, not plain DHCP |
 
 Managed switch access-port smoke tests after the switch is installed:
@@ -94,9 +94,10 @@ Managed switch access-port smoke tests after the switch is installed:
 | Switch port role | Expected client result |
 |---|---|
 | Switch management interface | `192.168.10.12` on VLAN 10, reachable from management only |
-| Camera access port | DHCP/static `192.168.30.x`, DNS `192.168.30.1`; no WAN access |
-| OMV NAS access port | OMV reachable at `192.168.40.50`, DNS `192.168.40.1`; no WAN access |
-| TL-WA801N access port | Extender reservation `192.168.1.203`; clients get `192.168.1.x` |
+| Camera access ports 2/3/4 | Camera 1 `.21`, Patio `.23`, Gate `.22`; no broad WAN access |
+| Future camera ports 5-7 | VLAN 30 access, disabled/PoE-off until a labelled camera is commissioned; `.24` reserved next |
+| Spare storage port 8 | VLAN 40 access if a device is later connected; OMV currently uses router LAN4 |
+| TL-WA801N access port | No current free switch port; requires an explicit capacity/design decision |
 
 For restricted zones, DNS is the better client smoke test than gateway ping:
 
@@ -210,7 +211,7 @@ Connect a test device to each physical port and verify it gets the right IP rang
 |---|---|---|
 | lan2 | 10 (Management) | 192.168.10.100–149 |
 | lan3 | tagged trunk only | no untagged DHCP expected |
-| lan4 | 40 (Storage) | OMV reservation `192.168.40.50` |
+| lan4 | 40 (Storage) | Unplugged recovery/access port; OMV is on GS1900 port 8 |
 | lan5 | 1 (LAN/recovery) | 192.168.1.100–199 |
 
 Managed switch access ports:
@@ -321,6 +322,6 @@ All of these must be true before declaring the network ready:
 - [ ] ESPHome port 6053 reachable from VLAN 20 → VLAN 50
 - [ ] Frigate API reachable from VLAN 20 → VLAN 30 (port 8971)
 - [ ] NAS NFS reachable from VLAN 30 and VLAN 20
-- [ ] Bambuddy (20.102) → P1S (35.200) reachable on ports 8883 and 21
+- [ ] Bambuddy (20.102) → P1S (35.200) reachable on ports 8883 and 990
 - [ ] DHCP assigning correct ranges per VLAN
 - [ ] Local DNS resolving homeassistant.home.local, docker-host.home.local, bambuddy.home.local, frigate.home.local, nas.home.local, p1s.home.local

@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param()
+param([switch]$RepositoryAudit)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
@@ -32,4 +32,8 @@ foreach ($relativePath in $expected) {
 
 $checks | Format-Table -AutoSize
 if ($checks.Status -contains "FAIL") { exit 1 }
+if ($RepositoryAudit) {
+    & python (Join-Path $repoRoot "tools/repository-audit/audit.py")
+    exit $LASTEXITCODE
+}
 exit 0

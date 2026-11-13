@@ -1,7 +1,16 @@
 services:
   whoogle:
-    image: benbusby/whoogle-search:latest
+    image: benbusby/whoogle-search@sha256:5795c303615bbe5c5558d353f32b656da4d1d5f21568b9869276d1f51415d6e8
     container_name: whoogle
     restart: unless-stopped
     ports:
       - "8088:5000"
+    networks:
+      - whoogle
+
+networks:
+  whoogle:
+    name: whoogle
+    ipam:
+      config:
+        - subnet: 10.240.9.0/24

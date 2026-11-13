@@ -1,0 +1,11 @@
+[Unit]
+Description=Publish resource evidence every minute
+
+[Timer]
+OnBootSec=120
+OnUnitActiveSec=60
+AccuracySec=5
+Unit=troubleshooting-publish.service
+
+[Install]
+WantedBy=timers.target

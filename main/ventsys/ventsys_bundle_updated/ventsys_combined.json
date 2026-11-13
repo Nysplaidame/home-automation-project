@@ -59,32 +59,6 @@
     "info": "Core fan control + state/percent topics"
   },
   {
-    "id": "ventsys-fan-inject",
-    "type": "inject",
-    "z": "ventsys-core",
-    "name": "Test Fan Start",
-    "props": [
-      {
-        "p": "payload"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "payload": "on",
-    "payloadType": "str",
-    "x": 160,
-    "y": 120,
-    "wires": [
-      [
-        "ventsys-fan-mqtt",
-        "nr-fan-state"
-      ]
-    ]
-  },
-  {
     "id": "ventsys-fan-mqtt",
     "type": "mqtt out",
     "z": "ventsys-core",
@@ -103,19 +77,6 @@
     "wires": []
   },
   {
-    "id": "nr-fan-state",
-    "type": "mqtt out",
-    "z": "ventsys-core",
-    "name": "Fan State",
-    "topic": "ventsys/fan/state",
-    "qos": "0",
-    "retain": "false",
-    "broker": "ventsys-mqtt",
-    "x": 400,
-    "y": 160,
-    "wires": []
-  },
-  {
     "id": "ventsys-fan-percent",
     "type": "mqtt out",
     "z": "ventsys-core",
@@ -129,48 +90,11 @@
     "wires": []
   },
   {
-    "id": "ventsys-fan-percent-state",
-    "type": "mqtt out",
-    "z": "ventsys-core",
-    "name": "Fan Percent State",
-    "topic": "ventsys/fan/percent_state",
-    "qos": "0",
-    "retain": "false",
-    "broker": "ventsys-mqtt",
-    "x": 420,
-    "y": 240,
-    "wires": []
-  },
-  {
     "id": "ventsys-sla-tab",
     "type": "tab",
     "label": "VentSys - Branch 2 SLA Enclosure",
     "disabled": false,
     "info": "SLA sensors, adaptive valve, risk, logging"
-  },
-  {
-    "id": "ventsys-sla-temp",
-    "type": "inject",
-    "z": "ventsys-sla-tab",
-    "name": "Simulated Temp SLA",
-    "props": [
-      {
-        "p": "payload"
-      }
-    ],
-    "repeat": "5",
-    "crontab": "",
-    "once": true,
-    "onceDelay": 0.1,
-    "payload": 25,
-    "payloadType": "num",
-    "x": 180,
-    "y": 140,
-    "wires": [
-      [
-        "ventsys-sla-fire-risk"
-      ]
-    ]
   },
   {
     "id": "ventsys-sla-fire-risk",
@@ -208,10 +132,9 @@
     "y": 200,
     "wires": [
       [
-        "ventsys-sla-valve",
+        "ventsys-sla-valve-range-guard",
         "ventsys-sla-airflow-arrow",
         "ventsys-sla-log",
-        "nr-valve-state-sla",
         "sla-t-inlet",
         "sla-t-down"
       ]
@@ -227,19 +150,6 @@
     "retain": "false",
     "broker": "ventsys-mqtt",
     "x": 720,
-    "y": 200,
-    "wires": []
-  },
-  {
-    "id": "nr-valve-state-sla",
-    "type": "mqtt out",
-    "z": "ventsys-sla-tab",
-    "name": "SLA Valve State",
-    "topic": "ventsys/sla/valve/state",
-    "qos": "0",
-    "retain": "false",
-    "broker": "ventsys-mqtt",
-    "x": 940,
     "y": 200,
     "wires": []
   },
@@ -265,7 +175,7 @@
     "order": 2,
     "width": 2,
     "height": 1,
-    "format": "<div ng-if=\"msg.payload>0\" style=\"font-size:24px\">\u2192</div>",
+    "format": "<div ng-if=\"msg.payload>0\" style=\"font-size:24px\">→</div>",
     "storeOutMessages": true,
     "fwdInMessages": true,
     "resendOnRefresh": true,
@@ -310,7 +220,7 @@
     "id": "sla-press-in",
     "type": "mqtt in",
     "z": "ventsys-sla-tab",
-    "name": "SLA Pressure \u0394 (Pa)",
+    "name": "SLA Pressure Δ (Pa)",
     "topic": "ventsys/sla/pressure_diff",
     "qos": "0",
     "datatype": "auto",
@@ -399,12 +309,10 @@
     "y": 360,
     "wires": [
       [
-        "ventsys-sla-valve",
-        "nr-valve-state-sla"
+        "ventsys-sla-valve-range-guard"
       ],
       [
-        "ventsys-fan-percent",
-        "ventsys-fan-percent-state"
+        "ventsys-fan-percent"
       ]
     ]
   },
@@ -442,30 +350,6 @@
     "info": "FDM branch scaffold: risk + adaptive valve + state"
   },
   {
-    "id": "ventsys-fdm-temp",
-    "type": "inject",
-    "z": "ventsys-fdm-tab",
-    "name": "Simulated Temp FDM",
-    "props": [
-      {
-        "p": "payload"
-      }
-    ],
-    "repeat": "5",
-    "crontab": "",
-    "once": true,
-    "onceDelay": 0.1,
-    "payload": 25,
-    "payloadType": "num",
-    "x": 180,
-    "y": 140,
-    "wires": [
-      [
-        "ventsys-fdm-fire-risk"
-      ]
-    ]
-  },
-  {
     "id": "ventsys-fdm-fire-risk",
     "type": "function",
     "z": "ventsys-fdm-tab",
@@ -501,11 +385,10 @@
     "y": 200,
     "wires": [
       [
-        "ventsys-fdm-valve",
+        "ventsys-fdm-valve-range-guard",
         "ventsys-fdm-slider",
         "ventsys-fdm-gauge",
         "ventsys-fdm-arrow",
-        "nr-valve-state-fdm",
         "fdm-t-inlet",
         "fdm-t-down"
       ]
@@ -521,19 +404,6 @@
     "retain": "false",
     "broker": "ventsys-mqtt",
     "x": 740,
-    "y": 200,
-    "wires": []
-  },
-  {
-    "id": "nr-valve-state-fdm",
-    "type": "mqtt out",
-    "z": "ventsys-fdm-tab",
-    "name": "FDM Valve State",
-    "topic": "ventsys/fdm/valve/state",
-    "qos": "0",
-    "retain": "false",
-    "broker": "ventsys-mqtt",
-    "x": 980,
     "y": 200,
     "wires": []
   },
@@ -571,7 +441,7 @@
     "y": 240,
     "wires": [
       [
-        "ventsys-fdm-valve"
+        "ventsys-fdm-valve-range-guard"
       ]
     ]
   },
@@ -608,7 +478,7 @@
     "order": 4,
     "width": 2,
     "height": 1,
-    "format": "<div ng-if=\"msg.payload>0\" style=\"font-size:24px\">\u2192</div>",
+    "format": "<div ng-if=\"msg.payload>0\" style=\"font-size:24px\">→</div>",
     "storeOutMessages": true,
     "fwdInMessages": true,
     "resendOnRefresh": true,
@@ -669,30 +539,6 @@
     "info": "Spray booth scaffold: risk + adaptive valve + state"
   },
   {
-    "id": "ventsys-booth-temp",
-    "type": "inject",
-    "z": "ventsys-booth-tab",
-    "name": "Simulated Temp Booth",
-    "props": [
-      {
-        "p": "payload"
-      }
-    ],
-    "repeat": "5",
-    "crontab": "",
-    "once": true,
-    "onceDelay": 0.1,
-    "payload": 22,
-    "payloadType": "num",
-    "x": 180,
-    "y": 140,
-    "wires": [
-      [
-        "ventsys-booth-fire-risk"
-      ]
-    ]
-  },
-  {
     "id": "ventsys-booth-fire-risk",
     "type": "function",
     "z": "ventsys-booth-tab",
@@ -728,11 +574,10 @@
     "y": 200,
     "wires": [
       [
-        "ventsys-booth-valve",
+        "ventsys-booth-valve-range-guard",
         "ventsys-booth-slider",
         "ventsys-booth-gauge",
-        "ventsys-booth-arrow",
-        "nr-valve-state-booth"
+        "ventsys-booth-arrow"
       ]
     ]
   },
@@ -746,19 +591,6 @@
     "retain": "false",
     "broker": "ventsys-mqtt",
     "x": 740,
-    "y": 200,
-    "wires": []
-  },
-  {
-    "id": "nr-valve-state-booth",
-    "type": "mqtt out",
-    "z": "ventsys-booth-tab",
-    "name": "Booth Valve State",
-    "topic": "ventsys/booth/valve/state",
-    "qos": "0",
-    "retain": "false",
-    "broker": "ventsys-mqtt",
-    "x": 980,
     "y": 200,
     "wires": []
   },
@@ -796,7 +628,7 @@
     "y": 240,
     "wires": [
       [
-        "ventsys-booth-valve"
+        "ventsys-booth-valve-range-guard"
       ]
     ]
   },
@@ -833,7 +665,7 @@
     "order": 4,
     "width": 2,
     "height": 1,
-    "format": "<div ng-if=\"msg.payload>0\" style=\"font-size:24px\">\u2192</div>",
+    "format": "<div ng-if=\"msg.payload>0\" style=\"font-size:24px\">→</div>",
     "storeOutMessages": true,
     "fwdInMessages": true,
     "resendOnRefresh": true,
@@ -897,7 +729,7 @@
     "type": "function",
     "z": "ventsys-system-tab",
     "name": "Device Watchdog",
-    "func": "// Check if devices have sent heartbeats recently. Fail-safe fires only on silence.\nconst now = Date.now();\nconst TIMEOUT_MS = 90000; // 90s \u2014 devices heartbeat every 60s\nconst fanLast = flow.get('last_heartbeat_fan') || 0;\nconst valveLast = flow.get('last_heartbeat_valve') || 0;\nconst fanSilent = (now - fanLast) > TIMEOUT_MS;\nconst valveSilent = (now - valveLast) > TIMEOUT_MS;\n// Only trigger fail-safe if a device has been silent AND system was previously running\nconst wasRunning = flow.get('ventsys_running') || false;\nif (wasRunning && (fanSilent || valveSilent)) {\n  node.warn('WATCHDOG: device silent >90s \u2014 triggering fail-safe. fan:'+fanSilent+' valve:'+valveSilent);\n  flow.set('ventsys_running', false);\n  return [null, {payload:'WATCHDOG_TRIGGERED', fanSilent, valveSilent}];\n}\nreturn [null, null];",
+    "func": "// Check if devices have sent heartbeats recently. Fail-safe fires only on silence.\nconst now = Date.now();\nconst TIMEOUT_MS = 90000; // 90s — devices heartbeat every 60s\nconst fanLast = flow.get('last_heartbeat_fan') || 0;\nconst valveLast = flow.get('last_heartbeat_valve') || 0;\nconst fanSilent = (now - fanLast) > TIMEOUT_MS;\nconst valveSilent = (now - valveLast) > TIMEOUT_MS;\n// Only trigger fail-safe if a device has been silent AND system was previously running\nconst wasRunning = flow.get('ventsys_running') || false;\nif (wasRunning && (fanSilent || valveSilent)) {\n  node.warn('WATCHDOG: device silent >90s — triggering fail-safe. fan:'+fanSilent+' valve:'+valveSilent);\n  flow.set('ventsys_running', false);\n  return [null, {payload:'WATCHDOG_TRIGGERED', fanSilent, valveSilent}];\n}\nreturn [null, null];",
     "outputs": 2,
     "noerr": 0,
     "initialize": "",
@@ -991,17 +823,16 @@
     "y": 300,
     "wires": [
       [
-        "ventsys-sla-valve-ctl"
+        "ventsys-sla-valve-ctl-range-guard"
       ],
       [
-        "ventsys-fdm-valve-ctl"
+        "ventsys-fdm-valve-ctl-range-guard"
       ],
       [
-        "ventsys-booth-valve-ctl"
+        "ventsys-booth-valve-ctl-range-guard"
       ],
       [
-        "ventsys-fan-ctl",
-        "nr-fan-state"
+        "ventsys-fan-ctl"
       ]
     ]
   },
@@ -1086,5 +917,95 @@
     "x": 300,
     "y": 30,
     "wires": []
+  },
+  {
+    "id": "ventsys-sla-valve-range-guard",
+    "type": "function",
+    "z": "ventsys-sla-tab",
+    "name": "Staged valve contract: 0–50",
+    "func": "const value=Number(msg.payload); if(!Number.isFinite(value)) return null; msg.payload=Math.max(0,Math.min(50,Math.round(value))); return msg;",
+    "outputs": 1,
+    "wires": [
+      [
+        "ventsys-sla-valve"
+      ]
+    ],
+    "x": 600,
+    "y": 200
+  },
+  {
+    "id": "ventsys-fdm-valve-range-guard",
+    "type": "function",
+    "z": "ventsys-fdm-tab",
+    "name": "Staged valve contract: 0–50",
+    "func": "const value=Number(msg.payload); if(!Number.isFinite(value)) return null; msg.payload=Math.max(0,Math.min(50,Math.round(value))); return msg;",
+    "outputs": 1,
+    "wires": [
+      [
+        "ventsys-fdm-valve"
+      ]
+    ],
+    "x": 620,
+    "y": 200
+  },
+  {
+    "id": "ventsys-booth-valve-range-guard",
+    "type": "function",
+    "z": "ventsys-booth-tab",
+    "name": "Staged valve contract: 0–50",
+    "func": "const value=Number(msg.payload); if(!Number.isFinite(value)) return null; msg.payload=Math.max(0,Math.min(50,Math.round(value))); return msg;",
+    "outputs": 1,
+    "wires": [
+      [
+        "ventsys-booth-valve"
+      ]
+    ],
+    "x": 620,
+    "y": 200
+  },
+  {
+    "id": "ventsys-sla-valve-ctl-range-guard",
+    "type": "function",
+    "z": "ventsys-system-tab",
+    "name": "Staged valve contract: 0–50",
+    "func": "const value=Number(msg.payload); if(!Number.isFinite(value)) return null; msg.payload=Math.max(0,Math.min(50,Math.round(value))); return msg;",
+    "outputs": 1,
+    "wires": [
+      [
+        "ventsys-sla-valve-ctl"
+      ]
+    ],
+    "x": 580,
+    "y": 100
+  },
+  {
+    "id": "ventsys-fdm-valve-ctl-range-guard",
+    "type": "function",
+    "z": "ventsys-system-tab",
+    "name": "Staged valve contract: 0–50",
+    "func": "const value=Number(msg.payload); if(!Number.isFinite(value)) return null; msg.payload=Math.max(0,Math.min(50,Math.round(value))); return msg;",
+    "outputs": 1,
+    "wires": [
+      [
+        "ventsys-fdm-valve-ctl"
+      ]
+    ],
+    "x": 590,
+    "y": 140
+  },
+  {
+    "id": "ventsys-booth-valve-ctl-range-guard",
+    "type": "function",
+    "z": "ventsys-system-tab",
+    "name": "Staged valve contract: 0–50",
+    "func": "const value=Number(msg.payload); if(!Number.isFinite(value)) return null; msg.payload=Math.max(0,Math.min(50,Math.round(value))); return msg;",
+    "outputs": 1,
+    "wires": [
+      [
+        "ventsys-booth-valve-ctl"
+      ]
+    ],
+    "x": 600,
+    "y": 180
   }
 ]

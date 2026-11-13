@@ -1,19 +1,18 @@
 # NOTE: 360-degree intake valve v2 candidate.
-# Keeps the existing VentSys calibrated-open MQTT/HA contract, but uses
-# Nerdiy's 360 intake one-sided servo mapping.
+# Keeps the existing VentSys MQTT/HA contract with provisional 30-60 targets
+# mapped to ESPHome servo levels -0.4 to +0.2. Physical endpoints still need
+# calibration on the installed intake.
 # Physical boards identify as ESP32-C6 at boot. ESP32-C6 does not use the S3
-# esp32_touch setup from the older configs, so the local touch toggle is parked
-# until the installed board/input wiring is confirmed.
+# capacitive touch peripheral. External digital touch module OUT uses GPIO2.
 # Safety: the PrintAirPipe 360 intake linkage opens with a short actuation-arm
-# throw. Uses Nerdiy's one-sided servo mapping, but limits default travel to
-# Calibrated inside the full ESPHome servo travel: closed at 30 maps to
-# servo level -0.4, open at 60 maps to servo level +0.2.
+# throw. Default closed at 30 maps to servo level -0.4; open at 60 maps to
+# servo level +0.2. These are starting values, not accepted physical stops.
 # Before driving this from HA mode scripts, make sure the HA 360-intake targets
 # use this same inverted contract; older scripts treat 0 as closed and 50 as open.
 # VentSys 360 Intake Valve Controller
 # Adapted from the VentSys valve controller pattern, with the ESP32-C6 baseline
 # used by the airflow sensors. C6-incompatible internal temperature and touch
-# features are omitted intentionally.
+# peripheral is omitted; GPIO2 digital touch is supported.
 #
 # TLS-first production config. Use a dedicated `_pretls.yaml` recovery/bootstrap
 # variant only for a documented temporary plaintext MQTT exception.
@@ -23,17 +22,21 @@
 #   api_key, ota_password
 
 substitutions:
-  device_name: ventsys-sla-360-valve
-  friendly_name: "VentSys SLA 360 Intake Valve"
-  device_ip: "192.168.50.62"
-  mqtt_command_topic: "ventsys/sla/360/control"
-  mqtt_state_topic:   "ventsys/sla/360/state"
+  device_name: ventsys-fdm-360-valve # Legacy deployed identity; physical SLA intake.
+  friendly_name: "VentSys FDM 360 Intake Valve" # Preserve native entity IDs.
+  device_ip: "192.168.50.61"
+  mqtt_command_topic: "ventsys/fdm/360/control"
+  mqtt_state_topic:   "ventsys/fdm/360/state"
   servo_gpio: GPIO0
   status_led_gpio: GPIO1
 
 esphome:
   name: ${device_name}
   friendly_name: ${friendly_name}
+
+# Save commands/endpoints promptly; restoring numbers does not drive the servo.
+preferences:
+  flash_write_interval: 1ms
 
 esp32:
   board: esp32-c6-devkitc-1
@@ -45,6 +48,25 @@ logger:
 api:
   encryption:
     key: !secret api_key
+  actions:
+    # Explicit maintenance reference correction; never calls number.set or drive_valve_to.
+    - action: record_known_command
+      variables:
+        position: float
+      then:
+        - lambda: |-
+            if (!std::isfinite(position) || position < 30.0f || position > 60.0f || id(pwm_enabled)) {
+              ESP_LOGW("position_reference", "Rejected reference: range invalid or PWM active");
+              return;
+            }
+            auto pref = id(valve_position_direct_control_number).make_entity_preference<float>();
+            if (!pref.save(&position) || !global_preferences->sync()) {
+              ESP_LOGE("position_reference", "Reference could not be persisted");
+              return;
+            }
+            id(valve_position_direct_control_number).publish_state(position);
+            ESP_LOGI("position_reference", "Recorded known command %.0f without PWM; physical position unverified", position);
+
 
 ota:
   platform: esphome
@@ -79,9 +101,9 @@ mqtt:
     - topic: ${mqtt_command_topic}
       qos: 0
       then:
-        - script.execute:
-            id: drive_valve_to
-            target: !lambda |-
+        - number.set:
+            id: valve_position_direct_control_number
+            value: !lambda |-
               float requested = (float)atoi(x.c_str());
               if (requested < id(valve_closed_position).state) requested = id(valve_closed_position).state;
               if (requested > id(valve_opened_position).state) requested = id(valve_opened_position).state;
@@ -112,6 +134,7 @@ output:
 servo:
   - id: valve_servo
     output: valve_servo_pwm_output
+    restore: false  # Restore displayed command only; keep PWM detached at boot.
 
 script:
   - id: drive_valve_to
@@ -119,15 +142,14 @@ script:
     parameters:
       target: float
     then:
-      - lambda: |-
-          id(valve_servo_pwm_output).turn_on();
-          id(pwm_enabled) = true;
-          ESP_LOGI("pwm", "PWM enabled - target %.0f%%", target);
+      # servo.write attaches PWM at the requested pulse width. Turning the raw
+      # float output on first drives 100% duty until Servo::loop applies it.
       - servo.write:
           id: valve_servo
           level: !lambda 'return (target / 100.0) * 2.0 - 1.0;'
       - lambda: |-
-          id(valve_position_direct_control_number).publish_state(target);
+          id(pwm_enabled) = true;
+          ESP_LOGI("pwm", "PWM target %.0f%%, servo level %.3f", target, (target / 100.0f) * 2.0f - 1.0f);
           float red, green, blue;
           if (target >= id(valve_opened_position).state) { red=0.0; green=1.0; blue=0.0; }
           else if (target > id(valve_closed_position).state) { red=1.0; green=0.5; blue=0.0; }
@@ -150,7 +172,7 @@ script:
           bool at_open = pos >= (open - 0.5f) && pos <= (open + 0.5f);
           bool at_closed = pos >= (closed - 0.5f) && pos <= (closed + 0.5f);
           if (at_open || at_closed) {
-            id(valve_servo_pwm_output).turn_off();
+            id(valve_servo).detach();
             id(pwm_enabled) = false;
             ESP_LOGI("pwm", "PWM disabled - valve at endpoint %.0f%%", pos);
           } else {
@@ -161,6 +183,7 @@ number:
   - platform: template
     name: "Valve Position"
     id: valve_position_direct_control_number
+    restore_value: true
     min_value: 30
     initial_value: 30
     max_value: 60
@@ -175,6 +198,7 @@ number:
   - platform: template
     name: "Valve Open Position"
     id: valve_opened_position
+    restore_value: true
     min_value: 0
     initial_value: 60
     max_value: 100
@@ -185,6 +209,7 @@ number:
   - platform: template
     name: "Valve Closed Position"
     id: valve_closed_position
+    restore_value: true
     min_value: 0
     initial_value: 30
     max_value: 100
@@ -198,18 +223,18 @@ button:
     id: close_valve_button
     on_press:
       then:
-        - script.execute:
-            id: drive_valve_to
-            target: !lambda 'return id(valve_closed_position).state;'
+        - number.set:
+            id: valve_position_direct_control_number
+            value: !lambda 'return id(valve_closed_position).state;'
 
   - platform: template
     name: "Open Valve"
     id: open_valve_button
     on_press:
       then:
-        - script.execute:
-            id: drive_valve_to
-            target: !lambda 'return id(valve_opened_position).state;'
+        - number.set:
+            id: valve_position_direct_control_number
+            value: !lambda 'return id(valve_opened_position).state;'
 
 sensor:
   - platform: wifi_signal
@@ -256,3 +281,30 @@ interval:
           else if (pos > id(valve_closed_position).state) { red=1.0; green=0.5; blue=0.0; }
           else                   { red=1.0; green=0.0; blue=0.0; }
           id(status_led).turn_on().set_brightness(1.0).set_rgb(red,green,blue).perform();
+packages:
+  board_management: !include ventsys_board_management.yaml
+
+# External touch module digital output (ESP32-C6 has no native touch peripheral).
+binary_sensor:
+  - platform: template
+    name: "PWM Commanded Active"
+    id: pwm_commanded_active
+    lambda: 'return id(pwm_enabled);'
+    entity_category: diagnostic
+  - platform: gpio
+    id: intake_touch
+    name: "Touch Input"
+    pin:
+      number: GPIO2
+      mode: INPUT_PULLDOWN # Disconnected touch module stays inactive.
+    filters:
+      - delayed_on: 50ms
+      - delayed_off: 50ms
+    on_press:
+      - if:
+          condition:
+            lambda: 'return millis() > 3000;'
+          then:
+            - number.set:
+                id: valve_position_direct_control_number
+                value: !lambda 'return id(valve_position_direct_control_number).state >= (id(valve_opened_position).state + id(valve_closed_position).state) / 2.0f ? id(valve_closed_position).state : id(valve_opened_position).state;'

@@ -3,8 +3,10 @@ from __future__ import annotations
 import json
 import os
 import signal
+import stat
 import subprocess
 import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -14,9 +16,16 @@ def now() -> str:
 
 
 def write_status(path: Path, payload: dict[str, object]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(path.suffix + ".tmp")
-    tmp.write_text(json.dumps(payload, sort_keys=True), encoding="utf-8")
+    with tempfile.NamedTemporaryFile(
+        mode="w",
+        encoding="utf-8",
+        dir=path.parent,
+        prefix=f".{path.name}.",
+        suffix=".tmp",
+        delete=False,
+    ) as handle:
+        handle.write(json.dumps(payload, sort_keys=True))
+        tmp = Path(handle.name)
     tmp.replace(path)
 
 
@@ -32,9 +41,12 @@ def main(argv: list[str] | None = None) -> int:
         print("command must be an rsync argument array", file=sys.stderr)
         return 2
 
-    log_path.parent.mkdir(parents=True, exist_ok=True)
     write_status(status_path, {"state": "running", "pid": os.getpid(), "started_at": now(), "command": command})
-    with log_path.open("ab") as log_file:
+    flags = os.O_WRONLY | os.O_CREAT | os.O_APPEND | getattr(os, "O_NOFOLLOW", 0)
+    log_fd = os.open(log_path, flags, 0o640)
+    with os.fdopen(log_fd, "ab") as log_file:
+        if not stat.S_ISREG(os.fstat(log_file.fileno()).st_mode):
+            raise OSError("log path is not a regular file")
         process = subprocess.Popen(command, stdout=log_file, stderr=subprocess.STDOUT)
 
         def terminate(signum: int, _frame: object) -> None:
@@ -76,4 +88,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

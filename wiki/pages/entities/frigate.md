@@ -11,15 +11,16 @@ status: active
 # Frigate NVR
 
 **Type:** integration - network video recorder
-**Status:** CT 111 baseline live; cameras and MQTT deliberately disabled
-**Related:** [[entities/proxmox]], [[entities/home-assistant]], [[entities/mosquitto-mqtt]], [[entities/openmediavault-nas]]
+**Status:** Service recovered; three disconnected cameras disabled pending acceptance
+**Related:** [[entities/proxmox]], [[entities/home-assistant]], [[entities/mosquitto-mqtt]], [[entities/openmediavault-nas]], [[entities/cctv-camera-fleet]]
 
 ## Overview
 
 Frigate 0.17.1 runs on unprivileged Proxmox CT 111. OpenVINO detection and
-VA-API use the Intel iGPU shared with [[entities/llm-host]]. The migration-safe
-baseline is healthy, but cameras and MQTT remain disabled until camera hardware,
-RTSP credentials and final production configuration exist.
+VA-API use the Intel iGPU shared with [[entities/llm-host]]. Three exterior
+cameras retain their go2rtc main/sub definitions but are deliberately
+disconnected and disabled. MQTT uses TLS to Home Assistant, and the recording
+target remains OMV-backed storage; fresh camera acceptance is deferred.
 
 ## Key Properties
 
@@ -27,30 +28,52 @@ RTSP credentials and final production configuration exist.
 - VLAN: 30 (NVR)
 - Static IP: `192.168.30.20`
 - MAC: `BC:24:11:71:18:A1`
-- Image pulled: `ghcr.io/blakeblackshear/frigate:stable`
+- RAM: 6GiB, 2CPU, no swap (October10 reassessment after lifecycle repair)
+- Image: 0.17.1 pinned to the manifest digest recorded in
+  [[main/docs/reference/current-live-state]]
 - NVR internet access: blocked by design
 - `apt-cacher-ng` proxy: `http://192.168.20.102:3142`
-- MQTT: disabled in the live baseline
+- MQTT: TLS to Home Assistant Mosquitto on `8883`
+- Cameras: Camera 1 (`.21`), Gate (`.22`), Patio (`.23`)
+- Camera-health alerts: three-minute offline debounce plus recovery notification
 - Fail2ban: `sshd` jail live at `/etc/fail2ban/jail.d/frigate-nvr-sshd.local`
 
-## Staging Gaps
+## Camera Rollout
 
 - [x] Stage `/opt/frigate/.env` with MQTT secret.
 - [x] Stage MQTT CA trust and verify TLS path.
-- [ ] Set final RTSP password after camera model/credentials are selected.
-- [ ] Confirm camera RTSP URLs.
-- [ ] Configure HTTPS/SSL for regular Frigate UI use.
-- [ ] Configure WebRTC audio path for camera streams.
+- [x] Set live RTSP credential through `/opt/frigate/.env`.
+- [x] Confirm main/sub RTSP URLs for all three cameras.
+- [x] Configure trusted local HTTPS for regular Frigate UI use.
+- [x] Configure go2rtc/WebRTC viewing path.
 - [x] Run Frigate baseline with a healthy OpenVINO detector.
+- [ ] Define final zones, masks, and alert rules for Gate and Patio.
+- [x] Confirm all three cameras are ANNKE C500 `I51HJ` units running firmware
+  `v5.8.10 build 250917`.
 
 ## NAS Storage
 
-- [[entities/openmediavault-nas]] is live on VLAN 40; production recording cutover will mount `/export/frigate` on Proxmox and bind-mount it into CT 111.
-- CT 111 requires explicit Proxmox backup coverage; there are no production camera recordings yet.
+- [[entities/openmediavault-nas]] is live on VLAN 40; `/export/frigate` is
+  mounted on Proxmox and bind-mounted into CT 111 for recordings.
+- CT 111 is covered by the Proxmox backup workflow; media retention remains
+  event/motion-oriented rather than continuous.
 
 ## Change Log
 
-- 2026-10-11: Incident note: Frigate's main process grew to ~5.3 GB RSS in CT 111's 6 GiB limit (3 cameras live), causing page-cache thrash and host-wide I/O pressure 2026-10-08 → 10. Relieved by a temporary 12 GiB limit and a Frigate restart; CT back at 6 GiB with ~1 GB used. Root cause open. This page predates the multi-camera rollout and needs a fuller refresh from `docs/reference/current-live-state.md`.
+- 2026-10-10: Confirmed native connection retention on Frigate's idle ZeroMQ
+  configuration publisher during failed camera-capture retries. Event
+  processing released the backlog without a restart; an isolated reproduction
+  confirmed the mechanism. Restored cache headroom, pinned the existing image
+  and disabled disconnected cameras in live/source configuration. Service is
+  healthy. Subsequently deployed a single-owner publisher overlay, validated
+  12000 live reconnects (1.6MiB growth) and an isolated three-camera10fps
+  OpenVINO/recording workload (~1.2GiB). CT111 returned12→6GiB; real-camera
+  reconnect/VA-API/recording acceptance remains open. Canonical evidence and rollback:
+  [[main/docs/install/phases/04-frigate]] and
+  [[main/docs/reference/current-live-state]].
+- 2026-07-28: Synced to the three-camera production configuration, MQTT TLS,
+  OMV recordings, saved switch ports 2-7 as CCTV VLAN 30 access ports, and
+  added debounced Home Assistant camera-offline/recovery alerts.
 - 2026-06-29: Source config was cleaned to the documented migration-safe baseline: `mqtt.enabled: false` and `cameras: {}` until camera hardware and final integrations are ready.
 - 2026-06-20: Migrated production identity from VM 101 to CT 111; OpenVINO and
   VA-API share the host iGPU with CT 114. VM 101 is rollback-only.

@@ -1,0 +1,34 @@
+# OpenMediaVault NAS (192.168.40.50) Fail2ban baseline.
+# Deploy to /etc/fail2ban/jail.d/omv-fail2ban-sshd.local
+#
+# Policy matches the docker-host and Frigate CT baselines.
+#
+# OMV-specific cautions:
+#   - OMV manages much of /etc through its config database. Jail files under
+#     /etc/fail2ban/jail.d/ are not OMV-managed and survive normal applies, but
+#     re-verify the jail after any OMV upgrade.
+#   - OMV ships an optional openmediavault-fail2ban plugin. Do not mix it with
+#     this hand-deployed jail; pick one owner and record the choice here.
+#   - banaction: OMV does not run ufw by default. Confirm the live backend:
+#       command -v ufw && ufw status
+#       nft list tables | head
+#     Keep `nftables-multiport` when nft is active, `iptables-multiport` if not.
+#   - Never ban the Proxmox host (192.168.10.10), Home Assistant
+#     (192.168.20.101) or docker-host (192.168.20.102): losing those paths takes
+#     down Proxmox backups, HA backups, Immich and Frigate recordings. They are
+#     in ignoreip below and must stay there.
+#
+# The OMV web UI (nginx) is not jailed by this baseline. Its login failures are
+# not exposed through a stock fail2ban filter; treat web-UI jailing as separate
+# work with its own filter and test evidence.
+
+[DEFAULT]
+banaction = nftables-multiport
+bantime = 1h
+findtime = 10m
+maxretry = 5
+ignoreip = 127.0.0.1/8 192.168.10.0/24 192.168.10.10 192.168.20.101 192.168.20.102
+
+[sshd]
+enabled = true
+backend = systemd

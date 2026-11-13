@@ -47,6 +47,11 @@ Create storage in OMV using the web UI:
 3. `Storage -> File Systems`: create or mount the data filesystem.
 4. `Storage -> Shared Folders`: create:
 
+Live verification on 2026-07-29 found global SMART polling enabled every 1,800
+seconds with a 5 C change threshold and 55 C maximum alert. All five physical
+disks (`/dev/sda` through `/dev/sde`) have per-device monitoring enabled and
+reported `Good` at 33-44 C. No additional SMART self-test schedule was created.
+
 | Shared folder | Purpose |
 |---|---|
 | `ha-backups` | Home Assistant network backup target |
@@ -173,6 +178,18 @@ Minimum monitoring targets:
 - NFS reachability from HA, Frigate, and docker-host
 - successful HA backup writes
 
+The source-controlled Kuma SMART heartbeat is under
+`configs/omv/system/omv-smart-kuma-heartbeat.*`. It runs `smartctl -H` against
+every disk returned by `smartctl --scan-open` and reports aggregate state to a
+monitor-specific Kuma push URL stored only in
+`/etc/default/omv-smart-kuma-heartbeat` with mode `0600`. The timer cadence is
+30 minutes and the corresponding Kuma interval is 2,100 seconds.
+
+As of 2026-07-29, the files and secret are installed on OMV but the timer and
+Kuma monitor 34 are deliberately disabled/paused. Enable them only after the
+OMV-to-Kuma exception in `configs/monitoring/system/monitoring-firewall.sh` is
+deployed and a manual service run reports all five disks healthy.
+
 ---
 
 ## Transfer Portal Runbook
@@ -252,7 +269,7 @@ without errors, the transfer is complete.
 - [ ] OMV installed and hostname set to `omv-nas`.
 - [ ] Static IP set to `192.168.40.50/24`.
 - [ ] MAC added to `configs/openwrt/dhcp-config.conf`.
-- [ ] `omv-nas.home.local`, `omv.home.local`, and `nas.home.local` resolve.
+- [x] `omv-nas.home.local`, `omv.home.local`, and `nas.home.local` resolve.
 - [ ] Data filesystem mounted.
 - [ ] Shared folders created: `ha-backups`, `frigate`, `immich`, `configs`.
 - [ ] Service users created with least-needed permissions.
@@ -261,7 +278,8 @@ without errors, the transfer is complete.
 - [ ] HA network storage configured and backup test completed.
 - [ ] Frigate mount tested but not made primary until cameras are live.
 - [ ] Immich storage path documented before deployment.
-- [ ] SMART and disk usage monitoring enabled.
+- [x] SMART monitoring enabled on all five physical disks.
+- [ ] Confirm the intended disk-usage alert thresholds and notification path.
 
 ## Quick Reference
 
@@ -273,3 +291,34 @@ without errors, the transfer is complete.
 | Web UI | `http://192.168.40.50/` or `http://omv.home.local/` |
 | Tailscale route | `192.168.40.50/32` via docker-host |
 | WireGuard fallback route | `192.168.40.50/32` only |
+
+## Desktop SSH management — 2026-09-30
+
+Root key authentication from the Admin Windows desktop is verified with `ssh -o BatchMode=yes omv-lan`. The existing local SSH alias targets `192.168.40.50` as root using the desktop OMV Ed25519 identity. Its public key was added to `/root/.ssh/authorized_keys`, preserving existing entries; directory/file permissions are 700/600. No SSH service, password-login policy, firewall or SMB settings changed. Keep private keys and passwords outside tracked files. Live hostname returned `omvnas`. For transfer diagnostics, `vmstat` and `/proc/diskstats` are available; `iostat` is absent.
+
+### Validated SMB backing devices — 2026-09-30
+
+Live Samba configuration and lsblk confirmed `NAS`/Windows Y: on filesystem UUID `fdb92af7-371c-4793-8d98-ff47e961498d`, backed by RAID1 md0 (`sda` + `sde`); `14tb`/Windows Z: is filesystem UUID `a216b8bb-708e-4342-a5be-a415cdc465fa` on separate disk `sdd1`. RAID status was `[UU]` with no rebuild reported. Device names are observational and can change across boots; use UUIDs for durable identification.
+
+### Read-only storage-health refresh — 2026-10-02
+
+Existing `omv-lan` BatchMode key access succeeds. `smartctl -H -A` reports all
+five disks passed, temperatures 30–47 C, no reported pending or offline
+uncorrectable sectors. `/proc/mdstat` shows md0 `[UU]` with a consistency check
+at 46.7%, not a degraded-array rebuild. No self-test, repair or check was
+started by this audit. A current member has lifetime UDMA CRC count 1; device
+name attribution differs from September30, so match stable disk identity before
+inferring a new fault or counter increase. This evidence is separate from
+backup/restore proof. Full limits are in the October2 roadmap/code/file audit.
+
+### Host-local collector preparation — October 2 evening
+
+The [[../../../docs/procedures/omv-health-collector-preparation|prepared collector]]
+passes six isolated tests and a one-off read-only run at21:30 BST. Five disks
+report SMART passed at30–42 C with no reported pending, uncorrectable or
+reallocated sectors. It preserves the lifetime CRC1 warning and a separate
+historical threshold flag (smartctl32) without inferring a new fault. md0 has
+zero degraded members and sync action idle; both expected data UUID mounts and
+root capacity are observed, and four NAS daemons are active. Hashed stable disk
+identities support future comparisons without exporting raw serials/WWNs.
+No collector schedule, shipping, dashboard or NAS policy changed.

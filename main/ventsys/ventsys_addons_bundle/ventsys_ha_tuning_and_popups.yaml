@@ -5,57 +5,49 @@
 # - Entities switch.fdm_printer_plug / switch.sla_printer_plug exist (as before)
 
 # PID live tuning (SLA shown; replicate for FDM by copying and changing topic prefix)
-number:
-  - platform: mqtt
-    name: SLA PID Kp
-    unique_id: ventsys_sla_pid_kp
-    command_topic: "ventsys/sla/pid/kp"
-    min: 0
-    max: 10
-    step: 0.1
-  - platform: mqtt
-    name: SLA PID Ki
-    unique_id: ventsys_sla_pid_ki
-    command_topic: "ventsys/sla/pid/ki"
-    min: 0
-    max: 10
-    step: 0.1
-  - platform: mqtt
-    name: SLA PID Kd
-    unique_id: ventsys_sla_pid_kd
-    command_topic: "ventsys/sla/pid/kd"
-    min: 0
-    max: 10
-    step: 0.1
+mqtt:
+  number:
+    - name: SLA PID Kp
+      unique_id: ventsys_sla_pid_kp
+      command_topic: "ventsys/sla/pid/kp"
+      min: 0
+      max: 10
+      step: 0.1
+    - name: SLA PID Ki
+      unique_id: ventsys_sla_pid_ki
+      command_topic: "ventsys/sla/pid/ki"
+      min: 0
+      max: 10
+      step: 0.1
+    - name: SLA PID Kd
+      unique_id: ventsys_sla_pid_kd
+      command_topic: "ventsys/sla/pid/kd"
+      min: 0
+      max: 10
+      step: 0.1
 
-# Device lifecycle visibility (optional sensors)
-sensor:
-  - platform: mqtt
-    name: ESP Fan Status
-    unique_id: ventsys_espfan_status
-    state_topic: "ventsys/devices/espfan/status"
-  - platform: mqtt
-    name: ESP Fan Heartbeat
-    unique_id: ventsys_espfan_heartbeat
-    state_topic: "ventsys/devices/espfan/heartbeat"
-  - platform: mqtt
-    name: ESP Valve Status
-    unique_id: ventsys_espvalve_status
-    state_topic: "ventsys/devices/espvalve/status"
-  - platform: mqtt
-    name: ESP Valve Heartbeat
-    unique_id: ventsys_espvalve_heartbeat
-    state_topic: "ventsys/devices/espvalve/heartbeat"
-  - platform: mqtt
-    name: VentSys Log Events
-    unique_id: ventsys_log_events
-    state_topic: "ventsys/logs/events"
-    qos: 0
-  - platform: mqtt
-    name: VentSys Log Errors
-    unique_id: ventsys_log_errors
-    state_topic: "ventsys/logs/errors"
-    qos: 0
+  # Device lifecycle visibility (optional sensors)
+  sensor:
+    - name: ESP Fan Status
+      unique_id: ventsys_espfan_status
+      state_topic: "ventsys/devices/espfan/status"
+    - name: ESP Fan Heartbeat
+      unique_id: ventsys_espfan_heartbeat
+      state_topic: "ventsys/devices/espfan/heartbeat"
+    - name: ESP Valve Status
+      unique_id: ventsys_espvalve_status
+      state_topic: "ventsys/devices/espvalve/status"
+    - name: ESP Valve Heartbeat
+      unique_id: ventsys_espvalve_heartbeat
+      state_topic: "ventsys/devices/espvalve/heartbeat"
+    - name: VentSys Log Events
+      unique_id: ventsys_log_events
+      state_topic: "ventsys/logs/events"
+      qos: 0
+    - name: VentSys Log Errors
+      unique_id: ventsys_log_errors
+      state_topic: "ventsys/logs/errors"
+      qos: 0
 
 # Optional: Use Browser Mod (HACS) for rich popups; else fallback persistent notifications.
 # Browser Mod service: browser_mod.popup

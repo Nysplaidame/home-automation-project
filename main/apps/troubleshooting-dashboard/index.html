@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Read-only guided troubleshooting for the home automation system">
+  <title>Home Operations Troubleshooting</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.js"></script>
+  <script type="module" src="./live-tools.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#investigation">Skip to investigation</a>
+  <header class="topbar">
+    <div class="brand">
+      <p class="eyebrow">Home operations / diagnostics</p>
+      <h1>Troubleshooting</h1>
+      <p class="lede">Check live resources, test a connection, or choose a guided investigation below. Connection tests run only when you request them.</p>
+    </div>
+  </header>
+
+  <section class="operations" aria-label="Live operational tools">
+    <nav class="operations-nav" aria-label="Workspace sections"><a href="#resource-health">Resource Health</a><a href="#connection-tests">Connection tests</a><a href="#incident-history">Incident timeline</a><a href="#investigation">Guided troubleshooting</a><a href="https://homepage.home.local/">Homepage</a></nav>
+    <section id="resource-health" aria-labelledby="resource-heading">
+      <div class="section-title-row"><h2 id="resource-heading">Resource Health</h2><button id="refresh-resources" type="button">Refresh resources</button></div>
+      <p class="section-copy">Live Proxmox monitor evidence, refreshed every minute. Memory headroom accounts for reclaimable cache. CPU is the guest’s allocation usage; OOM is a cumulative counter, not a new incident count.</p>
+      <p id="resource-status" role="status" aria-live="polite">Loading monitor evidence…</p>
+      <p id="resource-summary"></p>
+      <p class="mobile-table-hint section-copy">Scroll the table sideways to see memory, disk and pressure.</p>
+      <div class="resource-table" tabindex="0" role="region" aria-label="Host and guest resource measurements"><table><caption class="visually-hidden">Latest host and guest samples</caption><thead><tr><th scope="col">System</th><th scope="col">Coverage</th><th scope="col">Usable memory</th><th scope="col">CPU</th><th scope="col">Root disk used</th><th scope="col">Memory / IO pressure</th><th scope="col">OOM count</th></tr></thead><tbody id="resource-rows"></tbody></table></div>
+      <h3>Incidents and notification delivery</h3><ul id="resource-alerts"></ul>
+      <p class="section-copy">Alerts are sent by Proxmox to ntfy independently of this page. Accepted delivery does not prove your phone displayed it. <a href="#route=monitoring">Follow the monitoring troubleshooting route</a> · <a href="https://homepage.home.local:8202/">Grafana history</a> · <a href="https://homepage.home.local:8193/">ntfy</a></p>
+    </section>
+    <details id="connection-tests" class="connection-tools" open>
+      <summary>Connection tests and diagnostic console</summary>
+      <p>Tests run from VM103 using its system resolver and network access. A failed ping can mean ICMP is blocked; try the service’s TCP port too. Console output stays in this tab; bounded check summaries are retained in the incident timeline.</p>
+      <div class="probe-controls"><label for="probe-target">Target</label><select id="probe-target"></select><label for="probe-port">TCP port</label><select id="probe-port"></select><span id="probe-address"></span></div>
+      <div class="probe-actions"><button type="button" data-probe="ping">Ping</button><button type="button" data-probe="dns">DNS lookup</button><button type="button" data-probe="tcp">Test TCP</button><button id="probe-http" type="button" data-probe="http">HTTP health check</button><button id="probe-tls" type="button" data-probe="tls">Certificate trust &amp; expiry</button></div>
+      <p class="section-copy">Certificate checks cover Homepage, Home Assistant, Frigate and Vaultwarden using their own HTTPS hostname. Trust uses system roots and the Home Local CA. Renewal within 30 days or a legacy CA-format compatibility issue produces a warning; strict and legacy trust results are shown separately. This does not prove trust on your device.</p>
+      <section class="bundle-tools" aria-labelledby="bundle-heading"><h3 id="bundle-heading">Run a guided check bundle</h3><label for="bundle-select">Check bundle — suggested by the selected investigation</label><select id="bundle-select"></select><p id="bundle-plan"></p><p class="section-copy">These checks cover supporting connections. They cannot establish device operation, recording, backups, login or database health. They do not change imported route assessments.</p><div class="probe-actions"><button id="bundle-run" type="button">Run bundle</button><button id="bundle-stop" type="button" disabled>Stop after current check</button></div><p id="bundle-state" role="status" aria-live="polite">Choose a bundle to review its checks before running.</p></section>
+      <form id="console-form"><label for="console-command">Diagnostic command</label><div class="console-input"><input id="console-command" maxlength="100" placeholder="tls docker" autocomplete="off" spellcheck="false"><button id="console-run" type="submit">Run check</button></div><p class="section-copy">Commands: <code>ping TARGET</code>, <code>dns TARGET</code>, <code>tcp TARGET PORT</code>, <code>http TARGET</code>, <code>tls TARGET</code>. Targets: proxmox, router, homeassistant, monitoring, docker, frigate, ai, nas, vault. Choose from listed ports. Each check is bounded; TLS checks use two handshakes.</p></form>
+      <p id="console-state" role="status" aria-live="polite">Choose a target and run a check.</p><pre id="console-output" tabindex="0" aria-label="Diagnostic console output"></pre>
+      <div class="probe-actions"><button id="console-copy" type="button">Copy results</button><button id="console-clear" type="button">Clear console</button></div>
+    </details>
+    <details id="incident-history" class="connection-tools"><summary>Incident timeline and diagnostic history</summary><p>Monitor observations, accepted notification delivery, viewer failures/recovery and requested checks. History starts from deployment; retained summaries are shared with the existing Homepage audience for up to 30 days or 1,000 events. Grafana links open the ten minutes before and after an event. Available metrics/log coverage varies by system.</p><div class="probe-controls"><label for="history-filter">Event type</label><select id="history-filter"><option value="">All events</option><option value="monitor">Primary monitor</option><option value="viewer">Viewer publication</option><option value="diagnostic">Requested checks</option></select><button id="refresh-history" type="button">Refresh timeline</button><button id="history-copy" type="button">Copy visible events</button></div><p id="history-state" role="status" aria-live="polite">Loading history…</p><ol id="history-events"></ol></details>
+  </section>
+  <main class="workspace">
+    <nav class="symptom-rail" aria-labelledby="symptom-heading">
+      <div class="region-heading">
+        <p class="eyebrow">Start with what you see</p>
+        <h2 id="symptom-heading">1. Choose a problem</h2>
+        <p class="section-copy">Search for what is failing, or open an area below.</p>
+      </div>
+      <div class="route-filters">
+        <label for="route-search">Find a problem or service</label>
+        <input id="route-search" type="search" placeholder="Try DNS, photos, voice…">
+        <label for="route-category">Area</label>
+        <select id="route-category"><option value="">All areas</option></select>
+        <p id="route-count" role="status"></p>
+      </div>
+      <div id="symptom-list" class="symptom-list"></div>
+      <div class="rail-note">
+        <strong>You stay in control</strong>
+        <p>Use the diagnostic console for bounded connection tests. Other commands remain manual evidence collection.</p>
+      </div>
+    </nav>
+
+    <section id="investigation" class="investigation" aria-labelledby="active-title">
+      <section id="load-evidence" class="load-evidence" aria-labelledby="load-heading">
+        <h2 id="load-heading">2. Add evidence</h2>
+        <p class="section-copy">Load a health JSON file to see recorded results. No file yet? Try an example, or <a href="#sequence-heading">go straight to the checks</a>.</p>
+    <div class="snapshot-controls" aria-label="Diagnostic snapshot controls">
+      <input id="snapshot-file" type="file" accept="application/json,.json">
+      <label class="file-button" for="snapshot-file">Load health JSON</label>
+      <label for="sample-select" class="visually-hidden">Load an example snapshot</label>
+      <select id="sample-select">
+        <option value="">Use an example…</option>
+      </select>
+      <button id="clear-snapshot" type="button">Clear</button>
+    </div>
+
+        <details class="collection-help">
+          <summary>How do I get a health JSON file?</summary>
+          <p>On your Windows management workstation, open PowerShell in K:\Documents\Obsidian\home-automation-project and run:</p>
+          <code>pwsh -File main/scripts/monitoring/health_check.ps1 -Full -Json &gt; health.json</code>
+          <p>Then choose <strong>Load health JSON</strong> and select health.json in that folder. Failed checks are useful evidence too: you can still load the file. The file stays in this browser.</p>
+          <p>The full Windows check covers local/public DNS, trusted Homepage/vault HTTPS, Proxmox and APT-cache listeners, and Immich/Open WebUI endpoints, alongside the core checks. It does not log in, test uploads or prove database health.</p>
+          <p>Use a new snapshot for the problem you are investigating. Files older than 36 hours, or without a timezone, cannot establish current health.</p>
+          <p><strong>For backups and recording mounts:</strong> collect JSON on the Proxmox host using the updated health collector. A Windows snapshot cannot supply those checks. Use the installed /usr/local/sbin/home-automation-dashboard-snapshot --json helper on Proxmox.</p>
+        </details>
+  <section class="health-strip" aria-label="Snapshot summary">
+    <div class="snapshot-identity">
+      <span>Snapshot</span>
+      <strong id="snapshot-time">Not loaded</strong>
+      <small id="snapshot-age">No snapshot loaded</small>
+      <small id="snapshot-source">Collector not supplied</small>
+    </div>
+    <div><span>Recorded passes</span><strong id="pass-count">0</strong></div>
+    <div><span>Recorded failures</span><strong id="fail-count">0</strong></div>
+    <div><span>Needs evidence</span><strong id="unknown-count">5 symptoms</strong></div>
+    <p id="snapshot-error" class="snapshot-error" role="alert" hidden></p>
+  </section>
+
+      </section>
+      <header class="investigation-head">
+        <div>
+          <p id="active-order" class="eyebrow"></p>
+          <h2 id="active-title"></h2>
+          <p id="active-description" class="section-copy"></p>
+        </div>
+        <span id="active-status" class="status-pill"></span>
+      </header>
+
+      <p id="expected-state" class="safety-note" hidden></p>
+
+      <section class="path-section" aria-labelledby="path-heading">
+        <div class="section-title-row">
+          <h3 id="path-heading">Where the problem could be</h3>
+          <p>These are the systems involved. Labels show what the loaded file can establish.</p>
+        </div>
+        <div id="evidence-focus" class="evidence-focus status-border-unknown">
+          <p id="focus-stage" class="eyebrow">Evidence</p>
+          <strong id="focus-label">Load a health snapshot</strong>
+          <p id="focus-message">No diagnostic evidence is loaded, so no boundary can be assessed yet.</p>
+        </div>
+        <ol id="dependency-path" class="dependency-path"></ol>
+      </section>
+
+      <section class="sequence-section" aria-labelledby="sequence-heading">
+        <div class="section-title-row">
+          <h3 id="sequence-heading">Checks to work through</h3>
+          <p>Open a check to see where to run it and how to read the result. Tick Collected after recording it.</p>
+        </div>
+        <ol id="diagnostic-steps" class="diagnostic-steps"></ol>
+      </section>
+    </section>
+
+    <aside id="recorded-results" class="evidence" aria-labelledby="evidence-heading">
+      <div class="region-heading">
+        <p class="eyebrow">Current snapshot</p>
+        <h2 id="evidence-heading">4. Review the recorded results</h2>
+        <p class="section-copy">These observations come from your file, not live monitoring. The collectors cover basic checks only; route-specific missing results require the manual checks above. Record those findings in your notes. Ticking Collected does not mark a signal healthy.</p>
+        <p id="evidence-coverage" class="evidence-coverage">0/0 signals collected</p>
+      </div>
+      <div id="evidence-list" class="evidence-list"></div>
+
+      <section class="safety-note" aria-labelledby="safety-heading">
+        <h3 id="safety-heading">Safety boundary</h3>
+        <p>Connection checks use listed targets and run from VM103. Restarts, firewall changes, restores and arbitrary shell commands remain outside this interface.</p>
+      </section>
+
+      <section class="references" aria-labelledby="references-heading">
+        <h3 id="references-heading">Related project guides</h3>
+        <p class="section-copy">Choose a guide to copy its path, then open it in your project folder.</p>
+        <ul id="reference-list"></ul>
+      </section>
+
+      <section class="incident-notes" aria-labelledby="notes-heading">
+        <h3 id="notes-heading">Save your findings</h3>
+        <label for="notes">Record times and exact errors. Do not paste passwords or tokens.</label>
+        <textarea id="notes" rows="5" placeholder="Observed at 14:32…"></textarea>
+        <button id="copy-report" type="button">Copy incident report</button>
+        <button id="copy-route" type="button">Copy route link</button>
+        <p class="section-copy">Route links share only the investigation. Notes and imported evidence stay in this tab.</p>
+      </section>
+    </aside>
+  </main>
+
+  <div id="live-message" class="live-message" role="status" aria-live="polite"></div>
+</body>
+</html>

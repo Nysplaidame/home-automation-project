@@ -137,15 +137,11 @@ test_iot_isolation() {
     log "INFO" "Testing IoT internet isolation"
     
     # IoT devices MUST NOT reach internet (security requirement)
-    if ping -I "br-lan.$IOT_VLAN" -c 3 -W 2 9.9.9.9 >/dev/null 2>&1; then
-        log "ERROR" "IoT internet isolation BROKEN - SECURITY RISK"
-        echo "✗ IoT internet isolation: BROKEN (SECURITY RISK)" >> "$RESULT_FILE"
-        return 1
-    else
-        log "INFO" "IoT internet access properly blocked"
-        echo "✓ IoT internet isolation: OK" >> "$RESULT_FILE"
-        return 0
-    fi
+    # Router-origin traffic follows OUTPUT, not the IoT forwarding policy.
+    # A real client-side probe is required; never label this as a passed test.
+    log "WARN" "IoT isolation requires a probe from an actual IoT VLAN client"
+    echo "⚠ IoT internet isolation: UNVERIFIED (client-side probe required)" >> "$RESULT_FILE"
+    return 0
 }
 
 # Test HomeIoT WiFi SSID
@@ -256,9 +252,9 @@ generate_report() {
     
     # Count results
     local passed failed warnings
-    passed=$(grep -c "✓" "$RESULT_FILE" || echo "0")
-    failed=$(grep -c "✗" "$RESULT_FILE" || echo "0")
-    warnings=$(grep -c "⚠" "$RESULT_FILE" || echo "0")
+    passed=$(grep -c "✓" "$RESULT_FILE" || true)
+    failed=$(grep -c "✗" "$RESULT_FILE" || true)
+    warnings=$(grep -c "⚠" "$RESULT_FILE" || true)
     
     echo "Passed: $passed" >> "$RESULT_FILE"
     echo "Failed: $failed" >> "$RESULT_FILE"
@@ -337,8 +333,8 @@ main() {
     test_firewall_rules
     
     # Generate final report
-    generate_report
-    local report_result=$?
+    local report_result=0
+    generate_report || report_result=$?
     
     # Provide troubleshooting if needed
     provide_troubleshooting $report_result

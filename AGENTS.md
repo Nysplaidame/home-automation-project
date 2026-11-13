@@ -3,7 +3,15 @@
 ## Project Shape
 
 - This repository root is an Obsidian wrapper.
-- In this Codex desktop environment, the active checkout is `E:\home-automation-project`; older `G:\home-automation-project` context is stale.
+- This project is worked on from multiple devices/checkouts. The canonical
+  checkout is `K:\Documents\Obsidian\home-automation-project` — it is the
+  Obsidian vault and the source of truth.
+- Other devices have their own separate checkouts (e.g. `E:\home-automation-project`
+  in a Codex desktop environment) which may lag behind or diverge from K:.
+  Treat non-K: paths as local working copies, not canonical, unless told
+  otherwise. Older `G:\home-automation-project` context is stale.
+- If it is unclear which device or checkout is in play, ask rather than
+  assume — do not silently treat a non-canonical path as authoritative.
 - Active project work lives under `main/`.
 - The project also contains a separate LLM-maintained wiki under `wiki/`.
 
@@ -35,5 +43,17 @@
 - Prefer targeted reads based on `main/PROJECT-INDEX.md`.
 - Keep durable project state in project files, not in chat-only memory.
 - When work materially changes current state, update the relevant handoff, task list, or decision document rather than creating a parallel summary.
+- Keep durable service facts in the canonical service manual and
+  `main/docs/reference/current-live-state.md`, not in an indefinitely growing
+  handoff. Close a handoff with a short current-state/resume section when its
+  implementation thread ends. Start a new handoff only for genuinely active
+  session work that needs continuity; do not use handoffs as permanent logs.
+- Track source, configuration, runbooks, and deliberately selected release
+  artifacts only. Ignore or keep outside the vault build caches, extracted
+  release trees, transfer archives, generated dependency trees, and local
+  runtime state. When a tool introduces a new generated path, add the narrowest
+  safe ignore rule rather than committing the output.
+- Keep `main/_archive/` as the single bounded historical area. Do not create
+  additional archive trees; use Git history for disposable intermediate drafts.
 - If work changes durable concepts, entities, or relationships, update the project wiki after canonical docs are current.
 - If wiki claims conflict with project docs, project docs win and the wiki should be repaired.

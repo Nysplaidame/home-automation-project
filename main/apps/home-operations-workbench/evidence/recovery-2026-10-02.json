@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-10-02 (curation date; historical observations below)",
+  "source": { "label": "Curated dated recovery records; historical evidence, no live collection" },
+  "sourceRecords": [
+    "main/TO-DO.md",
+    "main/docs/install/phases/10-backups-monitoring-maintenance.md",
+    "main/docs/install/services/gardenkeeper.md",
+    "main/configs/docker-host/stacks/household-hub/README.md"
+  ],
+  "today": {},
+  "dependencies": [],
+  "incidents": [],
+  "recovery": {
+    "systems": [
+      {
+        "id": "ha",
+        "label": "Home Assistant / VM100",
+        "backup": { "status": "stale", "observedAt": "2026-09-15 (day precision)", "detail": "September15 guest archive exists in the recorded verification batch; current backup freshness was not collected." },
+        "integrity": { "status": "stale", "observedAt": "2026-09-16 (day precision)", "detail": "Decompression plus VMA verification recorded for the September15 VM100 archive." },
+        "restore": { "status": "unknown", "detail": "No complete isolated Home Assistant application restore accepted in these records." },
+        "dependencies": ["proxmox", "omv"],
+        "runbookPath": "main/docs/install/phases/03-home-assistant.md"
+      },
+      {
+        "id": "monitoring",
+        "label": "Monitoring / VM102",
+        "backup": { "status": "stale", "observedAt": "2026-09-17 (day precision)", "detail": "Named September17 guest archive was used for the isolated VM102 drill." },
+        "integrity": { "status": "unknown", "detail": "Earlier September15 VMA verification is not a matched integrity test for the September17 drill archive." },
+        "restore": { "status": "unknown", "observedAt": "2026-09-17 (day precision)", "detail": "NIC-free temporary VM9102 boot, guest agent, Debian/filesystem checks and shutdown passed; monitoring applications and external alert behaviour were not certified." },
+        "dependencies": ["proxmox", "omv"],
+        "runbookPath": "main/docs/install/phases/10-backups-monitoring-maintenance.md"
+      },
+      {
+        "id": "docker-host",
+        "label": "Docker host / VM103",
+        "backup": { "status": "stale", "observedAt": "2026-09-15 (day precision)", "detail": "Guest archive included in September15 recorded verification batch; current app/guest backup freshness uncollected." },
+        "integrity": { "status": "stale", "observedAt": "2026-09-16 (day precision)", "detail": "Decompression and VMA verification recorded; guest archive readability does not establish application consistency." },
+        "restore": { "status": "unknown", "detail": "Selected application restore tests do not establish complete VM103 and cross-service recovery." },
+        "dependencies": ["proxmox", "omv"],
+        "runbookPath": "main/docs/install/phases/05-docker-host.md"
+      },
+      {
+        "id": "frigate",
+        "label": "Frigate / CT111",
+        "backup": { "status": "stale", "observedAt": "2026-09-15 (day precision)", "detail": "CT111 archive exists in the recorded batch; recordings are a separate storage dataset." },
+        "integrity": { "status": "stale", "observedAt": "2026-09-16 (day precision)", "detail": "Archive decompression and tar traversal passed for the September15 backup." },
+        "restore": { "status": "unknown", "detail": "No complete isolated Frigate/recording recovery accepted; cameras remain disconnected." },
+        "dependencies": ["proxmox", "omv"],
+        "runbookPath": "main/docs/install/phases/04-frigate.md"
+      },
+      {
+        "id": "local-ai",
+        "label": "Local AI / CT114",
+        "backup": { "status": "stale", "observedAt": "2026-09-15 (day precision)", "detail": "CT114 archive exists in the recorded batch; current backup freshness uncollected." },
+        "integrity": { "status": "stale", "observedAt": "2026-09-16 (day precision)", "detail": "Archive decompression and tar traversal passed for the September15 backup." },
+        "restore": { "status": "unknown", "detail": "Archive readability does not certify isolated inference/voice recovery. Package-path repair remains separate." },
+        "dependencies": ["proxmox", "omv"],
+        "runbookPath": "main/docs/install/phases/05a-local-ai.md"
+      },
+      {
+        "id": "household-hub",
+        "label": "Household Hub",
+        "backup": { "status": "stale", "observedAt": "2026-09-15 (day precision)", "detail": "One-off coordinated store/configuration/export checkpoint exists; recurring coordinated coverage is not established." },
+        "integrity": { "status": "unknown", "detail": "No separate complete current checkpoint integrity certification supplied." },
+        "restore": { "status": "unknown", "observedAt": "2026-09-15 (day precision)", "detail": "Coordinated isolated store/component restore passed; full external integrations and household workflow recovery remain unproved." },
+        "dependencies": ["docker-host", "omv", "local-ai"],
+        "runbookPath": "main/configs/docker-host/stacks/household-hub/README.md"
+      },
+      {
+        "id": "gardenkeeper",
+        "label": "GardenKeeper",
+        "backup": { "status": "stale", "observedAt": "2026-09-14 (day precision)", "detail": "Backup unit success recorded; journal media added to the normal inventory September16. Current successful media-inclusive checkpoint was not collected." },
+        "integrity": { "status": "unknown", "detail": "No matched current database/media/image checkpoint integrity certification supplied." },
+        "restore": { "status": "unknown", "observedAt": "2026-09-16 (day precision)", "detail": "Isolated database/API recovery and a synthetic PNG surviving API recreation passed. Real journal, worker and external workflows remain unproved." },
+        "dependencies": ["docker-host", "omv"],
+        "runbookPath": "main/docs/install/services/gardenkeeper.md"
+      }
+    ]
+  },
+  "cooking": {},
+  "commissioning": {}
+}

@@ -1,0 +1,38 @@
+logLevel: info
+
+authMethod: internal
+authInternalUsers:
+  - user: garage-publisher
+    pass: overridden-by-container-environment
+    permissions:
+      - action: publish
+        path: garage-phone
+  - user: garage-viewer
+    pass: overridden-by-container-environment
+    permissions:
+      - action: read
+        path: garage-phone
+
+rtsp: true
+rtspAddress: :8554
+rtspTransports: [tcp]
+rtmp: false
+hls: false
+webrtc: false
+srt: false
+moq: false
+api: false
+metrics: false
+pprof: false
+playback: false
+
+paths:
+  garage-phone:
+    source: publisher
+    record: true
+    recordPath: /recordings/%path/%Y-%m-%d_%H-%M-%S-%f
+    recordFormat: fmp4
+    recordPartDuration: 1s
+    recordMaxPartSize: 50M
+    recordSegmentDuration: 30m
+    recordDeleteAfter: 0s

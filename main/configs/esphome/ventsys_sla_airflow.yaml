@@ -98,7 +98,7 @@ sensor:
   - platform: pulse_meter
     id: flow_meter_pulse_rate
     pin:
-      number: GPIO10
+      number: GPIO0
       inverted: true
       mode: INPUT_PULLUP
     unit_of_measurement: 'pulses/s'
@@ -183,7 +183,7 @@ light:
     id: light_1
     rgb_order: GRB
     chipset: WS2812
-    pin: GPIO9
+    pin: GPIO1
     num_leds: 3
     name: "LEDs"
     internal: true
@@ -211,3 +211,5 @@ light:
                                brightness * current_color.green,
                                brightness * current_color.blue);
             }
+packages:
+  board_management: !include ventsys_board_management.yaml

@@ -1,0 +1,37 @@
+%%{init: {"theme":"base","fontFamily":"Segoe UI, sans-serif","themeVariables":{"primaryColor":"#123044","primaryTextColor":"#eef6ff","primaryBorderColor":"#58b7bf","lineColor":"#9aafc4","clusterBkg":"#0d1c2d","clusterBorder":"#38516b","tertiaryColor":"#0d1c2d","edgeLabelBackground":"#0b1929","fontSize":"18px"},"flowchart":{"curve":"basis","nodeSpacing":28,"rankSpacing":70,"padding":12,"subGraphTitleMargin":{"top":8,"bottom":16},"wrappingWidth":340,"useMaxWidth":false}}}%%
+flowchart LR
+    %% Layout: desktop (left) --> management NIC --> router --> saved routes (right). Notes sit below, unlinked.
+    PC["ADMIN WINDOWS DESKTOP<br/>OrcaSlicer and project tools"]
+    VPN["Mullvad remains connected<br/>LAN sharing enabled"]
+    Old["Previous direct path: HomePrinters Wi-Fi<br/>PC briefly had 192.168.35.116<br/>Disconnected October20 at 08:37"]
+    subgraph Local["FIVE PERSISTENT PROJECT ROUTES · VERIFIED 2026-10-20"]
+        Ethernet["Management Ethernet · VLAN10<br/>192.168.10.132"]
+        Gateway["Home router · 192.168.10.1<br/>All five routes: metric 1"]
+        Automation["192.168.20.0/24<br/>HA, VM103 apps, CT114<br/>Bambuddy virtual printer: .20.103"]
+        NVR["192.168.30.0/24<br/>Frigate and cameras"]
+        NAS["192.168.40.50/32<br/>OMV NAS only"]
+        Monitor["192.168.60.0/24<br/>Monitoring services"]
+        P1S["192.168.35.200/32 · physical P1S<br/>Orca: MQTT8883 / FTPS990 / camera6000<br/>Desktop TCP probes passed"]
+    end
+    subgraph Notes["NOTES"]
+        direction LR
+        Conditions["RECOVERY BOUNDARY<br/>Saved printer route survives reboot<br/>HomePrinters Wi-Fi is no longer required<br/>Management Ethernet and router must be reachable<br/>Router ACLs and printer authentication still apply"]
+        Reference["COMMANDS AND EVIDENCE<br/>main/docs/reference/windows-admin-pc-routes.md<br/>Inspect active and persistent tables after NIC changes<br/>Orca application acceptance remains pending"]
+    end
+    PC -->|project destinations| Ethernet
+    Ethernet --> Gateway
+    Gateway -->|saved /24| Automation
+    Gateway -->|saved /24| NVR
+    Gateway -->|saved /32| NAS
+    Gateway -->|saved /24| Monitor
+    Gateway -->|saved /32 · added October20| P1S
+    PC -->|public traffic follows VPN| VPN
+    PC -.-> Old
+    Old -.->|direct access while connected · retired| P1S
+    Local ~~~ Notes
+    classDef core fill:#143747,stroke:#63c9bd,color:#eefbfa
+    classDef policy fill:#2f301f,stroke:#c7bc77,color:#fff9d8
+    classDef historical fill:#1b2638,stroke:#9dabc1,color:#d3dfef,stroke-dasharray:5 4
+    class PC,Ethernet,Gateway,Automation,NVR,P1S,NAS,Monitor core
+    class VPN,Conditions,Reference policy
+    class Old historical

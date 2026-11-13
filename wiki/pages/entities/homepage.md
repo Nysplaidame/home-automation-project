@@ -3,7 +3,7 @@ title: "Homepage"
 category: entity
 tags: [dashboard, docker, docker-host, portal, nginx]
 created: 2026-05-23
-updated: 2026-10-11
+updated: 2026-10-19
 sources: [project-readme, project-todo]
 status: active
 ---
@@ -12,36 +12,70 @@ status: active
 
 **Type:** service - internal dashboard / portal
 **Status:** Live Tier 1 docker-host service
-**Related:** [[entities/docker-host]], [[entities/voice-mixer]], [[entities/llm-host]]
+**Related:** [[entities/docker-host]], [[entities/qbittorrent]], [[entities/voice-mixer]], [[entities/llm-host]]
 
 ## Overview
 
-Homepage is the internal portal for docker-host apps and core home-automation
-links. A companion nginx container (`homepage-preview-proxy`, host network)
-fronts each app on its own TLS port at `https://homepage.home.local:<port>/`
-using the local CA.
+On October 19, VentSys was added to Home & Security with an Open tab action
+through the existing HA proxy on 8188. It uses normal HA sign-in and adds no
+public credential or embedded control frame. Canonical acceptance and rollback:
+[[../../../main/docs/install/services/homepage]] and
+[[../../../main/docs/procedures/ventsys-dashboard]].
+
+Homepage is the live `Home Operations` dashboard for docker-host and core
+home-automation links. It provides seven task-oriented tabs, fixed-target
+embedded previews, container status, portal-runtime metrics, and a responsive
+teal-glass interface.
 
 ## Key Properties
 
-- Stack path: `/opt/stacks/homepage/`; repo source
-  `configs/docker-host/stacks/homepage/` (re-synced with live 2026-10-11).
-- Homepage UI: `3001/tcp`; DNS name `homepage.home.local`.
-- Portal ports `8180`–`8210`; docker-host UFW allows them from management,
-  LAN, automation VLAN and `tailscale0` (range `8180:8209` plus `8210` rules).
-- Remote-host apps use `siteMonitor` health checks, e.g. Open WebUI `8200` →
-  CT 114 `3002`, Voice Mixer `8210` → CT 114 `7860`.
+- October18: Tools includes Pocketry for photo tracing and Gridfinity tool
+  cutout bins at `https://homepage.home.local:8211/`, with shared card/Preview.
+  Desktop/embedded checks passed; mobile-data8211 remains unverified. Canonical
+  source: `main/docs/install/services/pocketry.md`.
 
-## Notes & Observations
-
-- `nginx.conf` is a single-file bind mount rendered from a template at
-  container start. In-place replacements (`sed -i`, editors) leave the
-  container on the old file, so portal changes need
-  `docker restart homepage-preview-proxy`; a reload alone is not enough.
-- `services.yaml` lives in the mounted `config/` folder and is picked up live.
+- Stack path: `/opt/stacks/homepage/`
+- Voice Mixer portal: `https://homepage.home.local:8210/` → CT 114 `7860`
+  (`siteMonitor` health check; docker-host UFW has a separate `8210` rule).
+- Canonical URL: `https://homepage.home.local/` locally and remotely through
+  split DNS; direct local `https://192.168.20.102/` also works
+- Rollback URL: `http://192.168.20.102:3001/`
+- DNS name: `homepage.home.local`
+- The canonical HTTPS name is used locally and remotely through split DNS:
+  OpenWrt returns the LAN address and Tailscale/AdGuard returns docker-host's
+  tailnet address for the approved phone.
+- Every user-facing card uses a fixed proxy URL under `homepage.home.local`
+  (`443` or `8180`-`8209`) rather than a private direct address; qBittorrent
+  uses its fixed same-origin `/portal-preview/qbittorrent/` route. This makes
+  the same cards work on home WiFi with Tailscale off and on mobile data with
+  Tailscale on, without a broad subnet route.
+- Responsive verification: exact checks from 320-1280 px; at 956 px the header
+  reflows without title/search overlap, and at 489 px stacked cards retain a
+  measured 10.4 px row gap
+- Security: internal/Tailscale surface; preview proxy uses fixed targets and
+  source-scoped firewall listeners
+- Media tab includes the live qBittorrent Web UI/status card; no VPN or Web UI
+  secret is stored in Homepage configuration
 
 ## Change Log
 
-- 2026-10-11: Portal model documented; Voice Mixer added on `8210`; repo copy
-  re-synced from live (it had predated the TLS portal on `main`).
+- 2026-10-11: Voice Mixer added on portal port `8210`.
+
+- 2026-09-30: Corrected the September 25 raw-IP `Direct` action to open the
+  same HTTPS proxy as Preview in a standalone tab. Browser Bambuddy moved to
+  `8207`; native Tailscale Serve retains `8181`, with the old Nginx listener
+  restricted to the LAN address. Added an access-contract release test.
+  Owner confirmed general mobile-data acceptance. Grocy's remaining backend-
+  address redirect was repaired separately by preserving the proxy Host/port.
+
+- 2026-08-25: Reconfirmed the canonical named URL and aligned the wiki with the
+  reconciled architecture references.
+- 2026-08-21: Moved all user-facing card navigation to fixed HTTPS proxy routes,
+  added Recomp Tracker proxy `8209`, and granted the approved OnePlus identity
+  only `tcp:8180-8209` in addition to its DNS and `tcp:443` access.
+- 2026-08-01: Added the live qBittorrent Media card after tunnel, credential,
+  firewall and backup acceptance passed.
+- 2026-07-29: Added split-horizon DNS so one canonical bookmark works on WiFi and Tailscale.
+- 2026-07-29: Synced live HTTPS, preview, responsive-layout and exact-width verification state.
 - 2026-05-30: Updated from planned to live docker-host Tier 1 service.
 - 2026-05-23: Page created from self-hosted services roadmap.

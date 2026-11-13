@@ -1,0 +1,62 @@
+{
+  "candidate_root_helper_sha256": "d40867b709702156cd7e64e7d65907a9eab662e0c969877af0bcce4052583e21",
+  "checkpoint": "20261002T211810Z",
+  "checkpoint_sha256": "adc422398b6e183b4bf4966b7c552f4dff40560961030edf85c899eb4e49dea7",
+  "isolation": {
+    "no_nic": true,
+    "no_routes": true,
+    "no_nas_mounts": true
+  },
+  "history_counts": {
+    "jobs": 9,
+    "audit_log": 30
+  },
+  "generations": [
+    {
+      "name": "saved",
+      "job_ids": [
+        10,
+        11
+      ],
+      "preview_unchanged_destination": true,
+      "copy_hashes_match": true,
+      "source_unchanged": true,
+      "destination_extra_retained": true,
+      "history_preserved": true,
+      "helper_denials": [],
+      "fixture_files": 2
+    },
+    {
+      "name": "candidate",
+      "job_ids": [
+        10,
+        11
+      ],
+      "preview_unchanged_destination": true,
+      "copy_hashes_match": true,
+      "source_unchanged": true,
+      "destination_extra_retained": true,
+      "history_preserved": true,
+      "helper_denials": [
+        "--delete",
+        "--remove-source-files",
+        "--rsync-path=sh",
+        "outside-portal-path"
+      ],
+      "fixture_files": 2
+    }
+  ],
+  "systemd_literal_paths": {
+    "spaces": true,
+    "percent": true,
+    "embedded_quotes": true,
+    "source_and_destination_verified": true
+  },
+  "vm_id": 9108,
+  "vm_name": "transferportal-restore-test",
+  "production_service_resumed": true,
+  "live_hardening_deployed": false,
+  "candidate_archive_sha256": "247cb232a3065e9c7778282e439f5a32e136106ad4999c6cbaa66f3c65dd3573",
+  "disposable_vm_removed": true,
+  "temporary_transfer_media_removed": true
+}

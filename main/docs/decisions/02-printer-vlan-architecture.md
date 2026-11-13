@@ -61,7 +61,7 @@ accurate and prevents future confusion when reading firewall rules.
 - Lan4 currently carries VLAN 40 untagged (NAS). VLAN 35 is VM-accessible only via
   the Proxmox trunk on lan1 — no new physical port assignment is needed
 - LAN → printers firewall rule allows Bambu Studio (laptop on VLAN 1) to reach the
-  P1S on ports 8883 and 21. Manual IP entry in Bambu Studio required (mDNS does not
+  P1S on ports 8883 and 990. Manual IP entry in Bambu Studio required (mDNS does not
   cross VLANs — acceptable, one-off configuration)
 - NanoDLP (Athena 2) exposes a web UI and REST API on HTTP port 80 (Raspberry Pi
   default, configurable). LAN → printers rule also allows port 80 and 8080 for
@@ -80,6 +80,7 @@ accurate and prevents future confusion when reading firewall rules.
 
 **Chosen option:** VM 103 "docker-host" on VLAN 20 (Automation), 192.168.20.102.
 Bambuddy is the first Docker Compose workload at `/opt/stacks/bambuddy`.
+Its first Virtual Printer uses the persistent secondary address `192.168.20.103`.
 
 **Rationale:**
 - Bambuddy is an automation integration service, not a CCTV/NVR component. It
@@ -127,7 +128,7 @@ cameras, which caused confusion about why a print management service was also th
 ### Removed rules (no longer valid after Bambuddy leaves VLAN 30)
 | Rule name | Was |
 |---|---|
-| `Bambuddy to P1S` | cctv → lan, 192.168.30.20 → 192.168.1.200, ports 8883/21 |
+| `Bambuddy to P1S` | cctv → lan, 192.168.30.20 → 192.168.1.200, ports 8883/990 |
 | `Bambuddy MQTT to HA` | cctv → automation, 192.168.30.20 → 192.168.20.101, port 8883 |
 | `Bambuddy to HA API` | cctv → automation, 192.168.30.20 → 192.168.20.101, port 8123 |
 
@@ -137,9 +138,13 @@ cameras, which caused confusion about why a print management service was also th
 | `Printers OTA Internet` | printers → wan | 443/tcp | Firmware updates (both printers) |
 | `Block Printers Internet` | printers → wan | — | REJECT + log; catch-all |
 | `Bambuddy to Printer MQTT` | docker-host (20.102) → printers (35.200) | 8883/tcp | P1S local MQTT |
-| `Bambuddy to Printer FTPS` | docker-host (20.102) → printers (35.200) | 21/tcp | P1S file transfer |
+| `Bambuddy to Printer FTPS` | docker-host (20.102) → printers (35.200) | 990/tcp | P1S file transfer |
+| `Bambuddy to Printer FTPS Data` | docker-host (20.102) → printers (35.200) | 2024, 50000-50100/tcp | P1S data channel; `2024` observed live, range retained pending cleanup confirmation |
+| `Bambuddy to Printer Camera` | docker-host (20.102) → printers (35.200) | 6000/tcp | P1S chamber-camera stream |
+| `Bambuddy P1S Local-Service NAT` | docker-host (20.102) → P1S (35.200) | 8883, 990, 2024, 50000-50100, 6000/tcp | Scoped source NAT: P1S sees router's Printers-VLAN address because its firmware restricts these services to same-subnet clients |
 | `LAN to Bambuddy UI` | lan → automation (20.102) | 8000/tcp | Browser access |
-| `LAN to Printers` | lan → printers | 8883,21,80,8080/tcp | Bambu Studio + NanoDLP browser |
+| `LAN to Bambuddy Virtual Printer` | lan → automation (20.103) | 3000, 3002, 8883, 990, 6000, 2024-2026, 50000-50009/tcp | Orca/Bambu Studio virtual P1S client path |
+| `LAN to Printers` | lan → printers | 8883,990,80,8080/tcp | Bambu Studio + NanoDLP browser |
 | `Management to Printers` | management → printers | all | Admin access |
 
 Note: Bambuddy→HA traffic (MQTT 8883 and HA API 8123) stays inside VLAN 20
@@ -147,6 +152,13 @@ Note: Bambuddy→HA traffic (MQTT 8883 and HA API 8123) stays inside VLAN 20
 OpenWrt, so VLAN 20 is accepted as the trust boundary for HA+docker-host. If stricter
 same-subnet policy is needed later, enforce it with host firewalls or Proxmox
 firewall rules rather than OpenWrt inter-zone rules.
+
+The P1S enforces an additional application-level local-subnet check on its local MQTT,
+implicit FTPS (control and passive data), and chamber-camera services. The firewall
+therefore source-NATs only Bambuddy's TCP connections from `192.168.20.102` to
+`192.168.35.200` on ports 8883, 990, 2024, 50000-50100, and 6000, using the router's
+Printers-VLAN address. This preserves the single-homed Docker-host design: no second
+VM NIC, broad inter-VLAN masquerade, or inbound printer path is introduced.
 
 ---
 
@@ -207,3 +219,15 @@ Deploy these changes in this order to avoid a broken intermediate state:
 - [[scripts/setup/proxmox/bambuddy_vm_setup_guide|Bambuddy Workload Setup Guide]] — compatibility shim
 - [[configs/openwrt/firewall-config.conf|Firewall Config]] — full rule set
 - [[docs/troubleshooting/troubleshooting_reference|Troubleshooting Reference]] — updated Bambuddy section
+
+## 2026-09-04 additive cloud IoT decision
+
+Authorized post-fibre recovery adds an eleventh segment, VLAN55 cloud_iot,
+192.168.55.0/24, solely on router LAN2 (untagged). Hive is reserved at .55.10.
+Cloud devices need internet but must not inherit management access or weaken
+VLAN50 safety isolation. Cloud zone rejects router input except DHCP/DNS/NTP
+and rejects forwarding except WAN. Standard external DNS ports53/853 are
+blocked; this is not comprehensive encrypted-DNS prevention. No cloud SSID or
+Proxmox trunk membership was added. LAN5 remains recovery, NAS remains LAN4.
+Live DHCP/TLS/NTP and ruleset checks passed; Hive app/account acceptance is
+still open. See [[../reference/current-live-state]] and the current handoff.
