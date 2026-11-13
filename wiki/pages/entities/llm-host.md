@@ -3,7 +3,7 @@ title: "Local AI Host"
 category: entity
 tags: [software, local-ai, llama-cpp, wyoming, lxc, igpu, voice]
 created: 2026-06-20
-updated: 2026-10-11
+updated: 2026-11-13
 sources: [project-readme, project-todo]
 status: active
 ---
@@ -24,8 +24,12 @@ llama.cpp uses Vulkan and shares the Intel iGPU with Frigate CT 111.
 ## Key Properties
 
 - 6 cores, 28 GiB RAM, 100 GiB root disk (live `pct config`, 2026-10-11).
-- llama.cpp chat `8081/v1` (Qwen3-14B 64k context); embeddings `8082/v1`
-  (source-scoped to docker-host); Open WebUI `3002`.
+- llama.cpp chat `8081/v1` (Qwen3-30B-A3B Q4_K_M, 40,960-token context, f16 KV
+  cache, one slot, `--cache-ram 1024`; since 2026-11-13, the 14B file is kept
+  for rollback); embeddings `8082/v1` (source-scoped to docker-host); Open WebUI
+  `3002`.
+- Speech to text is Parakeet TDT 0.6B v2 (sherpa-onnx) behind the Wyoming
+  Whisper port `10300`.
 - Piper `10200`; Whisper `10300`; OpenWakeWord `10400` (HA and monitoring only).
 - Voice Mixer `7860` (`/opt/stacks/voice-mixer`, CPU only, `cpus 2`, 4 GiB cap).
 - Published ports are scoped by `/usr/local/sbin/llm-host-firewall.sh`
@@ -42,6 +46,18 @@ llama.cpp uses Vulkan and shares the Intel iGPU with Frigate CT 111.
 
 - 2026-10-11: with Qwen3-14B loaded the CT used ~16.5 of 28 GiB with no memory
   pressure, leaving room for the Voice Mixer's 4 GiB cap.
+- 2026-11-13: with the 30B loaded `free` shows ~25 of 28 GiB used and ~3.5 GiB
+  available (page cache included), so the llama.cpp host-RAM prompt cache must
+  stay capped (`--cache-ram 1024`; the 8 GiB default would OOM the CT).
+- 2026-11-13: prompt processing (~85-125 tok/s on the iGPU) dominates voice
+  latency, not generation (~12 tok/s). The voice assistant sends one fixed
+  ~6.5k-token prompt (system text plus 35 tools), which llama.cpp reuses from its
+  cache; a different caller context (Voice PE, HA chat box, test scripts) evicts
+  it and the next voice question reads it cold (60-80 s). Details:
+  `main/HANDOFF-2026-11-11-llm-igpu-speed.md`.
+- llama.cpp rejects a tool schema whose string bound exceeds ~1,500 characters
+  ("failed to parse grammar", HTTP 400) for the whole request; the
+  `llamacpp_conversation` component strips such bounds before sending.
 
 ## Open Questions
 
@@ -51,6 +67,10 @@ llama.cpp uses Vulkan and shares the Intel iGPU with Frigate CT 111.
 
 ## Change Log
 
+- 2026-11-13: Production `llama-cpp` moved from Qwen3-14B (64k, q8_0 KV) to
+  Qwen3-30B-A3B (40,960, f16 KV, `--cache-ram 1024`) after a trial; trial and
+  capture-proxy containers removed. About 2.7x faster generation; recipe, shopping,
+  weather, clock and device-state answers are now computed in code.
 - 2026-10-11: Resources corrected to 6c / 28 GiB; embeddings endpoint, Voice
   Mixer, firewall script and Tailscale route added.
 - 2026-06-20: Page created for the CT 114 migration.

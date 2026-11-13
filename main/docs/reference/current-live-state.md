@@ -141,11 +141,18 @@ while its replacement LXC is running.
 - CT 114 runs llama.cpp `server-vulkan`, a dedicated llama.cpp embedding
   service, Open WebUI, Wyoming Whisper, Piper and OpenWakeWord.
 - llama.cpp serves `home-assistant-llm` from
-  `Qwen3-14B-128K-Q4_K_M.gguf` at `192.168.20.104:8081/v1`; it runs with a
-  `65536` token context, Q8 KV cache, reasoning disabled for normal assistant
-  output, and Vulkan on Intel Meteor Lake graphics.
-- The Qwen3 model file SHA-256 is
-  `e6ad1ba102ef53dbc88aa59bd1bf1b10aaff298fea8f1a91f99e4312f1194c81`.
+  `Qwen3-30B-A3B-Q4_K_M.gguf` at `192.168.20.104:8081/v1` (production `llama-cpp`
+  container, `restart: unless-stopped`, since 2026-11-13); it runs with a
+  `40960` token context (the model's training length), f16 KV cache, one slot,
+  `--cache-ram 1024` (the default 8 GiB would OOM the CT), reasoning disabled
+  for normal assistant output, and Vulkan on Intel Meteor Lake graphics. Compose:
+  `configs/local-ai/docker-compose.yml` (deploy to `/opt/stacks/local-ai/`; the
+  pre-switch file is `docker-compose.yml.bak-20261113-pre-30b` on CT 114).
+- The 30B model file SHA-256 is
+  `0d003f6662faee786ed5da3e31b29c978de5ae5d275c8794c606a7f3c01aa8f5`.
+  The previous production model, `Qwen3-14B-128K-Q4_K_M.gguf` (SHA-256
+  `e6ad1ba102ef53dbc88aa59bd1bf1b10aaff298fea8f1a91f99e4312f1194c81`), is kept in
+  `./models` for rollback.
 - A dedicated llama.cpp embeddings service serves `home-assistant-embedding`
   from `bge-small-en-v1.5-q8_0.gguf` at `192.168.20.104:8082/v1`; it returns
   384-dimensional embeddings and is source-scoped to docker-host for Household

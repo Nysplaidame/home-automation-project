@@ -203,3 +203,9 @@
 - Pages updated: [[entities/llm-host]], [[entities/homepage]], [[entities/docker-host]], [[concepts/tailscale-remote-access]], [[entities/frigate]], [[index]]
 - Corrections: llm-host resources were stale (now 6c / 28 GiB, embeddings 8082 added); the Frigate Tailscale route was still described as pending; the Homepage page lacked the TLS portal model.
 - Notes: Frigate page still predates the multi-camera rollout and needs a fuller refresh; CT 111 memory incident recorded there.
+
+## [2026-11-13] update | Local AI host: Qwen3-30B-A3B in production
+- Production `llama-cpp` on CT 114 now serves Qwen3-30B-A3B Q4_K_M (40,960 context, f16 KV, `--cache-ram 1024`); the 14B file is kept for rollback.
+- Pages updated: [[entities/llm-host]]
+- Corrections: the page still said Qwen3-14B 64k; STT is Parakeet via sherpa-onnx, not a small Whisper.
+- Notes: canonical state lives in `main/docs/reference/current-live-state.md` and `main/HANDOFF-2026-11-11-llm-igpu-speed.md`.

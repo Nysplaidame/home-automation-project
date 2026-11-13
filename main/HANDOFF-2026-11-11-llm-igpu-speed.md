@@ -392,6 +392,24 @@ SearXNG search), with no invented entities, before considering a switch.
     Probe results: `probe-voicepe-2026-11-13.json`, `probe-voicepe-2026-11-13b.json`. Backups: component before this change
     `backups/llamacpp_conversation__init__.py.bak-20261113-pre-weather-warmup`. NOT yet re-run through `accuracy.py` (it
     would have evicted the Voice PE's cache while it is in use).
+  - **30B IN PRODUCTION (2026-11-13, owner: "30b to production").** Why now: voice depended on `llama-trial` and
+    `llama-proxy` (the request-capture proxy, also holding 8081), both with restart policy `no`, while the real
+    `llama-cpp` was stopped by hand, so a CT 114 or Docker restart would have silenced voice; the proxy also wrote every
+    utterance and full prompt to `/root/cap/captured.jsonl` in plain text. What was done: backed up
+    `/opt/stacks/local-ai/docker-compose.yml` to `docker-compose.yml.bak-20261113-pre-30b`; edited the `llama-cpp`
+    service to the trial's validated flags (`Qwen3-30B-A3B-Q4_K_M.gguf`, `--ctx-size 40960`, f16 K/V cache, `--cache-ram
+    1024`, threads 4, parallel 1, ngl 99, reasoning off, jinja; alias `home-assistant-llm`, port 8081 unchanged so HA needed
+    no change); validated with `docker compose config`; removed `llama-proxy`, `llama-trial` and the `trialnet` network;
+    `docker compose up -d --no-deps llama-cpp`. Healthy 25 s later, `n_ctx 40960`, restart policy `unless-stopped`, ~3.5 GiB
+    memory available. The repo `configs/local-ai/docker-compose.yml` is the same file. Verified as the Voice PE (first
+    model answer 77 s cold, then chat 2.6-3.4 s, garden 10.6 s, web 9.4 s; weather/time/garage/shopping 0.0-0.1 s). 30B
+    SHA-256 `0d003f66...a8f5`; image digest unchanged. **Rollback:** `cp docker-compose.yml.bak-20261113-pre-30b
+    docker-compose.yml && docker compose up -d --no-deps llama-cpp` (about 30 s, then re-warm with the probe below).
+    After ANY llama.cpp restart the first spoken question reads the prompt cold (60-80 s): run
+    `python tools/llm-bench/pipeline_probe.py --token-file F --device-id 0400adefe0d3d378682adb9154ffba06 --ask "Tell me a short joke."`
+    first. The capture proxy is gone, so `replay_bench.py` / `capture_proxy.py` experiments need a proxy container started
+    again (see their headers); `/root/cap/captured.jsonl` (5 MB, personal utterances) is still on CT 114: delete it when no
+    longer needed. STT is already Parakeet (sherpa-onnx), so there is nothing to upgrade there.
   - "acceptance test cheese" is confirmed on the agent's (Grocy) shopping list: delete it in Grocy.
 
 ## Open owner decisions
