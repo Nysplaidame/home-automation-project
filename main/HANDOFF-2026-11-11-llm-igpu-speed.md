@@ -523,6 +523,15 @@ SearXNG search), with no invented entities, before considering a switch.
     Trade-off: a follow-up the cue list misses is answered without context. The code-answer routes read the chat log
     directly and are unaffected. No prefix-change warning logged. Seen in the same run: "Tell me a joke." answered "I
     can't tell jokes" (prompt issue, not caused by this change: the owner's 12:51 session showed it too).
+  - **2026-11-14 joke refusal fixed in the prompt (owner: "Yes, add it").** One sentence appended to the "Answer general
+    knowledge..." line of the LIVE `configuration.yaml` prompt and of `configs/home-assistant/overwatch-prompt.txt`:
+    "Small talk is welcome: when asked for a joke, tell one short joke; never say you cannot tell jokes." The file
+    editor refuses the share by IP address, so the live file was copied to a scratch folder, edited, diffed against the
+    backup (one line changed) and copied back. Backup `backups/configuration.yaml.bak-20261114-pre-jokes`,
+    `check_config` valid, restart 44 s. As the Voice PE in fresh conversations: "Tell me a joke." x3 and "Can you tell me
+    a joke?" all told the joke (the first waited 69.4 s behind the post-restart warm-up, then 4.9 / 1.7 / 4.1 s); "Who
+    are you?" 3.0 s and "What is the capital of France?" 2.6 s unchanged. It is always the same joke (temperature 0.1).
+    `accuracy.py` not re-run since 11-13.
   - **2026-11-13 sentence-by-sentence speech, build notes (written before the deploy above).**
     Why it matters more than expected: the Metrocop TTS renders at about real time (CT 114 `docker logs metrocop-tts`:
     17.95 s of audio in 17.90 s, 19.55 s in 23.29 s), and it rendered the whole reply before sending any audio, so a
