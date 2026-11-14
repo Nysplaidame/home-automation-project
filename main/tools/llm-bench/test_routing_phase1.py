@@ -485,6 +485,28 @@ class RemovedGatesTests(unittest.TestCase):
             self.assertFalse(hasattr(M, name), f"{name} should have been removed")
 
 
+class PinnedPromptTests(unittest.TestCase):
+    def test_timer_tools_are_recognised(self):
+        for name in ("HassStartTimer", "HassCancelTimer", "HassCancelAllTimers", "HassIncreaseTimer",
+                     "HassDecreaseTimer", "HassPauseTimer", "HassUnpauseTimer", "HassTimerStatus",
+                     "assist__HassStartTimer"):
+            self.assertTrue(M._is_timer_tool(name), name)
+        for name in ("HassTurnOn", "GetLiveContext", "GetDateTime", "web_search", "date_info", "calculate", None):
+            self.assertFalse(M._is_timer_tool(name), name)
+
+    def test_both_prompt_variants_become_the_same_text(self):
+        with_timers = "Rules.\nYou are in area Office.\nStatic Context: lights."
+        without = "Rules.\nYou are in area Office.\nThis device is not able to start timers.\nStatic Context: lights."
+        a = M._pin_system_prompt([sys_msg(with_timers), user("hi")])
+        b = M._pin_system_prompt([sys_msg(without), user("hi")])
+        self.assertEqual(a, b)
+        self.assertEqual(a[0]["content"], with_timers)
+
+    def test_only_the_system_message_is_touched(self):
+        msgs = [sys_msg("Rules."), user("Say: This device is not able to start timers.")]
+        self.assertIs(M._pin_system_prompt(msgs), msgs)
+
+
 class FakeChatLog:
     """Records the deltas a streamed reply hands to Home Assistant."""
 

@@ -475,6 +475,26 @@ SearXNG search), with no invented entities, before considering a switch.
     9.7 -> **4.4 s** (first sentence released at 2.4 s, intent end 6.4 s), complete 19.6 -> 8.3 s; joke first audio 4.2 s.
     Model time did not get worse in that run, but overlap with llama.cpp was not benchmarked. Rollback: restore the
     backup and `docker compose up -d --no-deps metrocop-tts`.
+  - **2026-11-14 owner reported spoken prompts still slow; one prompt pinned (DEPLOYED, owner: "Pin one prompt").**
+    Evidence from `assist_pipeline/pipeline_debug` and `docker logs llama-cpp`: first model turn 12:48 took 88 s
+    (6,473 of 7,084 prompt tokens read cold), follow-ups 11-14 s (137-164 new tokens in 9.1-9.8 s, then 2-4 s of writing).
+    Cause of the 88 s: Home Assistant builds two prompts for the same Voice PE, depending on whether its timer handler
+    is registered at that moment: about 7,080 tokens with the eight timer tools, or about 6,070 without them plus "This
+    device is not able to start timers." about 611 tokens in. Start-up and 00:01 warm-ups and the 11-13 23:06 probes got
+    the short one; spoken turns (11-13 19:42, 11-14 12:48) and the 11-14 13:00 probe got the long one. The 11-13 claim
+    that the satellite warm-up fixed this was only checked with the probe, never against a spoken turn. Why timer
+    support differs between those moments is NOT established.
+    Fix in `llamacpp_conversation`: `_format_tools` skips timer tools (`_is_timer_tool`) and `_pin_system_prompt`
+    removes the sentence, so both states should send one prefix; timers stay with HA's local intents (the pipeline
+    prefers them). Backup `backups/llamacpp_conversation__init__.py.bak-20261114-pre-pin-prompt`, restart 45 s. Live
+    check as the Voice PE while timers were supported: warm-up read 5,102 tokens once (59.7 s) leaving a 6,145-token
+    context; next model turns read 15-16 new tokens (capital of France, joke 3.2 s); "Set a timer for 10 minutes." and
+    "Cancel the timer." answered locally in 0.0 s. Not verified: the no-timer-support state (offline test only), and a
+    real first spoken turn after a midnight warm-up. An oddly phrased timer request that the local intents miss can no
+    longer be rescued by the model.
+    Still open from the same evidence: follow-up turns read history slowly (a single-turn probe with 122 new tokens took
+    3.9 s, the spoken follow-ups about 9.5 s for ~150); STT 2.3-3.0 s per turn with mishearings ("Tell me Drooke");
+    the model answered "I can't tell jokes" on a follow-up.
   - **2026-11-13 sentence-by-sentence speech, build notes (written before the deploy above).**
     Why it matters more than expected: the Metrocop TTS renders at about real time (CT 114 `docker logs metrocop-tts`:
     17.95 s of audio in 17.90 s, 19.55 s in 23.29 s), and it rendered the whole reply before sending any audio, so a

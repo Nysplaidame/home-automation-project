@@ -649,10 +649,12 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
         forced_tool: str | None = None  # set once if the model describes a call in words instead of making it
         repaired = False
         for _ in range(MAX_TOOL_ITERATIONS):
-            messages = _trim_messages(
-                [_content_to_openai_message(content) for content in chat_log.content],
-                self._settings[CONF_MAX_HISTORY],
-                self._assistant_state,
+            messages = _pin_system_prompt(
+                _trim_messages(
+                    [_content_to_openai_message(content) for content in chat_log.content],
+                    self._settings[CONF_MAX_HISTORY],
+                    self._assistant_state,
+                )
             )
             tools = _format_tools(chat_log.llm_api)
             events = self._chat_completion_events(
@@ -1430,6 +1432,8 @@ def _format_tools(
 
     tools = []
     for tool in llm_api.tools:
+        if _is_timer_tool(tool.name):
+            continue
         tools.append(
             {
                 "type": "function",
@@ -1446,6 +1450,32 @@ def _format_tools(
             }
         )
     return tools
+
+
+# --- One prompt, whether or not the device can start timers ------------------------------------------------
+# Home Assistant builds two different prompts for the same satellite: when its timer handler is registered the
+# eight timer tools are offered (about 1,000 tokens), otherwise they are dropped and the sentence below is added
+# about 600 tokens into the system prompt. Which one a turn gets varied from hour to hour (2026-11-14: both
+# warm-ups got the short one, the first spoken question got the long one and read 6,473 tokens cold, 88 s).
+# Timers are handled by Home Assistant's own intents before the model is asked (the pipeline prefers local
+# intents), so the model's copy of the timer tools is removed and the sentence is dropped: every turn then
+# sends the same prefix and the warm-up always matches.
+_TIMER_TOOL_RE = re.compile(r"(?:^|__)Hass\w*Timer\w*$")
+_NO_TIMERS_SENTENCE_RE = re.compile(r"[ \t]*This device is not able to start timers\.[ \t]*\n?")
+
+
+def _is_timer_tool(name: Any) -> bool:
+    return bool(_TIMER_TOOL_RE.search(str(name or "")))
+
+
+def _pin_system_prompt(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Drop the timer-capability sentence from the system message (see above); other messages untouched."""
+    for index, message in enumerate(messages):
+        content = message.get("content")
+        if message.get("role") == "system" and isinstance(content, str) and "start timers" in content:
+            pinned = _NO_TIMERS_SENTENCE_RE.sub("", content)
+            return [*messages[:index], {**message, "content": pinned}, *messages[index + 1:]]
+    return messages
 
 
 # llama.cpp compiles every advertised tool schema into a sampling grammar and rejects the WHOLE request
