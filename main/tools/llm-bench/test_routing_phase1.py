@@ -502,6 +502,17 @@ class PinnedPromptTests(unittest.TestCase):
         self.assertEqual(a, b)
         self.assertEqual(a[0]["content"], with_timers)
 
+    def test_prefix_change_reports_where_and_what(self):
+        self.assertIsNone(M._prefix_change(None, "abc"))
+        self.assertIsNone(M._prefix_change("abc", "abc"))
+        old = "Rules. Static Context:\n- names: Fan\n<tools>\n[]"
+        new = "Rules. Static Context:\n- names: Gate\n<tools>\n[]"
+        change = M._prefix_change(old, new)
+        self.assertIn("system prompt", change)
+        self.assertIn("Fan", change)
+        self.assertIn("Gate", change)
+        self.assertIn("tools", M._prefix_change("S\n<tools>\n[1]", "S\n<tools>\n[2]"))
+
     def test_only_the_system_message_is_touched(self):
         msgs = [sys_msg("Rules."), user("Say: This device is not able to start timers.")]
         self.assertIs(M._pin_system_prompt(msgs), msgs)

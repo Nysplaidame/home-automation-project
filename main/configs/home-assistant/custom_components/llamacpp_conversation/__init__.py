@@ -657,6 +657,7 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
                 )
             )
             tools = _format_tools(chat_log.llm_api)
+            self._watch_prefix(chat_log, messages, tools)
             events = self._chat_completion_events(
                 session,
                 messages,
@@ -1097,6 +1098,26 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
         text = re.sub(r"\[\d+\]", "", text).replace("**", "").strip()
         return text or None
 
+    def _watch_prefix(self, chat_log: conversation.ChatLog, messages: list[dict[str, Any]], tools: list[dict[str, Any]]) -> None:
+        """Warn when the cached part of the prompt (system text + tools) changes for the same device.
+
+        llama.cpp can only reuse its cache while this prefix is byte-identical; a change costs a cold read of
+        everything after it (a minute or more). The warning says where the text changed, so the cause is in the
+        log instead of having to be inferred from token counts.
+        """
+        try:
+            context = getattr(getattr(chat_log, "llm_api", None), "llm_context", None)
+            key = getattr(context, "device_id", None) or "no-device"
+            system = next((str(m.get("content") or "") for m in messages if m.get("role") == "system"), "")
+            prefix = system + "\n<tools>\n" + json.dumps(tools, sort_keys=True)
+            seen = self.__dict__.setdefault("_prefix_seen", {})
+            change = _prefix_change(seen.get(key), prefix)
+            seen[key] = prefix
+            if change:
+                _LOGGER.warning("Overwatch prompt prefix changed for %s (cold read ahead): %s", key, change)
+        except Exception:  # diagnostics must never break a turn
+            _LOGGER.debug("prefix watch failed", exc_info=True)
+
     def _chat_completion_events(
         self,
         session: aiohttp.ClientSession,
@@ -1462,6 +1483,18 @@ def _format_tools(
 # sends the same prefix and the warm-up always matches.
 _TIMER_TOOL_RE = re.compile(r"(?:^|__)Hass\w*Timer\w*$")
 _NO_TIMERS_SENTENCE_RE = re.compile(r"[ \t]*This device is not able to start timers\.[ \t]*\n?")
+
+
+def _prefix_change(old: str | None, new: str) -> str | None:
+    """Where and how two prompt prefixes differ ('' prefixes and a first sighting give None)."""
+    if old is None or old == new:
+        return None
+    at = next((i for i, (a, b) in enumerate(zip(old, new)) if a != b), min(len(old), len(new)))
+    section = "tools" if "\n<tools>\n" in new[:at] else "system prompt"
+    return (
+        f"first difference at character {at} of {len(new)} ({section}); "
+        f"was {old[max(0, at - 80):at + 120]!r}; now {new[max(0, at - 80):at + 120]!r}"
+    )
 
 
 def _is_timer_tool(name: Any) -> bool:

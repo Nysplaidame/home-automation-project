@@ -495,6 +495,23 @@ SearXNG search), with no invented entities, before considering a switch.
     Still open from the same evidence: follow-up turns read history slowly (a single-turn probe with 122 new tokens took
     3.9 s, the spoken follow-ups about 9.5 s for ~150); STT 2.3-3.0 s per turn with mishearings ("Tell me Drooke");
     the model answered "I can't tell jokes" on a follow-up.
+  - **2026-11-14 follow-up turns investigated (owner: "Yes, follow-ups"); cause narrowed, NOT fixed.**
+    `tools/llm-bench/followup_probe.py` replays several questions in one conversation as the Voice PE. Six-question
+    replay of the owner's session: model follow-ups 14.4 / 10.4 / 10.7 s, prompt eval 8.3-8.9 s for 145-179 new tokens
+    in every run. llama.cpp's own progress lines show the history is read in separate batches (99 + 62 + 17, 85 + 43 +
+    17, 141 + 20 tokens; the last batch is the newest user message) and the final ~17-20 tokens alone take about 3.7 s,
+    whereas a first turn's 16-18 new tokens take about 1.8 s in total. So the cost is per batch, not per token, and it
+    reproduces at any time of day (not Frigate load). No context checkpoints are being created (`checkpoints: 0` in the
+    cache listing); `--ctx-checkpoints 0` changed nothing and was reverted (two llama.cpp restarts, each followed by a
+    ~67 s cold read; voice re-warmed with the probe afterwards). Why the batches are split and what the fixed
+    per-batch cost is remain unknown. Practical lever awaiting the owner: send history only when the question refers
+    back, which turns most follow-ups into ~1.8 s reads.
+    Also deployed (backup `backups/llamacpp_conversation__init__.py.bak-20261114-pre-prefix-watch`, restart 41 s):
+    `_watch_prefix` logs a WARNING "Overwatch prompt prefix changed for <device>" with the text before/after the first
+    difference whenever the system prompt + tool list changes for a device. Reason: at 13:08 a first turn read 5,531
+    tokens cold (matched 605) minutes after the same pinned context was warm, with no restart between; the timer
+    explanation does not cover that, so the next occurrence will name its cause. None logged in the first 7 minutes.
+    The llama.cpp prompt cache was emptied by the restarts (the stale 6,070- and 7,177-token entries are gone).
   - **2026-11-13 sentence-by-sentence speech, build notes (written before the deploy above).**
     Why it matters more than expected: the Metrocop TTS renders at about real time (CT 114 `docker logs metrocop-tts`:
     17.95 s of audio in 17.90 s, 19.55 s in 23.29 s), and it rendered the whole reply before sending any audio, so a
