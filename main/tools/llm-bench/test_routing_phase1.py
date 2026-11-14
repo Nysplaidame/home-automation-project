@@ -518,6 +518,34 @@ class PinnedPromptTests(unittest.TestCase):
         self.assertIs(M._pin_system_prompt(msgs), msgs)
 
 
+class HistoryOnlyWhenReferredToTests(unittest.TestCase):
+    EARLIER = [user("Who are you?"), asst("I am Overwatch."), user("What's the weather?"), asst("Cloudy, 8 degrees.")]
+
+    def test_standalone_questions_are_sent_alone(self):
+        for text in ("What is your purpose?", "Tell me a joke please.", "What is the capital of France?",
+                     "Search the web for the height of Everest.", "How many days until Christmas?"):
+            msgs = [sys_msg(), *self.EARLIER, user(text)]
+            self.assertEqual(M._trim_messages(msgs, 8, None), [sys_msg(), user(text)], text)
+
+    def test_questions_that_point_back_keep_the_history(self):
+        for text in ("What about tomorrow?", "Tell me another one.", "Why?", "Yes.", "Say that again.",
+                     "Nothing, don't worry about it.", "And how tall is the second one?", "Is it open?",
+                     "Okay."):
+            msgs = [sys_msg(), *self.EARLIER, user(text)]
+            self.assertEqual(M._trim_messages(msgs, 8, None), msgs, text)
+
+    def test_the_current_turns_tool_calls_and_results_are_always_kept(self):
+        tool_call = {"role": "assistant", "content": None, "tool_calls": [{"function": {"name": "web_search"}}]}
+        tool_result = {"role": "tool", "content": "{}"}
+        msgs = [sys_msg(), *self.EARLIER, user("Search the web for football scores."), tool_call, tool_result]
+        self.assertEqual(M._trim_messages(msgs, 8, None),
+                         [sys_msg(), user("Search the web for football scores."), tool_call, tool_result])
+
+    def test_a_first_turn_is_untouched(self):
+        msgs = [sys_msg(), user("Tell me a joke please.")]
+        self.assertEqual(M._trim_messages(msgs, 8, None), msgs)
+
+
 class FakeChatLog:
     """Records the deltas a streamed reply hands to Home Assistant."""
 

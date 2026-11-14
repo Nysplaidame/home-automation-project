@@ -512,6 +512,17 @@ SearXNG search), with no invented entities, before considering a switch.
     tokens cold (matched 605) minutes after the same pinned context was warm, with no restart between; the timer
     explanation does not cover that, so the next occurrence will name its cause. None logged in the first 7 minutes.
     The llama.cpp prompt cache was emptied by the restarts (the stale 6,070- and 7,177-token entries are gone).
+  - **2026-11-14 history only when referred to, DEPLOYED (owner: "Yes, do that").** `_trim_messages` now calls
+    `_drop_unreferenced_history`: the current turn (newest user message plus its tool calls/results) is always sent;
+    earlier turns only when `_refers_back` matches (it/that/this/them, one, ordinals, another/again/more/else,
+    what about/how about, why, a leading and/but/or, or fewer than four words). Backup
+    `backups/llamacpp_conversation__init__.py.bak-20261114-pre-history-rule`, restart 44 s, 74 + 19 offline tests pass.
+    Same conversation replay (`followup_probe.py`, as the Voice PE, 22:50): "What is your purpose?" 14.4 -> 9.2 s
+    (prompt read 1.6 s, the rest is a long reply), "Tell me a joke." 10.4 -> 4.5 s, "Tell me another one." 11.6 s and
+    "Nothing, don't worry about it." 11.4 s (both refer back, history sent, 183-202 tokens in 8.7-9.7 s as before).
+    Trade-off: a follow-up the cue list misses is answered without context. The code-answer routes read the chat log
+    directly and are unaffected. No prefix-change warning logged. Seen in the same run: "Tell me a joke." answered "I
+    can't tell jokes" (prompt issue, not caused by this change: the owner's 12:51 session showed it too).
   - **2026-11-13 sentence-by-sentence speech, build notes (written before the deploy above).**
     Why it matters more than expected: the Metrocop TTS renders at about real time (CT 114 `docker logs metrocop-tts`:
     17.95 s of audio in 17.90 s, 19.55 s in 23.29 s), and it rendered the whole reply before sending any audio, so a

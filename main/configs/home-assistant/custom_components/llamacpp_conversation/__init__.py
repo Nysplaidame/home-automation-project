@@ -1735,7 +1735,44 @@ def _trim_messages(
         head, rest = messages[:1], messages[1:]
     else:
         head, rest = [], messages
-    return _inject_assistant_state_context([*head, *rest[-max_history:]], assistant_state)
+    rest = _drop_unreferenced_history(rest[-max_history:])
+    return _inject_assistant_state_context([*head, *rest], assistant_state)
+
+
+# --- Earlier turns only when the question refers back to them ----------------------------------------------
+# Spoken questions a few minutes apart share one conversation, so each model turn also carried every earlier
+# turn. On this server that costs about 9 s per turn however little history there is (llama.cpp reads it in
+# separate batches with a fixed cost each; a question alone is read in about 1.8 s). Most spoken questions
+# stand alone, so earlier turns are sent only when the wording points back at them: a pronoun or "another",
+# "again", an ordinal, "what about ...", or a reply too short to mean anything by itself ("Yes.", "Why?").
+_REFERS_BACK_RE = re.compile(
+    r"\b(it|its|that|this|those|these|them|they|he|she|him|her|there|one|ones|"
+    r"first|second|third|fourth|fifth|last|previous|earlier|before|"
+    r"another|again|more|else|same|other|others|instead|also|too|either|"
+    r"repeat|continue|go on|you said|you mean|i said|i meant|"
+    r"what about|how about|why|so)\b"
+    r"|^\W*(?:and|but|or)\b",  # "And the garage light?" continues the previous question
+    re.IGNORECASE,
+)
+STANDALONE_MIN_WORDS = 4
+
+
+def _refers_back(user_text: str) -> bool:
+    """Does this utterance need the earlier turns to be understood?"""
+    text = str(user_text or "")
+    return len(re.findall(r"\w+", text)) < STANDALONE_MIN_WORDS or bool(_REFERS_BACK_RE.search(text))
+
+
+def _drop_unreferenced_history(history: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Keep the current turn (newest user message and everything after it); earlier turns only if referred to."""
+    last_user = next(
+        (i for i in range(len(history) - 1, -1, -1) if history[i].get("role") == "user"), None
+    )
+    if last_user is None or last_user == 0:
+        return history
+    if _refers_back(str(history[last_user].get("content") or "")):
+        return history
+    return history[last_user:]
 
 
 # Words that suggest a follow-up about the remembered recipe or web results. Anything else (a device
