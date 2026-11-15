@@ -561,6 +561,17 @@ SearXNG search), with no invented entities, before considering a switch.
     Mariana Trench 14.7 s. One Everest run 20 s after the restart took 31.4 s and read the raw result list: its 30 s
     summary request timed out waiting behind the warm-up (`system_log`: "web search summary failed ... TimeoutError").
     `accuracy.py` not re-run after this last deploy (only these probes).
+  - **2026-11-15 search results 3 -> 5 and final accuracy run (owner: "Raise to five").** Live `configuration.yaml`
+    `searxng_llm.result_count: 5` (one-line diff against `backups/configuration.yaml.bak-20261115-pre-result-count`,
+    restart 41 s). Probes as the Voice PE: Everest, capital of Peru, boiling point, Mariana Trench, Pride and Prejudice
+    all correct. **`accuracy.py --reps 2` on the full deployed state (`accuracy-2026-11-15c.json`): 86/86**; model-answered
+    turns mean 8.0 s, median 7.5 s, p90 11.8 s, max 20.2 s (three results: 8.0 / 7.4 / 11.8 / 22.2), so the two extra
+    results cost nothing measurable; per-check web timings moved both ways by 1-3 s between runs. This is the state to
+    compare future changes against: streaming, pinned prompt, history-only-when-referred, joke line, one-shot
+    connections, direct-question search, five results.
+    Seen in `system_log` at that restart: "Can't connect to ESPHome API for home-assistant-voice-0ae52a" x2. The Voice PE
+    is briefly unreachable when HA starts, which is a likely reason the start-up warm-up used to get the prompt without
+    timer support (not confirmed, and it does not explain the midnight case); the pinned prompt makes it harmless.
   - **2026-11-13 sentence-by-sentence speech, build notes (written before the deploy above).**
     Why it matters more than expected: the Metrocop TTS renders at about real time (CT 114 `docker logs metrocop-tts`:
     17.95 s of audio in 17.90 s, 19.55 s in 23.29 s), and it rendered the whole reply before sending any audio, so a
