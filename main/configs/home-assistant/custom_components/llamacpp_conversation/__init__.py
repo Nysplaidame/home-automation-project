@@ -1151,26 +1151,44 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
         """
         message: dict[str, Any] = {"role": "assistant", "content": ""}
         calls: dict[int, dict[str, Any]] = {}
+        # llama.cpp closes the connection after a streamed reply. A second request sent milliseconds later (the
+        # follow-up after an instant tool such as calculate or date_info) used to be written to that dying
+        # pooled connection and failed with "Server disconnected" (2026-11-15: every calculator and date turn).
+        # So streamed requests ask for a one-shot connection, never hand it back to the pool, and a
+        # disconnect before any data arrived is retried once on a fresh connection.
+        received = False
         try:
-            async with session.post(
-                f"{self._url}/chat/completions",
-                json={**payload, "stream": True},
-                timeout=aiohttp.ClientTimeout(total=timeout),
-            ) as response:
-                response.raise_for_status()
-                async for raw in response.content:
-                    line = raw.decode("utf-8", "replace").strip()
-                    if not line.startswith("data:"):
-                        continue
-                    data = line[5:].strip()
-                    if data == "[DONE]":
-                        break
-                    chunk = json.loads(data)
-                    if isinstance(chunk, dict) and chunk.get("error"):
-                        raise HomeAssistantError(f"llama.cpp request failed: {chunk['error']}")
-                    piece = _merge_stream_chunk(message, calls, chunk)
-                    if piece:
-                        yield piece
+            for attempt in (1, 2):
+                try:
+                    async with session.post(
+                        f"{self._url}/chat/completions",
+                        json={**payload, "stream": True},
+                        headers={"Connection": "close"},
+                        timeout=aiohttp.ClientTimeout(total=timeout),
+                    ) as response:
+                        response.raise_for_status()
+                        try:
+                            async for raw in response.content:
+                                line = raw.decode("utf-8", "replace").strip()
+                                if not line.startswith("data:"):
+                                    continue
+                                received = True
+                                data = line[5:].strip()
+                                if data == "[DONE]":
+                                    break
+                                chunk = json.loads(data)
+                                if isinstance(chunk, dict) and chunk.get("error"):
+                                    raise HomeAssistantError(f"llama.cpp request failed: {chunk['error']}")
+                                piece = _merge_stream_chunk(message, calls, chunk)
+                                if piece:
+                                    yield piece
+                        finally:
+                            response.close()  # never reuse a connection that carried a stream
+                    break
+                except (aiohttp.ServerDisconnectedError, aiohttp.ClientOSError) as err:
+                    if received or attempt == 2:
+                        raise
+                    _LOGGER.info("llama.cpp dropped the connection before replying (%r); retrying once", err)
         except aiohttp.ClientResponseError as err:
             raise HomeAssistantError(
                 f"llama.cpp request failed: HTTP {err.status} {err.message}"

@@ -532,6 +532,23 @@ SearXNG search), with no invented entities, before considering a switch.
     a joke?" all told the joke (the first waited 69.4 s behind the post-restart warm-up, then 4.9 / 1.7 / 4.1 s); "Who
     are you?" 3.0 s and "What is the capital of France?" 2.6 s unchanged. It is always the same joke (temperature 0.1).
     `accuracy.py` not re-run since 11-13.
+  - **2026-11-15 accuracy suite re-run found a streaming regression; FIXED and deployed (owner: "Run it").**
+    `accuracy.py --reps 2` on everything deployed since 11-13 (`accuracy-2026-11-15.json`): **69/86 (80%)**. 16 failures
+    were one bug: every turn that calls `calculate` or `date_info` returned `ERROR_SPEECH`; HA `system_log` showed
+    "llama.cpp request failed: ServerDisconnectedError" x18. llama.cpp closes the connection after a streamed reply; those
+    two tools return instantly, so the next request was written to the closing pooled connection (slower tools did not
+    hit it). Live from the 11-13 evening streaming deploy until this fix, because no accuracy run followed that deploy.
+    Fix in `_completion_events`: `Connection: close` header, `response.close()` after the stream, and one retry when the
+    server disconnects before any data line. Backup `backups/llamacpp_conversation__init__.py.bak-20261115-pre-disconnect-fix`,
+    restart 44 s, offline tests 74 + 19 pass (they do not cover this: it needs a real server).
+    Re-run (`accuracy-2026-11-15b.json`): **84/86 (98%)**, no "conversation failed" entries. Still failing, 4 of 4 today:
+    `web_height` ("the exact height is not provided in the snippets"; passed on 11-13), cause not investigated.
+    Timings on the passing run: model-answered turns mean 8.0 s, median 7.4 s, p90 11.8 s, max 22.2 s (11-13: 8.9 / 7.8 /
+    11.6 / 66.0); 42 of 86 answered by code. So total time per fresh single question is essentially unchanged by this
+    week's work; the gains are in what the suite does not measure (time to first audio on long replies, the cold first
+    spoken turn, standalone follow-ups, plain sums). The first run's faster median (4.7 s) was an artefact of the error
+    replies returning quickly. Sums phrased in number words ("two plus two times three") still go through `calculate`
+    (about 10.5 s).
   - **2026-11-13 sentence-by-sentence speech, build notes (written before the deploy above).**
     Why it matters more than expected: the Metrocop TTS renders at about real time (CT 114 `docker logs metrocop-tts`:
     17.95 s of audio in 17.90 s, 19.55 s in 23.29 s), and it rendered the whole reply before sending any audio, so a
