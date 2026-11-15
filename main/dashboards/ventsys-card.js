@@ -1,4 +1,5 @@
-import { VERSION, DEVICE_LIST, DEVICES, MODE_LABELS, SENSORS, BOARD_HEALTH, deviceState, sensorValue, measurement, smokeState, commandRequest, commandExpected, commandBlock, matchesExpected, deriveMode, airflowWarnings, operatingState, operatingPlan, PURGE_STRENGTHS, operatingWarnings, setupTargets, openingPercent, servoPercent, latchedAlarms, activeIncidents } from './ventsys-model.mjs?v=20261107-8';
+import {activity} from './ventsys-history.mjs?v=20261114-6';
+import { SENSOR_DEVICES, CONTROL_MAINTENANCE, detailEntities, ENVIRONMENT_SOURCES, pressureRelation, VERSION, DEVICE_LIST, DEVICES, MODE_LABELS, SENSORS, BOARD_HEALTH, deviceState, sensorValue, measurement, smokeState, commandRequest, commandExpected, commandBlock, matchesExpected, deriveMode, airflowWarnings, operatingState, operatingPlan, PURGE_STRENGTHS, operatingWarnings, setupTargets, openingPercent, servoPercent, latchedAlarms, activeIncidents } from './ventsys-model.mjs?v=20261114-6';
 
 const asset = name => new URL(name + '?v=' + VERSION, import.meta.url).href;
 const lockKey = Symbol.for('ventsys.pending-command');
@@ -38,15 +39,15 @@ export class VentSysDashboardCard extends HTMLElement {
   }
   _text(selector, text) { const node = this.$(selector); if (node && node.textContent !== String(text)) node.textContent = text; }
   _event(message, severity = '') {
-    this._events.unshift({ time: Date.now(), message, severity }); this._events.length = Math.min(this._events.length, 8);
-    this.$('#events').replaceChildren();
-    for (const entry of this._events) {
-      const li = document.createElement('li'), time = document.createElement('time');
-      if (entry.severity) li.dataset.severity = entry.severity;
-      time.textContent = new Date(entry.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      li.append(time, document.createTextNode(entry.message)); this.$('#events').append(li);
-    }
+    this._events.unshift({ time: Date.now(), message, severity }); this._events.length = Math.min(this._events.length, 200);
+    this._renderActivity();
   }
+  _activityEntries(){return [...(this._historyEvents || []),...this._events].sort((a,b)=>b.time-a.time);}
+  _renderActivity(){const list=this.$('#events');if(!list)return;list.replaceChildren();for(const entry of this._activityEntries().slice(0,100)){const li=document.createElement('li'),time=document.createElement('time');time.textContent=new Date(entry.time).toLocaleString();li.append(time,document.createTextNode(entry.message));if(entry.severity)li.dataset.severity=entry.severity;list.append(li);}}
+  async _loadActivity(force=false){if(!this._connected() || !this._hass?.callWS || this._historyLoading || (!force && Date.now()-(this._historyLoaded || 0)<60000))return;this._historyLoading=true;this._historyLoaded=Date.now();try{const rows=await activity(this._hass);if(!this.isConnected)return;this._historyEvents=rows;this._renderActivity();this._scheduleRender();}catch(_){this._historyError=true;}finally{this._historyLoading=false;}}
+  _openActivity(){const card=this.$('ventsys-activity-card');card.sessionEvents=this._events;card.hass=this._hass;this.$('#activity-dialog').showModal();card.load(true);}
+  _observeChanges(){const states=this._hass?.states || {};if(!this._connected()){this._previousStates=null;return;}const selected=Object.entries(states).filter(([id])=>/^(binary_sensor|sensor|button)\.(garage_)?(ventsys_|sla_enclosure|fdm_enclosure)/.test(id));const previous=this._previousStates;this._previousStates=Object.fromEntries(selected.map(([id,s])=>[id,s.state]));if(!previous)return;for(const [id,state] of selected){if(previous[id]===undefined || previous[id]===state.state)continue;const unavailable=v=>['unknown','unavailable',''].includes(v);const label=state.attributes?.friendly_name || id;if(!unavailable(previous[id]) && unavailable(state.state))this._event(label+': unavailable','orange');else if(unavailable(previous[id]) && !unavailable(state.state))this._event(label+': available');else if(/alarm_latched$/.test(id))this._event(label+(state.state==='off'?': latch cleared':': alarm latched'),state.state==='on'?'orange':'');}}
+
   _renderShell() {
     // Static markup only; HA strings always enter through textContent.
     this.shadowRoot.innerHTML = `
@@ -64,14 +65,17 @@ export class VentSysDashboardCard extends HTMLElement {
             <dl><div><dt>State updated</dt><dd id="device-age">Unavailable</dd></div><div><dt>Controller range</dt><dd id="device-range">0–100%</dd></div></dl>
             <div id="position-controls"><label for="position-slider">Requested position <output id="requested">0%</output></label><input id="position-slider" type="range" min="0" max="100" step="1" value="0"><div class="number-row"><label for="position-number">Percent</label><input id="position-number" type="number" min="0" max="100" step="1" value="0"></div><div id="reference-controls" hidden><label for="reference-opening">Observed opening (%)</label><input id="reference-opening" type="number" min="0" max="100" step="1"><button type="button" id="record-reference">Record without moving</button><p class="help">Records your observation as the controller reference; physical position is not measured.</p></div></div>
             <div id="fan-controls" hidden><div class="fan-actions"><button id="fan-on">Turn on</button><button id="fan-off">Turn off</button></div><label for="speed-slider">Requested speed <output id="speed-requested">0%</output></label><input id="speed-slider" type="range" min="0" max="100" step="1" value="0"></div><p id="device-help" class="help"></p>
+            <section id="board-detail"><p id="maintenance-status"></p><button id="start-board-maintenance">Maintenance / take offline</button><button id="end-board-maintenance">Reactivate after reconnect</button><p id="board-action-status" role="status"></p><p id="sensor-alarm-status" role="status"></p><button id="sensor-ack" hidden>Acknowledge / clear stored latch</button><dl id="sensor-values"></dl><div id="detail-graphs"></div></section>
           </section>
         </section>
         <nav class="device-list" aria-label="Select controller"></nav><p id="command-status" role="status" aria-live="polite">Ready · no commands sent</p>
-        <section class="sensors" aria-label="Environmental sensors"></section>
-        <details class="events"><summary>System log details</summary><p class="help">Events from this dashboard session.</p><ul id="events"><li>No commands sent this session.</li></ul></details>
+        <section class="pressure-panel"><h2>Enclosure pressure</h2><p>Inside minus outside. H port inside, L port outside.</p><label>Roughly equal tolerance ± <input id="pressure-tolerance" type="number" min="0" max="20" step="0.1" value="0.5"> Pa</label><p class="help">Provisional display tolerance; verify zero and tubing. Does not change alarm thresholds.</p><div class="pressure-readings"><section><h3>FDM array 1</h3><strong id="pressure-fdm" role="status">Unavailable</strong></section><section><h3>SLA array 1</h3><strong id="pressure-sla" role="status">Unavailable</strong></section></div></section><section class="sensors" aria-label="Environmental sensors"></section>
+        <details class="events"><summary>System log details</summary><p class="help">Latest recorded HA activity and this dashboard session.</p><button id="full-activity">Open full activity history</button><ul id="events"><li>No commands sent this session.</li></ul></details>
         <footer>Authenticated through Home Assistant <span>VentSys ${VERSION}</span></footer>
       </main></ha-card>
       <dialog aria-labelledby="confirm-title"><form method="dialog"><p class="eyebrow">CONFIRM CHANGE</p><h2 id="confirm-title">Confirm change</h2><p id="confirm-description"></p><p class="help" id="confirm-note">The dashboard waits for controller reports after sending.</p><div id="purge-strength-options" hidden></div><div class="dialog-actions"><button value="cancel" id="cancel-command">Cancel</button><button type="button" id="confirm-command">Send command</button></div></form></dialog>
+      <dialog id="maintenance-dialog"><h2 id="maintenance-title">Board maintenance</h2><p id="maintenance-description"></p><button id="maintenance-cancel">Cancel</button><button id="maintenance-confirm">Confirm maintenance</button></dialog>
+      <dialog id="activity-dialog" aria-label="Full activity history"><button id="close-activity">Close history</button><ventsys-activity-card></ventsys-activity-card></dialog>
       <dialog id="alarm-menu" aria-labelledby="alarm-menu-title"><h2 id="alarm-menu-title">Latched alarms</h2><p class="help">Acknowledging clears a stored alarm only when its board reports no active alarm. It does not calibrate a sensor.</p><ul id="latched-alarm-list"></ul><p id="alarm-menu-status" role="status" aria-live="polite"></p><div class="dialog-actions"><button type="button" id="close-alarm-menu">Close</button></div></dialog>`;
     for (const device of DEVICE_LIST) {
       const button = document.createElement('button'); button.dataset.device = device.key;
@@ -99,6 +103,7 @@ export class VentSysDashboardCard extends HTMLElement {
         this.$('dialog').close();this._draft={kind:'operation',target:choice.zone,value:'purge',revision:choice.revision,strength:Number(level)};this._submit();
       });this.$('#purge-strength-options').append(button);
     }
+    for(const [key,config] of Object.entries(SENSOR_DEVICES)){const button=document.createElement('button');button.dataset.sensorDevice=key;button.textContent=config.name;button.addEventListener('click',()=>this._select(key));this.$('.device-list').append(button);}
     for (const [zone, config] of Object.entries(SENSORS)) {
       const section = document.createElement('section'); section.className = 'sensor-zone'; section.dataset.zone = zone;
       const title = document.createElement('h2'); title.textContent = config.label; section.append(title);
@@ -110,6 +115,12 @@ export class VentSysDashboardCard extends HTMLElement {
       }
       section.append(dl); this.$('.sensors').append(section);
     }
+    this.$('#pressure-tolerance').addEventListener('input', () => this._update());
+    this.$('#start-board-maintenance').addEventListener('click',()=>this._reviewMaintenance());
+    this.$('#end-board-maintenance').addEventListener('click',()=>this._reactivate());
+    this.$('#sensor-ack').addEventListener('click',()=>this._sensorAck());
+    this.$('#maintenance-cancel').addEventListener('click',()=>this.$('#maintenance-dialog').close());
+    this.$('#maintenance-confirm').addEventListener('click',()=>this._applyMaintenance());
     this.$('#position-slider').addEventListener('input', e => { this._editing = true; this.$('#position-number').value = e.target.value; this._text('#requested', e.target.value + '%'); });
     this.$('#position-number').addEventListener('input', e => { this._editing = true; this.$('#position-slider').value = e.target.value; this._text('#requested', e.target.value + '%'); });
     this.$('#record-reference').addEventListener('click', () => this._reviewReference());
@@ -122,6 +133,8 @@ export class VentSysDashboardCard extends HTMLElement {
     this.$('#fan-off').addEventListener('click', () => this._review('fan', this._selected, 'off'));
     this.$('#setup-mode').addEventListener('change',()=>this._update());
     this.$('#open-alarm-menu').addEventListener('click', () => { this.$('#alarm-menu').showModal(); this._updateAlarms(); this.$('#close-alarm-menu').focus(); });
+    this.$('#full-activity').addEventListener('click',()=>this._openActivity());
+    this.$('#close-activity').addEventListener('click',()=>this.$('#activity-dialog').close());
     this.$('#close-alarm-menu').addEventListener('click', () => this.$('#alarm-menu').close());
     this.$('#confirm-command').addEventListener('click', () => this._submit());
     this.$('dialog').addEventListener('close', () => { this._draft = null; this._purgeChoice=null; });
@@ -150,6 +163,8 @@ export class VentSysDashboardCard extends HTMLElement {
         node.addEventListener('click', () => this._select(device.key));
         node.addEventListener('keydown', e => { if (['Enter', ' '].includes(e.key)) { e.preventDefault(); this._select(device.key); } });
       }
+      for(const [key,config] of Object.entries(SENSOR_DEVICES))for(const id of config.svg){const node=this.$('#'+id);if(!node)continue;node.dataset.sensorSelect=key;node.setAttribute('role','button');node.setAttribute('tabindex','0');node.style.cursor='pointer';node.addEventListener('click',()=>this._select(key));node.addEventListener('keydown',e=>{if(['Enter',' '].includes(e.key)){e.preventDefault();this._select(key);}});}
+      for(const node of this.shadowRoot.querySelectorAll('[id^="env-"]')){const zone=node.id.slice(4).replace(/-(temperature|humidity|baro|gas|smoke)$/,'');const key={ambient:'ambient',fdm:'fdm_array',fdm_pipe:'fdm_pipe',sla:'sla_array',sla_pipe:'sla_pipe'}[zone];if(key){node.style.cursor='pointer';node.addEventListener('click',e=>{e.stopPropagation();this._select(key);});}}
       this._touchPanel('#environment-box'); this._touchPanel('#svg-log-box');
       this._update();
     } catch (error) { this._text('#schematic', 'Schematic unavailable. Use the labelled controller buttons below.'); this._event(error.message); }
@@ -164,7 +179,7 @@ export class VentSysDashboardCard extends HTMLElement {
     const dialog = document.createElement('dialog'); dialog.id = 'touch-menu'; dialog.setAttribute('aria-labelledby', 'touch-menu-title');
     dialog.innerHTML = '<div class="touch-dialog-head"><h2 id="touch-menu-title">Controllers</h2><button type="button" id="touch-close">Close</button></div>';
     this.shadowRoot.append(dialog);
-    const groups = { controls: ['.device-panel', '.device-list'], modes: ['.mode-controls'], sensors: ['.sensors'], status: ['.summary', '.alarm-actions', '#incident-panel', '#faults'], log: ['.events'] };
+    const groups = { controls: ['.device-panel', '.device-list'], modes: ['.mode-controls'], sensors: ['.pressure-panel', '.sensors'], status: ['.summary', '.alarm-actions', '#incident-panel', '#faults'], log: ['.events'] };
     this._touchPages = {};
     for (const [key, selectors] of Object.entries(groups)) {
       const section = document.createElement('section'); section.dataset.touchPage = key; section.hidden = true;
@@ -187,22 +202,22 @@ export class VentSysDashboardCard extends HTMLElement {
     if (!this._touch) return;
     for (const [name, section] of Object.entries(this._touchPages)) section.hidden = name !== key;
     this._text('#touch-menu-title', {controls:'Controllers',modes:'Operating modes',sensors:'Environmental sensors',status:'System status',log:'System log · this session'}[key]);
-    if (key === 'log') this.$('.events').open = true;
+    if (key === 'log') {this.$('.events').open = true;this._loadActivity(true);}
     if (key === 'status') this.$('#faults').open = true;
     const dialog = this.$('#touch-menu'); if (!dialog.open) dialog.showModal(); this.$('#touch-close').focus();
   }
   _touchPanel(selector) {
-    const node = this.$(selector); if (!this._touch || !node || node.dataset.touchPanel) return;
+    const node = this.$(selector); if ((!this._touch && selector !== '#svg-log-box') || !node || node.dataset.touchPanel) return;
     node.dataset.touchPanel = 'true'; node.setAttribute('role', 'button'); node.setAttribute('tabindex', '0');
-    const open = () => this._openTouch(selector === '#environment-box' ? 'sensors' : 'log');
+    const open = () => selector === '#svg-log-box' ? this._openActivity() : this._openTouch('sensors');
     node.addEventListener('click', open); node.addEventListener('keydown', event => { if (['Enter', ' '].includes(event.key)) { event.preventDefault(); open(); } });
   }
-  _select(key) { if (!DEVICES[key]) return; this._selected = key; this._editing = false; this._update(); if (this._touch) this._openTouch('controls'); }
+  _select(key) { if (!DEVICES[key] && !SENSOR_DEVICES[key]) return; this._selected = key; this._text('#board-action-status',''); this._editing = false; this._update(); if (this._touch) this._openTouch('controls'); }
   _snapshot() { const states = this._hass?.states || {}; return Object.fromEntries(DEVICE_LIST.map(d => [d.key, deviceState(d, states, this._connected())])); }
   _failsafe() { return this._hass?.states?.['input_boolean.ventsys_failsafe']?.state; }
   _environmentCell(zone, kind, text, description, alarm = false) {
     const node = this.$(`#env-${zone}-${kind}`); if (!node) return;
-    node.textContent = text; node.setAttribute('aria-label', `${SENSORS[zone].label} ${kind}: ${description}`);
+    node.textContent = text; node.setAttribute('aria-label', `${(ENVIRONMENT_SOURCES[zone] || SENSORS[zone]).label} ${kind}: ${description}`);
     node.style.fill = alarm ? '#ff826a' : text === '—' ? '#91a2b8' : '';
   }
   _backendBlock(includeBusy = true) {
@@ -231,6 +246,7 @@ export class VentSysDashboardCard extends HTMLElement {
     return request.kind === 'operation' ? operatingPlan(operatingState(this._hass?.states || {}),request.target,request.value,request.strength).targets : commandExpected(request,this._snapshot());
   }
   _blocked(request) {
+    const maintenanceKey=CONTROL_MAINTENANCE[request.target];if(maintenanceKey && this._hass?.states?.['input_boolean.ventsys_maintenance_'+maintenanceKey]?.state==='on')return 'Board is in maintenance; reconnect power and reactivate first.';
     const backend=this._backendBlock(); if(backend) return backend;
     if(request.kind === 'reference') {
       const states=this._hass?.states || {}, saved=operatingState(states), device=DEVICES[request.target], report=this._snapshot()[request.target];
@@ -406,6 +422,7 @@ export class VentSysDashboardCard extends HTMLElement {
     this._acknowledging = true; this._text('#alarm-menu-status', `Acknowledging ${current.label}…`); this._updateAlarms();
     try {
       await this._hass.callService('button', 'press', { entity_id: current.buttonId });
+      this._event('Acknowledge requested: '+current.label);
       this._text('#alarm-menu-status', `Acknowledge sent to ${current.label}; waiting for the board to report clear.`);
     } catch (_) { this._text('#alarm-menu-status', `Could not acknowledge ${current.label}. Check the device in Home Assistant.`); }
     finally { this._acknowledging = false; this._updateAlarms(); }
@@ -415,6 +432,8 @@ export class VentSysDashboardCard extends HTMLElement {
     const connected = this._connected(), states = this._hass?.states || {}, snapshot = this._snapshot(), now = Date.now();
     if (!connected && this._pending) this._finish('Disconnected · command outcome unknown');
     this._updateAlarms();
+    this._loadActivity();
+    this._observeChanges();
     this._updateIncidents();
     const interruption = this._backendBlock(false);
     if (connected && interruption && this._pending) this._finish('Interrupted · ' + interruption + '. Command outcome unverified.');
@@ -464,15 +483,34 @@ export class VentSysDashboardCard extends HTMLElement {
       if (smoke.alarm) faults.unshift(config.label + ': ' + stateLabel + '.'); else if (smoke.unknown && connected) faults.push(config.label + `: ${alarmLabel} reading unavailable or stale.`);
       for (const kind of ['temperature', 'humidity', 'baro', 'differential', 'gas', 'wheel']) {
         if (!config[kind]) continue;
-        const reading = measurement(kind, sensorValue(config[kind], states, connected, now));
+        const reading = measurement(kind, sensorValue(config[kind], states, connected, now), states);
+        if (kind === 'differential') {
+          const input = this.$('#pressure-tolerance');
+          const tolerance = input.value.trim() !== '' && input.validity.valid ? Number(input.value) : null;
+          this._text('#pressure-' + zone, reading.value === null ? reading.reason : tolerance === null ? 'Enter tolerance 0–20 Pa' : `${pressureRelation(reading.value, tolerance)} · ${reading.value.toFixed(2)} Pa`);
+          const relation=reading.value === null || tolerance === null ? 'Unavailable' : pressureRelation(reading.value,tolerance);
+          this._text('#pressure-'+zone+'-icon',relation === 'Unavailable' ? '?' : relation === 'Roughly equal' ? '=' : relation === 'Negative pressure' ? '↓ −' : '↑ +');
+          this._text('#pressure-'+zone+'-value',reading.value === null ? reading.reason : reading.value.toFixed(2)+' Pa');
+          const icon=this.$('#pressure-'+zone+'-icon');if(icon){icon.setAttribute('aria-label',relation);icon.setAttribute('fill',relation==='Unavailable'?'#91a2b8':relation==='Positive pressure'?'#ffb000':relation==='Negative pressure'?'#70c8ff':'#00ff88');}
+
+        }
         if (kind === 'wheel' && zone !== 'ambient') this._flowAnimation(zone === 'fdm' ? 1 : 2,reading);
 
         if (connected && reading.value === null) faults.push(`${config.label}: ${kind === 'gas' ? 'gas resistance' : kind} ${reading.reason === 'Unavailable' ? 'not yet set up or currently unavailable' : reading.reason.toLowerCase()}.`);
         this._text(`[data-sensor="${zone}-${kind}"]`, reading.value === null ? reading.reason : sensorDisplay(kind,reading.value) + ' ' + reading.unit);
         this.$(`[data-sensor="${zone}-${kind}"]`).title = reading.id ? reading.id + (reading.timestamp ? ' · state updated ' + new Date(reading.timestamp).toLocaleString() : '') : 'No adopted sensor';
-        if (zone !== 'ambient') { const n = zone === 'fdm' ? 1 : 2; if (kind === 'gas') this._text('#bme' + n + '-iaq', reading.value === null ? '—' : sensorDisplay(kind,reading.value)); if (kind === 'wheel') this._text('#flow' + n + '-rate', reading.value === null ? '—' : sensorDisplay(kind,reading.value) + ' RPM'); }
+        if (zone !== 'ambient') { const n = zone === 'fdm' ? 1 : 2; if (kind === 'gas') this._text('#bme' + n + '-iaq', reading.value === null ? '—' : sensorDisplay(kind,reading.value)); if (kind === 'wheel') this._text('#flow' + n + '-rate', reading.value === null ? reading.reason : sensorDisplay(kind,reading.value) + ' RPM'); }
         this._environmentCell(zone, kind, reading.value === null ? '—' : sensorDisplay(kind,reading.value), reading.value === null ? reading.reason : sensorDisplay(kind,reading.value) + ' ' + reading.unit);
       }
+    }
+    for(const [zone,config] of Object.entries(ENVIRONMENT_SOURCES)) {
+      for(const kind of ['temperature','humidity','baro','gas']) {
+        const reading=measurement(kind,sensorValue(config[kind],states,connected,now));
+        this._environmentCell(zone,kind,reading.value === null ? '—' : sensorDisplay(kind,reading.value),reading.value === null ? reading.reason : reading.value+' '+reading.unit);
+      }
+      if(zone==='fdm_pipe' || zone==='sla_pipe'){const n=zone==='fdm_pipe'?1:2;const online=connected && ['temperature','humidity','baro','gas','smoke'].some(kind=>(config[kind] || []).some(id=>states[id] && !['unknown','unavailable',''].includes(states[id].state)));for(const part of ['circle','label','iaq']){const node=this.$('#bme'+n+'-'+part);if(node)node.style.opacity=online?'1':'.35';}const gas=measurement('gas',sensorValue(config.gas,states,connected,now));this._text('#bme'+n+'-iaq',gas.value===null?'—':sensorDisplay('gas',gas.value));}
+      this._environmentAlarms ||= {};const status=smokeState(config.smoke || [],states,connected,this._environmentAlarms[zone],now);this._environmentAlarms[zone]=status.alarm;
+      this._environmentCell(zone,'smoke',status.alarm ? 'ALARM' : status.unknown ? '—' : 'Clear',status.label,status.alarm);
     }
     if(connected) faults.push(...operatingWarnings(operatingState(states),snapshot));
     faults.push(...airflowWarnings(snapshot)); this.$('#fault-list').replaceChildren();
@@ -508,7 +546,7 @@ export class VentSysDashboardCard extends HTMLElement {
     if(modeReasons.size) this._text('#mode-help','Unavailable actions: '+[...modeReasons].join(' · '));
     const boothWheel=measurement('wheel',sensorValue(['sensor.ventsys_booth_airflow_sensor_flow_meter_wheel_speed'],states,connected,now));
     this._flowAnimation(3,boothWheel);
-    this._text('#flow3-rate',boothWheel.value === null ? '—' : sensorDisplay('wheel',boothWheel.value)+' RPM');
+    this._text('#flow3-rate',boothWheel.value === null ? boothWheel.reason : sensorDisplay('wheel',boothWheel.value)+' RPM');
     this._updateSchematic(snapshot);
   }
   _flowAnimation(index,reading) {
@@ -521,7 +559,21 @@ export class VentSysDashboardCard extends HTMLElement {
       if(arrow) {arrow.classList.toggle('flow-moving',moving);arrow.style.opacity=''; arrow.style.fill=moving ? '#00aaff' : '#ff2200'; arrow.style.filter=moving ? 'drop-shadow(0 0 4px #00aaff)' : 'drop-shadow(0 0 4px #ff2200)';}
     }
   }
+  _boardConfig(){const sensor=SENSOR_DEVICES[this._selected];if(sensor)return sensor;const d=DEVICES[this._selected];const prefixes=d?.native.map(id=>id.split('.')[1].replace(/_(valve_position|fan)$/,'')) || [];const states=this._hass?.states || {};const power=Object.keys(states).find(id=>id.startsWith('button.') && prefixes.some(p=>id.startsWith('button.'+p+'_')) && id.endsWith('_power_off_board'));return {name:d?.name,maintenance:CONTROL_MAINTENANCE[this._selected],power,prefixes};}
+  _updateBoardDetail(){const c=this._boardConfig(),states=this._hass?.states || {},helper='input_boolean.ventsys_maintenance_'+c.maintenance;this._text('#maintenance-status',states[helper]?.state==='on'?'Maintenance: expected offline. Reconnect power before reactivation.':'Active roster: board expected online.');this.$('#start-board-maintenance').disabled=!this._connected() || !['on','off'].includes(states[helper]?.state) || states[helper]?.state==='on';this.$('#end-board-maintenance').disabled=!this._connected() || states[helper]?.state!=='on';
+    const d=DEVICES[this._selected];const ids=SENSOR_DEVICES[this._selected]?detailEntities(c,states):[...new Set([...(d?.native || []),d?.entity,...Object.keys(states).filter(id=>c.prefixes.some(p=>id.startsWith('sensor.'+p+'_') || id.startsWith('binary_sensor.'+p+'_')))].filter(id=>id && Object.hasOwn(states,id)))];
+    const signature=JSON.stringify([this._selected,ids.map(id=>[id,states[id].state])]);if(signature!==this._detailSignature){this._detailSignature=signature;const list=this.$('#sensor-values');list.replaceChildren();for(const id of ids){const row=document.createElement('div'),dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=states[id].attributes?.friendly_name || id;dd.textContent=states[id].state+' '+(states[id].attributes?.unit_of_measurement || '');row.append(dt,dd);list.append(row);}}
+    const alarmIds=ids.filter(id=>id.startsWith('binary_sensor.') && /_(co_detected|smoke_detected|high_temperature|sensor_fault)$/.test(id));const latched=ids.some(id=>/alarm_latched$/.test(id) && states[id].state==='on');this._text('#sensor-alarm-status',!c.ack?'':alarmIds.some(id=>states[id].state==='on')?'Active alarm or sensor fault':alarmIds.some(id=>!['on','off'].includes(states[id].state))?'Alarm state unavailable':latched?'Stored alarm latched; active conditions clear':'Alarm clear');
+    const ack=this.$('#sensor-ack');ack.hidden=!c.ack;ack.disabled=!this._canSensorAck(c);for(const card of this._detailCards || [])card.hass=this._hass;const graphKey=this._selected+':'+ids.join(',');if(this._graphSelection!==graphKey){this._graphSelection=graphKey;this._buildDetailGraphs(ids);}}
+  _canSensorAck(c){const states=this._hass?.states || {},button=states[c.ack];const ids=detailEntities(c,states);const safety=ids.filter(id=>id.startsWith('binary_sensor.') && /_(co_detected|smoke_detected|high_temperature|sensor_fault|co_sensor_fault|bme680_fault)$/.test(id));return this._connected() && button && button.state!=='unavailable' && safety.length>0 && safety.every(id=>states[id].state==='off');}
+  async _sensorAck(){const c=this._boardConfig();if(!this._canSensorAck(c))return;try{await this._hass.callService('button','press',{entity_id:c.ack});this._event(c.name+': latch acknowledgment requested');this._text('#board-action-status','Acknowledgment sent; watch the latch report.');}catch(_){this._text('#board-action-status','Acknowledgment failed.');}}
+  async _buildDetailGraphs(ids){const selection=this._selected;const box=this.$('#detail-graphs');box.replaceChildren();this._detailCards=[];if(!window.loadCardHelpers)return;try{const helpers=await window.loadCardHelpers();if(selection!==this._selected || !this.isConnected)return;const states=this._hass.states,groups=new Map();for(const id of ids){if(!/^(sensor|number|fan)\./.test(id) || /uptime|wifi|heap|loop/.test(id))continue;const unit=states[id].attributes?.unit_of_measurement || (id.startsWith('fan.')?'Fan state':id.startsWith('number.')?'Controller report':/rs_r0_ratio$/.test(id)?'Ratio':null);if(!unit)continue;if(!groups.has(unit))groups.set(unit,[]);groups.get(unit).push(id);}for(const [unit,entities] of groups){const card=helpers.createCardElement({type:'history-graph',title:'Recent history · '+unit,entities,hours_to_show:2,refresh_interval:60});card.hass=this._hass;box.append(card);this._detailCards.push(card);}}catch(_){box.textContent='Open Sensor trends for history.';}}
+  _reviewMaintenance(){const c=this._boardConfig(),states=this._hass?.states || {};this._maintenanceDraft={selection:this._selected,...c};const available=c.power && states[c.power] && states[c.power].state!=='unavailable';this._text('#maintenance-title','Take '+c.name+' out of service');this._text('#maintenance-description',available?'Marks the board in maintenance, then sends its shutdown command. Sensing/control will stop. Reconnect power to bring it back; reactivation cannot wake it remotely.':'Marks this board in maintenance. No reachable firmware shutdown control exists; unplug it manually. Reconnect power before reactivation.');this.$('#maintenance-dialog').showModal();}
+  async _applyMaintenance(){const c=this._maintenanceDraft;if(this._maintenancePending || !c || c.selection!==this._selected || !this._connected())return;this._maintenancePending=true;this.$('#maintenance-dialog').close();try{await this._hass.callService('input_boolean','turn_on',{entity_id:'input_boolean.ventsys_maintenance_'+c.maintenance});this._event(c.name+': maintenance started');const state=c.power && this._hass.states[c.power];if(state && state.state!=='unavailable'){await this._hass.callService('button','press',{entity_id:c.power});this._event(c.name+': shutdown requested');this._text('#board-action-status','Shutdown requested. Reconnect power before reactivation.');}else this._text('#board-action-status','Maintenance started. Unplug the board manually.');}catch(_){this._text('#board-action-status','Maintenance/shutdown failed or incomplete; inspect board and maintenance state.');}finally{this._maintenanceDraft=null;this._maintenancePending=false;}}
+  async _reactivate(){const c=this._boardConfig();if(!this._connected())return;try{await this._hass.callService('input_boolean','turn_off',{entity_id:'input_boolean.ventsys_maintenance_'+c.maintenance});this._event(c.name+': active monitoring requested');this._text('#board-action-status','Expected online again. This does not restore power; confirm fresh readings.');}catch(_){this._text('#board-action-status','Reactivation failed.');}}
   _updateDevice(snapshot, connected) {
+    this._updateBoardDetail();
+    if(SENSOR_DEVICES[this._selected]){const config=SENSOR_DEVICES[this._selected];this._text('#device-name',config.name);this._text('#device-zone','SENSOR BOARD');this._text('#device-value','');this._text('#device-unit','');this._text('#device-source','Live measurements and recorded history');this._text('#device-range','Not an actuator');this._text('#device-age','See individual reports');this.$('#position-controls').hidden=true;this.$('#fan-controls').hidden=true;this._text('#device-help','Alarms are cleared only when the underlying condition is clear.');return;}
     const device = DEVICES[this._selected], state = snapshot[this._selected];
     this._text('#device-name', device.name); this._text('#device-zone', device.zone); this._text('#device-value', state.value === null ? '—' : display(device.fan ? state.value : openingPercent(device,state.value))); this._text('#device-unit', device.fan ? '' : '%');
     this._text('#device-source', !state.available ? 'Controller report unavailable' : state.native ? 'Native controller report' : 'MQTT report');
@@ -529,21 +581,21 @@ export class VentSysDashboardCard extends HTMLElement {
     this.$('#reference-controls').hidden = !device.expectedRange;
     this.$('#record-reference').disabled = Boolean(!device.expectedRange || this._blocked({kind:'reference',target:this._selected,opening:0,value:device.expectedRange?.min,revision:operatingState(this._hass?.states || {})?.revision}));
     this.$('#position-controls').hidden = Boolean(device.fan); this.$('#fan-controls').hidden = !device.fan;
-    const reason = this._backendBlock() || (!state.available ? 'Controller unavailable; controls are disabled.' : !device.fan && !state.native ? 'Native controller not adopted; retained MQTT state cannot verify availability.' : this._pending || window[lockKey] ? 'A command is awaiting confirmation.' : '');
+    const maintained=this._hass?.states?.['input_boolean.ventsys_maintenance_'+CONTROL_MAINTENANCE[this._selected]]?.state==='on';const reason = this._backendBlock() || (maintained?'Board in maintenance; controls are disabled.':!state.available ? 'Controller unavailable; controls are disabled.' : !device.fan && !state.native ? 'Native controller not adopted; retained MQTT state cannot verify availability.' : this._pending || window[lockKey] ? 'A command is awaiting confirmation.' : '');
     for (const selector of ['#position-slider', '#position-number', '#fan-on', '#fan-off', '#speed-slider']) this.$(selector).disabled = Boolean(reason);
     this._text('#device-help', reason || ((!device.fan && (state.min > 0 || state.max < 100)) ? `Opening 0–100% maps to servo ${device.expectedRange?.min ?? state.min}–${device.expectedRange?.max ?? state.max}%. Targets are rounded to controller steps.` : 'Change a target to open its confirmation popup.'));
     for (const selector of ['#position-slider', '#position-number']) { this.$(selector).min = String(device.expectedRange ? 0 : state.min); this.$(selector).max = String(device.expectedRange ? 100 : state.max); }
     if (!this._editing) { const value = typeof state.value === 'number' ? openingPercent(device,state.value) : (device.expectedRange ? 0 : state.min); for (const selector of ['#position-slider', '#position-number']) this.$(selector).value = String(value); this._text('#requested', display(value) + '%'); this.$('#speed-slider').value = String(state.speed ?? 0); this._text('#speed-requested', (state.speed ?? 0) + '%'); }
   }
   _updateSchematic(snapshot) {
-    const entries = this._events.length ? this._events : [{ time: this._started, message: 'Ready · no commands sent' }];
+    const recorded=this._activityEntries(); const entries = recorded.length ? recorded : [{ time: this._started, message: 'Ready · no commands sent' }];
     for (let index = 0; index < 6; index++) {
       const entry = entries[index], node = this.$('#log-msg-' + (index + 1));
       this._text('#log-ts-' + (index + 1), entry ? new Date(entry.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) : '');
-      if (node) { node.textContent = entry ? entry.message.length > 26 ? entry.message.slice(0, 25) + '…' : entry.message : ''; node.setAttribute('aria-label', entry?.message || ''); }
+      if (node) { node.textContent = entry?.message || ''; node.removeAttribute('textLength'); if(node.getComputedTextLength && node.getComputedTextLength()>510){node.setAttribute('textLength','510');node.setAttribute('lengthAdjust','spacingAndGlyphs');} node.setAttribute('aria-label', entry?.message || ''); }
     }
     for (const [key, textId, bladeId] of [['fan_main', 'fan-status-sub', 'fan-blades'], ['fan_booth', 'spray-fan-status-sub', 'spray-booth-fan-blades']]) {
-      const state = snapshot[key]; this._text('#' + textId, !state.available ? 'UNAVAILABLE' : state.value === 'on' ? 'ON · REPORTED' : 'OFF · REPORTED'); const blades = this.$('#' + bladeId); if (blades) blades.classList.toggle('running', state.value === 'on');
+      const state = snapshot[key]; const rpmLabel=this.$(key==='fan_main'?'#main-fan-rpm':'#booth-fan-rpm');if(rpmLabel)rpmLabel.setAttribute('fill',state.available?'#00ff88':'#91a2b8'); this._text(key==='fan_main'?'#main-fan-rpm':'#booth-fan-rpm',!state.available?'RPM unavailable':state.value==='off'?'0 RPM · off report':'RPM unmeasured'); const label=this.$('#'+textId); if(label){label.setAttribute('fill', state.available ? '#00ff88' : '#91a2b8');label.style.textShadow='none';} this._text('#' + textId, !state.available ? 'UNAVAILABLE' : state.value === 'on' ? 'ON · REPORTED' : 'OFF · REPORTED'); const blades = this.$('#' + bladeId); if (blades) blades.classList.toggle('running', state.value === 'on');
     }
     for (const device of DEVICE_LIST.filter(d => !d.fan)) {
       const state = snapshot[device.key], node = this.$(`[data-select="${device.key}"]`); if (!node) continue;

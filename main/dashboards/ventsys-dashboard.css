@@ -172,3 +172,9 @@ dialog { max-height:calc(100dvh - 24px); overflow:auto; }
 #diagram [id$="arrow-top"].flow-moving { animation-delay: .8s; }
 @keyframes airflow-step { 0%,32% { opacity: 1; } 33%,100% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { #diagram .flow-moving { animation: none; opacity: 1; } }
+
+.pressure-panel{margin:16px 0;padding:18px;border:1px solid #395468;border-radius:12px}.pressure-panel input{width:80px}.pressure-panel strong{font-size:1.2rem}.pressure-readings{display:flex;gap:32px;flex-wrap:wrap}
+
+#activity-dialog{width:min(1100px,94vw);max-height:90vh;overflow:auto}#events li{overflow-wrap:anywhere;white-space:normal}#svg-log-box{cursor:pointer}
+
+#sensor-values{max-height:380px;overflow:auto}#sensor-values div{display:block;padding:5px 0;border-bottom:1px solid #294152}#sensor-values dt{overflow-wrap:anywhere}#sensor-values dd{margin:0;color:#83d6c5}#board-detail{margin-top:15px}#detail-graphs{display:grid;gap:12px}#board-action-status{overflow-wrap:anywhere}

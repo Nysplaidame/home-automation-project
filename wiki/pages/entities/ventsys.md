@@ -32,7 +32,7 @@ November 7 frontend `20261107-8` includes a Clear alarms popup in standard and t
 views. It lists live native board latches and offers per-board acknowledgment
 only while the board reports no active alarm or sensor fault. The SLA pipe CO
 reading returned to about 3.3 V with a sensor fault and stored latch, so its
-latch cannot currently be acknowledged. The latest API check did not report
+historical latch could not then be acknowledged. The latest API check did not report
 CO detection. The dashboard shows the latch and fault as orange live incidents,
 and HA sends CO hardware fault and failsafe transitions to internal ntfy.
 The ntfy server accepted a test publish; phone reception and the full
@@ -343,3 +343,9 @@ FDM sensor identity and E2 router/HA reservations corrected; E2 was temporarily 
 ## November 10 FDM CO firmware
 
 Installed FDM enclosure sensor `.32` / `CC:BA:97:F0:D0:C0` now runs CO-capable firmware with GPIO3 CO, GPIO2 plain status LED and BME680 on GPIO4/5 at `0x77`. The former smoke-labelled channel was removed. A clean-air baseline and end-to-end alert verification remain open; the qualitative sensor is not a certified CO alarm. See [[../../../main/docs/reference/current-live-state|current live state]] and [[../../../main/docs/procedures/ventsys-board-power-controls|board procedure]].
+
+## November 14 correction
+
+SLA CO fault is now clear and the stored latch was acknowledged successfully. FDM array `.31` is adopted; dashboard `20261114-3` shows native values and a separate differential-pressure sign/equality panel with provisional ±0.5 Pa tolerance. All three wheel sensors show confirmed zero using board-specific uptime freshness. Native alarm inputs now feed the existing enabled risk publishers; physical cutoff and notification acceptance remain open. Existing `.32`/`.37` CO baselines exist, new `.31` baseline is unset. No BME680 baseline-change warning is implemented. Canonical details: [[../../../main/docs/procedures/ventsys-dashboard]].
+
+Release `20261114-6` adds Sensor trends/Activity tabs, persistent scoped HA activity, independent array/pipe columns and selectable sensor board detail/history/ack/maintenance controls. Maintenance can request board shutdown after confirmation; reconnect physical power before reactivation. The 0 RPM fan label follows an off report; no motor tachometry exists. Canonical deep dive: [[../../../main/docs/audits/2026-11-14-ventsys-history-and-telemetry]]. Physical UI/board/safety acceptance remains separate.

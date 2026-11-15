@@ -9,7 +9,7 @@ for(const size of [{width:800,height:480},{width:1024,height:600}]) {
     await expect(page.locator('#touch-clock')).toHaveText(/\d\d:\d\d:\d\d/);
     await expect(page.locator('.touch-statusbar')).toContainText('Unmeasured');
     await expect(page.locator('#touch-menu')).not.toBeVisible();
-    await expect(page.locator('#diagram')).toHaveAttribute('viewBox','0 0 1300 820');
+    await expect(page.locator('#diagram')).toHaveAttribute('viewBox','0 0 1540 820');
     await expect(page.locator('#circle-enc1-print')).toHaveAttribute('cy','598');
     const bounds=await page.locator('#diagram').boundingBox();
     expect(bounds.y+bounds.height).toBeLessThanOrEqual(size.height);
@@ -22,7 +22,7 @@ for(const size of [{width:800,height:480},{width:1024,height:600}]) {
     await page.locator('#touch-close').click();await expect(page.locator('#touch-menu')).not.toBeVisible();
     await page.locator('#environment-box').click();await expect(page.locator('#touch-menu-title')).toHaveText('Environmental sensors');
     await page.keyboard.press('Escape');await expect(page.locator('#touch-menu')).not.toBeVisible();
-    await page.locator('#svg-log-box').click();await expect(page.locator('#touch-menu-title')).toHaveText('System log · this session');
+    await page.locator('#svg-log-box').click();await expect(page.locator('#activity-dialog')).toBeVisible();
     expect(await page.evaluate(()=>window.calls)).toEqual([]);
   });
 }
@@ -47,7 +47,7 @@ test('duct highlights end inside the main duct and log messages use larger type'
     const end=await page.locator('#'+id).evaluate(node=>Number(node.getAttribute('x'))+Number(node.getAttribute('width')));
     expect(end).toBeLessThanOrEqual(1252);
   }
-  await expect(page.locator('#log-msg-1')).toHaveAttribute('font-size','20');
+  await expect(page.locator('#log-msg-1')).toHaveAttribute('font-size','16');
   await expect(page.locator('#log-ts-1')).toHaveAttribute('font-size','18');
   await expect(page.locator('.touch-toolbar')).toHaveCount(0);
 });

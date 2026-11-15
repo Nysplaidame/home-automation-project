@@ -311,3 +311,7 @@ Written coverage is not verified rebuild or current restore acceptance.
 
 - [[docs/procedures/ventsys-temporary-mqtt-logging|VentSys server identity monitor and temporary MQTT capture]] — VM102 systemd/ntfy deployment and rollback.
 - [[docs/audits/2026-11-10-monitoring-network-access|Monitoring VM access audit]] — missing endpoint allowances and repaired OMV SMART heartbeat.
+
+November 14 current array/dashboard acceptance: [[docs/procedures/ventsys-dashboard]]; physical resume tasks: [[HANDOFF-2026-11-14-array-display-dp-ha]].
+
+- [[docs/audits/2026-11-14-ventsys-history-and-telemetry|VentSys history and telemetry deep dive]] — deployed trends/activity tabs, board selection/shutdown maintenance, array/pipe pressure display, retention and physical acceptance limits.

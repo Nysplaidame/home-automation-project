@@ -734,3 +734,9 @@ must work without HACS.
 - [ ] Revert temporary November10 Mosquitto debug logging and server diagnostic capture after conflict investigation; follow docs/procedures/ventsys-temporary-mqtt-logging.md.
 
 - [ ] FDM CO firmware OTA succeeded November 10; after warm-up capture and verify a clean-air baseline and test the complete alert path. Resolve planned FDM-array-2 `.32` conflict before adoption. CO is qualitative; the removed smoke-labelled channel was not a smoke sensor.
+
+November 14 VentSys follow-through: native FDM `.31` adoption, dashboard pressure/sign panel, colours/backgrounds, stopped-wheel freshness, SLA latch acknowledgment and native risk-publisher input coverage completed. Remaining: physical DP polarity/zero, `.31` clean-air baseline, bezel fit/measurements, other array hardware/flash, wiring HTML capture, supervised cutoff/phone test. BME680 baseline-change warnings are not implemented.
+
+- [ ] Accept November 14 VentSys history/board UI physically: verify source placements, native chart interactions, supervised board shutdown/reconnect/reactivation, and alarm/cutoff/phone path. See [[docs/audits/2026-11-14-ventsys-history-and-telemetry]]. Add fan tachometry only if actual motor RPM is required; current 0 RPM indicator explicitly follows off report.
+- [ ] Troubleshoot FDM array1 `.31` LDR after November14 live cover/light test: readings fluctuated ~3–64% and stable response was not established. Check GPIO0 midpoint, 3V3/LDR/10k/GND divider and connector continuity with power off, then retest. See November14 array handoff.
+- [x] FDM `.31` OLED, SDP810 and BME humidity recovered after owner repowered on November14; LDR investigation remains separately open. See array handoff.

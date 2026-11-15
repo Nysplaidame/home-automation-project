@@ -1,0 +1,167 @@
+# Durable activity independent of an open dashboard. No actuator actions.
+input_boolean:
+  ventsys_activity_source:
+    name: VentSys activity source
+    icon: mdi:history
+automation:
+- id: ventsys_dashboard_activity_record
+  alias: VentSys persistent dashboard activity
+  mode: queued
+  max: 100
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.garage_fdm_enclosure_sensor_co_alarm_latched
+    - binary_sensor.garage_fdm_enclosure_sensor_fdm_enclosure_sensor_high_temperature
+    - binary_sensor.garage_fdm_enclosure_sensor_fdm_enclosure_sensor_status
+    - binary_sensor.garage_sla_enclosure_sensor_array_1_co_detected
+    - binary_sensor.garage_sla_enclosure_sensor_array_1_co_sensor_fault
+    - binary_sensor.garage_sla_enclosure_sensor_array_1_sensor_fault
+    - binary_sensor.garage_ventsys_sla_pipe_air_sensor_alarm_latched
+    - binary_sensor.garage_ventsys_sla_pipe_air_sensor_co_detected
+    - binary_sensor.garage_ventsys_sla_pipe_air_sensor_co_sensor_fault
+    - binary_sensor.garage_ventsys_sla_pipe_air_sensor_high_temperature
+    - binary_sensor.garage_ventsys_sla_pipe_air_sensor_sensor_fault
+    - binary_sensor.garage_ventsys_sla_pipe_air_sensor_status
+    - binary_sensor.ventsys_fdm_array_1_alarm_latched
+    - binary_sensor.ventsys_fdm_array_1_co_detected
+    - binary_sensor.ventsys_fdm_array_1_co_sensor_fault
+    - binary_sensor.ventsys_fdm_array_1_dp_sensor_fault
+    - binary_sensor.ventsys_fdm_array_1_high_temperature
+    - binary_sensor.ventsys_fdm_array_1_sensor_fault
+    - binary_sensor.ventsys_fdm_array_1_smoke_detected
+    - binary_sensor.ventsys_fdm_array_1_smoke_sensor_fault
+    - binary_sensor.ventsys_fdm_array_1_status
+    - button.garage_fdm_enclosure_sensor_acknowledge_co_alarm
+    - button.garage_sla_enclosure_sensor_array_1_co_capture_clean_air_baseline
+    - button.garage_sla_enclosure_sensor_array_1_power_off_board
+    - button.garage_ventsys_e2_branch_valve_power_off_board
+    - button.garage_ventsys_fdm_360_intake_valve_power_off_board
+    - button.garage_ventsys_main_duct_valve_2_power_off_board
+    - button.garage_ventsys_sla_360_intake_valve_power_off_board
+    - button.garage_ventsys_sla_pipe_air_sensor_acknowledge_alarms
+    - button.garage_ventsys_sla_pipe_air_sensor_co_capture_clean_air_baseline
+    - button.garage_ventsys_sla_pipe_air_sensor_power_off_board
+    - button.ventsys_e1_branch_valve_power_off_board
+    - button.ventsys_fdm_airflow_sensor_power_off_board
+    - button.ventsys_fdm_airflow_sensor_power_off_board_2
+    - button.ventsys_fdm_array_1_acknowledge_alarms
+    - button.ventsys_fdm_array_1_co_capture_clean_air_baseline
+    - button.ventsys_fdm_array_1_dp_capture_zero
+    - button.ventsys_fdm_array_1_power_off_board
+    - button.ventsys_fdm_array_1_smoke_capture_clean_air_baseline
+    - button.ventsys_fdm_print_valve_power_off_board
+    - button.ventsys_main_duct_valve_1_power_off_board
+    - button.ventsys_sla_airflow_sensor_power_off_board
+    - button.ventsys_sla_print_valve_power_off_board
+    - fan.inline_fan
+    - fan.spray_booth_fan
+    - input_boolean.ventsys_failsafe
+    - input_boolean.ventsys_maintenance_ambient
+    - input_boolean.ventsys_maintenance_booth_airflow
+    - input_boolean.ventsys_maintenance_booth_fan
+    - input_boolean.ventsys_maintenance_fdm_airflow
+    - input_boolean.ventsys_maintenance_fdm_array
+    - input_boolean.ventsys_maintenance_fdm_branch
+    - input_boolean.ventsys_maintenance_fdm_intake
+    - input_boolean.ventsys_maintenance_fdm_pipe
+    - input_boolean.ventsys_maintenance_fdm_print
+    - input_boolean.ventsys_maintenance_main_duct_1
+    - input_boolean.ventsys_maintenance_main_duct_2
+    - input_boolean.ventsys_maintenance_main_fan
+    - input_boolean.ventsys_maintenance_sla_airflow
+    - input_boolean.ventsys_maintenance_sla_array
+    - input_boolean.ventsys_maintenance_sla_branch
+    - input_boolean.ventsys_maintenance_sla_intake
+    - input_boolean.ventsys_maintenance_sla_pipe_air
+    - input_boolean.ventsys_maintenance_sla_print
+    - input_text.ventsys_operating_result
+    - sensor.garage_fdm_enclosure_sensor_fdm_enclosure_sensor_temperature
+    - sensor.garage_sla_enclosure_sensor_array_1_co_voltage
+    - sensor.garage_sla_enclosure_sensor_array_1_uptime
+    - sensor.garage_ventsys_main_duct_valve_2_internal_temperature
+    - sensor.garage_ventsys_main_duct_valve_2_uptime
+    - sensor.garage_ventsys_sla_pipe_air_sensor_co_voltage
+    - sensor.garage_ventsys_sla_pipe_air_sensor_temperature
+    - sensor.garage_ventsys_sla_pipe_air_sensor_uptime
+    - sensor.ventsys_booth_airflow_sensor_flow_meter_wheel_speed
+    - sensor.ventsys_e1_branch_valve_internal_temperature
+    - sensor.ventsys_e1_branch_valve_uptime
+    - sensor.ventsys_e2_branch_valve_internal_temperature
+    - sensor.ventsys_e2_branch_valve_uptime
+    - sensor.ventsys_fdm_360_intake_valve_uptime
+    - sensor.ventsys_fdm_airflow_sensor_flow_meter_wheel_speed
+    - sensor.ventsys_fdm_airflow_sensor_uptime
+    - sensor.ventsys_fdm_airflow_sensor_uptime_2
+    - sensor.ventsys_fdm_array_1_co_voltage
+    - sensor.ventsys_fdm_array_1_differential_pressure
+    - sensor.ventsys_fdm_array_1_temperature
+    - sensor.ventsys_fdm_array_1_uptime
+    - sensor.ventsys_fdm_print_valve_uptime
+    - sensor.ventsys_main_duct_valve_1_internal_temperature
+    - sensor.ventsys_main_duct_valve_1_uptime
+    - sensor.ventsys_sla_360_intake_valve_uptime
+    - sensor.ventsys_sla_airflow_sensor_flow_meter_wheel_speed
+    - sensor.ventsys_sla_airflow_sensor_uptime
+    - sensor.ventsys_sla_print_valve_uptime
+  conditions:
+  - condition: template
+    value_template: "{% set old = trigger.from_state.state if trigger.from_state is not none else none %}\n{% set\
+      \ new = trigger.to_state.state if trigger.to_state is not none else 'unavailable' %}\n{% set missing = ['unavailable',\
+      \ 'unknown', ''] %}\n{{ old is not none and old != new and (not trigger.entity_id.startswith('button.') or\
+      \ new not in missing) and\n   ((trigger.entity_id.startswith('sensor.') and ((old in missing) != (new in missing)))\
+      \ or\n    not trigger.entity_id.startswith('sensor.')) }}"
+  actions:
+  - action: logbook.log
+    data:
+      name: VentSys activity
+      entity_id: input_boolean.ventsys_activity_source
+      message: '{% set old = trigger.from_state.state %}
+
+        {% set new = trigger.to_state.state if trigger.to_state is not none else ''unavailable'' %}
+
+        {% set missing = [''unavailable'',''unknown'',''''] %}
+
+        {% set id = trigger.entity_id %}
+
+        {% set name = trigger.to_state.name if trigger.to_state is not none else id %}
+
+        {{ name }}: {% if ''_maintenance_'' in id %}{{ ''maintenance started; expected offline'' if new == ''on''
+        else ''reactivated; expected online (power must be connected)'' }}{% elif id.startswith(''button.'') %}action
+        requested{% elif new in missing %}unavailable{% elif old in missing %}available ({{ new }}){% elif id.endswith(''alarm_latched'')
+        %}{{ ''latch cleared'' if new == ''off'' else ''alarm latched'' }}{% else %}{{ old }} → {{ new }}{% endif
+        %}'
+- id: ventsys_dashboard_command_activity
+  alias: VentSys dashboard command activity
+  mode: queued
+  max: 100
+  triggers:
+  - trigger: event
+    event_type: call_service
+    event_data:
+      domain: script
+      service: ventsys_dashboard_command
+  - trigger: event
+    event_type: call_service
+    event_data:
+      domain: script
+      service: ventsys_set_operating_mode
+  - trigger: event
+    event_type: call_service
+    event_data:
+      domain: script
+      service: ventsys_test_valves
+  - trigger: event
+    event_type: call_service
+    event_data:
+      domain: script
+      service: ventsys_record_intake_reference
+  actions:
+  - action: logbook.log
+    data:
+      name: VentSys activity
+      entity_id: input_boolean.ventsys_activity_source
+      message: '{% set s = trigger.event.data.service_data %}Request {{ trigger.event.data.service }}: target={{
+        s.get(''target'', s.get(''zone'', '''')) }}, operation={{ s.get(''operation'', s.get(''kind'', '''')) }},
+        value={{ s.get(''value'', s.get(''opening'', s.get(''strength'', ''''))) }}. Request only; inspect controller
+        reports for outcome.'

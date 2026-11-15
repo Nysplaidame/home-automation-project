@@ -1214,3 +1214,7 @@ Updated [[pages/entities/ventsys|VentSys]] to reflect the installed FDM CO firmw
 - Pages updated: [[entities/llm-host]]
 - Corrections: the page still said Qwen3-14B 64k; STT is Parakeet via sherpa-onnx, not a small Whisper.
 - Notes: canonical state lives in `main/docs/reference/current-live-state.md` and `main/HANDOFF-2026-11-11-llm-igpu-speed.md`.
+
+2026-11-14 — Updated VentSys entity from canonical dashboard/current-live-state: adopted array, pressure display, wheel heartbeat mapping, SLA latch cleared and native risk input coverage; physical acceptance outstanding.
+
+2026-11-14 — Extended VentSys entity with release 20261114-6 history/activity, board maintenance power-cycle semantics, independent sources and fan tachometry limits from canonical deep dive.

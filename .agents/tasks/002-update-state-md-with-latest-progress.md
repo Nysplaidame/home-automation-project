@@ -1,7 +1,7 @@
 ---
 id: 002
 title: Update STATE.md with latest progress and next steps
-status: approved
+status: superseded
 tier: executor
 agent: codex
 reviewer: claude

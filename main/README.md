@@ -237,3 +237,7 @@ The older setup guides remain deep-dive appendices for individual systems.
 passed with synthetic data, separately restored PostgreSQL/media and loopback
 integration doubles. This extends local acceptance without certifying live
 integration or full-system recovery.
+
+November 14: FDM array 1 adopted; dashboard pressure/sign display and RPM freshness repaired; native risk input gap closed. Physical calibration and safety commissioning remain open.
+
+November 14 dashboard follow-on: Sensor trends and Activity tabs, independent array/pipe columns, pressure icons and board detail/maintenance controls deployed as `20261114-6`. Physical acceptance remains open; see [[docs/audits/2026-11-14-ventsys-history-and-telemetry]].

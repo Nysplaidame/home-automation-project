@@ -1,4 +1,4 @@
-# Two views of the same authenticated card; standard view remains the default.
+# Authenticated standard/touch dashboard, diagnostics, sensor trends and activity.
 views:
   - title: VentSys
     path: '0'
@@ -16,3 +16,14 @@ views:
     type: panel
     cards:
       - type: custom:ventsys-diagnostics-card
+
+  - title: Sensor trends
+    path: graphs
+    type: panel
+    cards:
+      - type: custom:ventsys-history-card
+  - title: Activity
+    path: activity
+    type: panel
+    cards:
+      - type: custom:ventsys-activity-card

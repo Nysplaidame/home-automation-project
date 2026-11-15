@@ -266,6 +266,13 @@ automation:
     trigger:
       - platform: state
         entity_id:
+          - binary_sensor.ventsys_fdm_array_1_alarm_latched
+          - binary_sensor.ventsys_fdm_array_1_smoke_detected
+          - binary_sensor.ventsys_fdm_array_1_co_detected
+          - binary_sensor.ventsys_fdm_array_1_high_temperature
+          - binary_sensor.garage_fdm_enclosure_sensor_co_alarm_latched
+          - binary_sensor.garage_sla_enclosure_sensor_array_1_co_detected
+          - binary_sensor.garage_fdm_enclosure_sensor_fdm_enclosure_sensor_high_temperature
           - binary_sensor.fdm_array_1_alarm_latched
           - binary_sensor.fdm_array_1_co
           - binary_sensor.fdm_array_1_high_temperature
@@ -283,6 +290,13 @@ automation:
           retain: true
           payload: >-
             {% set hot = [
+              is_state('binary_sensor.ventsys_fdm_array_1_alarm_latched', 'on'),
+              is_state('binary_sensor.ventsys_fdm_array_1_smoke_detected', 'on'),
+              is_state('binary_sensor.ventsys_fdm_array_1_co_detected', 'on'),
+              is_state('binary_sensor.ventsys_fdm_array_1_high_temperature', 'on'),
+              is_state('binary_sensor.garage_fdm_enclosure_sensor_co_alarm_latched', 'on'),
+              is_state('binary_sensor.garage_sla_enclosure_sensor_array_1_co_detected', 'on'),
+              is_state('binary_sensor.garage_fdm_enclosure_sensor_fdm_enclosure_sensor_high_temperature', 'on'),
               is_state('binary_sensor.fdm_array_1_alarm_latched', 'on'),
               is_state('binary_sensor.fdm_array_1_co', 'on'),
               is_state('binary_sensor.fdm_array_1_high_temperature', 'on'),
@@ -301,6 +315,9 @@ automation:
     trigger:
       - platform: state
         entity_id:
+          - binary_sensor.garage_ventsys_sla_pipe_air_sensor_alarm_latched
+          - binary_sensor.garage_ventsys_sla_pipe_air_sensor_co_detected
+          - binary_sensor.garage_ventsys_sla_pipe_air_sensor_high_temperature
           - binary_sensor.sla_array_1_alarm_latched
           - binary_sensor.sla_array_1_co
           - binary_sensor.sla_array_1_high_temperature
@@ -318,6 +335,9 @@ automation:
           retain: true
           payload: >-
             {% set hot = [
+              is_state('binary_sensor.garage_ventsys_sla_pipe_air_sensor_alarm_latched', 'on'),
+              is_state('binary_sensor.garage_ventsys_sla_pipe_air_sensor_co_detected', 'on'),
+              is_state('binary_sensor.garage_ventsys_sla_pipe_air_sensor_high_temperature', 'on'),
               is_state('binary_sensor.sla_array_1_alarm_latched', 'on'),
               is_state('binary_sensor.sla_array_1_co', 'on'),
               is_state('binary_sensor.sla_array_1_high_temperature', 'on'),

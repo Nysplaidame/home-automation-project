@@ -84,7 +84,7 @@ test('firmware endpoints are enforced before sending', async ({ page }) => {
   await openCard(page);await page.evaluate(()=>{window.fixture.states['number.ventsys_main_duct_valve_1_valve_position'].attributes.max=60;window.card.hass={...window.fixture};});await page.locator('#position-number').fill('100');await page.locator('#position-number').press('Tab');await expect(page.locator('#command-status')).toContainText('accepts controller targets');expect(await page.evaluate(()=>window.calls)).toEqual([]);
 });
 test('fallback clear cannot overwrite a smoke alarm; units stay separate', async ({ page }) => {
-  await openCard(page);await page.evaluate(()=>{window.fixture.states['binary_sensor.garage_fdm_enclosure_sensor_fdm_enclosure_sensor_smoke_detected'].state='on';window.fixture.states['sensor.fdm_smoke']={state:'clear',last_updated:new Date().toISOString(),attributes:{}};window.card.hass={...window.fixture};});await expect(page.locator('[data-smoke="fdm"]')).toContainText('SMOKE DETECTED');await expect(page.locator('[data-sensor="fdm-baro"]')).toHaveText('1013 hPa');await expect(page.locator('[data-sensor="fdm-differential"]')).toHaveText('-8 Pa');await expect(page.locator('[data-sensor="fdm-gas"]')).toHaveText('90 kΩ');
+  await openCard(page);await page.evaluate(()=>{window.fixture.states['binary_sensor.ventsys_fdm_array_1_smoke_detected'].state='on';window.fixture.states['sensor.fdm_smoke']={state:'clear',last_updated:new Date().toISOString(),attributes:{}};window.card.hass={...window.fixture};});await expect(page.locator('[data-smoke="fdm"]')).toContainText('SMOKE DETECTED');await expect(page.locator('[data-sensor="fdm-baro"]')).toHaveText('1013 hPa');await expect(page.locator('[data-sensor="fdm-differential"]')).toHaveText('-8 Pa');await expect(page.locator('[data-sensor="fdm-gas"]')).toHaveText('90 kΩ');
 });
 test('sensor becomes stale and clears the value', async ({ page }) => {
   await openCard(page);await page.clock.install();await page.clock.fastForward(301000);await expect(page.locator('[data-sensor="fdm-humidity"]')).toHaveText('Stale');
@@ -179,10 +179,10 @@ test('missing backend blocks controls and a dispatcher race is checked again at 
   expect(await page.evaluate(()=>window.calls)).toEqual([]);
 });
 
-test('environment compares three independent zones and clears unavailable or offline readings', async ({ page }) => {
+test('environment compares five independent board sources and clears unavailable or offline readings', async ({ page }) => {
   await openCard(page);
   await page.evaluate(async()=>{
-    const {SENSORS}=await import('/ventsys-model.mjs?v=20261027-1');
+    const {ENVIRONMENT_SOURCES:SENSORS}=await import('/ventsys-model.mjs?v=20261027-1');
     for (const [zone,value] of [['ambient',18],['fdm',24],['sla',29]]) window.fixture.states[SENSORS[zone].temperature[0]].state=String(value);
     window.card.hass={...window.fixture};
   });
@@ -192,7 +192,7 @@ test('environment compares three independent zones and clears unavailable or off
   await expect(page.locator('#env-sla-temperature')).toHaveText('29');
   await expect(page.locator('#env-sla-baro')).toHaveText('1013');
   await expect(page.locator('#env-sla-gas')).toHaveText('90');
-  await page.evaluate(async()=>{const {SENSORS}=await import('/ventsys-model.mjs?v=20261027-1');window.fixture.states[SENSORS.fdm.temperature[0]].state='unavailable';window.fixture.states[SENSORS.sla.smoke[0]].state='on';window.card.hass={...window.fixture};});
+  await page.evaluate(async()=>{const {ENVIRONMENT_SOURCES:SENSORS}=await import('/ventsys-model.mjs?v=20261027-1');window.fixture.states[SENSORS.fdm.temperature[0]].state='unavailable';window.fixture.states[SENSORS.sla.smoke[0]].state='on';window.card.hass={...window.fixture};});
   await expect(page.locator('#env-fdm-temperature')).toHaveText('—');
   await expect(page.locator('#env-sla-smoke')).toHaveText('ALARM');
   await page.evaluate(()=>{window.fixture.connection.connected=false;window.card.hass={...window.fixture};});
@@ -205,7 +205,7 @@ test('system log shows actual session events and environment cells fit their col
   await expect(page.locator('#svg-log-box')).toContainText('SYSTEM LOG');
   await expect(page.locator('#log-msg-1')).toHaveText('Ready · no commands sent');
   const cells=await page.locator('#environment-box text[id]').evaluateAll(nodes=>nodes.map(node=>({id:node.id,x:node.getBBox().x,width:node.getBBox().width})));
-  for(const cell of cells){expect(cell.x).toBeGreaterThan(105);expect(cell.x+cell.width).toBeLessThan(407);}
+  for(const cell of cells){expect(cell.x).toBeGreaterThan(105);expect(cell.x+cell.width).toBeLessThan(647);}
   await page.locator('#diagram').screenshot({path:require('node:path').join(require('node:os').tmpdir(),'ventsys-environment-desktop.png')});
   await page.locator('#position-number').fill('75');await page.locator('#position-number').press('Tab');await page.locator('#confirm-command').click();
   await expect(page.locator('#log-msg-1')).toContainText('Requested Main duct 1');
@@ -301,7 +301,7 @@ test('wheel arrows animate only fresh positive flow and gas/RPM use integers',as
  await page.evaluate(()=>{window.fixture.states['sensor.ventsys_fdm_airflow_sensor_flow_meter_wheel_speed'].state='0';window.card.hass={...window.fixture};});
  await expect(page.locator('#flow1-arrow-bot')).not.toHaveClass(/flow-moving/);
  await page.evaluate(()=>{window.fixture.connection.connected=false;window.card.hass={...window.fixture};});
- await expect(page.locator('#flow1-rate')).toHaveText('—');
+ await expect(page.locator('#flow1-rate')).toHaveText('Offline');
 });
 
 
@@ -333,4 +333,59 @@ test('manual reference rejects unavailable fans and active PWM',async({page})=>{
  await expect(page.locator('#record-reference')).toBeDisabled();
  await page.evaluate(()=>{window.fixture.states['fan.inline_fan'].state='off';window.fixture.states['binary_sensor.garage_ventsys_fdm_360_intake_valve_pwm_commanded_active'].state='on';window.card.hass={...window.fixture};});
  await expect(page.locator('#record-reference')).toBeDisabled();expect(await page.evaluate(()=>window.calls)).toEqual([]);
+});
+
+test('pressure panel uses inclusive tolerance and preserves unavailable sources', async ({page}) => {
+ await openCard(page);
+ await expect(page.locator('#pressure-fdm')).toContainText('Negative pressure');
+ await page.locator('#pressure-tolerance').fill('8');
+ await expect(page.locator('#pressure-fdm')).toContainText('Roughly equal');
+ await page.evaluate(()=>{const x=window.fixture.states['sensor.ventsys_fdm_array_1_differential_pressure'];x.state='0.6';window.card.hass={...window.fixture};});
+ await page.locator('#pressure-tolerance').fill('0.5');
+ await expect(page.locator('#pressure-fdm')).toContainText('Positive pressure');
+ await page.evaluate(()=>{window.fixture.states['sensor.ventsys_fdm_array_1_differential_pressure'].state='unavailable';window.card.hass={...window.fixture};});
+ await expect(page.locator('#pressure-fdm')).toHaveText('Unavailable');
+ expect(await page.evaluate(()=>window.calls)).toEqual([]);
+});
+
+
+test('sensor detail selection shows native values and graphs without commands',async({page})=>{
+ await openCard(page);await page.evaluate(()=>{window.loadCardHelpers=async()=>({createCardElement:c=>{const el=document.createElement('div');el.className='history-test';el.textContent=c.title;return el;}});});
+ await page.locator('#pressure-fdm-icon').click();await expect(page.locator('#device-name')).toHaveText('FDM enclosure array 1');await expect(page.locator('#position-controls')).toBeHidden();await expect(page.locator('#sensor-values')).toContainText('21.4');await expect(page.locator('#detail-graphs')).toContainText('Recent history');expect(await page.evaluate(()=>window.calls)).toEqual([]);
+ await page.locator('#bme1-label').click();await expect(page.locator('#device-name')).toHaveText('FDM pipe air sensor');await page.locator('#flow1-arrow-bot').click();await expect(page.locator('#device-name')).toHaveText('FDM airflow sensor');await page.locator('[data-device="fan_main"]').click();await expect(page.locator('#detail-graphs')).toContainText('Fan state');await page.locator('[data-device="main1"]').click();await expect(page.locator('#detail-graphs')).toContainText('Recent history');
+});
+
+test('maintenance confirms exact board shutdown and cancellation sends nothing',async({page})=>{
+ await openCard(page);await page.evaluate(()=>{window.fixture.states['input_boolean.ventsys_maintenance_fdm_array']={state:'off',attributes:{}};window.fixture.states['button.ventsys_fdm_array_1_power_off_board']={state:'unknown',attributes:{}};window.card.hass={...window.fixture};});
+ await page.locator('#pressure-fdm-icon').click();await page.locator('#start-board-maintenance').click();await expect(page.locator('#maintenance-dialog')).toBeVisible();await page.locator('#maintenance-cancel').click();expect(await page.evaluate(()=>window.calls)).toEqual([]);
+ await page.locator('#start-board-maintenance').click();await page.locator('#maintenance-confirm').click();expect(await page.evaluate(()=>window.calls)).toEqual([['input_boolean','turn_on',{entity_id:'input_boolean.ventsys_maintenance_fdm_array'}],['button','press',{entity_id:'button.ventsys_fdm_array_1_power_off_board'}]]);await expect(page.locator('#events')).toContainText('shutdown requested');
+ await page.evaluate(()=>{window.fixture.states['input_boolean.ventsys_maintenance_fdm_array'].state='on';window.card.hass={...window.fixture};});await page.locator('#end-board-maintenance').click();expect((await page.evaluate(()=>window.calls)).at(-1)).toEqual(['input_boolean','turn_off',{entity_id:'input_boolean.ventsys_maintenance_fdm_array'}]);await expect(page.locator('#board-action-status')).toContainText('does not restore power');
+});
+
+test('sensor acknowledgment is blocked by active conditions and logs requests and actual clears',async({page})=>{
+ await openCard(page);await page.evaluate(()=>{window.fixture.states['button.ventsys_fdm_array_1_acknowledge_alarms']={state:'unknown',attributes:{}};window.fixture.states['binary_sensor.ventsys_fdm_array_1_alarm_latched']={state:'on',attributes:{}};window.card.hass={...window.fixture};});await page.locator('#pressure-fdm-icon').click();await page.locator('#sensor-ack').click();expect(await page.evaluate(()=>window.calls)).toEqual([['button','press',{entity_id:'button.ventsys_fdm_array_1_acknowledge_alarms'}]]);
+ await page.evaluate(()=>{window.fixture.states['binary_sensor.ventsys_fdm_array_1_co_detected'].state='on';window.fixture.states['binary_sensor.ventsys_fdm_array_1_alarm_latched'].state='off';window.card.hass={...window.fixture};});await expect(page.locator('#sensor-ack')).toBeDisabled();await expect(page.locator('#events')).toContainText('latch cleared');
+});
+
+test('recorded activity loads after refresh and full untruncated messages fit and open',async({page})=>{
+ await openCard(page);const message='A long recorded board outage message: '+ 'check wiring and reconnect power '.repeat(7);
+ await page.evaluate(message=>{window.fixture.callWS=async()=>[{name:'VentSys activity',when:Date.now()/1000,message}];window.card.hass={...window.fixture};},message);
+ await expect(page.locator('#log-msg-1')).toHaveText('VentSys activity: '+message);const bounds=await page.locator('#log-msg-1').evaluate(e=>({x:e.getBBox().x,w:e.getBBox().width}));expect(bounds.x+bounds.w).toBeLessThanOrEqual(646);
+ await page.locator('#svg-log-box').click();await expect(page.locator('#activity-dialog')).toBeVisible();await expect(page.locator('ventsys-activity-card ol')).toContainText(message);expect(await page.evaluate(()=>window.calls)).toEqual([]);
+});
+
+
+test('sensor trends tab separates metric groups and switches native history range',async({page})=>{
+ await openCard(page);await page.evaluate(()=>{window.loadCardHelpers=async()=>({createCardElement:c=>{const el=document.createElement('div');el.className='history-test';el.config=c;el.textContent=c.title;return el;}});window.fixture.states['sensor.ventsys_fdm_array_1_co_rs_r0_ratio']={state:'1.1',attributes:{unit_of_measurement:'ratio'}};const history=document.createElement('ventsys-history-card');history.id='trends-test';history.setConfig({type:'custom:ventsys-history-card'});document.body.append(history);history.hass=window.fixture;});
+ await expect(page.locator('#trends-test .grid')).toContainText('BME680 gas resistance');await expect(page.locator('#trends-test .grid')).toContainText('CO resistance / clean-air baseline');await page.locator('#trends-test #range').selectOption('168');await expect(page.locator('#trends-test #status')).toContainText('168 hours');expect(await page.locator('#trends-test .history-test').evaluateAll(nodes=>nodes.every(n=>n.config.hours_to_show===168))).toBe(true);expect(await page.evaluate(()=>window.calls)).toEqual([]);
+});
+
+
+test('fans show a labelled stopped-report RPM indicator and never invent running tachometry',async({page})=>{
+ await openCard(page);await expect(page.locator('#main-fan-rpm')).toHaveText('0 RPM · off report');await expect(page.locator('#booth-fan-rpm')).toHaveText('0 RPM · off report');await page.evaluate(()=>{window.fixture.states['fan.inline_fan'].state='on';window.fixture.states['fan.spray_booth_fan'].state='unknown';window.card.hass={...window.fixture};});await expect(page.locator('#main-fan-rpm')).toHaveText('RPM unmeasured');await expect(page.locator('#booth-fan-rpm')).toHaveText('RPM unavailable');expect(await page.evaluate(()=>window.calls)).toEqual([]);
+});
+
+
+test('pipe availability never borrows connectivity from its enclosure array',async({page})=>{
+ await openCard(page);await page.evaluate(async()=>{const {ENVIRONMENT_SOURCES}=await import('/ventsys-model.mjs');for(const ids of Object.values(ENVIRONMENT_SOURCES.fdm_pipe))if(Array.isArray(ids))for(const id of ids)if(window.fixture.states[id])window.fixture.states[id].state='unavailable';window.card.hass={...window.fixture};});await expect(page.locator('#bme1-circle')).toHaveCSS('opacity','0.35');await expect(page.locator('#env-fdm-temperature')).toHaveText('21.4');expect(await page.evaluate(()=>window.calls)).toEqual([]);
 });

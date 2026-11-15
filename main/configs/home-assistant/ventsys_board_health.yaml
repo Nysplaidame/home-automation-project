@@ -39,6 +39,25 @@ input_boolean:
     name: VentSys SLA 360 intake maintenance
     icon: mdi:wrench-clock
 
+  ventsys_maintenance_fdm_array:
+    name: VentSys FDM array 1 maintenance
+    icon: mdi:wrench-clock
+  ventsys_maintenance_sla_array:
+    name: VentSys SLA array 1 maintenance
+    icon: mdi:wrench-clock
+  ventsys_maintenance_fdm_pipe:
+    name: VentSys FDM pipe air maintenance
+    icon: mdi:wrench-clock
+  ventsys_maintenance_main_fan:
+    name: VentSys Main fan maintenance
+    icon: mdi:wrench-clock
+  ventsys_maintenance_booth_fan:
+    name: VentSys Booth fan maintenance
+    icon: mdi:wrench-clock
+  ventsys_maintenance_ambient:
+    name: VentSys Garage ambient maintenance
+    icon: mdi:wrench-clock
+
 automation:
   - id: ventsys_adopted_board_dropout_ntfy
     alias: VentSys adopted board dropout notification
@@ -47,6 +66,8 @@ automation:
     triggers:
       - trigger: state
         entity_id: &uptime_entities
+          - sensor.garage_sla_enclosure_sensor_array_1_uptime
+          - sensor.ventsys_fdm_array_1_uptime
           - sensor.ventsys_fdm_airflow_sensor_uptime
           - sensor.ventsys_fdm_airflow_sensor_uptime_2
           - sensor.ventsys_sla_airflow_sensor_uptime
@@ -72,6 +93,8 @@ automation:
         id: recovered
       - trigger: state
         entity_id:
+          - input_boolean.ventsys_maintenance_fdm_array
+          - input_boolean.ventsys_maintenance_fdm_pipe
           - input_boolean.ventsys_maintenance_booth_airflow
           - input_boolean.ventsys_maintenance_fdm_airflow
           - input_boolean.ventsys_maintenance_sla_airflow
@@ -89,6 +112,8 @@ automation:
     actions:
       - variables:
           uptime_to_key:
+            sensor.garage_sla_enclosure_sensor_array_1_uptime: fdm_pipe
+            sensor.ventsys_fdm_array_1_uptime: fdm_array
             sensor.ventsys_fdm_airflow_sensor_uptime: booth_airflow
             sensor.ventsys_fdm_airflow_sensor_uptime_2: fdm_airflow
             sensor.ventsys_sla_airflow_sensor_uptime: sla_airflow
@@ -101,6 +126,8 @@ automation:
             sensor.ventsys_sla_360_intake_valve_uptime: fdm_intake
             sensor.ventsys_fdm_360_intake_valve_uptime: sla_intake
           key_to_uptime:
+            fdm_pipe: sensor.garage_sla_enclosure_sensor_array_1_uptime
+            fdm_array: sensor.ventsys_fdm_array_1_uptime
             booth_airflow: sensor.ventsys_fdm_airflow_sensor_uptime
             fdm_airflow: sensor.ventsys_fdm_airflow_sensor_uptime_2
             sla_airflow: sensor.ventsys_sla_airflow_sensor_uptime
@@ -113,6 +140,8 @@ automation:
             fdm_intake: sensor.ventsys_sla_360_intake_valve_uptime
             sla_intake: sensor.ventsys_fdm_360_intake_valve_uptime
           key_to_name:
+            fdm_pipe: FDM pipe air
+            fdm_array: FDM array 1
             booth_airflow: Booth airflow
             fdm_airflow: FDM airflow
             sla_airflow: SLA airflow

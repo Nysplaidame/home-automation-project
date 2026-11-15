@@ -1,7 +1,9 @@
 import { MODE_EXPECTED, OPERATING_PLANS, TEST_TARGETS } from './ventsys-modes.mjs?v=20261104-4';
 
-export const VERSION = '20261107-8';
+export const VERSION = '20261114-6';
 export const BOARD_HEALTH = [
+  {key:'fdm_array',label:'FDM array 1',uptime:'sensor.ventsys_fdm_array_1_uptime',zone:'fdm'},
+  {key:'fdm_pipe',label:'FDM pipe air',uptime:'sensor.garage_sla_enclosure_sensor_array_1_uptime',zone:'fdm'},
   { key: 'booth_airflow', label: 'Booth airflow', uptime: 'sensor.ventsys_fdm_airflow_sensor_uptime', zone: 'ambient' },
   { key: 'fdm_airflow', label: 'FDM airflow', uptime: 'sensor.ventsys_fdm_airflow_sensor_uptime_2', zone: 'fdm' },
   { key: 'sla_airflow', label: 'SLA airflow', uptime: 'sensor.ventsys_sla_airflow_sensor_uptime', zone: 'sla' },
@@ -135,20 +137,20 @@ const FDM_LEGACY = 'garage_sla_enclosure_sensor_array_1_sla_enclosure_sensor_';
 const FDM_INSTALLED = 'garage_fdm_enclosure_sensor_fdm_enclosure_sensor_';
 export const SENSORS = {
   fdm: {
-    label: 'FDM enclosure', temperature: ['sensor.'+FDM_INSTALLED+'temperature','sensor.'+FDM_LEGACY+'temperature','sensor.ventsys_fdm_pipe_air_temperature', 'sensor.fdm_temperature'],
-    humidity: ['sensor.'+FDM_INSTALLED+'humidity','sensor.'+FDM_LEGACY+'humidity','sensor.ventsys_fdm_pipe_air_humidity'], baro: ['sensor.'+FDM_INSTALLED+'pressure','sensor.'+FDM_LEGACY+'pressure','sensor.ventsys_fdm_pipe_air_baro_pressure'],
-    differential: ['sensor.fdm_pressure_differential'], gas: ['sensor.'+FDM_INSTALLED+'iaq_gas_resistance','sensor.'+FDM_LEGACY+'iaq_gas_resistance','sensor.ventsys_fdm_pipe_air_iaq_gas_resistance', 'sensor.fdm_iaq'],
-    smoke: ['binary_sensor.'+FDM_INSTALLED+'smoke_detected','binary_sensor.'+FDM_LEGACY+'smoke_detected','binary_sensor.ventsys_fdm_pipe_air_smoke_detected', 'sensor.fdm_smoke'],
+    label: 'FDM enclosure', temperature: ['sensor.ventsys_fdm_array_1_temperature','sensor.'+FDM_INSTALLED+'temperature','sensor.'+FDM_LEGACY+'temperature','sensor.ventsys_fdm_pipe_air_temperature', 'sensor.fdm_temperature'],
+    humidity: ['sensor.ventsys_fdm_array_1_humidity','sensor.'+FDM_INSTALLED+'humidity','sensor.'+FDM_LEGACY+'humidity','sensor.ventsys_fdm_pipe_air_humidity'], baro: ['sensor.ventsys_fdm_array_1_baro_pressure','sensor.'+FDM_INSTALLED+'pressure','sensor.'+FDM_LEGACY+'pressure','sensor.ventsys_fdm_pipe_air_baro_pressure'],
+    differential: ['sensor.ventsys_fdm_array_1_differential_pressure','sensor.fdm_array_1_differential_pressure','sensor.fdm_pressure_differential'], gas: ['sensor.ventsys_fdm_array_1_iaq_gas_resistance','sensor.'+FDM_INSTALLED+'iaq_gas_resistance','sensor.'+FDM_LEGACY+'iaq_gas_resistance','sensor.ventsys_fdm_pipe_air_iaq_gas_resistance', 'sensor.fdm_iaq'],
+    smoke: ['binary_sensor.ventsys_fdm_array_1_smoke_detected','binary_sensor.'+FDM_INSTALLED+'smoke_detected','binary_sensor.'+FDM_LEGACY+'smoke_detected','binary_sensor.ventsys_fdm_pipe_air_smoke_detected', 'sensor.fdm_smoke'],
     wheel: ['sensor.ventsys_fdm_airflow_sensor_flow_meter_wheel_speed', 'sensor.fdm_airflow_wheel_speed'],
   },
   sla: {
     label: 'SLA enclosure', temperature: ['sensor.garage_ventsys_sla_pipe_air_sensor_temperature', 'sensor.ventsys_sla_pipe_air_temperature', 'sensor.sla_temperature'],
     humidity: ['sensor.garage_ventsys_sla_pipe_air_sensor_humidity', 'sensor.ventsys_sla_pipe_air_humidity'],
     baro: ['sensor.garage_ventsys_sla_pipe_air_sensor_baro_pressure', 'sensor.ventsys_sla_pipe_air_baro_pressure'],
-    differential: ['sensor.sla_pressure_differential'],
+    differential: ['sensor.sla_array_1_differential_pressure','sensor.sla_pressure_differential'],
     gas: ['sensor.garage_ventsys_sla_pipe_air_sensor_iaq_gas_resistance', 'sensor.ventsys_sla_pipe_air_iaq_gas_resistance', 'sensor.sla_iaq'],
     smoke: ['binary_sensor.garage_ventsys_sla_pipe_air_sensor_co_detected'], alarmLabel: 'CO',
-    wheel: ['sensor.sla_airflow_wheel_speed'],
+    wheel: ['sensor.ventsys_sla_airflow_sensor_flow_meter_wheel_speed','sensor.sla_airflow_wheel_speed'],
   },
   ambient: {
     label: 'Garage ambient', temperature: ['sensor.ventsys_garage_air_temperature'], humidity: ['sensor.ventsys_garage_air_humidity'],
@@ -164,8 +166,9 @@ export function freshnessTime(id, state, states) {
   // Binary sensors can remain unchanged for days while their ESPHome board is
   // online. A recent temperature report from the same exact sensor prefix is
   // a heartbeat; never borrow freshness from another device or MQTT alias.
-  const sibling = String(id || '').replace(/^[^.]+\./, 'sensor.').replace(/_(smoke_detected|humidity|baro_pressure|pressure|iaq_gas_resistance)$/, '_temperature');
-  const own = timestamp(state), heartbeat = known(states[sibling]) ? timestamp(states[sibling]) : null;
+  const sibling = id === 'binary_sensor.garage_sla_enclosure_sensor_array_1_co_detected' ? 'sensor.garage_fdm_enclosure_sensor_fdm_enclosure_sensor_temperature' : String(id || '').replace(/^[^.]+\./, 'sensor.').replace(/_(smoke_detected|co_detected|humidity|baro_pressure|pressure|differential_pressure|iaq_gas_resistance)$/, '_temperature');
+  const wheelUptime = ({'sensor.ventsys_fdm_airflow_sensor_flow_meter_wheel_speed':'sensor.ventsys_fdm_airflow_sensor_uptime_2','sensor.ventsys_booth_airflow_sensor_flow_meter_wheel_speed':'sensor.ventsys_fdm_airflow_sensor_uptime'})[id] || String(id || '').replace(/_flow_meter_wheel_speed$/, '_uptime');
+  const own = timestamp(state), heartbeat = /_flow_meter_wheel_speed$/.test(id || '') ? (known(states[wheelUptime]) ? timestamp(states[wheelUptime]) : null) : known(states[sibling]) ? timestamp(states[sibling]) : null;
   return Math.max(own ?? 0, heartbeat ?? 0) || null;
 }
 export function deviceState(device, states, connected) {
@@ -202,7 +205,11 @@ export function sensorValue(ids, states, connected, now = Date.now(), maxAge = 3
   return { value, id, unit: state.attributes?.unit_of_measurement || '', timestamp: updated };
 }
 
-export function measurement(kind, sensor) {
+export function measurement(kind, sensor, states) {
+  if(kind === 'differential' && states && sensor.id) {
+    const faultId=sensor.id.replace(/^sensor\./,'binary_sensor.').replace(/_differential_pressure$/,'_dp_sensor_fault');
+    if(Object.hasOwn(states,faultId) && states[faultId].state !== 'off')return {...sensor,value:null,reason:states[faultId].state==='on'?'Pressure sensor fault':'Pressure fault status unavailable'};
+  }
   if (sensor.value === null) return sensor;
   let { value, unit } = sensor;
   const bad = () => ({ ...sensor, value: null, reason: 'Unit mismatch' });
@@ -306,3 +313,32 @@ export function airflowWarnings(snapshot) {
   if (v('fan_booth') === 'on' && !(v('main1') > 0 && v('main2') > 0)) out.push('Booth fan is on; both main duct valves must report an open path.');
   return out;
 }
+
+// Inclusive display deadband, independent of control/safety thresholds.
+export function pressureRelation(value, tolerance = 0.5) {
+  if (!Number.isFinite(value)) return 'Unavailable';
+  return Math.abs(value) <= tolerance ? 'Roughly equal' : value < 0 ? 'Negative pressure' : 'Positive pressure';
+}
+
+
+const nativeEnvironment = prefix => ({temperature:['sensor.'+prefix+'_temperature'],humidity:['sensor.'+prefix+'_humidity'],baro:['sensor.'+prefix+'_baro_pressure'],gas:['sensor.'+prefix+'_iaq_gas_resistance'],smoke:['binary_sensor.'+prefix+'_co_detected','binary_sensor.'+prefix+'_smoke_detected']});
+export const ENVIRONMENT_SOURCES = {
+ ambient:{...SENSORS.ambient,label:'Ambient'},
+ fdm:{...nativeEnvironment('ventsys_fdm_array_1'),label:'FDM array'},
+ fdm_pipe:{label:'FDM pipe',temperature:['sensor.'+FDM_INSTALLED+'temperature'],humidity:['sensor.'+FDM_INSTALLED+'humidity'],baro:['sensor.'+FDM_INSTALLED+'pressure'],gas:['sensor.'+FDM_INSTALLED+'iaq_gas_resistance'],smoke:['binary_sensor.garage_sla_enclosure_sensor_array_1_co_detected']},
+ sla:{...nativeEnvironment('ventsys_sla_array_1'),label:'SLA array'},
+ sla_pipe:{...nativeEnvironment('garage_ventsys_sla_pipe_air_sensor'),label:'SLA pipe'}
+};
+
+export const SENSOR_DEVICES = {
+ ambient:{name:'Garage ambient sensor',key:'ambient',svg:[],prefixes:['ventsys_garage_air'],maintenance:'ambient',power:'button.ventsys_garage_air_power_off_board'},
+ fdm_array:{name:'FDM enclosure array 1',key:'fdm_array',svg:['pressure-fdm-box','pressure-fdm-icon','pressure-fdm-value'],prefixes:['ventsys_fdm_array_1'],maintenance:'fdm_array',power:'button.ventsys_fdm_array_1_power_off_board',ack:'button.ventsys_fdm_array_1_acknowledge_alarms'},
+ sla_array:{name:'SLA enclosure array 1',key:'sla_array',svg:['pressure-sla-box','pressure-sla-icon','pressure-sla-value'],prefixes:['ventsys_sla_array_1'],maintenance:'sla_array',power:'button.ventsys_sla_array_1_power_off_board',ack:'button.ventsys_sla_array_1_acknowledge_alarms'},
+ fdm_pipe:{name:'FDM pipe air sensor',key:'fdm_pipe',svg:['bme1-circle','bme1-iaq','bme1-label'],prefixes:['garage_fdm_enclosure_sensor','garage_sla_enclosure_sensor_array_1'],maintenance:'fdm_pipe',power:'button.garage_sla_enclosure_sensor_array_1_power_off_board',ack:'button.garage_fdm_enclosure_sensor_acknowledge_co_alarm'},
+ sla_pipe:{name:'SLA pipe air sensor',key:'sla_pipe',svg:['bme2-circle','bme2-iaq','bme2-label'],prefixes:['garage_ventsys_sla_pipe_air_sensor'],maintenance:'sla_pipe_air',power:'button.garage_ventsys_sla_pipe_air_sensor_power_off_board',ack:'button.garage_ventsys_sla_pipe_air_sensor_acknowledge_alarms'},
+ fdm_flow:{name:'FDM airflow sensor',key:'fdm_flow',svg:['flow1-circle','flow1-rate','flow1-arrow-top','flow1-arrow-ctr','flow1-arrow-bot'],prefixes:['ventsys_fdm_airflow_sensor'],maintenance:'fdm_airflow',power:'button.ventsys_fdm_airflow_sensor_power_off_board_2',entityIds:['sensor.ventsys_fdm_airflow_sensor_uptime_2','sensor.ventsys_fdm_airflow_sensor_flow_meter_wheel_speed','sensor.ventsys_fdm_airflow_sensor_flow_meter_pulse_rate_2']},
+ sla_flow:{name:'SLA airflow sensor',key:'sla_flow',svg:['flow2-circle','flow2-rate','flow2-arrow-top','flow2-arrow-ctr','flow2-arrow-bot'],prefixes:['ventsys_sla_airflow_sensor'],maintenance:'sla_airflow',power:'button.ventsys_sla_airflow_sensor_power_off_board'},
+ booth_flow:{name:'Booth airflow sensor',key:'booth_flow',svg:['flow3-circle','flow3-rate','flow3-arrow-top','flow3-arrow-ctr','flow3-arrow-bot'],prefixes:['ventsys_fdm_airflow_sensor'],maintenance:'booth_airflow',power:'button.ventsys_fdm_airflow_sensor_power_off_board',entityIds:['sensor.ventsys_fdm_airflow_sensor_uptime','sensor.ventsys_booth_airflow_sensor_flow_meter_wheel_speed','sensor.ventsys_fdm_airflow_sensor_flow_meter_pulse_rate']}
+};
+export const CONTROL_MAINTENANCE={main1:'main_duct_1',main2:'main_duct_2',fdm_branch:'fdm_branch',sla_branch:'sla_branch',fdm_print:'fdm_print',sla_print:'sla_print',fdm_360:'fdm_intake',sla_360:'sla_intake',fan_main:'main_fan',fan_booth:'booth_fan'};
+export function detailEntities(config,states){return Object.keys(states).filter(id=>config.entityIds ? config.entityIds.includes(id) : config.prefixes?.some(p=>id.startsWith('sensor.'+p+'_') || id.startsWith('binary_sensor.'+p+'_') || id.startsWith('number.'+p+'_')));}
