@@ -549,6 +549,18 @@ SearXNG search), with no invented entities, before considering a switch.
     spoken turn, standalone follow-ups, plain sums). The first run's faster median (4.7 s) was an artefact of the error
     replies returning quickly. Sums phrased in number words ("two plus two times three") still go through `calculate`
     (about 10.5 s).
+  - **2026-11-15 `web_height` failure investigated and fixed (owner: "Yes, investigate").** Not the summary step: it
+    reported correctly that its snippets lacked the height. Querying SearXNG directly (`http://192.168.20.102:8087/search`,
+    `format=json`): the direct route (`WEB_SEARCH_DIRECT_RES`) sent "how tall Mount Everest is", and with that word order
+    the height first appeared in result 4, while `searxng_llm.result_count: 3` passes only three results on; "how tall is
+    Mount Everest" has it in results 1 and 3. Engines returning results were mwmbl, yandex, bing and yahoo only.
+    `_direct_question_query` now turns an indirect clause ("<wh> ... is/are/was/were") back into a direct question
+    before searching (7 new offline cases; 76 + 19 pass). Backup
+    `backups/llamacpp_conversation__init__.py.bak-20261115-pre-query-rewrite`, restart 42 s. As the Voice PE: Everest
+    "8,848.86 meters" 4 of 4 once the warm-up had finished (2.1-6.8 s), capital of Peru 12.0 s, boiling point 3.9 s,
+    Mariana Trench 14.7 s. One Everest run 20 s after the restart took 31.4 s and read the raw result list: its 30 s
+    summary request timed out waiting behind the warm-up (`system_log`: "web search summary failed ... TimeoutError").
+    `accuracy.py` not re-run after this last deploy (only these probes).
   - **2026-11-13 sentence-by-sentence speech, build notes (written before the deploy above).**
     Why it matters more than expected: the Metrocop TTS renders at about real time (CT 114 `docker logs metrocop-tts`:
     17.95 s of audio in 17.90 s, 19.55 s in 23.29 s), and it rendered the whole reply before sending any audio, so a

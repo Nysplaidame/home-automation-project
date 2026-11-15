@@ -971,7 +971,7 @@ class LlamaCppConversationEntity(conversation.ConversationEntity):
         for pattern in WEB_SEARCH_DIRECT_RES:
             match = pattern.search(user_text)
             if match:
-                query = match.group("q").strip()
+                query = _direct_question_query(match.group("q").strip())
                 break
         if not query or len(query) < 3:
             return False
@@ -1501,6 +1501,24 @@ def _format_tools(
 # sends the same prefix and the warm-up always matches.
 _TIMER_TOOL_RE = re.compile(r"(?:^|__)Hass\w*Timer\w*$")
 _NO_TIMERS_SENTENCE_RE = re.compile(r"[ \t]*This device is not able to start timers\.[ \t]*\n?")
+
+
+# "Search the web for how tall Mount Everest is" leaves the clause "how tall Mount Everest is" as the query.
+# Search engines rank that indirect word order poorly (2026-11-15: the height first appeared in result 4,
+# while "how tall is Mount Everest" had it in results 1 and 3), so it is turned back into a direct question.
+_INDIRECT_QUESTION_RE = re.compile(
+    r"^(?P<wh>how\s+\w+|which\s+\w+|what|who|when|where|why)\s+(?P<body>.+?)\s+(?P<verb>is|are|was|were)[\s?.!]*$",
+    re.IGNORECASE,
+)
+_STARTS_WITH_VERB_RE = re.compile(r"^(?:is|are|was|were|do|does|did|can|could|will|would|should|has|have|had)\b", re.I)
+
+
+def _direct_question_query(query: str) -> str:
+    """'how tall Mount Everest is' -> 'how tall is Mount Everest'; anything else is returned unchanged."""
+    match = _INDIRECT_QUESTION_RE.match(query or "")
+    if not match or _STARTS_WITH_VERB_RE.match(match.group("body")):
+        return query
+    return f"{match.group('wh')} {match.group('verb')} {match.group('body')}"
 
 
 def _prefix_change(old: str | None, new: str) -> str | None:

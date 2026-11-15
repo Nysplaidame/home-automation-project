@@ -546,6 +546,24 @@ class HistoryOnlyWhenReferredToTests(unittest.TestCase):
         self.assertEqual(M._trim_messages(msgs, 8, None), msgs)
 
 
+class DirectQuestionQueryTests(unittest.TestCase):
+    def test_indirect_questions_become_direct(self):
+        cases = {
+            "how tall Mount Everest is": "how tall is Mount Everest",
+            "what the capital of Peru is": "what is the capital of Peru",
+            "who the presidents of France were": "who were the presidents of France",
+            "where the nearest pharmacy is?": "where is the nearest pharmacy",
+            "how much a pint of milk is": "how much is a pint of milk",
+        }
+        for query, expected in cases.items():
+            self.assertEqual(M._direct_question_query(query), expected, query)
+
+    def test_other_queries_are_untouched(self):
+        for query in ("how tall is Mount Everest", "height of Mount Everest", "football scores today",
+                      "how many people live in Paris", "what is the capital of Peru", "who is it", ""):
+            self.assertEqual(M._direct_question_query(query), query, query)
+
+
 class FakeChatLog:
     """Records the deltas a streamed reply hands to Home Assistant."""
 
