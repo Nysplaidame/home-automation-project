@@ -578,6 +578,12 @@ SearXNG search), with no invented entities, before considering a switch.
     Built in the repo, NOT deployed: number-word sums answered in code (`_number_words_to_digits`). Docs:
     `current-live-state.md` (voice and CT 114 sections), `docs/install/services/voice-mixer.md` step 6, wiki
     `entities/llm-host`. CT 114 memory available 1.7 GB.
+    Number-word sums then DEPLOYED (owner: "Deploy it"; backup
+    `backups/llamacpp_conversation__init__.py.bak-20261117-pre-number-words`, restart 46 s). Probes as the Voice PE:
+    "two plus two times three" 0.1 s, "fifteen percent of eighty" 0.0 s, "one hundred and twenty divided by four"
+    0.0 s; "two thirds of nine" correctly went to the model. `accuracy.py --reps 2` (`accuracy-2026-11-17.json`):
+    **86/86**; model-answered turns 40 (mean 7.7 s, median 6.7 s, p90 12.8 s, max 17.5 s), code-answered 46 (was 42:
+    math1/math2 moved to code).
   - **2026-11-13 sentence-by-sentence speech, build notes (written before the deploy above).**
     Why it matters more than expected: the Metrocop TTS renders at about real time (CT 114 `docker logs metrocop-tts`:
     17.95 s of audio in 17.90 s, 19.55 s in 23.29 s), and it rendered the whole reply before sending any audio, so a
