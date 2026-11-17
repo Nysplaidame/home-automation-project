@@ -242,6 +242,15 @@ while its replacement LXC is running.
   schemas because llama.cpp rejects them ("failed to parse grammar"). `mealie_llm` now rejects recipe-import URLs
   that do not resolve to public addresses. Voice runs on the production `llama-cpp` container (30B, see Local AI);
   read `HANDOFF-2026-11-11-llm-igpu-speed.md` before changing the model, the prompt or any tool schema.
+  Since 2026-11-13/15 (same handoff): multi-sentence model replies and the news summary are streamed to HA
+  sentence by sentence (`_attr_supports_streaming = True`; streamed requests use one-shot connections because
+  llama.cpp closes the connection after a stream); plain sums in digits are answered in code; the model never gets
+  the timer tools and the "not able to start timers" sentence is removed, so the prompt prefix is identical whether
+  or not the satellite supports timers (timers go through HA's local intents); earlier turns are sent only when the
+  question refers back to them; an indirect web query ("how tall Mount Everest is") is rewritten as a direct question;
+  a WARNING "Overwatch prompt prefix changed" in `system_log` names any change to the cached prefix (expected once a
+  day at 00:01 for the date line). The live prompt allows small talk and jokes; `searxng_llm.result_count` is 5.
+  `tools/llm-bench/accuracy.py --reps 2` scored 86/86 on 2026-11-15; run it after every component deploy.
 - The Voice PE `home-assistant-voice-0ae52a` runs the stock 26.9.0 firmware plus an on-device "Overwatch" wake word
   (flashed 2026-11-13 from `configs/esphome/home-assistant-voice-0ae52a.yaml` via the ESPHome Device Builder);
   Okay Nabu stays active in the first wake word slot until Overwatch is proven by voice.
@@ -964,7 +973,12 @@ is not proof. Evidence and rollback files remain host-only in CT 111 at
   `ghcr.io/ggml-org/llama.cpp@sha256:4e784358f638549d95bd22fb814c1afeed1af71fbd4b70c25f23eae01caaa6af`.
 - Wyoming STT (`wyoming-whisper`, port 10300) runs NVIDIA Parakeet TDT 0.6B v2 int8 via sherpa-onnx since 2026-11-05 (~0.2 s/command; faster-whisper `base-int8` kept for rollback), starting offline from model data pre-placed in `./whisper`.
 - Metrocop Wyoming TTS `metrocop-tts` on port 10201 (voice-mixer stack); Piper also serves `en_GB-metrocop2-medium`.
+  Since 2026-11-13 it supports streamed synthesis (one start bleep and one end blip per reply, each sentence
+  rendered as it arrives; derived image, rollback tag `voice-mixer:pre-tts-stream`) and runs with `cpus: "3.0"`
+  (was 1.0; a sentence renders in about a third of its length). See `docs/install/services/voice-mixer.md` step 6.
 - SearXNG: Brave/DuckDuckGo/Startpage are blocked upstream; Bing + Yandex enabled (2026-11-05).
+  2026-11-17 engine stats (`/stats/errors`): google news 100% access denied, reuters 100% HTTP error, startpage
+  news 100% CAPTCHA, bing news 15% parse errors; general engines 5-15% timeouts at `request_timeout: 3.0`.
 - HA can reach ports 8081, 10200, 10300 and 10400 through source-scoped
   host and Docker firewall policy. HA uses `192.168.20.104:8081/v1` for the
   llama.cpp conversation agent.

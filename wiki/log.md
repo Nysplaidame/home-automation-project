@@ -1214,3 +1214,9 @@ Updated [[pages/entities/ventsys|VentSys]] to reflect the installed FDM CO firmw
 - Pages updated: [[entities/llm-host]]
 - Corrections: the page still said Qwen3-14B 64k; STT is Parakeet via sherpa-onnx, not a small Whisper.
 - Notes: canonical state lives in `main/docs/reference/current-live-state.md` and `main/HANDOFF-2026-11-11-llm-igpu-speed.md`.
+
+## [2026-11-17] update | Local AI host: voice latency work of 13-15 November
+- Recorded streamed sentence-by-sentence speech, Metrocop TTS on `10201` with `cpus 3.0`, the pinned voice prompt (confirmed warm after the 2026-11-17 midnight warm-up), history only when referred to, and the llama.cpp connection-close finding.
+- Pages updated: [[entities/llm-host]]
+- Corrections: the prompt is ~6.2k tokens without timer tools (page said ~6.5k and 35 tools); the Metrocop Wyoming wrapper open question is closed (live since before 2026-11-13).
+- Notes: canonical state is `main/docs/reference/current-live-state.md` (updated first) and `main/HANDOFF-2026-11-11-llm-igpu-speed.md`.

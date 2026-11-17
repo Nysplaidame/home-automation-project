@@ -370,9 +370,34 @@ class ClockAndDateTests(unittest.TestCase):
         for text, expected in cases.items():
             self.assertEqual(M._maybe_direct_math_answer(text), expected, text)
 
+    def test_number_words_are_converted(self):
+        cases = {
+            "two plus twenty-one": "2 plus 21",
+            "three hundred and five times two": "305 times 2",
+            "twenty one thousand four hundred": "21400",
+            "fifteen percent of eighty": "15 percent of 80",
+            "the one thing": "the 1 thing",
+            "five and seven": "5 and 7",
+            "nine nine": "9 9",
+        }
+        for text, expected in cases.items():
+            self.assertEqual(M._number_words_to_digits(text), expected, text)
+
+    def test_sums_in_number_words_are_answered_in_code(self):
+        cases = {
+            "What is two plus two times three?": "That is 8.",
+            "What is fifteen percent of eighty?": "That is 12.",
+            "What is twelve times seven?": "That is 84.",
+            "What's one hundred and twenty divided by four?": "That is 30.",
+            "What is twenty-five squared?": "That is 625.",
+        }
+        for text, expected in cases.items():
+            self.assertEqual(M._maybe_direct_math_answer(text), expected, text)
+
     def test_anything_that_is_not_purely_a_sum_goes_to_the_model(self):
         for text in ("What is 5?", "What is 12 times the temperature?", "What is 20 degrees in Fahrenheit?",
-                     "What is twelve times seven?", "What is 2026-12-25?", "What is 25/12/2026?",
+                     "What is one?", "What is the one thing I should know?", "What is two thirds of nine?",
+                     "What is 2026-12-25?", "What is 25/12/2026?",
                      "What is 1 divided by 0?", "What is the weather?", "Add 2 litres of milk to my list",
                      "What is 5 and 7 and 9 percent?", "Set a timer for 5 minutes", "12 times 7", ""):
             self.assertIsNone(M._maybe_direct_math_answer(text), text)

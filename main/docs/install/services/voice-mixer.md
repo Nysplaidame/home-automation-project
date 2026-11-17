@@ -3,7 +3,7 @@ title: Voice Mixer
 description: Install the Metrocop Voice Mixer on CT 114 llm-host and link it from Homepage
 tags: [install, local-ai, ct-114, voice, piper, rvc, homepage]
 created: 2026-10-10
-modified: 2026-10-10
+modified: 2026-11-17
 type: install-guide
 status: draft
 ---
@@ -157,6 +157,34 @@ WebUI pattern (`8200` → CT 114 `3002`):
    ```
 
 Done 2026-10-11 (live backups `*.bak-20261011-132811-pre-voice-mixer`).
+
+## 6. Updating only the Metrocop TTS code (no full rebuild)
+
+The `metrocop-tts` service runs `voice_mixer.wyoming_tts` from the same
+`voice-mixer:local` image. A change to that one file does not need a full
+rebuild and image transfer: build a derived image on CT 114 offline. Used on
+2026-11-13 for sentence-by-sentence (streamed) synthesis.
+
+```sh
+# on CT 114, with the new wyoming_tts.py copied in (Proxmox: pct push 114 ...)
+docker tag voice-mixer:local voice-mixer:pre-<change>          # rollback tag
+mkdir -p /opt/stacks/voice-mixer/tts-stream-build && cd $_
+printf 'FROM voice-mixer:pre-<change>\nCOPY --chmod=644 wyoming_tts.py /app/voice_mixer/wyoming_tts.py\n' > Dockerfile
+docker build --network none -t voice-mixer:local .
+cd /opt/stacks/voice-mixer && docker compose up -d --no-deps metrocop-tts
+docker logs --tail 3 metrocop-tts                            # "... synth ... 'Ready.'" then "Metrocop TTS ready"
+```
+
+Only `metrocop-tts` is recreated; the `voice-mixer` UI keeps running its old
+image until its next recreate. The next full `docker build` from the repo
+already contains the change, so the derived image needs no follow-up.
+Rollback: `docker tag voice-mixer:pre-<change> voice-mixer:local` and recreate
+`metrocop-tts` the same way. After any `wyoming_tts.py` change also restart
+Home Assistant (or reload the Wyoming integration) so it re-reads the server's
+`info` (streaming support is advertised there).
+
+`metrocop-tts` has `cpus: "3.0"` since 2026-11-13: at `1.0` a sentence rendered
+at about real time, which delayed the first audio of every reply.
 
 ## Backups
 

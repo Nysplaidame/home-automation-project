@@ -2052,12 +2052,98 @@ _MATH_ALLOWED_RE = re.compile(r"^(?:sqrt\(|[\d.\s+\-*/()])+$")
 _MATH_DATE_RE = re.compile(r"\b\d{1,4}\s*[-/]\s*\d{1,2}\s*[-/]\s*\d{1,4}\b")
 
 
+# Speech-to-text writes small numbers as words ("What is two plus two times three?"), so number words are turned
+# into digits first. Only whole numbers built from these words are converted; anything else stays a word and
+# the sum goes to the model as before.
+_NUM_VALUES = {
+    **{w: i for i, w in enumerate(
+        "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen "
+        "seventeen eighteen nineteen".split())},
+    **{w: 10 * i for i, w in enumerate("twenty thirty forty fifty sixty seventy eighty ninety".split(), start=2)},
+    "hundred": 100, "thousand": 1000, "million": 1_000_000,
+}
+_NUM_SCALES = {"hundred", "thousand", "million"}
+
+
+def _number_kind(word: str) -> str | None:
+    if word not in _NUM_VALUES:
+        return None
+    if word in _NUM_SCALES:
+        return "scale"
+    return "tens" if _NUM_VALUES[word] >= 20 else "unit"
+
+
+def _number_run_value(words: list[str]) -> int:
+    total = current = 0
+    for word in words:
+        if word == "hundred":
+            current = (current or 1) * 100
+        elif word in _NUM_SCALES:
+            total += (current or 1) * _NUM_VALUES[word]
+            current = 0
+        else:
+            current += _NUM_VALUES[word]
+    return total + current
+
+
+def _number_words_to_digits(text: str) -> str:
+    """'two plus twenty-one times three hundred and five' -> '2 plus 21 times 305'."""
+    parts = re.findall(r"[A-Za-z]+|[^A-Za-z]+", text or "")
+    out: list[str] = []
+    run: list[str] = []
+    last: str | None = None
+    held = ""
+
+    def flush() -> None:
+        nonlocal run, last, held
+        if run:
+            out.append(str(_number_run_value(run)))
+        out.append(held)
+        run, last, held = [], None, ""
+
+    i = 0
+    while i < len(parts):
+        part = parts[i]
+        low = part.lower()
+        kind = _number_kind(low) if part[0].isalpha() else None
+        if run and not part[0].isalpha() and re.fullmatch(r"[ \t-]+", part):
+            held += part  # a space or hyphen may join two number words
+            i += 1
+            continue
+        if (
+            run and low == "and" and last == "scale" and i + 2 < len(parts)
+            and re.fullmatch(r"[ \t]+", parts[i + 1]) and _number_kind(parts[i + 2].lower()) in ("unit", "tens")
+        ):
+            held = ""  # "three hundred and five"
+            i += 2
+            continue
+        continues = run and kind and (
+            (last == "tens" and kind == "unit" and _NUM_VALUES[low] < 10)
+            or kind == "scale"
+            or (last == "scale" and kind in ("unit", "tens"))
+        )
+        if continues:
+            run.append(low)
+            last = kind
+            held = ""
+        else:
+            flush()
+            if kind and kind != "scale":
+                run, last = [low], kind
+            else:
+                out.append(part)
+        i += 1
+    flush()
+    return "".join(out)
+
+
 def _maybe_direct_math_answer(user_text: str) -> str | None:
     """'What is 12 times 7?' answered by the calculator, no model; None unless it is purely a sum."""
     lead = MATH_LEAD_RE.match(user_text or "")
     if not lead:
         return None
-    body = re.sub(r"(?:\s+(?:equals?|make|makes|is))?[\s?.!=]*$", "", user_text[lead.end():])
+    body = _number_words_to_digits(user_text[lead.end():])
+    body = re.sub(r"(?:\s+(?:equals?|make|makes|is))?[\s?.!=]*$", "", body)
     if not body or len(body) > 80 or _MATH_DATE_RE.search(body):
         return None
     if re.search(r"\d\s+and\s+\d", body, re.I) and not re.match(r"^\s*\d[\d.,]*\s+and\s+\d[\d.,]*\s*$", body):

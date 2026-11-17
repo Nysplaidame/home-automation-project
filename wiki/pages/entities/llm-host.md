@@ -3,7 +3,7 @@ title: "Local AI Host"
 category: entity
 tags: [software, local-ai, llama-cpp, wyoming, lxc, igpu, voice]
 created: 2026-06-20
-updated: 2026-11-13
+updated: 2026-11-17
 sources: [project-readme, project-todo]
 status: active
 ---
@@ -32,6 +32,9 @@ llama.cpp uses Vulkan and shares the Intel iGPU with Frigate CT 111.
   Whisper port `10300`.
 - Piper `10200`; Whisper `10300`; OpenWakeWord `10400` (HA and monitoring only).
 - Voice Mixer `7860` (`/opt/stacks/voice-mixer`, CPU only, `cpus 2`, 4 GiB cap).
+- Metrocop TTS `10201` (Wyoming; `metrocop-tts` in the same stack, `cpus 3.0`
+  since 2026-11-13): Piper voice plus the voicefx radio preset, synthesised
+  sentence by sentence when Home Assistant streams the reply.
 - Published ports are scoped by `/usr/local/sbin/llm-host-firewall.sh`
   (`DOCKER-USER`), tracked in the repo as
   `configs/local-ai/system/llm-host-firewall.sh`.
@@ -51,10 +54,23 @@ llama.cpp uses Vulkan and shares the Intel iGPU with Frigate CT 111.
   stay capped (`--cache-ram 2048`; the 8 GiB default would OOM the CT).
 - 2026-11-13: prompt processing (~85-125 tok/s on the iGPU) dominates voice
   latency, not generation (~12 tok/s). The voice assistant sends one fixed
-  ~6.5k-token prompt (system text plus 35 tools), which llama.cpp reuses from its
+  ~6.2k-token prompt (system text plus its tools), which llama.cpp reuses from its
   cache; a different caller context (Voice PE, HA chat box, test scripts) evicts
   it and the next voice question reads it cold (60-80 s). Details:
   `main/HANDOFF-2026-11-11-llm-igpu-speed.md`.
+- 2026-11-14: the voice prompt is pinned to one version (~6,150 tokens): Home
+  Assistant built two variants for the same satellite depending on whether its
+  timer handler was registered, so the warm-up often primed the wrong one and the
+  first spoken question read ~6.5k tokens cold (88 s). The model no longer gets
+  the timer tools (timers stay with Home Assistant's local intents). Confirmed on
+  2026-11-17: the first question after the 00:01 warm-up read 16 new tokens (2.8 s).
+- 2026-11-14: any turn that carries earlier conversation turns costs ~9 s of
+  prompt reading however short the history: llama.cpp reads it in two or three
+  batches with a fixed cost each (cause unexplained). The voice component now
+  sends earlier turns only when the question refers back to them.
+- 2026-11-15: the streamed replies exposed that llama.cpp closes the connection
+  after a stream; a request reusing it fails with "Server disconnected". The
+  component uses one-shot connections for streamed requests.
 - llama.cpp rejects a tool schema whose string bound exceeds ~1,500 characters
   ("failed to parse grammar", HTTP 400) for the whole request; the
   `llamacpp_conversation` component strips such bounds before sending.
@@ -69,11 +85,18 @@ llama.cpp uses Vulkan and shares the Intel iGPU with Frigate CT 111.
 - Household Hub now owns recipe research/provenance and confirmation-gated
   Mealie handoff. Obsidian remains an optional export target, not the recipe
   system of record.
-- [ ] Design the Metrocop Wyoming playback wrapper (Piper → voicefx preset → HA).
+- [x] Design the Metrocop Wyoming playback wrapper (Piper → voicefx preset → HA):
+  live as `metrocop-tts` on `10201`, streaming since 2026-11-13.
+- [ ] Why llama.cpp reads conversation history in several batches with a fixed
+  cost each (follow-ups that refer back still take ~11 s).
 - [ ] Revisit larger models only after a host RAM upgrade and repeat benchmarks.
 
 ## Change Log
 
+- 2026-11-17: Voice latency work of 13-15 November recorded: streamed
+  sentence-by-sentence speech, Metrocop TTS `cpus 3.0`, pinned voice prompt,
+  history only when referred to, one-shot streamed connections. Accuracy suite
+  86/86 on 2026-11-15. Source: `main/HANDOFF-2026-11-11-llm-igpu-speed.md`.
 - 2026-11-13: Production `llama-cpp` moved from Qwen3-14B (64k, q8_0 KV) to
   Qwen3-30B-A3B (40,960, f16 KV, `--cache-ram 2048`) after a trial; trial and
   capture-proxy containers removed. About 2.7x faster generation; recipe, shopping,

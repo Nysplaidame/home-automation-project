@@ -572,6 +572,12 @@ SearXNG search), with no invented entities, before considering a switch.
     Seen in `system_log` at that restart: "Can't connect to ESPHome API for home-assistant-voice-0ae52a" x2. The Voice PE
     is briefly unreachable when HA starts, which is a likely reason the start-up warm-up used to get the prompt without
     timer support (not confirmed, and it does not explain the midnight case); the pinned prompt makes it harmless.
+  - **2026-11-17 unattended follow-ups (owner: "continue with anything you can do without my input"; no live
+    changes).** Pinned prompt confirmed across two midnights (warm-ups 6,151 tokens; first question after 16 new
+    tokens, 2.8 s; only date-line prefix warnings). SearXNG engine stats read (see TO-DO; news engines mostly dead).
+    Built in the repo, NOT deployed: number-word sums answered in code (`_number_words_to_digits`). Docs:
+    `current-live-state.md` (voice and CT 114 sections), `docs/install/services/voice-mixer.md` step 6, wiki
+    `entities/llm-host`. CT 114 memory available 1.7 GB.
   - **2026-11-13 sentence-by-sentence speech, build notes (written before the deploy above).**
     Why it matters more than expected: the Metrocop TTS renders at about real time (CT 114 `docker logs metrocop-tts`:
     17.95 s of audio in 17.90 s, 19.55 s in 23.29 s), and it rendered the whole reply before sending any audio, so a
