@@ -12,3 +12,4 @@ Do not use as deployment guidance; use the current files instead.
 | openwrt_complete_config_phase_2.md | Early Phase 2 draft — superseded by phase_2_network_infrastructure_complete.md |
 | full-config.md | Older monolithic router script — superseded by router_setup_complete.md + individual phase files |
 - **ventsys_solution1_implementation.md** — N-7: NTP + local CA planning notes. Superseded by ventsys_tls_implementation_guide.md and firewall-config.conf.
+- **2026-11-15-closed-handoffs/** — `HANDOFF-2026-06-19-igpu-lxc-migration.md` (CT 114 migration finished; durable facts are in `docs/reference/current-live-state.md`) and `HANDOFF-2026-09-30-nas-transfer-monitor.md` (monitoring session ended; no capture is running). Moved during the 2026-11-15 workspace cleanup.

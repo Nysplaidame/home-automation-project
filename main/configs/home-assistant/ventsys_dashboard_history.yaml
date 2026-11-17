@@ -1,0 +1,24 @@
+# Measurement metadata only; preserves raw units and values. Enables numeric ratio graphs and future long-term means.
+homeassistant:
+  customize:
+    sensor.ventsys_fdm_array_1_co_rs_r0_ratio:
+      state_class: measurement
+      unit_of_measurement: ratio
+    number.ventsys_fdm_array_1_co_ratio_alarm_threshold:
+      unit_of_measurement: ratio
+    sensor.garage_sla_enclosure_sensor_array_1_co_rs_r0_ratio:
+      state_class: measurement
+      unit_of_measurement: ratio
+    number.garage_sla_enclosure_sensor_array_1_co_ratio_alarm_threshold:
+      unit_of_measurement: ratio
+    sensor.garage_ventsys_sla_pipe_air_sensor_co_rs_r0_ratio:
+      state_class: measurement
+      unit_of_measurement: ratio
+    number.garage_ventsys_sla_pipe_air_sensor_co_ratio_alarm_threshold:
+      unit_of_measurement: ratio
+    sensor.ventsys_fdm_airflow_sensor_flow_meter_wheel_speed:
+      state_class: measurement
+    sensor.ventsys_sla_airflow_sensor_flow_meter_wheel_speed:
+      state_class: measurement
+    sensor.ventsys_booth_airflow_sensor_flow_meter_wheel_speed:
+      state_class: measurement

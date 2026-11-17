@@ -4,7 +4,7 @@ Goal: cut the LLM share of Overwatch voice latency (currently ~4.5 s for a trivi
 ~20-27 s for a web search) without losing Home Assistant tool-calling quality.
 
 Read first: `docs/reference/current-live-state.md` (CT 114 / Voice sections),
-`HANDOFF-2026-06-19-igpu-lxc-migration.md` (how the iGPU got into the LXCs),
+`_archive/2026-11-15-closed-handoffs/HANDOFF-2026-06-19-igpu-lxc-migration.md` (how the iGPU got into the LXCs),
 `configs/local-ai/docker-compose.yml`, `configs/home-assistant/custom_components/llamacpp_conversation/__init__.py`.
 
 ## Key finding: the iGPU is already in use

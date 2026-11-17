@@ -2,3 +2,33 @@
 {"ts": "2026-11-11T14:23:48", "task": "001", "step": "start", "agent": "script"}
 {"ts": "2026-11-11T14:23:51", "task": "001", "step": "finish", "agent": "script", "outcome": "done"}
 {"ts": "2026-11-12T11:15:12", "task": "002", "step": "approved", "by": "user"}
+{"ts": "2026-11-12T23:15:56", "task": "003", "step": "approved", "by": "user"}
+{"ts": "2026-11-12T23:15:56", "task": "004", "step": "approved", "by": "user"}
+{"ts": "2026-11-12T23:15:57", "task": "005", "step": "approved", "by": "user"}
+{"ts": "2026-11-12T23:19:09", "task": "003", "step": "start", "agent": "codex", "tier": "executor", "worktree": "K:\\Documents\\Obsidian\\worktrees\\home-automation-project\\agent_003-fix-interrupted-mode-release-recovery-lo"}
+{"ts": "2026-11-12T23:22:58", "task": "003", "step": "exec-executor", "agent": "codex", "model": "gpt-6.1-terra", "effort": "medium", "exit": 0, "minutes": 3.8}
+{"ts": "2026-11-12T23:24:36", "task": "003", "step": "review-1", "agent": "claude", "model": "sonnet", "effort": "high", "exit": 0, "minutes": 1.6}
+{"ts": "2026-11-12T23:24:36", "task": "003", "step": "verdict-1", "agent": "claude", "outcome": "PASS"}
+{"ts": "2026-11-12T23:24:37", "task": "003", "step": "finish", "outcome": "done"}
+{"ts": "2026-11-12T23:33:22", "task": "004", "step": "start", "agent": "codex", "tier": "executor", "worktree": "K:\\Documents\\Obsidian\\worktrees\\home-automation-project\\agent_004-correct-fdm-enclosure-air-sensor-co-chan"}
+{"ts": "2026-11-12T23:35:27", "task": "004", "step": "exec-executor", "agent": "codex", "model": "gpt-6.1-terra", "effort": "medium", "exit": 0, "minutes": 2.1}
+{"ts": "2026-11-12T23:36:34", "task": "004", "step": "review-1", "agent": "claude", "model": "sonnet", "effort": "high", "exit": 0, "minutes": 1.1}
+{"ts": "2026-11-12T23:36:34", "task": "004", "step": "verdict-1", "agent": "claude", "outcome": "FAIL"}
+{"ts": "2026-11-12T23:37:43", "task": "004", "step": "fix-review", "agent": "codex", "model": "gpt-6.1-terra", "effort": "medium", "exit": 0, "minutes": 1.1}
+{"ts": "2026-11-12T23:39:00", "task": "004", "step": "review-2", "agent": "claude", "model": "sonnet", "effort": "high", "exit": 0, "minutes": 1.3}
+{"ts": "2026-11-12T23:39:00", "task": "004", "step": "verdict-2", "agent": "claude", "outcome": "PASS"}
+{"ts": "2026-11-12T23:39:00", "task": "004", "step": "finish", "outcome": "done"}
+{"ts": "2026-11-12T23:42:10", "task": "005", "step": "start", "agent": "codex", "tier": "executor", "worktree": "K:\\Documents\\Obsidian\\worktrees\\home-automation-project\\agent_005-implement-invalid-co-adc-fault-reporting"}
+{"ts": "2026-11-12T23:44:10", "task": "005", "step": "exec-executor", "agent": "codex", "model": "gpt-6.1-terra", "effort": "medium", "exit": 0, "minutes": 2.0}
+{"ts": "2026-11-12T23:45:16", "task": "005", "step": "review-1", "agent": "claude", "model": "sonnet", "effort": "high", "exit": 0, "minutes": 1.1}
+{"ts": "2026-11-12T23:45:16", "task": "005", "step": "verdict-1", "agent": "claude", "outcome": "PASS"}
+{"ts": "2026-11-12T23:45:16", "task": "005", "step": "finish", "outcome": "done"}
+{"ts": "2026-11-12T23:58:37", "task": "006", "step": "approved", "by": "user"}
+{"ts": "2026-11-12T23:58:47", "task": "006", "step": "start", "agent": "codex", "tier": "executor", "worktree": "K:\\Documents\\Obsidian\\worktrees\\home-automation-project\\agent_006-implement-the-ventsys-authenticated-card"}
+{"ts": "2026-11-13T00:01:55", "task": "006", "step": "exec-executor", "agent": "codex", "model": "gpt-6.1-terra", "effort": "medium", "exit": 0, "minutes": 3.1}
+{"ts": "2026-11-13T00:03:29", "task": "006", "step": "review-1", "agent": "claude", "model": "sonnet", "effort": "high", "exit": 0, "minutes": 1.6}
+{"ts": "2026-11-13T00:03:29", "task": "006", "step": "verdict-1", "agent": "claude", "outcome": "FAIL"}
+{"ts": "2026-11-13T00:04:58", "task": "006", "step": "fix-review", "agent": "codex", "model": "gpt-6.1-terra", "effort": "medium", "exit": 0, "minutes": 1.5}
+{"ts": "2026-11-13T00:05:41", "task": "006", "step": "review-2", "agent": "claude", "model": "sonnet", "effort": "high", "exit": 0, "minutes": 0.7}
+{"ts": "2026-11-13T00:05:41", "task": "006", "step": "verdict-2", "agent": "claude", "outcome": "FAIL"}
+{"ts": "2026-11-13T00:05:41", "task": "006", "step": "finish", "outcome": "blocked"}

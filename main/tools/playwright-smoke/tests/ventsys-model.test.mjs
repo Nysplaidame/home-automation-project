@@ -91,3 +91,21 @@ test('intake UI opening maps endpoints and midpoint without changing controller 
     assert.equal(openingPercent(device,null),null);
   }
 });
+
+
+test('unchanged zero RPM uses only its registry-matched board heartbeat', async () => {
+ const {sensorValue}=await import('../../../dashboards/ventsys-model.mjs');
+ const now=Date.now(), id='sensor.ventsys_fdm_airflow_sensor_flow_meter_wheel_speed';
+ const wheel={state:'0',last_updated:new Date(now-600000).toISOString(),attributes:{unit_of_measurement:'RPM'}};
+ const recent={state:'1234',last_updated:new Date(now-1000).toISOString()};
+ assert.equal(sensorValue([id],{[id]:wheel,'sensor.ventsys_fdm_airflow_sensor_uptime':recent},true,now).reason,'Stale');
+ assert.equal(sensorValue([id],{[id]:wheel,'sensor.ventsys_fdm_airflow_sensor_uptime_2':recent},true,now).value,0);
+ assert.equal(sensorValue([id],{[id]:{...wheel,state:'unavailable'},'sensor.ventsys_fdm_airflow_sensor_uptime_2':recent},true,now).reason,'Unavailable');
+});
+
+
+test('differential pressure fault overrides a held value even while the board is online',()=>{
+ const reading={id:'sensor.ventsys_fdm_array_1_differential_pressure',value:-0.03,unit:'Pa'};
+ assert.equal(measurement('differential',reading,{'binary_sensor.ventsys_fdm_array_1_dp_sensor_fault':{state:'on'}}).value,null);
+ assert.equal(measurement('differential',reading,{'binary_sensor.ventsys_fdm_array_1_dp_sensor_fault':{state:'off'}}).value,-0.03);
+});
