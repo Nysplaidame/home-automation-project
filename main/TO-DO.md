@@ -32,9 +32,10 @@ items with open sub-tasks remain here.
 - [ ] Rebuild the Mermaid Viewer and redeploy `/opt/stacks/mermaid-viewer/dist`.
 - [ ] Decide fate of unmerged local branches (`claude/mermaid-diagram-cleanup-ec1358`
   has six wiring diagrams; `llm-igpu-speed-handoff` was discarded by the owner).
-- [ ] Docs drift: add ~95 missing files to `PROJECT-INDEX.md`; wiki pages for Solar
-  Observatory and Obico; decision numbering gap (06) and unnumbered decisions;
-  refresh stale `modified:` dates on READMEs and reference matrices.
+- [ ] Docs drift: wiki pages for Solar Observatory and Obico; decision numbering
+  gap (06) and unnumbered decisions; refresh stale `modified:` dates on READMEs
+  and reference matrices. Project index coverage was reconciled for configuration,
+  setup and operational source files on 2026-11-17.
 - [ ] Repo weight: drop `worktree-file-inventory.csv` and the Tesseract binaries
   under `recomp-tracker/static/ocr/`; untrack `main/.obsidian/`; remove root
   `cam_01_latest_check.jpg`; add CI for the four apps with tests.
