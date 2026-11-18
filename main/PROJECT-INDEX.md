@@ -85,6 +85,7 @@ Written coverage is not verified rebuild or current restore acceptance.
 ### Home Assistant
 - [[configs/home-assistant/configuration.yaml]] — core config, packages directive, HTTP
 - [[configs/home-assistant/automations.yaml]] — fire safety, temp, air quality, watchdog
+- [[configs/home-assistant/packages/gardenkeeper_package.yaml]] — GardenKeeper HA integration package
 - [[configs/home-assistant/haos-timesyncd-router.conf]] — HAOS router-local NTP override for router-derived ESPHome time
 
 ### Frigate NVR
@@ -117,6 +118,8 @@ Written coverage is not verified rebuild or current restore acceptance.
 - [[configs/docker-host/stacks/calibre-web/README.md]] — live dedicated ebook library service
 - [[configs/docker-host/stacks/atsumeru/README.md]] — live dedicated comics/manga backend
 - [[configs/docker-host/stacks/download-gateway/README.md]] — installed Mullvad/Gluetun/qBittorrent containment stack and acceptance gate
+- [[configs/docker-host/stacks/gardenkeeper/]] — GardenKeeper Compose and backup lifecycle templates
+- [[configs/docker-host/stacks/homepage/]] — Homepage portal and preview proxy configuration
 - [[configs/docker-host/stacks/vaultwarden/README.md]] — live HTTPS Vaultwarden foundation and onboarding gate
 
 - [[docs/install/services/gridfinity-layout-tool.md]] — live local Gridfinity Layout Tool portal
@@ -153,6 +156,7 @@ Written coverage is not verified rebuild or current restore acceptance.
 - [[configs/esphome/ventsys_air_sensor_base.yaml]] — shared enclosure sensor-board package (temperature, smoke, VOC, pressure)
 - [[configs/esphome/ventsys_board_management.yaml]] — shared board shutdown/restart buttons; shutdown suspends all sensing/control until physical reset or power cycle; [[docs/procedures/ventsys-board-power-controls|operational boundary and deployment status]]
 - [[configs/esphome/ventsys_fdm_360_valve_v2_nerdiy.yaml]] — FDM 360 profile at `.62` / MAC `A0:85:E3:AE:5B:C8`; ESP32-C6 GPIO0 servo, GPIO1 LED, calibrated-value contract 30–60, and 1s endpoint PWM detach
+- [[configs/esphome/ventsys_fdm_sensor.yaml]] — FDM enclosure sensor-board configuration
 - [[configs/esphome/ventsys_sla_360_valve_v2_nerdiy.yaml]] — SLA 360 profile at `.61` / MAC `CC:BA:97:F0:E3:EC`; ESP32-C6 GPIO0 servo, GPIO1 LED, calibrated-value contract 30–60, and 1s endpoint PWM detach
 - [[ventsys/ventsys_bundle_updated/ventsys_fan_controller.yaml]] — fan PWM control
 - [[ventsys/ventsys_bundle_updated/ventsys_valve_controller.yaml]] — valve servo control
@@ -197,6 +201,9 @@ Written coverage is not verified rebuild or current restore acceptance.
 - [[scripts/setup/proxmox/ha_vm_setup_guide.md]] — HAOS onboarding through VentSys integration
 - [[scripts/setup/proxmox/frigate_vm_setup_guide.md]] — CT 111 Frigate compatibility entrypoint
 - [[scripts/setup/proxmox/llm_host_setup_guide.md]] — CT 114 local AI compatibility entrypoint
+- [[scripts/setup/proxmox/monitoring_vm_setup_guide.md]] — VM 102 monitoring stack setup guide
+- [[scripts/setup/printers/bambuddy_p1s_setup_guide.md]] — P1S commissioning and Bambuddy integration guide
+- [[scripts/setup/nas/transfer_portal_cheat_sheet.md]] — operator quick reference for guarded OMV transfers
 - [[scripts/setup/proxmox/igpu_passthrough_guide.md]] — shared Intel render/card device mapping for unprivileged LXCs
 
 ### 3. Storage
@@ -251,6 +258,35 @@ Written coverage is not verified rebuild or current restore acceptance.
 | [[scripts/monitoring/export_fail2ban_to_influx.sh]] | Lightweight docker-host Fail2ban counter export into InfluxDB |
 
 ---
+
+- [[docs/procedures/time_sync_strategy.md]] — router, host, guest and ESPHome time synchronization design
+- [[docs/procedures/ventsys_esphome_tls_rollout_guide.md]] — staged ESPHome MQTT TLS migration procedure
+- [[docs/procedures/unattended_print_preflight_checklist.md]] — preflight checks for unattended printer operation
+- [[docs/procedures/unified-formatting-standard.md]] — formatting conventions for durable project documents
+- [[docs/procedures/apt_cacher_ng_design.md]] — design notes for a LAN package cache
+- [[docs/procedures/claude-MCP-integration.md]] — Claude MCP integration and configuration boundary notes
+- [[scripts/backup/backup_vault_to_nas.ps1]] — guarded vault-to-NAS backup script
+- [[scripts/maintenance/bambuddy-stage-update.py]] — stage a pinned Bambuddy release for offline installation
+- [[scripts/maintenance/bambuddy-offline-update.py]] — install staged Bambuddy release with rollback support
+- [[scripts/maintenance/gridfinity-layout-tool-update.ps1]] — update local Gridfinity Layout Tool release
+- [[scripts/maintenance/install-bambuddy-staging-task.ps1]] — install scheduled Bambuddy staging task
+- [[scripts/maintenance/install-gridfinity-update-check-task.ps1]] — install scheduled Gridfinity update check
+- [[scripts/validation/frigate_publisher_lifecycle_test.py]] — isolated Frigate publisher lifecycle regression coverage
+- [[scripts/setup/router/openwrt_offline_testing_guide.md]] — offline router configuration and recovery test procedure
+- [[scripts/setup/router/tplink_wa801n_ap_setup.md]] — TP-Link access point setup guide
+- [[scripts/setup/router/post_fibre_network_repair.sh]] — post-fibre router connectivity recovery helper
+- [[scripts/setup/ventsys/ventsys_phase1_foundation.md]] — VentSys foundation phase plan
+- [[scripts/setup/ventsys/ventsys_phase2_hardware.md]] — VentSys hardware integration phase plan
+- [[scripts/setup/ventsys/ventsys_phase3_control.md]] — VentSys control phase plan
+- [[scripts/setup/ventsys/ventsys_phase4_ui.md]] — VentSys user interface phase plan
+- [[scripts/setup/ventsys/ventsys_phase5_diagnostics.md]] — VentSys diagnostics phase plan
+- [[scripts/setup/ventsys/ventsys_phase6_integration.md]] — VentSys integration phase plan
+- [[scripts/setup/ventsys/ventsys_week1_execution_guide.md]] — first-week VentSys execution guide
+- [[scripts/setup/ventsys/Code/ventsys_week1_execution_simple_execution_guide.md]] — concise first-week execution guide
+- [[scripts/setup/ventsys/Code/ventsys_week1_focused_network_validation.sh]] — focused VentSys network validation helper
+- [[scripts/setup/ventsys/Code/ventsys_week1_mac_simple_collection_tool.sh]] — simple MAC collection helper
+- [[scripts/setup/windows/set-local-core-service-names.ps1]] — configure local core service name mappings
+- [[scripts/setup/windows/set-local-vault-name.ps1]] — configure the local vault name
 
 ## Architecture reference
 
