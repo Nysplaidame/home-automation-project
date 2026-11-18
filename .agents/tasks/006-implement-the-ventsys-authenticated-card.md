@@ -1,7 +1,7 @@
 ---
 id: 006
 title: Implement the VentSys authenticated card-to-page bridge
-status: blocked
+status: stopped
 tier: executor
 agent: codex
 reviewer: claude

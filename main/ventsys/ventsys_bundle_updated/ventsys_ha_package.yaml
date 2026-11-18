@@ -1044,6 +1044,8 @@ automation:
 
 
   - id: ventsys_fire_risk_cutoff
+    # Owner instruction 2026-11-17: testing; re-enable only at commissioning.
+    initial_state: false
 
 
     alias: VentSys FIRE_RISK cutoff
@@ -1113,6 +1115,8 @@ automation:
 
 
   - id: ventsys_failsafe_on_sync
+    # Owner instruction 2026-11-17: testing; re-enable only at commissioning.
+    initial_state: false
 
 
     alias: VentSys fail-safe sync to topics

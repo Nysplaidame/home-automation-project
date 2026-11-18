@@ -294,7 +294,7 @@ test('wheel arrows animate only fresh positive flow and gas/RPM use integers',as
   window.fixture.states['sensor.garage_fdm_enclosure_sensor_fdm_enclosure_sensor_iaq_gas_resistance'].state='90555';
   window.card.hass={...window.fixture};
  });
- await expect(page.locator('#flow1-rate')).toHaveText('127 RPM');
+ await expect(page.locator('#flow1-rate')).toHaveText('127');
  await expect(page.locator('#bme1-iaq')).toHaveText('91');
  await expect(page.locator('#flow1-arrow-bot')).toHaveClass(/flow-moving/);
  expect(await page.locator('#flow1-arrow-top').evaluate(e=>getComputedStyle(e).animationDelay)).toBe('0.8s');
@@ -382,10 +382,24 @@ test('sensor trends tab separates metric groups and switches native history rang
 
 
 test('fans show a labelled stopped-report RPM indicator and never invent running tachometry',async({page})=>{
- await openCard(page);await expect(page.locator('#main-fan-rpm')).toHaveText('0 RPM · off report');await expect(page.locator('#booth-fan-rpm')).toHaveText('0 RPM · off report');await page.evaluate(()=>{window.fixture.states['fan.inline_fan'].state='on';window.fixture.states['fan.spray_booth_fan'].state='unknown';window.card.hass={...window.fixture};});await expect(page.locator('#main-fan-rpm')).toHaveText('RPM unmeasured');await expect(page.locator('#booth-fan-rpm')).toHaveText('RPM unavailable');expect(await page.evaluate(()=>window.calls)).toEqual([]);
+ await openCard(page);await expect(page.locator('#main-fan-rpm')).toHaveText('');await expect(page.locator('#booth-fan-rpm')).toHaveText('');await page.evaluate(()=>{window.fixture.states['fan.inline_fan'].state='on';window.fixture.states['fan.spray_booth_fan'].state='unknown';window.card.hass={...window.fixture};});await expect(page.locator('#main-fan-rpm')).toHaveText('');await expect(page.locator('#booth-fan-rpm')).toHaveText('');expect(await page.evaluate(()=>window.calls)).toEqual([]);
 });
 
 
 test('pipe availability never borrows connectivity from its enclosure array',async({page})=>{
  await openCard(page);await page.evaluate(async()=>{const {ENVIRONMENT_SOURCES}=await import('/ventsys-model.mjs');for(const ids of Object.values(ENVIRONMENT_SOURCES.fdm_pipe))if(Array.isArray(ids))for(const id of ids)if(window.fixture.states[id])window.fixture.states[id].state='unavailable';window.card.hass={...window.fixture};});await expect(page.locator('#bme1-circle')).toHaveCSS('opacity','0.35');await expect(page.locator('#env-fdm-temperature')).toHaveText('21.4');expect(await page.evaluate(()=>window.calls)).toEqual([]);
+});
+
+test('safety menu requires explicit confirmation and never rearms automations', async ({ page }) => {
+ await openCard(page);await page.locator('#open-safety-menu').click();await expect(page.locator('#safety-state')).toHaveText('Failsafe: off');await page.locator('#safety-activate').click();expect(await page.evaluate(()=>window.calls)).toEqual([]);await page.locator('#safety-close').click();expect(await page.evaluate(()=>window.calls)).toEqual([]);
+ await page.locator('#open-safety-menu').click();await expect(page.locator('#safety-confirm')).toBeHidden();await page.locator('#safety-activate').click();await page.locator('#safety-confirm').click();expect(await page.evaluate(()=>window.calls)).toEqual([['input_boolean','turn_on',{entity_id:'input_boolean.ventsys_failsafe'}]]);
+});
+test('device selection retains schematic height and maintenance buttons are spaced', async ({ page }) => {
+ await openCard(page);const before=await page.locator('#diagram').evaluate(e=>e.getBoundingClientRect().y+window.scrollY);await page.locator('[data-device="fdm_360"]').click();const after=await page.locator('#diagram').evaluate(e=>e.getBoundingClientRect().y+window.scrollY);expect(Math.abs(after-before)).toBeLessThan(1);const a=await page.locator('#start-board-maintenance').boundingBox(),b=await page.locator('#end-board-maintenance').boundingBox();expect(b.y-a.y-a.height).toBeGreaterThanOrEqual(9);await expect(page.locator('#mode-groups legend').last()).toHaveText('Close');
+});
+
+test('RPM numbers share a font and four digits fit above separate unit labels',async({page})=>{
+ await openCard(page);await page.evaluate(()=>{window.fixture.states['sensor.ventsys_fdm_airflow_sensor_flow_meter_wheel_speed'].state='166.65';window.card.hass={...window.fixture};});await expect(page.locator('#flow1-rate')).toHaveText('9999');
+ for(const id of ['main-fan-pct','spray-fan-pct','flow1-rate','flow2-rate','flow3-rate']){await expect(page.locator('#'+id)).toHaveAttribute('font-size','19');await expect(page.locator('#'+id+'-unit')).toHaveText('RPM');const n=await page.locator('#'+id).boundingBox(),u=await page.locator('#'+id+'-unit').boundingBox();expect(n.y+n.height).toBeLessThanOrEqual(u.y+2);}
+ expect(await page.evaluate(()=>window.calls)).toEqual([]);
 });

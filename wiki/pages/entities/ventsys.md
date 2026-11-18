@@ -349,3 +349,9 @@ Installed FDM enclosure sensor `.32` / `CC:BA:97:F0:D0:C0` now runs CO-capable f
 SLA CO fault is now clear and the stored latch was acknowledged successfully. FDM array `.31` is adopted; dashboard `20261114-3` shows native values and a separate differential-pressure sign/equality panel with provisional ±0.5 Pa tolerance. All three wheel sensors show confirmed zero using board-specific uptime freshness. Native alarm inputs now feed the existing enabled risk publishers; physical cutoff and notification acceptance remain open. Existing `.32`/`.37` CO baselines exist, new `.31` baseline is unset. No BME680 baseline-change warning is implemented. Canonical details: [[../../../main/docs/procedures/ventsys-dashboard]].
 
 Release `20261114-6` adds Sensor trends/Activity tabs, persistent scoped HA activity, independent array/pipe columns and selectable sensor board detail/history/ack/maintenance controls. Maintenance can request board shutdown after confirmation; reconnect physical power before reactivation. The 0 RPM fan label follows an off report; no motor tachometry exists. Canonical deep dive: [[../../../main/docs/audits/2026-11-14-ventsys-history-and-telemetry]]. Physical UI/board/safety acceptance remains separate.
+
+## Owner testing override — 2026-11-17
+
+Automatic HA FIRE_RISK cutoff and fail-safe sync are disabled, with startup overrides keeping them off. System failsafe reset off to unlock dashboard testing. Sensor alarms/latches, history and notifications remain; firmware unchanged. Re-arm only on explicit owner commissioning instruction and supervised acceptance. Canonical instructions: [[../../../main/docs/procedures/ventsys-dashboard]].
+
+November 17: the diagram Safety menu provides confirmed failsafe activation/deactivation and shows automatic-cutoff/sync states. It does not rearm automations; the owner testing override still applies. See the canonical dashboard manual.

@@ -1,6 +1,6 @@
 import { MODE_EXPECTED, OPERATING_PLANS, TEST_TARGETS } from './ventsys-modes.mjs?v=20261104-4';
 
-export const VERSION = '20261114-6';
+export const VERSION = '20261117-7';
 export const BOARD_HEALTH = [
   {key:'fdm_array',label:'FDM array 1',uptime:'sensor.ventsys_fdm_array_1_uptime',zone:'fdm'},
   {key:'fdm_pipe',label:'FDM pipe air',uptime:'sensor.garage_sla_enclosure_sensor_array_1_uptime',zone:'fdm'},

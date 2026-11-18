@@ -1219,6 +1219,12 @@ Updated [[pages/entities/ventsys|VentSys]] to reflect the installed FDM CO firmw
 
 2026-11-14 — Extended VentSys entity with release 20261114-6 history/activity, board maintenance power-cycle semantics, independent sources and fan tachometry limits from canonical deep dive.
 
+## [2026-11-17] update | VentSys testing override
+- Updated [[entities/ventsys]] from canonical dashboard manual: automatic safety actuation paused persistently, dashboard failsafe cleared; commissioning remains owner-gated.
+
+## [2026-11-17] update | VentSys Safety menu
+- Updated [[entities/ventsys]]: confirmed failsafe controls added; testing automation disablement retained.
+
 ## [2026-11-17] update | Local AI host: voice latency work of 13-15 November
 - Recorded streamed sentence-by-sentence speech, Metrocop TTS on `10201` with `cpus 3.0`, the pinned voice prompt (confirmed warm after the 2026-11-17 midnight warm-up), history only when referred to, and the llama.cpp connection-close finding.
 - Pages updated: [[entities/llm-host]]
