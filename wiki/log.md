@@ -1218,3 +1218,9 @@ Updated [[pages/entities/ventsys|VentSys]] to reflect the installed FDM CO firmw
 2026-11-14 — Updated VentSys entity from canonical dashboard/current-live-state: adopted array, pressure display, wheel heartbeat mapping, SLA latch cleared and native risk input coverage; physical acceptance outstanding.
 
 2026-11-14 — Extended VentSys entity with release 20261114-6 history/activity, board maintenance power-cycle semantics, independent sources and fan tachometry limits from canonical deep dive.
+
+## [2026-11-17] update | VentSys testing override
+- Updated [[entities/ventsys]] from canonical dashboard manual: automatic safety actuation paused persistently, dashboard failsafe cleared; commissioning remains owner-gated.
+
+## [2026-11-17] update | VentSys Safety menu
+- Updated [[entities/ventsys]]: confirmed failsafe controls added; testing automation disablement retained.

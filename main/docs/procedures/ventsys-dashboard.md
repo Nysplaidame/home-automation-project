@@ -891,3 +891,38 @@ Every diagram board has maintenance controls. Confirmed maintenance marks expect
 Validation: 56 browser tests, 27 model tests, HA core check, scoped live Logbook/recorder metadata API probes, CO metadata observed live, and a labelled no-actuator persistent-log acceptance event. Native history card creation/range selection uses a test helper; actual native chart interaction and physical board shutdown/reconnection remain owner acceptance. No live board was powered down. Assets matched deployed hashes and the resource/views were verified. Backup: `/config/backups/ventsys-history-20261114-133436/` (prior four assets, board-health YAML and live view config); new module/packages are listed in the deep dive for rollback removal before helper/core/automation reload.
 
 Release acceptance also verifies independent pipe availability and rejects a held differential-pressure value whenever its native DP fault is active or unavailable.
+
+
+## Testing override — 2026-11-17
+
+Owner explicitly instructed that automatic safety actions must remain inactive while VentSys undergoes testing. HA automations `automation.ventsys_fire_risk_cutoff` and `automation.ventsys_fail_safe_sync_to_topics` were turned off with running actions stopped; both definitions now have `initial_state: false` in the canonical bundle and live package so restart/reload does not re-arm them. `input_boolean.ventsys_failsafe` was reset off. Live HA verification: both automations off, failsafe off, fire-response script off. Sensor detection, board latches, telemetry, history and notifications remain enabled; no firmware protections were altered and no actuator commands were sent. This is a testing-only system, not an operational safety system.
+
+The prior lock began 2026-11-15 at 21:37:09 alongside SLA pipe CO detection/latch; FDM enclosure CO detection/latch followed at 22:10:25. On investigation FDM array 1 was offline and saved FDM risk remained FIRE_RISK. These are reported alarms, not confirmation of real CO. Clearing board alarms alone does not reset the separate HA failsafe.
+
+Re-arm only on explicit owner commissioning instruction, after supervised sensor/cutoff/ventilation acceptance: remove the two `initial_state: false` overrides in source/live, validate HA config, then deliberately enable both automations. Verify current risk and latch states first; enabling a state-triggered automation alone does not replay an existing FIRE_RISK state. Live pre-change package backup: `/config/backups/ventsys-testing-20261117-131729/ventsys_ha_package.yaml`.
+
+### Dashboard label cleanup — 2026-11-17, release 20261117-1
+
+Deployed fan RPM indicators beneath the main/booth fans: 0 RPM for unavailable/off reports, unknown running tachometry stays unmeasured (— RPM). Removed the extra RPM notice above each fan. Unavailable schematic pressure values are blank with grey question-mark icons retained; detailed faults remain in status/log views. Environment pipe headings now read FDM PIPE and SLA PIPE. All 56 dashboard/browser tests passed; three deployed asset hashes and live resource/version/labels verified. Rollback assets: `/config/backups/ventsys-labels-20261117-191539/`; restore resource `?v=20261114-6` with prior files. No control or safety-state changes in this release.
+
+### Bounded detail layout — 2026-11-17, release 20261117-2
+
+Right-hand device panel scrolls vertically within 620px (560px on mobile); telemetry no longer has its own nested scroll area. Native history cards fit a minmax(0,1fr) column and cannot spill horizontally. Touch menu retains its existing outer scroll. Pink grid lines/glow now span all 1540 SVG units, with added vertical lines in the formerly empty right region. All 56 browser tests passed. Live panel measured 620px high with 2318px scroll content, no horizontal overflow; both graphs measured 224px within a 224px container. Live screenshot verified chart containment and full-width grid. Four deployed asset hashes matched; rollback `/config/backups/ventsys-layout-20261117-191753/`, resource prior version 20261117-1.
+
+### Diagram controls and RPM spacing — 2026-11-17, release 20261117-4
+
+Both array pressure icons now have equal 36-unit top/right enclosure insets. Stop category renamed Close (existing off-mode behavior unchanged). Maintenance/reactivate buttons have separate block rows and 10px margins. Standard detail panel has a fixed 620px height (560px mobile), preventing temporary chart rebuild shrink from moving the schematic.
+
+The main diagram header has a Safety menu with current failsafe/cutoff/fire-safe-sync states and explicit two-step Activate/Deactivate failsafe controls. Only `input_boolean.ventsys_failsafe` is changed; automations are never rearmed by this menu. Deactivation does not acknowledge sensors or restore valve positions. Activation locks controls and triggers ventilation only if the existing fire-safe sync is enabled. The owner testing override remains in effect: automatic cutoff and sync off. No live failsafe toggles or actuator commands were used for UI validation.
+
+All five fan/airflow speed values use 19-unit text with a separate RPM label below, leaving room for four-digit speeds. Fan unavailable/off fallback remains 0 as requested; running fan speed remains unknown without tachometry. All 58 existing/selection/safety UI tests plus a four-digit 9999 RPM alignment test passed. Four assets were backed up at `/config/backups/ventsys-safety-ui-20261117-192258/`; subsequent RPM assets backed up at `/config/backups/ventsys-rpm-20261117-192427/`. Current resource is 20261117-4.
+
+Final RPM verification: release 20261117-5 also removes the separate booth-airflow inline RPM suffix. All five live value nodes verified numeric-only, font-size 19, with separate RPM unit nodes. Current resource 20261117-5.
+
+### Spacing refinement — 2026-11-17, release 20261117-6
+
+Moved left-hand valve/airflow/fan values and unit labels 14 SVG units away from device circles; gas values moved 10 units left. Both array pressure boxes moved 12 units up/right, with question marks horizontally centred and vertically centred using central baseline. Four focused browser checks passed (both touch sizes, device selection, four-digit RPM). Three live asset copies verified byte-identical; rollback `/config/backups/ventsys-spacing-20261117-192843/`, prior resource 20261117-5. No operational or safety behavior changed.
+
+### Full-panel neon background — 2026-11-17, release 20261117-7
+
+Neon grid now belongs to the entire schematic panel, covering its full width/height, header, caption and SVG letterbox space. SVG-only grid is hidden and background transparent to avoid duplicate grids. Six-second glow retained with reduced-motion support. Four focused mobile/touch/stable-selection checks passed; deployed four assets match local bytes and live standard layout visually verified edge-to-edge. Rollback `/config/backups/ventsys-full-grid-20261117-194428/`, previous resource 20261117-6.

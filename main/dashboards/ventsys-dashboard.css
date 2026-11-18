@@ -178,3 +178,26 @@ dialog { max-height:calc(100dvh - 24px); overflow:auto; }
 #activity-dialog{width:min(1100px,94vw);max-height:90vh;overflow:auto}#events li{overflow-wrap:anywhere;white-space:normal}#svg-log-box{cursor:pointer}
 
 #sensor-values{max-height:380px;overflow:auto}#sensor-values div{display:block;padding:5px 0;border-bottom:1px solid #294152}#sensor-values dt{overflow-wrap:anywhere}#sensor-values dd{margin:0;color:#83d6c5}#board-detail{margin-top:15px}#detail-graphs{display:grid;gap:12px}#board-action-status{overflow-wrap:anywhere}
+
+/* Keep board detail independent of schematic height and contain native charts. */
+.device-panel { min-width:0; min-height:0; max-height:620px; overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain; scrollbar-gutter:stable; }
+#board-detail, #detail-graphs { min-width:0; max-width:100%; }
+#sensor-values { max-height:none; overflow:visible; }
+#detail-graphs { grid-template-columns:minmax(0,1fr); }
+#detail-graphs > * { display:block; width:100%; min-width:0; max-width:100%; overflow:hidden; box-sizing:border-box; }
+:host([layout=touch]) #touch-menu .device-panel { max-height:none; overflow:visible; }
+@media(max-width:620px) { .device-panel { max-height:560px; } }
+
+/* A stable detail height prevents async charts from shifting the schematic. */
+:host(:not([layout=touch])) .device-panel { height:620px; box-sizing:border-box; overflow-anchor:none; }
+#board-detail > button { display:block; margin:10px 0; }
+#safety-menu { width:min(540px,calc(100vw - 32px)); }
+#safety-menu button { margin:6px; }
+@media(max-width:620px) { :host(:not([layout=touch])) .device-panel { height:560px; } }
+
+/* Grid belongs to the full panel, so SVG letterboxing never leaves blank bands. */
+.schematic-panel { position:relative; isolation:isolate; background-color:#080b16; background-image:linear-gradient(#ff008044 1px,transparent 1px),linear-gradient(90deg,#ff008044 1px,transparent 1px); background-size:78px 54px; }
+.schematic-panel::before { content:""; position:absolute; inset:0; z-index:-1; pointer-events:none; background-image:linear-gradient(#ff0080a0 2px,transparent 2px),linear-gradient(90deg,#ff0080a0 2px,transparent 2px); background-size:78px 54px; filter:blur(3px); animation:panel-grid-glow 6s ease-in-out infinite; }
+@keyframes panel-grid-glow { 0%,100% { opacity:.15; } 50% { opacity:.65; } }
+#diagram #grid-glow-layer, #diagram #grid-line-layer { display:none; }
+@media(prefers-reduced-motion:reduce) { .schematic-panel::before { animation:none; opacity:.3; } }

@@ -119,40 +119,40 @@
 </defs>
 
         <!-- Background -->
-        <rect width="1540" height="820" fill="#05050f" opacity="0.6"/>
+        <rect width="1540" height="820" fill="transparent"/>
 
         <!-- GRID GLOW — 6s cycle (2× slower), peak opacity +15% -->
         <g id="grid-glow-layer" stroke="#ff0080" stroke-width="3" opacity="0">
-          <filter id="gridHalo" filterUnits="userSpaceOnUse" x="-8" y="-8" width="1316" height="836">
+          <filter id="gridHalo" filterUnits="userSpaceOnUse" x="-8" y="-8" width="1556" height="836">
             <feGaussianBlur stdDeviation="4.5"/>
           </filter>
           <g filter="url(#gridHalo)">
-            <line x1="0" y1="82" x2="1300" y2="82"/><line x1="0" y1="164" x2="1300" y2="164"/>
-            <line x1="0" y1="246" x2="1300" y2="246"/><line x1="0" y1="328" x2="1300" y2="328"/>
-            <line x1="0" y1="410" x2="1300" y2="410"/><line x1="0" y1="492" x2="1300" y2="492"/>
-            <line x1="0" y1="574" x2="1300" y2="574"/><line x1="0" y1="656" x2="1300" y2="656"/>
-            <line x1="0" y1="738" x2="1300" y2="738"/>
+            <line x1="0" y1="82" x2="1540" y2="82"/><line x1="0" y1="164" x2="1540" y2="164"/>
+            <line x1="0" y1="246" x2="1540" y2="246"/><line x1="0" y1="328" x2="1540" y2="328"/>
+            <line x1="0" y1="410" x2="1540" y2="410"/><line x1="0" y1="492" x2="1540" y2="492"/>
+            <line x1="0" y1="574" x2="1540" y2="574"/><line x1="0" y1="656" x2="1540" y2="656"/>
+            <line x1="0" y1="738" x2="1540" y2="738"/>
             <line x1="118.2" y1="0" x2="118.2" y2="820"/><line x1="236.4" y1="0" x2="236.4" y2="820"/>
             <line x1="354.5" y1="0" x2="354.5" y2="820"/><line x1="472.7" y1="0" x2="472.7" y2="820"/>
             <line x1="590.9" y1="0" x2="590.9" y2="820"/><line x1="709.1" y1="0" x2="709.1" y2="820"/>
             <line x1="827.3" y1="0" x2="827.3" y2="820"/><line x1="945.5" y1="0" x2="945.5" y2="820"/>
-            <line x1="1063.6" y1="0" x2="1063.6" y2="820"/><line x1="1181.8" y1="0" x2="1181.8" y2="820"/>
+            <line x1="1063.6" y1="0" x2="1063.6" y2="820"/><line x1="1181.8" y1="0" x2="1181.8" y2="820"/><line x1="1300" y1="0" x2="1300" y2="820"/><line x1="1418.2" y1="0" x2="1418.2" y2="820"/><line x1="1536.4" y1="0" x2="1536.4" y2="820"/>
           </g>
           <!-- peak=0.52 (+15% over old 0.45), trough=0.05, 6s -->
           <animate attributeName="opacity" values="0.05;0.52;0.05" dur="6s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1"/>
         </g>
         <!-- GRID LINES — high peak, near-zero trough -->
         <g id="grid-line-layer" stroke="#ff0080" opacity="0.72" stroke-width="0.9">
-          <line x1="0" y1="82" x2="1300" y2="82"/><line x1="0" y1="164" x2="1300" y2="164"/>
-          <line x1="0" y1="246" x2="1300" y2="246"/><line x1="0" y1="328" x2="1300" y2="328"/>
-          <line x1="0" y1="410" x2="1300" y2="410"/><line x1="0" y1="492" x2="1300" y2="492"/>
-          <line x1="0" y1="574" x2="1300" y2="574"/><line x1="0" y1="656" x2="1300" y2="656"/>
-          <line x1="0" y1="738" x2="1300" y2="738"/>
+          <line x1="0" y1="82" x2="1540" y2="82"/><line x1="0" y1="164" x2="1540" y2="164"/>
+          <line x1="0" y1="246" x2="1540" y2="246"/><line x1="0" y1="328" x2="1540" y2="328"/>
+          <line x1="0" y1="410" x2="1540" y2="410"/><line x1="0" y1="492" x2="1540" y2="492"/>
+          <line x1="0" y1="574" x2="1540" y2="574"/><line x1="0" y1="656" x2="1540" y2="656"/>
+          <line x1="0" y1="738" x2="1540" y2="738"/>
           <line x1="118.2" y1="0" x2="118.2" y2="820"/><line x1="236.4" y1="0" x2="236.4" y2="820"/>
           <line x1="354.5" y1="0" x2="354.5" y2="820"/><line x1="472.7" y1="0" x2="472.7" y2="820"/>
           <line x1="590.9" y1="0" x2="590.9" y2="820"/><line x1="709.1" y1="0" x2="709.1" y2="820"/>
           <line x1="827.3" y1="0" x2="827.3" y2="820"/><line x1="945.5" y1="0" x2="945.5" y2="820"/>
-          <line x1="1063.6" y1="0" x2="1063.6" y2="820"/><line x1="1181.8" y1="0" x2="1181.8" y2="820"/>
+          <line x1="1063.6" y1="0" x2="1063.6" y2="820"/><line x1="1181.8" y1="0" x2="1181.8" y2="820"/><line x1="1300" y1="0" x2="1300" y2="820"/><line x1="1418.2" y1="0" x2="1418.2" y2="820"/><line x1="1536.4" y1="0" x2="1536.4" y2="820"/>
         
           <!-- negative: lines darken to black at glow peak, back to pink at trough -->
           <animate attributeName="stroke" values="#ff0080;#000000;#ff0080" dur="6s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1"/>
@@ -206,8 +206,8 @@
         <!-- E1 branch valve + label LEFT of pipe -->
         <g id="valve-enc1-vert"><circle id="circle-enc1-vert" cx="608" cy="199" r="40" fill="#080818" stroke="#ff6600" stroke-width="2.5"/><ellipse id="ellipse-enc1-vert" cx="608" cy="199" rx="6" ry="30" fill="#ff6600" opacity="0.18" transform="rotate(0 608 192.2)" style="filter:drop-shadow(0 0 4px #ff6600)"/></g>
         
-        <text x="564" y="201" fill="#00ffff" font-family="Orbitron" font-size="25" text-anchor="end" letter-spacing="2" style="text-shadow:0 0 14px rgba(0,255,255,0.9)">E1</text>
-        <text x="564" y="224" fill="#ff6600" font-family="Orbitron" font-size="25" text-anchor="end" style="text-shadow:0 0 10px rgba(255,102,0,0.9)" id="valve-enc1-vert-pos">—</text>
+        <text x="550" y="201" fill="#00ffff" font-family="Orbitron" font-size="25" text-anchor="end" letter-spacing="2" style="text-shadow:0 0 14px rgba(0,255,255,0.9)">E1</text>
+        <text x="550" y="224" fill="#ff6600" font-family="Orbitron" font-size="25" text-anchor="end" style="text-shadow:0 0 10px rgba(255,102,0,0.9)" id="valve-enc1-vert-pos">—</text>
 
         
 <!-- ═══════════════ ENC2 PIPE — bold 3D yellow ═══════════════ -->
@@ -219,8 +219,8 @@
         <!-- E2 branch valve + label LEFT of pipe (mirrors E1) -->
         <g id="valve-enc2-vert"><circle id="circle-enc2-vert" cx="935" cy="199" r="40" fill="#080818" stroke="#ff6600" stroke-width="2.5"/><ellipse id="ellipse-enc2-vert" cx="935" cy="199" rx="6" ry="30" fill="#ff6600" opacity="0.18" transform="rotate(0 935 192.2)" style="filter:drop-shadow(0 0 4px #ff6600)"/></g>
         
-        <text x="891" y="201" fill="#00ffff" font-family="Orbitron" font-size="25" text-anchor="end" letter-spacing="2" style="text-shadow:0 0 14px rgba(0,255,255,0.9)">E2</text>
-        <text x="891" y="224" fill="#ff6600" font-family="Orbitron" font-size="25" text-anchor="end" style="text-shadow:0 0 10px rgba(255,102,0,0.9)" id="valve-enc2-vert-pos">—</text>
+        <text x="877" y="201" fill="#00ffff" font-family="Orbitron" font-size="25" text-anchor="end" letter-spacing="2" style="text-shadow:0 0 14px rgba(0,255,255,0.9)">E2</text>
+        <text x="877" y="224" fill="#ff6600" font-family="Orbitron" font-size="25" text-anchor="end" style="text-shadow:0 0 10px rgba(255,102,0,0.9)" id="valve-enc2-vert-pos">—</text>
 
         
 <!-- ═══════════════ SPRAY BOOTH — neon orange ═══════════════ -->
@@ -233,7 +233,7 @@
         <!-- Booth fan text labels (drawn after blades so they appear on top) -->
         <text x="1222" y="468" fill="#00ffff" font-family="Orbitron" font-size="28" text-anchor="middle" letter-spacing="2" style="text-shadow:0 0 16px rgba(0,255,255,0.9)" id="spray-fan-status">BOOTH</text>
         <text x="1222" y="492" fill="#00ffff" font-family="Orbitron" font-size="28" text-anchor="middle" letter-spacing="2" style="text-shadow:0 0 16px rgba(0,255,255,0.9)">FAN</text>
-        <text id="booth-fan-rpm" x="1222" y="540" fill="#91a2b8" font-size="12" text-anchor="middle">RPM unavailable</text><text x="1222" y="516" fill="#ff6600" font-family="Orbitron" font-size="20" text-anchor="middle" style="text-shadow:0 0 8px rgba(255,102,0,0.8)" id="spray-fan-status-sub">—</text>
+        <text id="booth-fan-rpm" x="1222" y="540" fill="#91a2b8" font-size="12" text-anchor="middle"></text><text x="1222" y="516" fill="#ff6600" font-family="Orbitron" font-size="20" text-anchor="middle" style="text-shadow:0 0 8px rgba(255,102,0,0.8)" id="spray-fan-status-sub">—</text>
         
 
         <!-- ═══ LAYER 3: HORIZONTAL PIPE ═══ -->
@@ -294,21 +294,21 @@
         <!-- ── Valve % labels outside circles ── -->
         
         
-        <text id="enc1-360-pct" x="564" y="501" fill="#ff6600" font-family="Orbitron" font-size="25" text-anchor="end" dominant-baseline="middle" style="text-shadow:0 0 8px rgba(255,102,0,0.8)">—</text>
-        <text id="enc2-360-pct" x="891" y="501" fill="#ff6600" font-family="Orbitron" font-size="25" text-anchor="end" dominant-baseline="middle" style="text-shadow:0 0 8px rgba(255,102,0,0.8)">—</text>
-        <text id="enc1-print-pct" x="564" y="598" fill="#ff6600" font-family="Orbitron" font-size="25" text-anchor="end" dominant-baseline="middle" style="text-shadow:0 0 8px rgba(255,102,0,0.8)">—</text>
-        <text id="enc2-print-pct" x="891" y="598" fill="#ff6600" font-family="Orbitron" font-size="25" text-anchor="end" dominant-baseline="middle" style="text-shadow:0 0 8px rgba(255,102,0,0.8)">—</text>
+        <text id="enc1-360-pct" x="550" y="501" fill="#ff6600" font-family="Orbitron" font-size="25" text-anchor="end" dominant-baseline="middle" style="text-shadow:0 0 8px rgba(255,102,0,0.8)">—</text>
+        <text id="enc2-360-pct" x="877" y="501" fill="#ff6600" font-family="Orbitron" font-size="25" text-anchor="end" dominant-baseline="middle" style="text-shadow:0 0 8px rgba(255,102,0,0.8)">—</text>
+        <text id="enc1-print-pct" x="550" y="598" fill="#ff6600" font-family="Orbitron" font-size="25" text-anchor="end" dominant-baseline="middle" style="text-shadow:0 0 8px rgba(255,102,0,0.8)">—</text>
+        <text id="enc2-print-pct" x="877" y="598" fill="#ff6600" font-family="Orbitron" font-size="25" text-anchor="end" dominant-baseline="middle" style="text-shadow:0 0 8px rgba(255,102,0,0.8)">—</text>
 
         <!-- ── Fan % labels (right side, vertically centred) ── -->
-        <text id="main-fan-pct" x="338" y="192" fill="#ff6600" font-family="Orbitron" font-size="25" text-anchor="middle" style="text-shadow:0 0 8px rgba(255,102,0,0.8)">—</text>
-        <text id="spray-fan-pct" x="1168" y="578" fill="#ff6600" font-family="Orbitron" font-size="25" text-anchor="end" dominant-baseline="middle" style="text-shadow:0 0 8px rgba(255,102,0,0.8)">—</text>
+        <text id="main-fan-pct" x="338" y="192" fill="#ff6600" font-family="Orbitron" font-size="19" text-anchor="middle" style="text-shadow:0 0 8px rgba(255,102,0,0.8)">—</text><text id="main-fan-pct-unit" x="338" y="214" fill="#ff5500" font-size="19" text-anchor="middle" dominant-baseline="middle">RPM</text>
+        <text id="spray-fan-pct" x="1154" y="578" fill="#ff6600" font-family="Orbitron" font-size="19" text-anchor="end" dominant-baseline="middle" style="text-shadow:0 0 8px rgba(255,102,0,0.8)">—</text><text id="spray-fan-pct-unit" x="1154" y="600" fill="#ff5500" font-size="19" text-anchor="end" dominant-baseline="middle">RPM</text>
 
         <!-- Spray flow sensor — matches ENC style, aligned at cy=308 -->
         <circle cx="1222" cy="308" r="39" fill="rgba(10,10,30,0.25)" stroke="#ff6600" stroke-width="1.5" filter="url(#iconBlur)" style="backdrop-filter:blur(4px)" id="flow3-circle"/>
         <path id="flow3-arrow-top" d="M 1212 288 L 1232 288 L 1222 276 Z" fill="#ff2200" style="filter:drop-shadow(0 0 4px rgba(255,34,0,0.8))"/>
         <path id="flow3-arrow-ctr" d="M 1212 308 L 1232 308 L 1222 296 Z" fill="#ff2200" style="filter:drop-shadow(0 0 4px rgba(255,34,0,0.8))"/>
         <path id="flow3-arrow-bot" d="M 1212 328 L 1232 328 L 1222 316 Z" fill="#ff2200" style="filter:drop-shadow(0 0 4px rgba(255,34,0,0.8))"/>
-        <text x="1169" y="308" fill="#ff5500" font-family="Orbitron" font-size="19" text-anchor="end" dominant-baseline="middle" id="flow3-rate" style="text-shadow:0 0 6px rgba(255,34,0,0.8)">—</text>
+        <text x="1155" y="308" fill="#ff5500" font-family="Orbitron" font-size="19" text-anchor="end" dominant-baseline="middle" id="flow3-rate" style="text-shadow:0 0 6px rgba(255,34,0,0.8)">—</text><text id="flow3-rate-unit" x="1155" y="330" fill="#ff5500" font-size="19" text-anchor="end" dominant-baseline="middle">RPM</text>
 
 
 
@@ -326,7 +326,7 @@
         </g>
         <circle cx="338" cy="123" r="8" fill="#05050f"/>
         <text x="338" y="38" fill="#00ffff" font-family="Orbitron" font-size="32" text-anchor="middle" letter-spacing="2" style="text-shadow:0 0 14px rgba(0,255,255,0.9)" id="fan-status">MAIN FAN</text>
-        <text id="main-fan-rpm" x="338" y="87" fill="#91a2b8" font-size="15" text-anchor="middle">RPM unavailable</text><text x="338" y="64" fill="#00ff88" font-family="Orbitron" font-size="21" text-anchor="middle" style="text-shadow:0 0 8px rgba(0,255,136,0.8)" id="fan-status-sub">—</text>
+        <text id="main-fan-rpm" x="338" y="87" fill="#91a2b8" font-size="15" text-anchor="middle"></text><text x="338" y="64" fill="#00ff88" font-family="Orbitron" font-size="21" text-anchor="middle" style="text-shadow:0 0 8px rgba(0,255,136,0.8)" id="fan-status-sub">—</text>
 
         
 <!-- ═══ MAIN VALVE 1 — more vertical spacing ═══ -->
@@ -362,7 +362,7 @@
         <circle cx="608" cy="308" r="39" fill="rgba(10,10,30,0.25)" stroke="#00ff88" stroke-width="1.5" filter="url(#iconBlur)" style="backdrop-filter:blur(4px)" id="flow1-circle"/>
         <path id="flow1-arrow-top" d="M 598 288 L 618 288 L 608 276 Z" fill="#ff2200" style="filter:drop-shadow(0 0 4px rgba(255,34,0,0.8))"/>
         <path id="flow1-arrow-ctr" d="M 598 308 L 618 308 L 608 296 Z" fill="#ff2200" style="filter:drop-shadow(0 0 4px rgba(255,34,0,0.8))"/>
-        <text x="564" y="308" fill="#ff5500" font-family="Orbitron" font-size="19" text-anchor="end" dominant-baseline="middle" id="flow1-rate" style="text-shadow:0 0 6px rgba(255,34,0,0.8)">—</text>
+        <text x="550" y="308" fill="#ff5500" font-family="Orbitron" font-size="19" text-anchor="end" dominant-baseline="middle" id="flow1-rate" style="text-shadow:0 0 6px rgba(255,34,0,0.8)">—</text><text id="flow1-rate-unit" x="550" y="330" fill="#ff5500" font-size="19" text-anchor="end" dominant-baseline="middle">RPM</text>
         <path id="flow1-arrow-bot" d="M 598 328 L 618 328 L 608 316 Z" fill="#ff2200" style="filter:drop-shadow(0 0 4px rgba(255,34,0,0.8))"/>
 
         <!-- ── 360° intake valve ── -->
@@ -379,7 +379,7 @@
         <!-- ── BME sensor ── -->
         <circle cx="608" cy="405" r="39" fill="rgba(10,10,30,0.25)" stroke="#00ff88" stroke-width="1.5" filter="url(#iconBlur)" id="bme1-circle"/>
         <text x="608" y="405" fill="#ffffff" font-family="Orbitron" font-size="32" text-anchor="middle" dominant-baseline="middle" style="text-shadow:0 0 12px rgba(255,255,255,0.65)" id="bme1-label">kΩ</text>
-        <text x="538" y="405" fill="#00ff88" font-family="Orbitron" font-size="28" text-anchor="middle" dominant-baseline="middle" id="bme1-iaq">—</text>
+        <text x="528" y="405" fill="#00ff88" font-family="Orbitron" font-size="28" text-anchor="middle" dominant-baseline="middle" id="bme1-iaq">—</text>
         
 
         
@@ -387,7 +387,7 @@
         <circle cx="935" cy="308" r="39" fill="rgba(10,10,30,0.25)" stroke="#ffee00" stroke-width="1.5" filter="url(#iconBlur)" style="backdrop-filter:blur(4px)" id="flow2-circle"/>
         <path id="flow2-arrow-top" d="M 925 288 L 945 288 L 935 276 Z" fill="#ff2200" style="filter:drop-shadow(0 0 4px rgba(255,34,0,0.8))"/>
         <path id="flow2-arrow-ctr" d="M 925 308 L 945 308 L 935 296 Z" fill="#ff2200" style="filter:drop-shadow(0 0 4px rgba(255,34,0,0.8))"/>
-        <text x="891" y="308" fill="#ff5500" font-family="Orbitron" font-size="19" text-anchor="end" dominant-baseline="middle" id="flow2-rate" style="text-shadow:0 0 6px rgba(255,34,0,0.8)">—</text>
+        <text x="877" y="308" fill="#ff5500" font-family="Orbitron" font-size="19" text-anchor="end" dominant-baseline="middle" id="flow2-rate" style="text-shadow:0 0 6px rgba(255,34,0,0.8)">—</text><text id="flow2-rate-unit" x="877" y="330" fill="#ff5500" font-size="19" text-anchor="end" dominant-baseline="middle">RPM</text>
         <path id="flow2-arrow-bot" d="M 925 328 L 945 328 L 935 316 Z" fill="#ff2200" style="filter:drop-shadow(0 0 4px rgba(255,34,0,0.8))"/>
 
         <!-- ── 360° intake valve ── -->
@@ -404,7 +404,7 @@
         <!-- ── BME sensor ── -->
         <circle cx="935" cy="405" r="39" fill="rgba(10,10,30,0.25)" stroke="#ffee00" stroke-width="1.5" filter="url(#iconBlur)" id="bme2-circle"/>
         <text x="935" y="405" fill="#ffffff" font-family="Orbitron" font-size="32" text-anchor="middle" dominant-baseline="middle" style="text-shadow:0 0 12px rgba(255,255,255,0.65)" id="bme2-label">kΩ</text>
-        <text x="861" y="405" fill="#ffee00" font-family="Orbitron" font-size="28" text-anchor="middle" dominant-baseline="middle" id="bme2-iaq">—</text>
+        <text x="851" y="405" fill="#ffee00" font-family="Orbitron" font-size="28" text-anchor="middle" dominant-baseline="middle" id="bme2-iaq">—</text>
         
 
         
@@ -413,17 +413,17 @@
         
         <!-- ── SMK sensor boxes — upper-right of enclosures ── -->
         <!-- ENC1 smoke box -->
-        <rect id="pressure-fdm-box" x="671" y="268" width="43" height="38" rx="4" fill="rgba(0,255,136,0.08)" stroke="#00ff88" stroke-width="1.5" filter="url(#glow)"/>
-        <text id="pressure-fdm-icon" x="692" y="290" fill="#00ff88" font-size="25" text-anchor="middle">?</text><text id="pressure-fdm-value" x="692" y="330" fill="#00ff88" font-size="17" text-anchor="middle">Unavailable</text>
+        <rect id="pressure-fdm-box" x="683" y="287" width="43" height="38" rx="4" fill="rgba(0,255,136,0.08)" stroke="#00ff88" stroke-width="1.5" filter="url(#glow)"/>
+        <text id="pressure-fdm-icon" x="704.5" y="306" fill="#00ff88" font-size="25" text-anchor="middle" dominant-baseline="central">?</text><text id="pressure-fdm-value" x="704.5" y="349" fill="#00ff88" font-size="17" text-anchor="middle"></text>
         
         <!-- ENC2 smoke box -->
-        <rect id="pressure-sla-box" x="998" y="268" width="43" height="38" rx="4" fill="rgba(255,238,0,0.08)" stroke="#ffee00" stroke-width="1.5" filter="url(#glow)"/>
-        <text id="pressure-sla-icon" x="1019" y="290" fill="#ffee00" font-size="25" text-anchor="middle">?</text><text id="pressure-sla-value" x="1019" y="330" fill="#ffee00" font-size="17" text-anchor="middle">Unavailable</text>
+        <rect id="pressure-sla-box" x="1010" y="287" width="43" height="38" rx="4" fill="rgba(255,238,0,0.08)" stroke="#ffee00" stroke-width="1.5" filter="url(#glow)"/>
+        <text id="pressure-sla-icon" x="1031.5" y="306" fill="#ffee00" font-size="25" text-anchor="middle" dominant-baseline="central">?</text><text id="pressure-sla-value" x="1031.5" y="349" fill="#ffee00" font-size="17" text-anchor="middle"></text>
         
         </g>
         <!-- ═══ LAYER 8: UI PANELS ═══ -->
 <!-- Environment comparison: three zone columns, shared row labels/units. -->
-<g id="environment-box" role="group" aria-label="Ambient, enclosure arrays and pipe sensors"><rect id="environment-frame" x="20" y="225" width="636" height="240" rx="8" fill="#051318" stroke="#00ffff"/><text x="338" y="248" fill="#00ffff" font-size="24" text-anchor="middle">ENVIRONMENT</text><text x="166" y="278" fill="#00ffff" font-size="16" text-anchor="middle">AMBIENT</text><text x="270" y="278" fill="#00ff88" font-size="16" text-anchor="middle">FDM</text><text x="374" y="278" fill="#00ff88" font-size="16" text-anchor="middle">PIPE</text><text x="478" y="278" fill="#ffee00" font-size="16" text-anchor="middle">SLA</text><text x="582" y="278" fill="#ffee00" font-size="16" text-anchor="middle">PIPE</text><text x="30" y="312" fill="#a9b8d0" font-size="16">TEMP °C</text><text id="env-ambient-temperature" x="166" y="312" fill="#00ffff" font-size="17" text-anchor="middle">—</text><text id="env-fdm-temperature" x="270" y="312" fill="#00ff88" font-size="17" text-anchor="middle">—</text><text id="env-fdm_pipe-temperature" x="374" y="312" fill="#00ff88" font-size="17" text-anchor="middle">—</text><text id="env-sla-temperature" x="478" y="312" fill="#ffee00" font-size="17" text-anchor="middle">—</text><text id="env-sla_pipe-temperature" x="582" y="312" fill="#ffee00" font-size="17" text-anchor="middle">—</text><text x="30" y="346" fill="#a9b8d0" font-size="16">RH %</text><text id="env-ambient-humidity" x="166" y="346" fill="#00ffff" font-size="17" text-anchor="middle">—</text><text id="env-fdm-humidity" x="270" y="346" fill="#00ff88" font-size="17" text-anchor="middle">—</text><text id="env-fdm_pipe-humidity" x="374" y="346" fill="#00ff88" font-size="17" text-anchor="middle">—</text><text id="env-sla-humidity" x="478" y="346" fill="#ffee00" font-size="17" text-anchor="middle">—</text><text id="env-sla_pipe-humidity" x="582" y="346" fill="#ffee00" font-size="17" text-anchor="middle">—</text><text x="30" y="380" fill="#a9b8d0" font-size="16">hPa</text><text id="env-ambient-baro" x="166" y="380" fill="#00ffff" font-size="17" text-anchor="middle">—</text><text id="env-fdm-baro" x="270" y="380" fill="#00ff88" font-size="17" text-anchor="middle">—</text><text id="env-fdm_pipe-baro" x="374" y="380" fill="#00ff88" font-size="17" text-anchor="middle">—</text><text id="env-sla-baro" x="478" y="380" fill="#ffee00" font-size="17" text-anchor="middle">—</text><text id="env-sla_pipe-baro" x="582" y="380" fill="#ffee00" font-size="17" text-anchor="middle">—</text><text x="30" y="414" fill="#a9b8d0" font-size="16">CO / SMOKE</text><text id="env-ambient-smoke" x="166" y="414" fill="#00ffff" font-size="17" text-anchor="middle">—</text><text id="env-fdm-smoke" x="270" y="414" fill="#00ff88" font-size="17" text-anchor="middle">—</text><text id="env-fdm_pipe-smoke" x="374" y="414" fill="#00ff88" font-size="17" text-anchor="middle">—</text><text id="env-sla-smoke" x="478" y="414" fill="#ffee00" font-size="17" text-anchor="middle">—</text><text id="env-sla_pipe-smoke" x="582" y="414" fill="#ffee00" font-size="17" text-anchor="middle">—</text><text x="30" y="448" fill="#a9b8d0" font-size="16">GAS kΩ</text><text id="env-ambient-gas" x="166" y="448" fill="#00ffff" font-size="17" text-anchor="middle">—</text><text id="env-fdm-gas" x="270" y="448" fill="#00ff88" font-size="17" text-anchor="middle">—</text><text id="env-fdm_pipe-gas" x="374" y="448" fill="#00ff88" font-size="17" text-anchor="middle">—</text><text id="env-sla-gas" x="478" y="448" fill="#ffee00" font-size="17" text-anchor="middle">—</text><text id="env-sla_pipe-gas" x="582" y="448" fill="#ffee00" font-size="17" text-anchor="middle">—</text></g>
+<g id="environment-box" role="group" aria-label="Ambient, enclosure arrays and pipe sensors"><rect id="environment-frame" x="20" y="225" width="636" height="240" rx="8" fill="#051318" stroke="#00ffff"/><text x="338" y="248" fill="#00ffff" font-size="24" text-anchor="middle">ENVIRONMENT</text><text x="166" y="278" fill="#00ffff" font-size="16" text-anchor="middle">AMBIENT</text><text x="270" y="278" fill="#00ff88" font-size="16" text-anchor="middle">FDM</text><text x="374" y="278" fill="#00ff88" font-size="16" text-anchor="middle">FDM PIPE</text><text x="478" y="278" fill="#ffee00" font-size="16" text-anchor="middle">SLA</text><text x="582" y="278" fill="#ffee00" font-size="16" text-anchor="middle">SLA PIPE</text><text x="30" y="312" fill="#a9b8d0" font-size="16">TEMP °C</text><text id="env-ambient-temperature" x="166" y="312" fill="#00ffff" font-size="17" text-anchor="middle">—</text><text id="env-fdm-temperature" x="270" y="312" fill="#00ff88" font-size="17" text-anchor="middle">—</text><text id="env-fdm_pipe-temperature" x="374" y="312" fill="#00ff88" font-size="17" text-anchor="middle">—</text><text id="env-sla-temperature" x="478" y="312" fill="#ffee00" font-size="17" text-anchor="middle">—</text><text id="env-sla_pipe-temperature" x="582" y="312" fill="#ffee00" font-size="17" text-anchor="middle">—</text><text x="30" y="346" fill="#a9b8d0" font-size="16">RH %</text><text id="env-ambient-humidity" x="166" y="346" fill="#00ffff" font-size="17" text-anchor="middle">—</text><text id="env-fdm-humidity" x="270" y="346" fill="#00ff88" font-size="17" text-anchor="middle">—</text><text id="env-fdm_pipe-humidity" x="374" y="346" fill="#00ff88" font-size="17" text-anchor="middle">—</text><text id="env-sla-humidity" x="478" y="346" fill="#ffee00" font-size="17" text-anchor="middle">—</text><text id="env-sla_pipe-humidity" x="582" y="346" fill="#ffee00" font-size="17" text-anchor="middle">—</text><text x="30" y="380" fill="#a9b8d0" font-size="16">hPa</text><text id="env-ambient-baro" x="166" y="380" fill="#00ffff" font-size="17" text-anchor="middle">—</text><text id="env-fdm-baro" x="270" y="380" fill="#00ff88" font-size="17" text-anchor="middle">—</text><text id="env-fdm_pipe-baro" x="374" y="380" fill="#00ff88" font-size="17" text-anchor="middle">—</text><text id="env-sla-baro" x="478" y="380" fill="#ffee00" font-size="17" text-anchor="middle">—</text><text id="env-sla_pipe-baro" x="582" y="380" fill="#ffee00" font-size="17" text-anchor="middle">—</text><text x="30" y="414" fill="#a9b8d0" font-size="16">CO / SMOKE</text><text id="env-ambient-smoke" x="166" y="414" fill="#00ffff" font-size="17" text-anchor="middle">—</text><text id="env-fdm-smoke" x="270" y="414" fill="#00ff88" font-size="17" text-anchor="middle">—</text><text id="env-fdm_pipe-smoke" x="374" y="414" fill="#00ff88" font-size="17" text-anchor="middle">—</text><text id="env-sla-smoke" x="478" y="414" fill="#ffee00" font-size="17" text-anchor="middle">—</text><text id="env-sla_pipe-smoke" x="582" y="414" fill="#ffee00" font-size="17" text-anchor="middle">—</text><text x="30" y="448" fill="#a9b8d0" font-size="16">GAS kΩ</text><text id="env-ambient-gas" x="166" y="448" fill="#00ffff" font-size="17" text-anchor="middle">—</text><text id="env-fdm-gas" x="270" y="448" fill="#00ff88" font-size="17" text-anchor="middle">—</text><text id="env-fdm_pipe-gas" x="374" y="448" fill="#00ff88" font-size="17" text-anchor="middle">—</text><text id="env-sla-gas" x="478" y="448" fill="#ffee00" font-size="17" text-anchor="middle">—</text><text id="env-sla_pipe-gas" x="582" y="448" fill="#ffee00" font-size="17" text-anchor="middle">—</text></g>
 
 <!-- System log: dashboard session events only. -->
         <g id="svg-log-box" role="group" aria-label="System log — recorded Home Assistant activity and current session">

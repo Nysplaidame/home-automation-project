@@ -740,3 +740,5 @@ November 14 VentSys follow-through: native FDM `.31` adoption, dashboard pressur
 - [ ] Accept November 14 VentSys history/board UI physically: verify source placements, native chart interactions, supervised board shutdown/reconnect/reactivation, and alarm/cutoff/phone path. See [[docs/audits/2026-11-14-ventsys-history-and-telemetry]]. Add fan tachometry only if actual motor RPM is required; current 0 RPM indicator explicitly follows off report.
 - [ ] Troubleshoot FDM array1 `.31` LDR after November14 live cover/light test: readings fluctuated ~3–64% and stable response was not established. Check GPIO0 midpoint, 3V3/LDR/10k/GND divider and connector continuity with power off, then retest. See November14 array handoff.
 - [x] FDM `.31` OLED, SDP810 and BME humidity recovered after owner repowered on November14; LDR investigation remains separately open. See array handoff.
+
+- [ ] VentSys testing override (2026-11-17): keep automatic cutoff/fire-safe sync disabled until explicit owner commissioning; restore and supervise acceptance using `docs/procedures/ventsys-dashboard.md`.
